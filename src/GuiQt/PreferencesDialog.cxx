@@ -48,6 +48,7 @@
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
+#include "WuQFactory.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -281,7 +282,7 @@ PreferencesDialog::addColorItems()
 void 
 PreferencesDialog::addTimeCourseItems()
 {
-    this->animationStartDoubleSpinBox = new QDoubleSpinBox();
+    this->animationStartDoubleSpinBox = WuQFactory::newDoubleSpinBox();
     QObject::connect(this->animationStartDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(animationStartChanged(double)));
     

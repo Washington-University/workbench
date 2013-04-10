@@ -61,6 +61,7 @@
 #include "GuiManager.h"
 #include "SceneClass.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQFactory.h"
 #include "WuQTabWidget.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
@@ -189,7 +190,7 @@ FociSelectionViewController::createAttributesWidget()
     //                                maxLineWidth);
         
     QLabel* pointSizeLabel = new QLabel("Symbol Size");
-    m_sizeSpinBox = new QDoubleSpinBox();
+    m_sizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_sizeSpinBox->setFixedWidth(80);
     m_sizeSpinBox->setRange(minLineWidth,
                                  maxLineWidth);

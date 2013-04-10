@@ -56,6 +56,7 @@
 #include "GuiManager.h"
 #include "SurfaceProjector.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -241,19 +242,19 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
      * Coordinates
      */
     QLabel* coordLabel = new QLabel("XYZ (mm)");
-    m_xCoordSpinBox = new QDoubleSpinBox();
+    m_xCoordSpinBox = WuQFactory::newDoubleSpinBox();
     m_xCoordSpinBox->setDecimals(2);
     m_xCoordSpinBox->setSingleStep(1.0);
     m_xCoordSpinBox->setRange(-10000000.0,
                               10000000.0);
     
-    m_yCoordSpinBox = new QDoubleSpinBox();
+    m_yCoordSpinBox = WuQFactory::newDoubleSpinBox();
     m_yCoordSpinBox->setDecimals(2);
     m_yCoordSpinBox->setSingleStep(1.0);
     m_yCoordSpinBox->setRange(-10000000.0,
                               10000000.0);
 
-    m_zCoordSpinBox = new QDoubleSpinBox();
+    m_zCoordSpinBox = WuQFactory::newDoubleSpinBox();
     m_zCoordSpinBox->setDecimals(2);
     m_zCoordSpinBox->setSingleStep(1.0);
     m_zCoordSpinBox->setRange(-10000000.0,
@@ -273,7 +274,7 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     m_geographyLineEdit = new QLineEdit();
     
     QLabel* extentLabel = new QLabel("Extent");
-    m_extentSpinBox = new QDoubleSpinBox();
+    m_extentSpinBox = WuQFactory::newDoubleSpinBox();
     m_extentSpinBox->setDecimals(2);
     m_extentSpinBox->setSingleStep(1.0);
     m_extentSpinBox->setRange(-10000000.0,

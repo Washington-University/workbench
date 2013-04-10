@@ -48,6 +48,7 @@
 #include "GuiManager.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 #include "VolumeSurfaceOutlineViewController.h"
+#include "WuQFactory.h"
 #include "WuQtUtilities.h"
 using namespace caret;
 
@@ -109,7 +110,7 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     }
     
     QLabel* outlineCountLabel = new QLabel("Number of Outlines: ");
-    this->outlineCountSpinBox = new QSpinBox();
+    this->outlineCountSpinBox = WuQFactory::newSpinBox();
     this->outlineCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES,
                                         BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES);
     this->outlineCountSpinBox->setSingleStep(1);

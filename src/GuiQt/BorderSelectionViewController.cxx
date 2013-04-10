@@ -61,6 +61,7 @@
 #include "GuiManager.h"
 #include "SceneClass.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQFactory.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -181,7 +182,7 @@ BorderSelectionViewController::createAttributesWidget()
     //                                maxLineWidth);
     
     QLabel* lineWidthLabel = new QLabel("Line Width");
-    m_lineWidthSpinBox = new QDoubleSpinBox();
+    m_lineWidthSpinBox = WuQFactory::newDoubleSpinBox();
     m_lineWidthSpinBox->setFixedWidth(80);
     m_lineWidthSpinBox->setRange(minLineWidth,
                                  maxLineWidth);
@@ -197,7 +198,7 @@ BorderSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* pointSizeLabel = new QLabel("Symbol Size");
-    m_pointSizeSpinBox = new QDoubleSpinBox();
+    m_pointSizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_pointSizeSpinBox->setFixedWidth(80);
     m_pointSizeSpinBox->setRange(minLineWidth,
                                  maxLineWidth);

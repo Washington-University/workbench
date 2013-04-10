@@ -52,6 +52,7 @@
 #include "Surface.h"
 #include "SurfaceProjector.h"
 #include "SurfaceSelectionViewController.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -295,7 +296,7 @@ FociProjectionDialog::createOptionsWidget()
 {
     m_projectAboveSurfaceCheckBox = new QCheckBox("Project fixed distance above surface(s)");
     
-    m_projectAboveSurfaceSpinBox = new QDoubleSpinBox();
+    m_projectAboveSurfaceSpinBox = WuQFactory::newDoubleSpinBox();
     m_projectAboveSurfaceSpinBox->setRange(-100000.0, 100000.0);
     m_projectAboveSurfaceSpinBox->setDecimals(2);
     m_projectAboveSurfaceSpinBox->setSingleStep(1.0);

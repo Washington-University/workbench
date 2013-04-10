@@ -51,6 +51,7 @@
 #include "SurfaceSelectionViewController.h"
 #include "VolumeSurfaceOutlineColorOrTabViewController.h"
 #include "VolumeSurfaceOutlineModel.h"
+#include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
@@ -93,7 +94,7 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     const float minLineWidth = 0.1;
     const float maxLineWidth = 100.0;
     const float stepSize = 0.5;
-    this->thicknessSpinBox = new QDoubleSpinBox();
+    this->thicknessSpinBox = WuQFactory::newDoubleSpinBox();
     this->thicknessSpinBox->setRange(minLineWidth, 
                                maxLineWidth);
     this->thicknessSpinBox->setSingleStep(stepSize);

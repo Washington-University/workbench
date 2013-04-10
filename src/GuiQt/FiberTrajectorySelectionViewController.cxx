@@ -60,6 +60,7 @@
 #include "FiberTrajectorySelectionViewController.h"
 #include "GuiManager.h"
 #include "SceneClass.h"
+#include "WuQFactory.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -182,7 +183,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
         modeGroupLayout->addWidget(m_displayModeRadioButtons[i]);
     }
     
-    m_proportionStreamlineSpinBox = new QSpinBox();
+    m_proportionStreamlineSpinBox = WuQFactory::newSpinBox();
     m_proportionStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_proportionStreamlineSpinBox->setSingleStep(5);
     m_proportionStreamlineSpinBox->setFixedWidth(spinBoxWidth);
@@ -191,7 +192,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_proportionStreamlineSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
-    m_proportionMinimumSpinBox = new QDoubleSpinBox();
+    m_proportionMinimumSpinBox = WuQFactory::newDoubleSpinBox();
     m_proportionMinimumSpinBox->setRange(0.0, 1.0);
     m_proportionMinimumSpinBox->setDecimals(2);
     m_proportionMinimumSpinBox->setSingleStep(0.05);
@@ -201,7 +202,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_proportionMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    m_proportionMaximumSpinBox = new QDoubleSpinBox();
+    m_proportionMaximumSpinBox = WuQFactory::newDoubleSpinBox();
     m_proportionMaximumSpinBox->setRange(0.0, 1.0);
     m_proportionMaximumSpinBox->setDecimals(2);
     m_proportionMaximumSpinBox->setSingleStep(0.05);
@@ -212,7 +213,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     
-    m_countStreamlineSpinBox = new QSpinBox();
+    m_countStreamlineSpinBox = WuQFactory::newSpinBox();
     m_countStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_countStreamlineSpinBox->setSingleStep(5);
     m_countStreamlineSpinBox->setFixedWidth(spinBoxWidth);
@@ -221,7 +222,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_countStreamlineSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
-    m_countMinimumSpinBox = new QSpinBox();
+    m_countMinimumSpinBox = WuQFactory::newSpinBox();
     m_countMinimumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_countMinimumSpinBox->setSingleStep(5);
     m_countMinimumSpinBox->setFixedWidth(spinBoxWidth);
@@ -230,7 +231,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_countMinimumSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
-    m_countMaximumSpinBox = new QSpinBox();
+    m_countMaximumSpinBox = WuQFactory::newSpinBox();
     m_countMaximumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_countMaximumSpinBox->setSingleStep(5);
     m_countMaximumSpinBox->setFixedWidth(spinBoxWidth);
@@ -241,7 +242,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     
     
     
-    m_distanceStreamlineSpinBox = new QSpinBox();
+    m_distanceStreamlineSpinBox = WuQFactory::newSpinBox();
     m_distanceStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_distanceStreamlineSpinBox->setSingleStep(5);
     m_distanceStreamlineSpinBox->setFixedWidth(spinBoxWidth);
@@ -250,7 +251,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_distanceStreamlineSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
-    m_distanceMinimumSpinBox = new QSpinBox();
+    m_distanceMinimumSpinBox = WuQFactory::newSpinBox();
     m_distanceMinimumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_distanceMinimumSpinBox->setSingleStep(5);
     m_distanceMinimumSpinBox->setFixedWidth(spinBoxWidth);
@@ -259,7 +260,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     QObject::connect(m_distanceMinimumSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(processAttributesChanges()));
     
-    m_distanceMaximumSpinBox = new QSpinBox();
+    m_distanceMaximumSpinBox = WuQFactory::newSpinBox();
     m_distanceMaximumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
     m_distanceMaximumSpinBox->setSingleStep(5);
     m_distanceMaximumSpinBox->setFixedWidth(spinBoxWidth);

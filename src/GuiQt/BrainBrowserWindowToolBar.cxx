@@ -101,6 +101,7 @@
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -1672,7 +1673,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
      * Left/Right separation
      */
     const int separationSpinngerWidth = 48;
-    this->wholeBrainSurfaceSeparationLeftRightSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationLeftRightSpinBox = WuQFactory::newDoubleSpinBox();
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setDecimals(0);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setFixedWidth(separationSpinngerWidth);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMinimum(-100000.0);
@@ -1685,7 +1686,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     /*
      * Cerebellum separation
      */
-    this->wholeBrainSurfaceSeparationCerebellumSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationCerebellumSpinBox = WuQFactory::newDoubleSpinBox();
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setDecimals(0);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setFixedWidth(separationSpinngerWidth);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMinimum(-100000.0);
@@ -1853,28 +1854,28 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     const int sliceIndexSpinBoxWidth = 55;
     const int sliceCoordinateSpinBoxWidth = 60;
     
-    this->volumeIndicesParasagittalSpinBox = new QSpinBox();
+    this->volumeIndicesParasagittalSpinBox = WuQFactory::newSpinBox();
     this->volumeIndicesParasagittalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesParasagittalSpinBox,
                                           "Change the selected PARASAGITTAL slice");
     QObject::connect(this->volumeIndicesParasagittalSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesParasagittalSpinBoxValueChanged(int)));
     
-    this->volumeIndicesCoronalSpinBox = new QSpinBox();
+    this->volumeIndicesCoronalSpinBox = WuQFactory::newSpinBox();
     this->volumeIndicesCoronalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesCoronalSpinBox,
                                           "Change the selected CORONAL slice");
     QObject::connect(this->volumeIndicesCoronalSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesCoronalSpinBoxValueChanged(int)));
     
-    this->volumeIndicesAxialSpinBox = new QSpinBox();
+    this->volumeIndicesAxialSpinBox = WuQFactory::newSpinBox();
     this->volumeIndicesAxialSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesAxialSpinBox,
                                           "Change the selected AXIAL slice");
     QObject::connect(this->volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesAxialSpinBoxValueChanged(int)));
     
-    this->volumeIndicesXcoordSpinBox = new QDoubleSpinBox();
+    this->volumeIndicesXcoordSpinBox = WuQFactory::newDoubleSpinBox();
     this->volumeIndicesXcoordSpinBox->setDecimals(1);
     this->volumeIndicesXcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesXcoordSpinBox,
@@ -1882,7 +1883,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     QObject::connect(this->volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesXcoordSpinBoxValueChanged(double)));
     
-    this->volumeIndicesYcoordSpinBox = new QDoubleSpinBox();
+    this->volumeIndicesYcoordSpinBox = WuQFactory::newDoubleSpinBox();
     this->volumeIndicesYcoordSpinBox->setDecimals(1);
     this->volumeIndicesYcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesYcoordSpinBox,
@@ -1890,7 +1891,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     QObject::connect(this->volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesYcoordSpinBoxValueChanged(double)));
     
-    this->volumeIndicesZcoordSpinBox = new QDoubleSpinBox();
+    this->volumeIndicesZcoordSpinBox = WuQFactory::newDoubleSpinBox();
     this->volumeIndicesZcoordSpinBox->setDecimals(1);
     this->volumeIndicesZcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesZcoordSpinBox,
@@ -2696,7 +2697,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
     
     const int spinBoxWidth = 48;
     
-    this->montageRowsSpinBox = new QSpinBox();
+    this->montageRowsSpinBox = WuQFactory::newSpinBox();
     this->montageRowsSpinBox->setRange(1, 20);
     this->montageRowsSpinBox->setMaximumWidth(spinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->montageRowsSpinBox,
@@ -2704,7 +2705,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
     QObject::connect(this->montageRowsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageRowsSpinBoxValueChanged(int)));
     
-    this->montageColumnsSpinBox = new QSpinBox();
+    this->montageColumnsSpinBox = WuQFactory::newSpinBox();
     this->montageColumnsSpinBox->setRange(1, 20);
     this->montageColumnsSpinBox->setMaximumWidth(spinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->montageColumnsSpinBox,
@@ -2712,7 +2713,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
     QObject::connect(this->montageColumnsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageColumnsSpinBoxValueChanged(int)));
 
-    this->montageSpacingSpinBox = new QSpinBox();
+    this->montageSpacingSpinBox = WuQFactory::newSpinBox();
     this->montageSpacingSpinBox->setRange(1, 2500);
     this->montageSpacingSpinBox->setMaximumWidth(spinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->montageSpacingSpinBox,
@@ -4429,21 +4430,21 @@ BrainBrowserWindowToolBar::createClippingWidget()
     const float thicknessStep = 1.0;
     const int   thicknessDecimals = 1;
     
-    this->clippingXThicknessSpinBox = new QDoubleSpinBox();
+    this->clippingXThicknessSpinBox = WuQFactory::newDoubleSpinBox();
     this->clippingXThicknessSpinBox->setRange(thicknessMin,
                                               thicknessMax);
     this->clippingXThicknessSpinBox->setSingleStep(thicknessStep);
     this->clippingXThicknessSpinBox->setDecimals(thicknessDecimals);
     this->clippingXThicknessSpinBox->setFixedWidth(thickBoxWidth);
     
-    this->clippingYThicknessSpinBox = new QDoubleSpinBox();
+    this->clippingYThicknessSpinBox = WuQFactory::newDoubleSpinBox();
     this->clippingYThicknessSpinBox->setRange(thicknessMin,
                                               thicknessMax);
     this->clippingYThicknessSpinBox->setSingleStep(thicknessStep);
     this->clippingYThicknessSpinBox->setDecimals(thicknessDecimals);
     this->clippingYThicknessSpinBox->setFixedWidth(thickBoxWidth);
     
-    this->clippingZThicknessSpinBox = new QDoubleSpinBox();
+    this->clippingZThicknessSpinBox = WuQFactory::newDoubleSpinBox();
     this->clippingZThicknessSpinBox->setRange(thicknessMin,
                                               thicknessMax);
     this->clippingZThicknessSpinBox->setSingleStep(thicknessStep);
@@ -4463,21 +4464,21 @@ BrainBrowserWindowToolBar::createClippingWidget()
     const float coordStep = 1.0;
     const int   coordDecimals = 1;
     
-    this->clippingXCoordSpinBox = new QDoubleSpinBox();
+    this->clippingXCoordSpinBox = WuQFactory::newDoubleSpinBox();
     this->clippingXCoordSpinBox->setRange(coordMin,
                                           coordMax);
     this->clippingXCoordSpinBox->setSingleStep(coordStep);
     this->clippingXCoordSpinBox->setDecimals(coordDecimals);
     this->clippingXCoordSpinBox->setFixedWidth(coordBoxWidth);
     
-    this->clippingYCoordSpinBox = new QDoubleSpinBox();
+    this->clippingYCoordSpinBox = WuQFactory::newDoubleSpinBox();
     this->clippingYCoordSpinBox->setRange(coordMin,
                                           coordMax);
     this->clippingYCoordSpinBox->setSingleStep(coordStep);
     this->clippingYCoordSpinBox->setDecimals(coordDecimals);
     this->clippingYCoordSpinBox->setFixedWidth(coordBoxWidth);
     
-    this->clippingZCoordSpinBox = new QDoubleSpinBox();
+    this->clippingZCoordSpinBox = WuQFactory::newDoubleSpinBox();
     this->clippingZCoordSpinBox->setRange(coordMin,
                                           coordMax);
     this->clippingZCoordSpinBox->setSingleStep(coordStep);

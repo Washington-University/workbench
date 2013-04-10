@@ -44,6 +44,7 @@
 #include <QStackedWidget>
 #include <QToolButton>
 #include "WuQDataEntryDialog.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -165,7 +166,7 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
      * Metric Value Entry
      */
     QLabel* metricValueLabel = new QLabel("Value: ");
-    this->metricValueSpinBox = new QDoubleSpinBox();
+    this->metricValueSpinBox = WuQFactory::newDoubleSpinBox();
     this->metricValueSpinBox->setMaximumWidth(100);
     this->metricValueSpinBox->setRange(-std::numeric_limits<float>::max(), 
                                        std::numeric_limits<float>::max());

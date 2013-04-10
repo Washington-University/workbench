@@ -82,6 +82,8 @@ using namespace caret;
  * </ol>
  */
 
+#include <limits>
+
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 
@@ -102,10 +104,66 @@ WuQFactory::~WuQFactory()
 }
 
 /**
+ * Create a spin box.
+ *
+ * The minimum value is the most negative 32-bit integer, the maximum
+ * values is the most positive 32-bit integer, step size is one, and 
+ * the default value is zero.
+ * Keyboard tracking is disabled so that signal are NOT issued when
+ * the user changes the text contained in the spin box.
+ *
+ * @return
+ *   A QSpinBox initialized with the default parameters.
+ */
+QSpinBox*
+WuQFactory::newSpinBox()
+{
+    QSpinBox* sb = newSpinBoxWithMinMaxStep(std::numeric_limits<int>::min(),
+                                            std::numeric_limits<int>::max(),
+                                            1);
+    return sb;
+}
+
+/**
+ * Create a spin box.
+ *
+ * The minimum value is the most negative 32-bit integer, the maximum
+ * values is the most positive 32-bit integer, step size is one, and
+ * the default value is zero.
+ * Keyboard tracking is disabled so that signal are NOT issued when
+ * the user changes the text contained in the spin box.
+ * <p>
+ * NOTE: The signal contains an integer parameters that is the new value
+ * contained in the spin box.  The signal is emitted when the user
+ * changes the value AND when the value is changed programatically.
+ *
+ * @param receiver
+ *   Object that received the signal when the value is changed.
+ * @param method
+ *   Method that is connected to the spin box's valueChanged(int)
+ *   signal.
+ * @return
+ *   A QSpinBox initialized with the default parameters.
+ */
+QSpinBox*
+WuQFactory::newSpinBoxWithSignalInt(QObject* receiver,
+                                    const char* method)
+{
+    QSpinBox* sb = newSpinBoxWithMinMaxStepSignalInt(std::numeric_limits<int>::min(),
+                                                     std::numeric_limits<int>::max(),
+                                                     1,
+                                                     receiver,
+                                                     method);
+    return sb;
+}
+
+
+
+/**
  * Create a spin box with the given minimum, maximum, and step values.
  * Keyboard tracking is disabled so that signal are NOT issued when
  * the user changes the text contained in the spin box.
- * <b>
+ * <p>
  * The default value is zero.  If zero is not within the given 
  * minimum and maximum values, the default value is the minimum value.
  * 
@@ -143,10 +201,10 @@ WuQFactory::newSpinBoxWithMinMaxStep(const int minimumValue,
  * Create a spin box with the given minimum, maximum, and step values.
  * Keyboard tracking is disabled so that signal are NOT issued when
  * the user changes the text contained in the spin box.
- * <b>
+ * <p>
  * The default value is zero.  If zero is not within the given
  * minimum and maximum values, the default value is the minimum value.
- * <b>
+ * <p>
  * NOTE: The signal contains an integer parameters that is the new value
  * contained in the spin box.  The signal is emitted when the user 
  * changes the value AND when the value is changed programatically.
@@ -183,11 +241,73 @@ WuQFactory::newSpinBoxWithMinMaxStepSignalInt(const int minimumValue,
 }
 
 /**
+ * Create a double spin box with the minimum value set to the most negative
+ * float (not double) value, the maximum value set to the most positive
+ * float (not double) value, the step size set to one and the number of 
+ * digits right of the decimal set to two.  The default value is zero.
+ * Keyboard tracking is disabled so that signal are NOT issued when
+ * the user changes the text contained in the spin box.
+ * <p>
+ * Since workbench stores most data as 32-bit floats, the default minimum and
+ * maximum values are those for float, not double.
+ *
+ * @return
+ *   A QDoubleSpinBox initialized with the default parameters.
+ */
+QDoubleSpinBox*
+WuQFactory::newDoubleSpinBox()
+{
+    QDoubleSpinBox* sb = newDoubleSpinBoxWithMinMaxStepDecimals(-std::numeric_limits<float>::max(),
+                                                                std::numeric_limits<float>::max(),
+                                                                1.0,
+                                                                2);
+    return sb;
+}
+
+/**
+ * Create a double spin box with the minimum value set to the most negative
+ * float (not double) value, the maximum value set to the most positive
+ * float (not double) value, the step size set to one and the number of
+ * digits right of the decimal set to two.  The default value is zero.
+ * Keyboard tracking is disabled so that signal are NOT issued when
+ * the user changes the text contained in the spin box.
+ * <p>
+ * Since workbench stores most data as 32-bit floats, the default minimum and
+ * maximum values are those for float, not double.
+ *
+ * <p>
+ * NOTE: The signal contains an double parameter that is the new value
+ * contained in the spin box.  The signal is emitted when the user
+ * changes the value AND when the value is changed programatically.
+ *
+ * @param receiver
+ *   Object that received the signal when the value is changed.
+ * @param method
+ *   Method that is connected to the spin box's valueChanged(double)
+ *   signal.
+ * @return
+ *   A QDoubleSpinBox initialized with the default parameters.
+ */
+QDoubleSpinBox*
+WuQFactory::newDoubleSpinBoxWithSignalDouble(QObject* receiver,
+                                             const char* method)
+{
+    QDoubleSpinBox* sb = newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-std::numeric_limits<float>::max(),
+                                                                std::numeric_limits<float>::max(),
+                                                                1.0,
+                                                                2,
+                                                                receiver,
+                                                                method);
+    return sb;
+}
+
+
+/**
  * Create a double spin box with the given minimum, maximum, step, and
  * digits right of decimal values.
  * Keyboard tracking is disabled so that signal are NOT issued when
  * the user changes the text contained in the spin box.
- * <b>
+ * <p>
  * The default value is zero.  If zero is not within the given
  * minimum and maximum values, the default value is the minimum value.
  *
@@ -229,10 +349,10 @@ WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(const double minimumValue,
  * digits right of decimal values.
  * Keyboard tracking is disabled so that signal are NOT issued when
  * the user changes the text contained in the spin box.
- * <b>
+ * <p>
  * The default value is zero.  If zero is not within the given
  * minimum and maximum values, the default value is the minimum value.
- * <b>
+ * <p>
  * NOTE: The signal contains an double parameter that is the new value
  * contained in the spin box.  The signal is emitted when the user
  * changes the value AND when the value is changed programatically.

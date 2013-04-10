@@ -54,6 +54,7 @@ using namespace caret;
 #include "EventUserInterfaceUpdate.h"
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
+#include "WuQFactory.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
     
@@ -78,7 +79,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     m_surfaceDrawingTypeComboBox->setup<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>();
     
     QLabel* linkSizeLabel = new QLabel("Link Size: ");
-    m_linkSizeSpinBox = new QDoubleSpinBox();
+    m_linkSizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_linkSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_linkSizeSpinBox->setSingleStep(1.0);
     m_linkSizeSpinBox->setDecimals(1);
@@ -86,7 +87,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
                      this, SLOT(surfaceDisplayPropertyChanged()));
     
     QLabel* nodeSizeLabel = new QLabel("Vertex Size: ");
-    m_nodeSizeSpinBox = new QDoubleSpinBox();
+    m_nodeSizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_nodeSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_nodeSizeSpinBox->setSingleStep(1.0);
     m_nodeSizeSpinBox->setDecimals(1);

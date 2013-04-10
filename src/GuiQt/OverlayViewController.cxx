@@ -55,6 +55,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "Overlay.h"
+#include "WuQFactory.h"
 #include "WuQtUtilities.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQWidgetObjectGroup.h"
@@ -128,7 +129,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     /*
      * Opacity double spin box
      */
-    this->opacityDoubleSpinBox = new QDoubleSpinBox();
+    this->opacityDoubleSpinBox = WuQFactory::newDoubleSpinBox();
     this->opacityDoubleSpinBox->setMinimum(0.0);
     this->opacityDoubleSpinBox->setMaximum(1.0);
     this->opacityDoubleSpinBox->setSingleStep(0.10);

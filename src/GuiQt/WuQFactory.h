@@ -44,6 +44,11 @@ namespace caret {
     class WuQFactory {
         
     public:
+        static QSpinBox* newSpinBox();
+        
+        static QSpinBox* newSpinBoxWithSignalInt(QObject* receiver,
+                                                 const char* method);
+        
         static QSpinBox* newSpinBoxWithMinMaxStep(const int minimumValue,
                                                   const int maximumValue,
                                                   const int stepSize);
@@ -53,6 +58,11 @@ namespace caret {
                                                            const int stepSize,
                                                            QObject* receiver,
                                                            const char* method);
+        
+        static QDoubleSpinBox* newDoubleSpinBox();
+        
+        static QDoubleSpinBox* newDoubleSpinBoxWithSignalDouble(QObject* receiver,
+                                                                const char* method);
         
         static QDoubleSpinBox* newDoubleSpinBoxWithMinMaxStepDecimals(const double minimumValue,
                                                                       const double maximumValue,

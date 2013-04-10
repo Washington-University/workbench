@@ -44,6 +44,7 @@
 #include "ColorEditorWidget.h"
 #undef __COLOR_EDITOR_WIDGET_DECLARE__
 
+#include "WuQFactory.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -67,7 +68,7 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
     this->colorSwatchWidget->setFixedHeight(25);
     
     QLabel* redLabel = new QLabel("Red");
-    this->redSpinBox = new QSpinBox();
+    this->redSpinBox = WuQFactory::newSpinBox();
     this->redSpinBox->setRange(0, 255);
     this->redSpinBox->setSingleStep(1);
     QObject::connect(this->redSpinBox, SIGNAL(valueChanged(int)),
@@ -80,7 +81,7 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
                      this, SLOT(redValueChanged(int)));
     
     QLabel* greenLabel = new QLabel("Green");
-    this->greenSpinBox = new QSpinBox();
+    this->greenSpinBox = WuQFactory::newSpinBox();
     this->greenSpinBox->setRange(0, 255);
     this->greenSpinBox->setSingleStep(1);
     QObject::connect(this->greenSpinBox, SIGNAL(valueChanged(int)),
@@ -93,7 +94,7 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
                      this, SLOT(greenValueChanged(int)));
     
     QLabel* blueLabel = new QLabel("Blue");
-    this->blueSpinBox = new QSpinBox();
+    this->blueSpinBox = WuQFactory::newSpinBox();
     this->blueSpinBox->setRange(0, 255);
     this->blueSpinBox->setSingleStep(1);
     QObject::connect(this->blueSpinBox, SIGNAL(valueChanged(int)),
@@ -109,7 +110,7 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
     this->alphaSpinBox = NULL;
     if (alphaControlEnabled) {
         alphaLabel = new QLabel("Alpha");
-        this->alphaSpinBox = new QSpinBox();
+        this->alphaSpinBox = WuQFactory::newSpinBox();
         this->alphaSpinBox->setRange(0, 255);
         this->alphaSpinBox->setSingleStep(1);
         QObject::connect(this->alphaSpinBox, SIGNAL(valueChanged(int)),

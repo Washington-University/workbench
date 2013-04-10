@@ -52,6 +52,7 @@
 #include "ImageFile.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQTimedMessageDisplay.h"
 #include "WuQtUtilities.h"
@@ -87,7 +88,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
      * Image Source
      */
     QLabel* windowLabel = new QLabel("Workbench Window: ");
-    this->windowSelectionSpinBox = new QSpinBox();
+    this->windowSelectionSpinBox = WuQFactory::newSpinBox();
     this->windowSelectionSpinBox->setRange(1,
                                            BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
     this->windowSelectionSpinBox->setSingleStep(1);
@@ -111,12 +112,12 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     sizeButtonGroup->addButton(this->imageSizeWindowRadioButton);
     sizeButtonGroup->addButton(this->imageSizeCustomRadioButton);
     this->imageSizeWindowRadioButton->setChecked(true);
-    this->imageSizeCustomXSpinBox = new QSpinBox();
+    this->imageSizeCustomXSpinBox = WuQFactory::newSpinBox();
     this->imageSizeCustomXSpinBox->setFixedWidth(80);
     this->imageSizeCustomXSpinBox->setRange(1, 1000000);
     this->imageSizeCustomXSpinBox->setSingleStep(1);
     this->imageSizeCustomXSpinBox->setValue(2560);
-    this->imageSizeCustomYSpinBox = new QSpinBox();
+    this->imageSizeCustomYSpinBox = WuQFactory::newSpinBox();
     this->imageSizeCustomYSpinBox->setFixedWidth(80);
     this->imageSizeCustomYSpinBox->setRange(1, 1000000);
     this->imageSizeCustomYSpinBox->setSingleStep(1);
@@ -137,7 +138,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
      */
     this->imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
     QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
-    this->imageAutoCropMarginSpinBox = new QSpinBox();
+    this->imageAutoCropMarginSpinBox = WuQFactory::newSpinBox();
     this->imageAutoCropMarginSpinBox->setMinimum(0);
     this->imageAutoCropMarginSpinBox->setMaximum(100000);
     this->imageAutoCropMarginSpinBox->setSingleStep(1);

@@ -59,6 +59,7 @@
 #include "FiberSamplesOpenGLWidget.h"
 #include "GuiManager.h"
 #include "SceneClass.h"
+#include "WuQFactory.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -157,7 +158,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     m_updateInProgress = true;
     
     QLabel* aboveLimitLabel = new QLabel("Slice Above Limit");
-    m_aboveLimitSpinBox = new QDoubleSpinBox();
+    m_aboveLimitSpinBox = WuQFactory::newDoubleSpinBox();
     m_aboveLimitSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_aboveLimitSpinBox->setDecimals(2);
     m_aboveLimitSpinBox->setSingleStep(0.1);
@@ -166,7 +167,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* belowLimitLabel = new QLabel("Slice Below Limit");
-    m_belowLimitSpinBox = new QDoubleSpinBox();
+    m_belowLimitSpinBox = WuQFactory::newDoubleSpinBox();
     m_belowLimitSpinBox->setRange(-std::numeric_limits<float>::max(), 0.0);
     m_belowLimitSpinBox->setDecimals(2);
     m_belowLimitSpinBox->setSingleStep(0.1);
@@ -175,7 +176,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* minimumMagnitudeLabel = new QLabel("Minimum Magnitude");
-    m_minimumMagnitudeSpinBox = new QDoubleSpinBox();
+    m_minimumMagnitudeSpinBox = WuQFactory::newDoubleSpinBox();
     m_minimumMagnitudeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_minimumMagnitudeSpinBox->setDecimals(2);
     m_minimumMagnitudeSpinBox->setSingleStep(0.05);
@@ -184,7 +185,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* lengthMultiplierLabel = new QLabel("Length Multiplier");
-    m_lengthMultiplierSpinBox = new QDoubleSpinBox();
+    m_lengthMultiplierSpinBox = WuQFactory::newDoubleSpinBox();
     m_lengthMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_lengthMultiplierSpinBox->setDecimals(2);
     m_lengthMultiplierSpinBox->setSingleStep(1.0);
@@ -193,7 +194,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     QLabel* fanMultiplierLabel = new QLabel("Fan Multiplier");
-    m_fanMultiplierSpinBox = new QDoubleSpinBox();
+    m_fanMultiplierSpinBox = WuQFactory::newDoubleSpinBox();
     m_fanMultiplierSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_fanMultiplierSpinBox->setDecimals(2);
     m_fanMultiplierSpinBox->setSingleStep(0.05);

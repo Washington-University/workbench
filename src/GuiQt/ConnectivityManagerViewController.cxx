@@ -62,6 +62,7 @@
 #include "QSpinBox"
 #include "QDoubleSpinBox"
 #include "TimeCourseDialog.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -109,29 +110,29 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->renderMovieButton = NULL;
 
     this->frameRepeatLabel = new QLabel("Repeat Frames: ");
-    this->frameRepeatSpinBox = new QSpinBox();
+    this->frameRepeatSpinBox = WuQFactory::newSpinBox();
     this->frameRepeatSpinBox->setMaximum(59);
     this->frameRepeatSpinBox->setMinimum(0);
 
     this->frameRotateLabel = new QLabel("Rotate: ");
     this->frameRotateXLabel = new QLabel("X:");
-    this->frameRotateXSpinBox = new QDoubleSpinBox();
+    this->frameRotateXSpinBox = WuQFactory::newDoubleSpinBox();
     this->frameRotateXSpinBox->setMaximum(180.0);
     this->frameRotateXSpinBox->setMinimum(-180.0);
 
     this->frameRotateYLabel = new QLabel("Y:");
-    this->frameRotateYSpinBox = new QDoubleSpinBox();
+    this->frameRotateYSpinBox = WuQFactory::newDoubleSpinBox();
     this->frameRotateYSpinBox->setMaximum(180.0);
     this->frameRotateYSpinBox->setMinimum(-180.0);
 
     this->frameRotateZLabel = new QLabel("Z:");
-    this->frameRotateZSpinBox = new QDoubleSpinBox();
+    this->frameRotateZSpinBox = WuQFactory::newDoubleSpinBox();
     this->frameRotateZSpinBox->setMaximum(180.0);
     this->frameRotateZSpinBox->setMinimum(-180.0);
 
     this->frameRotateCountLabel = new QLabel();
 	this->frameRotateCountLabel->setText("Rotate Frame Count:");
-    this->frameRotateCountSpinBox = new QSpinBox();
+    this->frameRotateCountSpinBox = WuQFactory::newSpinBox();
 
     this->frameRotateReverseDirectionLabel = new QLabel("Reverse Direction");
     this->frameRotateReverseDirection = new QCheckBox();
