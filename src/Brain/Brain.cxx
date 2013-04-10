@@ -583,10 +583,20 @@ Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
         CaretLogThrowing(e);
         throw e;
     }
-    
+
+    const bool brainStructureExists = (getBrainStructure(structure, false) != NULL);
     BrainStructure* bs = getBrainStructure(structure, true);
     if (bs != NULL) {
-        const bool initializeOverlaysFlag = (m_isSpecFileBeingRead == false);
+        /*
+         * Initialize the overlays if the brain structure did NOT exist 
+         * AND a spec file is NOT being read
+         */
+        bool initializeOverlaysFlag = false;
+        if (brainStructureExists == false) {
+            if (m_isSpecFileBeingRead == false) {
+                initializeOverlaysFlag = true;
+            }
+        }
         const bool isReloading = (reloadThisFileIfNotNull != NULL);
         bs->addSurface(surface,
                        isReloading,
