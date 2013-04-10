@@ -67,8 +67,9 @@ int main(int argc, char** argv)
         caret_global_commandLine = argv[0];
         for (int i = 1; i < argc; ++i)
         {
-            caret_global_commandLine += " ";
+            caret_global_commandLine += " \"";
             caret_global_commandLine += argv[i];
+            caret_global_commandLine += "\"";
         }
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;

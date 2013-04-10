@@ -314,7 +314,7 @@ main(int argc, char* argv[])
         * Parameters for the program.
         */
         ProgramParameters* parameters = new ProgramParameters(argc, argv);
-        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
+        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersQuotedInString();
 
         /*
         * Log the command parameters.

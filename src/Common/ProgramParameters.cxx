@@ -354,6 +354,27 @@ ProgramParameters::getAllParametersInString() const
 }
 
 /**
+ * Get all of the parameters, separated by a space.
+ * @return  All parameters in a String.
+ *
+ */
+AString
+ProgramParameters::getAllParametersQuotedInString() const
+{
+    AString str;
+    
+    int num = this->getNumberOfParameters();
+    for (int i = 0; i < num; i++) {
+        if (i > 0) {
+            str += " ";
+        }
+        str += "\"" + this->getParameter(i) + "\"";
+    }
+    
+    return str;
+}
+
+/**
  * Get the name of the program.
  * @return
  *   Name of the program.

@@ -96,6 +96,8 @@ public:
 
     AString getAllParametersInString() const;
 
+    AString getAllParametersQuotedInString() const;
+
     AString getProgramName() const;
     
 private:

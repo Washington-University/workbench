@@ -23,17 +23,20 @@
  */
 
 #include "CommandParser.h"
+
+#include "AlgorithmException.h"
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
 #include "CiftiFile.h"
-#include "MetricFile.h"
-#include "LabelFile.h"
-#include "SurfaceFile.h"
-#include "VolumeFile.h"
-#include "OperationException.h"
-#include "AlgorithmException.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
+#include "OperationException.h"
+#include "SurfaceFile.h"
+#include "VolumeFile.h"
+
 #include <iostream>
 
 using namespace caret;
@@ -41,6 +44,7 @@ using namespace std;
 
 const AString CommandParser::PROVENANCE_NAME = "Provenance";
 const AString CommandParser::PARENT_PROVENANCE_NAME = "ParentProvenance";
+const AString CommandParser::PROGRAM_PROVENANCE_NAME = "ProgramProvenance";
 
 CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     CommandOperation(myAutoOper->getCommandSwitch(), myAutoOper->getShortDescription()),
@@ -414,6 +418,14 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
 
 void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
 {
+    vector<AString> versionInfo;
+    ApplicationInformation myInfo;
+    myInfo.getAllInformation(versionInfo);
+    AString versionProvenance;
+    for (int i = 0; i < (int)versionInfo.size(); ++i)
+    {
+        versionProvenance += versionInfo[i] + "\n";
+    }
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
@@ -427,6 +439,7 @@ void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAss
                 myXML.applyColumnMapToRows();
                 map<AString, AString>* md = myXML.getFileMetaData();
                 (*md)[PROVENANCE_NAME] = m_provenance;
+                (*md)[PROGRAM_PROVENANCE_NAME] = versionProvenance;
                 if (m_parentProvenance != "")
                 {
                     (*md)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
@@ -464,6 +477,14 @@ void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
 
 void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
 {
+    vector<AString> versionInfo;
+    ApplicationInformation myInfo;
+    myInfo.getAllInformation(versionInfo);
+    AString versionProvenance;
+    for (int i = 0; i < (int)versionInfo.size(); ++i)
+    {
+        versionProvenance += versionInfo[i] + "\n";
+    }
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
@@ -488,9 +509,13 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             {
                 LabelFile* myFile = ((LabelParameter*)myParam)->m_parameter;
                 GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL && m_parentProvenance != "")
+                if (md != NULL)
                 {
-                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    if (m_parentProvenance != "")
+                    {
+                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    }
                 }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
@@ -499,9 +524,13 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             {
                 MetricFile* myFile = ((MetricParameter*)myParam)->m_parameter;
                 GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL && m_parentProvenance != "")
+                if (md != NULL)
                 {
-                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    if (m_parentProvenance != "")
+                    {
+                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    }
                 }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
@@ -513,9 +542,13 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             {
                 SurfaceFile* myFile = ((SurfaceParameter*)myParam)->m_parameter;
                 GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL && m_parentProvenance != "")
+                if (md != NULL)
                 {
-                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    if (m_parentProvenance != "")
+                    {
+                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    }
                 }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
@@ -524,9 +557,13 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             {
                 VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
                 GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL && m_parentProvenance != "")
+                if (md != NULL)
                 {
-                    md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    if (m_parentProvenance != "")
+                    {
+                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+                    }
                 }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;

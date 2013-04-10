@@ -42,7 +42,7 @@ using namespace caret;
 static int runCommand(int argc, char* argv[]) {
     
     ProgramParameters parameters(argc, argv);
-    caret_global_commandLine = AString(argv[0]) + " " + parameters.getAllParametersInString();
+    caret_global_commandLine = AString(argv[0]) + " " + parameters.getAllParametersQuotedInString();
     /*
      * Log the command parameters.
      */
