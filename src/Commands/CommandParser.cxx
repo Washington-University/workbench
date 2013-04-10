@@ -37,6 +37,8 @@
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
 
+#include <QDir>
+
 #include <iostream>
 
 using namespace caret;
@@ -45,6 +47,7 @@ using namespace std;
 const AString CommandParser::PROVENANCE_NAME = "Provenance";
 const AString CommandParser::PARENT_PROVENANCE_NAME = "ParentProvenance";
 const AString CommandParser::PROGRAM_PROVENANCE_NAME = "ProgramProvenance";
+const AString CommandParser::CWD_PROVENANCE_NAME = "WorkingDirectory";
 
 CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     CommandOperation(myAutoOper->getCommandSwitch(), myAutoOper->getShortDescription()),
@@ -440,6 +443,7 @@ void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAss
                 map<AString, AString>* md = myXML.getFileMetaData();
                 (*md)[PROVENANCE_NAME] = m_provenance;
                 (*md)[PROGRAM_PROVENANCE_NAME] = versionProvenance;
+                (*md)[CWD_PROVENANCE_NAME] = QDir::currentPath();
                 if (m_parentProvenance != "")
                 {
                     (*md)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
@@ -485,6 +489,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
     {
         versionProvenance += versionInfo[i] + "\n";
     }
+    AString workingDir = QDir::currentPath();
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
@@ -512,6 +517,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 if (md != NULL)
                 {
                     md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    md->set(CWD_PROVENANCE_NAME, workingDir);
                     if (m_parentProvenance != "")
                     {
                         md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
@@ -527,6 +533,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 if (md != NULL)
                 {
                     md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    md->set(CWD_PROVENANCE_NAME, workingDir);
                     if (m_parentProvenance != "")
                     {
                         md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
@@ -545,6 +552,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 if (md != NULL)
                 {
                     md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    md->set(CWD_PROVENANCE_NAME, workingDir);
                     if (m_parentProvenance != "")
                     {
                         md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
@@ -560,6 +568,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 if (md != NULL)
                 {
                     md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+                    md->set(CWD_PROVENANCE_NAME, workingDir);
                     if (m_parentProvenance != "")
                     {
                         md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
