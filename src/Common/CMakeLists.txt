@@ -51,6 +51,7 @@ CaretPointLocator.h
 CaretPreferences.h
 CaretTemporaryFile.h
 ColorManager.h
+Cpp11xTesting.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
@@ -118,6 +119,7 @@ CaretPointLocator.cxx
 CaretPreferences.cxx
 ColorManager.cxx
 CaretTemporaryFile.cxx
+Cpp11xTesting.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx
