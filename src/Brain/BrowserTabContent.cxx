@@ -369,6 +369,8 @@ BrowserTabContent::getModelControllerForDisplay()
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = m_wholeBrainModel;
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
     }
     
     return mdc;
@@ -617,6 +619,8 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
             if (m_wholeBrainModel == NULL) {
                 m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
             break;
     }
     
@@ -914,6 +918,8 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                 displayedDataFiles.insert(wbm->getSelectedSurface(StructureEnum::CEREBELLUM, tabIndex));
             }
         }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
             break;
     }
 

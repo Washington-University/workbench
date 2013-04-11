@@ -710,6 +710,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                             wholeBrainTabIndex = i;
                         }
                         break;
+                    case ModelTypeEnum::MODEL_TYPE_CHART:
+                        break;
                 }
             }
         }
@@ -1085,6 +1087,8 @@ BrainBrowserWindowToolBar::updateToolBar()
             showOrientationWidget = true;
             showWholeBrainSurfaceOptionsWidget = true;
             showVolumeIndicesWidget = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
             break;
     }
     
