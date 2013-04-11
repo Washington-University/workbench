@@ -66,6 +66,7 @@ RgbaFile.h
 SceneFile.h
 SceneFileSaxReader.h
 SignedDistanceHelper.h
+SparseVolumeIndexer.h
 SpecFile.h
 SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
@@ -141,6 +142,7 @@ RgbaFile.cxx
 SceneFile.cxx
 SceneFileSaxReader.cxx
 SignedDistanceHelper.cxx
+SparseVolumeIndexer.cxx
 SpecFile.cxx
 SpecFileDataFileTypeGroup.cxx
 SpecFileDataFile.cxx
