@@ -402,6 +402,8 @@ BrowserTabContent::getModelControllerForDisplay() const
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = m_wholeBrainModel;
             break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
     }
     
     return mdc;
