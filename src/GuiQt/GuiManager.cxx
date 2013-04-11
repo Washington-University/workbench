@@ -79,6 +79,12 @@
 using namespace caret;
 
 /**
+ * \class caret::GuiManager
+ * \brief Top level class for passing events to Gui widgets belonging to workbench window
+ * \ingroup GuiQt
+ */
+
+/**
  * Constructor.
  * @param parent
  *   Parent of this object.

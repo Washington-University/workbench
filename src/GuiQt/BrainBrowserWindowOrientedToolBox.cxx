@@ -17,7 +17,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
-#include "ChartViewController.h"
+#include "ChartSetViewController.h"
 #include "ConnectivityManagerViewController.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
@@ -90,7 +90,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     }
     
     m_borderSelectionViewController = NULL;
-    m_chartViewController = NULL;
+    m_ChartSetViewController = NULL;
     m_connectivityViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fiberTrajectorySelectionViewController = NULL;
@@ -135,9 +135,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                              "Data Series");
     }
     if (1) {//isChartsToolBox) {
-        m_chartViewController = new ChartViewController(orientation,
+        m_ChartSetViewController = new ChartSetViewController(orientation,
                                                         browserWindowIndex);
-        m_chartTabIndex = addToTabWidget(m_chartViewController,
+        m_chartTabIndex = addToTabWidget(m_ChartSetViewController,
                                                "Chart");                                                        
     }
     if (isFeaturesToolBox) {

@@ -48,6 +48,7 @@ using namespace caret;
 /**
  * \class caret::InformationDisplayDialog 
  * \brief Dialog for display of information.
+ * \ingroup GuiQt
  *
  */
 

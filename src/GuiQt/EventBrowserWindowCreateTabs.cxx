@@ -43,6 +43,7 @@ using namespace caret;
 /**
  * \class caret::EventBrowserWindowCreateTabs 
  * \brief If needed, create browser tabs after loading a spec or data files
+ * \addtogroup GuiQt
  */
 
 /**

@@ -43,6 +43,7 @@
 #include "math.h"
 #include "PlotPanner.h"
 using namespace caret;
+
 TimeCoursePlotter::TimeCoursePlotter(QWidget *parent):
 QwtPlot( parent )
 {

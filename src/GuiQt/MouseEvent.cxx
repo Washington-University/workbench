@@ -30,6 +30,12 @@
 using namespace caret;
 
 /**
+ * \class caret::MouseEvent
+ * \brief Event issued when mouse is moved or buttons are pressed.
+ * \ingroup GuiQt
+ */
+
+/**
  * Constructor.
  * @param viewportContent
  *    Content of viewport.

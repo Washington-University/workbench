@@ -47,6 +47,7 @@ using namespace caret;
 /**
  * \class caret::MapSettingsScalarDataEditorDialog 
  * \brief Dialog for editing scalar data map settings
+ * \ingroup GuiQt
  *
  * Presents controls for setting palettes, and thresholding used to color
  * scalar data.

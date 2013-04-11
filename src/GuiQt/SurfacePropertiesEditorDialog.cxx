@@ -61,6 +61,7 @@ using namespace caret;
 /**
  * \class caret::SurfacePropertiesEditorDialog 
  * \brief Dialog for adjusting surface display properties.
+ * \ingroup GuitQt
  */
 
 /**

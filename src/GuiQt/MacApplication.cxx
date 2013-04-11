@@ -52,6 +52,7 @@ using namespace caret;
 /**
  * \class caret::MacApplication 
  * \brief Subclass of QApplication so that Macs can receive file open events
+ * \ingroup GuiQt
  *
  * Allows user to open a spec file via Mac Finder.
  *

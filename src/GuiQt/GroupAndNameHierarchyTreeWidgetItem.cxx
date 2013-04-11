@@ -46,6 +46,7 @@ using namespace caret;
 /**
  * \class caret::ClassAndNameHierarchySelectionInfo
  * \brief Tree Widget Item for Class and Name Hierarchy
+ * \ingroup GuiQt
  */
 
 /**

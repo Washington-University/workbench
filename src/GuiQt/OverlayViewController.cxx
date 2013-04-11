@@ -67,6 +67,7 @@ using namespace caret;
 /**
  * \class caret::OverlayViewController 
  * \brief View Controller for an overlay.
+ * \ingroup GuiQt
  */
 
 /**

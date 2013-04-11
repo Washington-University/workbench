@@ -40,6 +40,7 @@ using namespace caret;
 /**
  * \class caret::SurfaceSelectionControl 
  * \brief Control for selecting surfaces.
+ * \ingroup GuiQt
  *
  * Control for selecting surfaces.
  */

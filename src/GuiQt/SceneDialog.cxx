@@ -76,6 +76,7 @@ using namespace caret;
 /**
  * \class caret::SceneDialog 
  * \brief Dialog for manipulation of scenes.
+ * \ingroup GuiQt
  */
 
 /**

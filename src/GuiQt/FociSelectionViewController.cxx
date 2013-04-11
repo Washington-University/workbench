@@ -73,6 +73,7 @@ using namespace caret;
 /**
  * \class caret::FociSelectionViewController 
  * \brief Widget for controlling display of foci
+ * \ingroup GuiQt
  *
  * Widget for controlling the display of foci including
  * different display groups.

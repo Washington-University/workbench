@@ -41,6 +41,12 @@
 #include "TimeCoursePlotter.h"
 
 using namespace caret;
+/**
+ * \class caret::TimeCourseDialog
+ * \brief 
+ * \ingroup GuiQt                                                                      
+ */
+
 
 TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     QDialog(parent),

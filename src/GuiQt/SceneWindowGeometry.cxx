@@ -54,6 +54,7 @@ using namespace caret;
 /**
  * \class caret::SceneWindowGeometry 
  * \brief Assists with saving and restoring a window's geometry
+ * \ingroup GuiQt
  */
 
 /**

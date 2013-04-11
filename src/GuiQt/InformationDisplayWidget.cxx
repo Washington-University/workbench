@@ -53,6 +53,7 @@ using namespace caret;
 /**
  * \class caret::InformationDisplayWidget 
  * \brief Controls and displays information.
+ * \ingroup GuiQt
  */
 
 /**

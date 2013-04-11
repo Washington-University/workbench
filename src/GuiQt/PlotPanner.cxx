@@ -23,6 +23,11 @@
  */ 
 /*LICENSE_END*/
 
+/**
+ * \class caret::PlotPanner
+ * \brief Helper class for panning Qwt plots
+ * \ingroup GuiQt
+ */
 
 #include "PlotPanner.h"
 using namespace caret;

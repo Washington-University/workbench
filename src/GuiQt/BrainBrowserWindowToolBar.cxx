@@ -287,7 +287,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
 
-    this->toolbarWidgetLayout->addWidget(this->chartWidget, 0, Qt::AlignLeft);
+   // this->toolbarWidgetLayout->addWidget(this->chartWidget, 0, Qt::AlignLeft);
 
     this->toolbarWidgetLayout->addStretch();
 
@@ -1191,7 +1191,7 @@ BrainBrowserWindowToolBar::createViewWidget()
 //    this->viewModeSurfaceMontageRadioButton->setText("Surface\nMontage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
-    this->viewModeChartRadioButton = new QRadioButton("Chart");
+    //this->viewModeChartRadioButton = new QRadioButton("Chart");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -1200,7 +1200,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
-    layout->addWidget(this->viewModeChartRadioButton);
+    //layout->addWidget(this->viewModeChartRadioButton);
     layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
@@ -1208,7 +1208,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeWholeBrainRadioButton);
-    viewModeRadioButtonGroup->addButton(this->viewModeChartRadioButton);
+    //viewModeRadioButtonGroup->addButton(this->viewModeChartRadioButton);
     QObject::connect(viewModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(viewModeRadioButtonClicked(QAbstractButton*)));
     
@@ -1217,7 +1217,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewWidgetGroup->add(this->viewModeSurfaceMontageRadioButton);
     this->viewWidgetGroup->add(this->viewModeVolumeRadioButton);
     this->viewWidgetGroup->add(this->viewModeWholeBrainRadioButton);
-    this->viewWidgetGroup->add(this->viewModeChartRadioButton);
+    //this->viewWidgetGroup->add(this->viewModeChartRadioButton);
     
     QWidget* w = this->createToolWidget("View", 
                                         widget, 

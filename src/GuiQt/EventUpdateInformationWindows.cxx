@@ -25,6 +25,11 @@
 #include "EventUpdateInformationWindows.h"
 
 using namespace caret;
+/**
+ * \class caret::EventUpdateInformationWindows 
+ * \brief Event for updating Information Windows
+ * \addtogroup GuiQt
+ */
 
 /**
  * Construct an event for display text in the information windows.

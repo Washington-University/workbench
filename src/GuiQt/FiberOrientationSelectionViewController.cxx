@@ -70,6 +70,8 @@ using namespace caret;
 /**
  * \class caret::FiberOrientationSelectionViewController 
  * \brief View/Controller for fiber orientations
+ * \ingroup GuiQt
+ * 
  */
 
 /**

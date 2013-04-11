@@ -75,7 +75,7 @@ using namespace caret;
 /**
  * \class caret::ConnectivityTimeSeriesViewController 
  * \brief View-Controller for one connectivity loader
- *
+ * \addtogroup GuiQt
  */
 /**
  * Constructor.

@@ -27,6 +27,12 @@
 using namespace caret;
 
 /**
+ * \class caret::EventGraphicsUpdateAllWindows 
+ * \brief Event for updating all Window gui elements.
+ * \addtogroup GuiQt
+ */
+
+/**
  * Constructor.
  * @param doRepaint
  *    If true, a repaint is performed and this event does not

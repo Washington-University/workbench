@@ -29,6 +29,7 @@ using namespace caret;
 /**
  * \class caret::EventOperatingSystemRequestOpenDataFile
  * \brief Event for responding to an open file request from the operating system
+ * \addtogroup GuiQt
  *
  * On Macs, the QApplication instance may receive an open data file request
  * from the operating system.  This event is used to by the QApplication

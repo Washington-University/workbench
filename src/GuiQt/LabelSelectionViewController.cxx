@@ -71,6 +71,7 @@ using namespace caret;
 /**
  * \class caret::LabelSelectionViewController 
  * \brief Widget for controlling display of labels
+ * \ingroup GuiQt
  *
  * Widget for controlling the display of labels including
  * different display groups.

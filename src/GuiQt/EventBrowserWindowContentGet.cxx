@@ -27,6 +27,11 @@
 using namespace caret;
 
 #include "CaretAssert.h"
+/** 
+ * \class caret::DisplayGroupEnumComboBox 
+ * \brief Combo box for selection of a display group.
+ * \addtogroup GuiQt
+ */
 
 /**
  * Constructor.

@@ -68,6 +68,7 @@ using namespace caret;
 /**
  * \class caret::SplashScreen 
  * \brief Splash Screen display when Workbench is started.
+ * \ingroup GuiQt
  */
 
 /**

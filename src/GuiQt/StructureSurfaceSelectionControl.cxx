@@ -45,6 +45,11 @@
 
 using namespace caret;
 
+/**
+ * \class caret::StructureSufaceSelectionControl 
+ * \brief 
+ * \ingroup GuiQt
+ */
 
 /**
  * Constructor.

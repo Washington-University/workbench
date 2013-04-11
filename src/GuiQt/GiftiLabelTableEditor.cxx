@@ -68,7 +68,7 @@ using namespace caret;
 /**
  * \class caret::GiftiLabelTableEditor 
  * \brief Dialog for editing a GIFTI lable table.
- *
+ * \ingroup GuiQt
  */
 
 /**

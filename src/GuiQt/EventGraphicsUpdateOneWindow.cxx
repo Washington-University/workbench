@@ -27,6 +27,12 @@
 using namespace caret;
 
 /**
+ * \class caret::EventGraphicsUpdateOneWindow 
+ * \brief Event for updating a single window
+ * \addtogroup GuiQt
+ */
+
+/**
  * Constructor.
  */
 EventGraphicsUpdateOneWindow::EventGraphicsUpdateOneWindow(const int32_t windowIndex)

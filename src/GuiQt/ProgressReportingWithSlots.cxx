@@ -43,6 +43,7 @@ using namespace caret;
 /**
  * \class caret::ProgressReportingWithSlots
  * \brief Interfaces between the ProgressReportingDialog and the Workbench event system
+ * \ingroup GuiQt
  *
  * Listens for EventProgressUpdate events and then updates the progress
  * dialog using signals and slots.  Using signals and slots should allow

@@ -71,7 +71,7 @@ using namespace caret;
 /**
  * \class caret::ConnectivityManagerViewController 
  * \brief View-Controller for the ConnectivityLoaderManager
- *
+ * \addtogroup GuiQt
  */
 /**
  * Constructor.

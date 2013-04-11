@@ -45,6 +45,7 @@ using namespace caret;
 /**
  * \class caret::FeatureColoringTypeEnum 
  * \brief Coloring type for features.
+ * \ingroup GuiQt
  */
 
 /**

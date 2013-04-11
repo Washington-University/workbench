@@ -23,6 +23,11 @@
  */ 
 /*LICENSE_END*/
 
+/**
+ * \class caret::PlotMagnifier 
+ * \brief Helper class for magnifying Qwt plots
+ * \ingroup GuiQt
+ */
 
 #include "PlotMagnifier.h"
 using namespace caret;

@@ -69,6 +69,7 @@ using namespace caret;
 /**
  * \class caret::GroupAndNameHierarchyViewController 
  * \brief View controller for ClassAndNameHierarchyModels
+ * \ingroup GuiQt
  *
  * A view controller for one or more ClassAndNameHierarchyModel
  * instances.

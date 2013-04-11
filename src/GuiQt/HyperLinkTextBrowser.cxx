@@ -34,6 +34,7 @@ using namespace caret;
 /**
  * \class caret::HyperLinkTextBrowser
  * \brief Displays HTML text.
+ * \ingroup GuiQt
  *
  * Displays HTML text.  Input text may contain URLs
  * which are converted into hyperlinks.

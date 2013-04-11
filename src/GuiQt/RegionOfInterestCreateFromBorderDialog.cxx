@@ -76,6 +76,7 @@ using namespace caret;
 /**
  * \class caret::RegionOfInterestCreateFromBorderDialog 
  * \brief Dailog for creating regions of interest from border(s).
+ * \ingroup GuiQt
  *
  * Dialog that creates regions of interest from nodes inside
  * borders.

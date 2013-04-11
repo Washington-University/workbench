@@ -46,7 +46,11 @@
 
 using namespace caret;
 
-
+/**
+ * \class caret::ProgressReportingDialog
+ * \brief Progress Report Dialog
+ * \ingroup GuiQt
+ */
     
 /**
  * \class caret::ProgressReportingDialog 

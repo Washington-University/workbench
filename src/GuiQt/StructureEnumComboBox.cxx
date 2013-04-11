@@ -34,6 +34,7 @@ using namespace caret;
 /**
  * \class caret::StructureEnumComboBox 
  * \brief Control for selection of a structure.
+ * \ingroup GuiQt
  */
 
 /**

@@ -45,9 +45,11 @@ using namespace caret;
 /**
  * \class caret::FiberOrientationColoringTypeEnum 
  * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \ingroup GuiQt
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
+
 /**
  * Constructor.
  *

@@ -58,7 +58,8 @@ using namespace caret;
     
 /**
  * \class caret::PreferencesDialog 
- * \brief Dialog for capturing images.
+ * \brief Dialog for display/editing of prefernces.
+ * \ingroup GuiQt
  *
  * Presents controls for editing palettes used to color
  * scalar data.

@@ -60,6 +60,12 @@
 #include <VolumeFile.h>
 
 using namespace caret;
+
+/**
+ * \class caret::MovieDialog
+ * \brief Dialog used for setting up and rendering Movies.
+ * \ingroup GuiQt
+ */
 MovieDialog::MovieDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::MovieDialog)

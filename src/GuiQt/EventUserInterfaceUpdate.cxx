@@ -29,6 +29,7 @@ using namespace caret;
 /**
  * \class caret::EventUserInterfaceUpdate 
  * \brief Event for updating the user-interface.
+ * \ingroup GuiQt
  *
  * After the user executes an action, there is often the
  * need to update the user-interface.  Options are available

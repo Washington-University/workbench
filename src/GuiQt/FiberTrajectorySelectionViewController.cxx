@@ -71,6 +71,7 @@ using namespace caret;
 /**
  * \class caret::FiberTrajectorySelectionViewController 
  * \brief View/Controller for fiber trajectories
+ * \ingroup GuiQt
  */
 
 /**

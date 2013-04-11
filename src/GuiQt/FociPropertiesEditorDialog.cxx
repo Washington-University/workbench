@@ -61,6 +61,12 @@
 #include "WuQtUtilities.h"
 
 using namespace caret;
+
+/**
+ * \class caret::FociPropertiesEditorDialog
+ * \brief dialog for Foci Properties Editor
+ * \addtogroup GuiQt
+ */
     
 /**
  * Create (edit and add) a new focus.

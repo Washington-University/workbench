@@ -64,7 +64,8 @@ using namespace caret;
 /**
  * \class caret::ImageCaptureDialog 
  * \brief Dialog for capturing images.
- *
+ * \ingroup GuiQt
+ * 
  */
 
 /**
