@@ -28,7 +28,7 @@ using namespace caret;
 /**
  * \class caret::EventUpdateInformationWindows 
  * \brief Event for updating Information Windows
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

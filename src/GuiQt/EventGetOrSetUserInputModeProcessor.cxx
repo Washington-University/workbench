@@ -28,7 +28,7 @@ using namespace caret;
 /**
  * \class caret::EventGetOrSetUserInputModeProcessor 
  * \brief Event that acts as a getter/setting for user input mode.
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

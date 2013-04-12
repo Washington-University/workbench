@@ -58,7 +58,8 @@ using namespace caret;
 /**
  * \class caret::FiberSamplesOpenGLWidget 
  * \brief OpenGL Widget for drawing fiber samples on a sphere
- * \addtogroup GuiQt
+ * \defgroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

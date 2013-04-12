@@ -29,7 +29,7 @@ using namespace caret;
 /**
  * \class caret::EventGraphicsUpdateAllWindows 
  * \brief Event for updating all Window gui elements.
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

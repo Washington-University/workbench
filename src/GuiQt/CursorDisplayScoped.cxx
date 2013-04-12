@@ -47,7 +47,8 @@ using namespace caret;
 /**
  * \class caret::CursorDisplayScoped 
  * \brief Displays a override cursor
- * \addtogroup GuiQt
+ * \ingroup GuiQt
+ * 
  * When one of the 'show' methods is called, 
  * displays a cursor that overrides all other cursors in the
  * application until an instance of this goes out of scope or the

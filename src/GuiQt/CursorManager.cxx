@@ -48,7 +48,7 @@ using namespace caret;
 /**
  * \class caret::CursorManager 
  * \brief Manages cursors
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  * Provides cursors, some predefined by Qt and
  * others unique to workbench.
  */

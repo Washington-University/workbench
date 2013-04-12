@@ -29,7 +29,7 @@ using namespace caret;
 /**
  * \class caret::EventGraphicsUpdateOneWindow 
  * \brief Event for updating a single window
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

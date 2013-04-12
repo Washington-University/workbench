@@ -29,7 +29,7 @@ using namespace caret;
 /**
  * \class caret::EventMapSettingsEditorDialogRequest
  * \brief Event for creating map settings editor dialog
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

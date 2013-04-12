@@ -69,15 +69,15 @@ MapSettingsLayerWidget::MapSettingsLayerWidget(QWidget* parent)
     QObject::connect(m_wholeBrainVoxelDrawingModeComboBox, SIGNAL(itemActivated()),
                      this, SLOT(applySelections()));
     
-    QGroupBox* wholeBrainGroupBox = new QGroupBox("Whole Brain");
-    wholeBrainGroupBox->setFlat(true);
-    QGridLayout* wholeBrainGridLayout = new QGridLayout(wholeBrainGroupBox);
+    QGroupBox* wholeBraingroupBox = new QGroupBox("Whole Brain");
+    wholeBraingroupBox->setFlat(true);
+    QGridLayout* wholeBrainGridLayout = new QGridLayout(wholeBraingroupBox);
     wholeBrainGridLayout->addWidget(wholeBrainVoxelDrawingModeLabel, 0, 0);
     wholeBrainGridLayout->addWidget(m_wholeBrainVoxelDrawingModeComboBox->getWidget(), 0, 1);
-    wholeBrainGroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    wholeBraingroupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(wholeBrainGroupBox);
+    layout->addWidget(wholeBraingroupBox);
     layout->addStretch();
     
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);

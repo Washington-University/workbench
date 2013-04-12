@@ -65,7 +65,7 @@ using namespace caret;
 /**
  * \class caret::FociPropertiesEditorDialog
  * \brief dialog for Foci Properties Editor
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
     
 /**

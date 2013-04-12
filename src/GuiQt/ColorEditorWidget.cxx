@@ -55,7 +55,7 @@ using namespace caret;
 /**
  * \class caret::ColorEditorWidget 
  * \brief Widget for editing RGBA colors.
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 /**
  * Constructor.

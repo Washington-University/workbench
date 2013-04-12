@@ -60,7 +60,7 @@ using namespace caret;
 /**
  * \class caret::CiftiConnectivityMatrixViewController 
  * \brief View-Controller for one connectivity loader
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 /**
  * Constructor.

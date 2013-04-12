@@ -45,7 +45,7 @@ using namespace caret;
 /**
  * \class caret::CursorEnum 
  * \brief Enumerated type for Cursors (both Qt and custom)
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  *
  * An enumerated type for cursors.  Some cursors are 
  * from Qt and others are created using bitmaps.

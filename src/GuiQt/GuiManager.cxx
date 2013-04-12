@@ -77,7 +77,9 @@
 #include "CaretAssert.h"
 
 using namespace caret;
-
+/**
+ * \defgroup GuiQt
+ */
 /**
  * \class caret::GuiManager
  * \brief Top level class for passing events to Gui widgets belonging to workbench window

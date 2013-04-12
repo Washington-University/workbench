@@ -266,8 +266,8 @@ CaretFileRemoteDialog::createLoginWidget()
     m_passwordLineEdit->setFixedWidth(200);
     m_passwordLineEdit->setEchoMode(QLineEdit::Password);
     
-    QGroupBox* loginGroupBox = new QGroupBox("Login");
-    QGridLayout* loginGridLayout = new QGridLayout(loginGroupBox);
+    QGroupBox* logingroupBox = new QGroupBox("Login");
+    QGridLayout* loginGridLayout = new QGridLayout(logingroupBox);
     loginGridLayout->setColumnStretch(0, 0);
     loginGridLayout->setColumnStretch(1, 100);
     loginGridLayout->addWidget(usernameLabel, 0, 0);
@@ -275,7 +275,7 @@ CaretFileRemoteDialog::createLoginWidget()
     loginGridLayout->addWidget(passwordLabel, 1, 0);
     loginGridLayout->addWidget(m_passwordLineEdit, 1, 1);
 
-    return loginGroupBox;
+    return logingroupBox;
 }
 
 /**

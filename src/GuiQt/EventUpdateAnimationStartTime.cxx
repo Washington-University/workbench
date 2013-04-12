@@ -28,7 +28,7 @@ using namespace caret;
 /**
  * \class caret::EventUpdateAnimationStartTime 
  * \brief Event (deprecated for now) that is used to update the animation start time
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

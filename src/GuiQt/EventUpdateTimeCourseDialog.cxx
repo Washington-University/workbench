@@ -28,7 +28,7 @@ using namespace caret;
 /**
  * \class caret::EventUpdateTimeCourseDialog
  * \brief Event for updating TimeCourseDialog
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

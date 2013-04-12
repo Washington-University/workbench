@@ -30,7 +30,7 @@ using namespace caret;
 /** 
  * \class caret::DisplayGroupEnumComboBox 
  * \brief Combo box for selection of a display group.
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**

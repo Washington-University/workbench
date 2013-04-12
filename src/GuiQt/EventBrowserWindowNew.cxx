@@ -28,7 +28,7 @@ using namespace caret;
 /**
  * \class caret::EventBrowserWindowNew
  * \brief Event Issued to create a new browser window
- * \addtogroup GuiQt
+ * \ingroup GuiQt
  */
 
 /**
