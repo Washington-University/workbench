@@ -23,6 +23,7 @@ CommandClassCreateAlgorithm.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
 CommandClassCreateOperation.h
+CommandC11xTesting.h
 CommandException.h
 CommandGiftiConvert.h
 CommandNiftiConvert.h
@@ -30,7 +31,7 @@ CommandNiftiInformation.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
- CommandUnitTest.h
+CommandUnitTest.h
 
 CommandClassAddMember.cxx
 CommandClassCreate.cxx
@@ -38,6 +39,7 @@ CommandClassCreateAlgorithm.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
 CommandClassCreateOperation.cxx
+CommandC11xTesting.cxx
 CommandException.cxx
 CommandGiftiConvert.cxx
 CommandNiftiConvert.cxx

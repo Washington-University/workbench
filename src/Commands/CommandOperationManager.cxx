@@ -136,6 +136,7 @@
 #include "CommandClassCreateAlgorithm.h"
 #include "CommandClassCreateEnum.h"
 #include "CommandClassCreateOperation.h"
+#include "CommandC11xTesting.h"
 #include "CommandGiftiConvert.h"
 #include "CommandNiftiConvert.h"
 #include "CommandNiftiInformation.h"
@@ -292,6 +293,9 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandClassCreateAlgorithm());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandClassCreateOperation());
+#ifdef WORKBENCH_HAVE_C11X
+    this->commandOperations.push_back(new CommandC11xTesting());
+#endif // WORKBENCH_HAVE_C11X
     this->commandOperations.push_back(new CommandGiftiConvert());
     this->commandOperations.push_back(new CommandUnitTest());
     this->commandOperations.push_back(new CommandNiftiConvert());
