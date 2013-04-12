@@ -1627,7 +1627,7 @@ QWidget*
 BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
 {
     
-    this->wholeBrainSurfaceTypeComboBox = new QComboBox();
+    this->wholeBrainSurfaceTypeComboBox = WuQFactory::newComboBox();
     WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceTypeComboBox,
                                           "Select the geometric type of surface for display");
     QObject::connect(this->wholeBrainSurfaceTypeComboBox, SIGNAL(currentIndexChanged(int)),

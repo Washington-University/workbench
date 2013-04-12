@@ -32,6 +32,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
+#include "WuQFactory.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -59,12 +60,12 @@ StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool sh
 {
     this->surfaceControllerSelector = NULL;
 
-    this->structureSelectionComboBox = new QComboBox();
+    this->structureSelectionComboBox = WuQFactory::newComboBox();
     this->structureSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(this->structureSelectionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(structureSelected(int)));
     
-    this->surfaceControllerSelectionComboBox   = new QComboBox();
+    this->surfaceControllerSelectionComboBox = WuQFactory::newComboBox();
     this->surfaceControllerSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(this->surfaceControllerSelectionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(surfaceControllerSelected(int)));

@@ -110,7 +110,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     /*
      * File Selection Check Box
      */
-    this->fileComboBox = new QComboBox();
+    this->fileComboBox = WuQFactory::newComboBox();
     this->fileComboBox->setMinimumWidth(minComboBoxWidth);
     this->fileComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
@@ -120,7 +120,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     /*
      * Map Selection Check Box
      */
-    this->mapComboBox = new QComboBox();
+    this->mapComboBox = WuQFactory::newComboBox();
     this->mapComboBox->setMinimumWidth(minComboBoxWidth);
     this->mapComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->mapComboBox, SIGNAL(activated(int)),

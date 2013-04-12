@@ -38,6 +38,8 @@
 
 #include <QComboBox>
 
+#include "WuQFactory.h"
+
 using namespace caret;
 
 
@@ -54,7 +56,7 @@ VolumeSurfaceOutlineColorOrTabViewController::VolumeSurfaceOutlineColorOrTabView
 : WuQWidget(parent)
 {
     this->colorOrTabModel = NULL;
-    this->modelComboBox = new QComboBox();
+    this->modelComboBox = WuQFactory::newComboBox();
     QObject::connect(this->modelComboBox, 
                      SIGNAL(activated(int)), 
                      this, 

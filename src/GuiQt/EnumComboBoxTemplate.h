@@ -27,6 +27,7 @@
 
 #include <QComboBox>
 #include "AString.h"
+#include "WuQFactory.h"
 #include "WuQWidget.h"
 
 /**
@@ -80,7 +81,7 @@ namespace caret {
          */
         EnumComboBoxTemplate(QObject* parent)
         : WuQWidget(parent) {
-            m_itemComboBox = new QComboBox();
+            m_itemComboBox = WuQFactory::newComboBox();
 
             QObject::connect(m_itemComboBox, SIGNAL(currentIndexChanged(int)),
                              this, SLOT(itemComboBoxIndexChanged(int)));

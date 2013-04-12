@@ -32,9 +32,13 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #define __WU_Q_FACTORY_DECLARE__
 #include "WuQFactory.h"
 #undef __WU_Q_FACTORY_DECLARE__
+
+#include "CaretLogger.h"
 
 using namespace caret;
 
@@ -84,8 +88,13 @@ using namespace caret;
 
 #include <limits>
 
-#include <QSpinBox>
+#include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QEvent>
+#include <QSpinBox>
+#include <QStyleFactory>
+
+#include "WuQEventBlockingFilter.h"
 
 /**
  * Constructor.
@@ -101,6 +110,67 @@ WuQFactory::WuQFactory()
 WuQFactory::~WuQFactory()
 {
     
+}
+
+/**
+ * Create a combo box.
+ *
+ * On Apple computers, the mouse wheel can cause unintended changes
+ * to a combo box even if the combo box does not have focus.  So,
+ * block the wheel event on Apple computers.  In addition, on Apple 
+ * computers, every item that is in the combo box is displayed in 
+ * the pop-up menu (as large as the vertical size of the screen) 
+ * so use a Windows Style combo box to improve the usability.
+ *
+ * @return
+ *   A combo box.
+ */
+QComboBox*
+WuQFactory::newComboBox()
+{
+    QComboBox* cb = new QComboBox();
+    
+#ifdef CARET_OS_MACOSX
+    /*
+     * Attach an event filter that blocks wheel events in the combo box if Mac
+     */
+    WuQEventBlockingFilter* comboBoxWheelEventBlockingFilter = new WuQEventBlockingFilter(cb);
+    comboBoxWheelEventBlockingFilter->setEventBlocked(QEvent::Wheel,
+                                                                true);
+    cb->installEventFilter(comboBoxWheelEventBlockingFilter);
+    
+    //setWindowsStyleForApple(cb);
+#endif // CARET_OS_MACOSX
+    
+    return cb;
+}
+
+/**
+ * Create a combo box.
+ *
+ * On Apple computers, the mouse wheel can cause unintended changes
+ * to a combo box even if the combo box does not have focus.  So,
+ * block the wheel event on Apple computers.  In addition, on Apple
+ * computers, every item that is in the combo box is displayed in
+ * the pop-up menu (as large as the vertical size of the screen)
+ * so use a Windows Style combo box to improve the usability.
+ *
+ * @param receiver
+ *   Object that received the signal when the value is changed by the user.
+ * @param method
+ *   Method that is connected to the spin box's valueChanged(int)
+ *   signal.
+ * @return
+ *   A combo box.
+ */
+QComboBox*
+WuQFactory::newComboBoxSignalInt(QObject* receiver,
+                                       const char* method)
+{
+    QComboBox* cb = newComboBox();
+    QObject::connect(cb, SIGNAL(activated(int)),
+                     receiver, method);
+    return cb;
 }
 
 /**
@@ -392,4 +462,41 @@ WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(const double mini
     return sb;
 }
 
+/**
+ * Sets the style of the given windows to windows.
+ */
+void
+WuQFactory::setWindowsStyleForApple(QWidget* w)
+{
+//    w->setStyle(new WorkbenchMacStyle());
+//    return;
+    
+    /*
+     * Only try creating once
+     */
+    if (s_windowsStyleForAppleWasCreated == false) {
+        s_windowsStyleForAppleWasCreated = true;
+        
+        s_windowsStyleForApple = QStyleFactory::create("Windows");
+        if (s_windowsStyleForApple == NULL) {
+            CaretLogSevere("Failed to create Windows Style");
+        }
+    }
+    
+    if (s_windowsStyleForApple != NULL) {
+        w->setStyle(s_windowsStyleForApple);
+    }
+}
+
+//int
+//WorkbenchMacStyle::styleHint ( StyleHint sh, const QStyleOption * opt, const QWidget * w, QStyleHintReturn * hret) const
+//{
+//    int value = QMacStyle::styleHint(sh, opt, w, hret);
+//    
+//    if (sh == QStyle::SH_ComboBox_Popup) {
+//        value = 0;
+//    }
+//    
+//    return value;
+//}
 

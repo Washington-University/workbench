@@ -34,16 +34,23 @@
  */
 /*LICENSE_END*/
 
+class QComboBox;
 class QDoubleSpinBox;
 class QObject;
 class QSpinBox;
-
+class QStyle;
+class QWidget;
 
 namespace caret {
 
     class WuQFactory {
         
     public:
+        static QComboBox* newComboBox();
+        
+        static QComboBox* newComboBoxSignalInt(QObject* receiver,
+                                               const char* method);
+        
         static QSpinBox* newSpinBox();
         
         static QSpinBox* newSpinBoxWithSignalInt(QObject* receiver,
@@ -85,6 +92,12 @@ namespace caret {
 
         WuQFactory& operator=(const WuQFactory&);
         
+        static void setWindowsStyleForApple(QWidget* w);
+        
+        static QStyle* s_windowsStyleForApple;
+        
+        static bool s_windowsStyleForAppleWasCreated;
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -94,8 +107,18 @@ namespace caret {
 
     };
     
+
+//    class WorkbenchMacStyle : public QMacStyle {
+//    public:
+//        WorkbenchMacStyle() {}
+//        
+//        virtual ~WorkbenchMacStyle() {}
+//        virtual int	styleHint ( StyleHint sh, const QStyleOption * opt = 0, const QWidget * w = 0, QStyleHintReturn * hret = 0 ) const;
+//    };
+    
 #ifdef __WU_Q_FACTORY_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    QStyle* WuQFactory::s_windowsStyleForApple = NULL;
+    bool WuQFactory::s_windowsStyleForAppleWasCreated;
 #endif // __WU_Q_FACTORY_DECLARE__
 
 } // namespace
