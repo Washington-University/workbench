@@ -51,6 +51,7 @@ AlgorithmMetricResample.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
 AlgorithmSignedDistanceToSurface.h
+AlgorithmSurfaceAffineRegression.h
 AlgorithmSurfaceApplyAffine.h
 AlgorithmSurfaceApplyWarpfield.h
 AlgorithmSurfaceAverage.h
@@ -113,6 +114,7 @@ AlgorithmMetricResample.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
 AlgorithmSignedDistanceToSurface.cxx
+AlgorithmSurfaceAffineRegression.cxx
 AlgorithmSurfaceApplyAffine.cxx
 AlgorithmSurfaceApplyWarpfield.cxx
 AlgorithmSurfaceAverage.cxx

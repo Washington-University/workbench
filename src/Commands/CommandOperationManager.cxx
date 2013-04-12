@@ -59,6 +59,7 @@
 #include "AlgorithmMetricResample.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
+#include "AlgorithmSurfaceAffineRegression.h"
 #include "AlgorithmSurfaceApplyAffine.h"
 #include "AlgorithmSurfaceApplyWarpfield.h"
 #include "AlgorithmSurfaceAverage.h"
@@ -214,6 +215,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAffineRegression()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyAffine()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyWarpfield()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAverage()));
