@@ -75,7 +75,7 @@ CommandC11xTesting::getHelpInformation(const AString& /*programName*/)
  *   If there is an error in the parameters.
  */
 void 
-CommandC11xTesting::executeOperation(ProgramParameters& parameters) throw (CommandException,
+CommandC11xTesting::executeOperation(ProgramParameters& /*parameters*/) throw (CommandException,
                                                                ProgramParametersException)
 {
 #ifdef WORKBENCH_HAVE_C11X
