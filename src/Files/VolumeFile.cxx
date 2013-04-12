@@ -970,7 +970,7 @@ VolumeFile::getMapUniqueID(const int32_t mapIndex) const
  * @return Bounding box of the volumes spatial coordinates.
  */
 BoundingBox 
-VolumeFile::getSpaceBoundingBox() const
+VolumeFile::getVoxelSpaceBoundingBox() const
 {
     BoundingBox bb;
     float coordinates[3];

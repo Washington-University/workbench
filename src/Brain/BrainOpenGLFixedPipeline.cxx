@@ -618,13 +618,13 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
     float fitToWindowTranslation[3] = { 0.0, 0.0, 0.0 };
     
     if (vf != NULL) {        
-        BoundingBox boundingBox = vf->getSpaceBoundingBox();
+        BoundingBox boundingBox = vf->getVoxelSpaceBoundingBox();
         
-        std::vector<int64_t> dimensions;
-        vf->getDimensions(dimensions);
-        if ((dimensions[0] > 2) 
-            && (dimensions[1] > 2)
-            && (dimensions[2] > 2)) {
+        int64_t dimI, dimJ, dimK, numMaps, numComponents;
+        vf->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+        if ((dimI > 2) 
+            && (dimJ > 2)
+            && (dimK > 2)) {
             
             float volumeCenter[3] = { (boundingBox.getMinX() + boundingBox.getMaxX()) / 2,
                                       (boundingBox.getMinY() + boundingBox.getMaxY()) / 2,
@@ -2449,8 +2449,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 
                 int sliceIndex = -1;
                 int maximumSliceIndex = -1;
-                std::vector<int64_t> dimensions;
-                volumeDrawInfo[0].volumeFile->getDimensions(dimensions);
+                int64_t dimI, dimJ, dimK, numMaps, numComponents;
+                volumeDrawInfo[0].volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
                 const int sliceStep = browserTabContent->getMontageSliceSpacing();
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
                 switch (slicePlane) {
@@ -2459,21 +2459,21 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                         sliceIndex = browserTabContent->getSliceIndexAxial(underlayVolumeFile);
-                        maximumSliceIndex = dimensions[2];
+                        maximumSliceIndex = dimK;
                         sliceThickness = z1 - originZ;
                         sliceOrigin = originZ;
                         axisLetter = "Z";
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         sliceIndex = browserTabContent->getSliceIndexCoronal(underlayVolumeFile);
-                        maximumSliceIndex = dimensions[1];
+                        maximumSliceIndex = dimJ;
                         sliceThickness = y1 - originY;
                         sliceOrigin = originY;
                         axisLetter = "Y";
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         sliceIndex = browserTabContent->getSliceIndexParasagittal(underlayVolumeFile);
-                        maximumSliceIndex = dimensions[0];
+                        maximumSliceIndex = dimI;
                         sliceThickness = x1 - originX;
                         sliceOrigin = originX;
                         axisLetter = "X";
@@ -3079,21 +3079,21 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                     break;
             }
             
-            int64_t voxelIndices[3];
-            volumeFile->enclosingVoxel(midPoint, voxelIndices);
-            if (volumeFile->indexValid(voxelIndices)) {
+            int64_t voxelI, voxelJ, voxelK;
+            volumeFile->enclosingVoxel(midPoint[0], midPoint[1], midPoint[2], voxelI, voxelJ, voxelK);
+            if (volumeFile->indexValid(voxelI, voxelJ, voxelK)) {
                 switch (slicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
                         CaretAssert(0);
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
-                        drawingSliceIndex = voxelIndices[2];
+                        drawingSliceIndex = voxelK;
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
-                        drawingSliceIndex = voxelIndices[1];
+                        drawingSliceIndex = voxelJ;
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        drawingSliceIndex = voxelIndices[0];
+                        drawingSliceIndex = voxelI;
                         break;
                 }
             }
@@ -3578,9 +3578,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                             VolumeFile* vf = volumeDrawInfo[iVol].volumeFile;
                             int64_t voxelIndices[3];
-                            vf->enclosingVoxel(voxelCoordinates,
-                                               voxelIndices);
-                            if (vf->indexValid(voxelIndices)) {
+                            vf->enclosingVoxel(voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2],
+                                               voxelIndices[0], voxelIndices[1], voxelIndices[2]);
+                            if (vf->indexValid(voxelIndices[0], voxelIndices[1], voxelIndices[2])) {
                                 if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
                                     voxelID->setBrain(volumeDrawInfo[iVol].brain);
                                     voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
@@ -3830,8 +3830,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                 voxelID->setScreenDepth(depth);
                 
                 float voxelCoordinates[3];
-                vf->indexToSpace(voxelIndices,
-                                 voxelCoordinates);
+                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
                 
                 this->setSelectedItemScreenXYZ(voxelID,
                                                voxelCoordinates);
@@ -4411,9 +4411,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeFile* vf = volumeDrawInfo[iVol].volumeFile;
                     int64_t voxelIndices[3];
-                    vf->enclosingVoxel(voxelCoordinates,
-                                     voxelIndices);
-                    if (vf->indexValid(voxelIndices)) {
+                    vf->enclosingVoxel(voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2],
+                                     voxelIndices[0], voxelIndices[1], voxelIndices[2]);
+                    if (vf->indexValid(voxelIndices[0], voxelIndices[1], voxelIndices[2])) {
                         if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
                             voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
                             voxelID->setVoxelIJK(voxelIndices);
@@ -4460,8 +4460,8 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
  //   CaretAssert(brain);
     CaretAssert(underlayVolume);
     
-    std::vector<int64_t> dim;
-    underlayVolume->getDimensions(dim);
+    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
     
     /*
      * Find three points on the slice so that the equation for a Plane
@@ -4476,23 +4476,23 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
-            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
-            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
-            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
+            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
-            underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
-            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
-            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
+            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
-            underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
-            underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
-            underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
+            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
         }
             break;
     }
@@ -4657,18 +4657,16 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             break;
     }
     
-    std::vector<int64_t> dim;
-    underlayVolume->getDimensions(dim);
+    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
     
     /*
      * Slice thicknesses
      */
     float sliceXYZ[3];
     float sliceNextXYZ[3];
-    int64_t sliceIJK[3] = { 0, 0, 0 };
-    int64_t sliceNextIJK[3] = { 1, 1, 1 };
-    underlayVolume->indexToSpace(sliceIJK, sliceXYZ);
-    underlayVolume->indexToSpace(sliceNextIJK, sliceNextXYZ);
+    underlayVolume->indexToSpace(0, 0, 0, sliceXYZ[0], sliceXYZ[1], sliceXYZ[2]);
+    underlayVolume->indexToSpace(1, 1, 1, sliceNextXYZ[0], sliceNextXYZ[1], sliceNextXYZ[2]);
     const float sliceThicknesses[3] = {
         sliceNextXYZ[0] - sliceXYZ[0],
         sliceNextXYZ[1] - sliceXYZ[1],
@@ -4689,25 +4687,25 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
-            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
-            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
-            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
+            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
             sliceThickness = sliceThicknesses[0];
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
-            underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
-            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
-            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
+            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
             sliceThickness = sliceThicknesses[1];
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
-            underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
-            underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
-            underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
+            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
             sliceThickness = sliceThicknesses[2];
         }
             break;
@@ -4896,8 +4894,8 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                                            const int64_t sliceIndex,
                                            VolumeFile* underlayVolume)
 {
-    std::vector<int64_t> dim;
-    underlayVolume->getDimensions(dim);
+    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
     
     /*
      * Slice thicknesses
@@ -4928,25 +4926,25 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
-            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
-            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
-            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
+            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
             //sliceThickness = sliceThicknesses[0];
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
-            underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
-            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
-            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
+            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
             //sliceThickness = sliceThicknesses[1];
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
-            underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
-            underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
-            underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
+            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
             //sliceThickness = sliceThicknesses[2];
         }
             break;
@@ -6086,7 +6084,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     float center[3] = { 0.0, 0.0, 0.0 };
     VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
     if (underlayVolumeFile != NULL) {
-        const BoundingBox volumeBoundingBox = underlayVolumeFile->getSpaceBoundingBox();
+        const BoundingBox volumeBoundingBox = underlayVolumeFile->getVoxelSpaceBoundingBox();
         volumeBoundingBox.getCenter(center);
     }
     else {

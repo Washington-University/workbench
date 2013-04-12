@@ -116,16 +116,16 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
         int64_t ijk[3];
         const VolumeFile* idVolumeFile = voxelID->getVolumeFile();
         voxelID->getVoxelIJK(ijk);
-        float xyz[3];
-        idVolumeFile->indexToSpace(ijk, xyz);
+        float x, y, z;
+        idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
                 
         idText.addLine(false,
                        "Voxel XYZ ("
-                       + AString::number(xyz[0])
+                       + AString::number(x)
                        + ", "
-                       + AString::number(xyz[1])
+                       + AString::number(y)
                        + ", "
-                       + AString::number(xyz[2])
+                       + AString::number(z)
                        + ")");
         
         const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
@@ -146,18 +146,18 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                     continue;
                 }
                 
-                int64_t vfIJK[3];
-                vf->enclosingVoxel(xyz, 
-                                   vfIJK);
+                int64_t vfI, vfJ, vfK;
+                vf->enclosingVoxel(x, y, z,
+                                   vfI, vfJ, vfK);
                 
-                if (vf->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {
+                if (vf->indexValid(vfI, vfJ, vfK)) {
                     AString boldText = vf->getFileNameNoPath();
                     boldText += (" IJK ("
-                                 + AString::number(vfIJK[0])
+                                 + AString::number(vfI)
                                  + ", "
-                                 + AString::number(vfIJK[1])
+                                 + AString::number(vfJ)
                                  + ", "
-                                 + AString::number(vfIJK[2])
+                                 + AString::number(vfK)
                                  + ")  ");
                     
                     AString text;
@@ -167,7 +167,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                             text += " ";
                         }
                         if (vf->getType() == SubvolumeAttributes::LABEL) {
-                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfIJK, jMap));
+                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfI, vfJ, vfK, jMap));
                             const GiftiLabelTable* glt = vf->getMapLabelTable(jMap);
                             const GiftiLabel* gl = glt->getLabel(labelIndex);
                             if (gl != NULL) {
@@ -179,7 +179,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                             }
                         }
                         else {
-                            text += AString::number(vf->getValue(vfIJK, jMap));
+                            text += AString::number(vf->getValue(vfI, vfJ, vfK, jMap));
                         }
                     }
                     
@@ -193,6 +193,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
         std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
         brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
         
+        const float xyz[3] = { x, y, z };
         for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
              connIter != allConnectivityFiles.end();
              connIter++) {
