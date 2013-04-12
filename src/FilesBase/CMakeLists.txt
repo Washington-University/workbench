@@ -30,6 +30,8 @@ nifti2.h
 NiftiEnums.h
 NiftiException.h
 VolumeBase.h
+VolumeMappableInterface.h
+VolumeSliceViewPlaneEnum.h
 
 BrainConstants.cxx
 GiftiException.cxx
@@ -40,6 +42,7 @@ GiftiXmlElements.cxx
 NiftiEnums.cxx
 NiftiException.cxx
 VolumeBase.cxx
+VolumeSliceViewPlaneEnum.cxx
 )
 
 #
