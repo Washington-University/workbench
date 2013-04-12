@@ -87,10 +87,12 @@ namespace caret {
             SUPERIOR_TO_INFERIOR = 6
         };
         
+    protected:
         VolumeBase();
         VolumeBase(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
         //convenience method for unsigned
         VolumeBase(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
+    public:
         virtual ~VolumeBase();
 
         ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public
