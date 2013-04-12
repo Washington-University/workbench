@@ -680,6 +680,13 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);        
+                                     sceneClass);
+
+    /*
+     * Restoring scene initialize all members.
+     * If this is not done, the slices will be reset
+     * in updateForVolumeFile().
+     */
+    m_initializedFlag = true;
 }
 
