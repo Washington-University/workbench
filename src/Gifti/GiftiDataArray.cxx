@@ -603,7 +603,7 @@ GiftiDataArray::readFromText(const AString text,
    dataType = dataTypeForReading;
    encoding = encodingForReading;
    endian   = dataEndianForReading;
-   arraySubscriptingOrder = arraySubscriptingOrderForReading;
+// do not do or else swap from column major to row major will not work  arraySubscriptingOrder = arraySubscriptingOrderForReading;
    setDimensions(dimensionsForReading);
    if (dimensionsForReading.size() == 0) {
       throw GiftiException("Data array has no dimensions.");
@@ -816,12 +816,12 @@ GiftiDataArray::readFromText(const AString text,
          }
       }
       
-      //
-      // Are array indices in opposite order
-      //
-      /*if (arraySubscriptingOrderForReading != arraySubscriptingOrder) {
-         convertArrayIndexingOrder();
-      }//*/
+       //
+       // Are array indices in opposite order
+       //
+       if (arraySubscriptingOrderForReading != arraySubscriptingOrder) {
+           convertArrayIndexingOrder();
+       }
    } // If NOT metadata only
    
    setModified();
