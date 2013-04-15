@@ -38,6 +38,7 @@ CiftiConnectivityMatrixParcelFile.h
 CiftiConnectivityMatrixParcelDenseFile.h
 CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
+CiftiMappableDataFile.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 DisplayGroupEnum.h
@@ -113,6 +114,7 @@ CiftiConnectivityMatrixParcelFile.cxx
 CiftiConnectivityMatrixParcelDenseFile.cxx
 CiftiFiberOrientationFile.cxx
 CiftiFiberTrajectoryFile.cxx
+CiftiMappableDataFile.cxx
 ConnectivityLoaderFile.cxx
 DataFileTypeEnum.cxx
 DisplayGroupEnum.cxx
