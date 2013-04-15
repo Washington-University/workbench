@@ -972,7 +972,7 @@ VolumeFile::getMapUniqueID(const int32_t mapIndex) const
 void
 VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
 {
-    boundingBoxOut.resetWithMaximumExtent();
+    boundingBoxOut.resetForUpdate();
     
     float coordinates[3];
     for (int i = 0; i < 2; ++i)//if the volume isn't plumb, we need to test all corners, so just always test all corners
