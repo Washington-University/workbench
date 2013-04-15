@@ -603,7 +603,7 @@ GiftiDataArray::readFromText(const AString text,
    dataType = dataTypeForReading;
    encoding = encodingForReading;
    endian   = dataEndianForReading;
-// do not do or else swap from column major to row major will not work  arraySubscriptingOrder = arraySubscriptingOrderForReading;
+   arraySubscriptingOrder = arraySubscriptingOrderForReading;
    setDimensions(dimensionsForReading);
    if (dimensionsForReading.size() == 0) {
       throw GiftiException("Data array has no dimensions.");
@@ -819,7 +819,7 @@ GiftiDataArray::readFromText(const AString text,
        //
        // Are array indices in opposite order
        //
-       if (arraySubscriptingOrderForReading != arraySubscriptingOrder) {
+       if (arraySubscriptingOrderForReading == GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER) {
            convertArrayIndexingOrder();
        }
    } // If NOT metadata only
@@ -908,7 +908,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
 
                 switch (arraySubscriptingOrder)
                 {
-                case GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER:
+                case GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER:
                     switch (dataType) {
                     case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                     {
@@ -951,7 +951,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                         break;
                     }
                     break;
-                case GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER:
+                case GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER:
                     switch (dataType) {
                     case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                     {
