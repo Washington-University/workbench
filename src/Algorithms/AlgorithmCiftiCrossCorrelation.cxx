@@ -65,9 +65,10 @@ OperationParameters* AlgorithmCiftiCrossCorrelation::getParameters()
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("Correlates every rown in <cifti-a> with every row in <cifti-b>.  ") +
+        "The mapping along columns in <cifti-b> becomes the mapping along rows in the output.\n\n" +
+        "When using the -fisher-z option, the output is NOT a Z-score, it is artanh(r), to do further math on this output, consider using -cifti-math.\n\n" +
+        "Restricting the memory usage will make it calculate the output in chunks, by reading through <cifti-b> multiple times."
     );
     return ret;
 }
@@ -130,7 +131,6 @@ AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* m
     {
         chunkSize = numRowsForMem(memLimitGB);
     }
-    cacheRowsA(0, m_numRowsA);
     vector<vector<float> > outscratch(chunkSize, vector<float>(m_numRowsB));//allocate output rows
     for (int64_t chunkStart = 0; chunkStart < m_numRowsA; chunkStart += chunkSize)
     {

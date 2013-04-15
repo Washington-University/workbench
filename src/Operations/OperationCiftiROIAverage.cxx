@@ -62,9 +62,7 @@ OperationParameters* OperationCiftiROIAverage::getParameters()
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("Take the average across each row in any ROI, and write the result to a text file, seperated by newlines.")
     );
     return ret;
 }

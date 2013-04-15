@@ -62,9 +62,7 @@ OperationParameters* OperationConvertMatrix4ToWorkbenchSparse::getParameters()
     ret->addMetricParameter(6, "seed-roi", "metric roi file of all nodes used in the seed space");
     ret->addStringParameter(7, "wb-sparse-out", "output - the output workbench sparse file");
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("Converts the matrix 4 output of probtrackx to workbench sparse file format.")
     );
     return ret;
 }
