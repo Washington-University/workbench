@@ -969,10 +969,11 @@ VolumeFile::getMapUniqueID(const int32_t mapIndex) const
 /**
  * @return Bounding box of the volumes spatial coordinates.
  */
-BoundingBox 
-VolumeFile::getVoxelSpaceBoundingBox() const
+void
+VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
 {
-    BoundingBox bb;
+    boundingBoxOut.resetWithMaximumExtent();
+    
     float coordinates[3];
     for (int i = 0; i < 2; ++i)//if the volume isn't plumb, we need to test all corners, so just always test all corners
     {
@@ -981,11 +982,10 @@ VolumeFile::getVoxelSpaceBoundingBox() const
             for (int k = 0; k < 2; ++k)
             {
                 this->indexToSpace(i * m_dimensions[0] - 0.5f, j * m_dimensions[1] - 0.5f, k * m_dimensions[2] - 0.5f, coordinates);//accounts for extra half voxel on each side of each center
-                bb.update(coordinates);
+                boundingBoxOut.update(coordinates);
             }
         }
     }
-    return bb;
 }
 
 ///**

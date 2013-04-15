@@ -618,7 +618,8 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
     float fitToWindowTranslation[3] = { 0.0, 0.0, 0.0 };
     
     if (vf != NULL) {        
-        BoundingBox boundingBox = vf->getVoxelSpaceBoundingBox();
+        BoundingBox boundingBox;
+        vf->getVoxelSpaceBoundingBox(boundingBox);
         
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         vf->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
@@ -6084,7 +6085,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     float center[3] = { 0.0, 0.0, 0.0 };
     VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
     if (underlayVolumeFile != NULL) {
-        const BoundingBox volumeBoundingBox = underlayVolumeFile->getVoxelSpaceBoundingBox();
+        BoundingBox volumeBoundingBox;
+        underlayVolumeFile->getVoxelSpaceBoundingBox(volumeBoundingBox);
         volumeBoundingBox.getCenter(center);
     }
     else {

@@ -30,6 +30,7 @@
 #include <vector>
 #include "CaretAssert.h"
 #include "CaretPointer.h"
+#include "VolumeMappableInterface.h"
 
 namespace caret {
 
@@ -56,7 +57,7 @@ namespace caret {
         virtual ~AbstractHeader();
     };
     
-    class VolumeBase 
+    class VolumeBase : public VolumeMappableInterface
     {
     protected:
         std::vector<std::vector<float> > m_indexToSpace;

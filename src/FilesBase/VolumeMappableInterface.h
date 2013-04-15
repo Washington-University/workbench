@@ -49,13 +49,13 @@ namespace caret {
      */
     class VolumeMappableInterface {
         
-    private:
+    protected:
         VolumeMappableInterface() { }
         
         virtual ~VolumeMappableInterface() { }
         
     private:
-        VolumeMappableInterface(const VolumeMappableInterface&)
+        VolumeMappableInterface(const VolumeMappableInterface&);
         
         VolumeMappableInterface& operator=(const VolumeMappableInterface&);
         

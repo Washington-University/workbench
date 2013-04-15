@@ -135,7 +135,7 @@ namespace caret {
         
         virtual bool isModified() const;
         
-        BoundingBox getVoxelSpaceBoundingBox() const;
+        void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
         
         /**
          * @return The structure for this file.
