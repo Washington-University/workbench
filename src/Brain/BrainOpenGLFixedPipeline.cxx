@@ -2418,7 +2418,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
     if (volumeDrawInfo.empty() == false) {
         //VolumeSliceCoordinateSelection* selectedSlices = volumeController->getSelectedVolumeSlices(tabNumber);
         
-        VolumeFile* underlayVolumeFile = volumeDrawInfo[0].volumeFile;
+        VolumeMappableInterface* underlayVolumeFile = volumeDrawInfo[0].volumeFile;
         browserTabContent->updateForVolumeFile(underlayVolumeFile);
         float selectedVoxelXYZ[3] = {
             browserTabContent->getSliceCoordinateParasagittal(),
@@ -3009,7 +3009,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     float sliceCoordinate = 0.0;
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         const VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
-        const VolumeFile* volumeFile = volInfo.volumeFile;
+        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
         const int64_t mapIndex = volInfo.mapIndex;
@@ -3577,7 +3577,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         };
                         
                         for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
-                            VolumeFile* vf = volumeDrawInfo[iVol].volumeFile;
+                            VolumeMappableInterface* vf = volumeDrawInfo[iVol].volumeFile;
                             int64_t voxelIndices[3];
                             vf->enclosingVoxel(voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2],
                                                voxelIndices[0], voxelIndices[1], voxelIndices[2]);
@@ -3707,7 +3707,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         else {
             glDisable(GL_BLEND);
         }
-        const VolumeFile* volumeFile = volInfo.volumeFile;
+        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
         
@@ -3817,7 +3817,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
             const int32_t volDrawInfoIndex = identificationIndices[idIndex];
             CaretAssertVectorIndex(volumeDrawInfo, volDrawInfoIndex);
-            VolumeFile* vf = volumeDrawInfo[volDrawInfoIndex].volumeFile;
+            VolumeMappableInterface* vf = volumeDrawInfo[volDrawInfoIndex].volumeFile;
             //const int32_t mapIndex = identificationIndices[idIndex + 1];
             const int64_t voxelIndices[3] = {
                 identificationIndices[idIndex + 2],
@@ -3937,7 +3937,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
     float voxelStepZ = std::numeric_limits<float>::max();
     float sliceCoordinate = 0.0;
     for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
-        const VolumeFile* volumeFile = volumeDrawInfo[i].volumeFile;
+        const VolumeMappableInterface* volumeFile = volumeDrawInfo[i].volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
         
@@ -4061,7 +4061,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                 
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
-                    VolumeFile* vf = volInfo.volumeFile;
+                    VolumeMappableInterface* vf = volInfo.volumeFile;
 //                    const int64_t mapIndex = volInfo.mapIndex;
                     bool valid = false;
 //                    float voxel = 0;
@@ -4410,7 +4410,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                 };
                 
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
-                    VolumeFile* vf = volumeDrawInfo[iVol].volumeFile;
+                    VolumeMappableInterface* vf = volumeDrawInfo[iVol].volumeFile;
                     int64_t voxelIndices[3];
                     vf->enclosingVoxel(voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2],
                                      voxelIndices[0], voxelIndices[1], voxelIndices[2]);
@@ -4456,7 +4456,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
                                                     BrowserTabContent* browserTabContent,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
-                                                    VolumeFile* underlayVolume)
+                                                    VolumeMappableInterface* underlayVolume)
 {
  //   CaretAssert(brain);
     CaretAssert(underlayVolume);
@@ -4630,7 +4630,7 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                                          BrowserTabContent* /*browserTabContent*/,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
-                                         VolumeFile* underlayVolume)
+                                         VolumeMappableInterface* underlayVolume)
 {
     CaretAssert(brain);
     CaretAssert(underlayVolume);
@@ -4893,7 +4893,7 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                                            BrowserTabContent* /*browserTabContent*/,
                                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                            const int64_t sliceIndex,
-                                           VolumeFile* underlayVolume)
+                                           VolumeMappableInterface* underlayVolume)
 {
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
@@ -7304,7 +7304,7 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
                          windowB[2], 
                          modelview, 
                          projection, 
-                         viewport, 
+                         viewport,
                          &modelB[0], 
                          &modelB[1], 
                          &modelB[2]) == GL_TRUE) {
@@ -7324,7 +7324,7 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
  * Constructor.
  */
 BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* mapFile,
-                                                         VolumeFile* volumeFile,
+                                                         VolumeMappableInterface* volumeFile,
                                                          Brain* brain,
                                                          PaletteColorMapping* paletteColorMapping,
                                                          const FastStatistics* statistics,
@@ -7335,7 +7335,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
     this->mapFile = mapFile;
     this->volumeFile = volumeFile;
     this->brain = brain;
-    this->volumeType = volumeFile->getType();
+//    this->volumeType = volumeFile->getVolumeType();
     this->paletteColorMapping = paletteColorMapping;
     this->wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;
     this->mapIndex = mapIndex;

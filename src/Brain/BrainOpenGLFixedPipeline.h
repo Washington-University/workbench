@@ -74,6 +74,7 @@ namespace caret {
     class PaletteColorMapping;
     class PaletteFile;
     class VolumeFile;
+    class VolumeMappableInterface;
     
     /**
      * Performs drawing of graphics using OpenGL.
@@ -113,7 +114,7 @@ namespace caret {
         class VolumeDrawInfo {
         public:
             VolumeDrawInfo(CaretMappableDataFile* mapFile,
-                           VolumeFile* volumeFile,
+                           VolumeMappableInterface* volumeFile,
                            Brain* brain,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
@@ -122,7 +123,7 @@ namespace caret {
                            const float opacity);
             Brain* brain;
             CaretMappableDataFile* mapFile;
-            VolumeFile* volumeFile;
+            VolumeMappableInterface* volumeFile;
             SubvolumeAttributes::VolumeType volumeType;
             PaletteColorMapping* paletteColorMapping;
             WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode;
@@ -237,21 +238,21 @@ namespace caret {
                                        BrowserTabContent* browserTabContent,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       VolumeFile* underlayVolume);
+                                       VolumeMappableInterface* underlayVolume);
         
         void drawVolumeFoci(Brain* brain,
                             ModelVolume* modelVolume,
                             BrowserTabContent* browserTabContent,
                             const VolumeSliceViewPlaneEnum::Enum slicePlane,
                             const int64_t sliceIndex,
-                            VolumeFile* underlayVolume);
+                            VolumeMappableInterface* underlayVolume);
         
         void drawVolumeFibers(Brain* brain,
                               ModelVolume* modelVolume,
                               BrowserTabContent* browserTabContent,
                               const VolumeSliceViewPlaneEnum::Enum slicePlane,
                               const int64_t sliceIndex,
-                              VolumeFile* underlayVolume);
+                              VolumeMappableInterface* underlayVolume);
         
         void setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                  Brain* brain,

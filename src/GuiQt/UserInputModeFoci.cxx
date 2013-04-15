@@ -286,13 +286,14 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                                                         m_inputModeFociWidget);
             }
             else if (idVoxel->isValid()) {
-                const VolumeFile* vf = idVoxel->getVolumeFile();
+                const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
+                const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(vf);
                 int64_t ijk[3];
                 idVoxel->getVoxelIJK(ijk);
                 float xyz[3];
                 vf->indexToSpace(ijk, xyz);
                 
-                const AString focusName = (vf->getFileNameNoPath()
+                const AString focusName = (cmdf->getFileNameNoPath()
                                            + " IJK ("
                                            + AString::fromNumbers(ijk, 3, ",")
                                            + ")");

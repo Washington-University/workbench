@@ -350,8 +350,9 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
         }
         else if (voxelID != NULL) {
             if (voxelID->isValid()) {
-                const VolumeFile* volumeFile = voxelID->getVolumeFile();
-                if (brain->isFileValid(volumeFile)) {
+                const VolumeMappableInterface* volumeFile = voxelID->getVolumeFile();
+                const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
+                if (brain->isFileValid(cmdf)) {
                     CaretAssert(volumeFile);
                     int64_t ijk[3];
                     voxelID->getVoxelIJK(ijk);
@@ -359,7 +360,7 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                     volumeFile->indexToSpace(ijk, xyz);
                     
                     const AString focusName = ("Last ID "
-                                               + volumeFile->getFileNameNoPath()
+                                               + cmdf->getFileNameNoPath()
                                                + " IJK ("
                                                + AString::fromNumbers(ijk, 3, ",")
                                                + ")");

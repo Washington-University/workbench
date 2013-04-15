@@ -118,7 +118,7 @@ SelectionItemVoxel::reset()
 /**
  * @return The volume file.
  */
-const VolumeFile* 
+const VolumeMappableInterface* 
 SelectionItemVoxel::getVolumeFile() const
 {
     return m_volumeFile;
@@ -143,7 +143,7 @@ SelectionItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
  *    New value for volume file.
  */
 void 
-SelectionItemVoxel::setVolumeFile(VolumeFile* volumeFile)
+SelectionItemVoxel::setVolumeFile(VolumeMappableInterface* volumeFile)
 {
     m_volumeFile = volumeFile;
 }
@@ -178,7 +178,15 @@ AString
 SelectionItemVoxel::toString() const
 {
     AString text = SelectionItem::toString();
-    text += ("Volume: " + ((m_volumeFile != NULL) ? m_volumeFile->getFileNameNoPath() : "INVALID"));
+    AString name = "INVALID";
+    if (m_volumeFile != NULL) {
+        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(m_volumeFile);
+        if (cmdf != NULL) {
+            name = cmdf->getFileNameNoPath();
+        }
+    }
+    
+    text += ("Volume: " + name);
     text += ("Voxel: " 
              + AString::number(m_voxelIJK[0]) + ", "
              + AString::number(m_voxelIJK[1]) + ", "

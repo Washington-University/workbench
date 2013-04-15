@@ -32,7 +32,7 @@ namespace caret {
 
     class Focus;
     class FociFile;
-    class VolumeFile;
+    class VolumeMappableInterface;
     
     class SelectionItemFocusVolume : public SelectionItem {
         
@@ -43,9 +43,9 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        VolumeFile* getVolumeFile();
+        VolumeMappableInterface* getVolumeFile();
         
-        const VolumeFile* getVolumeFile() const;
+        const VolumeMappableInterface* getVolumeFile() const;
 
         Focus* getFocus();
         
@@ -59,7 +59,7 @@ namespace caret {
         
         void setFociFile(FociFile* fociFile);
         
-        void setVolumeFile(VolumeFile* volumeFile);
+        void setVolumeFile(VolumeMappableInterface* volumeFile);
         
         int32_t getFocusIndex() const;
         
@@ -80,7 +80,7 @@ namespace caret {
         
         Focus* focus;
         FociFile* fociFile;
-        VolumeFile* volumeFile;
+        VolumeMappableInterface* volumeFile;
         int32_t focusIndex;
         int32_t focusProjectionIndex;
     };

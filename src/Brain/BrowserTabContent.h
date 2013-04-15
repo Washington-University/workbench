@@ -54,7 +54,7 @@ namespace caret {
     class SceneClassAssistant;
     class Surface;
     class ViewingTransformations;
-    class VolumeFile;
+    class VolumeMappableInterface;
     class VolumeSliceSettings;
     class VolumeSurfaceOutlineSetModel;
     class WholeBrainSurfaceSettings;
@@ -236,19 +236,19 @@ namespace caret {
         
         void setSliceCoordinateParasagittal(const float z);
         
-        int64_t getSliceIndexAxial(const VolumeFile* volumeFile) const;
+        int64_t getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const;
         
-        void setSliceIndexAxial(const VolumeFile* volumeFile,
+        void setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                 const int64_t sliceIndexAxial);
         
-        int64_t getSliceIndexCoronal(const VolumeFile* volumeFile) const;
+        int64_t getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const;
         
-        void setSliceIndexCoronal(const VolumeFile* volumeFile,
+        void setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                   const int64_t sliceIndexCoronal);
         
-        int64_t getSliceIndexParasagittal(const VolumeFile* volumeFile) const;
+        int64_t getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const;
         
-        void setSliceIndexParasagittal(const VolumeFile* volumeFile,
+        void setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                        const int64_t sliceIndexParasagittal);
         
         bool isSliceParasagittalEnabled() const;
@@ -263,7 +263,7 @@ namespace caret {
         
         void setSliceAxialEnabled(const bool sliceEnabledAxial);
         
-        void updateForVolumeFile(const VolumeFile* volumeFile);
+        void updateForVolumeFile(const VolumeMappableInterface* volumeFile);
         
         void selectSlicesAtOrigin();
         

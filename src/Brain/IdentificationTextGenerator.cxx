@@ -114,7 +114,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     const SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
         int64_t ijk[3];
-        const VolumeFile* idVolumeFile = voxelID->getVolumeFile();
+        const VolumeMappableInterface* idVolumeFile = voxelID->getVolumeFile();
         voxelID->getVoxelIJK(ijk);
         float x, y, z;
         idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);

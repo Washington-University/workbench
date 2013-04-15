@@ -296,7 +296,7 @@ VolumeSliceSettings::reset()
  *   File for which slice coordinates are made valid.
  */
 void
-VolumeSliceSettings::updateForVolumeFile(const VolumeFile* volumeFile)
+VolumeSliceSettings::updateForVolumeFile(const VolumeMappableInterface* volumeFile)
 {
     if (volumeFile == NULL) {
         reset();
@@ -346,7 +346,7 @@ VolumeSliceSettings::selectSlicesAtCoordinate(const float xyz[3])
  *   Axial slice index or negative if invalid
  */
 int64_t
-VolumeSliceSettings::getSliceIndexAxial(const VolumeFile* volumeFile) const
+VolumeSliceSettings::getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const
 {
     CaretAssert(volumeFile);
     
@@ -387,7 +387,7 @@ VolumeSliceSettings::getSliceIndexAxial(const VolumeFile* volumeFile) const
  *    New value for axial slice index.
  */
 void
-VolumeSliceSettings::setSliceIndexAxial(const VolumeFile* volumeFile,
+VolumeSliceSettings::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                                    const int64_t sliceIndexAxial)
 {
     CaretAssert(volumeFile);
@@ -403,7 +403,7 @@ VolumeSliceSettings::setSliceIndexAxial(const VolumeFile* volumeFile,
  *   Coronal slice index.
  */
 int64_t
-VolumeSliceSettings::getSliceIndexCoronal(const VolumeFile* volumeFile) const
+VolumeSliceSettings::getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const
 {
     CaretAssert(volumeFile);
     
@@ -445,7 +445,7 @@ VolumeSliceSettings::getSliceIndexCoronal(const VolumeFile* volumeFile) const
  *    New value for coronal slice index.
  */
 void
-VolumeSliceSettings::setSliceIndexCoronal(const VolumeFile* volumeFile,
+VolumeSliceSettings::setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                                      const int64_t sliceIndexCoronal)
 {
     CaretAssert(volumeFile);
@@ -461,7 +461,7 @@ VolumeSliceSettings::setSliceIndexCoronal(const VolumeFile* volumeFile,
  *   Parasagittal slice index.
  */
 int64_t
-VolumeSliceSettings::getSliceIndexParasagittal(const VolumeFile* volumeFile) const
+VolumeSliceSettings::getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const
 {
     std::vector<int64_t> dimensions;
     volumeFile->getDimensions(dimensions);
@@ -500,7 +500,7 @@ VolumeSliceSettings::getSliceIndexParasagittal(const VolumeFile* volumeFile) con
  *    New value for parasagittal slice index.
  */
 void
-VolumeSliceSettings::setSliceIndexParasagittal(const VolumeFile* volumeFile,
+VolumeSliceSettings::setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                                           const int64_t sliceIndexParasagittal)
 {
     CaretAssert(volumeFile);

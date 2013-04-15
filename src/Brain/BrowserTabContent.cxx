@@ -1387,7 +1387,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
     if (isVolumeSlicesDisplayed()) {
         const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
         ModelVolume* modelVolume = getDisplayedVolumeModel();
-        VolumeFile* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
+        VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
         BoundingBox mybox;
         vf->getVoxelSpaceBoundingBox(mybox);
         float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
@@ -2043,7 +2043,7 @@ BrowserTabContent::reset()
  *   File for which slice coordinates are made valid.
  */
 void
-BrowserTabContent::updateForVolumeFile(const VolumeFile* volumeFile)
+BrowserTabContent::updateForVolumeFile(const VolumeMappableInterface* volumeFile)
 {
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceSettings->updateForVolumeFile(volumeFile);
@@ -2091,7 +2091,7 @@ BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
  *   Axial slice index or negative if invalid
  */
 int64_t
-BrowserTabContent::getSliceIndexAxial(const VolumeFile* volumeFile) const
+BrowserTabContent::getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const
 {
     if (isVolumeSlicesDisplayed()) {
         return m_volumeSliceSettings->getSliceIndexAxial(volumeFile);
@@ -2108,7 +2108,7 @@ BrowserTabContent::getSliceIndexAxial(const VolumeFile* volumeFile) const
  *    New value for axial slice index.
  */
 void
-BrowserTabContent::setSliceIndexAxial(const VolumeFile* volumeFile,
+BrowserTabContent::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                         const int64_t sliceIndexAxial)
 {
     if (isVolumeSlicesDisplayed()) {
@@ -2126,7 +2126,7 @@ BrowserTabContent::setSliceIndexAxial(const VolumeFile* volumeFile,
  *   Coronal slice index.
  */
 int64_t
-BrowserTabContent::getSliceIndexCoronal(const VolumeFile* volumeFile) const
+BrowserTabContent::getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const
 {
     if (isVolumeSlicesDisplayed()) {
         return m_volumeSliceSettings->getSliceIndexCoronal(volumeFile);
@@ -2144,7 +2144,7 @@ BrowserTabContent::getSliceIndexCoronal(const VolumeFile* volumeFile) const
  *    New value for coronal slice index.
  */
 void
-BrowserTabContent::setSliceIndexCoronal(const VolumeFile* volumeFile,
+BrowserTabContent::setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                           const int64_t sliceIndexCoronal)
 {
     if (isVolumeSlicesDisplayed()) {
@@ -2162,7 +2162,7 @@ BrowserTabContent::setSliceIndexCoronal(const VolumeFile* volumeFile,
  *   Parasagittal slice index.
  */
 int64_t
-BrowserTabContent::getSliceIndexParasagittal(const VolumeFile* volumeFile) const
+BrowserTabContent::getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const
 {
     if (isVolumeSlicesDisplayed()) {
         return m_volumeSliceSettings->getSliceIndexParasagittal(volumeFile);
@@ -2179,7 +2179,7 @@ BrowserTabContent::getSliceIndexParasagittal(const VolumeFile* volumeFile) const
  *    New value for parasagittal slice index.
  */
 void
-BrowserTabContent::setSliceIndexParasagittal(const VolumeFile* volumeFile,
+BrowserTabContent::setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                                const int64_t sliceIndexParasagittal)
 {
     if (isVolumeSlicesDisplayed()) {

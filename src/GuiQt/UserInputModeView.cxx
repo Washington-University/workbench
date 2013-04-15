@@ -228,7 +228,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
          * voxel that was loaded.
          */
         if (idVoxel->isValid()) {
-            const VolumeFile* volumeFile = idVoxel->getVolumeFile();
+            const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
             idVoxel->getVoxelIJK(voxelIJK);
             if (volumeFile != NULL) {
@@ -313,7 +313,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
         }
         
         if (idVoxel->isValid()) {
-            const VolumeFile* volumeFile = idVoxel->getVolumeFile();
+            const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
             idVoxel->getVoxelIJK(voxelIJK);
             if (volumeFile != NULL) {

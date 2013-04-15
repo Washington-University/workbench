@@ -30,7 +30,7 @@
 
 namespace caret {
 
-    class VolumeFile;
+    class VolumeMappableInterface;
     
     class SelectionItemVoxel : public SelectionItem {
         
@@ -45,11 +45,11 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        const VolumeFile* getVolumeFile() const;
+        const VolumeMappableInterface* getVolumeFile() const;
         
         void getVoxelIJK(int64_t voxelIJK[3]) const;
         
-        void setVolumeFile(VolumeFile* volumeFile);
+        void setVolumeFile(VolumeMappableInterface* volumeFile);
         
         void setVoxelIJK(const int64_t voxelIJK[3]);
         
@@ -60,7 +60,7 @@ namespace caret {
     private:
         void copyHelperSelectionItemVoxel(const SelectionItemVoxel& idItem);
 
-        VolumeFile* m_volumeFile;
+        VolumeMappableInterface* m_volumeFile;
         
         int64_t m_voxelIJK[3];
     };

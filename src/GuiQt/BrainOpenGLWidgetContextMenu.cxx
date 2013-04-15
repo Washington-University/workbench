@@ -444,7 +444,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         int64_t ijk[3];
         idVoxel->getVoxelIJK(ijk);
         float xyz[3];
-        const VolumeFile* vf = idVoxel->getVolumeFile();
+        const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
         vf->indexToSpace(ijk, xyz);
         
         const AString text = ("Create Focus at Voxel IJK ("
@@ -1043,13 +1043,14 @@ void
 BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
 {
     SelectionItemVoxel* voxelID = this->identificationManager->getVoxelIdentification();
-    const VolumeFile* vf = voxelID->getVolumeFile();
+    const VolumeMappableInterface* vf = voxelID->getVolumeFile();
     int64_t ijk[3];
     voxelID->getVoxelIJK(ijk);
     float xyz[3];
     vf->indexToSpace(ijk, xyz);
     
-    const AString focusName = (vf->getFileNameNoPath()
+    const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(vf);
+    const AString focusName = (cmdf->getFileNameNoPath()
                                + " IJK ("
                                + AString::fromNumbers(ijk, 3, ",")
                                + ")");

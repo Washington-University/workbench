@@ -82,6 +82,15 @@ namespace caret {
                                    int64_t& numComponents) const = 0;
         
         /**
+         * Get the dimensions of the volume.
+         *
+         * @param dimsOut
+         *     Will contain 5 elements: (0) X-dimension, (1) Y-dimension
+         * (2) Z-dimension, (3) time, (4) components.
+         */
+        virtual void getDimensions(std::vector<int64_t>& dimsOut) const = 0;
+
+        /**
          * @return The number of componenents per voxel.
          */
         virtual const int64_t& getNumberOfComponents() const = 0;
@@ -108,6 +117,34 @@ namespace caret {
                                   float& coordOut1,
                                   float& coordOut2,
                                   float& coordOut3) const = 0;
+        
+        /**
+         * Convert an index to space (coordinates).
+         *
+         * @param indexIn1
+         *     First dimension (i).
+         * @param indexIn2
+         *     Second dimension (j).
+         * @param indexIn3
+         *     Third dimension (k).
+         * @param coordOut
+         *     Output XYZ coordinates.
+         */
+        virtual void indexToSpace(const float& indexIn1,
+                                  const float& indexIn2,
+                                  const float& indexIn3,
+                                  float* coordOut) const = 0;
+        
+        /**
+         * Convert an index to space (coordinates).
+         *
+         * @param indexIn
+         *     IJK indices
+         * @param coordOut
+         *     Output XYZ coordinates.
+         */
+        virtual void indexToSpace(const int64_t* indexIn,
+                                  float* coordOut) const = 0;
         
         /**
          * Convert a coordinate to indices.  Note that output indices

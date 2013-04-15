@@ -85,7 +85,7 @@ SelectionItemFocusVolume::isValid() const
 /**
  * @return VolumeFile on which focus was drawn.
  */
-const VolumeFile*
+const VolumeMappableInterface*
 SelectionItemFocusVolume::getVolumeFile() const
 {
     return this->volumeFile;
@@ -94,7 +94,7 @@ SelectionItemFocusVolume::getVolumeFile() const
 /**
  * @return VolumeFile on which focus was drawn.
  */
-VolumeFile* 
+VolumeMappableInterface* 
 SelectionItemFocusVolume::getVolumeFile()
 {
     return this->volumeFile;
@@ -106,7 +106,7 @@ SelectionItemFocusVolume::getVolumeFile()
  *    New value for volumeFile.
  */
 void 
-SelectionItemFocusVolume::setVolumeFile(VolumeFile* volumeFile)
+SelectionItemFocusVolume::setVolumeFile(VolumeMappableInterface* volumeFile)
 {
     this->volumeFile = volumeFile;
 }
@@ -216,8 +216,16 @@ SelectionItemFocusVolume::setFocusProjectionIndex(const int32_t focusProjectionI
 AString
 SelectionItemFocusVolume::toString() const
 {
+    AString name = "INVALID";
+    if (volumeFile != NULL) {
+        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(volumeFile);
+        if (cmdf != NULL) {
+            name = cmdf->getFileNameNoPath();
+        }
+    }
+    
     AString text = SelectionItem::toString();
-    text += ("Volume File: " + ((volumeFile != NULL) ? volumeFile->getFileNameNoPath() : "INVALID") + "\n");
+    text += ("Volume File: " + name + "\n");
     text += ("Foci File: " + ((fociFile != NULL) ? fociFile->getFileNameNoPath() : "INVALID") + "\n");
     text += ("Focus: " + ((focus != NULL) ? focus->getName() : "INVALID") + "\n");
     text += ("Focus Index: " + AString::number(focusIndex) + "\n");
