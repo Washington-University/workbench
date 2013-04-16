@@ -123,6 +123,11 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     EventManager::get()->sendEvent(getBrowserTab.getPointer());
     BrowserTabContent* browserTabContent = getBrowserTab.getBrowserTab();
     
+    Brain* brain = NULL;
+    if (modelDisplayController != NULL) {
+        brain = modelDisplayController->getBrain();
+    }
+    
     /*
      * For a NULL controller, find and use the surface controller for the
      * surface and in the same tab as the volume controller.  This typically 
@@ -133,7 +138,9 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
         EventManager::get()->sendEvent(surfaceGet.getPointer());
         surfaceController = surfaceGet.getModelSurface();
         CaretAssert(surfaceController);
-        modelDisplayController = surfaceController;
+        if (surfaceController != NULL) {
+            brain = surfaceController->getBrain();
+        }
         
         /*
          * If whole brain is displayed in the tab, use coloring
@@ -143,6 +150,13 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
             ModelWholeBrain* wholeBrain = browserTabContent->getDisplayedWholeBrainModel();
             if (wholeBrain != NULL) {
                 wholeBrainController = wholeBrain;
+                brain = wholeBrainController->getBrain();
+                surfaceController = NULL;
+            }
+            ModelSurfaceMontage* surfMont = browserTabContent->getDisplayedSurfaceMontageModel();
+            if (surfMont != NULL) {
+                surfaceMontageController = surfMont;
+                brain = surfaceMontageController->getBrain();
                 surfaceController = NULL;
             }
         }
@@ -184,20 +198,17 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
      * Drawing type for labels
      */
     DisplayPropertiesLabels* displayPropertiesLabels = NULL;
-    if (browserTabContent != NULL) {
-        if (modelDisplayController != NULL) {
-            Brain* brain = modelDisplayController->getBrain();
-            if (brain != NULL) {
-                displayPropertiesLabels = brain->getDisplayPropertiesLabels();
-            }
-        }
-//        if (surfaceController != NULL) {
-//            Brain* brain = surfaceController->getBrain();
+    if (brain != NULL) {
+        displayPropertiesLabels = brain->getDisplayPropertiesLabels();
+    }
+//    if (browserTabContent != NULL) {
+//        if (modelDisplayController != NULL) {
+//            Brain* brain = modelDisplayController->getBrain();
 //            if (brain != NULL) {
 //                displayPropertiesLabels = brain->getDisplayPropertiesLabels();
 //            }
 //        }
-    }
+//    }
     
     const int numNodes = surface->getNumberOfNodes();
     const int numColorComponents = numNodes * 4;
