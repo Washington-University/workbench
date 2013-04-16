@@ -69,6 +69,8 @@ namespace caret {
     private:
         void updateControlAfterSelection();
         
+        void emitSelectionChangedSignal();
+        
         StructureSurfaceSelectionControl(const StructureSurfaceSelectionControl&);
 
         StructureSurfaceSelectionControl& operator=(const StructureSurfaceSelectionControl&);

@@ -101,8 +101,9 @@ StructureSurfaceSelectionControl::structureSelected(int currentIndex)
     StructureEnum::Enum selectedStructure = StructureEnum::fromIntegerCode(structID, NULL);
     this->surfaceControllerSelector->setSelectedStructure(selectedStructure);
     
-    emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
-                          this->surfaceControllerSelector->getSelectedSurfaceController());
+    emitSelectionChangedSignal();
+//    emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
+//                          this->surfaceControllerSelector->getSelectedSurfaceController());
 
     this->updateControlAfterSelection();
 }
@@ -116,17 +117,44 @@ StructureSurfaceSelectionControl::surfaceControllerSelected(int currentIndex)
     ModelSurface* surfaceController = (ModelSurface*)pointer;
     this->surfaceControllerSelector->setSelectedSurfaceController(surfaceController);
     
+    emitSelectionChangedSignal();
+//    emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
+//                          this->surfaceControllerSelector->getSelectedSurfaceController());
+}
+
+/**
+ * Emit the selection changed signal.
+ * Also preserves mouse focus that can be disrupted by user-interface updates.
+ */
+void
+StructureSurfaceSelectionControl::emitSelectionChangedSignal()
+{
+    const bool structureHasFocus = this->structureSelectionComboBox->hasFocus();
+    const bool surfaceHasFocus   = this->surfaceControllerSelectionComboBox->hasFocus();
     emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
                           this->surfaceControllerSelector->getSelectedSurfaceController());
+    if (structureHasFocus) {
+        this->structureSelectionComboBox->setFocus();
+    }
+    else if (surfaceHasFocus) {
+        this->surfaceControllerSelectionComboBox->setFocus();
+    }
 }
 
 
+
+/**
+ * @return The selected mode surface.
+ */
 ModelSurface* 
 StructureSurfaceSelectionControl::getSelectedSurfaceController()
 {
     return this->surfaceControllerSelector->getSelectedSurfaceController();
 }
 
+/**
+ * @return The selected structure.
+ */
 StructureEnum::Enum 
 StructureSurfaceSelectionControl::getSelectedStructure()
 {
