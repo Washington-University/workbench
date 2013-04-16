@@ -1642,6 +1642,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     float specFileTimeStart = 0.0;
     float specFileTimeEnd   = 0.0;
     bool sceneFileWasLoaded = false;
+    bool specFileWasLoaded  = false;
     
     /*
      * Load spec file (before data files)
@@ -1688,6 +1689,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                     errorMessages += readSpecFileEvent.getErrorMessage();
                 }
                 specFileTimeEnd = timer.getElapsedTimeSeconds();
+                specFileWasLoaded = true;
             }
                 break;
             case LOAD_SPEC_FILE_WITH_DIALOG:
@@ -1698,6 +1700,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                                                                     &specFile,
                                                                     this)) {
                     m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+                    specFileWasLoaded = true;
                 }
 //                /*
 //                 * Allow user to choose files listed in the spec file
@@ -2053,11 +2056,13 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     const float specFileTime = specFileTimeEnd - specFileTimeStart;
     
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
-    const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
+    if (specFileWasLoaded) {
+        const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
                                                   EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
                                                   EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
-    EventBrowserWindowCreateTabs createTabsEvent(tabMode);
-    EventManager::get()->sendEvent(createTabsEvent.getPointer());
+        EventBrowserWindowCreateTabs createTabsEvent(tabMode);
+        EventManager::get()->sendEvent(createTabsEvent.getPointer());
+    }
     
 //    if (createDefaultTabsFlag) {
 //        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
