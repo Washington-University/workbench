@@ -82,7 +82,7 @@ SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displ
 # Allow support for C11X compiler
 #
 SET (WORKBENCH_C11X FALSE)
-SET (WORKBENCH_C11X TRUE)
+##SET (WORKBENCH_C11X TRUE)
 
 #
 # Set flags for C11 compiler
