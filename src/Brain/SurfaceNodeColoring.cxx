@@ -133,6 +133,7 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
         EventManager::get()->sendEvent(surfaceGet.getPointer());
         surfaceController = surfaceGet.getModelSurface();
         CaretAssert(surfaceController);
+        modelDisplayController = surfaceController;
         
         /*
          * If whole brain is displayed in the tab, use coloring
