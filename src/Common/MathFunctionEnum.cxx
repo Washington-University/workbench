@@ -84,7 +84,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(TANH, "tanh", "1 argument, the hyperboloc tangent of the argument"));
     enumData.push_back(MathFunctionEnum(LN, "ln", "1 argument, the natural logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, the constant e raised to the power the argument"));
-    enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, the base 10 logatithm of the argument"));
+    enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, the base 10 logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(SQRT, "sqrt", "1 argument, the square root of the argument"));
     enumData.push_back(MathFunctionEnum(ABS, "abs", "1 argument, the absolute value of the argument"));
     enumData.push_back(MathFunctionEnum(FLOOR, "floor", "1 argument, the largest integer not greater than the argument"));

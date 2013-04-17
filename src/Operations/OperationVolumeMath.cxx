@@ -57,12 +57,13 @@ OperationParameters* OperationVolumeMath::getParameters()
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
-    AString myText = AString("This command evaluates the given expression at each voxel independently.  ") +
-                        "There must be at least one input volume (to get the volume space from), and all volumes must have " +
-                        "the same volume space.  " +
+    AString myText = AString("This command evaluates <expression> at each voxel independently.  ") +
+                        "There must be at least one -var option (to get the volume space from), even if the <name> specified in it isn't used in <expression>.  " +
+                        "All volumes must have the same volume space.  " +
+                        "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
                         "If the -subvolume option is given to any -var option, all -var options must specify single single subvolume volume files, or have the -subvolume option specified.  " +
                         "If no -var option is given the -subvolume option, all volume files specified must have the same number of subvolumes.  " +
-                        "The format of the expressions is as follows:\n\n";
+                        "The format of <expression> is as follows:\n\n";
     myText += CaretMathExpression::getExpressionHelpInfo();
     ret->setHelpText(myText);
     return ret;

@@ -55,10 +55,11 @@ OperationParameters* OperationCiftiMath::getParameters()
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
-    AString myText = AString("This command evaluates the given expression at each brainordinate independently.  ") +
-                        "There must be at least one input cifti file (to get the output layout from), and all cifti files must have " +
-                        "the same layout, number of timesteps, etc.  " +
-                        "The format of the expressions is as follows:\n\n";
+    AString myText = AString("This command evaluates <expression> at each (row, column) location independently.  ") +
+                        "There must be at least one -var option (to get the output layout from), even if the <name> specified in it isn't used in <expression>.  " +
+                        "All cifti files must have the same layout, number of timesteps, etc.  " +
+                        "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
+                        "The format of <expression> is as follows:\n\n";
     myText += CaretMathExpression::getExpressionHelpInfo();
     ret->setHelpText(myText);
     return ret;

@@ -56,12 +56,13 @@ OperationParameters* OperationMetricMath::getParameters()
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
-    AString myText = AString("This command evaluates the given expression at each surface vertex independently.  ") +
-                        "There must be at least one input metric (to get the structure and number of vertices from), and all metrics must have " +
-                        "the same number of vertices.  " +
+    AString myText = AString("This command evaluates <expression> at each surface vertex independently.  ") +
+                        "There must be at least one -var option (to get the structure and number of vertices from), even if the <name> specified in it isn't used in <expression>.  " +
+                        "All metrics must have the same number of vertices.  " +
+                        "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
                         "If the -column option is given to any -var option, all -var options must specify single column metric files, or have the -column option specified.  " +
                         "If no -var option is given the -column option, all metric files specified must have the same number of columns.  " +
-                        "The format of the expressions is as follows:\n\n";
+                        "The format of <expression> is as follows:\n\n";
     myText += CaretMathExpression::getExpressionHelpInfo();
     ret->setHelpText(myText);
     return ret;
