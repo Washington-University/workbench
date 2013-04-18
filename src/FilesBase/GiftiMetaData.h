@@ -86,6 +86,10 @@ public:
                     const AString& name,
                     const float value);
 
+    void replaceWithMap(const std::map<AString, AString>& map);
+    
+    std::map<AString, AString> getAsMap() const;
+    
     void remove(const AString& name);
 
     bool exists(const AString& name);

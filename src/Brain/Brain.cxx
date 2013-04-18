@@ -92,6 +92,9 @@
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
+
+#include "CiftiMappableDataFile.h"
+
 using namespace caret;
 
 /**
@@ -1201,6 +1204,13 @@ Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
     try {
         file->readFile(filename);
         file->updateScalarColoringForAllMaps(m_paletteFile);
+        
+        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
+                                  CIFTI_INDEX_TYPE_LABELS,
+                                  CIFTI_INDEX_TYPE_BRAIN_MODELS,
+                                  CiftiMappableDataFile::DATA_LOCATION_COLUMNS,
+                                  CiftiMappableDataFile::DATA_LOCATION_ROWS);
+        cmd.readFile(filename);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {

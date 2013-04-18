@@ -254,6 +254,28 @@ GiftiMetaData::setFloat(
 }
 
 /**
+ * Replace ALL of the metadata with the data in the given map.
+ *
+ * @param map
+ *     New metadata that replaces all existing metadata.
+ */
+void
+GiftiMetaData::replaceWithMap(const std::map<AString, AString>& map)
+{
+    this->metadata = map;
+}
+
+/**
+ * @return ALL of the metadata in map.
+ */
+std::map<AString, AString>
+GiftiMetaData::getAsMap() const
+{
+    return this->metadata;
+}
+
+
+/**
  * Remove a metadata entry.
  *
  * @param name   Name of metadata entry that is to be removed.

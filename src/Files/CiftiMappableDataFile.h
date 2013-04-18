@@ -36,16 +36,166 @@
 
 
 #include "CaretMappableDataFile.h"
+#include "CaretPointer.h"
+#include "CiftiXMLElements.h"
 #include "VolumeMappableInterface.h"
 
 namespace caret {
 
+    class CiftiInterface;
+    class CiftiXML;
+    class DescriptiveStatistics;
+    class FastStatistics;
+    class GroupAndNameHierarchyModel;
+    class Histogram;
+    class SparseVolumeIndexer;
+    
     class CiftiMappableDataFile : public CaretMappableDataFile, public VolumeMappableInterface {
         
     public:
-        CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType);
+        enum DataLocation {
+            DATA_LOCATION_INVALID,
+            DATA_LOCATION_COLUMNS,
+            DATA_LOCATION_ROWS
+        };
+        CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType,
+                              const IndicesMapToDataType rowIndexType,
+                              const IndicesMapToDataType columnIndexType,
+                              const DataLocation brainordinateMappedDataLocation,
+                              const DataLocation seriesMappedDataLocation);
         
         virtual ~CiftiMappableDataFile();
+        
+        virtual void clear();
+        
+        virtual bool isEmpty() const;
+        
+        virtual StructureEnum::Enum getStructure() const;
+        
+        virtual void setStructure(const StructureEnum::Enum structure);
+        
+        virtual GiftiMetaData* getFileMetaData();
+        
+        virtual const GiftiMetaData* getFileMetaData() const;
+        
+        virtual void readFile(const AString& filename) throw (DataFileException);
+        
+        virtual void writeFile(const AString& filename) throw (DataFileException);
+        
+        virtual bool isSurfaceMappable() const;
+        
+        virtual bool isVolumeMappable() const;
+        
+        virtual int32_t getNumberOfMaps() const;
+        
+        virtual AString getMapName(const int32_t mapIndex) const;
+        
+        virtual void setMapName(const int32_t mapIndex,
+                                const AString& mapName);
+        
+        virtual const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const;
+        
+        virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex);
+        
+        virtual AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        virtual bool isMappedWithPalette() const;
+        
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
+        
+        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex);
+        
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues);
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex,
+                                                 const float mostPositiveValueInclusive,
+                                                 const float leastPositiveValueInclusive,
+                                                 const float leastNegativeValueInclusive,
+                                                 const float mostNegativeValueInclusive,
+                                                 const bool includeZeroValues);
+        
+        virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
+        
+        virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
+        
+        virtual bool isMappedWithLabelTable() const;
+        
+        virtual GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
+        
+        virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
+        
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                                const PaletteFile* paletteFile);
+        
+        virtual void getDimensions(int64_t& dimOut1,
+                                   int64_t& dimOut2,
+                                   int64_t& dimOut3,
+                                   int64_t& dimTimeOut,
+                                   int64_t& numComponents) const;
+        
+        virtual void getDimensions(std::vector<int64_t>& dimsOut) const;
+        
+        virtual const int64_t& getNumberOfComponents() const;
+        
+        virtual void indexToSpace(const float& indexIn1,
+                                  const float& indexIn2,
+                                  const float& indexIn3,
+                                  float& coordOut1,
+                                  float& coordOut2,
+                                  float& coordOut3) const;
+        
+        virtual void indexToSpace(const float& indexIn1,
+                                  const float& indexIn2,
+                                  const float& indexIn3,
+                                  float* coordOut) const;
+        
+        virtual void indexToSpace(const int64_t* indexIn,
+                                  float* coordOut) const;
+        
+        virtual void enclosingVoxel(const float& coordIn1,
+                                    const float& coordIn2,
+                                    const float& coordIn3,
+                                    int64_t& indexOut1,
+                                    int64_t& indexOut2,
+                                    int64_t& indexOut3) const;
+        
+        virtual bool indexValid(const int64_t& indexIn1,
+                                const int64_t& indexIn2,
+                                const int64_t& indexIn3,
+                                const int64_t brickIndex = 0,
+                                const int64_t component = 0) const;
+        
+        virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
+        
+        virtual void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+                                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                 const int64_t sliceIndex,
+                                                 uint8_t* rgbaOut) const;
+        
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
+                                        const int64_t indexIn2,
+                                        const int64_t indexIn3,
+                                        const int64_t brickIndex,
+                                        uint8_t rgbaOut[4]) const;
+        
+        virtual const float& getValue(const int64_t& indexIn1,
+                                      const int64_t& indexIn2,
+                                      const int64_t& indexIn3,
+                                      const int64_t brickIndex = 0,
+                                      const int64_t component = 0) const;
+
+        std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
+        
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
+        
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -56,7 +206,115 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    private:
+    protected:
+        /** The CIFTI XML (Do not delete since points to data in m_ciftiInterface */
+        //CiftiXML* m_ciftiXML;
+        class MapContent {
+            
+        public:
+            
+            MapContent(const IndicesMapToDataType mapContentDataType,
+                       const int64_t dataCount,
+                       const std::map<AString, AString> metadataMap,
+                       PaletteColorMapping* paletteColorMapping,
+                       GiftiLabelTable* labelTable);
+            
+            ~MapContent();
+            
+            void updateColoring(const std::vector<float>& data,
+                                const PaletteFile* paletteFile);
+            
+            /** Type of data in map */
+            const IndicesMapToDataType m_mapContentDataType;
+            
+            /** Count of data elements in map. */
+            const int64_t m_dataCount;
+            
+            /** Metadata for the map. */
+            CaretPointer<GiftiMetaData> m_metadata;
+            
+            /** Palette color mapping for map */
+            PaletteColorMapping* m_paletteColorMapping;
+            
+            /** Label table for map */
+            GiftiLabelTable* m_labelTable;
+            
+            /** RGBA coloring for map */
+            std::vector<float> m_rgba;
+            
+            /** descriptive statistics for map */
+            CaretPointer<DescriptiveStatistics> m_descriptiveStatistics;
+            
+            /** fast statistics for map */
+            CaretPointer<FastStatistics> m_fastStatistics;
+            
+            /** histogram for map */
+            CaretPointer<Histogram> m_histogram;
+        };
+        
+        void clearPrivate();
+        
+        static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
+        
+        void getMapData(const int32_t mapIndex,
+                        std::vector<float>& dataOut) const;
+        
+        void validateKeysAndLabels() const;
+        
+        /** Type of data along the row (dimension 0) */
+        const IndicesMapToDataType m_rowIndexType;
+        
+        /** Type of data along the column (dimension 1) */
+        const IndicesMapToDataType m_columnIndexType;
+        
+        /** Location of brainordinate mapped data */
+        const DataLocation m_brainordinateMappedDataLocation;
+        
+        /** Location of series data */
+        const DataLocation m_seriesDataLocation;
+        
+        /** Contains data related to each map */
+        std::vector<MapContent*> m_mapContent;
+        
+        /** True if data is mapped with a palette */
+        bool m_dataIsMappedWithPalette;
+        
+        /** True if data is mapped with a label table */
+        bool m_dataIsMappedWithLabelTable;
+        
+        /** True if the file contains surface data */
+        bool m_containsSurfaceData;
+        
+        /** True if the file contains volume data */
+        bool m_containsVolumeData;
+        
+        /** True if one map per file */
+        bool m_oneMapPerFile;
+        
+        /** The CIFTI interface (could be local file or on network) */
+        CaretPointer<CiftiInterface> m_ciftiInterface;
+        
+        /** The files metadata. */
+        CaretPointer<GiftiMetaData> m_metadata;
+        
+        /** Number of rows in the file */
+        int32_t m_numberOfRows;
+        
+        /** Number of columns in the file */
+        int32_t m_numberOfColumns;
+        
+        /** Dimensions of volume data */
+        int64_t m_volumeDimensions[5];
+        
+        /** Fast conversion of IJK to data offset */
+        CaretPointer<SparseVolumeIndexer> m_voxelIndicesToOffset;
+        
+        /** Holds class and name hierarchy used for display selection */
+        mutable CaretPointer<GroupAndNameHierarchyModel> m_classNameHierarchy;
+        
+        /** force an update of the class and name hierarchy */
+        mutable bool m_forceUpdateOfGroupAndNameHierarchy;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

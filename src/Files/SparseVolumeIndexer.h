@@ -34,9 +34,9 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretCompact3DLookup.h"
 #include "CaretObject.h"
-
+#include "CiftiXML.h"
 
 namespace caret {
     class CiftiInterface;
@@ -55,7 +55,7 @@ namespace caret {
         };
         
         SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
-                            const ColumnOrRow columnOrRow);
+                            const std::vector<CiftiVolumeMap>& ciftiVoxelMapping);
         
         virtual ~SparseVolumeIndexer();
         
@@ -100,7 +100,9 @@ namespace caret {
         
         float m_originZ;
         
-        std::vector<int32_t> m_voxelOffsets;
+        CaretCompact3DLookup<int64_t> m_voxelIndexLookup;
+        
+//        std::vector<int32_t> m_voxelOffsets;
         
     };
     

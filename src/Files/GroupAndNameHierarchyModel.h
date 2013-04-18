@@ -44,6 +44,7 @@ namespace caret {
 
     class BorderFile;
     class CiftiBrainordinateFile;
+    class CiftiMappableDataFile;
     class FociFile;
     class LabelFile;
     
@@ -73,6 +74,9 @@ namespace caret {
                     const bool forceUpdate);
         
         void update(CiftiBrainordinateFile* ciftiBrainordinateFile,
+                    const bool forceUpdate);
+        
+        void update(CiftiMappableDataFile* ciftiMappableDataFile,
                     const bool forceUpdate);
         
         bool needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,

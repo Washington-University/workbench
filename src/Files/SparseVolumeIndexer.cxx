@@ -67,25 +67,14 @@ using namespace caret;
  *
  * @param ciftiInterface
  *   Interface to CIFTI file.
- * @param columnOrRow
- *   Indicates voxel data is from column or row metadata.
+ * @param ciftiVoxelMapping
+ *   The voxel mappings.
  */
 SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
-                                         const ColumnOrRow columnOrRow)
+                                         const std::vector<CiftiVolumeMap>& ciftiVoxelMapping)
 : CaretObject()
 {
     m_dataValid = false;
-    
-    std::vector<CiftiVolumeMap> ciftiVoxelMapping;
-    
-    switch (columnOrRow) {
-        case COLUMN:
-            ciftiInterface->getVolumeMapForColumns(ciftiVoxelMapping);
-            break;
-        case ROW:
-            ciftiInterface->getVolumeMapForRows(ciftiVoxelMapping);
-            break;
-    }
     
     const int32_t numberOfCiftiVolumeVoxels = static_cast<int32_t>(ciftiVoxelMapping.size());
     if (numberOfCiftiVolumeVoxels <= 0) {
@@ -131,17 +120,51 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
         return;
     }
     
-    m_voxelOffsets.resize(numberOfVoxels,
-                          -1);
+//    m_voxelOffsets.resize(numberOfVoxels,
+//                          -1);
+//        const int64_t offset = getOffsetForIndices(vm.m_ijk[0],
+//                                                   vm.m_ijk[1],
+//                                                   vm.m_ijk[2]);
+//        m_voxelOffsets[offset] = vm.m_ciftiIndex;
+    
     for (std::vector<CiftiVolumeMap>::const_iterator iter = ciftiVoxelMapping.begin();
          iter != ciftiVoxelMapping.end();
          iter++) {
         const CiftiVolumeMap& vm = *iter;
-        
-        const int64_t offset = getOffsetForIndices(vm.m_ijk[0],
-                                                   vm.m_ijk[1],
-                                                   vm.m_ijk[2]);
-        m_voxelOffsets[offset] = vm.m_ciftiIndex;
+
+        m_voxelIndexLookup.at(vm.m_ijk) = vm.m_ciftiIndex;
+    }
+    
+    bool validateFlag = true;
+    if (validateFlag) {
+        AString validateString;
+        for (std::vector<CiftiVolumeMap>::const_iterator iter = ciftiVoxelMapping.begin();
+             iter != ciftiVoxelMapping.end();
+             iter++) {
+            const CiftiVolumeMap& vm = *iter;
+            const int64_t* foundOffset = m_voxelIndexLookup.find(vm.m_ijk);
+            if (foundOffset != NULL) {
+                if (*foundOffset != vm.m_ciftiIndex) {
+                    validateString.appendWithNewLine("IJK ("
+                                                     + AString::fromNumbers(vm.m_ijk, 3, ",")
+                                                     + " should have lookup value "
+                                                     + AString::number(vm.m_ciftiIndex)
+                                                     + " but has value "
+                                                     + AString::number(*foundOffset));
+                }
+            }
+            else {
+                validateString.appendWithNewLine("IJK ("
+                                                 + AString::fromNumbers(vm.m_ijk, 3, ",")
+                                                 + " should have lookup value "
+                                                 + AString::number(vm.m_ciftiIndex)
+                                                 + " but was not found.");
+            }
+        }
+        if (validateString.isEmpty() == false) {
+            CaretLogSevere("Sparse Indexer Errors:\n"
+                           + validateString);
+        }
     }
 }
 
@@ -170,14 +193,19 @@ SparseVolumeIndexer::getOffsetForIndices(const int64_t i,
                                          const int64_t j,
                                          const int64_t k) const
 {
-    if ((i >= 0) && (i < m_dimI)
-        && (j >= 0) && (j < m_dimJ)
-        && (k >= 0) && (k < m_dimK)) {
-        const int64_t offset = (i
-                                + (j * m_dimI)
-                                + (k * m_dimI * m_dimJ));
-        return offset;
+    const int64_t* offset = m_voxelIndexLookup.find(i, j, k);
+    if (offset != NULL) {
+        return *offset;
     }
+
+//    if ((i >= 0) && (i < m_dimI)
+//        && (j >= 0) && (j < m_dimJ)
+//        && (k >= 0) && (k < m_dimK)) {
+//        const int64_t offset = (i
+//                                + (j * m_dimI)
+//                                + (k * m_dimI * m_dimJ));
+//        return offset;
+//    }
     
     return -1;
 }
