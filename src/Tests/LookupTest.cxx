@@ -24,6 +24,7 @@
 #include "LookupTest.h"
 
 #include "CaretCompactLookup.h"
+#include "CaretCompact3DLookup.h"
 
 #include <cstdlib>
 #include <ctime>
@@ -73,4 +74,48 @@ void LookupTest::execute()
             if (*iter != checkLookup[i]) setFailed("value corrupted for key " + AString::number(i + LOOKUP_START));
         }
     }
+
+
+   /* 3D Lookup Testing */
+   {
+      const int64_t NUM = 3;
+      int64_t array[NUM][3] = {
+         { 1, 2, 3 },
+         { 7, 5, 4 },
+         { 5, 9, 1 }
+      };
+
+      CaretCompact3DLookup<int64_t> lookup3D;
+
+      for (int64_t i = 0; i < NUM; i++) {
+         const int64_t value = lookup3D.at(array[i]);
+         if (i != value) {
+             setFailed("Item " 
+                       + AString::number(i) 
+                       + " with IJK ("
+                       + AString::fromNumbers(array[i], 3, ", ")
+                       + ") when added using at() has value "
+                       + AString::number(value));
+         }
+      }
+      
+      for (int64_t i = 0; i < NUM; i++) {
+         const int64_t* value = lookup3D.find(array[i]);
+         if (value == NULL) {
+	    setFailed("Item " 
+                      + AString::number(i)
+                      + " was not found.");
+         }
+         else {
+            if (i != *value) {
+                setFailed("Item " 
+                       + AString::number(i) 
+                       + " with IJK ("
+                       + AString::fromNumbers(array[i], 3, ", ")
+                       + ") when searched with find() has value "
+                       + AString::number(*value));
+            }
+          }
+      }      
+   }
 }
