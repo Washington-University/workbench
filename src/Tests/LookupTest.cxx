@@ -88,15 +88,7 @@ void LookupTest::execute()
       CaretCompact3DLookup<int64_t> lookup3D;
 
       for (int64_t i = 0; i < NUM; i++) {
-         const int64_t value = lookup3D.at(array[i]);
-         if (i != value) {
-             setFailed("Item " 
-                       + AString::number(i) 
-                       + " with IJK ("
-                       + AString::fromNumbers(array[i], 3, ", ")
-                       + ") when added using at() has value "
-                       + AString::number(value));
-         }
+         lookup3D.at(array[i]) = i;
       }
       
       for (int64_t i = 0; i < NUM; i++) {
