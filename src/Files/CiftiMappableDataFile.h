@@ -182,13 +182,13 @@ namespace caret {
         virtual void getVoxelColorInMap(const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
-                                        const int64_t brickIndex,
+                                        const int64_t mapIndex,
                                         uint8_t rgbaOut[4]) const;
         
         virtual const float& getValue(const int64_t& indexIn1,
                                       const int64_t& indexIn2,
                                       const int64_t& indexIn3,
-                                      const int64_t brickIndex = 0,
+                                      const int64_t mapIndex = 0,
                                       const int64_t component = 0) const;
 
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;

@@ -287,14 +287,6 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         m_numberOfColumns = m_ciftiInterface->getNumberOfColumns();
         m_numberOfRows    = m_ciftiInterface->getNumberOfRows();
         
-        const AString msg = (DataFileTypeEnum::toGuiName(getDataFileType())
-                             + getFileNameNoPath() + "\n"
-                             "Rows=" + AString::number(m_numberOfRows)
-                             + " Columns=" + AString::number(m_numberOfColumns)
-                             + " RowType=" + rowIndexTypeName
-                             + " ColType=" + columnIndexTypeName);
-        CaretLogSevere(msg);
-        
         /*
          * Validate type of data in rows and columns
          */
@@ -472,8 +464,23 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         /*
          * Indicate if volume mappable
          */
-        if (voxelMapping.empty() == false) {
+        if (m_voxelIndicesToOffset->isValid()) {
             m_containsVolumeData = true;
+            
+            VolumeFile::OrientTypes orient[3];
+            int64_t dimensions[3];
+            float origin[3];
+            float spacing[3];
+            if (ciftiXML.getVolumeAttributesForPlumb(orient,
+                                                 dimensions,
+                                                 origin,
+                                                     spacing)) {
+                m_volumeDimensions[0] = dimensions[0];
+                m_volumeDimensions[1] = dimensions[1];
+                m_volumeDimensions[2] = dimensions[2];
+                m_volumeDimensions[3] = 1;
+                m_volumeDimensions[4] = 1;
+            }
         }
         
         /*
@@ -501,6 +508,22 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                     break;
             }
         }
+        
+        const AString msg = (getFileNameNoPath()
+                             + "\n   " + DataFileTypeEnum::toGuiName(getDataFileType())
+                             + "\n   Rows: " + AString::number(m_numberOfRows)
+                             + "\n   Columns: " + AString::number(m_numberOfColumns)
+                             + "\n   RowType: " + rowIndexTypeName
+                             + "\n   ColType: " + columnIndexTypeName
+                             + "\n   Has Surface Data: " + AString::fromBool(m_containsSurfaceData)
+                             + "\n   Has Volume Data: " + AString::fromBool(m_containsVolumeData)
+                             + "\n   Voxel Count: " + AString::number(voxelMapping.size())
+                             + "\n   Volume Dimensions: " + AString::fromNumbers(m_volumeDimensions, 5, ",")
+                             + "\n   Number of Maps: " + AString::number(m_mapContent.size())
+                             + "\n   Map with Label Table: " + AString::fromBool(m_dataIsMappedWithLabelTable)
+                             + "\n   Map With Palette: " + AString::fromBool(m_dataIsMappedWithPalette));
+                             
+        CaretLogSevere(msg);
         
         clearModified();
     }
@@ -650,16 +673,18 @@ CiftiMappableDataFile::setMapName(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
    
+    const CiftiXML& cxml = m_ciftiInterface->getCiftiXML();
+    CiftiXML& ciftiXML = const_cast<CiftiXML&>(cxml);
     switch (m_brainordinateMappedDataLocation) {
         case DATA_LOCATION_INVALID:
             break;
         case DATA_LOCATION_COLUMNS:
-//            m_ciftiInterface->getCiftiXML().setMapNameForColumnIndex(mapIndex,
-//                                                                     mapName);
+            ciftiXML.setMapNameForColumnIndex(mapIndex,
+                                              mapName);
             break;
         case DATA_LOCATION_ROWS:
-//            m_ciftiInterface->getCiftiXML().setMapNameForRowIndex(mapIndex,
-//                                                                     mapName);
+            ciftiXML.setMapNameForRowIndex(mapIndex,
+                                           mapName);
             break;
     }
 }
@@ -1147,7 +1172,12 @@ CiftiMappableDataFile::indexToSpace(const float& indexIn1,
                           float& coordOut2,
                           float& coordOut3) const
 {
-    
+    m_voxelIndicesToOffset->indicesToCoordinate(indexIn1,
+                                                indexIn2,
+                                                indexIn3,
+                                                coordOut1,
+                                                coordOut2,
+                                                coordOut3);
 }
 
 /**
@@ -1168,7 +1198,12 @@ CiftiMappableDataFile::indexToSpace(const float& indexIn1,
                           const float& indexIn3,
                           float* coordOut) const
 {
-    
+    m_voxelIndicesToOffset->indicesToCoordinate(indexIn1,
+                                                indexIn2,
+                                                indexIn3,
+                                                coordOut[0],
+                                                coordOut[1],
+                                                coordOut[2]);
 }
 
 /**
@@ -1183,12 +1218,17 @@ void
 CiftiMappableDataFile::indexToSpace(const int64_t* indexIn,
                           float* coordOut) const
 {
-    
+    m_voxelIndicesToOffset->indicesToCoordinate(indexIn[0],
+                                                indexIn[1],
+                                                indexIn[2],
+                                                coordOut[0],
+                                                coordOut[1],
+                                                coordOut[2]);
 }
 
 /**
  * Convert a coordinate to indices.  Note that output indices
- * MAY NOT BE WITHING THE VALID VOXEL DIMENSIONS.
+ * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
  *
  * @param coordIn1
  *     First (x) input coordinate.
@@ -1205,17 +1245,22 @@ CiftiMappableDataFile::indexToSpace(const int64_t* indexIn,
  */
 void
 CiftiMappableDataFile::enclosingVoxel(const float& coordIn1,
-                            const float& coordIn2,
-                            const float& coordIn3,
-                            int64_t& indexOut1,
-                            int64_t& indexOut2,
-                            int64_t& indexOut3) const
+                                      const float& coordIn2,
+                                      const float& coordIn3,
+                                      int64_t& indexOut1,
+                                      int64_t& indexOut2,
+                                      int64_t& indexOut3) const
 {
-    
+    m_voxelIndicesToOffset->coordinateToIndices(coordIn1,
+                                                coordIn2,
+                                                coordIn3,
+                                                indexOut1,
+                                                indexOut2,
+                                                indexOut3);
 }
 
 /**
- * Determine in the given voxel indices are valid (within the volume).
+ * Determine in the given voxel indices are valid (within the volume dimensions).
  *
  * @param indexIn1
  *     First dimension (i).
@@ -1234,9 +1279,18 @@ bool
 CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
                         const int64_t& indexIn2,
                         const int64_t& indexIn3,
-                        const int64_t brickIndex,
-                        const int64_t component) const
+                        const int64_t /*brickIndex*/,
+                        const int64_t /*component*/) const
 {
+    if ((indexIn1 >= 0)
+        && (indexIn1 < m_volumeDimensions[0])
+        && (indexIn2 >= 0)
+        && (indexIn2 < m_volumeDimensions[1])
+        && (indexIn3 >= 0)
+        && (indexIn3 < m_volumeDimensions[2])) {
+        return true;
+    }
+    
     return false;
 }
 
@@ -1249,7 +1303,23 @@ CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
 void
 CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
 {
+    boundingBoxOut.resetForUpdate();
     
+    if (m_voxelIndicesToOffset->isValid()) {
+        float xyz[3];
+        indexToSpace(0,
+                     0,
+                     0,
+                     xyz);
+        boundingBoxOut.update(xyz);
+        
+        indexToSpace(m_volumeDimensions[0] - 1,
+                     m_volumeDimensions[1] - 1,
+                     m_volumeDimensions[2] - 1,
+                     xyz);
+        
+        boundingBoxOut.update(xyz);
+    }
 }
 
 /**
@@ -1271,7 +1341,135 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                          const int64_t sliceIndex,
                                          uint8_t* rgbaOut) const
 {
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    CaretAssertMessage((sliceIndex >= 0),
+                       "Slice index is invalid.");
+    if (sliceIndex < 0) {
+        return;
+    }
     
+    const int64_t dimI = m_volumeDimensions[0];
+    const int64_t dimJ = m_volumeDimensions[1];
+    const int64_t dimK = m_volumeDimensions[2];
+    
+    int64_t voxelCount = 0;
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            voxelCount = dimI * dimJ;
+            CaretAssert((sliceIndex < dimK));
+            if (sliceIndex >= dimK) {
+                return;
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            voxelCount = dimI * dimK;
+            CaretAssert((sliceIndex < dimJ));
+            if (sliceIndex >= dimJ) {
+                return;
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            voxelCount = dimJ * dimK;
+            CaretAssert((sliceIndex < dimI));
+            if (sliceIndex >= dimI) {
+                return;
+            }
+            break;
+    }
+    
+    if (voxelCount <= 0) {
+        return;
+    }
+    const int64_t componentCount = voxelCount * 4;
+    
+    /*
+     * Clear the slice rgba coloring.
+     */
+    for (int64_t i = 0; i < componentCount; i++) {
+        rgbaOut[i] = 0;
+    }
+    
+    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
+    CaretAssert(mapRgbaCount > 0);
+    if (mapRgbaCount <= 0) {
+        return;
+    }
+    
+    const float* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
+    
+    /*
+     * Set the rgba components for the slice.
+     */
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            for (int64_t j = 0; j < dimJ; j++) {
+                for (int64_t i = 0; i < dimI; i++) {
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                                                                                           j,
+                                                                                           sliceIndex);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        const int64_t rgbaOffset = ((j * dimI) + i) * 4;
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset] / 255.0);
+                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset+1] / 255.0);
+                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset+2] / 255.0);
+                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset+3] / 255.0);
+                    }
+                }
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            for (int64_t k = 0; k < dimK; k++) {
+                for (int64_t i = 0; i < dimI; i++) {
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
+                                                                                           sliceIndex,
+                                                                                           k);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        const int64_t rgbaOffset = ((k * dimI) + i) * 4;
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset] / 255.0);
+                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset+1] / 255.0);
+                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset+2] / 255.0);
+                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset+3] / 255.0);
+                    }
+                }
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            for (int64_t k = 0; k < dimK; k++) {
+                for (int64_t j = 0; j < dimJ; j++) {
+                    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(sliceIndex,
+                                                                                           j,
+                                                                                           k);
+                    if (dataOffset >= 0) {
+                        const int64_t dataOffset4 = dataOffset * 4;
+                        CaretAssert(dataOffset4 < mapRgbaCount);
+                        
+                        const int64_t rgbaOffset = ((k * dimJ) + j) * 4;
+                        CaretAssert(rgbaOffset < componentCount);
+                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] / 255.0);
+                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] / 255.0);
+                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] / 255.0);
+                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] / 255.0);
+                    }
+                }
+            }
+            break;
+    }
 }
 
 /**
@@ -1283,7 +1481,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *     Second dimension (j).
  * @param indexIn3
  *     Third dimension (k).
- * @param brickIndex
+ * @param mapIndex
  *     Time/map index.
  * @param rgbaOut
  *     Output containing RGBA values for voxel at the given indices.
@@ -1292,9 +1490,33 @@ void
 CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
                                 const int64_t indexIn2,
                                 const int64_t indexIn3,
-                                const int64_t brickIndex,
+                                const int64_t mapIndex,
                                 uint8_t rgbaOut[4]) const
 {
+    rgbaOut[0] = 0;
+    rgbaOut[1] = 0;
+    rgbaOut[2] = 0;
+    rgbaOut[3] = 0;
+    
+    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
+    CaretAssert(mapRgbaCount > 0);
+    if (mapRgbaCount <= 0) {
+        return;
+    }
+    
+    const float* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
+    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
+                                                                           indexIn2,
+                                                                           indexIn3);
+    if (dataOffset >= 0) {
+        const int64_t dataOffset4 = dataOffset * 4;
+        CaretAssert(dataOffset4 < mapRgbaCount);
+        
+        rgbaOut[0] = (mapRGBA[dataOffset4] / 255.0);
+        rgbaOut[1] = (mapRGBA[dataOffset4+1] / 255.0);
+        rgbaOut[2] = (mapRGBA[dataOffset4+2] / 255.0);
+        rgbaOut[3] = (mapRGBA[dataOffset4+3] / 255.0);
+    }
     
 }
 
@@ -1307,7 +1529,7 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
  *     Second dimension (j).
  * @param indexIn3
  *     Third dimension (k).
- * @param brickIndex
+ * @param mapIndex
  *     Time/map index (default 0).
  * @param component
  *     Index of the component in the voxel (default 0).
@@ -1318,9 +1540,20 @@ const float&
 CiftiMappableDataFile::getValue(const int64_t& indexIn1,
                               const int64_t& indexIn2,
                               const int64_t& indexIn3,
-                              const int64_t brickIndex,
-                              const int64_t component) const
+                              const int64_t mapIndex,
+                              const int64_t /*component*/) const
 {
+    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
+                                                                           indexIn2,
+                                                                           indexIn3);
+    if (dataOffset >= 0) {
+        std::vector<float> data;
+        getMapData(mapIndex, data);
+        CaretAssertVectorIndex(data,
+                               dataOffset);
+        return data[dataOffset];
+    }
+    
     return 0;
 }
 

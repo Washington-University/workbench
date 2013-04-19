@@ -59,6 +59,22 @@ namespace caret {
         
         virtual ~SparseVolumeIndexer();
         
+        bool isValid() const;
+        
+        bool coordinateToIndices(const float x,
+                                 const float y,
+                                 const float z,
+                                 int64_t& iOut,
+                                 int64_t& jOut,
+                                 int64_t& kOut) const;
+        
+        bool indicesToCoordinate(const int64_t i,
+                                 const int64_t j,
+                                 const int64_t k,
+                                 float& xOut,
+                                 float& yOut,
+                                 float& zOut) const;
+        
         int64_t getOffsetForIndices(const int64_t i,
                                     const int64_t j,
                                     const int64_t k) const;

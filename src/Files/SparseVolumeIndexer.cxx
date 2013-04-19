@@ -166,6 +166,8 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
                            + validateString);
         }
     }
+    
+    m_dataValid = true;
 }
 
 /**
@@ -175,6 +177,16 @@ SparseVolumeIndexer::~SparseVolumeIndexer()
 {
     
 }
+
+/**
+ * @return True if this instance is valid.
+ */
+bool
+SparseVolumeIndexer::isValid() const
+{
+    return m_dataValid;
+}
+
 
 /**
  * Get the offset for the given IJK indices.
@@ -197,18 +209,48 @@ SparseVolumeIndexer::getOffsetForIndices(const int64_t i,
     if (offset != NULL) {
         return *offset;
     }
-
-//    if ((i >= 0) && (i < m_dimI)
-//        && (j >= 0) && (j < m_dimJ)
-//        && (k >= 0) && (k < m_dimK)) {
-//        const int64_t offset = (i
-//                                + (j * m_dimI)
-//                                + (k * m_dimI * m_dimJ));
-//        return offset;
-//    }
     
     return -1;
 }
+
+/**
+ * Convert the coordinates to volume indices.  Any coordinates are accepted
+ * and output indices are not necessarily within the volume.
+ *
+ * @param x
+ *   X coordinate.
+ * @param y
+ *   y coordinate.
+ * @param z
+ *   z coordinate.
+ * @param iOut
+ *   I index.
+ * @param jOut
+ *   J index.
+ * @param kOut
+ *   K index.
+ * @return
+ *   True if volume attributes (origin/spacing/dimensions) are valid.
+ */
+bool
+SparseVolumeIndexer::coordinateToIndices(const float x,
+                                         const float y,
+                                         const float z,
+                                         int64_t& iOut,
+                                         int64_t& jOut,
+                                         int64_t& kOut) const
+{
+    if (m_dataValid) {
+        iOut = static_cast<int64_t>(std::floor((x - m_originX) / m_spacingX));
+        jOut = static_cast<int64_t>(std::floor((y - m_originY) / m_spacingY));
+        kOut = static_cast<int64_t>(std::floor((z - m_originY) / m_spacingZ));
+        
+        return true;
+    }
+    
+    return false;
+}
+
 
 /**
  * Get the offset for the given XYZ coordinates.
@@ -227,9 +269,50 @@ SparseVolumeIndexer::getOffsetForCoordinate(const float x,
                                             const float y,
                                             const float z) const
 {
-    const int64_t i = static_cast<int64_t>(std::floor((x - m_originX) / m_spacingX));
-    const int64_t j = static_cast<int64_t>(std::floor((y - m_originY) / m_spacingY));
-    const int64_t k = static_cast<int64_t>(std::floor((z - m_originY) / m_spacingZ));
-    return getOffsetForIndices(i, j, k);
+    int64_t i, j, k;
+    if (coordinateToIndices(x, y, z, i, j, k)) {
+        return getOffsetForIndices(i, j, k);
+    }
+    
+    return -1;
 }
+
+/**
+ * Get the XYZ coordinate for the given indices.
+ * Any indices are accepted.
+ *
+ * @param i
+ *   I index.
+ * @param j
+ *   J index.
+ * @param k
+ *   K index.
+ * @param xOut
+ *   X coordinate.
+ * @param yOut
+ *   y coordinate.
+ * @param zOut
+ *   z coordinate.
+ * @return
+ *   True if volume attributes (origin/spacing/dimensions) are valid.
+ */
+bool
+SparseVolumeIndexer::indicesToCoordinate(const int64_t i,
+                                         const int64_t j,
+                                         const int64_t k,
+                                         float& xOut,
+                                         float& yOut,
+                                         float& zOut) const
+{
+    if (m_dataValid) {
+        xOut = m_originX + i * m_spacingX;
+        yOut = m_originY + j * m_spacingY;
+        zOut = m_originZ + k * m_spacingZ;
+        
+        return true;
+    }
+    
+    return false;
+}
+
 
