@@ -25,6 +25,9 @@
 #include "AlgorithmVolumeDilate.h"
 
 #include "AlgorithmException.h"
+#include "CaretHeap.h"
+#include "CaretLogger.h"
+#include "CaretOMP.h"
 #include "FloatMatrix.h"
 #include "Vector3D.h"
 #include "VolumeFile.h"
@@ -110,6 +113,10 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myDims;
     volIn->getDimensions(myDims);
+    if (volIn->getType() == SubvolumeAttributes::LABEL && myMethod == WEIGHTED)
+    {
+        CaretLogWarning("dilating a volume label file with weighted method, expect strangeness");
+    }
     if (subvol < -1 || subvol >= myDims[3])
     {
         throw AlgorithmException("invalid subvolume specified");
@@ -167,6 +174,27 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
             }
         }
     }
+    if (myMethod == NEAREST)
+    {//sort the stencil by distance, so we can stop early
+        CaretSimpleMinHeap<VoxTriple, float> myHeap;
+        int stencilSize = (int)stenWeights.size();
+        myHeap.reserve(stencilSize);
+        for (int i = 0; i < stencilSize; ++i)
+        {
+            myHeap.push(VoxTriple(stencil.data() + i * 3), stenWeights[i]);
+        }
+        stencil.clear();
+        stenWeights.clear();
+        while (!myHeap.isEmpty())
+        {
+            float tempf;
+            VoxTriple myTriple = myHeap.pop(&tempf);
+            stenWeights.push_back(tempf);
+            stencil.push_back(myTriple.m_ijk[0]);
+            stencil.push_back(myTriple.m_ijk[1]);
+            stencil.push_back(myTriple.m_ijk[2]);
+        }
+    }
     if (subvol == -1)
     {
         volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getVolumeSpace(), volIn->getNumberOfComponents(), volIn->getType());
@@ -215,6 +243,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
     vector<int64_t> myDims;
     volIn->getDimensions(myDims);
     int stensize = (int)stenWeights.size();
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int k = 0; k < myDims[2]; ++k)
     {
         for (int j = 0; j < myDims[1]; ++j)
@@ -238,9 +267,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                     {
                         case NEAREST:
                         {
-                            bool first = true;
                             int best = -1;
-                            float bestDist = -1.0f;
                             if (badRoi == NULL)
                             {
                                 for (int stenind = 0; stenind < stensize; ++stenind)
@@ -254,12 +281,8 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     {
                                         if (volIn->getValue(tempindex, insubvol, component) != 0.0f)
                                         {
-                                            if (stenWeights[stenind] < bestDist || first)
-                                            {
-                                                bestDist = stenWeights[stenind];
-                                                first = false;
-                                                best = stenind;
-                                            }
+                                            best = stenind;
+                                            break;
                                         }
                                     }
                                 }
@@ -275,19 +298,15 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     {
                                         if (badRoi->getValue(tempindex) <= 0.0f)
                                         {
-                                            if (stenWeights[stenind] < bestDist || first)
-                                            {
-                                                bestDist = stenWeights[stenind];
-                                                first = false;
-                                                best = stenind;
-                                            }
+                                            best = stenind;
+                                            break;
                                         }
                                     }
                                 }
                             }
-                            if (first)
+                            if (best == -1)
                             {
-                                volOut->setValue(volIn->getValue(i, j, k, insubvol, component), i, j, k, outsubvol, component);
+                                volOut->setValue(0.0f, i, j, k, outsubvol, component);
                             } else {
                                 int base = best * 3;
                                 int64_t tempindex[3];

@@ -203,6 +203,9 @@ namespace caret {
         ///get the lists of what structures exist
         bool getStructureListsForColumns(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
 
+        ///get the lists of what structures exist
+        bool getStructureLists(const int& direction, std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
+
         ///get the list of volume parcels and their maps in rows, returns false and empty vector if not found
         bool getVolumeModelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
 
@@ -347,11 +350,13 @@ namespace caret {
         ///get the map name for an index along a row
         AString getMapNameForRowIndex(const int& index) const;
         
+        //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index along a column
-        const GiftiLabelTable* getLabelTableForColumnIndex(const int& index) const;
+        GiftiLabelTable* getLabelTableForColumnIndex(const int& index) const;
         
+        //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index along a row
-        const GiftiLabelTable* getLabelTableForRowIndex(const int& index) const;
+        GiftiLabelTable* getLabelTableForRowIndex(const int& index) const;
         
         ///set the map name for an index along a column
         bool setMapNameForColumnIndex(const int& index, const AString& name);
@@ -459,7 +464,7 @@ namespace caret {
         bool setTimestep(const float& seconds, const int& myMapIndex);
         bool setTimestart(const float& seconds, const int& myMapIndex);
         AString getMapName(const int& index, const int& myMapIndex) const;
-        const GiftiLabelTable* getLabelTable(const int& index, const int& myMapIndex) const;
+        GiftiLabelTable* getLabelTable(const int& index, const int& myMapIndex) const;
         bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
         ///some boilerplate to retrieve mappings

@@ -84,12 +84,12 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
 {
     CiftiFile* myCifti = myParams->getCifti(1);
     AString directionName = myParams->getString(2);
-    CiftiInterface::CiftiDirection myDir;
+    int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiInterface::ALONG_ROW;
+        myDir = CiftiXML::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiInterface::ALONG_COLUMN;
+        myDir = CiftiXML::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -126,7 +126,7 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
     AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern, myLeftSurf, myRightSurf, myCerebSurf, outputAverage);//executes the algorithm
 }
 
-AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const CiftiInterface::CiftiDirection& myDir,
+AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir,
                                                CiftiFile* myCiftiOut, const float& surfKern, const float& volKern, SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf,
                                                SurfaceFile* myCerebSurf, bool outputAverage) : AbstractAlgorithm(myProgObj)
 {
@@ -134,7 +134,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
     const CiftiXML& myXML = myCifti->getCiftiXML();
     CiftiXML myNewXML = myXML;
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir == CiftiInterface::ALONG_COLUMN)
+    if (myDir == CiftiXML::ALONG_COLUMN)
     {
         if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
         {
@@ -181,7 +181,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiInterface::ALONG_COLUMN)
+        if (myDir == CiftiXML::ALONG_COLUMN)
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
@@ -234,7 +234,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
             }
             myMetricOut.setNumberOfNodesAndColumns(numNodes, 1);
             myMetricOut.setValuesForColumn(0, temparray);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiInterface::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);//average always outputs a dtseries, so always along column
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);//average always outputs a dtseries, so always along column
         } else {
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
         }
@@ -267,7 +267,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
             myDims.resize(3);
             myVolOut.reinitialize(myDims, myVol.getVolumeSpace());
             myVolOut.setFrame(temparray);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiInterface::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
         } else {
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
         }

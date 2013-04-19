@@ -26,7 +26,6 @@
  */
 
 #include "AbstractAlgorithm.h"
-#include "CiftiInterface.h"
 
 namespace caret {
     
@@ -37,7 +36,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, CiftiInterface::CiftiDirection myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL, bool fixZerosVol = false, bool fixZerosSurf = false);
+        AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL, bool fixZerosVol = false, bool fixZerosSurf = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

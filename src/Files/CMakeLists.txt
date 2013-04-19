@@ -91,6 +91,7 @@ TextFile.h
 TopologyHelper.h
 VolumeFile.h
 VolumeFileVoxelColorizer.h
+VolumePaddingHelper.h
 VolumeSpline.h
 WarpfieldFile.h
 
@@ -167,6 +168,7 @@ TimeLine.cxx
 TopologyHelper.cxx
 VolumeFile.cxx
 VolumeFileVoxelColorizer.cxx
+VolumePaddingHelper.cxx
 VolumeSpline.cxx
 WarpfieldFile.cxx
 )

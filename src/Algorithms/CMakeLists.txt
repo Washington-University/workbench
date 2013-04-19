@@ -32,6 +32,7 @@ AlgorithmCiftiMerge.h
 AlgorithmCiftiParcellate.h
 AlgorithmCiftiReduce.h
 AlgorithmCiftiReplaceStructure.h
+AlgorithmCiftiResample.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
 AlgorithmCiftiTranspose.h
@@ -95,6 +96,7 @@ AlgorithmCiftiMerge.cxx
 AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReplaceStructure.cxx
+AlgorithmCiftiResample.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx
 AlgorithmCiftiTranspose.cxx

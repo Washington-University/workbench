@@ -82,14 +82,14 @@ void OperationCiftiSeparateAll::useParameters(OperationParameters* myParams, Pro
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* myCifti = myParams->getCifti(1);
-    CiftiInterface::CiftiDirection myDir = CiftiInterface::ALONG_COLUMN;
+    int myDir = CiftiXML::ALONG_COLUMN;
     OptionalParameter* dirOpt = myParams->getOptionalParameter(6);
     if (dirOpt->m_present)
     {
         AString dirName = dirOpt->getString(1);
         if (dirName == "ROW")
         {
-            myDir = CiftiInterface::ALONG_ROW;
+            myDir = CiftiXML::ALONG_ROW;
         } else {
             if (dirName != "COLUMN")
             {
@@ -148,12 +148,12 @@ void OperationCiftiSeparateAll::useParameters(OperationParameters* myParams, Pro
 }
 
 void OperationCiftiSeparateAll::processSurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct,
-                                                        const CiftiInterface::CiftiDirection& myDir, MetricFile* outData, MetricFile* outROI)
+                                                        const int& myDir, MetricFile* outData, MetricFile* outROI)
 {
     AlgorithmCiftiSeparate(NULL, myCifti, myDir, myStruct, outData, outROI);
 }
 
-void OperationCiftiSeparateAll::processVolume(const CiftiFile* myCifti, const CiftiInterface::CiftiDirection& myDir, VolumeFile* outData, VolumeFile* outROI)
+void OperationCiftiSeparateAll::processVolume(const CiftiFile* myCifti, const int& myDir, VolumeFile* outData, VolumeFile* outROI)
 {
     const CiftiXML& myXML = myCifti->getCiftiXML();//largely copied from AlgorithmCiftiSeparate
     int64_t myDims[3];
@@ -164,17 +164,9 @@ void OperationCiftiSeparateAll::processVolume(const CiftiFile* myCifti, const Ci
     {
         throw OperationException("input cifti has no volume space information");
     }
-    if (myDir == CiftiInterface::ALONG_COLUMN)
+    if (!myXML.getVolumeMap(myDir, myMap))
     {
-        if (!myXML.getVolumeMapForColumns(myMap))
-        {
-            throw OperationException("structure not found in specified dimension");
-        }
-    } else {
-        if (!myXML.getVolumeMapForRows(myMap))
-        {
-            throw OperationException("structure not found in specified dimension");
-        }
+        throw OperationException("structure not found in specified dimension");
     }
     int64_t numVoxels = (int64_t)myMap.size();
     vector<int64_t> newdims;
@@ -187,7 +179,7 @@ void OperationCiftiSeparateAll::processVolume(const CiftiFile* myCifti, const Ci
         outROI->setValueAllVoxels(0.0f);
     }
     CaretArray<float> rowScratch(rowSize);
-    if (myDir == CiftiInterface::ALONG_COLUMN)
+    if (myDir == CiftiXML::ALONG_COLUMN)
     {
         if (rowSize > 1) newdims.push_back(rowSize);
         outData->reinitialize(newdims, mySform);
@@ -205,6 +197,7 @@ void OperationCiftiSeparateAll::processVolume(const CiftiFile* myCifti, const Ci
             }
         }
     } else {
+        if (myDir != CiftiXML::ALONG_ROW) throw OperationException("direction not supported by OperationCiftiSeparateAll");
         if (colSize > 1) newdims.push_back(colSize);
         outData->reinitialize(newdims, mySform);
         outData->setValueAllVoxels(0.0f);

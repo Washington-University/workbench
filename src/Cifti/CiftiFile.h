@@ -54,6 +54,8 @@ public:
     
     //check if it is in memory or not
     bool isInMemory() const;
+    ///convert to in-memory file
+    void convertToInMemory();
 
     //get/set Nifti2/CiftiHeader
     /// set CiftiHeader
@@ -67,6 +69,9 @@ public:
     virtual void setCiftiXML(const CiftiXML &ciftixml, const bool useOldMetadata = true) throw (CiftiFileException);
 
     // Matrix IO, simply passes through to underlying Cifti Matrix
+    /// get Row
+    void getRow(float * rowOut,const int64_t &rowIndex, const bool& tolerateShortRead) const throw (CiftiFileException)
+    { m_matrix.getRow(rowOut, rowIndex, tolerateShortRead); }
     /// get Row
     void getRow(float * rowOut,const int64_t &rowIndex) const throw (CiftiFileException)
     { m_matrix.getRow(rowOut, rowIndex); }

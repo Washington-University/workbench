@@ -96,12 +96,12 @@ void AlgorithmCiftiExtrema::useParameters(OperationParameters* myParams, Progres
     float surfDist = (float)myParams->getDouble(2);
     float volDist = (float)myParams->getDouble(3);
     AString directionName = myParams->getString(4);
-    CiftiInterface::CiftiDirection myDir;
+    int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiInterface::ALONG_ROW;
+        myDir = CiftiXML::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiInterface::ALONG_COLUMN;
+        myDir = CiftiXML::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -152,7 +152,7 @@ void AlgorithmCiftiExtrema::useParameters(OperationParameters* myParams, Progres
                           volPresmooth, thresholdMode, lowThresh, highThresh, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
 }
 
-AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfDist, const float& volDist, const CiftiInterface::CiftiDirection& myDir,
+AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfDist, const float& volDist, const int& myDir,
                                              CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
                                              const float& surfPresmooth, const float& volPresmooth, const bool& thresholdMode, const float& lowThresh,
                                              const float& highThresh, const bool& sumMaps, const bool& consolidateMode,
@@ -199,7 +199,7 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiInterface::ALONG_COLUMN)
+        if (myDir == CiftiXML::ALONG_COLUMN)
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {

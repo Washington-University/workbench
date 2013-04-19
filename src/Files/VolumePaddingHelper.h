@@ -1,5 +1,5 @@
-#ifndef __OPERATION_CIFTI_SEPARATE_ALL_H__
-#define __OPERATION_CIFTI_SEPARATE_ALL_H__
+#ifndef __VOLUME_PADDING_HELPER_H__
+#define __VOLUME_PADDING_HELPER_H__
 
 /*LICENSE_START*/
 /*
@@ -25,25 +25,26 @@
  *
  */
 
-#include "AbstractOperation.h"
-#include "CiftiInterface.h"
-#include "StructureEnum.h"
+#include "stdint.h"
+#include <vector>
 
 namespace caret {
     
-    class OperationCiftiSeparateAll : public AbstractOperation
+    class VolumeFile;
+    
+    class VolumePaddingHelper
     {
-        static void processSurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const int& myDir, MetricFile* outData, MetricFile* outROI = NULL);
-        static void processVolume(const CiftiFile* myCifti, const int& myDir, VolumeFile* outData, VolumeFile* outROI = NULL);
+        std::vector<std::vector<float> > m_origSform, m_paddedSform;
+        std::vector<int64_t> m_origDims, m_paddedDims;
+        int64_t m_ipad, m_jpad, m_kpad;//hopefully apple doesn't sue us
     public:
-        static OperationParameters* getParameters();
-        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
-        static AString getCommandSwitch();
-        static AString getShortDescription();
+        VolumePaddingHelper() { }
+        static VolumePaddingHelper padMM(const VolumeFile* orig, const float& mmpad);
+        static VolumePaddingHelper padVoxels(const VolumeFile* orig, const int& ipad, const int& jpad, const int& kpad);
+        void doPadding(const VolumeFile* orig, VolumeFile* padded, const float& padval = 0.0f);
+        void undoPadding(const VolumeFile* padded, VolumeFile* orig);
     };
-
-    typedef TemplateAutoOperation<OperationCiftiSeparateAll> AutoOperationCiftiSeparateAll;
-
+    
 }
 
-#endif //__OPERATION_CIFTI_SEPARATE_ALL_H__
+#endif //__VOLUME_PADDING_HELPER_H__

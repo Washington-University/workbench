@@ -23,6 +23,7 @@
  */
 /*LICENSE_END*/
 #include "CiftiFile.h"
+#include "CaretAssert.h"
 #include "CiftiXML.h"
 #include <algorithm>
 #include "CiftiXMLReader.h"
@@ -310,7 +311,7 @@ void CiftiFile::writeFile(const AString &fileName)
     file->flush();
 
     //write the matrix
-    if(writingNewFile) file->close();
+    if(writingNewFile) delete file;
     m_matrix.writeToNewFile(fileName,vox_offset, false);
     
 }
@@ -320,6 +321,23 @@ bool CiftiFile::isInMemory() const
     CacheEnum test;
     m_matrix.getCaching(test);
     return (test == IN_MEMORY);
+}
+
+void CiftiFile::convertToInMemory()
+{
+    if (isInMemory()) return;
+    CiftiMatrix newMatrix;
+    vector<int64_t> dims;
+    m_matrix.getMatrixDimensions(dims);
+    newMatrix.setup(dims);
+    vector<float> rowScratch(dims[1], 0.0f);//yes, really, row length is second dimension
+    for (int64_t i = 0; i < dims[0]; ++i)
+    {
+        m_matrix.getRow(rowScratch.data(), i, true);//allow it to work on unallocated on-disk cifti
+        newMatrix.setRow(rowScratch.data(), i);
+    }
+    m_matrix = newMatrix;
+    CaretAssert(isInMemory());//make sure it knows it is in memory
 }
 
 /**

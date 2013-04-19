@@ -94,23 +94,25 @@ void AlgorithmVolumeAffineResample::useParameters(OperationParameters* myParams,
         throw AlgorithmException("unrecognized interpolation method");
     }
     FloatMatrix affMat = FloatMatrix(myAffine.getMatrix());
-    AlgorithmVolumeAffineResample(myProgObj, inVol, affMat, refSpace, myMethod, outVol);
+    vector<int64_t> refDims;
+    refSpace->getDimensions(refDims);
+    AlgorithmVolumeAffineResample(myProgObj, inVol, affMat, refDims.data(), refSpace->getVolumeSpace(), myMethod, outVol);
 }
 
 AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myProgObj, const VolumeFile* inVol, const FloatMatrix& myAffine,
-                                                             const VolumeFile* refSpace, const VolumeFile::InterpType& myMethod, VolumeFile* outVol) : AbstractAlgorithm(myProgObj)
+                                                             const int64_t refDims[3], const vector<vector<float> >& refSform, const VolumeFile::InterpType& myMethod, VolumeFile* outVol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int64_t affRows, affColumns;
     myAffine.getDimensions(affRows, affColumns);
     if (affRows < 3 || affRows > 4 || affColumns != 4) throw AlgorithmException("input matrix is not an affine matrix");
-    vector<int64_t> outDims = inVol->getOriginalDimensions(); const vector<int64_t>& refDims = refSpace->getOriginalDimensions();
-    if (outDims.size() < 3 || refDims.size() < 3) throw AlgorithmException("input and refspace must have 3 spatial dimensions");
+    vector<int64_t> outDims = inVol->getOriginalDimensions();
+    if (outDims.size() < 3) throw AlgorithmException("input must have 3 spatial dimensions");
     outDims[0] = refDims[0];
     outDims[1] = refDims[1];
     outDims[2] = refDims[2];
     int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
-    outVol->reinitialize(outDims, refSpace->getVolumeSpace(), numComponents, inVol->getType());
+    outVol->reinitialize(outDims, refSform, numComponents, inVol->getType());
     FloatMatrix targetToSource = myAffine;
     targetToSource.resize(4, 4);
     targetToSource[3][0] = 0.0f;

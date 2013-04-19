@@ -281,10 +281,15 @@ bool CiftiXML::getVolumeModelMapsForRows(vector<CiftiVolumeStructureMap>& mappin
     return getVolumeModelMappings(mappingsOut, m_dimToMapLookup[0]);
 }
 
-bool CiftiXML::getStructureLists(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const
+bool CiftiXML::getStructureLists(const int& direction, vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList) const
 {
     surfaceList.clear();
     volumeList.clear();
+    if (direction < 0 || direction >= (int)m_dimToMapLookup.size())
+    {
+        return false;
+    }
+    int myMapIndex = m_dimToMapLookup[direction];
     if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
     {
         return false;
@@ -315,12 +320,12 @@ bool CiftiXML::getStructureLists(vector<StructureEnum::Enum>& surfaceList, vecto
 
 bool CiftiXML::getStructureListsForColumns(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList) const
 {
-    return getStructureLists(surfaceList, volumeList, m_dimToMapLookup[1]);
+    return getStructureLists(ALONG_COLUMN, surfaceList, volumeList);
 }
 
 bool CiftiXML::getStructureListsForRows(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList) const
 {
-    return getStructureLists(surfaceList, volumeList, m_dimToMapLookup[0]);
+    return getStructureLists(ALONG_ROW, surfaceList, volumeList);
 }
 
 void CiftiXML::rootChanged()
@@ -1004,7 +1009,7 @@ bool CiftiXML::setMapNameForRowIndex(const int& index, const AString& name)
     return setMapNameForIndex(ALONG_ROW, index, name);
 }
 
-const GiftiLabelTable* CiftiXML::getLabelTable(const int& index, const int& myMapIndex) const
+GiftiLabelTable* CiftiXML::getLabelTable(const int& index, const int& myMapIndex) const
 {
     if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
     {
@@ -1020,12 +1025,12 @@ const GiftiLabelTable* CiftiXML::getLabelTable(const int& index, const int& myMa
     return myMap.m_namedMaps[index].m_labelTable;
 }
 
-const GiftiLabelTable* CiftiXML::getLabelTableForColumnIndex(const int& index) const
+GiftiLabelTable* CiftiXML::getLabelTableForColumnIndex(const int& index) const
 {
     return getLabelTable(index, m_dimToMapLookup[1]);
 }
 
-const GiftiLabelTable* CiftiXML::getLabelTableForRowIndex(const int& index) const
+GiftiLabelTable* CiftiXML::getLabelTableForRowIndex(const int& index) const
 {
     return getLabelTable(index, m_dimToMapLookup[0]);
 }
@@ -1815,22 +1820,26 @@ void CiftiXML::copyMapping(const int& direction, const CiftiXML& other, const in
     {
         throw CiftiFileException("copyMapping called with nonexistant mapping to copy");
     }
-    bool copyVolSpace = false;
+    bool copyVolSpace = false, haveVoxels = false;
+    for (int i = 0; i < (int)m_dimToMapLookup.size(); ++i)
+    {
+        if (i != direction && hasVolumeData(i))
+        {
+            haveVoxels = true;
+        }
+    }
     if (other.hasVolumeData(otherDirection))
     {
-        bool haveVoxels = false;
-        for (int i = 0; i < (int)m_dimToMapLookup.size(); ++i)
-        {
-            if (i != direction && hasVolumeData(i))
-            {
-                haveVoxels = true;
-            }
-        }
         if (haveVoxels)
         {
             if (!matchesVolumeSpace(other)) throw CiftiFileException("cannot copy mapping from other cifti due to volume space mismatch");
         } else {
             copyVolSpace = true;
+        }
+    } else {
+        if (!haveVoxels)
+        {
+            m_root.m_matrices[0].m_volume.clear();
         }
     }
     if (m_dimToMapLookup[direction] == -1)

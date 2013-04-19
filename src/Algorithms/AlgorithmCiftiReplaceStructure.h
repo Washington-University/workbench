@@ -26,12 +26,9 @@
  */
 
 #include "AbstractAlgorithm.h"
-#include "CiftiInterface.h"
+#include "StructureEnum.h"
 
 namespace caret {
-    
-    class MetricFile;
-    class VolumeFile;
     
     class AlgorithmCiftiReplaceStructure : public AbstractAlgorithm
     {
@@ -40,9 +37,11 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const CiftiInterface::CiftiDirection& myDir,
+        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
                                        const StructureEnum::Enum& myStruct, const MetricFile* metricIn);
-        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const CiftiInterface::CiftiDirection& myDir,
+        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
+                                       const StructureEnum::Enum& myStruct, const LabelFile* labelIn);
+        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
                                        const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped = true);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

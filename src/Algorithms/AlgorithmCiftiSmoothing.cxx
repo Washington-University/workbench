@@ -82,12 +82,12 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     float surfKern = (float)myParams->getDouble(2);
     float volKern = (float)myParams->getDouble(3);
     AString directionName = myParams->getString(4);
-    CiftiInterface::CiftiDirection myDir;
+    int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiInterface::ALONG_ROW;
+        myDir = CiftiXML::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiInterface::ALONG_COLUMN;
+        myDir = CiftiXML::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -113,18 +113,19 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, fixZerosVol, fixZerosSurf);
 }
 
-AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, CiftiInterface::CiftiDirection myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = myCifti->getCiftiXML();
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir == CiftiInterface::ALONG_COLUMN)
+    if (myDir == CiftiXML::ALONG_COLUMN)
     {
         if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
         {
             throw AlgorithmException("specified direction does not contain brainordinates");
         }
     } else {
+        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported in AlgorithmCiftiSmoothing");
         if (!myXML.getStructureListsForRows(surfaceList, volumeList))
         {
             throw AlgorithmException("specified direction does not contain brainordinates");
@@ -156,7 +157,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiInterface::ALONG_COLUMN)
+        if (myDir == CiftiXML::ALONG_COLUMN)
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
@@ -209,5 +210,5 @@ float AlgorithmCiftiSmoothing::getAlgorithmInternalWeight()
 
 float AlgorithmCiftiSmoothing::getSubAlgorithmWeight()
 {
-    return AlgorithmMetricSmoothing::getAlgorithmWeight() * 2 + AlgorithmVolumeSmoothing::getAlgorithmWeight();//if you use a subalgorithm
+    return 0.0f;//if you use a subalgorithm
 }

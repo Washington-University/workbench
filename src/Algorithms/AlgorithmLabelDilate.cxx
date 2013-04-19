@@ -23,7 +23,9 @@
  */
 
 #include "AlgorithmLabelDilate.h"
+
 #include "AlgorithmException.h"
+#include "CaretOMP.h"
 #include "GeodesicHelper.h"
 #include "LabelFile.h"
 #include "GiftiLabelTable.h"
@@ -99,7 +101,7 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
     int numNodes = myLabel->getNumberOfNodes();
     if (mySurf->getNumberOfNodes() != numNodes)
     {
-        throw AlgorithmException("surface has wrong number of vertices for this label");
+        throw AlgorithmException("surface has wrong number of vertices for this label file");
     }
     CaretArray<int32_t> colScratch(numNodes);
     vector<float> myAreas;
@@ -123,39 +125,22 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
                     markArray[i] = 1;
                 }
             }
-            CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-            for (int i = 0; i < numNodes; ++i)
+#pragma omp CARET_PAR
             {
-                if (markArray[i] == 0)
+                CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+                CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+                for (int i = 0; i < numNodes; ++i)
                 {
-                    vector<int32_t> nodeList;
-                    vector<float> distList;
-                    myGeoHelp->getNodesToGeoDist(i, myDist, nodeList, distList);
-                    int numInRange = (int)nodeList.size();
-                    bool first = true;
-                    float bestDist = -1.0f;
-                    int32_t bestLabel = unusedLabel;
-                    for (int j = 0; j < numInRange; ++j)
+                    if (markArray[i] == 0)
                     {
-                        if (markArray[nodeList[j]] == 1)
-                        {
-                            if (first || distList[j] < bestDist)
-                            {
-                                first = false;
-                                bestDist = distList[j];
-                                bestLabel = myInputData[nodeList[j]];
-                            }
-                        }
-                    }
-                    if (!first)
-                    {
-                        colScratch[i] = bestLabel;
-                    } else {
-                        nodeList = myTopoHelp->getNodeNeighbors(i);
-                        nodeList.push_back(i);
-                        myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
-                        numInRange = (int)nodeList.size();
+                        vector<int32_t> nodeList;
+                        vector<float> distList;
+                        myGeoHelp->getNodesToGeoDist(i, myDist, nodeList, distList);
+                        int numInRange = (int)nodeList.size();
+                        bool first = true;
+                        float bestDist = -1.0f;
+                        int32_t bestLabel = unusedLabel;
                         for (int j = 0; j < numInRange; ++j)
                         {
                             if (markArray[nodeList[j]] == 1)
@@ -172,11 +157,32 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
                         {
                             colScratch[i] = bestLabel;
                         } else {
-                            colScratch[i] = unusedLabel;
+                            nodeList = myTopoHelp->getNodeNeighbors(i);
+                            nodeList.push_back(i);
+                            myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                            numInRange = (int)nodeList.size();
+                            for (int j = 0; j < numInRange; ++j)
+                            {
+                                if (markArray[nodeList[j]] == 1)
+                                {
+                                    if (first || distList[j] < bestDist)
+                                    {
+                                        first = false;
+                                        bestDist = distList[j];
+                                        bestLabel = myInputData[nodeList[j]];
+                                    }
+                                }
+                            }
+                            if (!first)
+                            {
+                                colScratch[i] = bestLabel;
+                            } else {
+                                colScratch[i] = unusedLabel;
+                            }
                         }
+                    } else {
+                        colScratch[i] = myInputData[i];
                     }
-                } else {
-                    colScratch[i] = myInputData[i];
                 }
             }
             myLabelOut->setLabelKeysForColumn(thisCol, colScratch.getArray());

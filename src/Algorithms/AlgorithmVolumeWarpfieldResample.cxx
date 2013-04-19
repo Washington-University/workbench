@@ -91,23 +91,25 @@ void AlgorithmVolumeWarpfieldResample::useParameters(OperationParameters* myPara
     } else {
         throw AlgorithmException("unrecognized interpolation method");
     }
-    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refSpace, myMethod, outVol);
+    vector<int64_t> refDims;
+    refSpace->getDimensions(refDims);
+    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refDims.data(), refSpace->getVolumeSpace(), myMethod, outVol);
 }
 
 AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObject* myProgObj, const VolumeFile* inVol, const VolumeFile* warpfield,
-                                                                   const VolumeFile* refSpace, const VolumeFile::InterpType& myMethod, VolumeFile* outVol) : AbstractAlgorithm(myProgObj)
+                                                                   const int64_t refDims[3], const vector<vector<float> >& refSform, const VolumeFile::InterpType& myMethod, VolumeFile* outVol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> warpDims;
     warpfield->getDimensions(warpDims);
     if (warpDims[3] != 3 || warpDims[4] != 1) throw AlgorithmException("provided warpfield volume has wrong number of subvolumes or components");
-    vector<int64_t> outDims = inVol->getOriginalDimensions(); const vector<int64_t>& refDims = refSpace->getOriginalDimensions();
-    if (outDims.size() < 3 || refDims.size() < 3) throw AlgorithmException("input and refspace must have 3 spatial dimensions");
+    vector<int64_t> outDims = inVol->getOriginalDimensions();
+    if (outDims.size() < 3) throw AlgorithmException("input must have 3 spatial dimensions");
     outDims[0] = refDims[0];
     outDims[1] = refDims[1];
     outDims[2] = refDims[2];
     int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
-    outVol->reinitialize(outDims, refSpace->getVolumeSpace(), numComponents, inVol->getType());
+    outVol->reinitialize(outDims, refSform, numComponents, inVol->getType());
     if (inVol->isMappedWithLabelTable())
     {
         if (myMethod != VolumeFile::ENCLOSING_VOXEL)

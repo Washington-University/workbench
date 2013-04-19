@@ -30,6 +30,7 @@
 // later it will be heavily based on a generalized version of Nifti Matrix,
 // but I'd rather not hold up Cifti's release for it.  The interface will
 // stay largely the same regardless of the underlying code.
+#include "CaretPointer.h"
 #include "NiftiEnums.h"
 #include "CiftiFileException.h"
 #include "QFile"
@@ -41,6 +42,8 @@ enum CacheEnum {
     ON_DISK,
     IN_MEMORY
 };
+
+//WARNING: this is a dumb shallow copy object!
 
 class CiftiMatrix
 {
@@ -61,7 +64,7 @@ public:
     void getNeedsSwapping(bool &needsSwappingOut);
 
     //Matrix IO
-    void getRow(float * rowOut,const int64_t &rowIndex) const throw (CiftiFileException);
+    void getRow(float * rowOut,const int64_t &rowIndex, const bool& tolerateShortRead = false) const throw (CiftiFileException);
     void setRow(float * rowIn, const int64_t &rowIndex) throw (CiftiFileException);
     void getColumn(float * columnOut, const int64_t &columnIndex) const throw (CiftiFileException);
     void setColumn(float * columnIn, const int64_t &columnIndex) throw (CiftiFileException);
@@ -77,15 +80,16 @@ public:
     void copyMatrix(QFile *output, QFile *input);
     void updateCache();
 protected:
+    void copyHelper(const CiftiMatrix& rhs);
     CacheEnum m_caching;
-    float *m_matrix;
+    CaretArray<float> m_matrix;
     vector <int64_t> m_dimensions;//ideally just two, but can take the standard
     //1,1,1,1,M,N nifti matrix and convert it if needed.
     int64_t m_matrixOffset;//the beginning of the matrix in the file
     AString m_fileName;
-    mutable QFile *m_file;
-    mutable QFile *m_readFile;
-    mutable QFile *m_cacheFile;
+    mutable CaretPointer<QFile> m_file;
+    mutable CaretPointer<QFile> m_readFile;
+    mutable CaretPointer<QFile> m_cacheFile;
     bool m_needsSwapping;
     bool m_beenInitialized;
     AString m_cacheFileName;

@@ -37,7 +37,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfDist, const float& volDist, const CiftiInterface::CiftiDirection& myDir, CiftiFile* myCiftiOut,
+        AlgorithmCiftiExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfDist, const float& volDist, const int& myDir, CiftiFile* myCiftiOut,
                               const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL, const float& surfPresmooth = -1.0f,
                               const float& volPresmooth = -1.0f, const bool& thresholdMode = false, const float& lowThresh = 0.0f, const float& highThresh = 0.0f,
                               const bool& sumMaps = false, const bool& consolidateMode = false, const bool& ignoreMinima = false, const bool& ignoreMaxima = false);

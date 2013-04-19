@@ -99,7 +99,7 @@ public:
 struct CiftiNamedMapElement
 {
     AString m_mapName;
-    CaretPointer<GiftiLabelTable> m_labelTable;
+    mutable CaretPointer<GiftiLabelTable> m_labelTable;
     std::map<AString, AString> m_mapMetaData;/*!< User Meta Data*/
     mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
     mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
