@@ -39,6 +39,12 @@ namespace caret
         T& at(const int64_t& index1, const int64_t& index2, const int64_t& index3);
         ///creates the element if it didn't exist, and returns a reference to it
         T& at(const int64_t index[3]) { return at(index[0], index[1], index[2]); }
+        ///add or overwrite an element in the lookup
+        void insert(const int64_t& index1, const int64_t& index2, const int64_t& index3, const T& value)
+        { at(index1, index2, index3) = value; }
+        ///add or overwrite an element in the lookup
+        void insert(const int64_t index[3], const T& value)
+        { at(index) = value; }
         ///returns a pointer to the desired element, or NULL if no such element is found
         T* find(const int64_t& index1, const int64_t& index2, const int64_t& index3);
         ///returns a pointer to the desired element, or NULL if no such element is found
@@ -52,17 +58,17 @@ namespace caret
     template<typename T>
     T& CaretCompact3DLookup<T>::at(const int64_t& index1, const int64_t& index2, const int64_t& index3)
     {
-        return m_lookup[index1][index2][index3];//a lot of complexity is hidden in those operator[]s
+        return m_lookup[index3][index2][index1];//a lot of complexity is hidden in those operator[]s
     }
 
     template<typename T>
     T* CaretCompact3DLookup<T>::find(const int64_t& index1, const int64_t& index2, const int64_t& index3)
     {
-        typename CaretCompactLookup<CaretCompactLookup<CaretCompactLookup<T> > >::iterator iter1 = m_lookup.find(index1);//oh the humanity
+        typename CaretCompactLookup<CaretCompactLookup<CaretCompactLookup<T> > >::iterator iter1 = m_lookup.find(index3);//oh the humanity
         if (iter1 == m_lookup.end()) return NULL;
         typename CaretCompactLookup<CaretCompactLookup<T> >::iterator iter2 = iter1->find(index2);
         if (iter2 == iter1->end()) return NULL;
-        typename CaretCompactLookup<T>::iterator iter3 = iter2->find(index3);
+        typename CaretCompactLookup<T>::iterator iter3 = iter2->find(index1);
         if (iter3 == iter2->end()) return NULL;
         return &(*iter3);
     }
@@ -70,11 +76,11 @@ namespace caret
     template <typename T>
     const T* CaretCompact3DLookup<T>::find(const int64_t& index1, const int64_t& index2, const int64_t& index3) const
     {
-        typename CaretCompactLookup<CaretCompactLookup<CaretCompactLookup<T> > >::const_iterator iter1 = m_lookup.find(index1);//oh the humanity
+        typename CaretCompactLookup<CaretCompactLookup<CaretCompactLookup<T> > >::const_iterator iter1 = m_lookup.find(index3);//oh the humanity
         if (iter1 == m_lookup.end()) return NULL;
         typename CaretCompactLookup<CaretCompactLookup<T> >::const_iterator iter2 = iter1->find(index2);
         if (iter2 == iter1->end()) return NULL;
-        typename CaretCompactLookup<T>::const_iterator iter3 = iter2->find(index3);
+        typename CaretCompactLookup<T>::const_iterator iter3 = iter2->find(index1);
         if (iter3 == iter2->end()) return NULL;
         return &(*iter3);
     }
