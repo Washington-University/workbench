@@ -62,8 +62,14 @@ namespace caret {
         template <typename T2>
         CaretPointer& operator=(const CaretPointer<T2>& right);
         void grabNew(T* right);//substitute for operator= to bare pointer
-        bool operator==(const T* right) const;
-        bool operator!=(const T* right) const;
+        template <typename T2>
+        bool operator==(const T2* right) const;
+        template <typename T2>
+        bool operator!=(const T2* right) const;
+        template <typename T2>
+        bool operator==(const CaretPointer<T2>& right) const;
+        template <typename T2>
+        bool operator!=(const CaretPointer<T2>& right) const;
         T& operator*();
         const T& operator*() const;
         T* operator->();
@@ -96,8 +102,14 @@ namespace caret {
         CaretArray& operator=(const CaretArray& right);
         template <typename T2>
         CaretArray& operator=(const CaretArray<T2>& right);
-        bool operator==(const T* right) const;
-        bool operator!=(const T* right) const;
+        template <typename T2>
+        bool operator==(const T2* right) const;
+        template <typename T2>
+        bool operator!=(const T2* right) const;
+        template <typename T2>
+        bool operator==(const CaretArray<T2>& right) const;
+        template <typename T2>
+        bool operator!=(const CaretArray<T2>& right) const;
         template <typename I>
         T& operator[](const I& index);
         template <typename I>
@@ -276,14 +288,26 @@ namespace caret {
         return m_pointer;
     }
 
-    template <typename T>
-    bool CaretPointer<T>::operator==(const T* right) const
+    template <typename T> template <typename T2>
+    bool CaretPointer<T>::operator==(const T2* right) const
     {
         return (m_pointer == right);
     }
 
-    template <typename T>
-    bool CaretPointer<T>::operator!=(const T* right) const
+    template <typename T> template <typename T2>
+    bool CaretPointer<T>::operator!=(const T2* right) const
+    {
+        return !(*this == right);
+    }
+
+    template <typename T> template <typename T2>
+    bool CaretPointer<T>::operator==(const CaretPointer<T2>& right) const
+    {
+        return (m_pointer == right.m_pointer);
+    }
+
+    template <typename T> template <typename T2>
+    bool CaretPointer<T>::operator!=(const CaretPointer<T2>& right) const
     {
         return !(*this == right);
     }
@@ -492,14 +516,26 @@ namespace caret {
         }
     }
 
-    template <typename T>
-    bool CaretArray<T>::operator==(const T* right) const
+    template <typename T> template <typename T2>
+    bool CaretArray<T>::operator==(const T2* right) const
     {
         return (m_pointer == right);
     }
 
-    template <typename T>
-    bool CaretArray<T>::operator!=(const T* right) const
+    template <typename T> template <typename T2>
+    bool CaretArray<T>::operator!=(const T2* right) const
+    {
+        return !(*this == right);
+    }
+
+    template <typename T> template <typename T2>
+    bool CaretArray<T>::operator==(const CaretArray<T2>& right) const
+    {
+        return (m_pointer == right.m_pointer);
+    }
+
+    template <typename T> template <typename T2>
+    bool CaretArray<T>::operator!=(const CaretArray<T2>& right) const
     {
         return !(*this == right);
     }
