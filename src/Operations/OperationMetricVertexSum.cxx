@@ -1,0 +1,172 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "OperationMetricVertexSum.h"
+#include "OperationException.h"
+
+#include "MetricFile.h"
+#include "SurfaceFile.h"
+
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+
+using namespace caret;
+using namespace std;
+
+AString OperationMetricVertexSum::getCommandSwitch()
+{
+    return "-metric-vertex-sum";
+}
+
+AString OperationMetricVertexSum::getShortDescription()
+{
+    return "SUM VALUES ACROSS VERTICES IN A METRIC FILE";
+}
+
+OperationParameters* OperationMetricVertexSum::getParameters()
+{
+    OperationParameters* ret = new OperationParameters();
+    ret->addMetricParameter(1, "metric-in", "the metric to sum");
+    
+    OptionalParameter* integrateOpt = ret->createOptionalParameter(2, "-integrate", "integrate across a surface, rather than summing");
+    integrateOpt->addSurfaceParameter(1, "surface", "the surface to integrate on");
+    
+    OptionalParameter* roiOpt = ret->createOptionalParameter(3, "-roi", "only use data inside an roi");
+    roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
+    
+    OptionalParameter* columnOpt = ret->createOptionalParameter(4, "-column", "select a single column");
+    columnOpt->addStringParameter(1, "column", "the column number or name");
+    
+    ret->setHelpText(
+        AString("For each column in <metric-in>, sum the values across all vertices, then print the sum on standard output.  ") +
+        "-integrate multiplies each vertex value by the vertex area before doing the sum.  " +
+        "Use -roi to only sum within a specific area.  " +
+        "Use -column to only report for one column.  "
+    );
+    return ret;
+}
+
+void OperationMetricVertexSum::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    MetricFile* myMetric = myParams->getMetric(1);
+    int numNodes = myMetric->getNumberOfNodes();
+    SurfaceFile* integrateSurf = NULL;
+    OptionalParameter* integrateOpt = myParams->getOptionalParameter(2);
+    if (integrateOpt->m_present)
+    {
+        integrateSurf = integrateOpt->getSurface(1);
+        if (integrateSurf->getNumberOfNodes() != numNodes) throw OperationException("integration surface has a different number of nodes");
+    }
+    MetricFile* myRoi = NULL;
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(3);
+    if (roiOpt->m_present)
+    {
+        myRoi = roiOpt->getMetric(1);
+        if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi-metric has a different number of nodes");
+    }
+    int myColumn = -1;
+    OptionalParameter* columnOpt = myParams->getOptionalParameter(4);
+    if (columnOpt->m_present)
+    {
+        myColumn = myMetric->getMapIndexFromNameOrNumber(columnOpt->getString(1));
+        if (myColumn < 0 || myColumn >= myMetric->getNumberOfMaps())
+        {
+            throw OperationException("invalid column specified");
+        }
+    }
+    const float* roiData = NULL;
+    if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
+    if (integrateSurf != NULL)
+    {
+        vector<float> vertexAreas;
+        integrateSurf->computeNodeAreas(vertexAreas);
+        if (myColumn == -1)
+        {
+            int numCols = myMetric->getNumberOfColumns();
+            for (int j = 0; j < numCols; ++j)
+            {
+                double accum = 0.0;
+                const float* data = myMetric->getValuePointerForColumn(j);
+                for (int i = 0; i < numNodes; ++i)
+                {
+                    if (roiData == NULL || roiData[i] > 0.0f)
+                    {
+                        accum += data[i] * vertexAreas[i];
+                    }
+                }
+                stringstream s;
+                s << std::setprecision(7) << accum;
+                cout << s.str() << endl;
+            }
+        } else {
+            double accum = 0.0;
+            const float* data = myMetric->getValuePointerForColumn(myColumn);
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (roiData == NULL || roiData[i] > 0.0f)
+                {
+                    accum += data[i] * vertexAreas[i];
+                }
+            }
+            stringstream s;
+            s << std::setprecision(7) << accum;
+            cout << s.str() << endl;
+        }
+    } else {
+        if (myColumn == -1)
+        {
+            int numCols = myMetric->getNumberOfColumns();
+            for (int j = 0; j < numCols; ++j)
+            {
+                double accum = 0.0;
+                const float* data = myMetric->getValuePointerForColumn(j);
+                for (int i = 0; i < numNodes; ++i)
+                {
+                    if (roiData == NULL || roiData[i] > 0.0f)
+                    {
+                        accum += data[i];
+                    }
+                }
+                stringstream s;
+                s << std::setprecision(7) << accum;
+                cout << s.str() << endl;
+            }
+        } else {
+            double accum = 0.0;
+            const float* data = myMetric->getValuePointerForColumn(myColumn);
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (roiData == NULL || roiData[i] > 0.0f)
+                {
+                    accum += data[i];
+                }
+            }
+            stringstream s;
+            s << std::setprecision(7) << accum;
+            cout << s.str() << endl;
+        }
+    }
+}

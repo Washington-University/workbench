@@ -41,6 +41,7 @@ OperationMetricMask.h
 OperationMetricMath.h
 OperationMetricMerge.h
 OperationMetricPalette.h
+OperationMetricVertexSum.h
 OperationProbtrackXDotConvert.h
 OperationSetMapName.h
 OperationSetStructure.h
@@ -81,6 +82,7 @@ OperationMetricMask.cxx
 OperationMetricMath.cxx
 OperationMetricMerge.cxx
 OperationMetricPalette.cxx
+OperationMetricVertexSum.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetMapName.cxx
 OperationSetStructure.cxx
