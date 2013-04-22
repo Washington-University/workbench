@@ -93,23 +93,23 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     fnirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the warpfield");
     
     OptionalParameter* leftSpheresOpt = ret->createOptionalParameter(13, "-left-spheres", "specify spheres for left surface resampling");
-    leftSpheresOpt->addSurfaceParameter(1, "current-left-sphere", "a sphere with the same mesh as the current left surface");
-    leftSpheresOpt->addSurfaceParameter(2, "new-left-sphere", "a sphere with the new left mesh that is in register with the current sphere");
+    leftSpheresOpt->addSurfaceParameter(1, "current-sphere", "a sphere with the same mesh as the current left surface");
+    leftSpheresOpt->addSurfaceParameter(2, "new-sphere", "a sphere with the new left mesh that is in register with the current sphere");
     OptionalParameter* leftAreaSurfsOpt = leftSpheresOpt->createOptionalParameter(3, "-left-area-surfs", "specify left surfaces to do vertex area correction based on");
     leftAreaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant left anatomical surface with current mesh");
     leftAreaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant left anatomical surface with new mesh");
     
     OptionalParameter* rightSpheresOpt = ret->createOptionalParameter(14, "-right-spheres", "specify spheres for right surface resampling");
-    rightSpheresOpt->addSurfaceParameter(1, "current-right-sphere", "a sphere with the same mesh as the current right surface");
-    rightSpheresOpt->addSurfaceParameter(2, "new-right-sphere", "a sphere with the new right mesh that is in register with the current sphere");
+    rightSpheresOpt->addSurfaceParameter(1, "current-sphere", "a sphere with the same mesh as the current right surface");
+    rightSpheresOpt->addSurfaceParameter(2, "new-sphere", "a sphere with the new right mesh that is in register with the current sphere");
     OptionalParameter* rightAreaSurfsOpt = rightSpheresOpt->createOptionalParameter(3, "-right-area-surfs", "specify right surfaces to do vertex area correction based on");
     rightAreaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant right anatomical surface with current mesh");
     rightAreaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant right anatomical surface with new mesh");
     
-    OptionalParameter* cerebSpheresOpt = ret->createOptionalParameter(15, "-cereb-spheres", "specify spheres for cerebellum surface resampling");
-    cerebSpheresOpt->addSurfaceParameter(1, "current-cereb-sphere", "a sphere with the same mesh as the current cerebellum surface");
-    cerebSpheresOpt->addSurfaceParameter(2, "new-cereb-sphere", "a sphere with the new cerebellum mesh that is in register with the current sphere");
-    OptionalParameter* cerebAreaSurfsOpt = cerebSpheresOpt->createOptionalParameter(3, "-cereb-area-surfs", "specify cerebellum surfaces to do vertex area correction based on");
+    OptionalParameter* cerebSpheresOpt = ret->createOptionalParameter(15, "-cerebellum-spheres", "specify spheres for cerebellum surface resampling");
+    cerebSpheresOpt->addSurfaceParameter(1, "current-sphere", "a sphere with the same mesh as the current cerebellum surface");
+    cerebSpheresOpt->addSurfaceParameter(2, "new-sphere", "a sphere with the new cerebellum mesh that is in register with the current sphere");
+    OptionalParameter* cerebAreaSurfsOpt = cerebSpheresOpt->createOptionalParameter(3, "-cerebellum-area-surfs", "specify cerebellum surfaces to do vertex area correction based on");
     cerebAreaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant cerebellum anatomical surface with current mesh");
     cerebAreaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant cerebellum anatomical surface with new mesh");
     

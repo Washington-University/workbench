@@ -63,7 +63,7 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(4, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(5, "-cereb-surface", "specify the cerebellum surface to use");
+    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(5, "-cerebellum-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(6, "-surface-presmooth", "smooth on the surface before computing the gradient");

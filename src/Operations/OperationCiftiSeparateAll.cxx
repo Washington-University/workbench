@@ -57,10 +57,10 @@ OperationParameters* OperationCiftiSeparateAll::getParameters()
     OptionalParameter* rightRoiOpt = rightOpt->createOptionalParameter(2, "-right-roi", "output the ROI for the right surface data");
     rightRoiOpt->addMetricOutputParameter(1, "right-roi-metric", "output metric for the right ROI");
     
-    OptionalParameter* cerebOpt = ret->createOptionalParameter(4, "-cereb", "output the cerebellum surface data");
-    cerebOpt->addMetricOutputParameter(1, "cereb-metric", "the output metric for the cerebellum surface");
-    OptionalParameter* cerebRoiOpt = cerebOpt->createOptionalParameter(2, "-cereb-roi", "output the ROI for the cerebellum surface data");
-    cerebRoiOpt->addMetricOutputParameter(1, "cereb-roi-metric", "output metric for the cerebellum ROI");
+    OptionalParameter* cerebOpt = ret->createOptionalParameter(4, "-cerebellum", "output the cerebellum surface data");
+    cerebOpt->addMetricOutputParameter(1, "cerebellum-metric", "the output metric for the cerebellum surface");
+    OptionalParameter* cerebRoiOpt = cerebOpt->createOptionalParameter(2, "-cerebellum-roi", "output the ROI for the cerebellum surface data");
+    cerebRoiOpt->addMetricOutputParameter(1, "cerebellum-roi-metric", "output metric for the cerebellum ROI");
     
     OptionalParameter* volOpt = ret->createOptionalParameter(5, "-volume", "output the voxel data");
     volOpt->addVolumeOutputParameter(1, "volume-out", "output volume file");

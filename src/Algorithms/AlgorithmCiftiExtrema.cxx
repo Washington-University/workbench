@@ -62,7 +62,7 @@ OperationParameters* AlgorithmCiftiExtrema::getParameters()
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(7, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(8, "-cereb-surface", "specify the cerebellum surface to use");
+    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(8, "-cerebellum-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(9, "-surface-presmooth", "smooth on the surface before finding extrema");

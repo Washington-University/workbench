@@ -61,7 +61,7 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(5, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(6, "-cereb-surface", "specify the cerebellum surface to use");
+    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(6, "-cerebellum-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");

@@ -61,7 +61,7 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     OptionalParameter* rightRoiOpt = roiOverrideOpt->createOptionalParameter(2, "-right-roi", "use an roi for right hempsphere");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
-    OptionalParameter* cerebRoiOpt = roiOverrideOpt->createOptionalParameter(3, "-cereb-roi", "use an roi for cerebellum");
+    OptionalParameter* cerebRoiOpt = roiOverrideOpt->createOptionalParameter(3, "-cerebellum-roi", "use an roi for cerebellum");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     OptionalParameter* volRoiOpt = roiOverrideOpt->createOptionalParameter(4, "-vol-roi", "use an roi for volume");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
