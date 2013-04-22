@@ -38,6 +38,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CiftiXMLElements.h"
+#include "SceneableInterface.h"
 #include "VolumeMappableInterface.h"
 
 namespace caret {
@@ -50,19 +51,36 @@ namespace caret {
     class Histogram;
     class SparseVolumeIndexer;
     
-    class CiftiMappableDataFile : public CaretMappableDataFile, public VolumeMappableInterface {
+    class CiftiMappableDataFile :
+        public CaretMappableDataFile,
+        public SceneableInterface,
+        public VolumeMappableInterface {
         
     public:
-        enum DataLocation {
-            DATA_LOCATION_INVALID,
-            DATA_LOCATION_COLUMNS,
-            DATA_LOCATION_ROWS
+        /** Access (row/column) of a type of data */
+        enum DataAccess {
+            /** Data access invalid */
+            DATA_ACCESS_INVALID,
+            /** Data is accessed using the column methods */
+            DATA_ACCESS_WITH_COLUMN_METHODS,
+            /** Data is accessed using the row methods */
+            DATA_ACCESS_WITH_ROW_METHODS
         };
+        
+        /** How to read the file */
+        enum FileReading {
+            /** Read all data in the file */
+            FILE_READ_DATA_ALL,
+            /** Open the file but only read data as needed */
+            FILE_READ_DATA_AS_NEEDED
+        };
+        
         CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType,
+                              const FileReading fileReading,
                               const IndicesMapToDataType rowIndexType,
                               const IndicesMapToDataType columnIndexType,
-                              const DataLocation brainordinateMappedDataLocation,
-                              const DataLocation seriesMappedDataLocation);
+                              const DataAccess brainordinateMappedDataAccess,
+                              const DataAccess seriesDataAccess);
         
         virtual ~CiftiMappableDataFile();
         
@@ -197,6 +215,24 @@ namespace caret {
         
         const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
+        virtual bool getMapSurfaceNodeValue(const int32_t mapIndex,
+                                            const StructureEnum::Enum structure,
+                                            const int nodeIndex,
+                                            const int32_t numberOfNodes,
+                                            AString& textOut) const;
+        
+        virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
+                                               const StructureEnum::Enum structure,
+                                               float* surfaceRGBAOut,
+                                               float* dataValuesOut,
+                                               const int32_t surfaceNumberOfNodes);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
 
@@ -261,6 +297,9 @@ namespace caret {
         
         void validateKeysAndLabels() const;
         
+        /** How to read data from file */
+        const FileReading m_fileReading;
+        
         /** Type of data along the row (dimension 0) */
         const IndicesMapToDataType m_rowIndexType;
         
@@ -268,10 +307,10 @@ namespace caret {
         const IndicesMapToDataType m_columnIndexType;
         
         /** Location of brainordinate mapped data */
-        const DataLocation m_brainordinateMappedDataLocation;
+        const DataAccess m_brainordinateMappedDataAccess;
         
         /** Location of series data */
-        const DataLocation m_seriesDataLocation;
+        const DataAccess m_seriesDataAccess;
         
         /** Contains data related to each map */
         std::vector<MapContent*> m_mapContent;

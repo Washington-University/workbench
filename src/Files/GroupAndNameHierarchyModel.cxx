@@ -468,6 +468,14 @@ void
 GroupAndNameHierarchyModel::update(CiftiBrainordinateFile* ciftiBrainordinateFile,
                                    const bool forceUpdate)
 {
+    /*
+     * If it is not a label file, there is nothing to do.
+     */
+    if (ciftiBrainordinateFile->isMappedWithLabelTable() == false) {
+        this->clear();
+        return;
+    }
+    
     bool needToGenerateKeys = forceUpdate;
     
     setName(ciftiBrainordinateFile->getFileNameNoPath());
@@ -662,7 +670,7 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
     /*
      * If it is not a label file, there is nothing to do.
      */
-    if (ciftiMappableDataFile->getDataFileType() != DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL) {
+    if (ciftiMappableDataFile->isMappedWithLabelTable() == false) {
         this->clear();
         return;
     }

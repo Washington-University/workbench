@@ -1205,12 +1205,13 @@ Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
         file->readFile(filename);
         file->updateScalarColoringForAllMaps(m_paletteFile);
         
-//        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
-//                                  CIFTI_INDEX_TYPE_LABELS,
-//                                  CIFTI_INDEX_TYPE_BRAIN_MODELS,
-//                                  CiftiMappableDataFile::DATA_LOCATION_COLUMNS,
-//                                  CiftiMappableDataFile::DATA_LOCATION_ROWS);
-//        cmd.readFile(filename);
+        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
+                                  CiftiMappableDataFile::FILE_READ_DATA_ALL,
+                                  CIFTI_INDEX_TYPE_LABELS,
+                                  CIFTI_INDEX_TYPE_BRAIN_MODELS,
+                                  CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
+                                  CiftiMappableDataFile::DATA_ACCESS_INVALID);
+        cmd.readFile(filename);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1258,6 +1259,14 @@ Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotN
         file->readFile(filename);
         
         //validateConnectivityFile(clf);
+
+        
+//        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL,
+//                                  CIFTI_INDEX_TYPE_PARCELS,
+//                                  CIFTI_INDEX_TYPE_BRAIN_MODELS,
+//                                  CiftiMappableDataFile::DATA_LOCATION_COLUMNS,
+//                                  CiftiMappableDataFile::DATA_LOCATION_ROWS);
+//        cmd.readFile(filename);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1304,6 +1313,14 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
     try {
         clf->readFile(filename);
         clf->updateScalarColoringForAllMaps(m_paletteFile);
+
+        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+                                  CiftiMappableDataFile::FILE_READ_DATA_ALL,
+                                  CIFTI_INDEX_TYPE_SCALARS,
+                                  CIFTI_INDEX_TYPE_BRAIN_MODELS,
+                                  CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
+                                  CiftiMappableDataFile::DATA_ACCESS_INVALID);
+        cmd.readFile(filename);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1588,6 +1605,12 @@ Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
         file->readFile(filename);
         
         //validateConnectivityFile(clf);
+//        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_PARCEL,
+//                                  CIFTI_INDEX_TYPE_PARCELS,
+//                                  CIFTI_INDEX_TYPE_PARCELS,
+//                                  CiftiMappableDataFile::DATA_LOCATION_COLUMNS,
+//                                  CiftiMappableDataFile::DATA_LOCATION_ROWS);
+//        cmd.readFile(filename);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1635,6 +1658,12 @@ Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotN
         file->readFile(filename);
         
         //validateConnectivityFile(clf);
+//        CiftiMappableDataFile cmd(DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE,
+//                                  CIFTI_INDEX_TYPE_BRAIN_MODELS,
+//                                  CIFTI_INDEX_TYPE_PARCELS,
+//                                  CiftiMappableDataFile::DATA_LOCATION_ROWS,
+//                                  CiftiMappableDataFile::DATA_LOCATION_COLUMNS);
+//        cmd.readFile(filename);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
