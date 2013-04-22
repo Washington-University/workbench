@@ -54,6 +54,7 @@ namespace caret {
     class CiftiConnectivityMatrixParcelDenseFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
+    class CiftiMappableDataFile;
     class ConnectivityLoaderFile;
     class ConnectivityLoaderManager;
     class DisplayProperties;
@@ -199,6 +200,8 @@ namespace caret {
         ConnectivityLoaderManager* getConnectivityLoaderManager();
         
         const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
+        
+        void getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCiftiMappableDataFilesOut) const;
         
         void getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
         

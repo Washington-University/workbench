@@ -209,6 +209,11 @@ namespace caret {
                                       const int64_t mapIndex = 0,
                                       const int64_t component = 0) const;
 
+        virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,
+                                                const float xyz[3],
+                                                int64_t ijkOut[3],
+                                                AString& textOut) const;
+            
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();

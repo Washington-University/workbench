@@ -106,7 +106,7 @@ m_seriesDataAccess(seriesDataAccess)
  */
 CiftiMappableDataFile::~CiftiMappableDataFile()
 {
-    
+    clearPrivate();
 }
 
 /**
@@ -1137,9 +1137,12 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
         m_mapContent[mapIndex]->updateColoring(data,
                                                NULL);
     }
-    else {
+    else if (m_dataIsMappedWithPalette) {
         m_mapContent[mapIndex]->updateColoring(data,
                                                paletteFile);
+    }
+    else {
+        CaretAssert(0);
     }
 }
 
@@ -1470,10 +1473,10 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         
                         const int64_t rgbaOffset = ((j * dimI) + i) * 4;
                         CaretAssert(rgbaOffset < componentCount);
-                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset] / 255.0);
-                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset+1] / 255.0);
-                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset+2] / 255.0);
-                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset+3] / 255.0);
+                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] * 255.0);
+                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] * 255.0);
+                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] * 255.0);
+                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] * 255.0);
                     }
                 }
             }
@@ -1490,10 +1493,10 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         
                         const int64_t rgbaOffset = ((k * dimI) + i) * 4;
                         CaretAssert(rgbaOffset < componentCount);
-                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset] / 255.0);
-                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset+1] / 255.0);
-                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset+2] / 255.0);
-                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset+3] / 255.0);
+                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] * 255.0);
+                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] * 255.0);
+                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] * 255.0);
+                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] * 255.0);
                     }
                 }
             }
@@ -1510,10 +1513,10 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         
                         const int64_t rgbaOffset = ((k * dimJ) + j) * 4;
                         CaretAssert(rgbaOffset < componentCount);
-                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] / 255.0);
-                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] / 255.0);
-                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] / 255.0);
-                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] / 255.0);
+                        rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] * 255.0);
+                        rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] * 255.0);
+                        rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] * 255.0);
+                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] * 255.0);
                     }
                 }
             }
@@ -1561,10 +1564,10 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
         const int64_t dataOffset4 = dataOffset * 4;
         CaretAssert(dataOffset4 < mapRgbaCount);
         
-        rgbaOut[0] = (mapRGBA[dataOffset4] / 255.0);
-        rgbaOut[1] = (mapRGBA[dataOffset4+1] / 255.0);
-        rgbaOut[2] = (mapRGBA[dataOffset4+2] / 255.0);
-        rgbaOut[3] = (mapRGBA[dataOffset4+3] / 255.0);
+        rgbaOut[0] = (mapRGBA[dataOffset4] * 255.0);
+        rgbaOut[1] = (mapRGBA[dataOffset4+1] * 255.0);
+        rgbaOut[2] = (mapRGBA[dataOffset4+2] * 255.0);
+        rgbaOut[3] = (mapRGBA[dataOffset4+3] * 255.0);
     }
     
 }
@@ -1862,6 +1865,9 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
                     textOut = AString::number(value);
                     validValueFlag = true;
                 }
+                else {
+                    CaretAssert(0);
+                }
             }
         }
     }
@@ -1974,6 +1980,89 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
             }
             return true;
         }
+    
+    return false;
+}
+
+/**
+ * Get connectivity value for a voxel at the given coordinate.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param ijkOut
+ *     Voxel indices of value.
+ * @param textOut
+ *     Text containing node value and for some types, the parcel.
+ * @return
+ *    true if a value was available for the voxel, else false.
+ */
+bool
+CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
+                                               const float xyz[3],
+                                               int64_t ijkOut[3],
+                                               AString& textOut) const
+{
+    textOut = "";
+    
+    if (m_ciftiInterface == NULL) {
+        CaretLogSevere(getFileNameNoPath()
+                       + "\" of type\""
+                       + DataFileTypeEnum::toName(getDataFileType())
+                       + "\" does not have a file loaded.");
+        return false;
+    }
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    const MapContent* mc = m_mapContent[mapIndex];
+    
+    int64_t vfIJK[3];
+    enclosingVoxel(xyz[0],
+                   xyz[1],
+                   xyz[2],
+                   vfIJK[0],
+                   vfIJK[1],
+                   vfIJK[2]);
+    if (indexValid(vfIJK[0],
+                   vfIJK[1],
+                   vfIJK[2])) {
+        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(vfIJK[0],
+                                                                               vfIJK[1],
+                                                                               vfIJK[2]);
+        if (dataOffset >= 0) {
+            std::vector<float> mapData;
+            getMapData(mapIndex,
+                       mapData);
+            CaretAssertVectorIndex(mapData,
+                                   dataOffset);
+            const float value = mapData[dataOffset];
+            
+            if (m_dataIsMappedWithLabelTable) {
+                textOut = "Invalid Label Index";
+                
+                const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                const int32_t labelKey = static_cast<int32_t>(value);
+                const GiftiLabel* gl = glt->getLabel(labelKey);
+                if (gl != NULL) {
+                    textOut = gl->getName();
+                }
+            }
+            else if (m_dataIsMappedWithPalette) {
+                textOut = AString::number(value);
+            }
+            else {
+                CaretAssert(0);
+            }
+            ijkOut[0] = vfIJK[0];
+            ijkOut[1] = vfIJK[1];
+            ijkOut[2] = vfIJK[2];
+            
+            return true;
+        }
+    }
     
     return false;
 }

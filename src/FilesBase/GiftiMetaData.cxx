@@ -262,7 +262,22 @@ GiftiMetaData::setFloat(
 void
 GiftiMetaData::replaceWithMap(const std::map<AString, AString>& map)
 {
+    /*
+     * Save UniqueID and use it if no unique ID in given map.
+     */
+    const AString uid = this->getUniqueID();
+    
     this->metadata = map;
+    
+    /*
+     * If metadata was not in given map, restore the Unique ID.
+     */
+    if (this->metadata.find(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID) == this->metadata.end()) {
+        this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+                  uid);
+    }
+    
+    this->setModified();
 }
 
 /**

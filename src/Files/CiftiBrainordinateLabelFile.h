@@ -36,10 +36,12 @@
 
 
 #include "CiftiBrainordinateFile.h"
+#include "CiftiMappableDataFile.h"
 
 namespace caret {
 
-    class CiftiBrainordinateLabelFile : public CiftiBrainordinateFile {
+    class CiftiBrainordinateLabelFile : public CiftiMappableDataFile {
+//    class CiftiMappableDataFile : public CiftiBrainordinateFile {
         
     public:
         CiftiBrainordinateLabelFile();

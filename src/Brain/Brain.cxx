@@ -1955,13 +1955,36 @@ void
 Brain::getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const
 {
     allCiftiBrainordinateFilesOut.clear();
-    
-    allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
-                                         m_connectivityDenseLabelFiles.begin(),
-                                         m_connectivityDenseLabelFiles.end());
+#pragma cause compilation warning so this can be fixed later on
+//    allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
+//                                         m_connectivityDenseLabelFiles.begin(),
+//                                         m_connectivityDenseLabelFiles.end());
     allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
                                          m_connectivityDenseScalarFiles.begin(),
                                          m_connectivityDenseScalarFiles.end());
+}
+
+/**
+ * Get all of the CIFTI Mappable Data Files
+ * @param allCiftiMappableDataFilesOut
+ *    Contains all CIFTI Mappable Data files upon exit.
+ */
+void
+Brain::getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCiftiMappableDataFilesOut) const
+{
+    allCiftiMappableDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        CiftiMappableDataFile* cmdf = dynamic_cast<CiftiMappableDataFile*>(*iter);
+        if (cmdf != NULL) {
+            allCiftiMappableDataFilesOut.push_back(cmdf);
+        }
+    }
 }
 
 

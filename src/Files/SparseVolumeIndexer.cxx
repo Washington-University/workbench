@@ -101,8 +101,8 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
     m_dimK = ciftiDimensions[2];
     
     m_spacingX = ciftiSpacing[0];
-    m_spacingY = ciftiSpacing[0];
-    m_spacingZ = ciftiSpacing[0];
+    m_spacingY = ciftiSpacing[1];
+    m_spacingZ = ciftiSpacing[2];
     
     m_originX = ciftiOrigin[0];
     m_originY = ciftiOrigin[1];
@@ -243,7 +243,7 @@ SparseVolumeIndexer::coordinateToIndices(const float x,
     if (m_dataValid) {
         iOut = static_cast<int64_t>(std::floor((x - m_originX) / m_spacingX));
         jOut = static_cast<int64_t>(std::floor((y - m_originY) / m_spacingY));
-        kOut = static_cast<int64_t>(std::floor((z - m_originY) / m_spacingZ));
+        kOut = static_cast<int64_t>(std::floor((z - m_originZ) / m_spacingZ));
         
         return true;
     }

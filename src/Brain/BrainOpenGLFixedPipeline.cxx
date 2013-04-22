@@ -2306,7 +2306,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                       mapIndex);
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
-                    VolumeFile* vf = NULL;
+                    VolumeMappableInterface* vf = NULL;
                     CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(mapFile);
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
                     CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(mapFile);
@@ -2321,7 +2321,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
 
                     }
                     else {
-                        vf = dynamic_cast<VolumeFile*>(mapFile);
+                        vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
                     }
                     if (vf != NULL) {
                         float opacity = overlay->getOpacity();
@@ -2366,7 +2366,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                             }
                             else {
                                 CaretLogWarning("No valid palette for drawing volume file: "
-                                                + vf->getFileNameNoPath());
+                                                + mapFile->getFileNameNoPath());
                             }
                         }
                         else {
@@ -2583,7 +2583,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
-                        this->drawVolumeOrthogonalSliceVolumeViewer(VolumeSliceViewPlaneEnum::AXIAL, 
+                        this->drawVolumeOrthogonalSliceVolumeViewer(VolumeSliceViewPlaneEnum::AXIAL,
                                                         browserTabContent->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 

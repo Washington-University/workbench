@@ -33,6 +33,7 @@
 #include "CaretAssert.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
+#include "CiftiMappableDataFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "CaretVolumeExtension.h"
 #include "EventManager.h"
@@ -273,7 +274,39 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                     }
                 }
             }
-        }        
+        }
+        
+        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
+        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
+        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
+             ciftiMapIter != allCiftiMappableDataFiles.end();
+             ciftiMapIter++) {
+            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
+            if (cmdf->isEmpty() == false) {
+                const int numMaps = cmdf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    AString textValue;
+                    int64_t voxelIJK[3];
+                    if (cmdf->getMapVolumeVoxelValue(iMap,
+                                                    xyz,
+                                                    voxelIJK,
+                                                    textValue)) {
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+                                            + " "
+                                            + cmdf->getFileNameNoPath()
+                                            + " IJK ("
+                                            + AString::number(voxelIJK[0])
+                                            + ", "
+                                            + AString::number(voxelIJK[1])
+                                            + ", "
+                                            + AString::number(voxelIJK[2])
+                                            + ")  ");
+                        idText.addLine(true, boldText, textValue);
+                    }
+                }
+            }
+        }
+        
     }
     
     return idText.toString();
@@ -382,6 +415,25 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
             }
         }
         
+        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
+        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
+        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
+             ciftiMapIter != allCiftiMappableDataFiles.end();
+             ciftiMapIter++) {
+            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
+            if (cmdf->isEmpty() == false) {
+                const int numMaps = cmdf->getNumberOfMaps();
+                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                    AString textValue;
+                    if (cmdf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
+                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+                                            + " "
+                                            + cmdf->getFileNameNoPath());
+                        idText.addLine(true, boldText, textValue);
+                    }
+                }
+            }
+        }
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
         for (int32_t i = 0; i < numLabelFiles; i++) {
             const LabelFile* lf = brainStructure->getLabelFile(i);
