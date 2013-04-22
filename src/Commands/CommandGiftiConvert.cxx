@@ -122,8 +122,11 @@ CommandGiftiConvert::executeOperation(ProgramParameters& parameters) throw (Comm
     }
     catch (const GiftiException& e) {
         throw CommandException(e);
+    } catch (CaretException& e) {
+        throw CommandException(e);//rethrow all other caret exceptions as CommandException
+    } catch (std::exception& e) {
+        throw CommandException(e.what());//rethrow std::exception and derived as CommandException
+    } catch (...) {
+        throw CommandException("unknown exception type thrown");//throw dummy CommandException for anything else
     }
 }
-
-
-
