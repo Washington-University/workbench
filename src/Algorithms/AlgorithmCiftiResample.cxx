@@ -116,7 +116,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     AString myHelpText =
         AString("Resample cifti data to a different brainordinate space.  Use COLUMN to resample dscalar, dlabel, or dtseries.  ") +
         "Resampling a dconn requires running the command twice, once for each direction.  " +
-        "Dilation is done with the 'nearest' method, and is done on the spheres for surface data.  " +
+        "Dilation is done with the 'nearest' method, and is done on <current-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR\n\n" +
