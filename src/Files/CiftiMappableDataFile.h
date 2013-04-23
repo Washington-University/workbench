@@ -6,7 +6,7 @@
  * Copyright 2013 Washington University,
  * All rights reserved.
  *
- * Connectome DB and Connectome Workbench are part of the integrated Connectome 
+ * Connectome DB and Connectome Workbench are part of the integrated Connectome
  * Informatics Platform.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -21,15 +21,15 @@
  *      derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR  
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
 /*LICENSE_END*/
@@ -42,7 +42,7 @@
 #include "VolumeMappableInterface.h"
 
 namespace caret {
-
+    
     class CiftiInterface;
     class CiftiXML;
     class DescriptiveStatistics;
@@ -52,9 +52,9 @@ namespace caret {
     class SparseVolumeIndexer;
     
     class CiftiMappableDataFile :
-        public CaretMappableDataFile,
-        public SceneableInterface,
-        public VolumeMappableInterface {
+    public CaretMappableDataFile,
+    public SceneableInterface,
+    public VolumeMappableInterface {
         
     public:
         /** Access (row/column) of a type of data */
@@ -208,12 +208,12 @@ namespace caret {
                                       const int64_t& indexIn3,
                                       const int64_t mapIndex = 0,
                                       const int64_t component = 0) const;
-
+        
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,
-                                                const float xyz[3],
-                                                int64_t ijkOut[3],
-                                                AString& textOut) const;
-            
+                                            const float xyz[3],
+                                            int64_t ijkOut[3],
+                                            AString& textOut) const;
+        
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
         
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
@@ -238,19 +238,23 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        virtual void clearModified();
+        
+        virtual bool isModified() const;
+        
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
-
+        
         CiftiMappableDataFile& operator=(const CiftiMappableDataFile&);
         
     public:
-
+        
         // ADD_NEW_METHODS_HERE
-
+        
     protected:
         /** The CIFTI XML (Do not delete since points to data in m_ciftiInterface */
         //CiftiXML* m_ciftiXML;
-        class MapContent {
+        class MapContent : public CaretObject {
             
         public:
             
@@ -261,6 +265,10 @@ namespace caret {
                        GiftiLabelTable* labelTable);
             
             ~MapContent();
+            
+            void clearModifiedStatus();
+            
+            bool isModifiedStatus();
             
             void updateColoring(const std::vector<float>& data,
                                 const PaletteFile* paletteFile);
@@ -360,12 +368,12 @@ namespace caret {
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
         
         // ADD_NEW_MEMBERS_HERE
-
+        
     };
     
 #ifdef __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
-
+    
 } // namespace
 #endif  //__CIFTI_MAPPABLE_DATA_FILE_H__

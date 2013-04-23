@@ -450,7 +450,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
             GiftiLabelTable* labelTable = NULL;
             PaletteColorMapping* paletteColorMapping = NULL;
             
-            if (m_oneMapPerFile == false) {
+//            if (m_oneMapPerFile == false) {
                 switch (m_brainordinateMappedDataAccess) {
                     case DATA_ACCESS_INVALID:
                         break;
@@ -465,7 +465,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                         paletteColorMapping = ciftiXML.getMapPalette(CiftiXML::ALONG_COLUMN, i);
                         break;
                 }
-            }
+//            }
             
             MapContent* mc = new MapContent(mapDataType,
                                             mapDataCount,
@@ -601,11 +601,59 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
 void
 CiftiMappableDataFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Writing of file type "
-                            + DataFileTypeEnum::toName(getDataFileType())
-                            + " named "
-                            + filename
-                            + " is not implemented");
+    if (m_ciftiInterface == NULL) {
+        throw DataFileException(filename
+                                + " cannot be written because no file is loaded");
+    }
+    CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(m_ciftiInterface.getPointer());
+    if (ciftiFile == NULL) {
+        throw DataFileException(filename
+                                + " cannot be written because it was not read from a disk file and was"
+                                + " likely read via the network.");
+    }
+    
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+        throw DataFileException(filename
+                                + " dense connectivity files cannot be written to files due to their large sizes.");
+    }
+
+    CiftiXML& ciftiXML = const_cast<CiftiXML&>(m_ciftiInterface->getCiftiXML());
+    
+    /*
+     * Update the file's metadata.
+     */
+    *(ciftiXML.getFileMetaData()) = m_metadata->getAsMap();
+    
+    /*
+     * Update all data in the file.
+     */
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        if (m_oneMapPerFile == false) {            
+            /*
+             * Replace the map's metadata.
+             */
+            std::map<AString, AString>* metadataMap = NULL;
+            switch (m_brainordinateMappedDataAccess) {
+                case DATA_ACCESS_INVALID:
+                    break;
+                case DATA_ACCESS_WITH_COLUMN_METHODS:
+                    metadataMap = ciftiXML.getMapMetadata(CiftiXML::ALONG_ROW, i);
+                    break;
+                case DATA_ACCESS_WITH_ROW_METHODS:
+                    metadataMap = ciftiXML.getMapMetadata(CiftiXML::ALONG_COLUMN, i);
+                    break;
+            }
+            
+            if (metadataMap != NULL) {
+                GiftiMetaData* md = getMapMetaData(i);
+                *metadataMap = md->getAsMap();
+            }
+        }
+        
+    }
+    
+    ciftiFile->writeFile(filename);
 }
 
 /**
@@ -720,6 +768,10 @@ CiftiMappableDataFile::setMapName(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
    
+    if (mapName == getMapName(mapIndex)) {
+        return;
+    }
+    
     const CiftiXML& cxml = m_ciftiInterface->getCiftiXML();
     CiftiXML& ciftiXML = const_cast<CiftiXML&>(cxml);
     switch (m_brainordinateMappedDataAccess) {
@@ -736,6 +788,8 @@ CiftiMappableDataFile::setMapName(const int32_t mapIndex,
                                               mapName);
             break;
     }
+    
+    setModified();
 }
 
 /**
@@ -2111,6 +2165,39 @@ CiftiMappableDataFile::restoreFromScene(const SceneAttributes* /*sceneAttributes
     }
 }
 
+/**
+ * Set the status to unmodified.
+ */
+void
+CiftiMappableDataFile::clearModified()
+{
+    CaretMappableDataFile::clearModified();
+    
+    m_metadata->clearModified();
+    
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        m_mapContent[i]->clearModifiedStatus();
+    }
+}
+
+/**
+ * Is the object modified?
+ * @return true if modified, else false.
+ */
+bool
+CiftiMappableDataFile::isModified() const
+{
+    if (CaretMappableDataFile::isModified()) {
+        return true;
+    }
+    
+    if (m_metadata->isModified()) {
+        return true;
+    }
+    
+    return false;
+}
 
 
 /* ========================================================================== */
@@ -2162,6 +2249,47 @@ CiftiMappableDataFile::MapContent::~MapContent()
      */
 }
 
+/**
+ * Clear the modfied status of items in the map.
+ */
+void
+CiftiMappableDataFile::MapContent::clearModifiedStatus()
+{
+    if (m_labelTable != NULL) {
+        m_labelTable->clearModified();
+    }
+    
+    m_metadata->clearModified();
+    
+    if (m_paletteColorMapping != NULL) {
+        m_paletteColorMapping->clearModified();
+    }
+}
+
+/**
+ * @return Modification status.
+ */
+bool
+CiftiMappableDataFile::MapContent::isModifiedStatus()
+{
+    if (m_labelTable != NULL) {
+        if (m_labelTable->isModified()) {
+            return true;
+        }
+    }
+    
+    if (m_metadata->isModified()) {
+        return true;
+    }
+    
+    if (m_paletteColorMapping != NULL) {
+        if (m_paletteColorMapping->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 /**
  * Update coloring for this map.  If the paletteFile is NOT NULL,

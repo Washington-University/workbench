@@ -1200,7 +1200,6 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
                 isFileSavable = false;
