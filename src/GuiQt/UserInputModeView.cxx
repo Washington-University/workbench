@@ -475,6 +475,9 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
     browserTabContent->applyMouseRotation(mouseEvent.getPressedX(),
                                           mouseEvent.getPressedY(),
                                           mouseEvent.getDx(),
@@ -658,6 +661,10 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
     browserTabContent->applyMouseScaling(mouseEvent.getDx(), mouseEvent.getDy());
     updateGraphics(mouseEvent);
     
@@ -706,6 +713,10 @@ UserInputModeView::mouseLeftDragWithShift(const MouseEvent& mouseEvent)
     }
     
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
     browserTabContent->applyMouseTranslation(viewportContent,
                                              mouseEvent.getPressedX(),
                                              mouseEvent.getPressedY(),
