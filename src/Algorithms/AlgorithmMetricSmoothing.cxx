@@ -84,7 +84,7 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
         "giving the zero an extrapolated value.\n\n" +
         "Valid values for <method> are:\n\n" +
         "GEO_GAUSS_AREA - uses a geodesic gaussian kernel, and normalizes based on vertex area in order to work more reliably on irregular surfaces\n\n" +
-        "GEO_GAUSS_EQUAL - uses a geodesic gaussian kernel, and normalized assuming each vertex has equal importance\n\n" +
+        "GEO_GAUSS_EQUAL - uses a geodesic gaussian kernel, and normalizes assuming each vertex has equal importance\n\n" +
         "GEO_GAUSS - matches geodesic gaussian smoothing from caret5, but does not check kernels for having unequal importance\n\n" +
         "The GEO_GAUSS_AREA method is the default because it is usually the correct choice.  " +
         "GEO_GAUSS_EQUAL may be the correct choice when the sum of vertex values is more meaningful then the surface integral (sum of values .* areas), " +
