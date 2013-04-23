@@ -35,7 +35,7 @@
 /*LICENSE_END*/
 
 
-#include "CiftiBrainordinateFile.h"
+//#include "CiftiBrainordinateFile.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {

@@ -51,7 +51,13 @@ using namespace caret;
  * Constructor.
  */
 CiftiBrainordinateScalarFile::CiftiBrainordinateScalarFile()
-: CiftiBrainordinateFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
+: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+                        CiftiMappableDataFile::FILE_READ_DATA_ALL,
+                        CIFTI_INDEX_TYPE_SCALARS,
+                        CIFTI_INDEX_TYPE_BRAIN_MODELS,
+                        CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
+                        CiftiMappableDataFile::DATA_ACCESS_INVALID)
+//: CiftiBrainordinateFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
 {
     
 }

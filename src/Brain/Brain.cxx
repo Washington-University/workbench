@@ -35,6 +35,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiBrainordinateFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
@@ -1955,13 +1956,17 @@ void
 Brain::getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const
 {
     allCiftiBrainordinateFilesOut.clear();
-#pragma cause compilation warning so this can be fixed later on
-//    allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
-//                                         m_connectivityDenseLabelFiles.begin(),
-//                                         m_connectivityDenseLabelFiles.end());
-    allCiftiBrainordinateFilesOut.insert(allCiftiBrainordinateFilesOut.end(),
-                                         m_connectivityDenseScalarFiles.begin(),
-                                         m_connectivityDenseScalarFiles.end());
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        CiftiBrainordinateFile* cbf = dynamic_cast<CiftiBrainordinateFile*>(*iter);
+        if (cbf != NULL) {
+            allCiftiBrainordinateFilesOut.push_back(cbf);
+        }
+    }
 }
 
 /**

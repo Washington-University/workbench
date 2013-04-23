@@ -1205,7 +1205,6 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                 isFileSavable = false;

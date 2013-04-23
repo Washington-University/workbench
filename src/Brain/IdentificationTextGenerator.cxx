@@ -31,7 +31,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
-#include "CiftiBrainordinateScalarFile.h"
+#include "CiftiBrainordinateFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "ConnectivityLoaderFile.h"

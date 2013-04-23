@@ -2196,6 +2196,13 @@ CiftiMappableDataFile::isModified() const
         return true;
     }
     
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
+        if (m_mapContent[i]->isModifiedStatus()) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
@@ -2313,6 +2320,8 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
         const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
         const Palette* palette = paletteFile->getPaletteByName(paletteName);
         if (palette != NULL) {
+            m_fastStatistics->update(&data[0],
+                                     data.size());
             NodeAndVoxelColoring::colorScalarsWithPalette(m_fastStatistics,
                                                           m_paletteColorMapping,
                                                           palette,
