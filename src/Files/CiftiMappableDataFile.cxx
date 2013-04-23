@@ -588,6 +588,19 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                   + m_classNameHierarchy->toString());
 
     validateKeysAndLabels();
+    
+    validateAfterFileReading();
+}
+
+/**
+ * This method is intended for overriding by subclasess so that they 
+ * can examine and verify the data that was read.  This method is
+ * called after successfully reading a file.
+ */
+void
+CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
+{
+    /* nothing - see method comment. */
 }
 
 /**
@@ -764,10 +777,12 @@ void
 CiftiMappableDataFile::setMapName(const int32_t mapIndex,
                                    const AString& mapName)
 {
-    CaretAssert(0);
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
    
+    /*
+     * If map name does not change, then get out
+     */
     if (mapName == getMapName(mapIndex)) {
         return;
     }
@@ -1278,6 +1293,7 @@ CiftiMappableDataFile::indexToSpace(const float& indexIn1,
                           float& coordOut2,
                           float& coordOut3) const
 {
+    CaretAssert(m_voxelIndicesToOffset);
     m_voxelIndicesToOffset->indicesToCoordinate(indexIn1,
                                                 indexIn2,
                                                 indexIn3,
@@ -1304,6 +1320,7 @@ CiftiMappableDataFile::indexToSpace(const float& indexIn1,
                           const float& indexIn3,
                           float* coordOut) const
 {
+    CaretAssert(m_voxelIndicesToOffset);
     m_voxelIndicesToOffset->indicesToCoordinate(indexIn1,
                                                 indexIn2,
                                                 indexIn3,
@@ -1324,6 +1341,7 @@ void
 CiftiMappableDataFile::indexToSpace(const int64_t* indexIn,
                           float* coordOut) const
 {
+    CaretAssert(m_voxelIndicesToOffset);
     m_voxelIndicesToOffset->indicesToCoordinate(indexIn[0],
                                                 indexIn[1],
                                                 indexIn[2],
@@ -1357,6 +1375,7 @@ CiftiMappableDataFile::enclosingVoxel(const float& coordIn1,
                                       int64_t& indexOut2,
                                       int64_t& indexOut3) const
 {
+    CaretAssert(m_voxelIndicesToOffset);
     m_voxelIndicesToOffset->coordinateToIndices(coordIn1,
                                                 coordIn2,
                                                 coordIn3,
@@ -1409,6 +1428,8 @@ CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
 void
 CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
 {
+    CaretAssert(m_voxelIndicesToOffset);
+    
     boundingBoxOut.resetForUpdate();
     
     if (m_voxelIndicesToOffset->isValid()) {
@@ -1507,6 +1528,8 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     }
     
     const float* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
+    
+    CaretAssert(m_voxelIndicesToOffset);
     
     /*
      * Set the rgba components for the slice.
@@ -1610,6 +1633,8 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
         return;
     }
     
+    CaretAssert(m_voxelIndicesToOffset);
+    
     const float* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
     const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
                                                                            indexIn2,
@@ -1623,7 +1648,6 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
         rgbaOut[2] = (mapRGBA[dataOffset4+2] * 255.0);
         rgbaOut[3] = (mapRGBA[dataOffset4+3] * 255.0);
     }
-    
 }
 
 /**
@@ -1649,6 +1673,7 @@ CiftiMappableDataFile::getValue(const int64_t& indexIn1,
                               const int64_t mapIndex,
                               const int64_t /*component*/) const
 {
+    CaretAssert(m_voxelIndicesToOffset);
     const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
                                                                            indexIn2,
                                                                            indexIn3);
@@ -1701,6 +1726,8 @@ CiftiMappableDataFile::getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const
 GroupAndNameHierarchyModel*
 CiftiMappableDataFile::getGroupAndNameHierarchyModel()
 {
+    CaretAssert(m_classNameHierarchy);
+    
     m_classNameHierarchy->update(this,
                                  m_forceUpdateOfGroupAndNameHierarchy);
     m_forceUpdateOfGroupAndNameHierarchy = false;
@@ -1714,6 +1741,8 @@ CiftiMappableDataFile::getGroupAndNameHierarchyModel()
 const GroupAndNameHierarchyModel*
 CiftiMappableDataFile::getGroupAndNameHierarchyModel() const
 {
+    CaretAssert(m_classNameHierarchy);
+    
     m_classNameHierarchy->update(const_cast<CiftiMappableDataFile*>(this),
                                  m_forceUpdateOfGroupAndNameHierarchy);
     m_forceUpdateOfGroupAndNameHierarchy = false;
@@ -1819,6 +1848,25 @@ CiftiMappableDataFile::validateKeysAndLabels() const
 }
 
 /**
+ * @return true if the CIFTI interface is valid, else false.
+ * A message is logged if the interface is not valid.
+ */
+bool
+CiftiMappableDataFile::isCiftiInterfaceValid() const
+{
+    if (m_ciftiInterface != NULL) {
+        return true;
+    }
+
+    CaretLogSevere(getFileNameNoPath()
+                   + "\" of type\""
+                   + DataFileTypeEnum::toName(getDataFileType())
+                   + "\" does not have a file loaded (CIFTI Interface is not valid).");
+    return false;
+}
+
+
+/**
  * Get connectivity value for a surface's node.
  * @param structure
  *     Surface's structure.
@@ -1840,17 +1888,13 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
 {
     textOut = "";
     
-    if (m_ciftiInterface == NULL) {
-        CaretLogSevere(getFileNameNoPath()
-                                + "\" of type\""
-                                + DataFileTypeEnum::toName(getDataFileType())
-                                + "\" does not have a file loaded.");
+    if (isCiftiInterfaceValid() == false) {
         return false;
     }
     
-    
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
+
     std::vector<CiftiSurfaceMap> nodeMap;
     
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
@@ -1951,16 +1995,13 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
                                                   float* dataValuesOut,
                                                   const int32_t surfaceNumberOfNodes)
 {
-    if (m_ciftiInterface == NULL) {
-        CaretLogSevere(getFileNameNoPath()
-                       + "\" of type\""
-                       + DataFileTypeEnum::toName(getDataFileType())
-                       + "\" does not have a file loaded.");
+    if (isCiftiInterfaceValid() == false) {
         return false;
     }
     
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
+    
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     int32_t numCiftiNodes = -1;
@@ -2057,11 +2098,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
 {
     textOut = "";
     
-    if (m_ciftiInterface == NULL) {
-        CaretLogSevere(getFileNameNoPath()
-                       + "\" of type\""
-                       + DataFileTypeEnum::toName(getDataFileType())
-                       + "\" does not have a file loaded.");
+    if (isCiftiInterfaceValid() == false) {
         return false;
     }
     
@@ -2070,8 +2107,6 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
      */
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    
-    const MapContent* mc = m_mapContent[mapIndex];
     
     int64_t vfIJK[3];
     enclosingVoxel(xyz[0],

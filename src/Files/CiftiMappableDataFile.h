@@ -305,10 +305,14 @@ namespace caret {
         
         static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         
-        void getMapData(const int32_t mapIndex,
-                        std::vector<float>& dataOut) const;
+        virtual void getMapData(const int32_t mapIndex,
+                                std::vector<float>& dataOut) const;
         
         void validateKeysAndLabels() const;
+        
+        virtual void validateAfterFileReading() throw (DataFileException);
+        
+        bool isCiftiInterfaceValid() const;
         
         /** How to read data from file */
         const FileReading m_fileReading;
