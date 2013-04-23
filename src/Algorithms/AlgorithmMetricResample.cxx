@@ -64,7 +64,10 @@ OperationParameters* AlgorithmMetricResample::getParameters()
     OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
     
-    ret->createOptionalParameter(8, "-largest", "use only the value of the vertex with the largest weight");
+    OptionalParameter* validRoiOutOpt = ret->createOptionalParameter(8, "-valid-roi-out", "output the ROI of vertices that got data from valid source vertices");
+    validRoiOutOpt->addMetricOutputParameter(1, "roi-out", "the output roi as a metric");
+    
+    ret->createOptionalParameter(9, "-largest", "use only the value of the vertex with the largest weight");
     
     AString myHelpText =
         AString("Resamples a metric file, given two spherical surfaces that are in register.  ") +
@@ -117,13 +120,19 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
     OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
     MetricFile* currentRoi = NULL;
     if (roiOpt->m_present) currentRoi = roiOpt->getMetric(1);
-    bool largest = myParams->getOptionalParameter(8)->m_present;
-    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea, currentRoi, largest);
+    MetricFile* validRoiOut = NULL;
+    OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(8);
+    if (validRoiOutOpt->m_present)
+    {
+        validRoiOut = validRoiOutOpt->getOutputMetric(1);
+    }
+    bool largest = myParams->getOptionalParameter(9)->m_present;
+    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea, currentRoi, validRoiOut, largest);
 }
 
 AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, const MetricFile* metricIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                                  const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curArea, const SurfaceFile* newArea,
-                                                 const MetricFile* currentRoi, const bool& largest) : AbstractAlgorithm(myProgObj)
+                                                 const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (metricIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input metric has different number of nodes than input sphere");
@@ -144,6 +153,14 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     const float* roiCol = NULL;
     if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
     SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea, roiCol);
+    if (validRoiOut != NULL)
+    {
+        validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);
+        validRoiOut->setStructure(newSphere->getStructure());
+        vector<float> scratch(numNewNodes);
+        myHelp.getResampleValidROI(scratch.data());
+        validRoiOut->setValuesForColumn(0, scratch.data());
+    }
     for (int i = 0; i < numColumns; ++i)
     {
         metricOut->setColumnName(i, metricIn->getColumnName(i));

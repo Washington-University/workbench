@@ -78,7 +78,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     OptionalParameter* volDilateOpt = ret->createOptionalParameter(9, "-volume-predilate", "dilate the volume components before resampling");
     volDilateOpt->addDoubleParameter(1, "dilate-mm", "distance, in mm, to dilate");
     
-    OptionalParameter* surfDilateOpt = ret->createOptionalParameter(10, "-surface-predilate", "dilate the surface components before resampling");
+    OptionalParameter* surfDilateOpt = ret->createOptionalParameter(10, "-surface-postdilate", "dilate the surface components after resampling");
     surfDilateOpt->addDoubleParameter(1, "dilate-mm", "distance, in mm, to dilate");
     
     OptionalParameter* affineOpt = ret->createOptionalParameter(11, "-affine", "use an affine transformation on the volume components");
@@ -116,7 +116,7 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     AString myHelpText =
         AString("Resample cifti data to a different brainordinate space.  Use COLUMN to resample dscalar, dlabel, or dtseries.  ") +
         "Resampling a dconn requires running the command twice, once for each direction.  " +
-        "Dilation is done with the 'nearest' method, and is done on <current-sphere> for surface data.  " +
+        "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
         "CUBIC\nENCLOSING_VOXEL\nTRILINEAR\n\n" +
@@ -428,36 +428,37 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
     if (myInputXML.getMappingType(1 - direction) == CIFTI_INDEX_TYPE_LABELS)
     {
-        LabelFile origLabel, origDilate, *origProcess;
-        origProcess = &origLabel;
+        LabelFile origLabel;
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origLabel);
+        LabelFile newLabel, newDilate, *newUse;
+        newUse = &newLabel;
+        AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curArea, newArea, surfLargest);
         if (surfdilatemm > 0.0f)
         {
-            AlgorithmLabelDilate(NULL, &origLabel, curSphere, surfdilatemm, &origDilate);
-            origProcess = &origDilate;
+            AlgorithmLabelDilate(NULL, &newLabel, newSphere, surfdilatemm, &newDilate);
+            newUse = &newDilate;
         }
-        LabelFile newLabel;
-        AlgorithmLabelResample(NULL, origProcess, curSphere, newSphere, mySurfMethod, &newLabel, curArea, newArea, surfLargest);
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, &newLabel);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, newUse);
     } else {
-        MetricFile origMetric, origROI, origDilate, *origProcess;
-        origProcess = &origMetric;
+        MetricFile origMetric, origROI;
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origMetric, &origROI);
+        origMetric.writeFile("debug.orig." + StructureEnum::toName(myStruct) + ".func.gii");
+        MetricFile newMetric, newDilate, resampleROI, *newUse;
+        newUse = &origMetric;
+        AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curArea, newArea, &origROI, &resampleROI, surfLargest);
         if (surfdilatemm > 0.0f)
         {
-            MetricFile invertROI;
-            invertROI.setNumberOfNodesAndColumns(origROI.getNumberOfNodes(), 1);
-            for (int j = 0; j < origROI.getNumberOfNodes(); ++j)
+            MetricFile invertResampleROI;
+            invertResampleROI.setNumberOfNodesAndColumns(resampleROI.getNumberOfNodes(), 1);
+            for (int j = 0; j < resampleROI.getNumberOfNodes(); ++j)
             {
-                float tempf = (origROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
-                invertROI.setValue(j, 0, tempf);
+                float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
+                invertResampleROI.setValue(j, 0, tempf);
             }
-            AlgorithmMetricDilate(NULL, &origMetric, curSphere, surfdilatemm, &origDilate, &invertROI, -1, true);
-            origProcess = &origDilate;
+            AlgorithmMetricDilate(NULL, &newMetric, newSphere, surfdilatemm, &newDilate, &invertResampleROI, -1, true);
+            newUse = &newDilate;
         }
-        MetricFile newMetric;
-        AlgorithmMetricResample(NULL, origProcess, curSphere, newSphere, mySurfMethod, &newMetric, curArea, newArea, &origROI, surfLargest);
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, &newMetric);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, newUse);
     }
 }
 

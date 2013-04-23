@@ -66,6 +66,8 @@ namespace caret {
         void resampleLargest(const float* input, float* output);
         ///resample int data according to what weight is largest
         void resampleLargest(const int32_t* input, int32_t* output);
+        ///get the ROI of nodes that have data within the input ROI
+        void getResampleValidROI(float* output);
     };
 
 }

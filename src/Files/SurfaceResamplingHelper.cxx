@@ -187,6 +187,20 @@ void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* out
     }
 }
 
+void SurfaceResamplingHelper::getResampleValidROI(float* output)
+{
+    int numNodes = (int)m_weights.size() - 1;
+    for (int i = 0; i < numNodes; ++i)
+    {
+        if (m_weights[i] != m_weights[i + 1])
+        {
+            output[i] = 1.0f;
+        } else {
+            output[i] = 0.0f;
+        }
+    }
+}
+
 void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
                                                          const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi)
 {
