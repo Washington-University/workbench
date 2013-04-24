@@ -950,6 +950,48 @@ void CiftiXML::setVolumeDimsAndSForm(const int64_t dims[3], const vector<vector<
     myVol.m_volumeDimensions[2] = dims[2];
 }
 
+bool CiftiXML::getVolumeSpace(VolumeSpace& volSpaceOut) const
+{
+    if (m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    if (m_root.m_matrices[0].m_volume.size() == 0)
+    {
+        return false;
+    }
+    const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
+    if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
+    {
+        return false;
+    }
+    const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
+    FloatMatrix myMatrix = FloatMatrix::zeros(3, 4);//no fourth row
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            myMatrix[i][j] = myTrans.m_transform[i * 4 + j];
+        }
+    }
+    switch (myTrans.m_unitsXYZ)
+    {
+        case NIFTI_UNITS_MM:
+            break;
+        case NIFTI_UNITS_METER:
+            myMatrix *= 1000.0f;
+            break;
+        case NIFTI_UNITS_MICRON:
+            myMatrix *= 0.001f;
+            break;
+        default:
+            return false;
+    };
+    int64_t dims[3] = { myVol.m_volumeDimensions[0], myVol.m_volumeDimensions[1], myVol.m_volumeDimensions[2] };
+    volSpaceOut.setSpace(dims, myMatrix.getMatrix());
+    return true;
+}
+
 AString CiftiXML::getMapName(const int& index, const int& myMapIndex) const
 {
     if (myMapIndex == -1 || m_root.m_matrices.size() == 0)

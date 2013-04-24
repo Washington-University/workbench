@@ -427,9 +427,9 @@ void VolumeBase::enclosingVoxel(const float& coordIn1, const float& coordIn2, co
 {
     float tempInd1, tempInd2, tempInd3;
     spaceToIndex(coordIn1, coordIn2, coordIn3, tempInd1, tempInd2, tempInd3);
-    indexOut1 = (int32_t)floor(0.5f + tempInd1);
-    indexOut2 = (int32_t)floor(0.5f + tempInd2);
-    indexOut3 = (int32_t)floor(0.5f + tempInd3);
+    indexOut1 = (int64_t)floor(0.5f + tempInd1);
+    indexOut2 = (int64_t)floor(0.5f + tempInd2);
+    indexOut3 = (int64_t)floor(0.5f + tempInd3);
 }
 
 void VolumeBase::getDimensions(vector<int64_t>& dimOut) const

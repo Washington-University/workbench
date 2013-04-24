@@ -29,6 +29,7 @@
 #include "CiftiXMLReader.h"
 #include "CiftiXMLWriter.h"
 #include "VolumeFile.h"
+#include "VolumeSpace.h"
 #include <QtCore>
 #include <vector>
 
@@ -403,6 +404,9 @@ namespace caret {
         ///set the volume space
         void setVolumeDimsAndSForm(const int64_t dims[3], const std::vector<std::vector<float> >& sform);
         
+        ///get volume space object
+        bool getVolumeSpace(VolumeSpace& volSpaceOut) const;
+        
         ///swap mappings between two directions
         void swapMappings(const int& direction1, const int& direction2);
         
@@ -470,7 +474,7 @@ namespace caret {
         ///some boilerplate to retrieve mappings
         bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
         bool getVolumeModelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
-        bool getStructureLists(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const;
+        //bool getStructureLists(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const;
         
         ///boilerplate for has data
         
