@@ -539,51 +539,56 @@ CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
 void
 CiftiMappableDataFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    if (m_ciftiInterface == NULL) {
-        throw DataFileException(filename
-                                + " cannot be written because no file is loaded");
-    }
-    CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(m_ciftiInterface.getPointer());
-    if (ciftiFile == NULL) {
-        throw DataFileException(filename
-                                + " cannot be written because it was not read from a disk file and was"
-                                + " likely read via the network.");
-    }
-    
-    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
-        throw DataFileException(filename
-                                + " dense connectivity files cannot be written to files due to their large sizes.");
-    }
-
-    CiftiXML& ciftiXML = const_cast<CiftiXML&>(m_ciftiInterface->getCiftiXML());
-    
-    /*
-     * Update the file's metadata.
-     */
-    m_ciftiFacade->setFileMetadata(m_metadata);
-    
-    if (m_ciftiFacade->isConnectivityMatrixFile()) {
-        *ciftiXML.getFilePalette() = *getMapPaletteColorMapping(0);
-    }
-    
-    /*
-     * Update all data in the file.
-     */
-    const int32_t numMaps = getNumberOfMaps();
-    for (int32_t i = 0; i < numMaps; i++) {
-        /*
-         * Connectivity Matrix Files do not have map attributes
-         */
-        if (m_ciftiFacade->isConnectivityMatrixFile() == false) {            
-            /*
-             * Replace the map's metadata.
-             */
-            m_ciftiFacade->setMetadataForMapOrSeriesIndex(i, getMapMetaData(i));
+    try {
+        if (m_ciftiInterface == NULL) {
+            throw DataFileException(filename
+                                    + " cannot be written because no file is loaded");
+        }
+        CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(m_ciftiInterface.getPointer());
+        if (ciftiFile == NULL) {
+            throw DataFileException(filename
+                                    + " cannot be written because it was not read from a disk file and was"
+                                    + " likely read via the network.");
         }
         
+        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+            throw DataFileException(filename
+                                    + " dense connectivity files cannot be written to files due to their large sizes.");
+        }
+        
+        CiftiXML& ciftiXML = const_cast<CiftiXML&>(m_ciftiInterface->getCiftiXML());
+        
+        /*
+         * Update the file's metadata.
+         */
+        m_ciftiFacade->setFileMetadata(m_metadata);
+        
+        if (m_ciftiFacade->isConnectivityMatrixFile()) {
+            *ciftiXML.getFilePalette() = *getMapPaletteColorMapping(0);
+        }
+        
+        /*
+         * Update all data in the file.
+         */
+        const int32_t numMaps = getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            /*
+             * Connectivity Matrix Files do not have map attributes
+             */
+            if (m_ciftiFacade->isConnectivityMatrixFile() == false) {
+                /*
+                 * Replace the map's metadata.
+                 */
+                m_ciftiFacade->setMetadataForMapOrSeriesIndex(i, getMapMetaData(i));
+            }
+            
+        }
+        
+        ciftiFile->writeFile(filename);
     }
-    
-    ciftiFile->writeFile(filename);
+    catch (const CiftiFileException& cfe) {
+        throw DataFileException(cfe);
+    }
 }
 
 /**

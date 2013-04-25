@@ -1202,7 +1202,6 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 break;
@@ -1216,10 +1215,8 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                isFileSavable = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                isFileSavable = false;
                 break;
             case DataFileTypeEnum::FOCI:
                 break;
