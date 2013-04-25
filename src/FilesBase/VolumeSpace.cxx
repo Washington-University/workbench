@@ -116,3 +116,28 @@ void VolumeSpace::enclosingVoxel(const float& coordIn1, const float& coordIn2, c
     indexOut2 = (int64_t)floor(0.5f + tempInd2);
     indexOut3 = (int64_t)floor(0.5f + tempInd3);
 }
+
+bool VolumeSpace::matchesVolumeSpace(const VolumeSpace& right) const
+{
+    for (int i = 0; i < 3; ++i)
+    {
+        if (m_dims[i] != right.m_dims[i])
+        {
+            return false;
+        }
+    }
+    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            float leftelem = m_sform[i][j];
+            float rightelem = right.m_sform[i][j];
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}

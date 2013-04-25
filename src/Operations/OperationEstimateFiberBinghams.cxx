@@ -168,7 +168,7 @@ void OperationEstimateFiberBinghams::useParameters(OperationParameters* myParams
     ciftiVolDims[2] = mydims[2];
     CiftiXML myXML;
     myXML.resetColumnsToBrainModels();
-    myXML.setVolumeDimsAndSForm(ciftiVolDims, myVolLabel->getVolumeSpace());
+    myXML.setVolumeDimsAndSForm(ciftiVolDims, myVolLabel->getSform());
     for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
     {
         myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);

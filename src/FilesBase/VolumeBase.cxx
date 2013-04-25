@@ -66,22 +66,6 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     {
         throw DataFileException("volume files must have 1 or more dimensions");
     }
-    CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
-    CaretAssert(indexToSpace[0].size() == 4);
-    CaretAssert(indexToSpace[1].size() == 4);
-    CaretAssert(indexToSpace[2].size() == 4);
-    m_indexToSpace = indexToSpace;
-    m_indexToSpace.resize(4);//ensure row 4 exists
-    m_indexToSpace[3].resize(4);//give it the right length
-    m_indexToSpace[3][0] = 0.0f;//and overwrite it
-    m_indexToSpace[3][1] = 0.0f;
-    m_indexToSpace[3][2] = 0.0f;
-    m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
-    FloatMatrix temp(m_indexToSpace);
-    FloatMatrix temp2 = temp.inverse();//invert the space to get the reverse space
-    m_spaceToIndex = temp2.getMatrix();
-    m_indexToSpace.resize(3);//reduce them both back to 3x4
-    m_spaceToIndex.resize(3);
     m_origDims = dimensionsIn;//save the original dimensions
     int numDims = (int)dimensionsIn.size();
     m_dimensions[3] = 1;
@@ -103,6 +87,7 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
             }
         }
     }
+    m_volSpace.setSpace(m_dimensions, indexToSpace);
     if (m_dimensions[0] == 1 && m_dimensions[1] == 1 && m_dimensions[2] == 1 && m_dimensions[3] > 10000)
     {
         throw DataFileException("this file doesn't appear to be a volume file");
@@ -118,22 +103,7 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
 
 void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
 {
-    CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
-    CaretAssert(indexToSpace[0].size() == 4);
-    CaretAssert(indexToSpace[1].size() == 4);
-    CaretAssert(indexToSpace[2].size() == 4);
-    m_indexToSpace = indexToSpace;
-    m_indexToSpace.resize(4);//ensure row 4 exists
-    m_indexToSpace[3].resize(4);//give it the right length
-    m_indexToSpace[3][0] = 0.0f;//and overwrite it
-    m_indexToSpace[3][1] = 0.0f;
-    m_indexToSpace[3][2] = 0.0f;
-    m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
-    FloatMatrix temp(m_indexToSpace);
-    FloatMatrix temp2 = temp.inverse();//invert the space to get the reverse space
-    m_spaceToIndex = temp2.getMatrix();
-    m_indexToSpace.resize(3);//reduce them both back to 3x4
-    m_spaceToIndex.resize(3);
+    m_volSpace.setSpace(m_dimensions, indexToSpace);
     setModified();
 }
 
@@ -151,16 +121,6 @@ VolumeBase::VolumeBase()
     m_dimensions[2] = 0;
     m_dimensions[3] = 0;
     m_dimensions[4] = 0;
-    m_indexToSpace.resize(3);
-    for (int i = 0; i < 3; ++i)
-    {
-        m_indexToSpace[i].resize(4);
-        for (int j = 0; j < 4; ++j)
-        {
-            m_indexToSpace[i][j] = ((i == j) ? 1.0f : 0.0f);//default 1mm spacing, no origin
-        }
-    }
-    m_spaceToIndex = m_indexToSpace;
     m_origDims.push_back(0);//give original dimensions 3 elements, just because
     m_origDims.push_back(0);
     m_origDims.push_back(0);
@@ -200,16 +160,17 @@ void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spac
     {
         throw DataFileException("orientation and spacing asked for on non-plumb volume");//this will fail MISERABLY on non-plumb volumes, so throw otherwise
     }
+    const vector<vector<float> >& indexToSpace = m_volSpace.getSform();
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
         {
-            if (m_indexToSpace[i][j] != 0.0f)
+            if (indexToSpace[i][j] != 0.0f)
             {
-                spacingOut[j] = m_indexToSpace[i][j];
-                centerOut[j] = m_indexToSpace[i][3];
+                spacingOut[j] = indexToSpace[i][j];
+                centerOut[j] = indexToSpace[i][3];
                 bool negative;
-                if (m_indexToSpace[i][j] > 0.0f)
+                if (indexToSpace[i][j] > 0.0f)
                 {
                     negative = true;
                 } else {
@@ -240,12 +201,8 @@ void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spac
 
 void VolumeBase::getOrientation(OrientTypes orientOut[3]) const
 {
-    Vector3D ivec;
-    Vector3D jvec;
-    Vector3D kvec;
-    ivec[0] = m_indexToSpace[0][0]; ivec[1] = m_indexToSpace[1][0]; ivec[2] = m_indexToSpace[2][0];
-    jvec[0] = m_indexToSpace[0][1]; jvec[1] = m_indexToSpace[1][1]; jvec[2] = m_indexToSpace[2][1];
-    kvec[0] = m_indexToSpace[0][2]; kvec[1] = m_indexToSpace[1][2]; kvec[2] = m_indexToSpace[2][2];
+    Vector3D ivec, jvec, kvec, offset;
+    FloatMatrix(m_volSpace.getSform()).getAffineVectors(ivec, jvec, kvec, offset);
     int next = 1, bestarray[3] = {0, 0, 0};
     float bestVal = -1.0f;//make sure at least the first test trips true, if there is a zero spacing vector it will default to report LPI
     for (int first = 0; first < 3; ++first)//brute force search for best fit - only 6 to try
@@ -375,32 +332,23 @@ void VolumeBase::reorient(const OrientTypes newOrient[3])
             }
         }
     }
-    vector<vector<float> > oldSform = m_indexToSpace;//reorder and flip the sform
+    const vector<vector<float> >& oldSform = m_volSpace.getSform();
+    vector<vector<float> > indexToSpace = oldSform;//reorder and flip the sform
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
         {
             if (flip[j])
             {
-                m_indexToSpace[i][j] = -oldSform[i][fetchFrom[j]];
-                m_indexToSpace[i][3] += oldSform[i][fetchFrom[j]] * (m_dimensions[fetchFrom[j]] - 1);
+                indexToSpace[i][j] = -oldSform[i][fetchFrom[j]];
+                indexToSpace[i][3] += oldSform[i][fetchFrom[j]] * (m_dimensions[fetchFrom[j]] - 1);
             } else {
-                m_indexToSpace[i][j] = oldSform[i][fetchFrom[j]];
+                indexToSpace[i][j] = oldSform[i][fetchFrom[j]];
             }
         }
     }//and now generate the inverse for spaceToIndex
-    m_indexToSpace.resize(4);//ensure row 4 exists
-    m_indexToSpace[3].resize(4);//give it the right length
-    m_indexToSpace[3][0] = 0.0f;//and overwrite it
-    m_indexToSpace[3][1] = 0.0f;
-    m_indexToSpace[3][2] = 0.0f;
-    m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
-    FloatMatrix temp(m_indexToSpace);
-    FloatMatrix temp2 = temp.inverse();//invert the space to get the reverse space
-    m_spaceToIndex = temp2.getMatrix();
-    m_indexToSpace.resize(3);//reduce them both back to 3x4
-    m_spaceToIndex.resize(3);
     int64_t newDims[3] = {m_dimensions[fetchFrom[0]], m_dimensions[fetchFrom[1]], m_dimensions[fetchFrom[2]]};
+    m_volSpace.setSpace(newDims, indexToSpace);
     m_origDims[0] = (m_dimensions[0] = newDims[0]);//update m_origDims too
     m_origDims[1] = (m_dimensions[1] = newDims[1]);
     m_origDims[2] = (m_dimensions[2] = newDims[2]);
@@ -508,20 +456,19 @@ void VolumeBase::indexToSpace(const float* indexIn, float& coordOut1, float& coo
 
 void VolumeBase::indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const
 {
-    coordOut1 = m_indexToSpace[0][0] * indexIn1 + m_indexToSpace[0][1] * indexIn2 + m_indexToSpace[0][2] * indexIn3 + m_indexToSpace[0][3];
-    coordOut2 = m_indexToSpace[1][0] * indexIn1 + m_indexToSpace[1][1] * indexIn2 + m_indexToSpace[1][2] * indexIn3 + m_indexToSpace[1][3];
-    coordOut3 = m_indexToSpace[2][0] * indexIn1 + m_indexToSpace[2][1] * indexIn2 + m_indexToSpace[2][2] * indexIn3 + m_indexToSpace[2][3];
+    m_volSpace.indexToSpace(indexIn1, indexIn2, indexIn3, coordOut1, coordOut2, coordOut3);
 }
 
 bool VolumeBase::isPlumb() const
 {
     char axisUsed = 0;
     char indexUsed = 0;
+    const vector<vector<float> >& indexToSpace = m_volSpace.getSform();
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 3; ++j)
         {
-            if (m_indexToSpace[i][j] != 0.0f)
+            if (indexToSpace[i][j] != 0.0f)
             {
                 if (axisUsed & (1<<i))
                 {
@@ -556,9 +503,7 @@ void VolumeBase::spaceToIndex(const float* coordIn, float& indexOut1, float& ind
 
 void VolumeBase::spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float& indexOut1, float& indexOut2, float& indexOut3) const
 {
-    indexOut1 = m_spaceToIndex[0][0] * coordIn1 + m_spaceToIndex[0][1] * coordIn2 + m_spaceToIndex[0][2] * coordIn3 + m_spaceToIndex[0][3];
-    indexOut2 = m_spaceToIndex[1][0] * coordIn1 + m_spaceToIndex[1][1] * coordIn2 + m_spaceToIndex[1][2] * coordIn3 + m_spaceToIndex[1][3];
-    indexOut3 = m_spaceToIndex[2][0] * coordIn1 + m_spaceToIndex[2][1] * coordIn2 + m_spaceToIndex[2][2] * coordIn3 + m_spaceToIndex[2][3];
+    m_volSpace.spaceToIndex(coordIn1, coordIn2, coordIn3, indexOut1, indexOut2, indexOut3);
 }
 
 void VolumeBase::freeMemory()
@@ -571,9 +516,7 @@ void VolumeBase::freeMemory()
     m_dataSize = 0;
     freeIndexing();
     m_origDims.clear();
-    m_origDims.push_back(0);//give original dimensions 3 elements, just because
-    m_origDims.push_back(0);
-    m_origDims.push_back(0);
+    m_origDims.resize(3, 0);//give original dimensions 3 elements, just because
     m_extensions.clear();
 }
 

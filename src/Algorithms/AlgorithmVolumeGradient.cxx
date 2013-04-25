@@ -146,7 +146,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                     0, -1, 0,
                     1, 0, 0,
                     -1, 0, 0 };
-    vector<vector<float> > volSpace = volIn->getVolumeSpace();
+    vector<vector<float> > volSpace = volIn->getSform();
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];
@@ -158,7 +158,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
     }
     if (subvolNum == -1)
     {
-        volOut->reinitialize(origDims, volIn->getVolumeSpace(), myDims[4], volIn->getType());
+        volOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType());
         if (vectorsOut != NULL)
         {
             while (origDims.size() < 4)
@@ -166,7 +166,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                 origDims.push_back(1);
             }
             origDims[3] *= 3;
-            vectorsOut->reinitialize(origDims, volIn->getVolumeSpace(), myDims[4], volIn->getType());
+            vectorsOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType());
         }
         for (int c = 0; c < myDims[4]; ++c)
         {
@@ -409,11 +409,11 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
         }
     } else {
         origDims.resize(3);
-        volOut->reinitialize(origDims, volIn->getVolumeSpace(), myDims[4], volIn->getType());
+        volOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType());
         if (vectorsOut != NULL)
         {
             origDims.push_back(3);
-            vectorsOut->reinitialize(origDims, volIn->getVolumeSpace(), myDims[4], volIn->getType());
+            vectorsOut->reinitialize(origDims, volIn->getSform(), myDims[4], volIn->getType());
         }
         for (int c = 0; c < myDims[4]; ++c)
         {

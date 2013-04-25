@@ -87,7 +87,7 @@ AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const Vo
     vector<int64_t> myDims, newDims = volumeIn->getOriginalDimensions();
     newDims.resize(3, 1);//have only one subvolume
     volumeIn->getDimensions(myDims);
-    volumeOut->reinitialize(newDims, volumeIn->getVolumeSpace(), myDims[4], volumeIn->getType());
+    volumeOut->reinitialize(newDims, volumeIn->getSform(), myDims[4], volumeIn->getType());
     if (volumeIn->getType() == SubvolumeAttributes::LABEL)
     {
         CaretLogWarning("reduction operation performed on label volume");
@@ -116,7 +116,7 @@ AlgorithmVolumeReduce::AlgorithmVolumeReduce(ProgressObject* myProgObj, const Vo
     vector<int64_t> myDims, newDims = volumeIn->getOriginalDimensions();
     newDims.resize(3, 1);//have only one subvolume
     volumeIn->getDimensions(myDims);
-    volumeOut->reinitialize(newDims, volumeIn->getVolumeSpace(), myDims[4], volumeIn->getType());
+    volumeOut->reinitialize(newDims, volumeIn->getSform(), myDims[4], volumeIn->getType());
     if (volumeIn->getType() == SubvolumeAttributes::LABEL)
     {
         CaretLogWarning("reduction operation performed on label volume");

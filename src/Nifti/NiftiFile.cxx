@@ -544,7 +544,7 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename)
             headerIO.getHeader(header);
             header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
         }
-        header.setSForm(vol.getVolumeSpace());
+        header.setSForm(vol.getSform());
         header.setDimensions(myOrigDims);
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
@@ -553,21 +553,21 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename)
         {//default to nifti1 if the dimensions check out
             Nifti1Header header;
             header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
-            header.setSForm(vol.getVolumeSpace());
+            header.setSForm(vol.getSform());
             header.setDimensions(myOrigDims);
             headerIO.setHeader(header);
             matrix.setMatrixLayoutOnDisk(header);
         } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
             Nifti1Header header;
             headerIO.getHeader(header);
-            header.setSForm(vol.getVolumeSpace());
+            header.setSForm(vol.getSform());
             header.setDimensions(myOrigDims);
             headerIO.setHeader(header);
             matrix.setMatrixLayoutOnDisk(header);
         } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
             Nifti2Header header;
             headerIO.getHeader(header);
-            header.setSForm(vol.getVolumeSpace());
+            header.setSForm(vol.getSform());
             header.setDimensions(myOrigDims);
             headerIO.setHeader(header);
             matrix.setMatrixLayoutOnDisk(header);

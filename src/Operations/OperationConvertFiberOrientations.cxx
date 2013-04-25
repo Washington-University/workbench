@@ -139,7 +139,7 @@ void OperationConvertFiberOrientations::useParameters(OperationParameters* myPar
     ciftiVolDims[2] = mydims[2];
     CiftiXML myXML;
     myXML.resetColumnsToBrainModels();
-    myXML.setVolumeDimsAndSForm(ciftiVolDims, labelVol->getVolumeSpace());
+    myXML.setVolumeDimsAndSForm(ciftiVolDims, labelVol->getSform());
     for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
     {
         myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);

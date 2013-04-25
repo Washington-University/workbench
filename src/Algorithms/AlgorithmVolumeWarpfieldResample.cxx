@@ -93,7 +93,7 @@ void AlgorithmVolumeWarpfieldResample::useParameters(OperationParameters* myPara
     }
     vector<int64_t> refDims;
     refSpace->getDimensions(refDims);
-    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refDims.data(), refSpace->getVolumeSpace(), myMethod, outVol);
+    AlgorithmVolumeWarpfieldResample(myProgObj, inVol, myWarpfield.getWarpfield(), refDims.data(), refSpace->getSform(), myMethod, outVol);
 }
 
 AlgorithmVolumeWarpfieldResample::AlgorithmVolumeWarpfieldResample(ProgressObject* myProgObj, const VolumeFile* inVol, const VolumeFile* warpfield,

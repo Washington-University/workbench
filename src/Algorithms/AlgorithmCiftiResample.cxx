@@ -472,7 +472,7 @@ void AlgorithmCiftiResample::processVolumeWarpfield(const CiftiFile* myCiftiIn, 
     if (voldilatemm > 0.0f)
     {
         VolumeFile invertROI;
-        invertROI.reinitialize(origROI.getOriginalDimensions(), origROI.getVolumeSpace());
+        invertROI.reinitialize(origROI.getOriginalDimensions(), origROI.getSform());
         vector<int64_t> dims;
         origROI.getDimensions(dims);
         int64_t frameSize = dims[0] * dims[1] * dims[2];
@@ -508,7 +508,7 @@ void AlgorithmCiftiResample::processVolumeAffine(const CiftiFile* myCiftiIn, con
     if (voldilatemm > 0.0f)
     {
         VolumeFile invertROI;
-        invertROI.reinitialize(origROI.getOriginalDimensions(), origROI.getVolumeSpace());
+        invertROI.reinitialize(origROI.getOriginalDimensions(), origROI.getSform());
         vector<int64_t> dims;
         origROI.getDimensions(dims);
         int64_t frameSize = dims[0] * dims[1] * dims[2];

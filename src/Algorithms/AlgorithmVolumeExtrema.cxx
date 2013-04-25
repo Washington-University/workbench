@@ -185,7 +185,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         {
             outDims[3] = 1;
         }
-        myVolOut->reinitialize(outDims, myVolIn->getVolumeSpace(), myDims[4]);
+        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4]);
         if (sumSubvols)
         {
             myVolOut->setMapName(0, "sum of extrema");
@@ -232,7 +232,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         vector<VoxelIJK> minima, maxima;
         vector<int64_t> outDims = myDims;
         outDims.resize(3);
-        myVolOut->reinitialize(outDims, myVolIn->getVolumeSpace(), myDims[4]);
+        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4]);
         myVolOut->setMapName(0, "extrema of " + myVolIn->getMapName(subvol));
         myVolOut->setValueAllVoxels(0.0f);
         for (int c = 0; c < myDims[4]; ++c)
@@ -298,7 +298,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         {
             outDims[3] = 1;
         }
-        myVolOut->reinitialize(outDims, myVolIn->getVolumeSpace(), myDims[4]);
+        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4]);
         if (sumSubvols)
         {
             myVolOut->setMapName(0, "sum of extrema");
@@ -345,7 +345,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
         vector<VoxelIJK> minima, maxima;
         vector<int64_t> outDims = myDims;
         outDims.resize(3);
-        myVolOut->reinitialize(outDims, myVolIn->getVolumeSpace(), myDims[4]);
+        myVolOut->reinitialize(outDims, myVolIn->getSform(), myDims[4]);
         myVolOut->setMapName(0, "extrema of " + myVolIn->getMapName(subvol));
         myVolOut->setValueAllVoxels(0.0f);
         for (int c = 0; c < myDims[4]; ++c)
@@ -373,7 +373,7 @@ AlgorithmVolumeExtrema::AlgorithmVolumeExtrema(ProgressObject* myProgObj, const 
 void AlgorithmVolumeExtrema::precomputeStencil(const VolumeFile* myVolIn, const float& distance)
 {
     m_stencil.clear();
-    const vector<vector<float> >& volSpace = myVolIn->getVolumeSpace();
+    const vector<vector<float> >& volSpace = myVolIn->getSform();
     Vector3D ivec, jvec, kvec, origin;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];

@@ -145,7 +145,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     vector<int64_t> origDims = first->getOriginalDimensions();
     if (allSubvolsMode)
     {
-        myVolOut->reinitialize(origDims, first->getVolumeSpace(), 1, first->getType());
+        myVolOut->reinitialize(origDims, first->getSform(), 1, first->getType());
         for (int s = 0; s < numSubvols; ++s)
         {
             for (int k = 0; k < origDims[2]; ++k)
@@ -170,7 +170,7 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
         }
     } else {
         origDims.resize(3);
-        myVolOut->reinitialize(origDims, first->getVolumeSpace(), 1, first->getType());
+        myVolOut->reinitialize(origDims, first->getSform(), 1, first->getType());
         for (int k = 0; k < origDims[2]; ++k)
         {
             for (int j = 0; j < origDims[1]; ++j)

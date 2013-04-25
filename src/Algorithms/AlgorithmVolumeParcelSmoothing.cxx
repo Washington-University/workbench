@@ -144,7 +144,7 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
     }
     if (subvolNum == -1)
     {
-        myOutVol->reinitialize(myVol->getOriginalDimensions(), myVol->getVolumeSpace(), myDims[4], myVol->getType());
+        myOutVol->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), myDims[4], myVol->getType());
         myOutVol->setValueAllVoxels(0.0f);
         for (int whichList = 0; whichList < numLabels; ++whichList)
         {
@@ -171,9 +171,9 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
                 boxdims.push_back(extrema[1] - extrema[0] + 1);
                 boxdims.push_back(extrema[3] - extrema[2] + 1);
                 boxdims.push_back(extrema[5] - extrema[4] + 1);
-                VolumeFile roibox(boxdims, myVol->getVolumeSpace());
+                VolumeFile roibox(boxdims, myVol->getSform());
                 boxdims.push_back(myDims[3]);
-                VolumeFile inbox(boxdims, myVol->getVolumeSpace(), myDims[4]), outbox;
+                VolumeFile inbox(boxdims, myVol->getSform(), myDims[4]), outbox;
                 roibox.setValueAllVoxels(0.0f);
                 for (int c = 0; c < myDims[4]; ++c)
                 {
@@ -208,7 +208,7 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
     } else {
         vector<int64_t> newDims = myVol->getOriginalDimensions();
         newDims.resize(3);//discard non-spatial extra dimensions
-        myOutVol->reinitialize(newDims, myVol->getVolumeSpace(), myDims[4], myVol->getType());//keep components
+        myOutVol->reinitialize(newDims, myVol->getSform(), myDims[4], myVol->getType());//keep components
         myOutVol->setValueAllVoxels(0.0f);
         for (int whichList = 0; whichList < numLabels; ++whichList)
         {
@@ -235,7 +235,7 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
                 boxdims.push_back(extrema[1] - extrema[0] + 1);
                 boxdims.push_back(extrema[3] - extrema[2] + 1);
                 boxdims.push_back(extrema[5] - extrema[4] + 1);
-                VolumeFile inbox(boxdims, myVol->getVolumeSpace(), myDims[4]), roibox(boxdims, myVol->getVolumeSpace()), outbox;
+                VolumeFile inbox(boxdims, myVol->getSform(), myDims[4]), roibox(boxdims, myVol->getSform()), outbox;
                 roibox.setValueAllVoxels(0.0f);
                 for (int c = 0; c < myDims[4]; ++c)
                 {

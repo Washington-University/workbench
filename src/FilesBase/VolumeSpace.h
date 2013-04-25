@@ -44,6 +44,7 @@ namespace caret
         void setSpace(const int64_t dims[3], const float sform[12]);
         const int64_t* getDims() const { return m_dims; }
         const std::vector<std::vector<float> >& getSform() const { return m_sform; }
+        bool matchesVolumeSpace(const VolumeSpace& right) const;//should this be used in an operator==?  it allows slight mismatches...
 
         ///returns coordinate triplet of an index triplet
         template <typename T>

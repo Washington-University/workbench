@@ -335,7 +335,7 @@ void OperationProbtrackXDotConvert::addVoxelMapping(const VolumeFile* myLabelVol
     }
     vector<int64_t> myDims;
     myLabelVol->getDimensions(myDims);
-    myXML.setVolumeDimsAndSForm(myDims.data(), myLabelVol->getVolumeSpace());
+    myXML.setVolumeDimsAndSForm(myDims.data(), myLabelVol->getSform());
     const GiftiLabelTable* myLabelTable = myLabelVol->getMapLabelTable(0);
     map<int, StructureEnum::Enum> labelMap;//maps label values to structures
     vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component

@@ -96,7 +96,7 @@ void AlgorithmVolumeAffineResample::useParameters(OperationParameters* myParams,
     FloatMatrix affMat = FloatMatrix(myAffine.getMatrix());
     vector<int64_t> refDims;
     refSpace->getDimensions(refDims);
-    AlgorithmVolumeAffineResample(myProgObj, inVol, affMat, refDims.data(), refSpace->getVolumeSpace(), myMethod, outVol);
+    AlgorithmVolumeAffineResample(myProgObj, inVol, affMat, refDims.data(), refSpace->getSform(), myMethod, outVol);
 }
 
 AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myProgObj, const VolumeFile* inVol, const FloatMatrix& myAffine,

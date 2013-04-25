@@ -204,7 +204,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
     }
     if (subvol == -1)
     {
-        outVol->reinitialize(myVol->getOriginalDimensions(), myVol->getVolumeSpace(), myDims[4], SubvolumeAttributes::LABEL);
+        outVol->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), myDims[4], SubvolumeAttributes::LABEL);
         for (int s = 0; s < myDims[3]; ++s)
         {
             set<int32_t> usedValues;//track used values if we have dropUnused
@@ -278,7 +278,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
     } else {
         vector<int64_t> newDims = myDims;
         newDims.resize(3);//spatial only
-        outVol->reinitialize(newDims, myVol->getVolumeSpace(), myDims[4], SubvolumeAttributes::LABEL);
+        outVol->reinitialize(newDims, myVol->getSform(), myDims[4], SubvolumeAttributes::LABEL);
         set<int32_t> usedValues;//track used values if we have dropUnused
         for (int c = 0; c < myDims[4]; ++c)//hopefully noone wants a multi-component label volume, that would be silly, but do it anyway
         {

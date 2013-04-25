@@ -207,7 +207,7 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
                                                const float& kernel, VolumeFile* outVol, const int& subvolNum)
 {
     float kernBox = kernel * 3.0f;
-    vector<vector<float> > volSpace = inVol->getVolumeSpace();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
+    vector<vector<float> > volSpace = inVol->getSform();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];//needs to be this verbose because the axis and origin vectors are column vectors
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];//while vector<vector<> > is a column of row vectors
@@ -232,11 +232,11 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
     inVol->getDimensions(myDims);
     if (subvolNum == -1)
     {
-        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getVolumeSpace(), myDims[4], inVol->getType());
+        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getSform(), myDims[4], inVol->getType());
     } else {
         vector<int64_t> newDims = inVol->getOriginalDimensions();
         newDims.resize(3);//discard nonspatial dimentions
-        outVol->reinitialize(newDims, inVol->getVolumeSpace(), myDims[4], inVol->getType());
+        outVol->reinitialize(newDims, inVol->getSform(), myDims[4], inVol->getType());
     }
     outVol->setValueAllVoxels(0.0f);
     const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0);
@@ -269,7 +269,7 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
             boxdims.push_back(extrema[1] - extrema[0] + 1);
             boxdims.push_back(extrema[3] - extrema[2] + 1);
             boxdims.push_back(extrema[5] - extrema[4] + 1);
-            VolumeFile roibox(boxdims, inVol->getVolumeSpace());
+            VolumeFile roibox(boxdims, inVol->getSform());
             roibox.setValueAllVoxels(0.0f);
             vector<int64_t> curList, newList;//make the 2 separate lists, so we don't need to test the label volume
             for (int64_t base = 0; base < listSize; base += 3)//could do this when we make the merged list...maybe use member variables to cut the argument clutter
@@ -294,7 +294,7 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
             if (subvolNum == -1)
             {
                 boxdims.push_back(myDims[3]);
-                VolumeFile inbox(boxdims, inVol->getVolumeSpace(), myDims[4]), outbox;
+                VolumeFile inbox(boxdims, inVol->getSform(), myDims[4]), outbox;
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     for (int s = 0; s < myDims[3]; ++s)
@@ -370,7 +370,7 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
                     }
                 }
             } else {
-                VolumeFile inbox(boxdims, inVol->getVolumeSpace(), myDims[4]), outbox;
+                VolumeFile inbox(boxdims, inVol->getSform(), myDims[4]), outbox;
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     for (int64_t base = 0; base < curListSize; base += 3)
@@ -454,7 +454,7 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                                                        const float& kernel, VolumeFile* outVol, const int& subvolNum)
 {
     float kernBox = kernel * 3.0f;
-    vector<vector<float> > volSpace = inVol->getVolumeSpace();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
+    vector<vector<float> > volSpace = inVol->getSform();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];//needs to be this verbose because the axis and origin vectors are column vectors
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];//while vector<vector<> > is a column of row vectors
@@ -479,11 +479,11 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
     inVol->getDimensions(myDims);
     if (subvolNum == -1)
     {
-        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getVolumeSpace(), myDims[4], inVol->getType());
+        outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getSform(), myDims[4], inVol->getType());
     } else {
         vector<int64_t> newDims = inVol->getOriginalDimensions();
         newDims.resize(3);//discard nonspatial dimentions
-        outVol->reinitialize(newDims, inVol->getVolumeSpace(), myDims[4], inVol->getType());
+        outVol->reinitialize(newDims, inVol->getSform(), myDims[4], inVol->getType());
     }
     outVol->setValueAllVoxels(0.0f);
     const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0);
@@ -516,7 +516,7 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
             boxdims.push_back(extrema[1] - extrema[0] + 1);
             boxdims.push_back(extrema[3] - extrema[2] + 1);
             boxdims.push_back(extrema[5] - extrema[4] + 1);
-            VolumeFile roibox(boxdims, inVol->getVolumeSpace());
+            VolumeFile roibox(boxdims, inVol->getSform());
             roibox.setValueAllVoxels(0.0f);
             vector<int64_t> newList;//make the separate new list, so we don't need to test the label volume
             for (int64_t base = 0; base < listSize; base += 3)//could do this when we make the merged list...maybe use member variables to cut the argument clutter
@@ -533,7 +533,7 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
             if (subvolNum == -1)
             {
                 boxdims.push_back(myDims[3]);
-                VolumeFile inbox(boxdims, inVol->getVolumeSpace(), myDims[4]), outbox;
+                VolumeFile inbox(boxdims, inVol->getSform(), myDims[4]), outbox;
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     for (int s = 0; s < myDims[3]; ++s)
@@ -646,7 +646,7 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                     }
                 }
             } else {
-                VolumeFile inbox(boxdims, inVol->getVolumeSpace(), myDims[4]), outbox;
+                VolumeFile inbox(boxdims, inVol->getSform(), myDims[4]), outbox;
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     for (int64_t base = 0; base < listSize; base += 3)

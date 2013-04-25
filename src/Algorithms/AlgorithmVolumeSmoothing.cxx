@@ -122,7 +122,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
     }
     CaretArray<float> scratchFrame(myDims[0] * myDims[1] * myDims[2]);//it could be faster to preinitialize with zeros, then generate a usable voxels list if there is a small ROI...
     float kernBox = kernel * 3.0f;
-    vector<vector<float> > volSpace = inVol->getVolumeSpace();
+    vector<vector<float> > volSpace = inVol->getSform();
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];

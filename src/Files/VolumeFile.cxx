@@ -377,54 +377,12 @@ void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t compone
 
 bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
 {
-    for (int i = 0; i < 3; ++i)//only check the spatial dimensions
-    {
-        if (m_dimensions[i] != right->m_dimensions[i])
-        {
-            return false;
-        }
-    }
-    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            float leftelem = m_indexToSpace[i][j];
-            float rightelem = right->m_indexToSpace[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
-            {
-                return false;
-            }
-        }
-    }
-    return true;
+    return m_volSpace.matchesVolumeSpace(right->m_volSpace);
 }
 
 bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<float> >& sform) const
 {
-    for (int i = 0; i < 3; ++i)//only check the spatial dimensions
-    {
-        if (m_dimensions[i] != dims[i])
-        {
-            return false;
-        }
-    }
-    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
-    CaretAssert(sform.size() >= 3);
-    for (int i = 0; i < 3; ++i)
-    {
-        CaretAssert(sform[i].size() >= 4);
-        for (int j = 0; j < 4; ++j)
-        {
-            float leftelem = m_indexToSpace[i][j];
-            float rightelem = sform[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
-            {
-                return false;
-            }
-        }
-    }
-    return true;
+    return m_volSpace.matchesVolumeSpace(VolumeSpace(dims, sform));
 }
 
 void VolumeFile::parseExtensions()

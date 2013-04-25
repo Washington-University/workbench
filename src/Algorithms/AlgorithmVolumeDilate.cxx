@@ -129,7 +129,7 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     {
         throw AlgorithmException("volume roi space does not match input volume");
     }
-    vector<vector<float> > volSpace = volIn->getVolumeSpace();
+    vector<vector<float> > volSpace = volIn->getSform();
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     FloatMatrix(volSpace).getAffineVectors(ivec, jvec, kvec, origin);
     ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius kernBox
@@ -197,7 +197,7 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     }
     if (subvol == -1)
     {
-        volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getVolumeSpace(), volIn->getNumberOfComponents(), volIn->getType());
+        volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getSform(), volIn->getNumberOfComponents(), volIn->getType());
         for (int i = 0; i < myDims[3]; ++i)
         {
             if (volIn->getType() == SubvolumeAttributes::LABEL)
@@ -211,7 +211,7 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     } else {
         vector<int64_t> outDims = myDims;
         outDims.resize(3);
-        volOut->reinitialize(outDims, volIn->getVolumeSpace(), volIn->getNumberOfComponents(), volIn->getType());
+        volOut->reinitialize(outDims, volIn->getSform(), volIn->getNumberOfComponents(), volIn->getType());
         if (volIn->getType() == SubvolumeAttributes::LABEL)
         {
             *(volOut->getMapLabelTable(0)) = *(volIn->getMapLabelTable(subvol));

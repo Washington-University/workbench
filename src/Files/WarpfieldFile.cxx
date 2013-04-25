@@ -117,7 +117,7 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
     if (m_warpfield == NULL) throw DataFileException("writeFnirt called on uninitialized warpfield");
     FloatMatrix sourceSform, sourceFSL, refSform, refFSL;
     Nifti1Header myHeader;
-    myHeader.setSForm(m_warpfield->getVolumeSpace());
+    myHeader.setSForm(m_warpfield->getSform());
     myHeader.setDimensions(m_warpfield->getOriginalDimensions());
     NiftiHeaderIO myIO;
     myIO.setHeader(myHeader);
@@ -130,7 +130,7 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
     vector<int64_t> dims;
     m_warpfield->getDimensions(dims);
     dims.resize(4);//drop number of components
-    outFile.reinitialize(dims, m_warpfield->getVolumeSpace());
+    outFile.reinitialize(dims, m_warpfield->getSform());
     outFile.setMapName(0, "x displacement");
     outFile.setMapName(1, "y displacement");
     outFile.setMapName(2, "z displacement");

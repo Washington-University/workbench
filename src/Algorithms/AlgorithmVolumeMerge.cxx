@@ -125,7 +125,7 @@ AlgorithmVolumeMerge::AlgorithmVolumeMerge(ProgressObject* myProgObj, const vect
     vector<int64_t> outDims = volumeList[0]->getOriginalDimensions();
     outDims.resize(4);
     outDims[3] = numOutVols;
-    volumeOut->reinitialize(outDims, volumeList[0]->getVolumeSpace(), firstDims[4], volumeList[0]->getType());
+    volumeOut->reinitialize(outDims, volumeList[0]->getSform(), firstDims[4], volumeList[0]->getType());
     int64_t curSubvol = 0;
     for (int i = 0; i < numInputs; ++i)
     {

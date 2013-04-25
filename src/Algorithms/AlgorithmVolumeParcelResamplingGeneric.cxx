@@ -132,7 +132,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
     LevelProgress myProgress(myProgObj);
     float kernBox = kernel * 3.0f;
     float kernelMult = -1.0f / kernel / kernel / 2.0f;//precompute the part of the kernel function that doesn't change
-    vector<vector<float> > newVolSpace = newLabel->getVolumeSpace();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
+    vector<vector<float> > newVolSpace = newLabel->getSform();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
     Vector3D ivecnew, jvecnew, kvecnew, ijorthnew, jkorthnew, kiorthnew;
     ivecnew[0] = newVolSpace[0][0]; jvecnew[0] = newVolSpace[0][1]; kvecnew[0] = newVolSpace[0][2];
     ivecnew[1] = newVolSpace[1][0]; jvecnew[1] = newVolSpace[1][1]; kvecnew[1] = newVolSpace[1][2];
@@ -146,7 +146,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
     if (irangenew < 1.0f) irangenew = 1.0f;//don't underflow, always use at least a 3x3x3 box
     if (jrangenew < 1.0f) jrangenew = 1.0f;
     if (krangenew < 1.0f) krangenew = 1.0f;
-    vector<vector<float> > volSpace = inVol->getVolumeSpace();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
+    vector<vector<float> > volSpace = inVol->getSform();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
     Vector3D ivec, jvec, kvec, ijorth, jkorth, kiorth;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2];//needs to be this verbose because the axis and origin vectors are column vectors
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2];//while vector<vector<> > is a column of row vectors
@@ -172,11 +172,11 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
         {
             outDims.push_back(inDims[i]);
         }
-        outVol->reinitialize(outDims, newLabel->getVolumeSpace(), myDims[4], inVol->getType());
+        outVol->reinitialize(outDims, newLabel->getSform(), myDims[4], inVol->getType());
     } else {
         vector<int64_t> outDims = newLabel->getOriginalDimensions();
         outDims.resize(3);//discard nonspatial dimentions
-        outVol->reinitialize(outDims, newLabel->getVolumeSpace(), myDims[4], inVol->getType());
+        outVol->reinitialize(outDims, newLabel->getSform(), myDims[4], inVol->getType());
     }
     outVol->setValueAllVoxels(0.0f);
     const float* labelFrame = curLabel->getFrame();

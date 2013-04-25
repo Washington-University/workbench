@@ -265,7 +265,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
                 temparray[i] = (float)(accum[i] / myDims[3]);
             }
             myDims.resize(3);
-            myVolOut.reinitialize(myDims, myVol.getVolumeSpace());
+            myVolOut.reinitialize(myDims, myVol.getSform());
             myVolOut.setFrame(temparray);
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
         } else {

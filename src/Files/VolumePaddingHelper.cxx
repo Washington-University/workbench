@@ -49,7 +49,7 @@ VolumePaddingHelper VolumePaddingHelper::padVoxels(const VolumeFile* orig, const
     ret.m_paddedDims[0] += ipad * 2;
     ret.m_paddedDims[1] += jpad * 2;
     ret.m_paddedDims[2] += kpad * 2;
-    ret.m_origSform = orig->getVolumeSpace();
+    ret.m_origSform = orig->getSform();
     FloatMatrix origSpace(ret.m_origSform);
     FloatMatrix padSpace = origSpace;
     for (int i = 0; i < origSpace.getNumberOfRows(); ++i)
@@ -62,7 +62,7 @@ VolumePaddingHelper VolumePaddingHelper::padVoxels(const VolumeFile* orig, const
 
 VolumePaddingHelper VolumePaddingHelper::padMM(const VolumeFile* orig, const float& mmpad)
 {
-    vector<vector<float> > volSpace = orig->getVolumeSpace();
+    vector<vector<float> > volSpace = orig->getSform();
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     FloatMatrix(volSpace).getAffineVectors(ivec, jvec, kvec, origin);
     ijorth = ivec.cross(jvec).normal();//conceptually put a sphere on each corner of the volume, find how many voxels are needed to fully enclose them

@@ -280,7 +280,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         ciftiVolDims[0] = mydims[0];
         ciftiVolDims[1] = mydims[1];
         ciftiVolDims[2] = mydims[2];
-        myXML.setVolumeDimsAndSForm(ciftiVolDims, myVol->getVolumeSpace());
+        myXML.setVolumeDimsAndSForm(ciftiVolDims, myVol->getSform());
         for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
         {
             myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);

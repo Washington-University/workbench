@@ -88,7 +88,7 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     {
         VolumeFile myRefSpace;
         myRefSpace.readFile(myRefName);
-        volSpace = myRefSpace.getVolumeSpace();
+        volSpace = myRefSpace.getSform();
         myRefSpace.getDimensions(volDims);
     }
     volDims.resize(3);
@@ -149,7 +149,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     if (approxweight < 0.0f) approxweight = 0.0f;
     LevelProgress myProgress(myProgObj, markweight + exactweight + approxweight);
     vector<vector<float> > myVolSpace;
-    myVolSpace = myVolOut->getVolumeSpace();
+    myVolSpace = myVolOut->getSform();
     Vector3D ivec, jvec, kvec;
     ivec[0] = myVolSpace[0][0]; ivec[1] = myVolSpace[1][0]; ivec[2] = myVolSpace[2][0];
     jvec[0] = myVolSpace[0][1]; jvec[1] = myVolSpace[1][1]; jvec[2] = myVolSpace[2][1];

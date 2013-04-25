@@ -31,6 +31,7 @@
 #include "CaretAssert.h"
 #include "CaretPointer.h"
 #include "VolumeMappableInterface.h"
+#include "VolumeSpace.h"
 
 namespace caret {
 
@@ -60,8 +61,7 @@ namespace caret {
     class VolumeBase : public VolumeMappableInterface
     {
     protected:
-        std::vector<std::vector<float> > m_indexToSpace;
-        std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
+        VolumeSpace m_volSpace;
         float* m_data;
         int64_t m_dataSize;
         int64_t m_dimensions[5];//store internally as 4d+component
@@ -107,8 +107,8 @@ namespace caret {
         void reinitialize(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
         
         ///get the spacing info
-        inline const std::vector<std::vector<float> >& getVolumeSpace() const {
-            return m_indexToSpace;
+        inline const std::vector<std::vector<float> >& getSform() const {
+            return m_volSpace.getSform();
         }
         
         void setVolumeSpace(const std::vector<std::vector<float> >& indexToSpace);
@@ -173,6 +173,8 @@ namespace caret {
         void enclosingVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
         ///returns integer indexes of voxel whose center is closest to the three coordinates
         void enclosingVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
+        
+        inline const VolumeSpace& getVolumeSpace() const { return m_volSpace; }
 
         ///get a value at an index triplet and optionally timepoint
         inline const float& getValue(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const

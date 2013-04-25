@@ -489,7 +489,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<Voxe
 {
     int64_t numNodes = outerSurf->getNumberOfNodes();
     myWeights.resize(numNodes);
-    const vector<vector<float> >& myVolSpace = myVolume->getVolumeSpace();
+    const vector<vector<float> >& myVolSpace = myVolume->getSform();
     Vector3D origin, ivec, jvec, kvec;//these are the spatial projections of the ijk unit vectors (also, the offset that specifies the origin)
     ivec[0] = myVolSpace[0][0]; jvec[0] = myVolSpace[0][1]; kvec[0] = myVolSpace[0][2]; origin[0] = myVolSpace[0][3];
     ivec[1] = myVolSpace[1][0]; jvec[1] = myVolSpace[1][1]; kvec[1] = myVolSpace[1][2]; origin[1] = myVolSpace[1][3];
@@ -592,7 +592,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsMyelin(vector<vector<Voxe
     myWeights.resize(numNodes);
     vector<int64_t> myDims;
     roiVol->getDimensions(myDims);
-    vector<vector<float> > volSpace = roiVol->getVolumeSpace();//same as input volume
+    vector<vector<float> > volSpace = roiVol->getSform();//same as input volume
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];
