@@ -367,8 +367,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 {
-                    CiftiConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(selectedMapFile);
-                    isColoringValid = assignCiftiConnectivityMatrixColoring(brainStructure,
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
                                                                             cmf,
                                                                             selectedMapUniqueID,
                                                                             numNodes,
@@ -694,6 +694,8 @@ SurfaceNodeColoring::assignCiftiConnectivityMatrixColoring(const BrainStructure*
                                                            const int32_t numberOfNodes,
                                                            float* rgbv)
 {
+    CaretAssert(ciftiConnectivityMatrixFile);
+    
     const int32_t mapIndex = ciftiConnectivityMatrixFile->getMapIndexFromUniqueID(selectedMapUniqueID);
     if (mapIndex < 0) {
         return false;
@@ -744,6 +746,8 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                                                            const int32_t numberOfNodes,
                                                            float* rgbv)
 {
+    CaretAssert(ciftiConnectivityMatrixFile);
+    
     const int32_t mapIndex = ciftiConnectivityMatrixFile->getMapIndexFromUniqueID(selectedMapUniqueID);
     if (mapIndex < 0) {
         return false;
