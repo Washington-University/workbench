@@ -357,8 +357,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 {
-                    CiftiConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(selectedMapFile);
-                    isColoringValid = assignCiftiConnectivityMatrixColoring(brainStructure,
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
                                                                             cmf,
                                                                             selectedMapUniqueID,
                                                                             numNodes,

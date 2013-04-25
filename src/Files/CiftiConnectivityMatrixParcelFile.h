@@ -35,11 +35,11 @@
 /*LICENSE_END*/
 
 
-#include "CiftiConnectivityMatrixDataFile.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 
 namespace caret {
 
-    class CiftiConnectivityMatrixParcelFile : public CiftiConnectivityMatrixDataFile {
+    class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile {
         
     public:
         CiftiConnectivityMatrixParcelFile();

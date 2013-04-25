@@ -53,7 +53,12 @@ using namespace caret;
  * Constructor.
  */
 CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
-: CiftiConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL)
+: CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL,
+                                          CiftiMappableDataFile::FILE_READ_DATA_ALL,
+                                          CIFTI_INDEX_TYPE_PARCELS,
+                                          CIFTI_INDEX_TYPE_PARCELS,
+                                          CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS,
+                                          CiftiMappableDataFile::DATA_ACCESS_INVALID)
 {
     
 }
