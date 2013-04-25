@@ -39,6 +39,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CiftiConnectivityMatrixDataFile.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "SceneAttributes.h"
@@ -128,16 +129,16 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
                                                   const int32_t nodeIndex,
                                                   std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
-    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     PaletteFile* paletteFile = m_brain->getPaletteFile();
     
     bool haveData = false;
-    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiConnectivityMatrixDataFile* cmf = *iter;
+        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
         if (cmf->isEmpty() == false) {
             const int32_t mapIndex = 0;
             const int64_t rowIndex = cmf->loadMapDataForSurfaceNode(mapIndex,
@@ -185,16 +186,16 @@ bool
 CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
                                                           const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     PaletteFile* paletteFile = m_brain->getPaletteFile();
     
     bool haveData = false;
-    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiConnectivityMatrixDataFile* cmf = *iter;
+        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
         if (cmf->isEmpty() == false) {
             const int32_t mapIndex = 0;
             cmf->loadMapAverageDataForSurfaceNodes(mapIndex,
@@ -232,14 +233,14 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
 {
     PaletteFile* paletteFile = m_brain->getPaletteFile();
     
-    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     bool haveData = false;
-    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiConnectivityMatrixDataFile* cmf = *iter;
+        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
         
         const int32_t mapIndex = 0;
         const int64_t rowIndex = cmf->loadMapDataForVoxelAtCoordinate(mapIndex,
@@ -297,14 +298,14 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* scene
                                             "CiftiConnectivityMatrixDataFileManager",
                                             1);
     
-    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     std::vector<SceneClass*> connectivityFilesVector;
-    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiConnectivityMatrixDataFile* cmdf = *iter;
+        CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
         
         connectivityFilesVector.push_back(cmdf->saveToScene(sceneAttributes,
                                                             cmdf->getFileNameNoPath()));
@@ -340,7 +341,7 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
         return;
     }
     
-    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     const SceneClassArray* ciftiFilesArray = sceneClass->getClassArray("connectivityFiles");
@@ -349,10 +350,10 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
         for (int32_t i = 0; i < numElements; i++) {
             const SceneClass* ciftiFileClass = ciftiFilesArray->getClassAtIndex(i);
             
-            for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+            for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
                  iter != ciftiMatrixFiles.end();
                  iter++) {
-                CiftiConnectivityMatrixDataFile* cmdf = *iter;
+                CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
                 if (cmdf->getFileNameNoPath() == ciftiFileClass->getName()) {
                     cmdf->restoreFromScene(sceneAttributes,
                                            ciftiFileClass);
@@ -375,14 +376,14 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
 bool
 CiftiConnectivityMatrixDataFileManager::hasNetworkFiles() const
 {
-    std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     
-    for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
          iter != ciftiMatrixFiles.end();
          iter++) {
-        CiftiConnectivityMatrixDataFile* cmdf = *iter;
+        CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
         
         if (cmdf->isEmpty() == false) {
             if (DataFile::isFileOnNetwork(cmdf->getFileName())) {

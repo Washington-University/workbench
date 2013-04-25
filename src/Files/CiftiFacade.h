@@ -37,6 +37,7 @@
 
 #include "CaretObject.h"
 #include "CiftiXML.h"
+#include "DataFileTypeEnum.h"
 
 namespace caret {
 
@@ -46,14 +47,40 @@ namespace caret {
     class CiftiFacade : public CaretObject {
         
     public:
-        CiftiFacade(CiftiInterface* ciftiInterface);
+        CiftiFacade(const DataFileTypeEnum::Enum dataFileType,
+                    CiftiInterface* ciftiInterface);
         
         virtual ~CiftiFacade();
+        
+        bool isValidCiftiFile() const;
+        
+        int32_t getNumberOfRows() const;
+        
+        int32_t getNumberOfColumns() const;
+        
+        int32_t getNumberOfMaps() const;
+        
+        int32_t getMapDataCount() const;
+        
+        void getFileMetadata(GiftiMetaData* metadataOut);
+        
+        void setFileMetadata(GiftiMetaData* metadataIn);
+        
+        bool isMappingDataToBrainordinateParcels() const;
+        
+        bool getSurfaceDataIndicesForMappingToBrainordinates(std::vector<int64_t>& dataIndicesForNodes,
+                                                             const StructureEnum::Enum structure,
+                                                             const int64_t surfaceNumberOfNodes) const;
         
         bool getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfaceMap>& mappingOut,
                                                          const StructureEnum::Enum structure) const;
         
         bool getVolumeMapForMappingDataToBrainordinates(std::vector<CiftiVolumeMap>& mappingOut) const;
+        
+        bool getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const;
+        
+//        bool getParcelSurfaceMapForMappingToBrainordinates(CiftiParcelNodesElement& nodeParcelsOut,
+//                                                           const StructureEnum::Enum structure) const;
         
         bool getMetadataForMapOrSeriesIndex(const int32_t mapIndex,
                                             GiftiMetaData* metadataOut);
@@ -73,15 +100,65 @@ namespace caret {
         bool getDataForMapOrSeriesIndex(const int32_t mapIndex,
                                         std::vector<float>& dataOut) const;
                                         
+        bool containsSurfaceDataForMappingToBrainordinates() const;
+        
+        bool containsVolumeDataForMappingToBrainordinates() const;
+        
+        bool isConnectivityMatrixFile() const;
+        
+        bool isBrainordinateDataColoredWithPalette() const;
+        
+        bool isBrainordinateDataColoredWithLabelTable() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
+        enum CiftiFileType {
+            CIFTI_INVALID,
+            CIFTI_DENSE,
+            CIFTI_LABEL,
+            CIFTI_SCALAR,
+            CIFTI_DENSE_PARCEL,
+            CIFTI_DATA_SERIES,
+            CIFTI_PARCEL,
+            CIFTI_PARCEL_DENSE
+        };
+        
         CiftiFacade(const CiftiFacade&);
 
         CiftiFacade& operator=(const CiftiFacade&);
         
-
+        const DataFileTypeEnum::Enum m_dataFileType;
+        
         CiftiInterface* m_ciftiInterface;
+        
+        CiftiFileType m_ciftiFileType;
+        
+        bool m_validCiftiFile;
+        
+        int32_t m_numberOfRows;
+        
+        int32_t m_numberOfColumns;
+        
+        int32_t m_numberOfMaps;
+        
+        bool m_connectivityMatrixFileFlag;
+        
+        bool m_useColumnMapsForBrainordinateMapping;
+
+        bool m_useRowMapsForBrainordinateMapping;
+        
+        bool m_useAlongRowMethodsForMapAttributes;
+        
+        bool m_loadBrainordinateDataFromColumns;
+        
+        bool m_loadBrainordinateDataFromRows;
+        
+        bool m_brainordinateDataColoredWithPalette;
+        
+        bool m_brainordinateDataColoredWithLabelTable;
+        
+        bool m_useParcelsForBrainordinateMapping;
     };
     
 #ifdef __CIFTI_FACADE_DECLARE__

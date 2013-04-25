@@ -55,7 +55,7 @@ class TimeCourseDialog;
 
 namespace caret {
 
-    class CiftiConnectivityMatrixDataFile;
+    class CiftiMappableConnectivityMatrixDataFile;
     class ConnectivityLoaderFile;
     class ConnectivityTimeSeriesViewController;
     class CiftiConnectivityMatrixViewController;
@@ -87,7 +87,7 @@ namespace caret {
         
         void updateManagerViewController();
         
-        void updateForConnectivityMatrixFiles(const std::vector<CiftiConnectivityMatrixDataFile*>& connectivityMatrixFiles);
+        void updateForConnectivityMatrixFiles(const std::vector<CiftiMappableConnectivityMatrixDataFile*>& connectivityMatrixFiles);
         
         void updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles);
 

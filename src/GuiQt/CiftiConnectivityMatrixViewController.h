@@ -46,7 +46,7 @@ class QSpinBox;
 
 namespace caret {
 
-    class CiftiConnectivityMatrixDataFile;
+    class CiftiMappableConnectivityMatrixDataFile;
     class WuQGridLayoutGroup;
     
     class CiftiConnectivityMatrixViewController : public QObject {
@@ -60,7 +60,7 @@ namespace caret {
         
         virtual ~CiftiConnectivityMatrixViewController();
         
-        void updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile);
+        void updateViewController(CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile);
         
         void setVisible(bool visible);
         
@@ -80,7 +80,7 @@ namespace caret {
         
         void updateViewController();
         
-        CiftiConnectivityMatrixDataFile* m_ciftiConnectivityMatrixDataFile;
+        CiftiMappableConnectivityMatrixDataFile* m_ciftiConnectivityMatrixDataFile;
         
         QCheckBox* m_enabledCheckBox;
         

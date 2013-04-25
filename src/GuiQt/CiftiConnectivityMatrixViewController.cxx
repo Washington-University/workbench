@@ -46,7 +46,7 @@
 #include <QToolButton>
 #include <QSpinBox>
 
-#include "CiftiConnectivityMatrixDataFile.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -134,7 +134,7 @@ CiftiConnectivityMatrixViewController::createGridLayout(const Qt::Orientation /*
  *    Connectivity loader file in this view controller.
  */
 void 
-CiftiConnectivityMatrixViewController::updateViewController(CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile)
+CiftiConnectivityMatrixViewController::updateViewController(CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile)
 {
     m_ciftiConnectivityMatrixDataFile = ciftiConnectivityMatrixFile;
     if (m_ciftiConnectivityMatrixDataFile != NULL) {

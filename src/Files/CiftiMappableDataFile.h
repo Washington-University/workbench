@@ -43,6 +43,7 @@
 
 namespace caret {
     
+    class CiftiFacade;
     class CiftiInterface;
     class CiftiXML;
     class DescriptiveStatistics;
@@ -50,6 +51,7 @@ namespace caret {
     class GroupAndNameHierarchyModel;
     class Histogram;
     class SparseVolumeIndexer;
+
     
     class CiftiMappableDataFile :
     public CaretMappableDataFile,
@@ -64,8 +66,17 @@ namespace caret {
             /** Data is accessed using the column methods */
             DATA_ACCESS_WITH_COLUMN_METHODS,
             /** Data is accessed using the row methods */
-            DATA_ACCESS_WITH_ROW_METHODS
+            DATA_ACCESS_WITH_ROW_METHODS,
         };
+        
+//        enum MapToBrainordinatesType {
+//            /* No mapping to brainordinates */
+//            MAP_TO_BRAINORDINATES_INVALID,
+//            /* Map to brainordinates using surface/volume maps for columns*/
+//            MAP_TO_BRAINORDINATES_USING_USING_COLUMN_MAPS,
+//            /* Map to brainordinates using surface/volume maps for rows */
+//            MAP_TO_BRAINORDINATES_USING_USING_ROWS_MAPS
+//        };
         
         /** How to read the file */
         enum FileReading {
@@ -258,11 +269,8 @@ namespace caret {
             
         public:
             
-            MapContent(const IndicesMapToDataType mapContentDataType,
-                       const int64_t dataCount,
-                       const std::map<AString, AString> metadataMap,
-                       PaletteColorMapping* paletteColorMapping,
-                       GiftiLabelTable* labelTable);
+            MapContent(CiftiFacade* ciftiFacade,
+                       const int32_t mapIndex);
             
             ~MapContent();
             
@@ -272,9 +280,6 @@ namespace caret {
             
             void updateColoring(const std::vector<float>& data,
                                 const PaletteFile* paletteFile);
-            
-            /** Type of data in map */
-            const IndicesMapToDataType m_mapContentDataType;
             
             /** Count of data elements in map. */
             const int64_t m_dataCount;
@@ -317,11 +322,11 @@ namespace caret {
         /** How to read data from file */
         const FileReading m_fileReading;
         
-        /** Type of data along the row (dimension 0) */
-        const IndicesMapToDataType m_rowIndexType;
+        /** Required type of data along the row (dimension 0) */
+        const IndicesMapToDataType m_requiredRowIndexType;
         
-        /** Type of data along the column (dimension 1) */
-        const IndicesMapToDataType m_columnIndexType;
+        /** Required type of data along the column (dimension 1) */
+        const IndicesMapToDataType m_requiredColumnIndexType;
         
         /** Location of brainordinate mapped data */
         const DataAccess m_brainordinateMappedDataAccess;
@@ -332,32 +337,17 @@ namespace caret {
         /** Contains data related to each map */
         std::vector<MapContent*> m_mapContent;
         
-        /** True if data is mapped with a palette */
-        bool m_dataIsMappedWithPalette;
-        
-        /** True if data is mapped with a label table */
-        bool m_dataIsMappedWithLabelTable;
-        
-        /** True if the file contains surface data */
-        bool m_containsSurfaceData;
-        
         /** True if the file contains volume data */
         bool m_containsVolumeData;
-        
-        /** True if one map per file */
-        bool m_oneMapPerFile;
         
         /** The CIFTI interface (could be local file or on network) */
         CaretPointer<CiftiInterface> m_ciftiInterface;
         
-        /** The files metadata. */
+        /** The file's metadata. */
         CaretPointer<GiftiMetaData> m_metadata;
         
-        /** Number of rows in the file */
-        int32_t m_numberOfRows;
-        
-        /** Number of columns in the file */
-        int32_t m_numberOfColumns;
+        /** CIFTI Facade for simplifying access to CIFTI data */
+        CaretPointer<CiftiFacade> m_ciftiFacade;
         
         /** Dimensions of volume data */
         int64_t m_volumeDimensions[5];

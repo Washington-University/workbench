@@ -45,6 +45,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "EventManager.h"
@@ -217,7 +218,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
 
     if (borderID->isValid()) {
         Brain* brain = borderID->getBrain();
-        std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
         brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
         bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
         
@@ -278,7 +279,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         const int32_t nodeNumber = surfaceID->getNodeNumber();
         
         CiftiConnectivityMatrixDataFileManager* connMatrixMan = brain->getCiftiConnectivityMatrixDataFileManager();
-        std::vector<CiftiConnectivityMatrixDataFile*> ciftiMatrixFiles;
+        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
         brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
         bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
         

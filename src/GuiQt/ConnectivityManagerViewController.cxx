@@ -346,7 +346,7 @@ ConnectivityManagerViewController::updateManagerViewController()
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
         {
-            std::vector<CiftiConnectivityMatrixDataFile*> files;
+            std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
             brain->getAllCiftiConnectivityMatrixFiles(files);
             this->updateForConnectivityMatrixFiles(files);
         }
@@ -369,7 +369,7 @@ ConnectivityManagerViewController::updateManagerViewController()
  *    The connectivity files.
  */
 void 
-ConnectivityManagerViewController::updateForConnectivityMatrixFiles(const std::vector<CiftiConnectivityMatrixDataFile*>& connectivityMatrixFiles)
+ConnectivityManagerViewController::updateForConnectivityMatrixFiles(const std::vector<CiftiMappableConnectivityMatrixDataFile*>& connectivityMatrixFiles)
 {
     /*
      * Update, show (and possibly add) connectivity view controllers

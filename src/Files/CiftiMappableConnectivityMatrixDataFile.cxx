@@ -104,13 +104,13 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
 bool
 CiftiMappableConnectivityMatrixDataFile::isEmpty() const
 {
-    if (CaretMappableDataFile::isEmpty()) {
+    if (CiftiMappableDataFile::isEmpty()) {
         return true;
     }
 
-    if (m_loadedRowData.empty()) {
-        return true;
-    }
+//    if (m_loadedRowData.empty()) {
+//        return true;
+//    }
     
     return false;
 }
@@ -162,6 +162,77 @@ CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t mapIndex,
 }
 
 /**
+ * Get the index of a row when loading data for a surface node.
+ * @param structure
+ *    Structure of the surface.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in the surface.
+ * @param nodeIndex
+ *    Index of the node.
+ * @return
+ *    Index of row corresponding to node or -1 if no row in the
+ *    matrix corresponds to the node.
+ */
+int64_t
+CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const StructureEnum::Enum structure,
+                                                               const int64_t surfaceNumberOfNodes,
+                                                               const int64_t nodeIndex) const
+{
+    if (isCiftiInterfaceValid() == false) {
+        return -1;
+    }
+    
+    int64_t rowIndex = -1;
+    
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
+    /*
+     * Get the mapping type
+     */
+    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+    
+    if (ciftiXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN,
+                                         structure) == surfaceNumberOfNodes) {
+        bool isBrainModels = false;
+        bool isParcels     = false;
+        switch (rowMappingType) {
+            case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+                isBrainModels = true;
+                break;
+            case CIFTI_INDEX_TYPE_FIBERS:
+                break;
+            case CIFTI_INDEX_TYPE_INVALID:
+                break;
+            case CIFTI_INDEX_TYPE_LABELS:
+                break;
+            case CIFTI_INDEX_TYPE_PARCELS:
+                isParcels = true;
+                break;
+            case CIFTI_INDEX_TYPE_SCALARS:
+                break;
+            case CIFTI_INDEX_TYPE_TIME_POINTS:
+                break;
+        }
+        
+        if (isBrainModels) {
+            rowIndex = ciftiXML.getRowIndexForNode(nodeIndex, structure);
+        }
+        else if (isParcels) {
+            rowIndex = ciftiXML.getColumnParcelForNode(nodeIndex,
+                                                          structure);
+        }
+        else {
+            CaretAssert(0);
+            CaretLogSevere("Invalid row mapping type for connectivity file "
+                           + DataFileTypeEnum::toName(getDataFileType()));
+        }
+    }
+    
+    return rowIndex;
+}
+
+
+/**
  * Get the index of a row when loading data for a voxel at a coordinate.
  * @param mapIndex
  *    Index of the map.
@@ -175,6 +246,10 @@ int64_t
 CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t mapIndex,
                                                                 const float xyz[3]) const
 {
+    if (isCiftiInterfaceValid() == false) {
+        return -1;
+    }
+    
     int64_t rowIndex = -1;
     
     /*
@@ -182,7 +257,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
      */
     bool isBrainModels = false;
     bool isParcels     = false;
-    switch (m_rowIndexType) {
+    switch (m_requiredRowIndexType) {
         case CIFTI_INDEX_TYPE_BRAIN_MODELS:
             isBrainModels = true;
             break;
@@ -278,7 +353,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                  nodeIndex);
         
         if (rowIndex >= 0) {
-            const int64_t dataCount = m_numberOfColumns;
+            const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
             if (dataCount > 0) {
                 const AString mapName = ("Row: "
                                          + AString::number(rowIndex)

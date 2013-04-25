@@ -2276,26 +2276,37 @@ Brain::getConnectivityMatrixParcelDenseFiles(std::vector<CiftiConnectivityMatrix
  *   Will contain the files upon exit.
  */
 void
-Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const
+Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const
 {
     allCiftiConnectivityMatrixFiles.clear();
     
-    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityMatrixDenseFiles.begin(),
-                                           m_connectivityMatrixDenseFiles.end());
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
     
-    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityMatrixDenseParcelFiles.begin(),
-                                           m_connectivityMatrixDenseParcelFiles.end());
-    
-    
-    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityMatrixParcelFiles.begin(),
-                                           m_connectivityMatrixParcelFiles.end());
-    
-    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-                                           m_connectivityMatrixParcelDenseFiles.begin(),
-                                           m_connectivityMatrixParcelDenseFiles.end());
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        CiftiMappableConnectivityMatrixDataFile* cmdf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(*iter);
+        if (cmdf != NULL) {
+            allCiftiConnectivityMatrixFiles.push_back(cmdf);
+        }
+    }
+//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
+//                                           m_connectivityMatrixDenseFiles.begin(),
+//                                           m_connectivityMatrixDenseFiles.end());
+//    
+//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
+//                                           m_connectivityMatrixDenseParcelFiles.begin(),
+//                                           m_connectivityMatrixDenseParcelFiles.end());
+//    
+//    
+//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
+//                                           m_connectivityMatrixParcelFiles.begin(),
+//                                           m_connectivityMatrixParcelFiles.end());
+//    
+//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
+//                                           m_connectivityMatrixParcelDenseFiles.begin(),
+//                                           m_connectivityMatrixParcelDenseFiles.end());
 }
 
 
