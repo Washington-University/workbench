@@ -53,7 +53,12 @@ using namespace caret;
  * Constructor.
  */
 CiftiConnectivityMatrixDenseFile::CiftiConnectivityMatrixDenseFile()
-: CiftiConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE)
+: CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE,
+                                          CiftiMappableDataFile::FILE_READ_DATA_AS_NEEDED,
+                                          CIFTI_INDEX_TYPE_BRAIN_MODELS,
+                                          CIFTI_INDEX_TYPE_BRAIN_MODELS,
+                                          CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS,
+                                          CiftiMappableDataFile::DATA_ACCESS_INVALID)
 {
     
 }

@@ -305,18 +305,12 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
                 {
-                    ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(selectedMapFile);
-                    CiftiConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiConnectivityMatrixDataFile*>(selectedMapFile);
-                    if (clf != NULL) {
-                        isColoringValid = this->assignConnectivityColoring(brainStructure, clf, numNodes, overlayRGBV);
-                    }
-                    else if (cmf != NULL) {
-                        isColoringValid = assignCiftiConnectivityMatrixColoring(brainStructure,
-                                                                                cmf,
-                                                                                selectedMapUniqueID,
-                                                                                numNodes,
-                                                                                overlayRGBV);                        
-                    }
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                                    cmf,
+                                                                                    selectedMapUniqueID,
+                                                                                    numNodes,
+                                                                                    overlayRGBV);
                 }
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:

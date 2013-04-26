@@ -74,6 +74,8 @@ namespace caret {
         
         virtual bool isEmpty() const;
         
+        virtual AString getMapName(const int32_t mapIndex) const;
+        
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
 
@@ -102,6 +104,8 @@ namespace caret {
         bool m_dataLoadingEnabled;
         
         std::vector<float> m_loadedRowData;
+        
+        AString m_rowLoadedTextForMapName;
 
     };
     

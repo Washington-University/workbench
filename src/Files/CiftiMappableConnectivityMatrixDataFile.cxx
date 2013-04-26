@@ -95,6 +95,7 @@ void
 CiftiMappableConnectivityMatrixDataFile::clearPrivate()
 {
     m_loadedRowData.clear();
+    m_rowLoadedTextForMapName = "";
     m_dataLoadingEnabled = true;
 }
 
@@ -355,7 +356,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
         if (rowIndex >= 0) {
             const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
             if (dataCount > 0) {
-                const AString mapName = ("Row: "
+                m_rowLoadedTextForMapName = ("Row: "
                                          + AString::number(rowIndex)
                                          + ", Node Index: "
                                          + AString::number(nodeIndex)
@@ -366,17 +367,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                 m_loadedRowData.resize(dataCount);
                 m_ciftiInterface->getRow(&m_loadedRowData[0],
                                          rowIndex);
-                
-                /*
-                 * Update the map name with the row attributes but 
-                 * preserve the modification status.
-                 */
-                const bool modStatus = isModified();
-                setMapName(mapIndex,
-                           mapName);
-                if (modStatus == false) {
-                    clearModified();
-                }
                 
                 CaretLogFine("Read row for node " + AString::number(nodeIndex));
                 
@@ -502,20 +492,10 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                     dataAverage[i] /= rowSuccessCount;
                 }
                 
-                const AString mapName = ("Structure: "
+                m_rowLoadedTextForMapName = ("Structure: "
                                          + StructureEnum::toName(structure)
                                          + ", Averaged Node Count: "
                                          + AString::number(numberOfNodeIndices));
-                /*
-                 * Update the map name with the row attributes but
-                 * preserve the modification status.
-                 */
-                const bool modStatus = isModified();
-                setMapName(mapIndex,
-                           mapName);
-                if (modStatus == false) {
-                    clearModified();
-                }
                 
                 /*
                  * Update the viewed data
@@ -585,7 +565,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     try {
         bool dataWasLoaded = false;
         
-        int64_t rowIndex = getRowIndexForVoxelWhenLoading(mapIndex,
+        rowIndex = getRowIndexForVoxelWhenLoading(mapIndex,
                                                           xyz);
         
         if (rowIndex >= 0) {
@@ -595,22 +575,12 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
                 CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
                 m_ciftiInterface->getRow(&m_loadedRowData[0], rowIndex);
                 
-                const AString mapName = ("Row: "
+                m_rowLoadedTextForMapName = ("Row: "
                                          + AString::number(rowIndex)
                                          + ", Voxel XYZ: ("
                                          + AString::fromNumbers(xyz, 3, ",")
                                          + ")");
                 
-                /*
-                 * Update the map name with the row attributes but
-                 * preserve the modification status.
-                 */
-                const bool modStatus = isModified();
-                setMapName(mapIndex,
-                           mapName);
-                if (modStatus == false) {
-                    clearModified();
-                }
                 CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                 
                 dataWasLoaded = true;
@@ -627,5 +597,22 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     
     return rowIndex;
 }
+
+/**
+ * Get the name of the map at the given index.  For connectivity matrix
+ * files this always returns a description of the last data row that 
+ * was loaded.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Name of the map.
+ */
+AString
+CiftiMappableConnectivityMatrixDataFile::getMapName(const int32_t /*mapIndex*/) const
+{
+    return m_rowLoadedTextForMapName;
+}
+
 
 
