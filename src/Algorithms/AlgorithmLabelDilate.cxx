@@ -28,6 +28,7 @@
 #include "CaretOMP.h"
 #include "GeodesicHelper.h"
 #include "LabelFile.h"
+#include "MetricFile.h"
 #include "GiftiLabelTable.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
@@ -56,12 +57,16 @@ OperationParameters* AlgorithmLabelDilate::getParameters()
     
     ret->addLabelOutputParameter(4, "label-out", "the output label file");
     
-    OptionalParameter* columnSelect = ret->createOptionalParameter(5, "-column", "select a single column to dilate");
+    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with value zero");
+    roiOpt->addMetricParameter(1, "roi-metric", "metric file, all positive values denote vertices to have their values replaced");
+    
+    OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
-        AString("Fills in label information where the label is currently unassigned, up to the specified distance away from other labels.  ") +
-        "By default, dilates all columns of the input label."
+        AString("Fills in label information for all vertices designated as bad, up to the specified distance away from other labels.  ") +
+        "If -bad-vertex-roi is specified, all vertices, including those with value zero, are good, except for vertices with a positive value in the ROI.  " +
+        "If it is not specified, only vertices with a value of zero are bad."
     );
     return ret;
 }
@@ -72,7 +77,13 @@ void AlgorithmLabelDilate::useParameters(OperationParameters* myParams, Progress
     SurfaceFile* mySurf = myParams->getSurface(2);
     float myDist = (float)myParams->getDouble(3);
     LabelFile* myLabelOut = myParams->getOutputLabel(4);
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(5);
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
+    MetricFile* badNodeRoi = NULL;
+    if (roiOpt->m_present)
+    {
+        badNodeRoi = roiOpt->getMetric(1);
+    }
+    OptionalParameter* columnSelect = myParams->getOptionalParameter(6);
     int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column
@@ -82,10 +93,11 @@ void AlgorithmLabelDilate::useParameters(OperationParameters* myParams, Progress
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmLabelDilate(myProgObj, myLabel, mySurf, myDist, myLabelOut, columnNum);
+    AlgorithmLabelDilate(myProgObj, myLabel, mySurf, myDist, myLabelOut, badNodeRoi, columnNum);
 }
 
-AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, float myDist, LabelFile* myLabelOut, int columnNum) : AbstractAlgorithm(myProgObj)
+AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, float myDist, LabelFile* myLabelOut,
+                                           const MetricFile* badNodeRoi, int columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int32_t unusedLabel = myLabel->getLabelTable()->getUnassignedLabelKey();
@@ -104,9 +116,20 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
         throw AlgorithmException("surface has wrong number of vertices for this label file");
     }
     CaretArray<int32_t> colScratch(numNodes);
-    vector<float> myAreas;
     CaretArray<int> markArray(numNodes);
-    mySurf->computeNodeAreas(myAreas);
+    if (badNodeRoi != NULL)
+    {
+        const float* myRoiData = badNodeRoi->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (myRoiData[i] > 0.0f)
+            {
+                markArray[i] = 0;
+            } else {
+                markArray[i] = 1;
+            }
+        }
+    }
     if (columnNum == -1)
     {
         myLabelOut->setNumberOfNodesAndColumns(numNodes, myLabel->getNumberOfColumns());
@@ -116,13 +139,16 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
         {
             const int32_t* myInputData = myLabel->getLabelKeyPointerForColumn(thisCol);
             myLabelOut->setColumnName(thisCol, myLabel->getColumnName(thisCol) + " dilated");
-            for (int i = 0; i < numNodes; ++i)
+            if (badNodeRoi == NULL)
             {
-                if (myInputData[i] == unusedLabel)
+                for (int i = 0; i < numNodes; ++i)
                 {
-                    markArray[i] = 0;
-                } else {
-                    markArray[i] = 1;
+                    if (myInputData[i] == unusedLabel)
+                    {
+                        markArray[i] = 0;
+                    } else {
+                        markArray[i] = 1;
+                    }
                 }
             }
 #pragma omp CARET_PAR
@@ -193,48 +219,34 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
         myLabelOut->setStructure(mySurf->getStructure());
         const int32_t* myInputData = myLabel->getLabelKeyPointerForColumn(columnNum);
         myLabelOut->setColumnName(0, myLabel->getColumnName(columnNum) + " dilated");
-        for (int i = 0; i < numNodes; ++i)
+        if (badNodeRoi == NULL)
         {
-            if (myInputData[i] == unusedLabel)
+            for (int i = 0; i < numNodes; ++i)
             {
-                markArray[i] = 0;
-            } else {
-                markArray[i] = 1;
+                if (myInputData[i] == unusedLabel)
+                {
+                    markArray[i] = 0;
+                } else {
+                    markArray[i] = 1;
+                }
             }
         }
-        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-        for (int i = 0; i < numNodes; ++i)
+#pragma omp CARET_PAR
         {
-            if (markArray[i] == 0)
+            CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+    #pragma omp CARET_FOR schedule(dynamic)
+            for (int i = 0; i < numNodes; ++i)
             {
-                vector<int32_t> nodeList;
-                vector<float> distList;
-                myGeoHelp->getNodesToGeoDist(i, myDist, nodeList, distList);
-                int numInRange = (int)nodeList.size();
-                bool first = true;
-                float bestDist = -1.0f;
-                int32_t bestLabel = unusedLabel;
-                for (int j = 0; j < numInRange; ++j)
+                if (markArray[i] == 0)
                 {
-                    if (markArray[nodeList[j]] == 1)
-                    {
-                        if (first || distList[j] < bestDist)
-                        {
-                            first = false;
-                            bestDist = distList[j];
-                            bestLabel = myInputData[nodeList[j]];
-                        }
-                    }
-                }
-                if (!first)
-                {
-                    colScratch[i] = bestLabel;
-                } else {
-                    nodeList = myTopoHelp->getNodeNeighbors(i);
-                    nodeList.push_back(i);
-                    myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
-                    numInRange = (int)nodeList.size();
+                    vector<int32_t> nodeList;
+                    vector<float> distList;
+                    myGeoHelp->getNodesToGeoDist(i, myDist, nodeList, distList);
+                    int numInRange = (int)nodeList.size();
+                    bool first = true;
+                    float bestDist = -1.0f;
+                    int32_t bestLabel = unusedLabel;
                     for (int j = 0; j < numInRange; ++j)
                     {
                         if (markArray[nodeList[j]] == 1)
@@ -251,11 +263,32 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
                     {
                         colScratch[i] = bestLabel;
                     } else {
-                        colScratch[i] = unusedLabel;
+                        nodeList = myTopoHelp->getNodeNeighbors(i);
+                        nodeList.push_back(i);
+                        myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                        numInRange = (int)nodeList.size();
+                        for (int j = 0; j < numInRange; ++j)
+                        {
+                            if (markArray[nodeList[j]] == 1)
+                            {
+                                if (first || distList[j] < bestDist)
+                                {
+                                    first = false;
+                                    bestDist = distList[j];
+                                    bestLabel = myInputData[nodeList[j]];
+                                }
+                            }
+                        }
+                        if (!first)
+                        {
+                            colScratch[i] = bestLabel;
+                        } else {
+                            colScratch[i] = unusedLabel;
+                        }
                     }
+                } else {
+                    colScratch[i] = myInputData[i];
                 }
-            } else {
-                colScratch[i] = myInputData[i];
             }
         }
         myLabelOut->setLabelKeysForColumn(0, colScratch.getArray());

@@ -28,6 +28,7 @@
 #include "CaretLogger.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
+#include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "SurfaceResamplingHelper.h"
 
@@ -61,7 +62,13 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant anatomical surface with <current-sphere> mesh");
     areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant anatomical surface with <new-sphere> mesh");
     
-    ret->createOptionalParameter(7, "-largest", "use only the label of the vertex with the largest weight");
+    OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
+    roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
+    
+    OptionalParameter* validRoiOutOpt = ret->createOptionalParameter(8, "-valid-roi-out", "output the ROI of vertices that got data from valid source vertices");
+    validRoiOutOpt->addMetricOutputParameter(1, "roi-out", "the output roi as a metric");
+    
+    ret->createOptionalParameter(9, "-largest", "use only the label of the vertex with the largest weight");
     
     AString myHelpText =
         AString("Resamples a label file, given two spherical surfaces that are in register.  ") +
@@ -109,13 +116,25 @@ void AlgorithmLabelResample::useParameters(OperationParameters* myParams, Progre
         curArea = areaSurfsOpt->getSurface(1);
         newArea = areaSurfsOpt->getSurface(2);
     }
-    bool largest = myParams->getOptionalParameter(7)->m_present;
-    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curArea, newArea, largest);
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
+    MetricFile* currentRoi = NULL;
+    if (roiOpt->m_present)
+    {
+        currentRoi = roiOpt->getMetric(1);
+    }
+    MetricFile* validRoiOut = NULL;
+    OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(8);
+    if (validRoiOutOpt->m_present)
+    {
+        validRoiOut = validRoiOutOpt->getOutputMetric(1);
+    }
+    bool largest = myParams->getOptionalParameter(9)->m_present;
+    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curArea, newArea, currentRoi, validRoiOut, largest);
 }
 
 AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const LabelFile* labelIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                                const SurfaceResamplingMethodEnum::Enum& myMethod, LabelFile* labelOut, const SurfaceFile* curArea,
-                                               const SurfaceFile* newArea, const bool& largest) : AbstractAlgorithm(myProgObj)
+                                               const SurfaceFile* newArea, const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (labelIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input label file has different number of nodes than input sphere");
@@ -132,16 +151,27 @@ AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const 
     labelOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
     labelOut->setStructure(newSphere->getStructure());
     *labelOut->getLabelTable() = *labelIn->getLabelTable();
-    vector<int32_t> colScratch(numNewNodes, 0.0f);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea);
+    int32_t unusedLabel = labelIn->getLabelTable()->getUnassignedLabelKey();
+    vector<int32_t> colScratch(numNewNodes, unusedLabel);
+    const float* roiCol = NULL;
+    if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea, roiCol);
+    if (validRoiOut != NULL)
+    {
+        validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);
+        validRoiOut->setStructure(newSphere->getStructure());
+        vector<float> scratch(numNewNodes);
+        myHelp.getResampleValidROI(scratch.data());
+        validRoiOut->setValuesForColumn(0, scratch.data());
+    }
     for (int i = 0; i < numColumns; ++i)
     {
         labelOut->setColumnName(i, labelIn->getColumnName(i));
         if (largest)
         {
-            myHelp.resampleLargest(labelIn->getLabelKeyPointerForColumn(i), colScratch.data());
+            myHelp.resampleLargest(labelIn->getLabelKeyPointerForColumn(i), colScratch.data(), unusedLabel);
         } else {
-            myHelp.resamplePopular(labelIn->getLabelKeyPointerForColumn(i), colScratch.data());
+            myHelp.resamplePopular(labelIn->getLabelKeyPointerForColumn(i), colScratch.data(), unusedLabel);
         }
         labelOut->setLabelKeysForColumn(i, colScratch.data());
     }

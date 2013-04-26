@@ -237,7 +237,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
 }
 
 AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
-                                               const StructureEnum::Enum& myStruct, LabelFile* labelOut) : AbstractAlgorithm(myProgObj)
+                                               const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (myDir > 1) throw AlgorithmException("direction not supported in cifti separate");
@@ -253,9 +253,14 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         int64_t numNodes = ciftiIn->getColumnSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         labelOut->setStructure(myStruct);
+        if (roiOut != NULL)
+        {
+            roiOut->setNumberOfNodesAndColumns(numNodes, 1);
+            roiOut->setStructure(myStruct);
+        }
         int64_t mapSize = (int64_t)myMap.size();
         CaretArray<float> rowScratch(rowSize);
-        CaretArray<int> nodeUsed(numNodes, 0);
+        CaretArray<float> nodeUsed(numNodes, 0.0f);
         GiftiLabelTable myTable;
         map<int32_t, int32_t> cumulativeRemap;
         for (int64_t i = 0; i < rowSize; ++i)
@@ -266,7 +271,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         for (int64_t i = 0; i < mapSize; ++i)
         {
             ciftiIn->getRow(rowScratch, myMap[i].m_ciftiIndex);
-            nodeUsed[myMap[i].m_surfaceNode] = 1;
+            nodeUsed[myMap[i].m_surfaceNode] = 1.0f;
             for (int j = 0; j < rowSize; ++j)
             {
                 int32_t inVal = (int32_t)floor(rowScratch[j] + 0.5f);
@@ -281,9 +286,13 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         }
         *(labelOut->getLabelTable()) = myTable;
         int32_t unusedLabel = myTable.getUnassignedLabelKey();
+        if (roiOut != NULL)
+        {
+            roiOut->setValuesForColumn(0, nodeUsed);
+        }
         for (int i = 0; i < numNodes; ++i)//set unused columns to unassigned
         {
-            if (nodeUsed[i] == 0)
+            if (nodeUsed[i] == 0.0f)
             {
                 for (int j = 0; j < rowSize; ++j)
                 {
@@ -301,7 +310,21 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         int64_t numNodes = ciftiIn->getRowSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, colSize);
         labelOut->setStructure(myStruct);
+        if (roiOut != NULL)
+        {
+            roiOut->setNumberOfNodesAndColumns(numNodes, 1);
+            roiOut->setStructure(myStruct);
+        }
         int64_t mapSize = (int)myMap.size();
+        if (roiOut != NULL)
+        {
+            CaretArray<float> nodeUsed(numNodes, 0.0f);
+            for (int i = 0; i < mapSize; ++i)
+            {
+                nodeUsed[myMap[i].m_surfaceNode] = 1.0f;
+            }
+            roiOut->setValuesForColumn(0, nodeUsed);
+        }
         CaretArray<float> rowScratch(rowSize);
         CaretArray<int> nodeUsed(numNodes, 0);
         for (int64_t j = 0; j < mapSize; ++j)

@@ -119,7 +119,10 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
     }
     OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
     MetricFile* currentRoi = NULL;
-    if (roiOpt->m_present) currentRoi = roiOpt->getMetric(1);
+    if (roiOpt->m_present)
+    {
+        currentRoi = roiOpt->getMetric(1);
+    }
     MetricFile* validRoiOut = NULL;
     OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(8);
     if (validRoiOutOpt->m_present)

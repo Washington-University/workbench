@@ -39,7 +39,7 @@ namespace caret {
     public:
         AlgorithmLabelResample(ProgressObject* myProgObj, const LabelFile* labelIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                const SurfaceResamplingMethodEnum::Enum& myMethod, LabelFile* labelOut, const SurfaceFile* curArea = NULL,
-                               const SurfaceFile* newArea = NULL, const bool& largest = false);
+                               const SurfaceFile* newArea = NULL, const MetricFile* currentRoi = NULL, MetricFile* validRoiOut = NULL, const bool& largest = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

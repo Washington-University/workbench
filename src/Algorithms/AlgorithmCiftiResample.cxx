@@ -429,20 +429,27 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
     if (myInputXML.getMappingType(1 - direction) == CIFTI_INDEX_TYPE_LABELS)
     {
         LabelFile origLabel;
-        AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origLabel);
+        MetricFile origRoi, resampleROI;
+        AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origLabel, &origRoi);
         LabelFile newLabel, newDilate, *newUse;
         newUse = &newLabel;
-        AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curArea, newArea, surfLargest);
+        AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curArea, newArea, &origRoi, &resampleROI, surfLargest);
         if (surfdilatemm > 0.0f)
         {
-            AlgorithmLabelDilate(NULL, &newLabel, newSphere, surfdilatemm, &newDilate);
+            MetricFile invertResampleROI;
+            invertResampleROI.setNumberOfNodesAndColumns(resampleROI.getNumberOfNodes(), 1);
+            for (int j = 0; j < resampleROI.getNumberOfNodes(); ++j)
+            {
+                float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
+                invertResampleROI.setValue(j, 0, tempf);
+            }
+            AlgorithmLabelDilate(NULL, &newLabel, newSphere, surfdilatemm, &newDilate, &invertResampleROI);
             newUse = &newDilate;
         }
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, newUse);
     } else {
         MetricFile origMetric, origROI;
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origMetric, &origROI);
-        origMetric.writeFile("debug.orig." + StructureEnum::toName(myStruct) + ".func.gii");
         MetricFile newMetric, newDilate, resampleROI, *newUse;
         newUse = &origMetric;
         AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curArea, newArea, &origROI, &resampleROI, surfLargest);

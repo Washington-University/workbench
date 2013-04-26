@@ -66,17 +66,23 @@ SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEn
     }
 }
 
-void SurfaceResamplingHelper::resampleNormal(const float* input, float* output)
+void SurfaceResamplingHelper::resampleNormal(const float* input, float* output, const float& invalidVal)
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
-        output[i] = 0.0f;
-        WeightElem* end = m_weights[i + 1];
-        for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
+        WeightElem* end = m_weights[i + 1], *elem = m_weights[i];
+        if (elem != end)
         {
-            output[i] += input[elem->node] * elem->weight;//don't need to divide afterwards, because the weights already sum to 1
+            double accum = 0.0;
+            for (; elem != end; ++elem)
+            {
+                accum += input[elem->node] * elem->weight;//don't need to divide afterwards, because the weights already sum to 1
+            }
+            output[i] = accum;
+        } else {
+            output[i] = invalidVal;
         }
     }
 }
@@ -87,11 +93,14 @@ void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output)
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int i = 0; i < numNodes; ++i)
     {
-        Vector3D tempvec;
+        double tempvec[3] = { 0.0, 0.0, 0.0 };
         WeightElem* end = m_weights[i + 1];
         for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
         {
-            tempvec += Vector3D(input + elem->node * 3) * elem->weight;//don't need to divide afterwards, because the weights already sum to 1
+            const float* coord = input + elem->node * 3;
+            tempvec[0] += coord[0] * elem->weight;//don't need to divide afterwards, because the weights already sum to 1
+            tempvec[1] += coord[1] * elem->weight;
+            tempvec[2] += coord[2] * elem->weight;
         }
         int i3 = i * 3;
         output[i3] = tempvec[0];
@@ -100,7 +109,7 @@ void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output)
     }
 }
 
-void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* output)
+void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* output, const int32_t& invalidVal)
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -108,7 +117,7 @@ void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* out
     {
         map<int32_t, float> accum;
         float maxweight = -1.0f;
-        int32_t bestlabel = 0;
+        int32_t bestlabel = invalidVal;
         WeightElem* end = m_weights[i + 1];
         for (WeightElem* elem = m_weights[i]; elem != end; ++elem)
         {
@@ -135,7 +144,7 @@ void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* out
     }
 }
 
-void SurfaceResamplingHelper::resampleLargest(const float* input, float* output)
+void SurfaceResamplingHelper::resampleLargest(const float* input, float* output, const float& invalidVal)
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -156,12 +165,12 @@ void SurfaceResamplingHelper::resampleLargest(const float* input, float* output)
         {
             output[i] = input[largestNode];
         } else {
-            output[i] = 0.0f;
+            output[i] = invalidVal;
         }
     }
 }
 
-void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* output)
+void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* output, const int32_t& invalidVal)
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -182,7 +191,7 @@ void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* out
         {
             output[i] = input[largestNode];
         } else {
-            output[i] = 0;
+            output[i] = invalidVal;
         }
     }
 }

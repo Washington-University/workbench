@@ -42,7 +42,7 @@ namespace caret {
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
                                                const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut = NULL);
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
-                                               const StructureEnum::Enum& myStruct, LabelFile* labelOut);
+                                               const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut = NULL);
         AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
                                                const StructureEnum::Enum& myStruct, VolumeFile* volOut, int64_t offsetOut[3],
                                                VolumeFile* roiOut = NULL, const bool& cropVol = true);
