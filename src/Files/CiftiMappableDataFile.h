@@ -58,7 +58,7 @@ namespace caret {
     public SceneableInterface,
     public VolumeMappableInterface {
         
-    public:
+    protected:
         /** Access (row/column) of a type of data */
         enum DataAccess {
             /** Data access invalid */
@@ -68,16 +68,7 @@ namespace caret {
             /** Data is accessed using the row methods */
             DATA_ACCESS_WITH_ROW_METHODS,
         };
-        
-//        enum MapToBrainordinatesType {
-//            /* No mapping to brainordinates */
-//            MAP_TO_BRAINORDINATES_INVALID,
-//            /* Map to brainordinates using surface/volume maps for columns*/
-//            MAP_TO_BRAINORDINATES_USING_USING_COLUMN_MAPS,
-//            /* Map to brainordinates using surface/volume maps for rows */
-//            MAP_TO_BRAINORDINATES_USING_USING_ROWS_MAPS
-//        };
-        
+                
         /** How to read the file */
         enum FileReading {
             /** Read all data in the file */
@@ -86,7 +77,6 @@ namespace caret {
             FILE_READ_DATA_AS_NEEDED
         };
         
-    protected:
         CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType,
                               const FileReading fileReading,
                               const IndicesMapToDataType rowIndexType,

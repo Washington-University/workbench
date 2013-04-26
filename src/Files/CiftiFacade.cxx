@@ -587,8 +587,6 @@ CiftiFacade::getMetadataForMapOrSeriesIndex(const int32_t mapIndex,
         metadataOut->replaceWithMap(*m_ciftiInterface->getCiftiXML().getMapMetadata(CiftiXML::ALONG_ROW,
                                                                                     mapIndex));
         return true;
-//        labelTable = const_cast<GiftiLabelTable*>(ciftiXML.getLabelTableForRowIndex(i));
-//        paletteColorMapping = ciftiXML.getMapPalette(CiftiXML::ALONG_ROW, i);
     }
     else {
         CaretAssert(0);

@@ -265,9 +265,6 @@ namespace caret {
         /** The CIFTI interface (could be local file or on network) */
         CaretPointer<CiftiInterface> m_ciftiInterface;
         
-        /** Pointer to CIFTI XML - DO NOT DELETE */
-        CiftiXML* m_ciftiXML;
-        
         /** Metadata for the file */
         CaretPointer<GiftiMetaData> m_fileMetaData;
         

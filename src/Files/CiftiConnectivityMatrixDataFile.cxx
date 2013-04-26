@@ -105,7 +105,6 @@ CiftiConnectivityMatrixDataFile::clearPrivate()
     if (m_ciftiInterface != NULL) {
         m_ciftiInterface.grabNew(NULL);
     }
-    m_ciftiXML = NULL; // do not delete since it points to data that will be deleted
     m_mapContent.clear();
     CaretPointer<MapContent> mc(new MapContent());
     m_mapContent.push_back(mc);
@@ -258,11 +257,12 @@ CiftiConnectivityMatrixDataFile::readFile(const AString& filename) throw (DataFi
         throw DataFileException(e.whatString());
     }
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
     if (m_ciftiInterface != NULL) {
-        m_ciftiXML = const_cast<CiftiXML*>(&m_ciftiInterface->getCiftiXML());
-        
-        const IndicesMapToDataType rowType = m_ciftiXML->getMappingType(CIFTI_INDEX_LOADING);
-        const IndicesMapToDataType colType = m_ciftiXML->getMappingType(CIFTI_INDEX_VIEWING);
+        const IndicesMapToDataType rowType = ciftiXML.getMappingType(CIFTI_INDEX_LOADING);
+        const IndicesMapToDataType colType = ciftiXML.getMappingType(CIFTI_INDEX_VIEWING);
         const AString msg = ("CIFTI Connectivity File: " + getFileNameNoPath() + "\n"
                              "Rows=" + AString::number(m_ciftiInterface->getNumberOfRows())
                              + "Columns=" + AString::number(m_ciftiInterface->getNumberOfColumns())
@@ -837,10 +837,13 @@ CiftiConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t ma
 {
     int64_t rowIndex = -1;
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
     /*
      * Get the mapping type
      */
-    const IndicesMapToDataType rowMappingType = m_ciftiXML->getMappingType(CIFTI_INDEX_LOADING);
+    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CIFTI_INDEX_LOADING);
     
         bool isBrainModels = false;
         bool isParcels     = false;
@@ -864,14 +867,14 @@ CiftiConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t ma
         }
         
         if (isBrainModels) {
-            rowIndex = m_ciftiXML->getRowIndexForVoxelCoordinate(xyz);
+            rowIndex = ciftiXML.getRowIndexForVoxelCoordinate(xyz);
         }
         else if (isParcels) {
             CaretAssertVectorIndex(m_mapContent,
                                    mapIndex);
             int64_t ijk[3];
             if (m_mapContent[mapIndex]->voxelXYZToIJK(xyz, ijk)) {
-                rowIndex = m_ciftiXML->getColumnParcelForVoxel(ijk);
+                rowIndex = ciftiXML.getColumnParcelForVoxel(ijk);
             }
         }
         else {
@@ -900,10 +903,13 @@ CiftiConnectivityMatrixDataFile::getColumnIndexForVoxelWhenViewing(const int32_t
 {
     int64_t columnIndex = -1;
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
     /*
      * Get the mapping type
      */
-    const IndicesMapToDataType columnMappingType = m_ciftiXML->getMappingType(CIFTI_INDEX_VIEWING);
+    const IndicesMapToDataType columnMappingType = ciftiXML.getMappingType(CIFTI_INDEX_VIEWING);
     
     bool isBrainModels = false;
     bool isParcels     = false;
@@ -927,14 +933,14 @@ CiftiConnectivityMatrixDataFile::getColumnIndexForVoxelWhenViewing(const int32_t
     }
     
     if (isBrainModels) {
-        columnIndex = m_ciftiXML->getColumnIndexForVoxelCoordinate(xyz);
+        columnIndex = ciftiXML.getColumnIndexForVoxelCoordinate(xyz);
     }
     else if (isParcels) {
         CaretAssertVectorIndex(m_mapContent,
                                mapIndex);
         int64_t ijk[3];
         if (m_mapContent[mapIndex]->voxelXYZToIJK(xyz, ijk)) {
-            columnIndex = m_ciftiXML->getRowParcelForVoxel(ijk);
+            columnIndex = ciftiXML.getRowParcelForVoxel(ijk);
         }
     }
     else {
@@ -966,12 +972,15 @@ CiftiConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const StructureEn
 {
     int64_t rowIndex = -1;
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
     /*
      * Get the mapping type
      */
-    const IndicesMapToDataType rowMappingType = m_ciftiXML->getMappingType(CIFTI_INDEX_LOADING);
+    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CIFTI_INDEX_LOADING);
     
-    if (m_ciftiXML->getSurfaceNumberOfNodes(CIFTI_INDEX_LOADING, structure) == surfaceNumberOfNodes) {
+    if (ciftiXML.getSurfaceNumberOfNodes(CIFTI_INDEX_LOADING, structure) == surfaceNumberOfNodes) {
         bool isBrainModels = false;
         bool isParcels     = false;
         switch (rowMappingType) {
@@ -994,10 +1003,10 @@ CiftiConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const StructureEn
         }
         
         if (isBrainModels) {
-            rowIndex = m_ciftiXML->getRowIndexForNode(nodeIndex, structure);
+            rowIndex = ciftiXML.getRowIndexForNode(nodeIndex, structure);
         }
         else if (isParcels) {
-            rowIndex = m_ciftiXML->getColumnParcelForNode(nodeIndex,
+            rowIndex = ciftiXML.getColumnParcelForNode(nodeIndex,
                                                           structure);
         }
         else {
@@ -1029,12 +1038,15 @@ CiftiConnectivityMatrixDataFile::getColumnIndexForNodeWhenViewing(const Structur
 {
     int64_t columnIndex = -1;
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
     /*
      * Get the mapping type
      */
-    const IndicesMapToDataType columnMappingType = m_ciftiXML->getMappingType(CIFTI_INDEX_VIEWING);
+    const IndicesMapToDataType columnMappingType = ciftiXML.getMappingType(CIFTI_INDEX_VIEWING);
     
-    if (m_ciftiXML->getSurfaceNumberOfNodes(CIFTI_INDEX_VIEWING, structure) == surfaceNumberOfNodes) {
+    if (ciftiXML.getSurfaceNumberOfNodes(CIFTI_INDEX_VIEWING, structure) == surfaceNumberOfNodes) {
         bool isBrainModels = false;
         bool isParcels     = false;
         switch (columnMappingType) {
@@ -1057,10 +1069,10 @@ CiftiConnectivityMatrixDataFile::getColumnIndexForNodeWhenViewing(const Structur
         }
         
         if (isBrainModels) {
-            columnIndex = m_ciftiXML->getColumnIndexForNode(nodeIndex, structure);
+            columnIndex = ciftiXML.getColumnIndexForNode(nodeIndex, structure);
         }
         else if (isParcels) {
-            columnIndex = m_ciftiXML->getRowParcelForNode(nodeIndex,
+            columnIndex = ciftiXML.getRowParcelForNode(nodeIndex,
                                                           structure);
         }
         else {
@@ -1316,6 +1328,8 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                                 + "\" does not have a file loaded.");
     }
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     /*
      * Get content for map.
@@ -1335,7 +1349,7 @@ CiftiConnectivityMatrixDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
             textOut = AString::number(valueOut);
             
             std::vector<CiftiParcelElement> parcels;
-            m_ciftiXML->getParcelsForColumns(parcels);
+            ciftiXML.getParcelsForColumns(parcels);
             textOut = AString::number(valueOut);
             if (columnIndex < static_cast<int32_t>(parcels.size())) {
                 textOut += (" "
@@ -1387,6 +1401,8 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
                                 + "\" does not have a file loaded.");
     }
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     /*
      * Get content for map.
@@ -1405,7 +1421,7 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
             valueOut = mapContent->m_data[columnIndex];
             
             std::vector<CiftiParcelElement> parcels;
-            m_ciftiXML->getParcelsForColumns(parcels);
+            ciftiXML.getParcelsForColumns(parcels);
             textOut = AString::number(valueOut);
             if (columnIndex < static_cast<int32_t>(parcels.size())) {
                 textOut += (" "
@@ -1447,6 +1463,8 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeColoring(const int32_t mapInde
                                 + "\" does not have a file loaded.");
     }
     
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     /*
      * Get content for map.
@@ -1456,7 +1474,7 @@ CiftiConnectivityMatrixDataFile::getMapSurfaceNodeColoring(const int32_t mapInde
     MapContent* mapContent = m_mapContent[mapIndex];
     
     try {
-        if (m_ciftiXML->getSurfaceNumberOfNodes(CIFTI_INDEX_VIEWING, structure) == surfaceNumberOfNodes) {
+        if (ciftiXML.getSurfaceNumberOfNodes(CIFTI_INDEX_VIEWING, structure) == surfaceNumberOfNodes) {
             for (int32_t i = 0; i < surfaceNumberOfNodes; i++) {
                 const int64_t columnIndex = getColumnIndexForNodeWhenViewing(structure,
                                                                        surfaceNumberOfNodes,
@@ -1505,7 +1523,10 @@ CiftiConnectivityMatrixDataFile::getSurfaceNumberOfNodesForLoading(const Structu
     if (m_ciftiInterface == NULL) {
         return 0;
     }
-    const int32_t numberOfNodes = m_ciftiXML->getSurfaceNumberOfNodes(CIFTI_INDEX_LOADING,
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    
+    const int32_t numberOfNodes = ciftiXML.getSurfaceNumberOfNodes(CIFTI_INDEX_LOADING,
                                                                    structure);
     return numberOfNodes;
 }
