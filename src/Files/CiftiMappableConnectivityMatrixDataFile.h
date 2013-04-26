@@ -42,7 +42,7 @@ namespace caret {
 
     class CiftiMappableConnectivityMatrixDataFile : public CiftiMappableDataFile {
         
-    public:
+    protected:
         CiftiMappableConnectivityMatrixDataFile(const DataFileTypeEnum::Enum dataFileType,
                                                 const FileReading fileReading,
                                                 const IndicesMapToDataType rowIndexType,
@@ -50,6 +50,7 @@ namespace caret {
                                                 const DataAccess brainordinateMappedDataAccess,
                                                 const DataAccess seriesDataAccess);
         
+    public:
         virtual ~CiftiMappableConnectivityMatrixDataFile();
         
         bool isMapDataLoadingEnabled(const int32_t mapIndex) const;

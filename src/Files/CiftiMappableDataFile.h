@@ -86,13 +86,14 @@ namespace caret {
             FILE_READ_DATA_AS_NEEDED
         };
         
+    protected:
         CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType,
                               const FileReading fileReading,
                               const IndicesMapToDataType rowIndexType,
                               const IndicesMapToDataType columnIndexType,
                               const DataAccess brainordinateMappedDataAccess,
                               const DataAccess seriesDataAccess);
-        
+    public:
         virtual ~CiftiMappableDataFile();
         
         virtual void clear();
