@@ -122,9 +122,8 @@ CiftiMappableConnectivityMatrixDataFile::isEmpty() const
  * so that it can still be displayed but not updated.
  */
 bool
-CiftiMappableConnectivityMatrixDataFile::isMapDataLoadingEnabled(const int32_t mapIndex) const
+CiftiMappableConnectivityMatrixDataFile::isMapDataLoadingEnabled(const int32_t /*mapIndex*/) const
 {
-    CaretAssert(mapIndex == 0);
     return m_dataLoadingEnabled;
 }
 
@@ -137,10 +136,9 @@ CiftiMappableConnectivityMatrixDataFile::isMapDataLoadingEnabled(const int32_t m
  *   New data loading enabled status.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const int32_t mapIndex,
+CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const int32_t /*mapIndex*/,
                                                           const bool dataLoadingEnabled)
 {
-    CaretAssert(mapIndex == 0);
     m_dataLoadingEnabled = dataLoadingEnabled;
 }
 
@@ -153,12 +151,9 @@ CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const int32_t 
  *     A vector that will contain the data for the map upon exit.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t mapIndex,
+CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t /*mapIndex*/,
                                   std::vector<float>& dataOut) const
 {
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
-    
     dataOut = m_loadedRowData;
 }
 
@@ -244,7 +239,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
  *    matrix corresponds to the voxel.
  */
 int64_t
-CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t mapIndex,
+CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t /*mapIndex*/,
                                                                 const float xyz[3]) const
 {
     if (isCiftiInterfaceValid() == false) {
@@ -283,8 +278,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
         rowIndex = ciftiXML.getRowIndexForVoxelCoordinate(xyz);
     }
     else if (isParcels) {
-        CaretAssertVectorIndex(m_mapContent,
-                               mapIndex);
         int64_t ijk[3];
         enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
         if (indexValid(ijk[0], ijk[1], ijk[2])) {
@@ -320,22 +313,14 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
  *    Index of row that was loaded or -1 if no data was loaded.
  */
 int64_t
-CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t mapIndex,
+CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
                                                            const int32_t surfaceNumberOfNodes,
                                                            const StructureEnum::Enum structure,
                                                            const int32_t nodeIndex) throw (DataFileException)
 {
-    CaretAssert(mapIndex == 0);
-    
     if (isCiftiInterfaceValid() == false) {
         return -1;
     }
-    
-    /*
-     * Get content for map.
-     */
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
     
     /*
      * Loading of data disabled?
@@ -405,13 +390,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
  *    Indices of nodes.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t mapIndex,
+CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
                                                                    const int32_t surfaceNumberOfNodes,
                                                                    const StructureEnum::Enum structure,
                                                                    const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    CaretAssert(mapIndex == 0);
-    
     if (isCiftiInterfaceValid() == false) {
         return;
     }
@@ -422,11 +405,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
     if (m_dataLoadingEnabled == false) {
         return;
     }
-    /*
-     * Get content for map.
-     */
-    CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
     
     /*
      * Loading of data disabled?

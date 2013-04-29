@@ -493,7 +493,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                              + "\n   Map with Label Table: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithLabelTable())
                              + "\n   Map With Palette: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithPalette()));
                              
-        CaretLogSevere(msg);
+        CaretLogFine(msg);
         
         clearModified();
     }
@@ -1881,8 +1881,6 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     int32_t numCiftiNodes = -1;
     
