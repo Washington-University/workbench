@@ -293,7 +293,7 @@ CiftiFacade::setFileMetadata(GiftiMetaData* metadataIn)
 {
     CaretAssert(metadataIn);
     
-    CiftiXML& ciftiXML = const_cast<CiftiXML&>(m_ciftiInterface->getCiftiXML());
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     *(ciftiXML.getFileMetaData()) = metadataIn->getAsMap();
 }
 
@@ -614,7 +614,7 @@ CiftiFacade::setMetadataForMapOrSeriesIndex(const int32_t mapIndex,
         setFileMetadata(metadataIn);
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
-        CiftiXML& ciftiXML = const_cast<CiftiXML&>(m_ciftiInterface->getCiftiXML());
+        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
         *(ciftiXML.getMapMetadata(CiftiXML::ALONG_ROW,
                                   mapIndex)) = metadataIn->getAsMap();
     }
@@ -639,7 +639,7 @@ CiftiFacade::getLabelTableForMapOrSeriesIndex(const int32_t mapIndex)
     GiftiLabelTable* labelTable = NULL;
     
     if (m_useAlongRowMethodsForMapAttributes) {
-        labelTable = const_cast<GiftiLabelTable*>(m_ciftiInterface->getCiftiXML().getLabelTableForRowIndex(mapIndex));
+        labelTable = m_ciftiInterface->getCiftiXML().getLabelTableForRowIndex(mapIndex);
     }
     else {
         /* Not all files have label table. */
@@ -718,8 +718,7 @@ CiftiFacade::setNameForMapOrSeriesIndex(const int32_t mapIndex,
                                 const AString name)
 {
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
-    const CiftiXML& cxml = m_ciftiInterface->getCiftiXML();
-    CiftiXML& ciftiXML = const_cast<CiftiXML&>(cxml);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     if (m_useAlongRowMethodsForMapAttributes) {
         ciftiXML.setMapNameForRowIndex(mapIndex,

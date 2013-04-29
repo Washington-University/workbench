@@ -370,33 +370,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
          * Get data for maps.
          */
         const int32_t numberOfMaps = m_ciftiFacade->getNumberOfMaps();
-        for (int32_t i = 0; i < numberOfMaps; i++) {
-//            std::map<AString, AString> metadataMap;
-//            AString mapName;
-//            GiftiLabelTable* labelTable = NULL;
-//            PaletteColorMapping* paletteColorMapping = NULL;
-//            
-//            if (m_oneMapPerFile) {
-//                paletteColorMapping = ciftiXML.getFilePalette();
-//            }
-//            else {
-//                metadataMap = m_ciftiFacade->getMetadataForMapOrSeriesIndex(<#const int32_t mapIndex#>, <#caret::GiftiMetaData *metadataOut#>)
-//                switch (m_brainordinateMappedDataAccess) {
-//                    case DATA_ACCESS_INVALID:
-//                        break;
-//                    case DATA_ACCESS_WITH_COLUMN_METHODS:
-//                        metadataMap = *ciftiXML.getMapMetadata(CiftiXML::ALONG_ROW, i);
-//                        labelTable = const_cast<GiftiLabelTable*>(ciftiXML.getLabelTableForRowIndex(i));
-//                        paletteColorMapping = ciftiXML.getMapPalette(CiftiXML::ALONG_ROW, i);
-//                        break;
-//                    case DATA_ACCESS_WITH_ROW_METHODS:
-//                        metadataMap = *ciftiXML.getMapMetadata(CiftiXML::ALONG_COLUMN, i);
-//                        labelTable = const_cast<GiftiLabelTable*>(ciftiXML.getLabelTableForColumnIndex(i));
-//                        paletteColorMapping = ciftiXML.getMapPalette(CiftiXML::ALONG_COLUMN, i);
-//                        break;
-//                }
-//            }
-            
+        for (int32_t i = 0; i < numberOfMaps; i++) {            
             MapContent* mc = new MapContent(m_ciftiFacade,
                                             i);
             m_mapContent.push_back(mc);
@@ -407,16 +381,6 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
          */
         std::vector<CiftiVolumeMap> voxelMapping;
         m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates(voxelMapping);
-//        switch (m_brainordinateMappedDataAccess) {
-//            case DATA_ACCESS_INVALID:
-//                break;
-//            case DATA_ACCESS_WITH_COLUMN_METHODS:
-//                ciftiXML.getVolumeMapForColumns(voxelMapping);
-//                break;
-//            case DATA_ACCESS_WITH_ROW_METHODS:
-//                ciftiXML.getVolumeMapForRows(voxelMapping);
-//                break;
-//        }
         m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
                                                                voxelMapping));
         
@@ -441,29 +405,6 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                 m_volumeDimensions[4] = 1;
             }
         }
-        
-//        std::vector<StructureEnum::Enum> allStructures;
-//        StructureEnum::getAllEnums(allStructures);
-//        for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
-//             iter != allStructures.end();
-//             iter++) {
-//            switch (m_brainordinateMappedDataAccess) {
-//                case DATA_ACCESS_INVALID:
-//                    break;
-//                case DATA_ACCESS_WITH_COLUMN_METHODS:
-//                    if (ciftiXML.hasColumnSurfaceData(*iter)) {
-//                        m_containsSurfaceData = true;
-//                        break;
-//                    }
-//                    break;
-//                case DATA_ACCESS_WITH_ROW_METHODS:
-//                    if (ciftiXML.hasRowSurfaceData(*iter)) {
-//                        m_containsSurfaceData = true;
-//                        break;
-//                    }
-//                    break;
-//            }
-//        }
         
         AString mapNames;
         for (int32_t i = 0; i < getNumberOfMaps(); i++) {
@@ -556,16 +497,10 @@ CiftiMappableDataFile::writeFile(const AString& filename) throw (DataFileExcepti
                                     + " dense connectivity files cannot be written to files due to their large sizes.");
         }
         
-        CiftiXML& ciftiXML = const_cast<CiftiXML&>(m_ciftiInterface->getCiftiXML());
-        
         /*
          * Update the file's metadata.
          */
         m_ciftiFacade->setFileMetadata(m_metadata);
-        
-        if (m_ciftiFacade->isConnectivityMatrixFile()) {
-            *ciftiXML.getFilePalette() = *getMapPaletteColorMapping(0);
-        }
         
         /*
          * Update all data in the file.
@@ -999,6 +934,12 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
+    if (m_ciftiFacade->isConnectivityMatrixFile()) {
+        CaretAssert(m_ciftiInterface);
+        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        return ciftiXML.getFilePalette();
+    }
+    
     return m_mapContent[mapIndex]->m_paletteColorMapping;
 }
 
@@ -1016,6 +957,13 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
+    
+    if (m_ciftiFacade->isConnectivityMatrixFile()) {
+        CaretAssert(m_ciftiInterface);
+        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        return ciftiXML.getFilePalette();
+    }
+
     return m_mapContent[mapIndex]->m_paletteColorMapping;
 }
 
@@ -1956,64 +1904,6 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     }
     
     return validColorsFlag;
-//    /*
-//     * Get content for map.
-//     */
-//    std::vector<CiftiSurfaceMap> nodeMap;
-//    std::vector<CiftiParcelElement> parcels;
-//    switch (m_brainordinateMappedDataAccess) {
-//        case DATA_ACCESS_INVALID:
-//            break;
-//        case DATA_ACCESS_WITH_COLUMN_METHODS:
-//            ciftiXML.getSurfaceMapForColumns(nodeMap,
-//                                             structure);
-//            ciftiXML.getParcelsForColumns(parcels);
-//            break;
-//        case DATA_ACCESS_WITH_ROW_METHODS:
-//            ciftiXML.getSurfaceMapForRows(nodeMap,
-//                                          structure);
-//            break;
-//    }
-    
-//        if (nodeMap.empty() == false) {
-//            for (int64_t i = 0; i < surfaceNumberOfNodes; i++) {
-//                const int64_t i4 = i * 4;
-//                surfaceRGBAOut[i4]   =  0.0;
-//                surfaceRGBAOut[i4+1] =  0.0;
-//                surfaceRGBAOut[i4+2] =  0.0;
-//                surfaceRGBAOut[i4+3] = -1.0;
-//                
-//                dataValuesOut[i] = 0.0;
-//            }
-//            
-//            std::vector<float> mapData;
-//            getMapData(mapIndex,
-//                       mapData);
-//            
-//            const MapContent* mc = m_mapContent[mapIndex];
-//            
-//            const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
-//            for (int i = 0; i < numNodeMaps; i++) {
-//                const int64_t node4 = nodeMap[i].m_surfaceNode * 4;
-//                const int64_t cifti4 = nodeMap[i].m_ciftiIndex * 4;
-//                CaretAssertArrayIndex(surfaceRGBA, (surfaceNumberOfNodes * 4), node4);
-//                CaretAssertArrayIndex(this->dataRGBA, (mc->m_dataCount * 4), cifti4);
-//                surfaceRGBAOut[node4]   = mc->m_rgba[cifti4];
-//                surfaceRGBAOut[node4+1] = mc->m_rgba[cifti4+1];
-//                surfaceRGBAOut[node4+2] = mc->m_rgba[cifti4+2];
-//                surfaceRGBAOut[node4+3] = mc->m_rgba[cifti4+3];
-//                
-//                CaretAssertVectorIndex(mapData,
-//                                       nodeMap[i].m_ciftiIndex);
-//                dataValuesOut[nodeMap[i].m_surfaceNode] = mapData[nodeMap[i].m_ciftiIndex];
-//            }
-//            return true;
-//        }
-//        else {
-//            
-//        }
-    
-    return false;
 }
 
 /**
