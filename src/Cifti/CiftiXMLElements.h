@@ -98,9 +98,9 @@ public:
 
 struct CiftiNamedMapElement
 {
-    AString m_mapName;
+    mutable AString m_mapName;
     mutable CaretPointer<GiftiLabelTable> m_labelTable;
-    std::map<AString, AString> m_mapMetaData;/*!< User Meta Data*/
+    mutable std::map<AString, AString> m_mapMetaData;/*!< User Meta Data*/
     mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
     mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
     CiftiNamedMapElement();
@@ -210,7 +210,7 @@ public:
     CiftiMatrixElement();
     ~CiftiMatrixElement();
     std::vector<CiftiLabelElement> m_labelTable;/*!< The Matrix's Label Table (optional)*///TODO: replace this with GiftiLabelTable (or remove? not being used for anything)
-    std::map<AString, AString> m_userMetaData;/*!< User Meta Data*/
+    mutable std::map<AString, AString> m_userMetaData;/*!< User Meta Data*/
     mutable CaretPointer<PaletteColorMapping> m_palette;//palette settings storage
     mutable bool m_defaultPalette;//secondary variable to enable resetting the palette to use defaults, which will make it not write the palette to file
     std::vector<CiftiMatrixIndicesMapElement> m_matrixIndicesMap;/*!< Vector array of one or more Matrix Indices Map Elements*/

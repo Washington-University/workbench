@@ -360,13 +360,13 @@ namespace caret {
         GiftiLabelTable* getLabelTableForRowIndex(const int& index) const;
         
         ///set the map name for an index along a column
-        bool setMapNameForColumnIndex(const int& index, const AString& name);
+        bool setMapNameForColumnIndex(const int& index, const AString& name) const;
         
         ///set the map name for an index along a row
-        bool setMapNameForRowIndex(const int& index, const AString& name);
+        bool setMapNameForRowIndex(const int& index, const AString& name) const;
         
         ///set the map name for an index
-        bool setMapNameForIndex(const int& direction, const int& index, const AString& name);
+        bool setMapNameForIndex(const int& direction, const int& index, const AString& name) const;
         
         ///set the label table for an index along a column
         bool setLabelTableForColumnIndex(const int& index, const GiftiLabelTable& labelTable);
@@ -429,13 +429,9 @@ namespace caret {
         ///take a mapping from another xml object
         void copyMapping(const int& direction, const CiftiXML& other, const int& otherDirection);
         
-        const std::map<AString, AString>* getFileMetaData() const;
+        std::map<AString, AString>* getFileMetaData() const;
         
-        std::map<AString, AString>* getFileMetaData();
-        
-        const std::map<AString, AString>* getMapMetadata(const int& direction, const int& index) const;
-        
-        std::map<AString, AString>* getMapMetadata(const int& direction, const int& index);
+        std::map<AString, AString>* getMapMetadata(const int& direction, const int& index) const;
         
         //HACK: const method returns non-const PaletteColorMapping pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the palette
         PaletteColorMapping* getFilePalette() const;

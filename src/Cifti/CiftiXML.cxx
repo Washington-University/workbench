@@ -42,15 +42,9 @@ CiftiXML::CiftiXML()
     m_dimToMapLookup.resize(2, -1);//assume matrix is 2D, for backwards compatibility with Row/Column functions
 }
 
-const map<AString, AString>* CiftiXML::getFileMetaData() const
+map<AString, AString>* CiftiXML::getFileMetaData() const
 {
     if (m_root.m_matrices.size() == 0) return NULL;
-    return &(m_root.m_matrices[0].m_userMetaData);
-}
-
-map<AString, AString>* CiftiXML::getFileMetaData()
-{
-    if (m_root.m_matrices.size() == 0) m_root.m_matrices.resize(1);
     return &(m_root.m_matrices[0].m_userMetaData);
 }
 
@@ -1019,7 +1013,7 @@ AString CiftiXML::getMapNameForRowIndex(const int& index) const
     return getMapName(index, m_dimToMapLookup[0]);
 }
 
-bool CiftiXML::setMapNameForIndex(const int& direction, const int& index, const AString& name)
+bool CiftiXML::setMapNameForIndex(const int& direction, const int& index, const AString& name) const
 {
     if (direction < 0 || direction >= (int)m_dimToMapLookup.size())
     {
@@ -1030,7 +1024,7 @@ bool CiftiXML::setMapNameForIndex(const int& direction, const int& index, const 
     {
         return false;
     }
-    CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
+    const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
     if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS &&
         myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS)
     {
@@ -1041,12 +1035,12 @@ bool CiftiXML::setMapNameForIndex(const int& direction, const int& index, const 
     return true;
 }
 
-bool CiftiXML::setMapNameForColumnIndex(const int& index, const AString& name)
+bool CiftiXML::setMapNameForColumnIndex(const int& index, const AString& name) const
 {
     return setMapNameForIndex(ALONG_COLUMN, index, name);
 }
 
-bool CiftiXML::setMapNameForRowIndex(const int& index, const AString& name)
+bool CiftiXML::setMapNameForRowIndex(const int& index, const AString& name) const
 {
     return setMapNameForIndex(ALONG_ROW, index, name);
 }
@@ -1900,7 +1894,7 @@ void CiftiXML::copyMapping(const int& direction, const CiftiXML& other, const in
     myMap.m_appliesToMatrixDimension.push_back(direction);//the member lookups should already be valid, copy works
 }
 
-const map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int& index) const
+map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int& index) const
 {
     CaretAssertVectorIndex(m_dimToMapLookup, direction);
     int myMapIndex = m_dimToMapLookup[direction];
@@ -1910,24 +1904,6 @@ const map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, cons
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
     const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
-    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS && myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
-    {
-        return NULL;
-    }
-    CaretAssertVectorIndex(myMap.m_namedMaps, index);
-    return &(myMap.m_namedMaps[index].m_mapMetaData);
-}
-
-map<AString, AString>* CiftiXML::getMapMetadata(const int& direction, const int& index)
-{
-    CaretAssertVectorIndex(m_dimToMapLookup, direction);
-    int myMapIndex = m_dimToMapLookup[direction];
-    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
-    {
-        return NULL;
-    }
-    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
-    CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex];
     if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS && myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS)
     {
         return NULL;
