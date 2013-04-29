@@ -2219,7 +2219,8 @@ CiftiMappableDataFile::MapContent::~MapContent()
 {
     /**
      * Do not delete these as they point to data in CIFTI XML:
-     *   m_dataPointer
+     *   m_labelTable
+     *   m_paletteSettings
      */
 }
 
