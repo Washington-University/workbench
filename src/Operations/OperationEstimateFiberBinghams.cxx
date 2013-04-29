@@ -86,6 +86,10 @@ void OperationEstimateFiberBinghams::useParameters(OperationParameters* myParams
     const VolumeFile* th3_samples = myParams->getVolume(8);
     const VolumeFile* ph3_samples = myParams->getVolume(9);
     const VolumeFile* myVolLabel = myParams->getVolume(10);
+    if (myVolLabel->getType() != SubvolumeAttributes::LABEL)
+    {
+        throw OperationException("<label-volume> must have a label table, see -volume-label-import");
+    }
     if (!(myVolLabel->matchesVolumeSpace(f1_samples) &&
         myVolLabel->matchesVolumeSpace(th1_samples) &&
         myVolLabel->matchesVolumeSpace(ph1_samples) &&
