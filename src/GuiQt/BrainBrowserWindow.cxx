@@ -58,6 +58,7 @@
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
+#include "EventModelGetAll.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
@@ -1624,15 +1625,25 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                            
 
     bool createDefaultTabsFlag = false;
-    switch (loadSpecFileMode) {
-        case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
-            createDefaultTabsFlag = true;
-            break;
-        case LOAD_SPEC_FILE_WITH_DIALOG:
-            break;
-        case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
-            createDefaultTabsFlag = true;
-            break;
+//    switch (loadSpecFileMode) {
+//        case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+//            createDefaultTabsFlag = true;
+//            break;
+//        case LOAD_SPEC_FILE_WITH_DIALOG:
+//            break;
+//        case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+//            createDefaultTabsFlag = true;
+//            break;
+//    }
+    
+    /*
+     * If there are no models loaded, will want to create default tabs.
+     */
+    EventModelGetAll modelGetAllEvent;
+    EventManager::get()->sendEvent(modelGetAllEvent.getPointer());
+    const int32_t numberOfModels = static_cast<int32_t>(modelGetAllEvent.getModels().size());
+    if (numberOfModels <= 0) {
+        createDefaultTabsFlag = true;
     }
     
     AString errorMessages;
@@ -1690,6 +1701,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                 }
                 specFileTimeEnd = timer.getElapsedTimeSeconds();
                 specFileWasLoaded = true;
+                createDefaultTabsFlag = true;
             }
                 break;
             case LOAD_SPEC_FILE_WITH_DIALOG:
@@ -1701,39 +1713,8 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                                                                     this)) {
                     m_toolbar->addDefaultTabsAfterLoadingSpecFile();
                     specFileWasLoaded = true;
+                    createDefaultTabsFlag = true;
                 }
-//                /*
-//                 * Allow user to choose files listed in the spec file
-//                 */
-//                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-//                                                                               parentWidget);
-//                if (sfd->exec() == QDialog::Accepted) {
-//                    timer.reset();
-//                    specFileTimeStart = timer.getElapsedTimeSeconds();
-//                    
-//                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-//                                                                 &specFile);
-//                    if (username.isEmpty() == false) {
-//                        readSpecFileEvent.setUsernameAndPassword(username,
-//                                                                 password);
-//                    }
-//                    
-//                    ProgressReportingDialog::runEvent(&readSpecFileEvent,
-//                                                      parentWidget,
-//                                                      specFile.getFileNameNoPath());
-//                    
-//                    if (readSpecFileEvent.isError()) {
-//                        if (errorMessages.isEmpty() == false) {
-//                            errorMessages += "\n";
-//                        }
-//                        errorMessages += readSpecFileEvent.getErrorMessage();
-//                    }
-//                    specFileTimeEnd = timer.getElapsedTimeSeconds();
-//                    
-//                    createDefaultTabsFlag = true;
-//                }
-//                
-//                delete sfd;
             }
                 break;
         }
@@ -1761,20 +1742,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
         loadFilesEvent.addDataFile(fileType,
                                    name);
         
-//        bool isValidType = false;
-//        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-//        if (isValidType) {
-//            loadFilesEvent.addDataFile(fileType,
-//                                       name);
-//        }
-//        else {
-//            if (errorMessages.isEmpty() == false) {
-//                errorMessages += "\n";
-//            }
-//            errorMessages += ("Extension for "
-//                              + name
-//                              + " does not match a suppported file type");
-//        }
     }
     
     /*
@@ -1840,233 +1807,23 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
         }
     }
     
-    
-    
-    
-//    /*
-//     * Load each file.
-//     */
-//    //const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
-//    for (int32_t i = 0; i < numFilesToLoad; i++) {
-//        AString name = filenamesToLoad[i];
-//        
-//        //FileInformation fileInfo(name);
-//        //if (fileInfo.isAbsolute()) {
-//        //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
-//        //}
-//        
-//        bool isValidType = false;
-//        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-//        if (isValidType) {
-//            if (fileType == DataFileTypeEnum::SPECIFICATION) {
-//                SpecFile specFile;
-//                try {
-//                    specFile.readFile(name);
-//                }
-//                catch (const DataFileException& e) {
-//                    errorMessages += e.whatString();
-//                    cursor.restoreCursor();
-//                    QMessageBox::critical(this,
-//                                          "ERROR",
-//                                          errorMessages);
-//                    return;
-//                }
-//                
-//                switch (loadSpecFileMode) {
-//                    case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
-//                    {
-//                        timer.reset(); // resets timer
-//                        specFileTimeStart = timer.getElapsedTimeSeconds();
-//                        
-//                        /*
-//                         * Load all files listed in spec file
-//                         */
-//                        specFile.setAllFilesSelected(true);
-//                        
-//                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-//                                                                     &specFile);
-//                        if (username.isEmpty() == false) {
-//                            readSpecFileEvent.setUsernameAndPassword(username,
-//                                                                     password);
-//                        }
-//                        
-//                        ProgressReportingDialog::runEvent(&readSpecFileEvent,
-//                                                          this,
-//                                                          specFile.getFileNameNoPath());
-//                        //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-//                        
-//                        if (readSpecFileEvent.isError()) {
-//                            if (errorMessages.isEmpty() == false) {
-//                                errorMessages += "\n";
-//                            }
-//                            errorMessages += readSpecFileEvent.getErrorMessage();
-//                        }
-//                        specFileTimeEnd = timer.getElapsedTimeSeconds();
-//                    }
-//                        break;
-//                    case LOAD_SPEC_FILE_WITH_DIALOG:
-//                    case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
-//                    {
-//                        /*
-//                         * Remove wait cursor
-//                         */
-//                        cursor.restoreCursor();
-//                        
-//                        /*
-//                         * Allow user to choose files listed in the spec file
-//                         */
-//                        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-//                                                                                       this);
-//                        if (sfd->exec() == QDialog::Accepted) {
-//                            /*
-//                             * Redisplay wait cursor
-//                             */
-//                            cursor.showWaitCursor();
-//                            
-//                            timer.reset();
-//                            specFileTimeStart = timer.getElapsedTimeSeconds();
-//                            
-//                            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-//                                                                         &specFile);
-//                            if (username.isEmpty() == false) {
-//                                readSpecFileEvent.setUsernameAndPassword(username,
-//                                                                         password);
-//                            }
-//                            
-//                            ProgressReportingDialog::runEvent(&readSpecFileEvent,
-//                                                              this,
-//                                                              specFile.getFileNameNoPath());
-//                            //EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-//                            
-//                            if (readSpecFileEvent.isError()) {
-//                                if (errorMessages.isEmpty() == false) {
-//                                    errorMessages += "\n";
-//                                }
-//                                errorMessages += readSpecFileEvent.getErrorMessage();
-//                            }
-//                            specFileTimeEnd = timer.getElapsedTimeSeconds();
-//                            
-//                            createDefaultTabsFlag = true;
-//                        }
-//                        else {
-//                            /*
-//                             * Redisplay wait cursor
-//                             */
-//                            cursor.showWaitCursor();
-//                        }
-//                        
-//                        delete sfd;
-//                    }
-//                        break;
-//                }
-//                
-//                sceneFileWasLoaded = specFile.areAllSelectedFilesSceneFiles();
-//            }
-//            else {
-//                bool addDataFileToSpecFile = false;
-//                switch (addDataFileToSpecFileMode) {
-//                    case ADD_DATA_FILE_TO_SPEC_FILE_NO:
-//                        addDataFileToSpecFile = false;
-//                        break;
-//                    case ADD_DATA_FILE_TO_SPEC_FILE_YES:
-//                        addDataFileToSpecFile = true;
-//                        break;
-//                }
-//                
-//                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-//                                                addDataFileToSpecFile);
-//                loadFileEvent.addDataFile(fileType,
-//                                          name);
-//                if (username.isEmpty() == false) {
-//                    loadFileEvent.setUsernameAndPassword(username,
-//                                                         password);
-//                }
-//                
-//                EventManager::get()->sendEvent(loadFileEvent.getPointer());
-//                
-//                if (fileType == DataFileTypeEnum::SCENE) {
-//                    sceneFileWasLoaded = true;
-//                }
-//                if (loadFileEvent.isError()) {
-//                    AString loadErrorMessage = "";
-//                    
-//                    if (loadFileEvent.isFileErrorInvalidStructure(0)) {
-//                        /*
-//                         * Remove wait cursor
-//                         */
-//                        cursor.restoreCursor();
-//                        
-//                        WuQDataEntryDialog ded("Structure",
-//                                               this);
-//                        StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
-//                        ded.setTextAtTop(("File \""
-//                                          + FileInformation(name).getFileName()
-//                                          + "\"\nhas missing or invalid structure, select it's structure."
-//                                          "\nAfter loading, save file with File Menu->Save Manage Files"
-//                                          "\nto prevent this error."),
-//                                         false);
-//                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
-//                            /*
-//                             * Redisplay wait cursor
-//                             */
-//                            cursor.showWaitCursor();
-//
-//                            EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
-//                                                                     addDataFileToSpecFile);
-//                            loadFileEventStructure.addDataFile(ssc->getSelectedStructure(),
-//                                                               fileType,
-//                                                               name);
-//                            if (username.isEmpty() == false) {
-//                                loadFileEventStructure.setUsernameAndPassword(username,
-//                                                                              password);
-//                            }
-//                            
-//                            EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
-//                            if (loadFileEventStructure.isError()) {
-//                                loadErrorMessage = loadFileEventStructure.getErrorMessage();
-//                            }
-//                        }
-//                        else {
-//                            /*
-//                             * Redisplay wait cursor
-//                             */
-//                            cursor.showWaitCursor();
-//                        }
-//                    }
-//                    else {
-//                        loadErrorMessage = loadFileEvent.getErrorMessage();
-//                    }
-//                    if (loadErrorMessage.isEmpty() == false) {
-//                        if (errorMessages.isEmpty() == false) {
-//                            errorMessages += "\n";
-//                        }
-//                        errorMessages += loadErrorMessage;
-//                    }
-//                }                    
-//            }
-//        }
-//        else {
-//            if (errorMessages.isEmpty() == false) {
-//                errorMessages += "\n";
-//            }
-//            errorMessages += ("Extension for " + name + " does not match a suppported file type");
-//        }
-//    }
-    
     const float specFileTime = specFileTimeEnd - specFileTimeStart;
     
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
-    if (specFileWasLoaded) {
-        const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
-                                                  EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
-                                                  EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
-        EventBrowserWindowCreateTabs createTabsEvent(tabMode);
-        EventManager::get()->sendEvent(createTabsEvent.getPointer());
-    }
     
-//    if (createDefaultTabsFlag) {
-//        m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+    const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
+                                                        EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
+                                                        EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
+    EventBrowserWindowCreateTabs createTabsEvent(tabMode);
+    EventManager::get()->sendEvent(createTabsEvent.getPointer());
+//    if (specFileWasLoaded) {
+//        const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
+//                                                  EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
+//                                                  EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
+//        EventBrowserWindowCreateTabs createTabsEvent(tabMode);
+//        EventManager::get()->sendEvent(createTabsEvent.getPointer());
 //    }
+    
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
     const float guiStartTime = timer.getElapsedTimeSeconds();
