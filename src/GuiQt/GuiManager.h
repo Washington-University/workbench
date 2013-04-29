@@ -60,6 +60,7 @@ namespace caret {
     class Scene;
     class SceneDialog;
     class SceneFile;
+    class SelectionManager;
     class SurfacePropertiesEditorDialog;
     class ConnectivityLoaderControl;
     
@@ -150,6 +151,9 @@ namespace caret {
         
         AString getNameOfDataFileToOpenAfterStartup() const;
 
+        void processIdentification(SelectionManager* selectionManager,
+                                   QWidget* parentWidget);
+        
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();

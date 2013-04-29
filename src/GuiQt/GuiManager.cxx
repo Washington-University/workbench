@@ -39,24 +39,33 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "ConnectivityLoaderManager.h"
+#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "EventMapSettingsEditorDialogRequest.h"
 #include "EventModelGetAll.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
+#include "EventUpdateTimeCourseDialog.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
+#include "IdentifiedItemNode.h"
+#include "IdentificationManager.h"
+#include "IdentificationStringBuilder.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
@@ -68,9 +77,15 @@
 #include "SceneClassArray.h"
 #include "SceneDialog.h"
 #include "SceneWindowGeometry.h"
+#include "SelectionManager.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceNodeIdentificationSymbol.h"
+#include "SelectionItemVoxel.h"
 #include "SessionManager.h"
 #include "SpecFileManagementDialog.h"
 #include "SurfacePropertiesEditorDialog.h"
+#include "Surface.h"
+#include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -1627,4 +1642,267 @@ GuiManager::getNameOfDataFileToOpenAfterStartup() const
 {
     return m_nameOfDataFileToOpenAfterStartup;
 }
+
+/**
+ * Process identification after item(s) selected using a selection manager.
+ *
+ * @param selectionManager
+ *    The selection manager.
+ * @param parentWidget
+ *    Widget on which any error message windows are displayed.
+ */
+void
+GuiManager::processIdentification(SelectionManager* selectionManager,
+                           QWidget* parentWidget)
+{
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
+    CiftiConnectivityMatrixDataFileManager* ciftiMan = brain->getCiftiConnectivityMatrixDataFileManager();
+    IdentificationManager* identificationManager = brain->getIdentificationManager();
+    
+    bool updateGraphicsFlag = false;
+    bool updateInformationFlag = false;
+    std::vector<AString> ciftiLoadingInfo;
+    
+    const QString breakAndIndent("<br>&nbsp;&nbsp;&nbsp;&nbsp;");
+    SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
+    if ((idSymbol->getSurface() != NULL)
+        && (idSymbol->getNodeNumber() >= 0)) {
+        const Surface* surface = idSymbol->getSurface();
+        const int32_t surfaceNumberOfNodes = surface->getNumberOfNodes();
+        const int32_t nodeIndex = idSymbol->getNodeNumber();
+        const StructureEnum::Enum structure = surface->getStructure();
+        
+        identificationManager->removeIdentifiedNodeItem(structure,
+                                                        surfaceNumberOfNodes,
+                                                        nodeIndex);
+        updateGraphicsFlag = true;
+        updateInformationFlag = true;
+    }
+    else {
+        IdentifiedItem* identifiedItem = NULL;
+        
+        const BrowserTabContent* btc = NULL;
+        SelectionItemSurfaceNode* idNode = selectionManager->getSurfaceNodeIdentification();
+        SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
+        
+        /*
+         * If there is a voxel ID but no node ID, identify a
+         * node near the voxel coordinate, if it is close by.
+         */
+        if (idNode->isValid() == false) {
+            if (idVoxel->isValid()) {
+                double doubleXYZ[3];
+                idVoxel->getModelXYZ(doubleXYZ);
+                const float voxelXYZ[3] = {
+                    doubleXYZ[0],
+                    doubleXYZ[1],
+                    doubleXYZ[2]
+                };
+                Surface* surface = brain->getVolumeInteractionSurfaceNearestCoordinate(voxelXYZ,
+                                                                                       3.0);
+                if (surface != NULL) {
+                    const int nodeIndex = surface->closestNode(voxelXYZ);
+                    if (nodeIndex >= 0) {
+                        idNode->reset();
+                        idNode->setBrain(brain);
+                        idNode->setSurface(surface);
+                        idNode->setNodeNumber(nodeIndex);
+                    }
+                }
+            }
+        }
+        
+        /*
+         * Load CIFTI NODE data prior to ID Message so that CIFTI
+         * data shown in identification text is correct for the
+         * node that was loaded.
+         */
+        if (idNode->isValid()) {
+            Surface* surface = idNode->getSurface();
+            const int32_t nodeIndex = idNode->getNodeNumber();
+            try {
+                TimeLine timeLine;
+                connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
+                ciftiMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
+                
+                surface->getTimeLineInformation(nodeIndex,timeLine);
+                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
+                updateGraphicsFlag = true;
+                
+                QList <TimeLine> tlV;
+                connMan->getSurfaceTimeLines(tlV);
+                if(tlV.size()!=0)
+                {
+                    GuiManager::get()->addTimeLines(tlV);
+                }
+                EventUpdateTimeCourseDialog e;
+                EventManager::get()->sendEvent(e.getPointer());
+            }
+            catch (const DataFileException& e) {
+                cursor.restoreCursor();
+                QMessageBox::critical(parentWidget, "", e.whatString());
+                cursor.showWaitCursor();
+            }
+        }
+        
+        /*
+         * Load CIFTI VOXEL data prior to ID Message so that CIFTI
+         * data shown in identification text is correct for the
+         * voxel that was loaded.
+         */
+        if (idVoxel->isValid()) {
+            const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
+            int64_t voxelIJK[3];
+            idVoxel->getVoxelIJK(voxelIJK);
+            if (volumeFile != NULL) {
+                float xyz[3];
+                volumeFile->indexToSpace(voxelIJK, xyz);
+                
+                updateGraphicsFlag = true;
+                
+                try {
+                    connMan->loadDataForVoxelAtCoordinate(xyz,
+                                                          ciftiLoadingInfo);
+                    ciftiMan->loadDataForVoxelAtCoordinate(xyz,
+                                                           ciftiLoadingInfo);
+                }
+                catch (const DataFileException& e) {
+                    cursor.restoreCursor();
+                    QMessageBox::critical(parentWidget, "", e.whatString());
+                    cursor.showWaitCursor();
+                }
+                try {
+                    connMan->loadTimeLineForVoxelAtCoordinate(xyz,
+                                                              ciftiLoadingInfo);
+                }
+                catch (const DataFileException& e) {
+                    cursor.restoreCursor();
+                    QMessageBox::critical(parentWidget, "", e.whatString());
+                    cursor.showWaitCursor();
+                }
+                QList <TimeLine> tlV;
+                connMan->getVolumeTimeLines(tlV);
+                if(tlV.size()!=0)
+                {
+                    GuiManager::get()->addTimeLines(tlV);
+                }
+                EventUpdateTimeCourseDialog e;
+                EventManager::get()->sendEvent(e.getPointer());
+            }
+        }
+        /*
+         * Generate identification manager
+         */
+        const AString identificationMessage = selectionManager->getIdentificationText(btc,
+                                                                                      brain);
+        
+        bool issuedIdentificationLocationEvent = false;
+        if (idNode->isValid()) {
+            Surface* surface = idNode->getSurface();
+            const int32_t nodeIndex = idNode->getNodeNumber();
+            
+            /*
+             * Save last selected node which may get used for foci creation.
+             */
+            selectionManager->setLastSelectedItem(idNode);
+            
+            
+            BrainStructure* brainStructure = surface->getBrainStructure();
+            CaretAssert(brainStructure);
+            
+            float xyz[3];
+            const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
+            if (volumeInteractionSurface != NULL) {
+                volumeInteractionSurface->getCoordinate(nodeIndex,
+                                                        xyz);
+            }
+            else {
+                CaretLogWarning("No surface/volume interaction surface for "
+                                + StructureEnum::toGuiName(brainStructure->getStructure()));
+                xyz[0] = -10000000.0;
+                xyz[1] = -10000000.0;
+                xyz[2] = -10000000.0;
+            }
+            
+            identifiedItem = new IdentifiedItemNode(identificationMessage,
+                                                    surface->getStructure(),
+                                                    surface->getNumberOfNodes(),
+                                                    nodeIndex);
+            if (issuedIdentificationLocationEvent == false) {
+                EventIdentificationHighlightLocation idLocation(xyz);
+                EventManager::get()->sendEvent(idLocation.getPointer());
+                issuedIdentificationLocationEvent = true;
+            }
+        }
+        
+        if (idVoxel->isValid()) {
+            const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
+            int64_t voxelIJK[3];
+            idVoxel->getVoxelIJK(voxelIJK);
+            if (volumeFile != NULL) {
+                float xyz[3];
+                volumeFile->indexToSpace(voxelIJK, xyz);
+                
+                if (issuedIdentificationLocationEvent == false) {
+                    EventIdentificationHighlightLocation idLocation(xyz);
+                    EventManager::get()->sendEvent(idLocation.getPointer());
+                    issuedIdentificationLocationEvent = true;
+                }
+                
+                /*
+                 * Save last selected node which may get used for foci creation.
+                 */
+                selectionManager->setLastSelectedItem(idVoxel);
+            }
+        }
+        
+        if (identifiedItem == NULL) {
+            if (identificationMessage.isEmpty() == false) {
+                identifiedItem = new IdentifiedItem(identificationMessage);
+            }
+        }
+        
+        AString ciftiInfo;
+        if (ciftiLoadingInfo.empty() == false) {
+            IdentificationStringBuilder ciftiIdStringBuilder;
+            ciftiIdStringBuilder.addLine(false, "CIFTI Rows loaded", " ");
+            for (std::vector<AString>::iterator iter = ciftiLoadingInfo.begin();
+                 iter != ciftiLoadingInfo.end();
+                 iter++) {
+                ciftiIdStringBuilder.addLine(true, *iter);
+            }
+            
+            ciftiInfo = ciftiIdStringBuilder.toString();
+        }
+        if (ciftiInfo.isEmpty() == false) {
+            if (identifiedItem != NULL) {
+                identifiedItem->appendText(ciftiInfo);
+            }
+            else {
+                identifiedItem = new IdentifiedItem(ciftiInfo);
+            }
+        }
+        
+        if (identifiedItem != NULL) {
+            identificationManager->addIdentifiedItem(identifiedItem);
+            updateInformationFlag = true;
+        }
+    }
+    
+    if (updateInformationFlag) {
+        EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
+    }
+    
+    if (updateGraphicsFlag) {
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
+    }
+}
+
+
 
