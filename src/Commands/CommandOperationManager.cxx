@@ -443,7 +443,8 @@ void CommandOperationManager::printHelpInfo()
     cout << "   -arguments-help       explain how to read the help info for subcommands" << endl;
     cout << "   -version              print version information only" << endl;
     cout << "   -list-commands        print all non-information (processing) subcommands" << endl;
-    cout << "   -all-commands-help    print all non-information (processing) subcommands and their help info - VERY LONG" << endl;
+    cout << "   -all-commands-help    print all non-information (processing) subcommands and" << endl;
+    cout << "                            their help info - VERY LONG" << endl;
     cout << endl;
 }
 
