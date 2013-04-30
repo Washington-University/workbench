@@ -236,34 +236,7 @@ namespace caret {
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t brickIndex,
-                                        uint8_t rgbaOut[4]) const = 0;
-        
-        /**
-         * @return The type of volume file.
-         */
-        //virtual SubvolumeAttributes::VolumeType getType() const = 0;
-        
-        /**
-         * Get the value of a voxel at the given indices.
-         *
-         * @param indexIn1
-         *     First dimension (i).
-         * @param indexIn2
-         *     Second dimension (j).
-         * @param indexIn3
-         *     Third dimension (k).
-         * @param brickIndex
-         *     Time/map index (default 0).
-         * @param component
-         *     Index of the component in the voxel (default 0).
-         * @return
-         *     Value of date at the given voxel indices.
-         */
-        virtual const float& getValue(const int64_t& indexIn1,
-                                      const int64_t& indexIn2,
-                                      const int64_t& indexIn3,
-                                      const int64_t brickIndex = 0,
-                                      const int64_t component = 0) const = 0;
+                                        uint8_t rgbaOut[4]) const = 0;        
     };
     
 #ifdef __VOLUME_MAPPABLE_INTERFACE_DECLARE__

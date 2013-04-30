@@ -1478,45 +1478,6 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
 }
 
 /**
- * Get the value of a voxel at the given indices.
- *
- * @param indexIn1
- *     First dimension (i).
- * @param indexIn2
- *     Second dimension (j).
- * @param indexIn3
- *     Third dimension (k).
- * @param mapIndex
- *     Time/map index (default 0).
- * @param component
- *     Index of the component in the voxel (default 0).
- * @return
- *     Value of date at the given voxel indices.
- */
-const float&
-CiftiMappableDataFile::getValue(const int64_t& indexIn1,
-                              const int64_t& indexIn2,
-                              const int64_t& indexIn3,
-                              const int64_t mapIndex,
-                              const int64_t /*component*/) const
-{
-    CaretAssert(m_voxelIndicesToOffset);
-    const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
-                                                                           indexIn2,
-                                                                           indexIn3);
-    if (dataOffset >= 0) {
-        std::vector<float> data;
-        getMapData(mapIndex, data);
-        CaretAssertVectorIndex(data,
-                               dataOffset);
-        return data[dataOffset];
-    }
-    
-    static float zero = 0.0;
-    return zero;
-}
-
-/**
  * Get the unique label keys in the given map.
  * @param mapIndex
  *    Index of the map.
