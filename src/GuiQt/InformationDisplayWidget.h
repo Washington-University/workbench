@@ -30,6 +30,7 @@
 #include <QWidget>
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 class QAction;
 class QDoubleSpinBox;
@@ -72,6 +73,8 @@ namespace caret {
         
         void controlInPropertiesDialogChanged();
         
+        void identifyBrainordinateTriggered();
+        
     private:
         InformationDisplayWidget(const InformationDisplayWidget&);
 
@@ -96,6 +99,12 @@ namespace caret {
         QDoubleSpinBox* m_propertiesDialogSizeSpinBox;
         
         QDoubleSpinBox* m_propertiesDialogMostRecentSizeSpinBox;
+        
+        StructureEnum::Enum m_brainordinateEntryStructure;
+        
+        int32_t m_brainordinateEntryNodeIndex;
+        
+        int m_brainordinateEntryDialogPosition[2];
     };
     
 #ifdef __INFORMATION_DISPLAY_WIDGET_DECLARE__

@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <limits>
+
 #define __INFORMATION_DISPLAY_WIDGET_DECLARE__
 #include "InformationDisplayWidget.h"
 #undef __INFORMATION_DISPLAY_WIDGET_DECLARE__
@@ -30,9 +32,11 @@
 #include <QAction>
 #include <QBoxLayout>
 #include <QDoubleSpinBox>
+#include <QSpinBox>
 #include <QToolBar>
 
 #include "Brain.h"
+#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -43,6 +47,10 @@
 #include "HyperLinkTextBrowser.h"
 #include "IdentificationManager.h"
 #include "SceneClass.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionManager.h"
+#include "StructureEnumComboBox.h"
+#include "Surface.h"
 #include "WuQtUtilities.h"
 #include "WuQDataEntryDialog.h"
 
@@ -108,6 +116,12 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
                                                                         SLOT(volumeSliceIdentificationToggled(bool)));
     m_volumeSliceIdentificationAction->setCheckable(true);
     
+    QAction* identifySurfaceAction = WuQtUtilities::createAction("Select\nBrainordinate",
+                                                                 "Enter a brainordinate for identification",
+                                                                 this,
+                                                                 this,
+                                                                 SLOT(identifyBrainordinateTriggered()));
+    
     QObject::connect(m_informationTextBrowser, SIGNAL(copyAvailable(bool)),
                      copyAction, SLOT(setEnabled(bool)));
     copyAction->setEnabled(false);
@@ -133,6 +147,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
+    idToolBarRight->addAction(identifySurfaceAction);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
@@ -149,6 +164,14 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
      * There may already be identification text, so try to display it.
      */
     updateInformationDisplayWidget();
+    
+    /*
+     * Initialize for brainordinate entry
+     */
+    m_brainordinateEntryStructure = StructureEnum::INVALID;
+    m_brainordinateEntryNodeIndex = 0;
+    m_brainordinateEntryDialogPosition[0] = -1;
+    m_brainordinateEntryDialogPosition[1] = -1;
     
     /*
      * Use processed event listener since the text event
@@ -348,6 +371,55 @@ InformationDisplayWidget::controlInPropertiesDialogChanged()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Allow user to identify a brainordinate by structure/node index.
+ */
+void
+InformationDisplayWidget::identifyBrainordinateTriggered()
+{
+    WuQDataEntryDialog ded("Select Brainordinate",
+                           this);
+    
+    StructureEnumComboBox* structureComboBox = ded.addStructureEnumComboBox("Structure");
+    structureComboBox->listOnlyValidStructures();
+    structureComboBox->setSelectedStructure(m_brainordinateEntryStructure);
+    
+    QSpinBox* nodeIndexSpinBox = ded.addSpinBox("Node Index",
+                                                m_brainordinateEntryNodeIndex,
+                                                0,
+                                                std::numeric_limits<int32_t>::max());
+    ded.setDisplayedXY(m_brainordinateEntryDialogPosition);
+    
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        m_brainordinateEntryStructure = structureComboBox->getSelectedStructure();
+        m_brainordinateEntryNodeIndex = nodeIndexSpinBox->value();
+        
+        Brain* brain = GuiManager::get()->getBrain();
+        BrainStructure* bs = brain->getBrainStructure(m_brainordinateEntryStructure,
+                                                      false);
+        if (bs != NULL) {
+            if (m_brainordinateEntryNodeIndex < bs->getNumberOfNodes()) {
+                Surface* surface = bs->getVolumeInteractionSurface();
+                if (surface != NULL) {
+                    SelectionManager* selectionManager = brain->getSelectionManager();
+                    selectionManager->reset();
+                    SelectionItemSurfaceNode* nodeID = selectionManager->getSurfaceNodeIdentification();
+                    nodeID->setBrain(brain);
+                    nodeID->setNodeNumber(m_brainordinateEntryNodeIndex);
+                    nodeID->setSurface(surface);
+                    const float* fxyz = surface->getCoordinate(m_brainordinateEntryNodeIndex);
+                    const double xyz[3] = { fxyz[0], fxyz[1], fxyz[2] };
+                    nodeID->setModelXYZ(xyz);
+                    GuiManager::get()->processIdentification(selectionManager,
+                                                             &ded);
+                    
+                    m_brainordinateEntryDialogPosition[0] = ded.x();
+                    m_brainordinateEntryDialogPosition[1] = ded.y();
+                }
+            }
+        }
+    }
+}
 
 /**
  * Create a scene for an instance of a class.
