@@ -45,6 +45,8 @@ namespace caret {
         
         StructureEnum::Enum getSelectedStructure() const;
         
+        void listOnlyValidStructures();
+        
         QWidget* getWidget();
 
     public slots:

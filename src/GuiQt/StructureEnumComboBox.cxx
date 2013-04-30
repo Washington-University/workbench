@@ -27,6 +27,10 @@
 #include "StructureEnumComboBox.h"
 #undef __STRUCTURE_ENUM_COMBOBOX_DECLARE__
 
+#include "Brain.h"
+#include "BrainStructure.h"
+#include "GuiManager.h"
+
 using namespace caret;
 
 
@@ -66,6 +70,27 @@ StructureEnumComboBox::StructureEnumComboBox(QObject* parent)
 StructureEnumComboBox::~StructureEnumComboBox()
 {
     
+}
+
+/**
+ * Limit selections to those structures that are loaded.
+ */
+void
+StructureEnumComboBox::listOnlyValidStructures()
+{
+    this->structureComboBox->clear();
+    this->structureComboBox->blockSignals(true);
+    
+    const Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numStructures = brain->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numStructures; i++) {
+        const BrainStructure* bs = brain->getBrainStructure(i);
+        const StructureEnum::Enum structure = bs->getStructure();
+        this->structureComboBox->addItem(StructureEnum::toGuiName(structure));
+        this->structureComboBox->setItemData(i, StructureEnum::toIntegerCode(structure));
+    }
+    
+    this->structureComboBox->blockSignals(false);
 }
 
 /**
@@ -128,9 +153,12 @@ void
 StructureEnumComboBox::structureComboBoxSelection(int indx)
 {
     if (this->signalsBlocked() == false) {
-        const int32_t integerCode = this->structureComboBox->itemData(indx).toInt();
-        StructureEnum::Enum structure = StructureEnum::fromIntegerCode(integerCode, NULL);
-        emit structureSelected(structure);
+        if ((indx >= 0) &&
+            (indx < this->structureComboBox->count())) {
+            const int32_t integerCode = this->structureComboBox->itemData(indx).toInt();
+            StructureEnum::Enum structure = StructureEnum::fromIntegerCode(integerCode, NULL);
+            emit structureSelected(structure);
+        }
     }
     
 }
