@@ -397,6 +397,8 @@ void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata) throw (Ci
             {
                 *changemd = newmd;
             }
+        } else {
+            m_xml = xml;
         }
     } else {
         this->m_xml = xml;
