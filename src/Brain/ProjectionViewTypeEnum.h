@@ -52,10 +52,14 @@ public:
         PROJECTION_VIEW_LEFT_LATERAL,
         /** Viewing models from left medial */
         PROJECTION_VIEW_LEFT_MEDIAL,
+        /** Viewing model left flat surface */
+        PROJECTION_VIEW_LEFT_FLAT_SURFACE,
         /** Viewing models from right */
         PROJECTION_VIEW_RIGHT_LATERAL,
         /** Viewing models from right medial */
-        PROJECTION_VIEW_RIGHT_MEDIAL
+        PROJECTION_VIEW_RIGHT_MEDIAL,
+        /** Viewing model right flat surface */
+        PROJECTION_VIEW_RIGHT_FLAT_SURFACE
     };
 
 

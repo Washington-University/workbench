@@ -6259,6 +6259,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
     
     switch (projectionType) {
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
@@ -6266,6 +6267,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
             glOrtho(this->orthographicRight, this->orthographicLeft,
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicFar, this->orthographicNear);

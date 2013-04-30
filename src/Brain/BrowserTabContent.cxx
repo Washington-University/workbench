@@ -1276,7 +1276,8 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                                                   montageViewports);
                 
                 bool isValid = false;
-                bool isLeft = true;
+                bool isFlat  = false;
+                bool isLeft = false;
                 bool isLateral = true;
                 const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
                 for (int32_t ivp = 0; ivp < numViewports; ivp++) {
@@ -1286,17 +1287,27 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                         switch (smv.projectionViewType) {
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                                 isLeft = true;
+                                isLateral = true;
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
                                 isLeft = true;
                                 isLateral = false;
                                 break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                                isLeft = true;
+                                isFlat = true;
+                                break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
                                 isLeft = false;
+                                isLateral = true;
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
                                 isLeft = false;
                                 isLateral = false;
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                                isLeft = false;
+                                isFlat = true;
                                 break;
                         }
                         isValid = true;
@@ -1307,7 +1318,14 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                     }
                 }
                 
-                if (isValid) {
+                if (isFlat) {
+                    /*
+                     * No rotation.
+                     */
+                    dx = 0.0;
+                    dy = 0.0;
+                }
+                else if (isValid) {
                     if (isLeft == false) {
                         dx = -dx;
                     }
@@ -1467,7 +1485,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
             
             bool isValid = false;
             bool isLeft = true;
-            bool isLateral = true;
+            bool isLateral = false;
             const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
             for (int32_t ivp = 0; ivp < numViewports; ivp++) {
                 const SurfaceMontageViewport& smv = montageViewports[ivp];
@@ -1476,18 +1494,28 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                     switch (smv.projectionViewType) {
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                             isLeft = true;
+                            isLateral = true;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
                             isLeft = true;
                             isLateral = false;
                             break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                            isLeft = true;
+                            isLateral = true;
+                            break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
                             isLeft = false;
+                            isLateral = true;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
                             isLeft = false;
                             isLateral = false;
                             break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                            break;
+                            isLeft = false;
+                            isLateral = true;
                     }
                     isValid = true;
                 }
@@ -1514,6 +1542,9 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         }
         else {
             if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
+                dx = -dx;
+            }
+            else if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE) {
                 dx = -dx;
             }
             float translation[3];
@@ -1568,6 +1599,11 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
                 break;
             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
                 break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                rotationX =     0.0;
+                rotationY =     0.0;
+                rotationZ =     0.0;
+                break;
             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
                 rotationX = rotationFlippedX;
                 rotationY = rotationFlippedY;
@@ -1575,6 +1611,11 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
                 rotationX = rotationFlippedX;
                 rotationY = rotationFlippedY;
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                rotationX =   0.0;
+                rotationY = 180.0;
+                rotationZ =   0.0;
                 break;
         }
         
@@ -1839,8 +1880,18 @@ BrowserTabContent::getProjectionViewType() const
         const SurfaceFile* surfaceFile = modelSurface->getSurface();
         if (surfaceFile != NULL) {
             const StructureEnum::Enum structure = surfaceFile->getStructure();
+            const SurfaceTypeEnum::Enum surfaceType = surfaceFile->getSurfaceType();
             if (StructureEnum::isRight(structure)) {
                 projectionViewType = ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL;
+                if (surfaceType == SurfaceTypeEnum::FLAT) {
+                    projectionViewType = ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE;
+                }
+            }
+            else {
+                projectionViewType = ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL;
+                if (surfaceType == SurfaceTypeEnum::FLAT) {
+                    projectionViewType = ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE;
+                }
             }
         }
     }
