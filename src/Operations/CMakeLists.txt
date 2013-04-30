@@ -44,6 +44,7 @@ OperationMetricPalette.h
 OperationMetricVertexSum.h
 OperationProbtrackXDotConvert.h
 OperationSetMapName.h
+OperationSetMapNames.h
 OperationSetStructure.h
 OperationShowScene.h
 OperationSpecFileMerge.h
@@ -85,6 +86,7 @@ OperationMetricPalette.cxx
 OperationMetricVertexSum.cxx
 OperationProbtrackXDotConvert.cxx
 OperationSetMapName.cxx
+OperationSetMapNames.cxx
 OperationSetStructure.cxx
 OperationShowScene.cxx
 OperationSpecFileMerge.cxx

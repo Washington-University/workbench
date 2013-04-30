@@ -115,6 +115,7 @@
 #include "OperationMetricVertexSum.h"
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationSetMapName.h"
+#include "OperationSetMapNames.h"
 #include "OperationSetStructure.h"
 #include "OperationShowScene.h"
 #include "OperationSpecFileMerge.h"
@@ -277,6 +278,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapNames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     if (OperationShowScene::isShowSceneCommandAvailable()) {
         this->commandOperations.push_back(new CommandParser(new AutoOperationShowScene()));

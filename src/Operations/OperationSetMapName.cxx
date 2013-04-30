@@ -48,14 +48,15 @@ AString OperationSetMapName::getShortDescription()
 OperationParameters* OperationSetMapName::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "data-file", "the file to set the structure of");
+    ret->addStringParameter(1, "data-file", "the file to set a map name of");
     
     ret->addIntegerParameter(2, "index", "the map index to set the name of");
     
-    ret->addStringParameter(3, "name", "the structure to set the file to");
+    ret->addStringParameter(3, "name", "the name to set for the map");
     
     ret->setHelpText(
-        AString("Sets the name of a map for metric, shape, label, volume, or cifti scalar files.")
+        AString("DEPRECATED: this command will be removed in a future release, use -set-map-names.\n\n") +
+        "Sets the name of a map for metric, shape, label, volume, cifti scalar or cifti label files."
     );
     return ret;
 }
