@@ -885,12 +885,26 @@ SurfaceFile::matchSurfaceBoundingBox(const SurfaceFile* surfaceFile)
     /*
      * Scale to match size of match surface
      */
-    const float scaleX = (targetBoundingBox->getDifferenceX()
+    float scaleX = (targetBoundingBox->getDifferenceX()
                           / myBoundingBox->getDifferenceX());
-    const float scaleY = (targetBoundingBox->getDifferenceY()
+    float scaleY = (targetBoundingBox->getDifferenceY()
                           / myBoundingBox->getDifferenceY());
-    const float scaleZ = (targetBoundingBox->getDifferenceZ()
+    float scaleZ = (targetBoundingBox->getDifferenceZ()
                           / myBoundingBox->getDifferenceZ());
+    
+    if (getSurfaceType() == SurfaceTypeEnum::FLAT) {
+        /*
+         * For a flat surface, need to retain overall shape.
+         * Thus, just one scale factor that matches flat X-range
+         * to 3D Y-range.
+         */
+        const float scale = (targetBoundingBox->getDifferenceY()
+                             / myBoundingBox->getDifferenceX());
+        scaleX = scale;
+        scaleY = scale;
+        scaleZ = scale;
+    }
+    
     matrix.scale(scaleX,
                       scaleY,
                       scaleZ);
