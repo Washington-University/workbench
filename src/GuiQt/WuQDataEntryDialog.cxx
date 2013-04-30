@@ -42,7 +42,9 @@
 #include "StructureEnumComboBox.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQFactory.h"
 #include "WuQMessageBox.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -55,6 +57,9 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
                                        Qt::WindowFlags f)
    : WuQDialogModal(title, parent, f)
 {
+    m_displayedXY[0] = -1;
+    m_displayedXY[1] = -1;
+    
    //
    // Widget and Layout for user's widgets
    //
@@ -89,6 +94,33 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
+}
+
+/**
+ * Set the location for displaying the dialog.
+ * Must be called prior to exec().
+ */
+void
+WuQDataEntryDialog::setDisplayedXY(const int xy[2])
+{
+    m_displayedXY[0] = xy[0];
+    m_displayedXY[1] = xy[1];
+}
+
+/**
+ * Shows/hides a widget.
+ * Override to optionally place dialog via values passed to setDisplayedXY.
+ */
+void
+WuQDataEntryDialog::setVisible(bool visible)
+{
+    if ((m_displayedXY[0] >= 0)
+        && (m_displayedXY[1] >= 0)) {
+        move(m_displayedXY[0],
+             m_displayedXY[1]);
+    }
+    
+    WuQDialogModal::setVisible(visible);
 }
 
 /**
@@ -316,7 +348,7 @@ WuQDataEntryDialog::addComboBox(const QString& labelText,
    //
    // Create combo box
    //
-   QComboBox* comboBox = new QComboBox;
+    QComboBox* comboBox = WuQFactory::newComboBox();
    for (int i = 0; i < comboBoxItems.size(); i++) {
       QVariant userData;
       if (comboBoxItemsUserData != NULL) {
@@ -394,7 +426,7 @@ WuQDataEntryDialog::addSpinBox(const QString& labelText,
    //
    // Create spin box
    //
-   QSpinBox* sb = new QSpinBox;
+    QSpinBox* sb = WuQFactory::newSpinBox();
    sb->setMinimum(minimumValue);
    sb->setMaximum(maximumValue);
    sb->setSingleStep(singleStep);
@@ -422,7 +454,7 @@ WuQDataEntryDialog::addDoubleSpinBox(const QString& labelText,
    //
    // Create spin box
    //
-   QDoubleSpinBox* sb = new QDoubleSpinBox;
+    QDoubleSpinBox* sb = WuQFactory::newDoubleSpinBox();
    sb->setMinimum(minimumValue);
    sb->setMaximum(maximumValue);
    sb->setSingleStep(singleStep);
