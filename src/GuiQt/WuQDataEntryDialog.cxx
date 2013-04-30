@@ -114,13 +114,18 @@ WuQDataEntryDialog::setDisplayedXY(const int xy[2])
 void
 WuQDataEntryDialog::setVisible(bool visible)
 {
-    if ((m_displayedXY[0] >= 0)
-        && (m_displayedXY[1] >= 0)) {
-        move(m_displayedXY[0],
-             m_displayedXY[1]);
-    }
-    
     WuQDialogModal::setVisible(visible);
+
+    /*
+     * Only place dialog when it is made visible.
+     */
+    if (visible) {
+        if ((m_displayedXY[0] >= 0)
+            && (m_displayedXY[1] >= 0)) {
+            move(m_displayedXY[0],
+                 m_displayedXY[1]);
+        }
+    }
 }
 
 /**
