@@ -57,9 +57,6 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
                                        Qt::WindowFlags f)
    : WuQDialogModal(title, parent, f)
 {
-    m_displayedXY[0] = -1;
-    m_displayedXY[1] = -1;
-    
    //
    // Widget and Layout for user's widgets
    //
@@ -94,38 +91,6 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
-}
-
-/**
- * Set the location for displaying the dialog.
- * Must be called prior to exec().
- */
-void
-WuQDataEntryDialog::setDisplayedXY(const int xy[2])
-{
-    m_displayedXY[0] = xy[0];
-    m_displayedXY[1] = xy[1];
-}
-
-/**
- * Shows/hides a widget.
- * Override to optionally place dialog via values passed to setDisplayedXY.
- */
-void
-WuQDataEntryDialog::setVisible(bool visible)
-{
-    WuQDialogModal::setVisible(visible);
-
-    /*
-     * Only place dialog when it is made visible.
-     */
-    if (visible) {
-        if ((m_displayedXY[0] >= 0)
-            && (m_displayedXY[1] >= 0)) {
-            move(m_displayedXY[0],
-                 m_displayedXY[1]);
-        }
-    }
 }
 
 /**

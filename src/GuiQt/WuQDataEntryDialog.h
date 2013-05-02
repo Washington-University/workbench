@@ -65,8 +65,6 @@ namespace caret {
         // destructor
         ~WuQDataEntryDialog();
         
-        void setDisplayedXY(const int xy[2]);
-        
         // add widget to next available row in the dialog
         QWidget* addWidget(const QString& labelText,
                            QWidget* widget);
@@ -140,9 +138,6 @@ namespace caret {
         
         QWidget* getDataWidgetWithName(const QString& name);
         
-    public slots:
-        virtual void setVisible(bool);
-
     signals:
         /** 
          * This signal is emitted when the user presses the OK button.
@@ -176,8 +171,6 @@ namespace caret {
         
         /** Error message displayed when data is invalid */
         QString m_dataInvalidErrorMessage;
-        
-        int m_displayedXY[2];
     };
 } // namespace
 
