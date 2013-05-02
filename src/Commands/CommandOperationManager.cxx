@@ -39,6 +39,7 @@
 #include "AlgorithmCiftiExtrema.h"
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiMerge.h"
+#include "AlgorithmCiftiPairwiseCorrelation.h"
 #include "AlgorithmCiftiParcellate.h"
 #include "AlgorithmCiftiReduce.h"
 #include "AlgorithmCiftiReplaceStructure.h"
@@ -198,6 +199,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMerge()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiPairwiseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiParcellate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));

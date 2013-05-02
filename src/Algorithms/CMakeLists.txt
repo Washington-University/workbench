@@ -29,6 +29,7 @@ AlgorithmCiftiCrossCorrelation.h
 AlgorithmCiftiExtrema.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiMerge.h
+AlgorithmCiftiPairwiseCorrelation.h
 AlgorithmCiftiParcellate.h
 AlgorithmCiftiReduce.h
 AlgorithmCiftiReplaceStructure.h
@@ -93,6 +94,7 @@ AlgorithmCiftiCrossCorrelation.cxx
 AlgorithmCiftiExtrema.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiMerge.cxx
+AlgorithmCiftiPairwiseCorrelation.cxx
 AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReplaceStructure.cxx
