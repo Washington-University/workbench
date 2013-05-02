@@ -256,7 +256,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     this->clippingWidget = this->createClippingWidget();
-    this->chartWidget = this->createChartWidget();
+    // this->chartWidget = this->createChartWidget();
     
     /*
      * Layout the toolbar's widgets.

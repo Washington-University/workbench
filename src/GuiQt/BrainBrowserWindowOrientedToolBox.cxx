@@ -77,7 +77,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             orientation = Qt::Vertical;
             isOverlayToolBox = true;
             break;
-        case TOOL_BOX_CHARTS_HORIZONTAL:
+        /*case TOOL_BOX_CHARTS_HORIZONTAL:
             orientation = Qt::Horizontal;
             isChartsToolBox = true;
             toggleViewAction()->setText("Charts Toolbox");
@@ -86,7 +86,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             orientation = Qt::Vertical;
             isChartsToolBox = true;
             toggleViewAction()->setText("Charts Toolbox");
-            break;
+            break;*/
     }
     
     m_borderSelectionViewController = NULL;
@@ -134,12 +134,12 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_timeSeriesTabIndex = addToTabWidget(m_timeSeriesViewController,
                              "Data Series");
     }
-    if (1) {//isChartsToolBox) {
+    /*if (1) {//isChartsToolBox) {
         m_ChartSetViewController = new ChartSetViewController(orientation,
                                                         browserWindowIndex);
         m_chartTabIndex = addToTabWidget(m_ChartSetViewController,
                                                "Chart");                                                        
-    }
+    }*/
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                                 this);
