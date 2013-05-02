@@ -60,6 +60,7 @@ GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
+IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
@@ -178,6 +179,7 @@ GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
 HyperLinkTextBrowser.h
+IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
@@ -296,6 +298,7 @@ GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
+IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx

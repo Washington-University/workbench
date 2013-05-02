@@ -71,6 +71,14 @@ namespace caret {
         virtual int64_t loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                         const float xyz[3]) throw (DataFileException);
         
+        bool getStructureAndNodeIndexFromRowIndex(const int64_t rowIndex,
+                                                  StructureEnum::Enum& structureOut,
+                                                  int64_t& nodeIndexOut) const;
+
+        bool getVoxelIndexAndCoordinateFromRowIndex(const int64_t rowIndex,
+                                                    int64_t ijkOut[3],
+                                                    float xyzOut[3]) const;
+        
         virtual void clear();
         
         virtual bool isEmpty() const;

@@ -45,6 +45,8 @@ namespace caret {
         
         StructureEnum::Enum getSelectedStructure() const;
         
+        int count() const;
+        
         void listOnlyValidStructures();
         
         QWidget* getWidget();

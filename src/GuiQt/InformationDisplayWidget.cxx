@@ -46,6 +46,7 @@
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
 #include "IdentificationManager.h"
+#include "IdentifyBrainordinateDialog.h"
 #include "SceneClass.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionManager.h"
@@ -377,48 +378,51 @@ InformationDisplayWidget::controlInPropertiesDialogChanged()
 void
 InformationDisplayWidget::identifyBrainordinateTriggered()
 {
-    WuQDataEntryDialog ded("Select Brainordinate",
-                           this);
+    IdentifyBrainordinateDialog idd(this);
+    idd.exec();
     
-    StructureEnumComboBox* structureComboBox = ded.addStructureEnumComboBox("Structure");
-    structureComboBox->listOnlyValidStructures();
-    structureComboBox->setSelectedStructure(m_brainordinateEntryStructure);
-    
-    QSpinBox* nodeIndexSpinBox = ded.addSpinBox("Node Index",
-                                                m_brainordinateEntryNodeIndex,
-                                                0,
-                                                std::numeric_limits<int32_t>::max());
-    ded.setDisplayedXY(m_brainordinateEntryDialogPosition);
-    
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        m_brainordinateEntryStructure = structureComboBox->getSelectedStructure();
-        m_brainordinateEntryNodeIndex = nodeIndexSpinBox->value();
-        
-        Brain* brain = GuiManager::get()->getBrain();
-        BrainStructure* bs = brain->getBrainStructure(m_brainordinateEntryStructure,
-                                                      false);
-        if (bs != NULL) {
-            if (m_brainordinateEntryNodeIndex < bs->getNumberOfNodes()) {
-                Surface* surface = bs->getVolumeInteractionSurface();
-                if (surface != NULL) {
-                    SelectionManager* selectionManager = brain->getSelectionManager();
-                    selectionManager->reset();
-                    SelectionItemSurfaceNode* nodeID = selectionManager->getSurfaceNodeIdentification();
-                    nodeID->setBrain(brain);
-                    nodeID->setNodeNumber(m_brainordinateEntryNodeIndex);
-                    nodeID->setSurface(surface);
-                    const float* fxyz = surface->getCoordinate(m_brainordinateEntryNodeIndex);
-                    const double xyz[3] = { fxyz[0], fxyz[1], fxyz[2] };
-                    nodeID->setModelXYZ(xyz);
-                    GuiManager::get()->processIdentification(selectionManager,
-                                                             &ded);
-                    
-                    m_brainordinateEntryDialogPosition[0] = ded.x();
-                    m_brainordinateEntryDialogPosition[1] = ded.y();
-                }
-            }
-        }
-    }
+//    WuQDataEntryDialog ded("Select Brainordinate",
+//                           this);
+//    
+//    StructureEnumComboBox* structureComboBox = ded.addStructureEnumComboBox("Structure");
+//    structureComboBox->listOnlyValidStructures();
+//    structureComboBox->setSelectedStructure(m_brainordinateEntryStructure);
+//    
+//    QSpinBox* nodeIndexSpinBox = ded.addSpinBox("Node Index",
+//                                                m_brainordinateEntryNodeIndex,
+//                                                0,
+//                                                std::numeric_limits<int32_t>::max());
+//    ded.setDisplayedXY(m_brainordinateEntryDialogPosition);
+//    
+//    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+//        m_brainordinateEntryStructure = structureComboBox->getSelectedStructure();
+//        m_brainordinateEntryNodeIndex = nodeIndexSpinBox->value();
+//        
+//        Brain* brain = GuiManager::get()->getBrain();
+//        BrainStructure* bs = brain->getBrainStructure(m_brainordinateEntryStructure,
+//                                                      false);
+//        if (bs != NULL) {
+//            if (m_brainordinateEntryNodeIndex < bs->getNumberOfNodes()) {
+//                Surface* surface = bs->getVolumeInteractionSurface();
+//                if (surface != NULL) {
+//                    SelectionManager* selectionManager = brain->getSelectionManager();
+//                    selectionManager->reset();
+//                    SelectionItemSurfaceNode* nodeID = selectionManager->getSurfaceNodeIdentification();
+//                    nodeID->setBrain(brain);
+//                    nodeID->setNodeNumber(m_brainordinateEntryNodeIndex);
+//                    nodeID->setSurface(surface);
+//                    const float* fxyz = surface->getCoordinate(m_brainordinateEntryNodeIndex);
+//                    const double xyz[3] = { fxyz[0], fxyz[1], fxyz[2] };
+//                    nodeID->setModelXYZ(xyz);
+//                    GuiManager::get()->processIdentification(selectionManager,
+//                                                             &ded);
+//                    
+//                    m_brainordinateEntryDialogPosition[0] = ded.x();
+//                    m_brainordinateEntryDialogPosition[1] = ded.y();
+//                }
+//            }
+//        }
+//    }
 }
 
 /**

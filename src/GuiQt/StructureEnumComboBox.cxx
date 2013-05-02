@@ -73,6 +73,15 @@ StructureEnumComboBox::~StructureEnumComboBox()
 }
 
 /**
+ * @return Number of items in combo box.
+ */
+int
+StructureEnumComboBox::count() const
+{
+    return structureComboBox->count();
+}
+
+/**
  * Limit selections to those structures that are loaded.
  */
 void
