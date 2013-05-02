@@ -72,7 +72,8 @@ using namespace caret;
  */
 SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
                                          const std::vector<CiftiVolumeMap>& ciftiVoxelMapping)
-: CaretObject()
+: CaretObject(),
+ m_ciftiInterface(ciftiInterface)
 {
     m_dataValid = false;
     
@@ -88,33 +89,18 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
     int64_t ciftiDimensions[3];
     float ciftiOrigin[3];
     float ciftiSpacing[3];
-    if (ciftiInterface->getVolumeAttributesForPlumb(ciftiOrientation,
+    if (m_ciftiInterface->getVolumeAttributesForPlumb(ciftiOrientation,
                                                     ciftiDimensions,
                                                     ciftiOrigin,
                                                     ciftiSpacing) == false) {
-        CaretLogWarning("CIFTI Volume is no Plumb!");
+        CaretLogWarning("CIFTI Volume is not Plumb!");
         return;
     }
     
     m_dimI = ciftiDimensions[0];
     m_dimJ = ciftiDimensions[1];
     m_dimK = ciftiDimensions[2];
-    
-    m_spacingX = ciftiSpacing[0];
-    m_spacingY = ciftiSpacing[1];
-    m_spacingZ = ciftiSpacing[2];
-    
-    m_originX = ciftiOrigin[0];
-    m_originY = ciftiOrigin[1];
-    m_originZ = ciftiOrigin[2];
-    
-    /*
-     * Move origin from center to 'corner' of voxel
-     */
-    m_originX -= m_spacingX;
-    m_originY -= m_spacingY;
-    m_originZ -= m_spacingZ;
-    
+        
     const int64_t numberOfVoxels = (m_dimI * m_dimJ * m_dimK);
     if (numberOfVoxels <= 0) {
         return;
@@ -241,11 +227,14 @@ SparseVolumeIndexer::coordinateToIndices(const float x,
                                          int64_t& kOut) const
 {
     if (m_dataValid) {
-        iOut = static_cast<int64_t>(std::floor((x - m_originX) / m_spacingX));
-        jOut = static_cast<int64_t>(std::floor((y - m_originY) / m_spacingY));
-        kOut = static_cast<int64_t>(std::floor((z - m_originZ) / m_spacingZ));
-        
-        return true;
+        if (m_ciftiInterface != NULL) {
+            const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+            VolumeSpace volumeSpace;
+            if (ciftiXML.getVolumeSpace(volumeSpace)) {
+                volumeSpace.enclosingVoxel(x, y, z, iOut, jOut, kOut);
+                return true;
+            }
+        }
     }
     
     return false;
@@ -305,11 +294,14 @@ SparseVolumeIndexer::indicesToCoordinate(const int64_t i,
                                          float& zOut) const
 {
     if (m_dataValid) {
-        xOut = m_originX + i * m_spacingX;
-        yOut = m_originY + j * m_spacingY;
-        zOut = m_originZ + k * m_spacingZ;
-        
-        return true;
+        if (m_ciftiInterface != NULL) {
+            const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+            VolumeSpace volumeSpace;
+            if (ciftiXML.getVolumeSpace(volumeSpace)) {
+                volumeSpace.indexToSpace(i, j, k, xOut, yOut, zOut);
+                return true;
+            }
+        }
     }
     
     return false;

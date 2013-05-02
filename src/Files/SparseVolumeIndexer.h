@@ -104,19 +104,9 @@ namespace caret {
         
         int64_t m_dimK;
         
-        float m_spacingX;
-        
-        float m_spacingY;
-        
-        float m_spacingZ;
-        
-        float m_originX;
-        
-        float m_originY;
-        
-        float m_originZ;
-        
         CaretCompact3DLookup<int64_t> m_voxelIndexLookup;
+        
+        const CiftiInterface* m_ciftiInterface;
         
 //        std::vector<int32_t> m_voxelOffsets;
         
