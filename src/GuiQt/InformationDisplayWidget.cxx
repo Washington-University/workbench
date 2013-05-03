@@ -379,7 +379,7 @@ void
 InformationDisplayWidget::identifyBrainordinateTriggered()
 {
     IdentifyBrainordinateDialog idd(this);
-    idd.restoreWindowPositionFromLastDisplayedPosition();
+    idd.setSaveWindowPositionForNextTime();
     idd.exec();
     
 //    WuQDataEntryDialog ded("Select Brainordinate",

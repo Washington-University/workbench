@@ -58,6 +58,8 @@ WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
             parent, 
             f)
 {
+    m_isSaveDialogPosition = false;
+    
     this->getDialogButtonBox()->addButton(QDialogButtonBox::Ok);
     this->getDialogButtonBox()->addButton(QDialogButtonBox::Cancel);
     
@@ -261,5 +263,82 @@ WuQDialogModal::addUserPushButton(const AString& text,
                                                               buttonRole);
     return pushButton;
 }
+
+/**
+ * If this method is called, each time the dialog is closed, it will
+ * save the position of the dialog and restore the dialog to that
+ * position when the dialog is reopened.
+ *
+ * @param savePositionName
+ *    Name used for saving the dialog's position.  If the default value
+ *    (an empty string), the dialog's title is used for saving the
+ *    dialog's position.  Note that is there is more than one dialog
+ *    with the same name positions may not be correctly restored.
+ */
+void
+WuQDialogModal::setSaveWindowPositionForNextTime(const AString& savePositionName)
+{
+    m_isSaveDialogPosition = true;
+    m_saveDialogPositionName = savePositionName;
+    if (m_saveDialogPositionName.isEmpty()) {
+        m_saveDialogPositionName = windowTitle();
+        if (m_saveDialogPositionName.isEmpty()) {
+            m_isSaveDialogPosition = false;
+        }
+    }
+}
+
+/**
+ * Shows/hides a widget.
+ * Override to optionally place dialog via values passed to setDisplayedXY.
+ */
+void
+WuQDialogModal::setVisible(bool visible)
+{
+    WuQDialog::setVisible(visible);
+    
+    if (m_isSaveDialogPosition) {
+        /*
+         * Find previous position of dialog.
+         */
+        std::map<QString, SavedPosition>::iterator iter = s_savedDialogPositions.find(m_saveDialogPositionName);
+        
+        if (visible) {
+            if (iter != s_savedDialogPositions.end()) {
+                /*
+                 * Restore dialog position
+                 */
+                SavedPosition savedPosition = iter->second;
+                if ((savedPosition.x > 0)
+                    && (savedPosition.y > 0)) {
+                    move(savedPosition.x,
+                         savedPosition.y);
+                }
+            }
+        }
+        else {
+            /*
+             * Save position of dialog.
+             */
+            SavedPosition savedPosition;
+            savedPosition.x = x();
+            savedPosition.y = y();
+            if (iter != s_savedDialogPositions.end()) {
+                /*
+                 * Replace dialog position
+                 */
+                iter->second = savedPosition;
+            }
+            else {
+                /*
+                 * Insert dialog position
+                 */
+                s_savedDialogPositions.insert(std::make_pair(m_saveDialogPositionName,
+                                                             savedPosition));
+            }
+        }
+    }
+}
+
 
 

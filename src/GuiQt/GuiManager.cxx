@@ -1039,7 +1039,7 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
     if (this->m_surfacePropertiesEditorDialog == NULL) {
         m_surfacePropertiesEditorDialog = new SurfacePropertiesEditorDialog(browserWindow);
         this->nonModalDialogs.push_back(m_surfacePropertiesEditorDialog);
-        m_surfacePropertiesEditorDialog->setSavePositionForNextTime(true);
+        m_surfacePropertiesEditorDialog->setSaveWindowPositionForNextTime(true);
         wasCreatedFlag = true;
     }
     m_surfacePropertiesEditorDialog->setVisible(true);
@@ -1113,7 +1113,7 @@ GuiManager::showHideSceneDialog(const bool status,
             }
             
             this->sceneDialog = new SceneDialog(sceneDialogParent);
-            this->sceneDialog->setSavePositionForNextTime(true);
+            this->sceneDialog->setSaveWindowPositionForNextTime(true);
             this->nonModalDialogs.push_back(this->sceneDialog);
             QObject::connect(this->sceneDialog, SIGNAL(dialogWasClosed()),
                              this, SLOT(sceneDialogWasClosed()));
@@ -1250,7 +1250,7 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
             this->nonModalDialogs.push_back(m_informationDisplayDialog);
             
             m_informationDisplayDialog->resize(600, 200);
-            m_informationDisplayDialog->setSavePositionForNextTime(true);
+            m_informationDisplayDialog->setSaveWindowPositionForNextTime(true);
             WuQtUtilities::moveWindowToSideOfParent(parentWindow,
                                                     m_informationDisplayDialog);
         }

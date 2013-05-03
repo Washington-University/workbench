@@ -251,7 +251,7 @@ WuQDialogNonModal::setCloseButtonText(const AString& text)
  *   If true save the position for next time.
  */
 void 
-WuQDialogNonModal::setSavePositionForNextTime(const bool saveIt)
+WuQDialogNonModal::setSaveWindowPositionForNextTime(const bool saveIt)
 {
     this->isPositionRestoredWhenReopened = saveIt;
 }

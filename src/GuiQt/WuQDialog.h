@@ -78,13 +78,9 @@ namespace caret  {
         
         static void showNormalCursor();
         
-        void restoreWindowPositionFromLastDisplayedPosition(const AString& savePositionName = "");
-        
     public slots:
 
         virtual bool close();
-        
-        virtual void setVisible(bool);
         
     protected slots:
 
@@ -123,19 +119,9 @@ namespace caret  {
         
         bool autoDefaultProcessingEnabledFlag;
         
-        bool m_isSaveDialogPosition;
-        AString m_saveDialogPositionName;
-        
-        struct SavedPosition {
-            int x;
-            int y;
-        };
-        
-        static std::map<QString, SavedPosition> s_savedDialogPositions;
     };
 
 #ifdef __WU_QDIALOG_DECLARE__
-    std::map<QString, WuQDialog::SavedPosition> WuQDialog::s_savedDialogPositions;
 #endif // __WU_QDIALOG_DECLARE__
 }
 

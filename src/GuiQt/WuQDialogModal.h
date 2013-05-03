@@ -51,6 +51,8 @@ namespace caret {
         QPushButton* addUserPushButton(const AString& text,
                                        const QDialogButtonBox::ButtonRole buttonRole);
         
+        void setSaveWindowPositionForNextTime(const AString& savePositionName = "");
+    
     protected:
         virtual void okButtonClicked();
         
@@ -69,7 +71,10 @@ namespace caret {
         };
         
         virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
-        
+   
+    public slots:
+        virtual void setVisible(bool);
+
     private slots:
         void clicked(QAbstractButton* button);
         
@@ -79,10 +84,19 @@ namespace caret {
         WuQDialogModal& operator=(const WuQDialogModal&);
     private:
         
+        bool m_isSaveDialogPosition;
+        AString m_saveDialogPositionName;
+        
+        struct SavedPosition {
+            int x;
+            int y;
+        };
+        
+        static std::map<QString, SavedPosition> s_savedDialogPositions;
     };
     
 #ifdef __WU_Q_DIALOG_MODAL_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::map<QString, WuQDialogModal::SavedPosition> WuQDialogModal::s_savedDialogPositions;
 #endif // __WU_Q_DIALOG_MODAL_DECLARE__
 
 } // namespace

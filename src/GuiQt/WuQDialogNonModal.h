@@ -45,7 +45,7 @@ namespace caret {
         /** May be called requesting the dialog to update its content */
         virtual void updateDialog() = 0;
         
-        void setSavePositionForNextTime(const bool saveIt);
+        void setSaveWindowPositionForNextTime(const bool saveIt);
         
         QPushButton* addUserPushButton(const AString& text,
                                        const QDialogButtonBox::ButtonRole buttonRole);
