@@ -50,6 +50,12 @@ namespace caret {
         QPushButton* addUserPushButton(const AString& text,
                                        const QDialogButtonBox::ButtonRole buttonRole);
         
+    signals:
+        /**
+         * This signal is emitted when the dialog is closed (hidden).
+         */
+        void dialogWasClosed();
+        
     protected slots:
         void apply();
         

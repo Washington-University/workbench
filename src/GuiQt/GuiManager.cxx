@@ -154,7 +154,30 @@ GuiManager::GuiManager(QObject* parent)
     this->showHideInfoWindowSelected(m_informationDisplayDialogEnabledAction->isChecked());
     m_informationDisplayDialogEnabledAction->setIconText("Info"); 
     m_informationDisplayDialogEnabledAction->blockSignals(false);
-        
+    
+    /*
+     * Scene dialog action
+     */
+    m_sceneDialogDisplayAction = WuQtUtilities::createAction("Scenes...",
+                                                             "Show/Hide the Scenes Window",
+                                                             this,
+                                                             this,
+                                                             SLOT(sceneDialogDisplayActionToggled(bool)));
+    QIcon clapBoardIcon;
+    const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/toolbar_clapboard_icon.png",
+                                                            clapBoardIcon);
+    if (clapBoardIconValid) {
+        m_sceneDialogDisplayAction->setIcon(clapBoardIcon);
+        m_sceneDialogDisplayAction->setIconVisibleInMenu(false);
+    }
+    else {
+        m_sceneDialogDisplayAction->setIconText("Scenes");
+    }
+    m_sceneDialogDisplayAction->blockSignals(true);
+    m_sceneDialogDisplayAction->setCheckable(true);
+    m_sceneDialogDisplayAction->setChecked(false);
+    m_sceneDialogDisplayAction->blockSignals(false);
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
@@ -1029,6 +1052,106 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
     }
 }
 
+/**
+ * @return The action for showing/hiding the scene dialog.
+ */
+QAction*
+GuiManager::getSceneDialogDisplayAction()
+{
+    return m_sceneDialogDisplayAction;
+}
+
+/**
+ * Gets called when the scene dialog action is toggled.
+ *
+ * @param status
+ *    New status (true display dialog, false hide it).
+ */
+void
+GuiManager::sceneDialogDisplayActionToggled(bool status)
+{
+    showHideSceneDialog(status,
+                        NULL);
+}
+
+/**
+ * Gets called by the scene dialog when the scene dialog is closed.
+ * Ensures that the scene dialog display action status remains
+ * synchronized with the displayed status of the scene dialog.
+ */
+void
+GuiManager::sceneDialogWasClosed()
+{
+    m_sceneDialogDisplayAction->blockSignals(true);
+    m_sceneDialogDisplayAction->setChecked(false);
+    m_sceneDialogDisplayAction->blockSignals(false);
+}
+
+/**
+ * Show or hide the scene dialog.
+ *
+ * @param status
+ *     True means show, false means hide.
+ * @param parentBrainBrowserWindow
+ *     If this is not NULL, and the scene dialog needs to be created,
+ *     use this window as the parent and place the dialog next to this
+ *     window.
+ */
+void
+GuiManager::showHideSceneDialog(const bool status,
+                                BrainBrowserWindow* parentBrainBrowserWindow)
+{
+    bool dialogWasCreated = false;
+    
+    QWidget* moveWindowParent = parentBrainBrowserWindow;
+    
+    if (status) {
+        if (this->sceneDialog == NULL) {
+            BrainBrowserWindow* sceneDialogParent = parentBrainBrowserWindow;
+            if (sceneDialogParent == NULL) {
+                sceneDialogParent = getActiveBrowserWindow();
+            }
+            
+            this->sceneDialog = new SceneDialog(sceneDialogParent);
+            this->sceneDialog->setSavePositionForNextTime(true);
+            this->nonModalDialogs.push_back(this->sceneDialog);
+            QObject::connect(this->sceneDialog, SIGNAL(dialogWasClosed()),
+                             this, SLOT(sceneDialogWasClosed()));
+            
+            dialogWasCreated = true;
+            
+            /*
+             * If there was no parent dialog for placement of the scene
+             * dialog and there is only one browser window, use the browser 
+             * for placement of the scene dialog.
+             */
+            if (moveWindowParent == NULL) {
+                if (getAllOpenBrainBrowserWindows().size() == 1) {
+                    moveWindowParent = sceneDialogParent;
+                }
+            }
+        }
+        
+        this->sceneDialog->setVisible(true);
+        this->sceneDialog->show();
+        this->sceneDialog->activateWindow();
+    }
+    else {
+        this->sceneDialog->close();
+    }
+ 
+    if (dialogWasCreated) {
+        if (moveWindowParent != NULL) {
+            WuQtUtilities::moveWindowToSideOfParent(moveWindowParent,
+                                                    this->sceneDialog);
+        }
+    }
+    
+    m_sceneDialogDisplayAction->blockSignals(true);
+    m_sceneDialogDisplayAction->setChecked(status);
+    m_sceneDialogDisplayAction->blockSignals(false);
+}
+
 
 /**
  * Show the scene dialog.  If dialog needs to be created, use the
@@ -1039,25 +1162,8 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
 void 
 GuiManager::processShowSceneDialog(BrainBrowserWindow* browserWindowIn)
 {
-    bool wasCreatedFlag = false;
-
-    BrainBrowserWindow* browserWindow = browserWindowIn;
-    
-    if (this->sceneDialog == NULL) {
-            this->sceneDialog = new SceneDialog(browserWindow);
-            this->nonModalDialogs.push_back(this->sceneDialog);
-//            this->sceneDialog->resize(600, 200);
-            this->sceneDialog->setSavePositionForNextTime(true);
-        wasCreatedFlag = true;
-    }
-    this->sceneDialog->setVisible(true);
-    this->sceneDialog->show();
-    this->sceneDialog->activateWindow();
-    
-    if (wasCreatedFlag) {
-        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
-                                                this->sceneDialog);
-    }
+    showHideSceneDialog(true,
+                        browserWindowIn);
 }
 
 /**
@@ -1077,11 +1183,14 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
                                            SceneFile* sceneFile,
                                            Scene* scene)
 {
-    processShowSceneDialog(browserWindow);
+    showHideSceneDialog(true,
+                        browserWindow);
+    
     const bool sceneWasDisplayed = this->sceneDialog->displayScene(sceneFile,
-                                    scene);
+                                                                   scene);
     if (sceneWasDisplayed) {
-        this->sceneDialog->close();
+        showHideSceneDialog(false,
+                            NULL);
     }
 }
 

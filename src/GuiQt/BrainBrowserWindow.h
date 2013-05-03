@@ -158,8 +158,7 @@ namespace caret {
         void processConnectToConnectomeDataBase();
         
         void processHcpWebsiteInBrowser();
-                
-        void processShowSceneDialog();
+        
         void processShowSurfacePropertiesDialog();
         
         void processGraphicsTiming();
@@ -255,8 +254,6 @@ namespace caret {
         QAction* m_exitProgramAction;
         
         QAction* m_showToolBarAction;
-        
-        QAction* m_showSceneDialogAction;
         
         QActionGroup* m_viewScreenActionGroup;
         QAction* m_viewScreenNormalAction;

@@ -96,6 +96,8 @@ WuQDialogNonModal::closeEvent(QCloseEvent* event)
     }
     
     WuQDialog::closeEvent(event);
+    
+    emit dialogWasClosed();
 }
 
 /**

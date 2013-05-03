@@ -110,6 +110,8 @@ namespace caret {
         
         QAction* getInformationDisplayDialogEnabledAction();
         
+        QAction* getSceneDialogDisplayAction();
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
@@ -163,6 +165,11 @@ namespace caret {
         
         void showHideInfoWindowSelected(bool);
         
+        void sceneDialogDisplayActionToggled(bool);
+        
+    private slots:
+        void sceneDialogWasClosed();
+        
     private:
         GuiManager(QObject* parent = 0);
         
@@ -177,6 +184,9 @@ namespace caret {
                                                   const bool createDefaultTabs);
         
         void reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow);
+        
+        void showHideSceneDialog(const bool status,
+                                 BrainBrowserWindow* parentBrainBrowserWindow);
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
@@ -211,6 +221,8 @@ namespace caret {
         InformationDisplayDialog* m_informationDisplayDialog;
         
         SceneDialog* sceneDialog;
+        
+        QAction* m_sceneDialogDisplayAction;
         
         SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
         
