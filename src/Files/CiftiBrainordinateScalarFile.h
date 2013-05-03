@@ -40,7 +40,6 @@
 namespace caret {
 
     class CiftiBrainordinateScalarFile : public CiftiMappableDataFile {
-//    class CiftiBrainordinateScalarFile : public CiftiBrainordinateFile {
     
     public:
         CiftiBrainordinateScalarFile();

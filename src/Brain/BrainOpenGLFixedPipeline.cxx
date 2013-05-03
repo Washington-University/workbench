@@ -61,7 +61,6 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "CiftiBrainordinateFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiFiberOrientationFile.h"
@@ -2307,7 +2306,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
                     VolumeMappableInterface* vf = NULL;
-                    CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(mapFile);
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
                     CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(mapFile);
                     if (connLoadFile != NULL) {
@@ -2315,10 +2313,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                     }
                     else if (ciftiMatrixFile != NULL) {
                         vf = ciftiMatrixFile->getMapVolume(mapIndex);
-                    }
-                    else if (ciftiBrainFile != NULL) {
-                        vf = ciftiBrainFile->getMapVolume(mapIndex);
-
                     }
                     else {
                         vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
@@ -3147,7 +3141,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             /*
              * Get colors for all voxels in the slice.
              */
-            CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(volInfo.mapFile);
             ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
             CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
             if (connLoadFile != NULL) {
@@ -3163,122 +3156,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                                 slicePlane,
                                                 drawingSliceIndex,
                                                 sliceVoxelsRGBA);
-            }
-            else if (ciftiBrainFile != NULL) {
-                VolumeFile* vf = ciftiBrainFile->getMapVolume(mapIndex);
-                vf->getVoxelColorsForSliceInMap(0,
-                                                slicePlane,
-                                                drawingSliceIndex,
-                                                sliceVoxelsRGBA);
-                
-                CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(ciftiBrainFile);
-                if (ciftiLabelFile != NULL) {
-                    /*
-                     * Slice values
-                     */
-                    std::vector<float> sliceValuesVector(numVoxelsInSlice);
-                    float* sliceValues = &sliceValuesVector[0];
-                    vf->getVoxelValuesForSliceInMap(0, // always use 0 for map index since volume is in map
-                                                    slicePlane,
-                                                    drawingSliceIndex,
-                                                    sliceValues);
-                    
-                    
-                    /*
-                     * Use label table from the CIFTI lable file
-                     */
-                    GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
-                    
-                    /*
-                     * Set alpha to zero for any labels that are not displayed.
-                     */
-                    for (int64_t iVoxel = 0; iVoxel < numVoxelsInSlice; iVoxel++) {
-                        const int64_t alphaIndex = iVoxel * 4 + 3;
-                        if (sliceVoxelsRGBA[alphaIndex] > 0) {
-                            const int32_t labelKey = static_cast<int32_t>(sliceValues[iVoxel]);
-                            const GiftiLabel* label = labelTable->getLabel(labelKey);
-                            if (label != NULL) {
-                                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                                if (item != NULL) {
-                                    if (item->isSelected(displayGroup,
-                                                         browserTabIndex) == false) {
-                                        sliceVoxelsRGBA[alphaIndex] = 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    /* 
-                     * DISABLE AT THIS TIME.
-                     *   AT THIS TIME, THE UNDERLAY FOR VOLUME SLICES CANNOT
-                     *   BE A CIFI FILE SINCE IT IS NOT A VOLUME FILE.  SO
-                     *   FINDING A VOXEL THAT IS INSIDE A LABEL IS NEARLY 
-                     *   IMPOSSIBLE.
-                     */
-                    if (isOutlineMode) {
-                        isOutlineMode = false;
-                        CaretLogWarning("CIFTI LABEL OUTLINE ON VOLUME SLICES IS DISABLED BECAUSE IT DOES NOT WORK AND IS TOO DIFFICULAT TO DEBUG SINCE CIFTI FILES CANNOT BE THE UNDERLAY VOLUME");
-                    }
-                    if (isOutlineMode) {
-                        int32_t numRows = 0;
-                        int32_t numCols = 0;
-                        switch (slicePlane) {
-                            case VolumeSliceViewPlaneEnum::ALL:
-                                CaretAssert(0);
-                                break;
-                            case VolumeSliceViewPlaneEnum::AXIAL:
-                                numRows = numSliceVoxelsI - 1;
-                                numCols = numSliceVoxelsJ - 1;
-                                break;
-                            case VolumeSliceViewPlaneEnum::CORONAL:
-                                numRows = numSliceVoxelsI - 1;
-                                numCols = numSliceVoxelsK - 1;
-                                break;
-                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                numRows = numSliceVoxelsJ - 1;
-                                numCols = numSliceVoxelsK - 1;
-                                break;
-                        }
-                        const int32_t numRowsM1 = numRows - 1;
-                        const int32_t numColsM1 = numCols - 1;
-                        
-                        for (int32_t j = 1; j < numRowsM1; j++) {
-                            for (int32_t i = 1; i < numColsM1; i++) {
-                                const int32_t offset = (numCols * j) + i;
-                                CaretAssert(offset < numVoxelsInSlice);
-                                const int32_t alphaIndex = (offset * 4) + 3;
-                                CaretAssert(alphaIndex< numVoxelsInSliceRGBA);
-                                if (sliceVoxelsRGBA[alphaIndex] > 0.0) {
-                                    const float value = sliceValues[offset];
-                                    
-                                    bool allTheSame = true;
-                                    for (int32_t jNeigh = (j - 1); jNeigh <= (j + 1); jNeigh++) {
-                                        for (int32_t iNeigh = (i - 1); iNeigh <= (i + 1); iNeigh++) {
-                                            if (iNeigh != jNeigh) {
-                                                const int32_t offsetIJ = (numCols * jNeigh) + iNeigh;
-                                                CaretAssert(offsetIJ < numVoxelsInSlice);
-                                                if (sliceValues[offsetIJ] != value) {
-                                                    allTheSame = false;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                        if (allTheSame == false) {
-                                            break;
-                                        }
-                                    }
-                                    
-                                    if (allTheSame) {
-                                        sliceVoxelsRGBA[alphaIndex] = 0;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-
             }
             else {
                 volumeFile->getVoxelColorsForSliceInMap(mapIndex,
@@ -3721,7 +3598,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         const float dy = y1 - originY;
         const float dz = z1 - originZ;
         
-        CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(volInfo.mapFile);
         ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
         CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
 
@@ -3739,14 +3615,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                     }
                     else if (ciftiMatrixFile != NULL) {
                         VolumeFile* vf = ciftiMatrixFile->getMapVolume(volInfo.mapIndex);
-                        vf->getVoxelColorInMap(iVoxel,
-                                               jVoxel,
-                                               kVoxel,
-                                               0,
-                                               rgba);
-                    }
-                    else if (ciftiBrainFile != NULL) {
-                        VolumeFile* vf = ciftiBrainFile->getMapVolume(volInfo.mapIndex);
                         vf->getVoxelColorInMap(iVoxel,
                                                jVoxel,
                                                kVoxel,
@@ -4072,7 +3940,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
 //                            valid = true;
 //                        }
                     
-                        CiftiBrainordinateFile* ciftiBrainFile = dynamic_cast<CiftiBrainordinateFile*>(volInfo.mapFile);
                         ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
                         CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
                         
@@ -4090,17 +3957,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                         }
                         else if (ciftiMatrixFile != NULL) {
                             VolumeFile* vol = ciftiMatrixFile->getMapVolume(volInfo.mapIndex);
-                            if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
-                                valid = true;
-                                vol->getVoxelColorInMap(iVoxel,
-                                                        jVoxel,
-                                                        kVoxel,
-                                                        0,
-                                                        rgba);
-                            }
-                        }
-                        else if (ciftiBrainFile != NULL) {
-                            VolumeFile* vol = ciftiBrainFile->getMapVolume(volInfo.mapIndex);
                             if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
                                 valid = true;
                                 vol->getVoxelColorInMap(iVoxel,

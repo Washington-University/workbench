@@ -31,7 +31,6 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
-#include "CiftiBrainordinateFile.h"
 #include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
@@ -246,37 +245,6 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
 //            }
 //        }
         
-        std::vector<CiftiBrainordinateFile*> allCiftiBrainordinatesFiles;
-        brain->getAllCiftiBrainordinateFiles(allCiftiBrainordinatesFiles);
-        for (std::vector<CiftiBrainordinateFile*>::iterator connMatIter = allCiftiBrainordinatesFiles.begin();
-             connMatIter != allCiftiBrainordinatesFiles.end();
-             connMatIter++) {
-            const CiftiBrainordinateFile* cbf = *connMatIter;
-            if (cbf->isEmpty() == false) {
-                const int numMaps = cbf->getNumberOfMaps();
-                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                    AString textValue;
-                    int64_t voxelIJK[3];
-                    if (cbf->getMapVolumeVoxelValue(iMap,
-                                                    xyz,
-                                                    voxelIJK,
-                                                    textValue)) {
-                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cbf->getDataFileType())
-                                            + " "
-                                            + cbf->getFileNameNoPath()
-                                            + " IJK ("
-                                            + AString::number(voxelIJK[0])
-                                            + ", "
-                                            + AString::number(voxelIJK[1])
-                                            + ", "
-                                            + AString::number(voxelIJK[2])
-                                            + ")  ");
-                        idText.addLine(true, boldText, textValue);                        
-                    }
-                }
-            }
-        }
-        
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
         for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
@@ -396,25 +364,6 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
 //            }
 //        }
         
-        std::vector<CiftiBrainordinateFile*> allCiftiBrainordinatesFiles;
-        brain->getAllCiftiBrainordinateFiles(allCiftiBrainordinatesFiles);
-        for (std::vector<CiftiBrainordinateFile*>::iterator connMatIter = allCiftiBrainordinatesFiles.begin();
-             connMatIter != allCiftiBrainordinatesFiles.end();
-             connMatIter++) {
-            const CiftiBrainordinateFile* cbf = *connMatIter;
-            if (cbf->isEmpty() == false) {
-                const int numMaps = cbf->getNumberOfMaps();
-                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                    AString textValue;
-                    if (cbf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
-                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cbf->getDataFileType())
-                                            + " "
-                                            + cbf->getFileNameNoPath());
-                        idText.addLine(true, boldText, textValue);
-                    }
-                }
-            }
-        }
         
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);

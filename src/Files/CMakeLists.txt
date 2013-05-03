@@ -28,7 +28,6 @@ CaretDataFile.h
 CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
-CiftiBrainordinateFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
 CiftiConnectivityMatrixDataFile.h
@@ -107,7 +106,6 @@ CaretDataFile.cxx
 CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
-CiftiBrainordinateFile.cxx
 CiftiBrainordinateLabelFile.cxx
 CiftiBrainordinateScalarFile.cxx
 CiftiConnectivityMatrixDataFile.cxx

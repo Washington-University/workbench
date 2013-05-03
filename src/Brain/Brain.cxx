@@ -35,7 +35,6 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
-#include "CiftiBrainordinateFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
@@ -1908,28 +1907,6 @@ void
 Brain::getConnectivityDenseLabelFiles(std::vector<CiftiBrainordinateLabelFile*>& connectivityDenseLabelFilesOut) const
 {
     connectivityDenseLabelFilesOut = m_connectivityDenseLabelFiles;
-}
-
-/**
- * Get all of the CIFTI Brainordinate Files.
- * @param allCiftiBrainordinateFilesOut
- *    Contains all CIFTI Brainordinate files upon exit.
- */
-void
-Brain::getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const
-{
-    allCiftiBrainordinateFilesOut.clear();
-    std::vector<CaretDataFile*> allFiles;
-    getAllDataFiles(allFiles);
-    
-    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
-         iter != allFiles.end();
-         iter++) {
-        CiftiBrainordinateFile* cbf = dynamic_cast<CiftiBrainordinateFile*>(*iter);
-        if (cbf != NULL) {
-            allCiftiBrainordinateFilesOut.push_back(cbf);
-        }
-    }
 }
 
 /**

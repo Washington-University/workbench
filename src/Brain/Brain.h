@@ -43,7 +43,6 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
-    class CiftiBrainordinateFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDataFile;
@@ -216,8 +215,6 @@ namespace caret {
         
         int32_t getNumberOfConnectivityDenseLabelFiles() const;
         
-        void getAllCiftiBrainordinateFiles(std::vector<CiftiBrainordinateFile*>& allCiftiBrainordinateFilesOut) const;
-
         CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx);
         
         const CiftiBrainordinateLabelFile* getConnectivityDenseLabelFile(int32_t indx) const;

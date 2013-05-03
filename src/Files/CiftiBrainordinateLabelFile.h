@@ -35,13 +35,11 @@
 /*LICENSE_END*/
 
 
-//#include "CiftiBrainordinateFile.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
 
     class CiftiBrainordinateLabelFile : public CiftiMappableDataFile {
-//    class CiftiMappableDataFile : public CiftiBrainordinateFile {
         
     public:
         CiftiBrainordinateLabelFile();

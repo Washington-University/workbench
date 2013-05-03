@@ -57,7 +57,6 @@ CiftiBrainordinateScalarFile::CiftiBrainordinateScalarFile()
                         CIFTI_INDEX_TYPE_BRAIN_MODELS,
                         CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
                         CiftiMappableDataFile::DATA_ACCESS_INVALID)
-//: CiftiBrainordinateFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
 {
     
 }

@@ -50,7 +50,6 @@ using namespace caret;
  * Constructor.
  */
 CiftiBrainordinateLabelFile::CiftiBrainordinateLabelFile()
-//: CiftiBrainordinateFile(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL)
 : CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
                         CiftiMappableDataFile::FILE_READ_DATA_ALL,
                         CIFTI_INDEX_TYPE_LABELS,
