@@ -59,7 +59,9 @@ using namespace caret;
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
-    
+
+#include <limits>
+
 /**
  * \class caret::IdentifyBrainordinateDialog 
  * \brief Dialog that allows user to enter brainordinate and get info on it
