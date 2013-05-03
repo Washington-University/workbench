@@ -625,15 +625,6 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     }
     
     int32_t numberOfTabsNeeded = 0;
-    if (leftSurfaceController != NULL) {
-        numberOfTabsNeeded++;
-    }
-    if (rightSurfaceController != NULL) {
-        numberOfTabsNeeded++;
-    }
-    if (cerebellumSurfaceController != NULL) {
-        numberOfTabsNeeded++;
-    }
     if (surfaceMontageController != NULL) {
         numberOfTabsNeeded++;
     }
@@ -641,6 +632,15 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         numberOfTabsNeeded++;
     }
     if (wholeBrainController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (leftSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (rightSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (cerebellumSurfaceController != NULL) {
         numberOfTabsNeeded++;
     }
     
@@ -652,17 +652,17 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     
     int32_t tabIndex = 0;
     tabIndex = loadIntoTab(tabIndex,
-                           leftSurfaceController);
-    tabIndex = loadIntoTab(tabIndex,
-                           rightSurfaceController);
-    tabIndex = loadIntoTab(tabIndex,
-                           cerebellumSurfaceController);
-    tabIndex = loadIntoTab(tabIndex, 
                            surfaceMontageController);
     tabIndex = loadIntoTab(tabIndex,
                            volumeController);
     tabIndex = loadIntoTab(tabIndex,
                            wholeBrainController);
+    tabIndex = loadIntoTab(tabIndex,
+                           leftSurfaceController);
+    tabIndex = loadIntoTab(tabIndex,
+                           rightSurfaceController);
+    tabIndex = loadIntoTab(tabIndex,
+                           cerebellumSurfaceController);
     
     const int numTabs = this->tabBar->count();
     if (numTabs > 0) {
@@ -1192,7 +1192,6 @@ BrainBrowserWindowToolBar::createViewWidget()
 {
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
-//    this->viewModeSurfaceMontageRadioButton->setText("Surface\nMontage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     //this->viewModeChartRadioButton = new QRadioButton("Chart");
@@ -1200,10 +1199,10 @@ BrainBrowserWindowToolBar::createViewWidget()
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2);
-    layout->addWidget(this->viewModeSurfaceRadioButton);
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
+    layout->addWidget(this->viewModeSurfaceRadioButton);
     //layout->addWidget(this->viewModeChartRadioButton);
     layout->addStretch();
 
