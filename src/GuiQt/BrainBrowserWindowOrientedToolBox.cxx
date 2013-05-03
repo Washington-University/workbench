@@ -77,16 +77,16 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             orientation = Qt::Vertical;
             isOverlayToolBox = true;
             break;
-        /*case TOOL_BOX_CHARTS_HORIZONTAL:
-            orientation = Qt::Horizontal;
+        case TOOL_BOX_CHARTS_HORIZONTAL:
+            /*orientation = Qt::Horizontal;
             isChartsToolBox = true;
-            toggleViewAction()->setText("Charts Toolbox");
+            toggleViewAction()->setText("Charts Toolbox");*/
             break;
         case TOOL_BOX_CHARTS_VERTICAL:
-            orientation = Qt::Vertical;
+            /*orientation = Qt::Vertical;
             isChartsToolBox = true;
-            toggleViewAction()->setText("Charts Toolbox");
-            break;*/
+            toggleViewAction()->setText("Charts Toolbox");*/
+            break;
     }
     
     m_borderSelectionViewController = NULL;
