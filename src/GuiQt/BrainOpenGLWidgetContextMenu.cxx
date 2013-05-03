@@ -574,7 +574,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
     }
     
     try {
-        ProgressReportingDialog progressDialog("Connectivity Withing Parcel",
+        ProgressReportingDialog progressDialog("Connectivity Within Parcel",
                                                "",
                                                this);
         progressDialog.setValue(0);
@@ -617,7 +617,7 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
     }
     
     try {
-        ProgressReportingDialog progressDialog("Connectivity Withing Parcel",
+        ProgressReportingDialog progressDialog("Connectivity Within Parcel",
                                                "",
                                                this);
         progressDialog.setValue(0);
@@ -677,7 +677,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
         }
         
         try {
-            ProgressReportingDialog progressDialog("Connectivity Withing Border",
+            ProgressReportingDialog progressDialog("Connectivity Within Border",
                                                    "",
                                                    this);
             progressDialog.setValue(0);
@@ -742,7 +742,7 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         }
         
         try {
-            ProgressReportingDialog progressDialog("Connectivity Withing Border",
+            ProgressReportingDialog progressDialog("Connectivity Within Border",
                                                     "",
                                                     this);
             progressDialog.setValue(0);
@@ -790,7 +790,7 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
     }
     
     try {
-        ProgressReportingDialog progressDialog("Data Series Withing Parcel",
+        ProgressReportingDialog progressDialog("Data Series Within Parcel",
                                                "",
                                                this);
         progressDialog.setValue(0);
@@ -866,7 +866,7 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
         }
         
         try {
-            ProgressReportingDialog progressDialog("Data Series Withing Border",
+            ProgressReportingDialog progressDialog("Data Series Within Border",
                                                    "",
                                                    this);
             progressDialog.setValue(0);
