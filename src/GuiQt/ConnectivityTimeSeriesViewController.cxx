@@ -128,7 +128,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     this->frameSpinBox->setMaximumWidth(80);
     
     WuQtUtilities::setToolTipAndStatusTip(this->frameSpinBox,
-                                          "Select timepoint for display on brainordinates");
+                                          "Select frame (map)");
 
     this->frameName = new QLineEdit();
     frameName->setReadOnly(true);
