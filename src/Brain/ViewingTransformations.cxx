@@ -282,7 +282,8 @@ ViewingTransformations::posteriorView()
 void
 ViewingTransformations::dorsalView()
 {
-    m_rotationMatrix->identity();
+//    m_rotationMatrix->identity();
+    m_rotationMatrix->setRotation(0.0, 0.0, 90.0);
 }
 
 /**
@@ -291,8 +292,9 @@ ViewingTransformations::dorsalView()
 void
 ViewingTransformations::ventralView()
 {
-    m_rotationMatrix->identity();
-    m_rotationMatrix->rotateY(-180.0);
+//    m_rotationMatrix->identity();
+//    m_rotationMatrix->rotateY(-180.0);
+    m_rotationMatrix->setRotation(0.0, 180.0, 90.0);
 }
 
 /**
