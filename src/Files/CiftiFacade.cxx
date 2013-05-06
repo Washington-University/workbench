@@ -38,7 +38,7 @@
 
 #include "CaretAssert.h"
 #include "CiftiInterface.h"
-
+#include "GiftiMetaData.h"
 using namespace caret;
 
 

@@ -28,7 +28,7 @@
 #include "CiftiXMLElements.h"
 #include "CiftiXMLReader.h"
 #include "CiftiXMLWriter.h"
-#include "VolumeFile.h"
+#include "VolumeBase.h"
 #include "VolumeSpace.h"
 #include <QtCore>
 #include <vector>
@@ -396,7 +396,7 @@ namespace caret {
         IndicesMapToDataType getMappingType(const int& direction) const;
         
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
-        bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
+        bool getVolumeAttributesForPlumb(VolumeBase::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
         
         ///get dimensions and sform, useful for making a volume
         bool getVolumeDimsAndSForm(int64_t dimsOut[3], std::vector<std::vector<float> >& sformOut) const;

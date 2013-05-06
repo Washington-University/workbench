@@ -85,8 +85,7 @@ SpecFile::~SpecFile()
  *    Spec file whose data is copied.
  */
 SpecFile::SpecFile(const SpecFile& sf)
-: CaretDataFile(sf),
-  SceneableInterface(sf)
+: CaretDataFile(sf)
 {
     this->initializeSpecFile();
     this->copyHelperSpecFile(sf);

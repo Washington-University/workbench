@@ -27,6 +27,8 @@
 #include "NiftiFile.h"
 #include "ProgramParameters.h"
 #include "CiftiXML.h"
+#include "DataFileTypeEnum.h"
+
 using namespace caret;
 using namespace std;
 CommandNiftiInformation::CommandNiftiInformation() : CommandOperation("-nifti-information",

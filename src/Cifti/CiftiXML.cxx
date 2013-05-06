@@ -24,11 +24,13 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include "CaretAssert.h"
 #include "CiftiXML.h"
 #include "CiftiFileException.h"
 #include "FloatMatrix.h"
+#include "GiftiLabelTable.h"
 #include "Palette.h"
-#include "CaretAssert.h"
+#include "PaletteColorMapping.h"
 
 using namespace caret;
 using namespace std;
@@ -778,7 +780,7 @@ bool CiftiXML::setRowTimestart(const float& seconds)
     return setTimestart(seconds, m_dimToMapLookup[0]);
 }
 
-bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
+bool CiftiXML::getVolumeAttributesForPlumb(VolumeBase::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
 {
     if (m_root.m_matrices.size() == 0)
     {
@@ -849,15 +851,15 @@ bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3],
                 {
                 case 0:
                     //left/right
-                    orientOut[j] = (negative ? VolumeFile::RIGHT_TO_LEFT : VolumeFile::LEFT_TO_RIGHT);
+                    orientOut[j] = (negative ? VolumeBase::RIGHT_TO_LEFT : VolumeBase::LEFT_TO_RIGHT);
                     break;
                 case 1:
                     //forward/back
-                    orientOut[j] = (negative ? VolumeFile::ANTERIOR_TO_POSTERIOR : VolumeFile::POSTERIOR_TO_ANTERIOR);
+                    orientOut[j] = (negative ? VolumeBase::ANTERIOR_TO_POSTERIOR : VolumeBase::POSTERIOR_TO_ANTERIOR);
                     break;
                 case 2:
                     //up/down
-                    orientOut[j] = (negative ? VolumeFile::SUPERIOR_TO_INFERIOR : VolumeFile::INFERIOR_TO_SUPERIOR);
+                    orientOut[j] = (negative ? VolumeBase::SUPERIOR_TO_INFERIOR : VolumeBase::INFERIOR_TO_SUPERIOR);
                     break;
                 default:
                     //will never get called

@@ -120,7 +120,7 @@ namespace caret
         { return m_xml.getColumnTimestep(seconds); }
 
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
-        bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
+        bool getVolumeAttributesForPlumb(VolumeBase::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
         { return m_xml.getVolumeAttributesForPlumb(orientOut, dimensionsOut, originOut, spacingOut); }
         
         bool hasRowVolumeData() const

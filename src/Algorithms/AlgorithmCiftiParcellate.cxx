@@ -25,6 +25,7 @@
 #include "AlgorithmCiftiParcellate.h"
 #include "AlgorithmException.h"
 #include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include <map>
 
 using namespace caret;

@@ -32,10 +32,13 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #define __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
 #include "CiftiMappableDataFile.h"
 #undef __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
 
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiFacade.h"
@@ -48,9 +51,13 @@
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
+#include "GiftiMetaData.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
+#include "PaletteColorMapping.h"
+#include "PaletteFile.h"
 #include "SceneClass.h"
 #include "SparseVolumeIndexer.h"
 
@@ -390,7 +397,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         if (m_voxelIndicesToOffset->isValid()) {
             m_containsVolumeData = true;
             
-            VolumeFile::OrientTypes orient[3];
+            VolumeBase::OrientTypes orient[3];
             int64_t dimensions[3];
             float origin[3];
             float spacing[3];
