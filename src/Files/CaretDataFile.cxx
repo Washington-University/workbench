@@ -44,7 +44,8 @@ using namespace caret;
  * Constructor.
  */
 CaretDataFile::CaretDataFile(const DataFileTypeEnum::Enum dataFileType)
-: DataFile()
+: DataFile(),
+SceneableInterface()
 {
     m_dataFileType = dataFileType;
     m_displayedInGuiFlag = false;
@@ -96,7 +97,8 @@ CaretDataFile::setDataFileType(const DataFileTypeEnum::Enum dataFileType)
  *    Instance that is copied to this.
  */
 CaretDataFile::CaretDataFile(const CaretDataFile& cdf)
-: DataFile(cdf)
+: DataFile(cdf),
+SceneableInterface(cdf)
 {
     copyDataCaretDataFile(cdf);
 }
@@ -110,6 +112,7 @@ CaretDataFile&
 CaretDataFile::operator=(const CaretDataFile& cdf)
 {
     if (this != &cdf) {
+        DataFile::operator=(cdf);
         copyDataCaretDataFile(cdf);
     }
     return *this;

@@ -30,7 +30,6 @@
 
 #include "CaretDataFile.h"
 #include "DataFileTypeEnum.h"
-#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -40,7 +39,7 @@ namespace caret {
     class SpecFileDataFileTypeGroup;
     class XmlWriter;
     
-    class SpecFile : public CaretDataFile, SceneableInterface {
+    class SpecFile : public CaretDataFile {
         
     public:
         SpecFile();
