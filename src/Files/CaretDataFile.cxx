@@ -27,6 +27,8 @@
 #include "CaretDataFile.h"
 #undef __CARET_DATA_FILE_DECLARE__
 
+#include "SceneClass.h"
+
 using namespace caret;
 
 
@@ -184,5 +186,139 @@ CaretDataFile::getFileReadingPassword()
 {
     return s_fileReadingPassword;
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * NOTE: In most cases, subclasses should not override this method but
+ * instead override  saveFileDataToScene() use it to add data to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  If there is no data for the scene, a NULL pointer
+ *    will be returned.
+ */
+SceneClass*
+CaretDataFile::saveToScene(const SceneAttributes* sceneAttributes,
+                                   const AString& instanceName)
+{
+    const AString className(typeid(this).name());
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            className,
+                                            1);
+    
+    saveFileDataToScene(sceneAttributes,
+                        sceneClass);
+    
+    if (sceneClass->getNumberOfObjects() <= 0) {
+        delete sceneClass;
+        sceneClass = NULL;
+    }
+    //    const int32_t numMaps = getNumberOfMaps();
+    //    if (numMaps > 0) {
+    //        bool* mapEnabledArray = new bool[numMaps];
+    //        for (int32_t i = 0; i < numMaps; i++) {
+    //            mapEnabledArray[i] = m_mapContent[i]->m_dataLoadingEnabled;
+    //        }
+    //
+    //        sceneClass->addBooleanArray("mapEnabled",
+    //                                    mapEnabledArray,
+    //                                    numMaps);
+    //        delete[] mapEnabledArray;
+    //    }
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ *
+ * NOTE: In most cases, subclasses should not override this method but
+ * instead override restoreFileDataFromScene() use it to access 
+ * data from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+CaretDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                        const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    restoreFileDataFromScene(sceneAttributes,
+                             sceneClass);
+    
+    //    const int32_t numMaps = getNumberOfMaps();
+    //    if (numMaps > 0) {
+    //        bool* mapEnabledArray = new bool[numMaps];
+    //
+    //        sceneClass->getBooleanArrayValue("mapEnabled",
+    //                                         mapEnabledArray,
+    //                                         numMaps);
+    //
+    //        for (int32_t i = 0; i < numMaps; i++) {
+    //            m_mapContent[i]->m_dataLoadingEnabled = mapEnabledArray[i];
+    //        }
+    //
+    //        delete[] mapEnabledArray;
+    //    }
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CaretDataFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
+                                           SceneClass* /*sceneClass*/)
+{
+    
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CaretDataFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                                const SceneClass* /*sceneClass*/)
+{
+    
+}
+
+
 
 

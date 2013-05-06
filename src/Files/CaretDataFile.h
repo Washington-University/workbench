@@ -28,13 +28,14 @@
 
 #include "DataFile.h"
 #include "DataFileTypeEnum.h"
+#include "SceneableInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
 
     class GiftiMetaData;
     
-    class CaretDataFile : public DataFile {
+    class CaretDataFile : public DataFile, public SceneableInterface {
         
     public:
         CaretDataFile(const DataFileTypeEnum::Enum dataFileType);
@@ -69,6 +70,12 @@ namespace caret {
         
         void setDisplayedInGUI(const bool displayedInGUI);
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                              const SceneClass* sceneClass);
+        
         static void setFileReadingUsernameAndPassword(const AString& username,
                                                       const AString& password);
         
@@ -82,6 +89,12 @@ namespace caret {
         CaretDataFile& operator=(const CaretDataFile& cdf);
         
         void setDataFileType(const DataFileTypeEnum::Enum dataFileType);
+        
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
         
     private:
         void copyDataCaretDataFile(const CaretDataFile& cdf);
