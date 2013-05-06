@@ -33,7 +33,6 @@
 #include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
@@ -661,58 +660,6 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         CaretLogSevere("Selected palette for metric is invalid: \"" + paletteName + "\"");
     }
     return true;
-}
-
-/**
- * Assign cifti scalar coloring to nodes
- * @param brainStructure
- *    The brain structure that contains the data files.
- * @param ciftiScalarFile
- *    Cifti Scalar file that is selected.
- * @param ciftiMapUniqueID
- *    UniqueID of selected map.
- * @param numberOfNodes
- *    Number of nodes in surface.
- * @param rgbv
- *    Color components set by this method.
- *    Red, green, blue, valid.  If the valid component is
- *    zero, it indicates that the overlay did not assign
- *    any coloring to the node.
- * @return
- *    True if coloring is valid, else false.
- */
-bool
-SurfaceNodeColoring::assignCiftiConnectivityMatrixColoring(const BrainStructure* brainStructure,
-                                                           CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
-                                                           const AString& selectedMapUniqueID,
-                                                           const int32_t numberOfNodes,
-                                                           float* rgbv)
-{
-    CaretAssert(ciftiConnectivityMatrixFile);
-    
-    const int32_t mapIndex = ciftiConnectivityMatrixFile->getMapIndexFromUniqueID(selectedMapUniqueID);
-    if (mapIndex < 0) {
-        return false;
-    }
-    
-    /*
-     * Invalidate all coloring.
-     */
-    for (int32_t i = 0; i < numberOfNodes; i++) {
-        rgbv[i*4+3] = 0.0;
-    }
-    
-//    const PaletteColorMapping* paletteColorMapping = ciftiConnectivityMatrixFile->getMapPaletteColorMapping(mapIndex);
-//    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-//    const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
-    
-    const StructureEnum::Enum structure = brainStructure->getStructure();
-    ciftiConnectivityMatrixFile->getMapSurfaceNodeColoring(mapIndex,
-                                                           structure,
-                                                           rgbv,
-                                                           numberOfNodes);
-    return true;
-    
 }
 
 /**

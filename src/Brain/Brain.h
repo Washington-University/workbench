@@ -45,7 +45,6 @@ namespace caret {
     class CaretDataFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
-    class CiftiConnectivityMatrixDataFile;
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiConnectivityMatrixDenseFile;
     class CiftiConnectivityMatrixDenseParcelFile;

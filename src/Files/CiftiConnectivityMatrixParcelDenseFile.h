@@ -35,7 +35,6 @@
 /*LICENSE_END*/
 
 
-//#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 
 namespace caret {

@@ -32,7 +32,6 @@ namespace caret {
 
     class BrainStructure;
     class BrowserTabContent;
-    class CiftiConnectivityMatrixDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
@@ -106,12 +105,6 @@ namespace caret {
         bool assignCiftiScalarColoring(const BrainStructure* brainStructure,
                                        CiftiBrainordinateScalarFile* ciftiScalarFile,
                                        const AString& metricMapUniqueID,
-                                       const int32_t numberOfNodes,
-                                       float* rgbv);
-        
-        bool assignCiftiConnectivityMatrixColoring(const BrainStructure* brainStructure,
-                                       CiftiConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
-                                       const AString& selectedMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         

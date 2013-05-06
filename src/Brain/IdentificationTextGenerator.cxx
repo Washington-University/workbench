@@ -31,7 +31,6 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
-#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "ConnectivityLoaderFile.h"
@@ -219,32 +218,6 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
             }
         }
 
-//        std::vector<CiftiConnectivityMatrixDataFile*> allConnMatrixFiles;
-//        brain->getAllCiftiConnectivityMatrixFiles(allConnMatrixFiles);
-//        for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator connMatIter = allConnMatrixFiles.begin();
-//             connMatIter != allConnMatrixFiles.end();
-//             connMatIter++) {
-//            const CiftiConnectivityMatrixDataFile* cmf = *connMatIter;
-//            if (cmf->isEmpty() == false) {
-//                const int numMaps = cmf->getNumberOfMaps();
-//                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-//                    float value = 0.0;
-//                    int64_t cmfIJK[3];
-//                    AString textValue;
-//                    if (cmf->getMapVolumeVoxelValue(iMap,
-//                                                    xyz,
-//                                                    cmfIJK,
-//                                                    value,
-//                                                    textValue)) {
-//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmf->getDataFileType())
-//                                            + " "
-//                                            + cmf->getFileNameNoPath());
-//                        idText.addLine(true, boldText, textValue);
-//                    }
-//                }
-//            }
-//        }
-        
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
         for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
@@ -337,34 +310,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                 }
             }
         }
-        
-//        std::vector<CiftiConnectivityMatrixDataFile*> allConnMatrixFiles;
-//        brain->getAllCiftiConnectivityMatrixFiles(allConnMatrixFiles);
-//        for (std::vector<CiftiConnectivityMatrixDataFile*>::iterator connMatIter = allConnMatrixFiles.begin();
-//             connMatIter != allConnMatrixFiles.end();
-//             connMatIter++) {
-//            const CiftiConnectivityMatrixDataFile* cmf = *connMatIter;
-//            if (cmf->isEmpty() == false) {
-//                const int numMaps = cmf->getNumberOfMaps();
-//                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-//                    float value = 0.0;
-//                    AString textValue;
-//                    if (cmf->getMapSurfaceNodeValue(iMap,
-//                                                    surface->getStructure(),
-//                                                    nodeNumber,
-//                                                    surface->getNumberOfNodes(),
-//                                                    value,
-//                                                    textValue)) {
-//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmf->getDataFileType())
-//                                            + " "
-//                                            + cmf->getFileNameNoPath());
-//                        idText.addLine(true, boldText, textValue);
-//                    }
-//                }
-//            }
-//        }
-        
-        
+                
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
         for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();

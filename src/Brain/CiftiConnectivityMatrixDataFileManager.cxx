@@ -38,7 +38,6 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"

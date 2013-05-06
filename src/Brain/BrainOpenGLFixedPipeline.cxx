@@ -62,7 +62,6 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "CiftiBrainordinateLabelFile.h"
-#include "CiftiConnectivityMatrixDataFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "ConnectivityLoaderFile.h"
@@ -2307,12 +2306,8 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                 if (mapFile->isVolumeMappable()) {
                     VolumeMappableInterface* vf = NULL;
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
-                    CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(mapFile);
                     if (connLoadFile != NULL) {
                         vf = connLoadFile->getConnectivityVolumeFile();
-                    }
-                    else if (ciftiMatrixFile != NULL) {
-                        vf = ciftiMatrixFile->getMapVolume(mapIndex);
                     }
                     else {
                         vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
@@ -3142,16 +3137,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
              * Get colors for all voxels in the slice.
              */
             ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
-            CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
             if (connLoadFile != NULL) {
                 VolumeFile* vf = connLoadFile->getConnectivityVolumeFile();
-                vf->getVoxelColorsForSliceInMap(0,
-                                                slicePlane,
-                                                drawingSliceIndex,
-                                                sliceVoxelsRGBA);
-            }
-            else if (ciftiMatrixFile != NULL) {
-                VolumeFile* vf = ciftiMatrixFile->getMapVolume(mapIndex);
                 vf->getVoxelColorsForSliceInMap(0,
                                                 slicePlane,
                                                 drawingSliceIndex,
@@ -3599,7 +3586,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         const float dz = z1 - originZ;
         
         ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
-        CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
 
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
@@ -3607,14 +3593,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
                     if (connLoadFile != NULL) {
                         VolumeFile* vf = connLoadFile->getConnectivityVolumeFile();
-                        vf->getVoxelColorInMap(iVoxel,
-                                               jVoxel,
-                                               kVoxel,
-                                               0,
-                                               rgba);
-                    }
-                    else if (ciftiMatrixFile != NULL) {
-                        VolumeFile* vf = ciftiMatrixFile->getMapVolume(volInfo.mapIndex);
                         vf->getVoxelColorInMap(iVoxel,
                                                jVoxel,
                                                kVoxel,
@@ -3941,22 +3919,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
 //                        }
                     
                         ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
-                        CiftiConnectivityMatrixDataFile* ciftiMatrixFile = dynamic_cast<CiftiConnectivityMatrixDataFile*>(volInfo.mapFile);
                         
                         uint8_t rgba[4];
                         if (connLoadFile != NULL) {
                             VolumeFile* vol = connLoadFile->getConnectivityVolumeFile();
-                            if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
-                                valid = true;
-                                vol->getVoxelColorInMap(iVoxel,
-                                                        jVoxel,
-                                                        kVoxel,
-                                                        0,
-                                                        rgba);
-                            }
-                        }
-                        else if (ciftiMatrixFile != NULL) {
-                            VolumeFile* vol = ciftiMatrixFile->getMapVolume(volInfo.mapIndex);
                             if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
                                 valid = true;
                                 vol->getVoxelColorInMap(iVoxel,
