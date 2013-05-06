@@ -4499,21 +4499,41 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
                                             "Brain",
                                             1);
     
+    /*
+     * Get all data files
+     */
+    std::vector<CaretDataFile*> allCaretDataFiles;
+    getAllDataFiles(allCaretDataFiles);
+    
+    /*
+     * Save data files into an array.
+     * Note that data file's saveToScene returns NULL if no data for saving.
+     */
+    std::vector<SceneClass*> allCaretDataFileScenes;
+    for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
+         iter != allCaretDataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        const AString caretDataFileName = cdf->getFileNameNoPath();
+        SceneClass* caretDataFileSceneClass = cdf->saveToScene(sceneAttributes,
+                                                      caretDataFileName);
+        if (caretDataFileSceneClass != NULL) {
+            allCaretDataFileScenes.push_back(caretDataFileSceneClass);
+        }
+    }
+    if (allCaretDataFileScenes.empty() == false) {
+        SceneClassArray* caretDataFileSceneArray = new SceneClassArray("allCaretDataFiles",
+                                                                       allCaretDataFileScenes);
+        sceneClass->addChild(caretDataFileSceneArray);
+    }
+    
     if (isSaveSpecFile) {
-        std::vector<CaretDataFile*> allFiles;
-        getAllDataFiles(allFiles);
         SpecFile sf;
         sf.setFileName(m_specFile->getFileName());
-        for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
-             iter != allFiles.end();
+        for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
+             iter != allCaretDataFiles.end();
              iter++) {
             CaretDataFile* cdf = *iter;
-//            sf.addDataFile(cdf->getDataFileType(), 
-//                           cdf->getStructure(), 
-//                           cdf->getFileName(), 
-//                           true,
-//                           false,
-//                           true);
             sf.addCaretDataFile(cdf);
         }
         
@@ -4644,7 +4664,38 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_specFile->clearModified();
     }
     
-    m_sceneAssistant->restoreMembers(sceneAttributes, 
+    /*
+     * Get all data files
+     */
+    std::vector<CaretDataFile*> allCaretDataFiles;
+    getAllDataFiles(allCaretDataFiles);
+    
+    /*
+     * Restore data files
+     */
+    const SceneClassArray* caretDataFileSceneArray = sceneClass->getClassArray("allCaretDataFiles");
+    if (caretDataFileSceneArray != NULL) {
+        for (std::vector<CaretDataFile*>::iterator iter = allCaretDataFiles.begin();
+             iter != allCaretDataFiles.end();
+             iter++) {
+            CaretDataFile* caretDataFile = *iter;
+            const AString caretDataFileName = caretDataFile->getFileNameNoPath();
+            
+            const int32_t numCaretDataFileScenes = caretDataFileSceneArray->getNumberOfArrayElements();
+            for (int32_t i = 0; i < numCaretDataFileScenes; i++) {
+                const SceneClass* fileSceneClass = caretDataFileSceneArray->getClassAtIndex(i);
+                if (caretDataFileName == fileSceneClass->getName()) {
+                    caretDataFile->restoreFromScene(sceneAttributes,
+                                                    fileSceneClass);
+                }
+            }
+        }
+    }
+    
+    /*
+     * Restore members
+     */
+    m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
     /*

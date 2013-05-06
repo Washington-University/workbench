@@ -38,7 +38,6 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CiftiXMLElements.h"
-#include "SceneableInterface.h"
 #include "VolumeMappableInterface.h"
 
 namespace caret {
@@ -55,7 +54,6 @@ namespace caret {
     
     class CiftiMappableDataFile :
     public CaretMappableDataFile,
-    public SceneableInterface,
     public VolumeMappableInterface {
         
     protected:
@@ -227,12 +225,6 @@ namespace caret {
                                                float* surfaceRGBAOut,
                                                float* dataValuesOut,
                                                const int32_t surfaceNumberOfNodes);
-        
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
-        
-        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
         
         virtual void clearModified();
         

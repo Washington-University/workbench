@@ -58,7 +58,6 @@
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
-#include "SceneClass.h"
 #include "SparseVolumeIndexer.h"
 
 using namespace caret;
@@ -1949,50 +1948,6 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
     }
     
     return false;
-}
-
-/**
- * Create a scene for an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    saving the scene.
- *
- * @return Pointer to SceneClass object representing the state of
- *    this object.  Under some circumstances a NULL pointer may be
- *    returned.  Caller will take ownership of returned object.
- */
-SceneClass*
-CiftiMappableDataFile::saveToScene(const SceneAttributes* /*sceneAttributes*/,
-                                    const AString& instanceName)
-{
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "CiftiMappableDataFile",
-                                            1);
-    
-    return sceneClass;
-}
-
-/**
- * Restore the state of an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.  May be NULL for some types of scenes.
- */
-void
-CiftiMappableDataFile::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
-                                         const SceneClass* sceneClass)
-{
-    if (sceneClass == NULL) {
-        return;
-    }
 }
 
 /**

@@ -40,6 +40,7 @@
 #include "CiftiFacade.h"
 #include "CaretLogger.h"
 #include "CiftiInterface.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -701,5 +702,47 @@ CiftiMappableConnectivityMatrixDataFile::getMapName(const int32_t /*mapIndex*/) 
     return m_rowLoadedTextForMapName;
 }
 
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
+                                                             SceneClass* sceneClass)
+{
+    sceneClass->addBoolean("m_dataLoadingEnabled",
+                           m_dataLoadingEnabled);
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
+                                                                  const SceneClass* sceneClass)
+{
+    m_dataLoadingEnabled = sceneClass->getBooleanValue("m_dataLoadingEnabled",
+                                                       true);
+}
 
 

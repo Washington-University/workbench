@@ -298,22 +298,23 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* scene
                                             "CiftiConnectivityMatrixDataFileManager",
                                             1);
     
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-    
-    std::vector<SceneClass*> connectivityFilesVector;
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
-         iter != ciftiMatrixFiles.end();
-         iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
-        
-        connectivityFilesVector.push_back(cmdf->saveToScene(sceneAttributes,
-                                                            cmdf->getFileNameNoPath()));
-    }
-    
-    SceneClassArray* ciftiFilesArray = new SceneClassArray("connectivityFiles",
-                                                        connectivityFilesVector);
-    sceneClass->addChild(ciftiFilesArray);
+// ALL FILES are now saved to scene by Brain
+//    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+//    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+//    
+//    std::vector<SceneClass*> connectivityFilesVector;
+//    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+//         iter != ciftiMatrixFiles.end();
+//         iter++) {
+//        CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
+//        
+//        connectivityFilesVector.push_back(cmdf->saveToScene(sceneAttributes,
+//                                                            cmdf->getFileNameNoPath()));
+//    }
+//    
+//    SceneClassArray* ciftiFilesArray = new SceneClassArray("connectivityFiles",
+//                                                        connectivityFilesVector);
+//    sceneClass->addChild(ciftiFilesArray);
     
     sceneClass->addClass(m_brainordinateDataLoaded.saveToScene(sceneAttributes,
                                                                "m_brainordinateDataLoaded"));
@@ -341,26 +342,27 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
         return;
     }
     
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-    
-    const SceneClassArray* ciftiFilesArray = sceneClass->getClassArray("connectivityFiles");
-    if (ciftiFilesArray != NULL) {
-        const int32_t numElements = ciftiFilesArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numElements; i++) {
-            const SceneClass* ciftiFileClass = ciftiFilesArray->getClassAtIndex(i);
-            
-            for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
-                 iter != ciftiMatrixFiles.end();
-                 iter++) {
-                CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
-                if (cmdf->getFileNameNoPath() == ciftiFileClass->getName()) {
-                    cmdf->restoreFromScene(sceneAttributes,
-                                           ciftiFileClass);
-                }
-            }
-        }
-    }
+// ALL FILES are now restored by Brain
+//    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+//    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+//    
+//    const SceneClassArray* ciftiFilesArray = sceneClass->getClassArray("connectivityFiles");
+//    if (ciftiFilesArray != NULL) {
+//        const int32_t numElements = ciftiFilesArray->getNumberOfArrayElements();
+//        for (int32_t i = 0; i < numElements; i++) {
+//            const SceneClass* ciftiFileClass = ciftiFilesArray->getClassAtIndex(i);
+//            
+//            for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+//                 iter != ciftiMatrixFiles.end();
+//                 iter++) {
+//                CiftiMappableConnectivityMatrixDataFile* cmdf = *iter;
+//                if (cmdf->getFileNameNoPath() == ciftiFileClass->getName()) {
+//                    cmdf->restoreFromScene(sceneAttributes,
+//                                           ciftiFileClass);
+//                }
+//            }
+//        }
+//    }
     
     const SceneClass* brainordinateDataSceneClass = sceneClass->getClass("m_brainordinateDataLoaded");
     m_brainordinateDataLoaded.restoreFromScene(sceneAttributes,

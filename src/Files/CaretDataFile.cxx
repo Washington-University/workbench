@@ -206,9 +206,8 @@ SceneClass*
 CaretDataFile::saveToScene(const SceneAttributes* sceneAttributes,
                                    const AString& instanceName)
 {
-    const AString className(typeid(this).name());
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            className,
+                                            "CaretDataFile",
                                             1);
     
     saveFileDataToScene(sceneAttributes,
@@ -261,21 +260,6 @@ CaretDataFile::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     restoreFileDataFromScene(sceneAttributes,
                              sceneClass);
-    
-    //    const int32_t numMaps = getNumberOfMaps();
-    //    if (numMaps > 0) {
-    //        bool* mapEnabledArray = new bool[numMaps];
-    //
-    //        sceneClass->getBooleanArrayValue("mapEnabled",
-    //                                         mapEnabledArray,
-    //                                         numMaps);
-    //
-    //        for (int32_t i = 0; i < numMaps; i++) {
-    //            m_mapContent[i]->m_dataLoadingEnabled = mapEnabledArray[i];
-    //        }
-    //
-    //        delete[] mapEnabledArray;
-    //    }
 }
 
 /**
@@ -295,7 +279,7 @@ void
 CaretDataFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
                                            SceneClass* /*sceneClass*/)
 {
-    
+    /* Nothing as subclasses needing to save to scenes will override. */
 }
 
 /**
@@ -316,7 +300,7 @@ void
 CaretDataFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
                                                 const SceneClass* /*sceneClass*/)
 {
-    
+    /* Nothing as subclasses needing to restore from scenes will override. */
 }
 
 
