@@ -56,16 +56,19 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     
     ret->addVolumeOutputParameter(3, "outvol", "the output volume");
     
-    OptionalParameter* exactDistOpt = ret->createOptionalParameter(4, "-exact-limit", "specify distance for exact output");
+    OptionalParameter* fillValOpt = ret->createOptionalParameter(4, "-fill-value", "specify a value to put in all voxels that don't get assigned a distance");
+    fillValOpt->addDoubleParameter(1, "value", "value to fill with (default 0)");
+    
+    OptionalParameter* exactDistOpt = ret->createOptionalParameter(5, "-exact-limit", "specify distance for exact output");
     exactDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 5)");
     
-    OptionalParameter* approxDistOpt = ret->createOptionalParameter(5, "-approx-limit", "specify distance for approximate output");
+    OptionalParameter* approxDistOpt = ret->createOptionalParameter(6, "-approx-limit", "specify distance for approximate output");
     approxDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 20)");
     
-    OptionalParameter* approxNeighborhoodOpt = ret->createOptionalParameter(6, "-approx-neighborhood", "voxel neighborhood for approximate calculation");
+    OptionalParameter* approxNeighborhoodOpt = ret->createOptionalParameter(7, "-approx-neighborhood", "voxel neighborhood for approximate calculation");
     approxNeighborhoodOpt->addIntegerParameter(1, "num", "size of neighborhood cube measured from center to face, in voxels (default 2 = 5x5x5)");
     
-    OptionalParameter* windingMethodOpt = ret->createOptionalParameter(7, "-winding", "winding method for point inside surface test");
+    OptionalParameter* windingMethodOpt = ret->createOptionalParameter(8, "-winding", "winding method for point inside surface test");
     windingMethodOpt->addStringParameter(1, "method", "name of the method (default EVEN_ODD)");
     
     ret->setHelpText(
@@ -94,26 +97,32 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     volDims.resize(3);
     VolumeFile* myVolOut = myParams->getOutputVolume(3);
     myVolOut->reinitialize(volDims, volSpace);
+    float fillValue = 0.0f;
+    OptionalParameter* fillValOpt = myParams->getOptionalParameter(4);
+    if (fillValOpt->m_present)
+    {
+        fillValue = (float)fillValOpt->getDouble(1);
+    }
     float exactLim = 5.0f;
-    OptionalParameter* exactDistOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* exactDistOpt = myParams->getOptionalParameter(5);
     if (exactDistOpt->m_present)
     {
         exactLim = (float)exactDistOpt->getDouble(1);
     }
     float approxLim = 20.0f;
-    OptionalParameter* approxDistOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* approxDistOpt = myParams->getOptionalParameter(6);
     if (approxDistOpt->m_present)
     {
         approxLim = (float)approxDistOpt->getDouble(1);//don't sanity check it, less than exact limit simply turns it off, specify extremely large to do entire volume
     }
     int approxNeighborhood = 2;
-    OptionalParameter* approxNeighborhoodOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* approxNeighborhoodOpt = myParams->getOptionalParameter(7);
     if (approxNeighborhoodOpt->m_present)
     {
         approxNeighborhood = (int)approxNeighborhoodOpt->getInteger(1);
     }
     SignedDistanceHelper::WindingLogic myWinding = SignedDistanceHelper::EVEN_ODD;
-    OptionalParameter* windingMethodOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* windingMethodOpt = myParams->getOptionalParameter(8);
     if (windingMethodOpt->m_present)
     {
         AString methodName = windingMethodOpt->getString(1);
@@ -130,10 +139,10 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
             throw AlgorithmException("unrecognized winding method");
         }
     }
-    AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, exactLim, approxLim, approxNeighborhood, myWinding);//executes the algorithm
+    AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, fillValue, exactLim, approxLim, approxNeighborhood, myWinding);//executes the algorithm
 }
 
-AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& exactLim,
+AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& fillValue, const float& exactLim,
                                                                          const float& approxLim, const int& approxNeighborhood, const SignedDistanceHelper::WindingLogic& myWinding) : AbstractAlgorithm(myProgObj)
 {
     if (exactLim <= 0.0f)
@@ -165,7 +174,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     if (kOrthHat.dot(kvec) < 0) kOrthHat = -kOrthHat;
     vector<int64_t> myDims;
     myVolOut->getDimensions(myDims);
-    myVolOut->setValueAllVoxels(0.0f);
+    myVolOut->setValueAllVoxels(fillValue);
     //list all voxels to be exactly computed
     int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
     CaretArray<int> volMarked(frameSize, 0);

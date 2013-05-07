@@ -59,7 +59,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& exactLim = 5.0f,
+        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& fillValue = 0.0f, const float& exactLim = 5.0f,
                                             const float& approxLim = 20.0f, const int& approxNeighborhood = 2, const SignedDistanceHelper::WindingLogic& myWinding = SignedDistanceHelper::EVEN_ODD);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
