@@ -146,9 +146,6 @@ namespace caret {
                                  int32_t& borderPointIndexOut,
                                  float& distanceToBorderPointOut) const;
         
-        Surface* getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
-                                                              const float tolerance);
-        
         int32_t getNumberOfFociFiles() const;
         
         FociFile* getFociFile(const int32_t indx);
@@ -175,6 +172,11 @@ namespace caret {
         
         Surface* getSurfaceWithName(const AString& surfaceFileName,
                                     const bool useAbsolutePath);
+        
+        const Surface* getVolumeInteractionSurfaceForStructure(const StructureEnum::Enum structure) const;
+        
+        Surface* getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
+                                                              const float tolerance);
         
         std::vector<const Surface*> getVolumeInteractionSurfaces() const;
         

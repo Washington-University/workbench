@@ -2760,6 +2760,29 @@ Brain::getVolumeInteractionSurfaceFiles() const
 }
 
 /**
+ * Get the volume interaction surface for the given structure.
+ *
+ * @param structure
+ *    Structure for which a volume interaction surface is requested.
+ * @return
+ *    The volume interaction surface corresonding to the given structure.
+ *    NULL may be returned if a surface is not available.
+ */
+const Surface*
+Brain::getVolumeInteractionSurfaceForStructure(const StructureEnum::Enum structure) const
+{
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        if (m_brainStructures[i]->getStructure() == structure) {
+            return m_brainStructures[i]->getVolumeInteractionSurface();
+        }
+    }
+    
+    return NULL;
+}
+
+
+/**
  * Get the volume interaction surface nearest the given coordinate and
  * within the given tolerance.
  *

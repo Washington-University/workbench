@@ -323,28 +323,36 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
         
         if (nodeID != NULL) {
             if (nodeID->isValid()) {
-                const Surface* surface = nodeID->getSurface();
-                if (brain->isFileValid(surface)) {
-                    CaretAssert(surface);
-                    const StructureEnum::Enum structure = surface->getStructure();
-                    const int32_t nodeIndex = nodeID->getNodeNumber();
-                    
-                    const AString focusName = ("Last ID "
-                                               + StructureEnum::toGuiName(structure)
-                                               + " Node "
-                                               + AString::number(nodeIndex));
-                    const float* xyz = surface->getCoordinate(nodeIndex);
-                    
-                    const AString comment = ("Created from "
-                                             + focusName);
-                    
-                    Focus* focus = new Focus();
-                    focus->setName(focusName);
-                    focus->getProjection(0)->setStereotaxicXYZ(xyz);
-                    focus->setComment(comment);
-                    FociPropertiesEditorDialog::createFocus(focus,
-                                                            browserTabContent,
-                                                            this);
+                const Surface* idSurface = nodeID->getSurface();
+                if (brain->isFileValid(idSurface)) {
+                    CaretAssert(idSurface);
+                    const StructureEnum::Enum structure = idSurface->getStructure();
+                    const Surface* surface = brain->getVolumeInteractionSurfaceForStructure(structure);
+                    if (surface != NULL) {
+                        const int32_t nodeIndex = nodeID->getNodeNumber();
+                        
+                        const AString focusName = ("Last ID "
+                                                   + StructureEnum::toGuiName(structure)
+                                                   + " Node "
+                                                   + AString::number(nodeIndex));
+                        const float* xyz = surface->getCoordinate(nodeIndex);
+                        
+                        const AString comment = ("Created from "
+                                                 + focusName);
+                        
+                        Focus* focus = new Focus();
+                        focus->setName(focusName);
+                        focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                        focus->setComment(comment);
+                        FociPropertiesEditorDialog::createFocus(focus,
+                                                                browserTabContent,
+                                                                this);
+                    }
+                    else {
+                        WuQMessageBox::errorOk(this,
+                                               ("No anatomical surface found for "
+                                                + StructureEnum::toGuiName(structure)));
+                    }
                 }
             }
         }
