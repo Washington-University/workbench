@@ -104,7 +104,9 @@ namespace caret {
         
         bool containsVolumeDataForMappingToBrainordinates() const;
         
-        bool isConnectivityMatrixFile() const;
+//        bool isConnectivityMatrixFile() const;
+        
+        bool containsMapAttributes() const;
         
         bool isBrainordinateDataColoredWithPalette() const;
         
@@ -142,7 +144,7 @@ namespace caret {
         
         int32_t m_numberOfMaps;
         
-        bool m_connectivityMatrixFileFlag;
+//        bool m_connectivityMatrixFileFlag;
         
         bool m_useColumnMapsForBrainordinateMapping;
 
@@ -159,6 +161,8 @@ namespace caret {
         bool m_brainordinateDataColoredWithLabelTable;
         
         bool m_useParcelsForBrainordinateMapping;
+        
+        bool m_containsMapAttributes;
     };
     
 #ifdef __CIFTI_FACADE_DECLARE__

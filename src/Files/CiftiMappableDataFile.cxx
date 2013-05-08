@@ -413,17 +413,17 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         }
         
         AString mapNames;
-        for (int32_t i = 0; i < getNumberOfMaps(); i++) {
-            mapNames.appendWithNewLine("        Map "
-                                       + AString::number(i)
-                                       + " Name: "
-                                       + getMapName(i));
+        if (hasMapAttributes()) {
+            for (int32_t i = 0; i < getNumberOfMaps(); i++) {
+                mapNames.appendWithNewLine("        Map "
+                                           + AString::number(i)
+                                           + " Name: "
+                                           + getMapName(i));
+            }
+            if (mapNames.isEmpty() == false) {
+                mapNames.insert(0, "\n");
+            }
         }
-        if (mapNames.isEmpty() == false) {
-            mapNames.insert(0, "\n");
-        }
-        
-        AString mapMetaData;
         
         const AString msg = (getFileNameNoPath()
                              + "\n   " + DataFileTypeEnum::toGuiName(getDataFileType())
@@ -514,9 +514,9 @@ CiftiMappableDataFile::writeFile(const AString& filename) throw (DataFileExcepti
         const int32_t numMaps = getNumberOfMaps();
         for (int32_t i = 0; i < numMaps; i++) {
             /*
-             * Connectivity Matrix Files do not have map attributes
+             * Does file have map attributes
              */
-            if (m_ciftiFacade->isConnectivityMatrixFile() == false) {
+            if (hasMapAttributes()) {
                 /*
                  * Replace the map's metadata.
                  */
@@ -595,6 +595,32 @@ int32_t
 CiftiMappableDataFile::getNumberOfMaps() const
 {
     return m_mapContent.size();
+}
+
+/**
+ * @return True if the file has map attributes (name and metadata).
+ * For files that do not have map attributes, they should override
+ * this method and return false.  If not overriden, this method
+ * returns true.
+ *
+ * Some files (such as CIFTI Connectivity Matrix Files and CIFTI
+ * Data-Series Files) do not have Map Attributes and thus there
+ * is no map name nor map metadata and options to edit these
+ * attributes should not be presented to the user.
+ *
+ * These CIFTI files do contain palette color mapping but it is
+ * associated with the file.  To simplify palette color mapping editing
+ * these file will return the file's palette color mapping for any
+ * calls to getMapPaletteColorMapping().
+ */
+bool
+CiftiMappableDataFile::hasMapAttributes() const
+{
+    if (m_ciftiFacade != NULL) {
+        return m_ciftiFacade->containsMapAttributes();
+    }
+    
+    return false;
 }
 
 /**
@@ -940,13 +966,13 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    if (m_ciftiFacade->isConnectivityMatrixFile()) {
-        CaretAssert(m_ciftiInterface);
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-        return ciftiXML.getFilePalette();
+    if (hasMapAttributes()) {
+        return m_mapContent[mapIndex]->m_paletteColorMapping;
     }
     
-    return m_mapContent[mapIndex]->m_paletteColorMapping;
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    return ciftiXML.getFilePalette();
 }
 
 /**
@@ -963,14 +989,23 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    
-    if (m_ciftiFacade->isConnectivityMatrixFile()) {
-        CaretAssert(m_ciftiInterface);
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-        return ciftiXML.getFilePalette();
+    if (hasMapAttributes()) {
+        return m_mapContent[mapIndex]->m_paletteColorMapping;
     }
-
-    return m_mapContent[mapIndex]->m_paletteColorMapping;
+    
+    CaretAssert(m_ciftiInterface);
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    return ciftiXML.getFilePalette();
+//    CaretAssertVectorIndex(m_mapContent,
+//                           mapIndex);
+//    
+//    if (m_ciftiFacade->isConnectivityMatrixFile()) {
+//        CaretAssert(m_ciftiInterface);
+//        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+//        return ciftiXML.getFilePalette();
+//    }
+//
+//    return m_mapContent[mapIndex]->m_paletteColorMapping;
 }
 
 /**
@@ -2013,8 +2048,10 @@ m_labelTable(NULL)
     m_histogram.grabNew(new Histogram());
     m_metadata.grabNew(new GiftiMetaData());
     
-    ciftiFacade->getMetadataForMapOrSeriesIndex(mapIndex,
-                                                m_metadata);
+    if (ciftiFacade->containsMapAttributes()) {
+        ciftiFacade->getMetadataForMapOrSeriesIndex(mapIndex,
+                                                    m_metadata);
+    }
     m_paletteColorMapping = ciftiFacade->getPaletteColorMappingForMapOrSeriesIndex(mapIndex);
     
     m_labelTable = ciftiFacade->getLabelTableForMapOrSeriesIndex(mapIndex);

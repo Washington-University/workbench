@@ -106,6 +106,8 @@ namespace caret {
         
         virtual int32_t getNumberOfMaps() const;
         
+        virtual bool hasMapAttributes() const;
+        
         virtual AString getMapName(const int32_t mapIndex) const;
         
         virtual void setMapName(const int32_t mapIndex,

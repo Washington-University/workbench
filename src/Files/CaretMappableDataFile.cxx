@@ -85,7 +85,16 @@ CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile&)
     
 }
 
-int32_t CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName)
+// note: method is documented in header file
+bool
+CaretMappableDataFile::hasMapAttributes() const
+{
+    return true;
+}
+
+// note: method is documented in header file
+int32_t
+CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName)
 {
     bool ok = false;
     int32_t ret = mapName.toInt(&ok) - 1;//compensate for 1-indexing that command line parsing uses
@@ -102,7 +111,9 @@ int32_t CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapNam
     return ret;
 }
 
-int32_t CaretMappableDataFile::getMapIndexFromName(const AString& mapName)
+// note: method is documented in header file
+int32_t
+CaretMappableDataFile::getMapIndexFromName(const AString& mapName)
 {
     int32_t numMaps = getNumberOfMaps();
     for (int32_t i = 0; i < numMaps; ++i)
@@ -115,7 +126,9 @@ int32_t CaretMappableDataFile::getMapIndexFromName(const AString& mapName)
     return -1;
 }
 
-int32_t CaretMappableDataFile::getMapIndexFromUniqueID(const AString& uniqueID) const
+// note: method is documented in header file
+int32_t
+CaretMappableDataFile::getMapIndexFromUniqueID(const AString& uniqueID) const
 {
     int32_t numMaps = getNumberOfMaps();
     for (int32_t i = 0; i < numMaps; ++i)
@@ -128,12 +141,7 @@ int32_t CaretMappableDataFile::getMapIndexFromUniqueID(const AString& uniqueID) 
     return -1;
 }
 
-/**
- * Update coloring for all maps.
- *
- * @param paletteFile
- *    Palette file containing palettes.
- */
+// note: method is documented in header file
 void
 CaretMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* paletteFile)
 {

@@ -38,6 +38,7 @@
 
 #include "CaretAssert.h"
 #include "CiftiInterface.h"
+#include "CaretLogger.h"
 #include "GiftiMetaData.h"
 using namespace caret;
 
@@ -119,7 +120,7 @@ m_validCiftiFile(false)
     m_numberOfRows    = m_ciftiInterface->getNumberOfRows();
     m_numberOfMaps    = 0;
     
-    m_connectivityMatrixFileFlag = false;
+//    m_connectivityMatrixFileFlag = false;
     m_useColumnMapsForBrainordinateMapping = false;
     m_useRowMapsForBrainordinateMapping = false;
     m_useAlongRowMethodsForMapAttributes = false;
@@ -128,12 +129,13 @@ m_validCiftiFile(false)
     m_brainordinateDataColoredWithPalette = false;
     m_brainordinateDataColoredWithLabelTable = false;
     m_useParcelsForBrainordinateMapping = false;
+    m_containsMapAttributes = false;
     
     switch (m_ciftiFileType) {
         case CIFTI_INVALID:
             break;
         case CIFTI_DENSE:
-            m_connectivityMatrixFileFlag = true;
+//            m_connectivityMatrixFileFlag = true;
             m_useRowMapsForBrainordinateMapping = true;
             m_numberOfMaps = 1;
             m_loadBrainordinateDataFromRows = true;
@@ -145,6 +147,7 @@ m_validCiftiFile(false)
             m_loadBrainordinateDataFromColumns = true;
             m_numberOfMaps = m_numberOfColumns;
             m_brainordinateDataColoredWithLabelTable = true;
+            m_containsMapAttributes = true;
             break;
         case CIFTI_SCALAR:
             m_useColumnMapsForBrainordinateMapping = true;
@@ -152,9 +155,10 @@ m_validCiftiFile(false)
             m_loadBrainordinateDataFromColumns = true;
             m_numberOfMaps = m_numberOfColumns;
             m_brainordinateDataColoredWithPalette = true;
+            m_containsMapAttributes = true;
             break;
         case CIFTI_DENSE_PARCEL:
-            m_connectivityMatrixFileFlag = true;
+//            m_connectivityMatrixFileFlag = true;
             m_useRowMapsForBrainordinateMapping = true;
             m_numberOfMaps = 1;
             m_loadBrainordinateDataFromRows = true;
@@ -169,7 +173,7 @@ m_validCiftiFile(false)
             m_brainordinateDataColoredWithPalette = true;
             break;
         case CIFTI_PARCEL:
-            m_connectivityMatrixFileFlag = true;
+//            m_connectivityMatrixFileFlag = true;
             m_useRowMapsForBrainordinateMapping = true;
             m_numberOfMaps = 1;
             m_loadBrainordinateDataFromRows = true;
@@ -177,7 +181,7 @@ m_validCiftiFile(false)
             m_useParcelsForBrainordinateMapping = true;
             break;
         case CIFTI_PARCEL_DENSE:
-            m_connectivityMatrixFileFlag = true;
+//            m_connectivityMatrixFileFlag = true;
             m_useRowMapsForBrainordinateMapping = true;
             m_numberOfMaps = 1;
             m_loadBrainordinateDataFromRows = true;
@@ -263,15 +267,15 @@ CiftiFacade::getMapDataCount() const
 }
 
 
-/**
- * @return True if the interface is for a connectivity matrix file,
- *         else false.
- */
-bool
-CiftiFacade::isConnectivityMatrixFile() const
-{
-    return m_connectivityMatrixFileFlag;
-}
+///**
+// * @return True if the interface is for a connectivity matrix file,
+// *         else false.
+// */
+//bool
+//CiftiFacade::isConnectivityMatrixFile() const
+//{
+//    return m_connectivityMatrixFileFlag;
+//}
 
 /**
  * Get the metadata for the file.
@@ -579,8 +583,10 @@ CiftiFacade::getMetadataForMapOrSeriesIndex(const int32_t mapIndex,
     CaretAssert(metadataOut);
     metadataOut->clear();
     
-    if (m_connectivityMatrixFileFlag) {
-        getFileMetadata(metadataOut);
+    if (m_containsMapAttributes == false) {
+        const AString msg("Requesting map metadata for file that does not have map attributes.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
         return true;
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
@@ -610,8 +616,10 @@ CiftiFacade::setMetadataForMapOrSeriesIndex(const int32_t mapIndex,
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
     CaretAssert(metadataIn);
     
-    if (m_connectivityMatrixFileFlag) {
-        setFileMetadata(metadataIn);
+    if (m_containsMapAttributes == false) {
+        const AString msg("Setting map metadata for file that does not have map attributes.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
         const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
@@ -663,7 +671,10 @@ CiftiFacade::getPaletteColorMappingForMapOrSeriesIndex(const int32_t mapIndex)
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
     PaletteColorMapping* pcm = NULL;
     
-    if (m_connectivityMatrixFileFlag) {
+    if (m_containsMapAttributes == false) {
+        /*
+         * FILE PALETTE APPLIES TO ALL MAPS !!!!!
+         */
         pcm = m_ciftiInterface->getCiftiXML().getFilePalette();
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
@@ -691,12 +702,13 @@ CiftiFacade::getNameForMapOrSeriesIndex(const int32_t mapIndex) const
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
     AString name;
     
-    if (m_useAlongRowMethodsForMapAttributes) {
-        name = m_ciftiInterface->getCiftiXML().getMapNameForRowIndex(mapIndex);
+    if (m_containsMapAttributes == false) {
+        const AString msg("Getting map name for file that does not have map attributes.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
     }
-    else if (m_connectivityMatrixFileFlag) {
-        name = m_ciftiInterface->getCiftiXML().getMapNameForColumnIndex(mapIndex);
-        /* no name for connectivity matrix */
+    else if (m_useAlongRowMethodsForMapAttributes) {
+        name = m_ciftiInterface->getCiftiXML().getMapNameForRowIndex(mapIndex);
     }
     else {
         CaretAssert(0);
@@ -720,13 +732,14 @@ CiftiFacade::setNameForMapOrSeriesIndex(const int32_t mapIndex,
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
-    if (m_useAlongRowMethodsForMapAttributes) {
+    if (m_containsMapAttributes == false) {
+        const AString msg("Setting map name for file that does not have map attributes.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+    }
+    else if (m_useAlongRowMethodsForMapAttributes) {
         ciftiXML.setMapNameForRowIndex(mapIndex,
                                        name);
-    }
-    else if (m_connectivityMatrixFileFlag) {
-        ciftiXML.setMapNameForColumnIndex(mapIndex,
-                                         name);
     }
     else {
         CaretAssert(0);
@@ -781,6 +794,15 @@ bool
 CiftiFacade::isBrainordinateDataColoredWithLabelTable() const
 {
     return m_brainordinateDataColoredWithLabelTable;
+}
+
+/**
+ * @return True if the file contains map attributes (name and metadata).
+ */
+bool
+CiftiFacade::containsMapAttributes() const
+{
+    return m_containsMapAttributes;
 }
 
 

@@ -1662,7 +1662,7 @@ ConnectivityLoaderFile*
 Brain::readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
                                       const AString& filename) throw (DataFileException)
 {
-    bool testNewFile = false;
+    bool testNewFile = true;
     if (testNewFile) {
         CiftiBrainordinateDataSeriesFile* file = NULL;
         if (reloadThisFileIfNotNull != NULL) {

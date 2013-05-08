@@ -77,6 +77,24 @@ namespace caret {
         virtual int32_t getNumberOfMaps() const = 0;
         
         /**
+         * @return True if the file has map attributes (name and metadata).
+         * For files that do not have map attributes, they should override
+         * this method and return false.  If not overriden, this method
+         * returns true.
+         *
+         * Some files (such as CIFTI Connectivity Matrix Files and CIFTI
+         * Data-Series Files) do not have Map Attributes and thus there
+         * is no map name nor map metadata and options to edit these 
+         * attributes should not be presented to the user.
+         * 
+         * These CIFTI files do contain palette color mapping but it is 
+         * associated with the file.  To simplify palette color mapping editing
+         * these file will return the file's palette color mapping for any
+         * calls to getMapPaletteColorMapping().
+         */
+        virtual bool hasMapAttributes() const;
+        
+        /**
          * Get the name of the map at the given index.
          * 
          * @param mapIndex
@@ -113,6 +131,9 @@ namespace caret {
         /**
          * Set the name of the map at the given index.
          *
+         * If the file does not have map attributes (hasMapAttributes())
+         * calling this method will have not change the file.
+         *
          * @param mapIndex
          *    Index of the map.
          * @param mapName
@@ -124,6 +145,10 @@ namespace caret {
         /**
          * Get the metadata for the map at the given index
          *
+         * If the file does not have map attributes (hasMapAttributes())
+         * a valid metadata object will be returned but changing its
+         * content will have no effect on the file.
+         *
          * @param mapIndex
          *    Index of the map.
          * @return
@@ -133,6 +158,10 @@ namespace caret {
         
         /**
          * Get the metadata for the map at the given index
+         *
+         * If the file does not have map attributes (hasMapAttributes())
+         * a valid metadata object will be returned but changing its
+         * content will have no effect on the file.
          *
          * @param mapIndex
          *    Index of the map.
@@ -268,6 +297,12 @@ namespace caret {
          */         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
         
+        /**
+         * Update coloring for all maps.
+         *
+         * @param paletteFile
+         *    Palette file containing palettes.
+         */
         virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
         
         /**
