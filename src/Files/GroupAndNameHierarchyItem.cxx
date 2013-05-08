@@ -118,7 +118,6 @@ GroupAndNameHierarchyItem::clear()
     clearPrivate();
 }
 
-
 /**
  * Clear the contents of this class selector.
  */
@@ -374,6 +373,7 @@ GroupAndNameHierarchyItem::addChild(const ItemType itemType,
     GroupAndNameHierarchyItem* child = getChildWithNameAndIdNumber(name,
                                                                   idNumber);
     if (child != NULL) {
+        child->incrementCounter();
         return child;
     }
     
@@ -392,6 +392,7 @@ GroupAndNameHierarchyItem::addChild(const ItemType itemType,
             break;
     }
     
+    child->incrementCounter();
     addChildPrivate(child);
     
     return child;
@@ -784,7 +785,65 @@ GroupAndNameHierarchyItem::getCounter() const
 void
 GroupAndNameHierarchyItem::removeDescendantsWithCountersEqualToZeros()
 {
-    std::cout << "GroupAndNameHierarchyItem::removeDescendantsWithCountersEqualToZeros() not implemented" << std::endl;
+    /*
+     * Process all descendants.
+     */
+    for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
+         iter != m_children.end();
+         iter++) {
+        GroupAndNameHierarchyItem* child = *iter;
+        child->removeDescendantsWithCountersEqualToZeros();
+    }
+    
+    /*
+     * Find children with zero counters indicating item not used.
+     */
+    std::vector<GroupAndNameHierarchyItem*> childrenWithCountGreaterThanZero;
+    std::vector<GroupAndNameHierarchyItem*> childrenWithCountEqualToZero;
+    for (std::vector<GroupAndNameHierarchyItem*>::const_iterator iter = m_children.begin();
+         iter != m_children.end();
+         iter++) {
+        GroupAndNameHierarchyItem* child = *iter;
+        if (child->getCounter() > 0) {
+            childrenWithCountGreaterThanZero.push_back(child);
+        }
+        else {
+            childrenWithCountEqualToZero.push_back(child);
+        }
+    }
+    
+    /*
+     * If no children with zero counter, return.
+     */
+    if (childrenWithCountEqualToZero.empty()) {
+        return;
+    }
+    
+    /*
+     * Remove children with zero counters
+     */
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = childrenWithCountEqualToZero.begin();
+         iter != childrenWithCountEqualToZero.end();
+         iter++) {
+        GroupAndNameHierarchyItem* item = *iter;
+        item->m_parent = NULL;
+        delete item;
+    }
+    
+    /*
+     * Clear children
+     */
+    m_children.clear();
+    m_childrenNameIdMap.clear();
+    
+    /*
+     * Read children so maps properly created.
+     */
+    for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = childrenWithCountGreaterThanZero.begin();
+         iter != childrenWithCountGreaterThanZero.end();
+         iter++) {
+        addChildPrivate(*iter);
+    }
 }
 
 /**

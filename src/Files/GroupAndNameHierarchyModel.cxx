@@ -271,6 +271,7 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             border->setGroupNameSelectionItem(nameItem);
         }
         
+        removeDescendantsWithCountersEqualToZeros();
         sortDescendantsByName();
         setUserInterfaceUpdateNeeded();
         
@@ -763,6 +764,7 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             focus->setGroupNameSelectionItem(nameItem);
         }
         
+        removeDescendantsWithCountersEqualToZeros();
         sortDescendantsByName();
         setUserInterfaceUpdateNeeded();
 
