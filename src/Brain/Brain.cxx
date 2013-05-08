@@ -35,6 +35,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
@@ -1661,6 +1662,37 @@ ConnectivityLoaderFile*
 Brain::readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
                                       const AString& filename) throw (DataFileException)
 {
+    bool testNewFile = false;
+    if (testNewFile) {
+        CiftiBrainordinateDataSeriesFile* file = NULL;
+        if (reloadThisFileIfNotNull != NULL) {
+            file = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(reloadThisFileIfNotNull);
+            CaretAssert(file);
+        }
+        else {
+            file = new CiftiBrainordinateDataSeriesFile();
+        }
+        
+        try {
+            file->readFile(filename);
+            
+            //validateConnectivityFile(clf);
+        }
+        catch (const DataFileException& dfe) {            
+            if (reloadThisFileIfNotNull != NULL) {
+                removeDataFile(reloadThisFileIfNotNull);
+            }
+            else {
+                delete file;
+            }
+            throw dfe;
+        }
+        
+//        if (reloadThisFileIfNotNull == NULL) {
+//            m_connectivityMatrixParcelDenseFiles.push_back(file);
+//        }
+    }
+    
     ConnectivityLoaderFile* clf = NULL;
     if (reloadThisFileIfNotNull != NULL) {
         clf = dynamic_cast<ConnectivityLoaderFile*>(reloadThisFileIfNotNull);

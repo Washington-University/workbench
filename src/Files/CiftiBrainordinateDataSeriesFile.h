@@ -1,7 +1,9 @@
+#ifndef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_H__
+#define __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_H__
 
 /*LICENSE_START*/
 /*
- * Copyright 2012 Washington University,
+ * Copyright 2013 Washington University,
  * All rights reserved.
  *
  * Connectome DB and Connectome Workbench are part of the integrated Connectome 
@@ -32,40 +34,36 @@
  */
 /*LICENSE_END*/
 
-#define __CIFTI_BRAINORDINATE_SCALAR_FILE_DECLARE__
-#include "CiftiBrainordinateScalarFile.h"
-#undef __CIFTI_BRAINORDINATE_SCALAR_FILE_DECLARE__
 
-using namespace caret;
+#include "CiftiMappableDataFile.h"
 
 
+namespace caret {
+
+    class CiftiBrainordinateDataSeriesFile : public CiftiMappableDataFile {
+        
+    public:
+        CiftiBrainordinateDataSeriesFile();
+        
+        virtual ~CiftiBrainordinateDataSeriesFile();
+        
+    private:
+        CiftiBrainordinateDataSeriesFile(const CiftiBrainordinateDataSeriesFile&);
+
+        CiftiBrainordinateDataSeriesFile& operator=(const CiftiBrainordinateDataSeriesFile&);
+        
+    public:
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+        // ADD_NEW_MEMBERS_HERE
+
+    };
     
-/**
- * \class caret::CiftiBrainordinateScalarFile 
- * \brief CIFTI Brainordinate by Scalar File
- * \ingroup Files
- *
- */
+#ifdef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
 
-/**
- * Constructor.
- */
-CiftiBrainordinateScalarFile::CiftiBrainordinateScalarFile()
-: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
-                        CiftiMappableDataFile::FILE_READ_DATA_ALL,
-                        CIFTI_INDEX_TYPE_SCALARS,
-                        CIFTI_INDEX_TYPE_BRAIN_MODELS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
-{
-    
-}
-
-/**
- * Destructor.
- */
-CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
-{
-    
-}
-
+} // namespace
+#endif  //__CIFTI_BRAINORDINATE_DATA_SERIES_FILE_H__

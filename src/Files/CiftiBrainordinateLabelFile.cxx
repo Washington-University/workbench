@@ -42,7 +42,7 @@ using namespace caret;
     
 /**
  * \class caret::CiftiBrainordinateLabelFile 
- * \brief CIFTI Brainordinate X Label File
+ * \brief CIFTI Brainordinate by Label File
  * \ingroup Files
  */
 
@@ -55,7 +55,7 @@ CiftiBrainordinateLabelFile::CiftiBrainordinateLabelFile()
                         CIFTI_INDEX_TYPE_LABELS,
                         CIFTI_INDEX_TYPE_BRAIN_MODELS,
                         CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
-                        CiftiMappableDataFile::DATA_ACCESS_INVALID)
+                        CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
 {
     
 }

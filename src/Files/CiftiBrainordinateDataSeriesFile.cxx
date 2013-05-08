@@ -1,7 +1,7 @@
 
 /*LICENSE_START*/
 /*
- * Copyright 2012 Washington University,
+ * Copyright 2013 Washington University,
  * All rights reserved.
  *
  * Connectome DB and Connectome Workbench are part of the integrated Connectome 
@@ -32,28 +32,27 @@
  */
 /*LICENSE_END*/
 
-#define __CIFTI_BRAINORDINATE_SCALAR_FILE_DECLARE__
-#include "CiftiBrainordinateScalarFile.h"
-#undef __CIFTI_BRAINORDINATE_SCALAR_FILE_DECLARE__
+#define __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
+#include "CiftiBrainordinateDataSeriesFile.h"
+#undef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class caret::CiftiBrainordinateScalarFile 
- * \brief CIFTI Brainordinate by Scalar File
+ * \class caret::CiftiBrainordinateDataSeriesFile 
+ * \brief CIFTI Brainordinate by Data-Series File.
  * \ingroup Files
- *
  */
 
 /**
  * Constructor.
  */
-CiftiBrainordinateScalarFile::CiftiBrainordinateScalarFile()
-: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
+CiftiBrainordinateDataSeriesFile::CiftiBrainordinateDataSeriesFile()
+: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
                         CiftiMappableDataFile::FILE_READ_DATA_ALL,
-                        CIFTI_INDEX_TYPE_SCALARS,
+                        CIFTI_INDEX_TYPE_TIME_POINTS,
                         CIFTI_INDEX_TYPE_BRAIN_MODELS,
                         CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
                         CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
@@ -64,7 +63,7 @@ CiftiBrainordinateScalarFile::CiftiBrainordinateScalarFile()
 /**
  * Destructor.
  */
-CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
+CiftiBrainordinateDataSeriesFile::~CiftiBrainordinateDataSeriesFile()
 {
     
 }
