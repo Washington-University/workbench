@@ -38,6 +38,7 @@
 #include "CaretObject.h"
 #include "CiftiXML.h"
 #include "DataFileTypeEnum.h"
+#include "NiftiEnums.h"
 
 namespace caret {
 
@@ -112,6 +113,10 @@ namespace caret {
         
         bool isBrainordinateDataColoredWithLabelTable() const;
         
+        void getMapIntervalStartStepAndUnits(float& startValueOut,
+                                             float& stepValueOut,
+                                             NiftiTimeUnitsEnum::Enum& unitsOut) const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -143,6 +148,12 @@ namespace caret {
         int32_t m_numberOfColumns;
         
         int32_t m_numberOfMaps;
+        
+        NiftiTimeUnitsEnum::Enum m_mapIntervalUnits;
+        
+        float m_mapIntervalStartValue;
+        
+        float m_mapIntervalStepValue;
         
 //        bool m_connectivityMatrixFileFlag;
         

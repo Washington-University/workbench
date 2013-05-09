@@ -152,3 +152,19 @@ CaretMappableDataFile::updateScalarColoringForAllMaps(const PaletteFile* palette
     }
 }
 
+// note: method is documented in header file
+NiftiTimeUnitsEnum::Enum
+CaretMappableDataFile::getMapIntervalUnits() const
+{
+    return NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+}
+
+// note: method is documented in header file
+void
+CaretMappableDataFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
+                                        float& mapIntervalStepValueOut) const
+{
+    firstMapUnitsValueOut   = 1.0;
+    mapIntervalStepValueOut = 1.0;
+}
+

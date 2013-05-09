@@ -232,6 +232,11 @@ namespace caret {
         
         virtual bool isModified() const;
         
+        virtual NiftiTimeUnitsEnum::Enum getMapIntervalUnits() const;
+        
+        virtual void getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
+                                                float& mapIntervalStepValueOut) const;
+        
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
         

@@ -116,6 +116,10 @@ m_validCiftiFile(false)
             break;
     }
     
+    m_mapIntervalUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+    m_mapIntervalStartValue = 1.0;
+    m_mapIntervalStepValue  = 1.0;
+    
     m_numberOfColumns = m_ciftiInterface->getNumberOfColumns();
     m_numberOfRows    = m_ciftiInterface->getNumberOfRows();
     m_numberOfMaps    = 0;
@@ -196,6 +200,25 @@ m_validCiftiFile(false)
     
     if (m_ciftiFileType != CIFTI_INVALID) {
         m_validCiftiFile = true;
+        
+        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        const bool startValid = ciftiXML.getRowTimestart(m_mapIntervalStartValue);
+        const bool stepValid  = ciftiXML.getRowTimestep(m_mapIntervalStepValue);
+        
+        if (stepValid) {
+            /*
+             * May not always have start value.  When not available,
+             * use 0.0 for the start value.
+             */
+            if (startValid == false) {
+                m_mapIntervalStartValue = 0.0;
+            }
+            
+            /*
+             * Units are always seconds for CIFTI.
+             */
+            m_mapIntervalUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_SEC;
+        }
     }
 
 }
@@ -705,10 +728,45 @@ CiftiFacade::getNameForMapOrSeriesIndex(const int32_t mapIndex) const
     if (m_containsMapAttributes == false) {
         if (m_ciftiFileType == CIFTI_DATA_SERIES) {
             /*
+             * Data Series does not have map names
+             * so construct map names from map interval
+             * units when available.
+             */
+            AString unitsSuffix;
+            switch (m_mapIntervalUnits) {
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                    unitsSuffix = " hertz";
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                    unitsSuffix = " milliseconds";
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                    unitsSuffix = " parts per million";
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                    unitsSuffix = " seconds";
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                    unitsSuffix = " microseconds";
+                    break;
+            }
+
+            if (unitsSuffix.isEmpty()) {
+                name = ("Map Index: "
+                        + AString::number(mapIndex + 1));
+            }
+            else {
+                const float value = (m_mapIntervalStartValue
+                                     + (mapIndex * m_mapIntervalStepValue));
+                name = (AString::number(value)
+                        + unitsSuffix);
+            }
+            
+            /*
              * For data series, name is index or 'unit' value if units valid
              */
-            name = ("Map Index: "
-                    + AString::number(mapIndex + 1));
             return name;
         }
         
@@ -785,6 +843,26 @@ CiftiFacade::getDataForMapOrSeriesIndex(const int32_t mapIndex,
     }
     
     return false;
+}
+
+/**
+ * Get the map units information.
+ *
+ * @param startValueOut
+ *    The start value.
+ * @param stepValueOut
+ *    The step value.
+ * @param unitsOut
+ *    The unit of measurement.
+ */
+void
+CiftiFacade::getMapIntervalStartStepAndUnits(float& startValueOut,
+                                             float& stepValueOut,
+                                             NiftiTimeUnitsEnum::Enum& unitsOut) const
+{
+    startValueOut = m_mapIntervalStartValue;
+    stepValueOut  = m_mapIntervalStepValue;
+    unitsOut      = m_mapIntervalUnits;
 }
 
 /**

@@ -425,6 +425,21 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
             }
         }
         
+        /*
+         * Map units
+         */
+        float startValue;
+        float stepValue;
+        NiftiTimeUnitsEnum::Enum units;
+        m_ciftiFacade->getMapIntervalStartStepAndUnits(startValue,
+                                                       stepValue,
+                                                       units);
+        const AString unitString(NiftiTimeUnitsEnum::toName(units)
+                                 + ", "
+                                 + AString::number(startValue)
+                                 + ", "
+                                 + AString::number(stepValue));
+        
         const AString msg = (getFileNameNoPath()
                              + "\n   " + DataFileTypeEnum::toGuiName(getDataFileType())
                              + "\n   Rows: " + AString::number(m_ciftiFacade->getNumberOfRows())
@@ -437,6 +452,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                              + "\n   Volume Dimensions: " + AString::fromNumbers(m_volumeDimensions, 5, ",")
                              + "\n   Number of Maps: " + AString::number(m_mapContent.size())
                              + mapNames
+                             + "\n   Map Units, Start, Stop: " + unitString
                              + "\n   Map with Label Table: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithLabelTable())
                              + "\n   Map With Palette: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithPalette()));
                              
@@ -2170,4 +2186,34 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                  + " "
                  + QString::number(m_fastStatistics->getMostPositiveValue()));
 }
+
+/**
+ * @return The units for the 'interval' between two consecutive maps.
+ */
+NiftiTimeUnitsEnum::Enum
+CiftiMappableDataFile::getMapIntervalUnits() const
+{
+    return NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+}
+
+/**
+ * Get the units value for the first map and the
+ * quantity of units between consecutive maps.  If the
+ * units for the maps is unknown, value of one (1) are
+ * returned for both output values.
+ *
+ * @param firstMapUnitsValueOut
+ *     Output containing units value for first map.
+ * @param mapIntervalStepValueOut
+ *     Output containing number of units between consecutive maps.
+ */
+void
+CiftiMappableDataFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
+                                        float& mapIntervalStepValueOut) const
+{
+    firstMapUnitsValueOut   = 1.0;
+    mapIntervalStepValueOut = 1.0;
+}
+
+
 
