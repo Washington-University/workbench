@@ -47,7 +47,6 @@
 
 #include "Brain.h"
 #include "BrowserTabContent.h"
-#include "ConnectivityLoaderFile.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "EventManager.h"
@@ -399,7 +398,6 @@ FiberOrientationSelectionViewController::updateViewController()
      * Update file selection checkboxes
      */
     const int32_t numberOfFileCheckBoxes = static_cast<int32_t>(m_fileSelectionCheckBoxes.size());
-    std::vector<ConnectivityLoaderFile*> allFiberOrientFiles;
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     for (int32_t iff = 0; iff < numberOfFiberOrientFiles; iff++) {
         CiftiFiberOrientationFile* cfof = brain->getConnectivityFiberOrientationFile(iff);

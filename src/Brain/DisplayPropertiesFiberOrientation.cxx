@@ -41,7 +41,6 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CiftiFiberOrientationFile.h"
-#include "ConnectivityLoaderFile.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "FileInformation.h"

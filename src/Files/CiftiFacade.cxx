@@ -703,6 +703,15 @@ CiftiFacade::getNameForMapOrSeriesIndex(const int32_t mapIndex) const
     AString name;
     
     if (m_containsMapAttributes == false) {
+        if (m_ciftiFileType == CIFTI_DATA_SERIES) {
+            /*
+             * For data series, name is index or 'unit' value if units valid
+             */
+            name = ("Map Index: "
+                    + AString::number(mapIndex + 1));
+            return name;
+        }
+        
         const AString msg("Getting map name for file that does not have map attributes.");
         CaretAssertMessage(0, msg);
         CaretLogSevere(msg);

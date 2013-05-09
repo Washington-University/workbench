@@ -37,7 +37,6 @@
 #include "CaretMappableDataFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
-#include "ConnectivityLoaderFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
@@ -499,14 +498,6 @@ OverlaySet::initializeOverlays()
         return;
     }
     
-    /*
-     * Find connectivity files giving preferense to dense over dense time series
-     */
-//    std::vector<ConnectivityLoaderFile*> connFiles;
-//    if (brain != NULL) {
-//        brain->getMappableConnectivityFilesOfAllTypes(connFiles);
-//    }
-//    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
     /*
      * CIFTI Scalar files
      */

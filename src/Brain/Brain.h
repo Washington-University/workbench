@@ -43,6 +43,7 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
     class CiftiConnectivityMatrixDataFileManager;
@@ -280,6 +281,14 @@ namespace caret {
         
         void getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const;
         
+        int32_t getNumberOfConnectivityDataSeriesFiles() const;
+        
+        CiftiBrainordinateDataSeriesFile* getConnectivityDataSeriesFile(int32_t indx);
+        
+        const CiftiBrainordinateDataSeriesFile* getConnectivityDataSeriesFile(int32_t indx) const;
+        
+        void getConnectivityDataSeriesFiles(std::vector<CiftiBrainordinateDataSeriesFile*>& connectivityDataSeriesFilesOut) const;
+        
         AString getCurrentDirectory() const;
         
         void setCurrentDirectory(const AString& currentDirectory);
@@ -431,8 +440,11 @@ namespace caret {
         CiftiConnectivityMatrixParcelDenseFile* readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotNull,
                                                    const AString& filename) throw (DataFileException);
         
-        ConnectivityLoaderFile* readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
+        CiftiBrainordinateDataSeriesFile* readConnectivityDataSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
                                             const AString& filename) throw (DataFileException);
+        
+        ConnectivityLoaderFile* readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                               const AString& filename) throw (DataFileException);
         
         void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
         
@@ -481,7 +493,9 @@ namespace caret {
         
         std::vector<CiftiConnectivityMatrixParcelDenseFile*> m_connectivityMatrixParcelDenseFiles;
         
-        std::vector<ConnectivityLoaderFile*> m_connectivityTimeSeriesFiles;
+        std::vector<ConnectivityLoaderFile*> m_connectivityChartTemporaryFiles;
+        
+        std::vector<CiftiBrainordinateDataSeriesFile*> m_connectivityDataSeriesFiles;
         
         mutable AString m_currentDirectory;
         

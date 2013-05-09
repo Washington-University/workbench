@@ -64,7 +64,6 @@
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
-#include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
@@ -2304,14 +2303,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                       mapIndex);
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
-                    VolumeMappableInterface* vf = NULL;
-                    ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
-                    if (connLoadFile != NULL) {
-                        vf = connLoadFile->getConnectivityVolumeFile();
-                    }
-                    else {
-                        vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
-                    }
+                    VolumeMappableInterface* vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
                     if (vf != NULL) {
                         float opacity = overlay->getOpacity();
                         if (volumeDrawInfoOut.empty()) {
@@ -3136,20 +3128,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             /*
              * Get colors for all voxels in the slice.
              */
-            ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
-            if (connLoadFile != NULL) {
-                VolumeFile* vf = connLoadFile->getConnectivityVolumeFile();
-                vf->getVoxelColorsForSliceInMap(0,
-                                                slicePlane,
-                                                drawingSliceIndex,
-                                                sliceVoxelsRGBA);
-            }
-            else {
-                volumeFile->getVoxelColorsForSliceInMap(mapIndex,
-                                                        slicePlane,
-                                                        drawingSliceIndex,
-                                                        sliceVoxelsRGBA);
-            }
+            volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+                                                    slicePlane,
+                                                    drawingSliceIndex,
+                                                    sliceVoxelsRGBA);
             /*
              * Voxels not colored will have negative alpha so fix it.
              */
@@ -3585,27 +3567,15 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         const float dy = y1 - originY;
         const float dz = z1 - originZ;
         
-        ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
-
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
-                    if (connLoadFile != NULL) {
-                        VolumeFile* vf = connLoadFile->getConnectivityVolumeFile();
-                        vf->getVoxelColorInMap(iVoxel,
-                                               jVoxel,
-                                               kVoxel,
-                                               0,
-                                               rgba);
-                    }
-                    else {
-                        volumeFile->getVoxelColorInMap(iVoxel,
-                                                       jVoxel,
-                                                       kVoxel,
-                                                       volInfo.mapIndex,
-                                                       rgba);
-                    }
+                    volumeFile->getVoxelColorInMap(iVoxel,
+                                                   jVoxel,
+                                                   kVoxel,
+                                                   volInfo.mapIndex,
+                                                   rgba);
                     if (rgba[3] > 0) {
                         if (volInfo.opacity < 1.0) {
                             rgba[3] *= volInfo.opacity;
@@ -3908,41 +3878,26 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
                     VolumeMappableInterface* vf = volInfo.volumeFile;
-//                    const int64_t mapIndex = volInfo.mapIndex;
+                    //                    const int64_t mapIndex = volInfo.mapIndex;
                     bool valid = false;
-//                    float voxel = 0;
-                        int64_t iVoxel, jVoxel, kVoxel;
-                        vf->enclosingVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
-//                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, mapIndex)) {
-////                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, mapIndex);
-//                            valid = true;
-//                        }
+                    //                    float voxel = 0;
+                    int64_t iVoxel, jVoxel, kVoxel;
+                    vf->enclosingVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
+                    //                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, mapIndex)) {
+                    ////                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, mapIndex);
+                    //                            valid = true;
+                    //                        }
                     
-                        ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(volInfo.mapFile);
-                        
-                        uint8_t rgba[4];
-                        if (connLoadFile != NULL) {
-                            VolumeFile* vol = connLoadFile->getConnectivityVolumeFile();
-                            if (vol->indexValid(iVoxel, jVoxel, kVoxel, 0)) {
-                                valid = true;
-                                vol->getVoxelColorInMap(iVoxel,
-                                                        jVoxel,
-                                                        kVoxel,
-                                                        0,
-                                                        rgba);
-                            }
-                        }
-                        else {
-                            if (vf->indexValid(iVoxel, jVoxel, kVoxel, volInfo.mapIndex)) {
-                                valid = true;
-                                vf->getVoxelColorInMap(iVoxel,
-                                                       jVoxel,
-                                                       kVoxel,
-                                                       volInfo.mapIndex,
-                                                       rgba);
-                            }
-                        }
-                if (valid) {
+                    uint8_t rgba[4];
+                    if (vf->indexValid(iVoxel, jVoxel, kVoxel, volInfo.mapIndex)) {
+                        valid = true;
+                        vf->getVoxelColorInMap(iVoxel,
+                                               jVoxel,
+                                               kVoxel,
+                                               volInfo.mapIndex,
+                                               rgba);
+                    }
+                    if (valid) {
                         if (rgba[3] > 0) {
                             bool useOpacity = false;
                             if (iVol > 0) {
@@ -3967,13 +3922,12 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                                 sliceRGBA[sliceRgbaOffset+3] = 255;
                             }
                         }
-                        
                     }
                 }
             } 
         }
     }
-
+    
     /*
      * The voxel coordinates are at the center of the voxel.  
      * Shift the minimum voxel coordinates by one-half the 

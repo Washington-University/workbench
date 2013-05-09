@@ -51,7 +51,6 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CiftiFiberTrajectoryFile.h"
-#include "ConnectivityLoaderFile.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFiberTrajectory.h"
 #include "EventManager.h"

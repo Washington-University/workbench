@@ -33,11 +33,11 @@
 #include "EventBrowserTabGet.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "GroupAndNameHierarchyModel.h"
-#include "ConnectivityLoaderFile.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
@@ -339,10 +339,11 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  overlayRGBV);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                {
-                    ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(selectedMapFile);
-                    isColoringValid = this->assignConnectivityColoring(brainStructure, clf, numNodes, overlayRGBV);
-                }
+                    isColoringValid = this->assignCiftiDataSeriesColoring(brainStructure,
+                                                                      dynamic_cast<CiftiBrainordinateDataSeriesFile*>(selectedMapFile),
+                                                                      selectedMapUniqueID,
+                                                                      numNodes,
+                                                                      overlayRGBV);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     break;
@@ -788,6 +789,12 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
         rgbv[i*4+3] = 0.0;
     }
     
+    /*
+     * Update coloring
+     */
+    ciftiLabelFile->updateScalarColoringForMap(mapIndex,
+                                                    brain->getPaletteFile());
+    
     std::vector<float> dataValues(numberOfNodes);
     
     /*
@@ -915,9 +922,12 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
         rgbv[i*4+3] = 0.0;
     }
     
-    //const PaletteColorMapping* paletteColorMapping = ciftiScalarFile->getMapPaletteColorMapping(mapIndex);
-    //const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    //const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
+    /*
+     * Update coloring
+     */
+    ciftiScalarFile->updateScalarColoringForMap(mapIndex,
+                                                    brain->getPaletteFile());
+
     
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
@@ -930,11 +940,13 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
 }
 
 /**
- * Assign connectivity coloring to nodes
+ * Assign cifti scalar coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
- * @param connectivityLoaderFile
- *    The connectivity loader file containing the data.
+ * @param ciftiDataSeriesFile
+ *    Cifti Data Series file that is selected.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
  * @param numberOfNodes
  *    Number of nodes in surface.
  * @param rgbv
@@ -945,15 +957,58 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
  * @return
  *    True if coloring is valid, else false.
  */
-bool 
-SurfaceNodeColoring::assignConnectivityColoring(const BrainStructure* brainStructure,
-                                                ConnectivityLoaderFile* connectivityLoaderFile,
-                                                const int32_t numberOfNodes,
-                                                float* rgbv)
+bool
+SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainStructure,
+                                               CiftiBrainordinateDataSeriesFile* ciftiDataSeriesFile,
+                                               const AString& ciftiMapUniqueID,
+                                               const int32_t numberOfNodes,
+                                               float* rgbv)
 {
-    return connectivityLoaderFile->getSurfaceNodeColoring(brainStructure->getStructure(), 
-                                                   rgbv, 
-                                                   numberOfNodes);
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiBrainordinateDataSeriesFile*> allCiftiDataSeriesFiles;
+    brain->getConnectivityDataSeriesFiles(allCiftiDataSeriesFiles);
+    
+    int32_t mapIndex = -1;
+    for (std::vector<CiftiBrainordinateDataSeriesFile*>::iterator iter = allCiftiDataSeriesFiles.begin();
+         iter != allCiftiDataSeriesFiles.end();
+         iter++) {
+        CiftiBrainordinateDataSeriesFile* cdsf = *iter;
+        if (cdsf == ciftiDataSeriesFile) {
+            mapIndex = cdsf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+            if (mapIndex >= 0) {
+                break;
+            }
+        }
+    }
+    
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    /*
+     * Update coloring
+     */
+    ciftiDataSeriesFile->updateScalarColoringForMap(mapIndex,
+                                                    brain->getPaletteFile());
+
+    /*
+     * Get Coloring
+     */
+    std::vector<float> dataValues(numberOfNodes);
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    ciftiDataSeriesFile->getMapSurfaceNodeColoring(mapIndex,
+                                               structure,
+                                               rgbv,
+                                               &dataValues[0],
+                                               numberOfNodes);
+    return true;
 }
 
 /**

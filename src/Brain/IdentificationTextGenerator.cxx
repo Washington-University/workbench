@@ -33,7 +33,6 @@
 #include "CaretAssert.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
-#include "ConnectivityLoaderFile.h"
 #include "CaretVolumeExtension.h"
 #include "EventManager.h"
 #include "FociFile.h"
@@ -190,33 +189,7 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
             }            
         }
         
-        std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
-        brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
-        
         const float xyz[3] = { x, y, z };
-        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
-             connIter != allConnectivityFiles.end();
-             connIter++) {
-            const ConnectivityLoaderFile* clf = *connIter;
-            if (clf->isEmpty() == false) {
-                float value = 0.0;
-                int64_t connIJK[3];
-                if (clf->getVolumeVoxelValue(xyz, connIJK, value)) {
-                    AString boldText = (clf->getCiftiTypeName().toUpper() 
-                                        + " "  
-                                        + clf->getFileNameNoPath());
-                    boldText += (" IJK ("
-                                 + AString::number(connIJK[0])
-                                 + ", "
-                                 + AString::number(connIJK[1])
-                                 + ", "
-                                 + AString::number(connIJK[2])
-                                 + ")  ");
-                    AString text = AString::number(value);
-                    idText.addLine(true, boldText, text);
-                }
-            }
-        }
 
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
@@ -288,29 +261,6 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         const BrainStructure* brainStructure = surface->getBrainStructure();
         CaretAssert(brainStructure);
         
-        
-        std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
-        brain->getMappableConnectivityFilesOfAllTypes(allConnectivityFiles);
-        
-        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
-             connIter != allConnectivityFiles.end();
-             connIter++) {
-            const ConnectivityLoaderFile* clf = *connIter;
-            if (clf->isEmpty() == false) {
-                float value = 0.0;
-                if (clf->getSurfaceNodeValue(surface->getStructure(),
-                                             nodeNumber,
-                                             surface->getNumberOfNodes(),
-                                             value)) {
-                    AString boldText = (clf->getCiftiTypeName().toUpper()
-                                        + " "
-                                        + clf->getFileNameNoPath());
-                    AString text = AString::number(value);
-                    idText.addLine(true, boldText, text);
-                }
-            }
-        }
-                
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
         for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();

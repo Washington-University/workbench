@@ -41,7 +41,6 @@
 #include "CaretSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiInterface.h"
-#include "ConnectivityLoaderFile.h"
 #include "FiberOrientationTrajectory.h"
 #include "GiftiMetaData.h"
 
