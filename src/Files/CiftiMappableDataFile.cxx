@@ -1777,44 +1777,34 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
         /*
          * Get content for map.
          */
+        int64_t parcelMapIndex = -1;
         std::vector<CiftiParcelElement> parcels;
         switch (m_brainordinateMappedDataAccess) {
             case DATA_ACCESS_INVALID:
                 break;
             case DATA_ACCESS_WITH_COLUMN_METHODS:
                 ciftiXML.getParcelsForColumns(parcels);
+                parcelMapIndex = ciftiXML.getColumnParcelForNode(nodeIndex,
+                                                                 structure);
                 break;
             case DATA_ACCESS_WITH_ROW_METHODS:
                 ciftiXML.getParcelsForRows(parcels);
+                parcelMapIndex = ciftiXML.getRowParcelForNode(nodeIndex,
+                                                              structure);
                 break;
         }
         
-        if (parcels.empty() == false) {
-            const int64_t numParcelMaps = static_cast<int32_t>(parcels.size());
-            for (int iParcelMap = 0; iParcelMap< numParcelMaps; iParcelMap++) {
-                const int64_t numNodeElements = static_cast<int64_t>(parcels[iParcelMap].m_nodeElements.size());
-                for (int64_t iNodeElement = 0; iNodeElement < numNodeElements; iNodeElement++) {
-                    const CiftiParcelNodesElement& parcelNodeElement = parcels[iParcelMap].m_nodeElements[iNodeElement];
-                    if (parcelNodeElement.m_structure == structure) {
-                        
-                        const std::vector<int64_t>& nodeIndices = parcelNodeElement.m_nodes;
-                        
-                        const int64_t numParcelNodes = static_cast<int64_t>(nodeIndices.size());
-                        for (int64_t iNode = 0; iNode < numParcelNodes; iNode++) {
-                            if (nodeIndices[iNode] == nodeIndex) {
-                                textValueOut = parcels[iParcelMap].m_parcelName;
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
+        if ((parcelMapIndex >= 0)
+            && (parcelMapIndex < static_cast<int64_t>(parcels.size()))) {
+            textValueOut = parcels[parcelMapIndex].m_parcelName;
+            return true;
         }
     }
     else {
         /*
          * Get content for map.
          */
+        int64_t dataIndex = -1;
         std::vector<CiftiSurfaceMap> nodeMap;
         switch (m_brainordinateMappedDataAccess) {
             case DATA_ACCESS_INVALID:
@@ -1822,13 +1812,33 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
             case DATA_ACCESS_WITH_COLUMN_METHODS:
                 ciftiXML.getSurfaceMapForColumns(nodeMap,
                                                  structure);
+                dataIndex = ciftiXML.getColumnIndexForNode(nodeIndex,
+                                                           structure);
                 break;
             case DATA_ACCESS_WITH_ROW_METHODS:
                 ciftiXML.getSurfaceMapForRows(nodeMap,
                                               structure);
+                dataIndex = ciftiXML.getRowIndexForNode(nodeIndex,
+                                                        structure);
                 break;
         }
         
+        if (dataIndex >= 0) {
+            std::vector<float> mapData;
+            getMapData(mapIndex, mapData);
+            
+            if (dataIndex < static_cast<int64_t>(mapData.size())) {
+                numericalValueOut = mapData[dataIndex];
+                numericalValueOutValid = true;
+                textValueOut = AString::number(numericalValueOut, 'f');
+                return true;
+            }
+        }
+
+        /*
+         * At this time, ciftiXML.getRowIndexForNode() does not return
+         * the index for a node in a Parcel Dense File.  
+         */
         if (nodeMap.empty() == false) {
             const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
             for (int i = 0; i < numNodeMaps; i++) {
