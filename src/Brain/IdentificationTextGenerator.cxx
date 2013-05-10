@@ -261,25 +261,87 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         const BrainStructure* brainStructure = surface->getBrainStructure();
         CaretAssert(brainStructure);
         
+//        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
+//        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
+//        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
+//             ciftiMapIter != allCiftiMappableDataFiles.end();
+//             ciftiMapIter++) {
+//            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
+//            if (cmdf->isEmpty() == false) {
+//                const int numMaps = cmdf->getNumberOfMaps();
+//                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+//                    AString textValue;
+//                    if (cmdf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
+//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+//                                            + " "
+//                                            + cmdf->getFileNameNoPath());
+//                        idText.addLine(true, boldText, textValue);
+//                    }
+//                }
+//            }
+//        }
+
         std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
         brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
         for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
              ciftiMapIter != allCiftiMappableDataFiles.end();
              ciftiMapIter++) {
             const CiftiMappableDataFile* cmdf = *ciftiMapIter;
-            if (cmdf->isEmpty() == false) {
-                const int numMaps = cmdf->getNumberOfMaps();
-                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                    AString textValue;
-                    if (cmdf->getMapSurfaceNodeValue(iMap, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
-                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-                                            + " "
-                                            + cmdf->getFileNameNoPath());
-                        idText.addLine(true, boldText, textValue);
-                    }
-                }
+            AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+                                + " "
+                                + cmdf->getFileNameNoPath());
+            
+            std::vector<int32_t> mapIndices;
+            for (int32_t i = 0; i < cmdf->getNumberOfMaps(); i++) {
+                mapIndices.push_back(i);
             }
+            
+            AString textValue;
+            
+            const bool valid = cmdf->getMapSurfaceNodeIdentificationForMaps(mapIndices,
+                                                                            surface->getStructure(),
+                                                                            nodeNumber,
+                                                                            surface->getNumberOfNodes(),
+                                                                            textValue);
+            if (valid) {
+                idText.addLine(true,
+                               boldText,
+                               textValue);
+            }
+            
+//            const CiftiMappableConnectivityMatrixDataFile* connCifti = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(cmdf);
+//            if (cmdf->isEmpty() == false) {
+//                const int numMaps = cmdf->getNumberOfMaps();
+//                if (numMaps > 0) {
+//                    if (connCifti != NULL) {
+//                        AString textValue;
+//                        const int32_t mapIndex = 0;
+//                        if (cmdf->getMapSurfaceNodeValue(mapIndex, surface->getStructure(), nodeNumber, surface->getNumberOfNodes(), textValue)) {
+//                            AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+//                                                + " "
+//                                                + cmdf->getFileNameNoPath());
+//                            idText.addLine(true, boldText, textValue);
+//                        }
+//                    }
+//                    else {
+//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+//                                            + " "
+//                                            + cmdf->getFileNameNoPath());
+//                        std::vector<float> nodeData;
+//                        if (cmdf->getSeriesDataForSurfaceNode(surface->getStructure(),
+//                                                              nodeNumber,
+//                                                              nodeData)) {
+//                            for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+//                                AString textValue = AString::number(nodeData[iMap]);
+//                                idText.addLine(true, boldText, textValue);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
+        
+        
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
         for (int32_t i = 0; i < numLabelFiles; i++) {
             const LabelFile* lf = brainStructure->getLabelFile(i);

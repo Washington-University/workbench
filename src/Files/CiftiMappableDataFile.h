@@ -220,7 +220,19 @@ namespace caret {
                                             const StructureEnum::Enum structure,
                                             const int nodeIndex,
                                             const int32_t numberOfNodes,
-                                            AString& textOut) const;
+                                            float& numericalValueOut,
+                                            bool& numericalValueOutValid,
+                                            AString& textValueOut) const;
+        
+        virtual bool getMapSurfaceNodeIdentificationForMaps(const std::vector<int32_t> mapIndices,
+                                                            const StructureEnum::Enum structure,
+                                                            const int nodeIndex,
+                                                            const int32_t numberOfNodes,
+                                                            AString& textOut) const;
+        
+        bool getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
+                                         const int32_t nodeIndex,
+                                         std::vector<float>& seriesDataOut) const;
         
         virtual bool getMapSurfaceNodeColoring(const int32_t mapIndex,
                                                const StructureEnum::Enum structure,
@@ -262,6 +274,8 @@ namespace caret {
             
             bool isModifiedStatus();
             
+            void invalidateColoring();
+            
             void updateColoring(const std::vector<float>& data,
                                 const PaletteFile* paletteFile);
             
@@ -279,6 +293,9 @@ namespace caret {
             
             /** RGBA coloring for map */
             std::vector<float> m_rgba;
+            
+            /** RGBA coloring is valid */
+            bool m_rgbaValid;
             
             /** descriptive statistics for map */
             CaretPointer<DescriptiveStatistics> m_descriptiveStatistics;

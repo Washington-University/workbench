@@ -232,6 +232,15 @@ CiftiFacade::~CiftiFacade()
 }
 
 /**
+ * @return The CIFTI file type.
+ */
+CiftiFacade::CiftiFileType
+CiftiFacade::getCiftiFileType() const
+{
+    return m_ciftiFileType;
+}
+
+/**
  * @return True if the file is a valid CIFTI file, else false.
  */
 bool
@@ -837,6 +846,50 @@ CiftiFacade::getDataForMapOrSeriesIndex(const int32_t mapIndex,
         dataOut.resize(m_numberOfColumns);
         m_ciftiInterface->getRow(&dataOut[0],
                                  mapIndex);
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return false;
+}
+
+/**
+ * Get the series data (one data value from each map) for a surface node.
+ * 
+ * @param structure
+ *     Surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @param seriesDataOut
+ *     Series data for given node.
+ * @return
+ *     True if output data is valid, else false.
+ */
+bool
+CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
+                                         const int32_t nodeIndex,
+                                         std::vector<float>& seriesDataOut) const
+{
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    const int64_t nodeRowIndex = ciftiXML.getRowIndexForNode(nodeIndex,
+                                                             structure);
+    const int64_t nodeColumnIndex = ciftiXML.getColumnIndexForNode(nodeIndex,
+                                                             structure);
+    if (m_loadBrainordinateDataFromColumns) {
+        if (nodeRowIndex >= 0) {
+            seriesDataOut.resize(m_numberOfColumns);
+            m_ciftiInterface->getRow(&seriesDataOut[0],
+                                     nodeRowIndex);
+            return true;
+        }
+    }
+    else if (m_loadBrainordinateDataFromRows) {
+        if (nodeColumnIndex >= 0) {
+            seriesDataOut.resize(m_numberOfRows);
+            m_ciftiInterface->getColumn(&seriesDataOut[0],
+                                        nodeColumnIndex);
+        }
     }
     else {
         CaretAssert(0);

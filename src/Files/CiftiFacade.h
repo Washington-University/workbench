@@ -48,6 +48,17 @@ namespace caret {
     class CiftiFacade : public CaretObject {
         
     public:
+        enum CiftiFileType {
+            CIFTI_INVALID,
+            CIFTI_DENSE,
+            CIFTI_LABEL,
+            CIFTI_SCALAR,
+            CIFTI_DENSE_PARCEL,
+            CIFTI_DATA_SERIES,
+            CIFTI_PARCEL,
+            CIFTI_PARCEL_DENSE
+        };
+        
         CiftiFacade(const DataFileTypeEnum::Enum dataFileType,
                     CiftiInterface* ciftiInterface);
         
@@ -100,7 +111,11 @@ namespace caret {
                                         
         bool getDataForMapOrSeriesIndex(const int32_t mapIndex,
                                         std::vector<float>& dataOut) const;
-                                        
+        
+        bool getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
+                                         const int32_t nodeIndex,
+                                         std::vector<float>& seriesDataOut) const;
+        
         bool containsSurfaceDataForMappingToBrainordinates() const;
         
         bool containsVolumeDataForMappingToBrainordinates() const;
@@ -117,20 +132,11 @@ namespace caret {
                                              float& stepValueOut,
                                              NiftiTimeUnitsEnum::Enum& unitsOut) const;
         
+        CiftiFileType getCiftiFileType() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:
-        enum CiftiFileType {
-            CIFTI_INVALID,
-            CIFTI_DENSE,
-            CIFTI_LABEL,
-            CIFTI_SCALAR,
-            CIFTI_DENSE_PARCEL,
-            CIFTI_DATA_SERIES,
-            CIFTI_PARCEL,
-            CIFTI_PARCEL_DENSE
-        };
-        
         CiftiFacade(const CiftiFacade&);
 
         CiftiFacade& operator=(const CiftiFacade&);

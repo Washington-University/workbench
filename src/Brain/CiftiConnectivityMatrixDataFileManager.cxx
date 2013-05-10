@@ -166,7 +166,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
     
     if (haveData) {
         //this->colorConnectivityData();
-        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
     return haveData;

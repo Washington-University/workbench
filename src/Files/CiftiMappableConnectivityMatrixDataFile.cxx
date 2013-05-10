@@ -477,6 +477,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
         throw DataFileException(e.whatString());
     }
     
+    CaretAssertVectorIndex(m_mapContent, 0);
+    m_mapContent[0]->invalidateColoring();
+    
     return rowIndex;
 }
 
@@ -597,6 +600,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         if (dataWasLoaded == false) {
             CaretLogFine("FAILED to read rows for node average" + AString::fromNumbers(nodeIndices, ","));
         }
+
+        CaretAssertVectorIndex(m_mapContent, 0);
+        m_mapContent[0]->invalidateColoring();
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
@@ -678,6 +684,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
         if (dataWasLoaded == false) {
             CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
         }
+
+        CaretAssertVectorIndex(m_mapContent, 0);
+        m_mapContent[0]->invalidateColoring();
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());

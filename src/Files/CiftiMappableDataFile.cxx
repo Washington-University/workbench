@@ -1713,26 +1713,36 @@ CiftiMappableDataFile::isCiftiInterfaceValid() const
 
 
 /**
- * Get connectivity value for a surface's node.
+ * Get connectivity value for a surface's node.  When the data is mapped
+ * to parcels, the numerical value will not be valid.  
+ 
  * @param structure
  *     Surface's structure.
  * @param nodeIndex
  *     Index of the node
  * @param numberOfNodes
  *     Number of nodes in the surface.
- * @param textOut
- *     Text containing node value and for some types, the parcel.
+ * @param numericalValueOut
+ *     Numerical value out.
+ * @param numericalValueOutValid
+ *     Output that indicates the numerical value output is valid.
+ * @param textValueOut
+ *     Text containing node' value will always be valid if the method 
+ *     returns true.
  * @return
- *    true if a value was available for the node, else false.
+ *    True if the text value is valid.  The numerical value may or may not
+ *    also be valid.
  */
 bool
 CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
-                                               const StructureEnum::Enum structure,
-                                               const int nodeIndex,
-                                               const int32_t numberOfNodes,
-                                               AString& textOut) const
+                                              const StructureEnum::Enum structure,
+                                              const int nodeIndex,
+                                              const int32_t numberOfNodes,
+                                              float& numericalValueOut,
+                                              bool& numericalValueOutValid,
+                                              AString& textValueOut) const
 {
-    textOut = "";
+    numericalValueOut = false;
     
     if (isCiftiInterfaceValid() == false) {
         return false;
@@ -1741,8 +1751,6 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
 
-    std::vector<CiftiSurfaceMap> nodeMap;
-    
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
     int32_t numCiftiNodes = -1;
@@ -1765,58 +1773,230 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
         return false;
     }
     
-    /*
-     * Get content for map.
-     */
-    switch (m_brainordinateMappedDataAccess) {
-        case DATA_ACCESS_INVALID:
-            break;
-        case DATA_ACCESS_WITH_COLUMN_METHODS:
-            ciftiXML.getSurfaceMapForColumns(nodeMap,
-                                             structure);
-            break;
-        case DATA_ACCESS_WITH_ROW_METHODS:
-            ciftiXML.getSurfaceMapForRows(nodeMap,
-                                          structure);
-            break;
-    }
-    
-    bool validValueFlag = false;
-    
-    if (nodeMap.empty() == false) {
-        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
-        for (int i = 0; i < numNodeMaps; i++) {
-            if (nodeMap[i].m_surfaceNode == nodeIndex) {
-                std::vector<float> mapData;
-                getMapData(mapIndex, mapData);
-                
-                CaretAssertVectorIndex(mapData,
-                                       nodeMap[i].m_ciftiIndex);
-                const float value = mapData[nodeMap[i].m_ciftiIndex];
-                
-                if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
-                    textOut = "Invalid Label Index";
-                    
-                    const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
-                    const int32_t labelKey = static_cast<int32_t>(value);
-                    const GiftiLabel* gl = glt->getLabel(labelKey);
-                    if (gl != NULL) {
-                        textOut = gl->getName();
+    if (m_ciftiFacade->isMappingDataToBrainordinateParcels()) {
+        /*
+         * Get content for map.
+         */
+        std::vector<CiftiParcelElement> parcels;
+        switch (m_brainordinateMappedDataAccess) {
+            case DATA_ACCESS_INVALID:
+                break;
+            case DATA_ACCESS_WITH_COLUMN_METHODS:
+                ciftiXML.getParcelsForColumns(parcels);
+                break;
+            case DATA_ACCESS_WITH_ROW_METHODS:
+                ciftiXML.getParcelsForRows(parcels);
+                break;
+        }
+        
+        if (parcels.empty() == false) {
+            const int64_t numParcelMaps = static_cast<int32_t>(parcels.size());
+            for (int iParcelMap = 0; iParcelMap< numParcelMaps; iParcelMap++) {
+                const int64_t numNodeElements = static_cast<int64_t>(parcels[iParcelMap].m_nodeElements.size());
+                for (int64_t iNodeElement = 0; iNodeElement < numNodeElements; iNodeElement++) {
+                    const CiftiParcelNodesElement& parcelNodeElement = parcels[iParcelMap].m_nodeElements[iNodeElement];
+                    if (parcelNodeElement.m_structure == structure) {
+                        
+                        const std::vector<int64_t>& nodeIndices = parcelNodeElement.m_nodes;
+                        
+                        const int64_t numParcelNodes = static_cast<int64_t>(nodeIndices.size());
+                        for (int64_t iNode = 0; iNode < numParcelNodes; iNode++) {
+                            if (nodeIndices[iNode] == nodeIndex) {
+                                textValueOut = parcels[iParcelMap].m_parcelName;
+                                return true;
+                            }
+                        }
                     }
-                    validValueFlag = true;
                 }
-                else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
-                    textOut = AString::number(value);
-                    validValueFlag = true;
-                }
-                else {
-                    CaretAssert(0);
+            }
+        }
+    }
+    else {
+        /*
+         * Get content for map.
+         */
+        std::vector<CiftiSurfaceMap> nodeMap;
+        switch (m_brainordinateMappedDataAccess) {
+            case DATA_ACCESS_INVALID:
+                break;
+            case DATA_ACCESS_WITH_COLUMN_METHODS:
+                ciftiXML.getSurfaceMapForColumns(nodeMap,
+                                                 structure);
+                break;
+            case DATA_ACCESS_WITH_ROW_METHODS:
+                ciftiXML.getSurfaceMapForRows(nodeMap,
+                                              structure);
+                break;
+        }
+        
+        if (nodeMap.empty() == false) {
+            const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
+            for (int i = 0; i < numNodeMaps; i++) {
+                if (nodeMap[i].m_surfaceNode == nodeIndex) {
+                    std::vector<float> mapData;
+                    getMapData(mapIndex, mapData);
+                    
+                    CaretAssertVectorIndex(mapData,
+                                           nodeMap[i].m_ciftiIndex);
+                    numericalValueOut = mapData[nodeMap[i].m_ciftiIndex];
+                    numericalValueOutValid = true;
+                    textValueOut = AString::number(numericalValueOut, 'f');
+                    return true;
                 }
             }
         }
     }
     
-    return validValueFlag;
+    return false;
+}
+
+/**
+ * Get the identification information for a surface node in the given maps.
+ *
+ * @param mapIndices
+ *    Indices of maps for which identification information is requested.
+ * @param structure
+ *    Structure of the surface.
+ * @param nodeIndex
+ *    Index of the node.
+ * @param numberOfNodes
+ *    Number of nodes in the surface.
+ * @param textOut
+ *    Output containing identification information.
+ */
+bool
+CiftiMappableDataFile::getMapSurfaceNodeIdentificationForMaps(const std::vector<int32_t> mapIndices,
+                                                              const StructureEnum::Enum structure,
+                                                              const int nodeIndex,
+                                                              const int32_t numberOfNodes,
+                                                              AString& textOut) const
+{
+    if (isCiftiInterfaceValid() == false) {
+        return false;
+    }
+    
+    bool useMapData = false;
+    bool useSeriesData = false;
+    switch (m_ciftiFacade->getCiftiFileType()) {
+        case CiftiFacade::CIFTI_INVALID:
+            break;
+        case CiftiFacade::CIFTI_DENSE:
+            useMapData = true;
+            break;
+        case CiftiFacade::CIFTI_LABEL:
+            useSeriesData = true;
+            break;
+        case CiftiFacade::CIFTI_SCALAR:
+            useSeriesData = true;
+            break;
+        case CiftiFacade::CIFTI_DENSE_PARCEL:
+            useMapData = true;
+            break;
+        case CiftiFacade::CIFTI_DATA_SERIES:
+            useSeriesData = true;
+            break;
+        case CiftiFacade::CIFTI_PARCEL:
+            useMapData = true;
+            break;
+        case CiftiFacade::CIFTI_PARCEL_DENSE:
+            useMapData = true;
+            break;
+    }
+    
+    
+    const int32_t numberOfMapIndices = static_cast<int32_t>(mapIndices.size());
+    
+    textOut = "";
+    
+    bool validID = false;
+    
+    if (useMapData) {
+        for (int32_t i = 0; i < numberOfMapIndices; i++) {
+            const int32_t mapIndex = mapIndices[i];
+            
+            float numericalValue;
+            AString textValue;
+            bool numericalValueValid;
+            if (getMapSurfaceNodeValue(mapIndex,
+                                       structure,
+                                       nodeIndex,
+                                       numberOfNodes,
+                                       numericalValue,
+                                       numericalValueValid,
+                                       textValue)) {
+                textOut += textValue;
+                textOut += " ";
+                validID = true;
+            }
+        }
+    }
+    else {
+        /*
+         * Use series data which contains values for node from all maps.
+         */
+        std::vector<float> seriesData;
+        if (getSeriesDataForSurfaceNode(structure,
+                                        nodeIndex,
+                                        seriesData)) {
+            for (int32_t i = 0; i < numberOfMapIndices; i++) {
+                const int32_t mapIndex = mapIndices[i];
+                CaretAssertVectorIndex(seriesData, mapIndex);
+
+                const float value = seriesData[mapIndex];
+                if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
+                    const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                    const int32_t labelKey = static_cast<int32_t>(value);
+                    const GiftiLabel* gl = glt->getLabel(labelKey);
+                    if (gl != NULL) {
+                        textOut += gl->getName();
+                    }
+                    else {
+                        textOut += ("InvalidKey="
+                                    + AString::number(value));
+                    }
+                    validID = true;
+                }
+                else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
+                    textOut += AString::number(value);
+                    validID = true;
+                }
+                else {
+                    CaretAssert(0);
+                }
+                
+                textOut += " ";
+            }
+        }
+    }
+    
+    return validID;
+}
+
+/**
+ * Get the series data (one data value from each map) for a surface node.
+ *
+ * @param structure
+ *     Surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @param seriesDataOut
+ *     Series data for given node.
+ * @return
+ *     True if output data is valid, else false.
+ */
+bool
+CiftiMappableDataFile::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
+                                         const int32_t nodeIndex,
+                                         std::vector<float>& seriesDataOut) const
+{
+    if (isCiftiInterfaceValid() == false) {
+        return false;
+    }
+    
+    const bool valid = m_ciftiFacade->getSeriesDataForSurfaceNode(structure,
+                                                                  nodeIndex,
+                                                                  seriesDataOut);
+    return valid;
 }
 
 /**
@@ -2058,7 +2238,8 @@ CiftiMappableDataFile::MapContent::MapContent(CiftiFacade* ciftiFacade,
 :
 m_dataCount(ciftiFacade->getMapDataCount()),
 m_paletteColorMapping(NULL),
-m_labelTable(NULL)
+m_labelTable(NULL),
+m_rgbaValid(false)
 {
     m_fastStatistics.grabNew(new FastStatistics());
     m_histogram.grabNew(new Histogram());
@@ -2133,6 +2314,15 @@ CiftiMappableDataFile::MapContent::isModifiedStatus()
 }
 
 /**
+ * Invalidate the coloring (usually due to palette or data changes).
+ */
+void
+CiftiMappableDataFile::MapContent::invalidateColoring()
+{
+    m_rgbaValid = false;
+}
+
+/**
  * Update coloring for this map.  If the paletteFile is NOT NULL,
  * color using a palette; otherwise, color with label table.
  *
@@ -2146,6 +2336,10 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                                                   const PaletteFile* paletteFile)
 {
     if (data.empty()) {
+        return;
+    }
+    
+    if (m_rgbaValid) {
         return;
     }
     
@@ -2178,6 +2372,8 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                                                          data.size(),
                                                          &m_rgba[0]);
     }
+    
+    m_rgbaValid = true;
     
     CaretLogFine("Connectivity Data Average/Min/Max: "
                  + QString::number(m_fastStatistics->getMean())
