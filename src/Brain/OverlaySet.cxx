@@ -806,6 +806,57 @@ OverlaySet::getLabelFilesForSurface(const Surface* surface,
 }
 
 /**
+ * For the given caret mappable data file, find overlays in which the
+ * file is selected and return the indices of the selected maps.
+ *
+ * @param caretMappableDataFile
+ *    The caret mappable data file.
+ * @param isLimitToEnabledOverlays
+ *    If true, only include map indices for overlay that are enabled.  
+ *    Otherwise, include map indices for all overlays.
+ * @param selectedMapIndicesOut
+ *    Output containing map indices for the given caret mappable data files
+ *    that are selected as overlays in this overlay set.
+ */
+void
+OverlaySet::getSelectedMapIndicesForFile(const CaretMappableDataFile* caretMappableDataFile,
+                                         const bool isLimitToEnabledOverlays,
+                                         std::vector<int32_t>& selectedMapIndicesOut) const
+{
+    selectedMapIndicesOut.clear();
+    
+    /*
+     * Put indices in a set to avoid duplicates and keep them sorted.
+     */
+    std::set<int32_t> mapIndicesSet;
+    
+    const int32_t numberOfOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numberOfOverlays; i++) {
+        Overlay* overlay = const_cast<Overlay*>(getOverlay(i));
+        bool checkIt = true;
+        if (isLimitToEnabledOverlays) {
+            if (overlay->isEnabled() == false) {
+                checkIt = false;
+            }
+        }
+        
+        if (checkIt) {
+            CaretMappableDataFile* mapFile;
+            int32_t mapIndex;
+            overlay->getSelectionData(mapFile, mapIndex);
+            if (mapFile == caretMappableDataFile) {
+                mapIndicesSet.insert(mapIndex);
+            }
+        }
+    }
+    
+    selectedMapIndicesOut.insert(selectedMapIndicesOut.end(),
+                                 mapIndicesSet.begin(),
+                                 mapIndicesSet.end());
+}
+
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes

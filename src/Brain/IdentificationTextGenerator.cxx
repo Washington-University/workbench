@@ -30,14 +30,17 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
+#include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -85,14 +88,16 @@ IdentificationTextGenerator::~IdentificationTextGenerator()
  * Create identification text from selection in the identification manager.
  * @param idManager
  *    Identification manager containing selection.
- * @param browserTabContent
  * @param brain
+ *    The brain.
  */
 AString 
 IdentificationTextGenerator::createIdentificationText(const SelectionManager* idManager,
-                                                      const BrowserTabContent* /*browserTabConent*/,
                                                       const Brain* brain) const
 {
+    CaretAssert(idManager);
+    CaretAssert(brain);
+    
     IdentificationStringBuilder idText;
     
     const SelectionItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
@@ -203,6 +208,15 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                 for (int32_t i = 0; i < numMaps; i++) {
                     mapIndices.push_back(i);
                 }
+
+                /*
+                 * Limit dense scalar and data series to maps selected in the overlay.
+                 */
+                if ((cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
+                    || (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+                    getMapIndicesOfFileUsedInOverlays(cmdf,
+                                                      mapIndices);
+                }
                 
                 AString textValue;
                 int64_t voxelIJK[3];
@@ -254,6 +268,10 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
  * Generate identification text for a surface node identification.
  * @param idText
  *     String builder for identification text.
+ * @param brain
+ *     The brain.
+ * @param browserTabContent
+ *     Content of the browser tab.
  * @param idSurfaceNode
  *     Information for surface node ID.
  */
@@ -319,6 +337,15 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
                 mapIndices.push_back(i);
             }
             
+            /*
+             * Limit dense scalar and data series to maps selected in the overlays
+             * from all tabs.
+             */
+            if ((cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
+                || (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+                getMapIndicesOfFileUsedInOverlays(cmdf,
+                                                  mapIndices);
+            }
             AString textValue;
             
             const bool valid = cmdf->getSurfaceNodeIdentificationForMaps(mapIndices,
@@ -396,6 +423,56 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
     
 }
 
+/**
+ * Find the usage of the file's maps in all overlays.
+ *
+ * @param caretMappableDataFile
+ *    The file whose usage is desired.
+ * @param mapIndicesOut
+ *    Indices of maps of the file that are used in overlays.
+ */
+void
+IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
+                                                               std::vector<int32_t>& mapIndicesOut) const
+{
+    mapIndicesOut.clear();
+    
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    const std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
+    for (std::vector<BrowserTabContent*>::const_iterator tabIter = allTabs.begin();
+         tabIter != allTabs.end();
+         tabIter++) {
+        std::vector<int32_t> mapIndices;
+        (*tabIter)->getOverlaySet()->getSelectedMapIndicesForFile(caretMappableDataFile,
+                                                                  false,
+                                                                  mapIndices);
+        mapIndicesOut.insert(mapIndicesOut.end(),
+                             mapIndices.begin(),
+                             mapIndices.end());
+    }
+    
+    /*
+     * Sort and remove all duplicates
+     */
+    if (mapIndicesOut.empty() == false) {
+        std::sort(mapIndicesOut.begin(),
+                  mapIndicesOut.end());
+        std::vector<int32_t>::iterator uniqueIter = std::unique(mapIndicesOut.begin(),
+                                                                mapIndicesOut.end());
+        mapIndicesOut.resize(std::distance(mapIndicesOut.begin(),
+                                        uniqueIter));
+        
+        
+        for (std::vector<int>::iterator iter = mapIndicesOut.begin();
+             iter != mapIndicesOut.end();
+             iter++) {
+            std::cout << *iter << " ";
+        }
+        std::cout << std::endl;
+        
+    }
+}
 
 /**
  * Generate identification text for a surface border identification.
@@ -404,7 +481,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
  * @param idSurfaceBorder
  *     Information for surface border ID.
  */
-void 
+void
 IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
                                                                     const SelectionItemBorderSurface* idSurfaceBorder) const
 {

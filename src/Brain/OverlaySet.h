@@ -85,6 +85,10 @@ namespace caret {
         
         void initializeOverlays();
         
+        void getSelectedMapIndicesForFile(const CaretMappableDataFile* caretMappableDataFile,
+                                    const bool isLimitToEnabledOverlays,
+                                    std::vector<int32_t>& selectedMapIndicesOut) const;
+        
         void getLabelFilesForSurface(const Surface* surface,
                                      std::vector<LabelFile*>& labelFilesOut,
                                      std::vector<int32_t>& labelMapIndicesOut);

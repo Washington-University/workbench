@@ -32,6 +32,7 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
+    class CaretMappableDataFile;
     class SelectionItemBorderSurface;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
@@ -47,7 +48,6 @@ namespace caret {
         virtual ~IdentificationTextGenerator();
         
         AString createIdentificationText(const SelectionManager* idManager,
-                                         const BrowserTabContent* browserTabContent,
                                          const Brain* brain) const;
         
     private:
@@ -71,6 +71,9 @@ namespace caret {
         void generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
+        
+        void getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
+                                               std::vector<int32_t>& mapIndicesOut) const;
     };
     
 #ifdef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__

@@ -973,10 +973,8 @@ BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
 {
     SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
     Brain* brain = borderID->getBrain();
-    const BrowserTabContent* btc = NULL;
     this->identificationManager->clearOtherSelectedItems(borderID);
-    const AString idMessage = this->identificationManager->getIdentificationText(btc,
-                                                                                 brain);
+    const AString idMessage = this->identificationManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1077,10 +1075,8 @@ BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
 {
     SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
     Brain* brain = focusID->getBrain();
-    const BrowserTabContent* btc = NULL;
     this->identificationManager->clearOtherSelectedItems(focusID);
-    const AString idMessage = this->identificationManager->getIdentificationText(btc,
-                                                                                 brain);
+    const AString idMessage = this->identificationManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1095,10 +1091,8 @@ BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
 {
     SelectionItemFocusVolume* focusID = this->identificationManager->getVolumeFocusIdentification();
     Brain* brain = focusID->getBrain();
-    const BrowserTabContent* btc = NULL;
     this->identificationManager->clearOtherSelectedItems(focusID);
-    const AString idMessage = this->identificationManager->getIdentificationText(btc,
-                                                                                 brain);
+    const AString idMessage = this->identificationManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1143,10 +1137,8 @@ BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
 {    
     SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
     Brain* brain = surfaceID->getBrain();
-    const BrowserTabContent* btc = NULL;
     this->identificationManager->clearOtherSelectedItems(surfaceID);
-    const AString idMessage = this->identificationManager->getIdentificationText(btc,
-                                                                                 brain);
+    const AString idMessage = this->identificationManager->getIdentificationText(brain);
     
     Surface* surface = surfaceID->getSurface();
     const StructureEnum::Enum structure = surface->getStructure();
@@ -1168,10 +1160,8 @@ BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
 {
     SelectionItemVoxel* voxelID = this->identificationManager->getVoxelIdentification();
     Brain* brain = voxelID->getBrain();
-    const BrowserTabContent* btc = NULL;
     this->identificationManager->clearOtherSelectedItems(voxelID);
-    const AString idMessage = this->identificationManager->getIdentificationText(btc,
-                                                                                 brain);
+    const AString idMessage = this->identificationManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));

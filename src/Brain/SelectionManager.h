@@ -81,8 +81,7 @@ namespace caret {
         
         SelectionItemVoxel* getVoxelIdentification();
         
-        AString getIdentificationText(const BrowserTabContent* browserTabContent,
-                                      const Brain* brain) const;
+        AString getIdentificationText(const Brain* brain) const;
         
         void filterSelections(const bool applySelectionBackgroundFiltering);
         

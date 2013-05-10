@@ -1905,6 +1905,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
     if (isCiftiInterfaceValid() == false) {
         return false;
     }
+    if (mapIndices.empty()) {
+        return false;
+    }
     
     bool useMapData = false;
     bool useSeriesData = false;
@@ -2284,6 +2287,10 @@ CiftiMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int
                                                            AString& textOut) const
 {
     const int32_t numberOfMapIndices = static_cast<int32_t>(mapIndices.size());
+    if (numberOfMapIndices <= 0) {
+        return false;
+    }
+    
     textOut = "";
     
     for (int32_t i = 0; i < numberOfMapIndices; i++) {

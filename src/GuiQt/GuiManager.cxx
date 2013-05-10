@@ -1794,7 +1794,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
     else {
         IdentifiedItem* identifiedItem = NULL;
         
-        const BrowserTabContent* btc = NULL;
         SelectionItemSurfaceNode* idNode = selectionManager->getSurfaceNodeIdentification();
         SelectionItemVoxel* idVoxel = selectionManager->getVoxelIdentification();
         
@@ -1906,8 +1905,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
         /*
          * Generate identification manager
          */
-        const AString identificationMessage = selectionManager->getIdentificationText(btc,
-                                                                                      brain);
+        const AString identificationMessage = selectionManager->getIdentificationText(brain);
         
         bool issuedIdentificationLocationEvent = false;
         if (idNode->isValid()) {
