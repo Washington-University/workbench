@@ -39,6 +39,7 @@
 namespace caret {
     
     class BoundingBox;
+    class PaletteFile;
     
     /**
      * \class caret::VolumeMappableInterface
@@ -213,7 +214,8 @@ namespace caret {
          *    Output containing the rgba values (must have been allocated
          *    by caller to sufficient count of elements in the slice).
          */
-        virtual void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+        virtual void getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
+                                                 const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
                                                  uint8_t* rgbaOut) const = 0;
@@ -232,7 +234,8 @@ namespace caret {
          * @param rgbaOut
          *     Output containing RGBA values for voxel at the given indices.
          */
-        virtual void getVoxelColorInMap(const int64_t indexIn1,
+        virtual void getVoxelColorInMap(const PaletteFile* paletteFile,
+                                        const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t brickIndex,

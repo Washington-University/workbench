@@ -1054,7 +1054,8 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
  *    Contains colors upon exit.
  */
 void
-VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
+                                        const int32_t mapIndex,
                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                  const int64_t sliceIndex,
                                  uint8_t* rgbaOut) const
@@ -1159,7 +1160,8 @@ VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
  *    Contains voxel coloring on exit.
  */
 void
-VolumeFile::getVoxelColorInMap(const int64_t i,
+VolumeFile::getVoxelColorInMap(const PaletteFile* /*paletteFile*/,
+                               const int64_t i,
                         const int64_t j,
                         const int64_t k,
                         const int64_t mapIndex,

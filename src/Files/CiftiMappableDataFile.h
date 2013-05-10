@@ -194,12 +194,14 @@ namespace caret {
         
         virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
         
-        virtual void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+        virtual void getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
+                                                 const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
                                                  uint8_t* rgbaOut) const;
         
-        virtual void getVoxelColorInMap(const int64_t indexIn1,
+        virtual void getVoxelColorInMap(const PaletteFile* paletteFile,
+                                        const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t mapIndex,
@@ -297,6 +299,9 @@ namespace caret {
             
             /** Label table for map */
             GiftiLabelTable* m_labelTable;
+
+            /** Indicates data is mapped with a lable table */
+            bool m_dataIsMappedWithLabelTable;
             
             /** RGBA coloring for map */
             std::vector<float> m_rgba;

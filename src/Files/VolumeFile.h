@@ -211,7 +211,8 @@ namespace caret {
         void updateScalarColoringForMap(const int32_t mapIndex,
                                      const PaletteFile* paletteFile);
         
-        void getVoxelColorsForSliceInMap(const int32_t mapIndex,
+        void getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
+                                         const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
                                          uint8_t* rgbaOut) const;
@@ -221,7 +222,8 @@ namespace caret {
                                          const int64_t sliceIndex,
                                          float* sliceValues) const;
         
-        void getVoxelColorInMap(const int64_t i,
+        void getVoxelColorInMap(const PaletteFile* paletteFile,
+                                const int64_t i,
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,

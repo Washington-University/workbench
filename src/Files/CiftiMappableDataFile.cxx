@@ -1082,13 +1082,17 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
+    if (m_mapContent[mapIndex]->m_rgbaValid) {
+        return;
+    }
+    
     std::vector<float> data;
     getMapData(mapIndex,
                data);
 
     if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
         m_mapContent[mapIndex]->updateColoring(data,
-                                               NULL);
+                                               paletteFile);
     }
     else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
         m_mapContent[mapIndex]->updateColoring(data,
@@ -1347,7 +1351,8 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
  *    by caller to sufficient count of elements in the slice).
  */
 void
-CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
+CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFile,
+                                                   const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
                                          uint8_t* rgbaOut) const
@@ -1359,6 +1364,10 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     if (sliceIndex < 0) {
         return;
     }
+    
+    CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+    nonConstThis->updateScalarColoringForMap(mapIndex,
+                                             paletteFile);
     
     const int64_t dimI = m_volumeDimensions[0];
     const int64_t dimJ = m_volumeDimensions[1];
@@ -1500,7 +1509,8 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *     Output containing RGBA values for voxel at the given indices.
  */
 void
-CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
+CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
+                                          const int64_t indexIn1,
                                 const int64_t indexIn2,
                                 const int64_t indexIn3,
                                 const int64_t mapIndex,
@@ -1516,6 +1526,10 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
     if (mapRgbaCount <= 0) {
         return;
     }
+    
+    CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+    nonConstThis->updateScalarColoringForMap(mapIndex,
+                                             paletteFile);
     
     CaretAssert(m_voxelIndicesToOffset);
     
@@ -2390,6 +2404,8 @@ m_rgbaValid(false)
     
     m_labelTable = ciftiFacade->getLabelTableForMapOrSeriesIndex(mapIndex);
     
+    m_dataIsMappedWithLabelTable = ciftiFacade->isBrainordinateDataColoredWithLabelTable();
+    
     /*
      * Resize RGBA.  Values are filled in updateColoring()
      */
@@ -2482,7 +2498,13 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
     
     CaretAssert(m_dataCount == static_cast<int32_t>(data.size()));
     
-    if (paletteFile != NULL) {
+    if (m_dataIsMappedWithLabelTable) {
+        NodeAndVoxelColoring::colorIndicesWithLabelTable(m_labelTable,
+                                                         &data[0],
+                                                         data.size(),
+                                                         &m_rgba[0]);
+    }
+    else if (paletteFile != NULL) {
         CaretAssert(m_paletteColorMapping);
         const AString paletteName = m_paletteColorMapping->getSelectedPaletteName();
         const Palette* palette = paletteFile->getPaletteByName(paletteName);
@@ -2504,10 +2526,9 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
         }
     }
     else {
-        NodeAndVoxelColoring::colorIndicesWithLabelTable(m_labelTable,
-                                                         &data[0],
-                                                         data.size(),
-                                                         &m_rgba[0]);
+        const AString msg("NULL palette for coloring scalar data.");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
     }
     
     m_rgbaValid = true;

@@ -3128,7 +3128,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             /*
              * Get colors for all voxels in the slice.
              */
-            volumeFile->getVoxelColorsForSliceInMap(mapIndex,
+            volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
+                                                    mapIndex,
                                                     slicePlane,
                                                     drawingSliceIndex,
                                                     sliceVoxelsRGBA);
@@ -3543,6 +3544,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     if (isSelect) {
         identificationIndices.reserve(10000 * idPerVoxelCount);
     }
+
+    PaletteFile* paletteFile = m_brain->getPaletteFile();
     
     for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
@@ -3571,7 +3574,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
-                    volumeFile->getVoxelColorInMap(iVoxel,
+                    volumeFile->getVoxelColorInMap(paletteFile,
+                                                   iVoxel,
                                                    jVoxel,
                                                    kVoxel,
                                                    volInfo.mapIndex,
@@ -3847,6 +3851,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
     std::vector<uint8_t> sliceRgbaVector(numVoxels * 4);
     uint8_t* sliceRGBA = &sliceRgbaVector[0];
     
+    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    
     for (int64_t i = 0; i < numVoxelsX; i++) {
         for (int64_t j = 0; j < numVoxelsY; j++) {
             for (int64_t k = 0; k < numVoxelsZ; k++) {
@@ -3891,7 +3897,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                     uint8_t rgba[4];
                     if (vf->indexValid(iVoxel, jVoxel, kVoxel, volInfo.mapIndex)) {
                         valid = true;
-                        vf->getVoxelColorInMap(iVoxel,
+                        vf->getVoxelColorInMap(paletteFile,
+                                               iVoxel,
                                                jVoxel,
                                                kVoxel,
                                                volInfo.mapIndex,

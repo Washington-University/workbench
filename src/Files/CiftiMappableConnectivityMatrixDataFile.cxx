@@ -358,12 +358,15 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
     
     int64_t rowIndex = -1;
     
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+    
     /*
      * Get the mapping type
      */
     bool isBrainModels = false;
     bool isParcels     = false;
-    switch (m_requiredRowIndexType) {
+    switch (rowMappingType) {
         case CIFTI_INDEX_TYPE_BRAIN_MODELS:
             isBrainModels = true;
             break;
@@ -382,10 +385,38 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
             break;
     }
     
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-    
     if (isBrainModels) {
         rowIndex = ciftiXML.getRowIndexForVoxelCoordinate(xyz);
+        
+        if (rowIndex < 0) {
+            std::vector<CiftiParcelElement> parcels;
+            ciftiXML.getParcelsForColumns(parcels);
+            
+//            for (std::vector<CiftiParcelElement>::iterator parcelIter = parcels.begin();
+//                 parcelIter != parcels.end();
+//                 parcelIter++) {
+//                const CiftiParcelElement& parcelElement = *parcelIter;
+//                
+//                const int64_t numVoxels = static_cast<int64_t>(parcelElement.m_voxelIndicesIJK.size() / 3);
+//                for (int64_t iVoxel = 0; iVoxel < numVoxels; iVoxel++) {
+//                    const int64_t i3 = iVoxel * 3;
+//                    if (
+//                }
+//                for (std::vector<voxelIndexType>::const_iterator voxelIter = parcelElement.m_voxelIndicesIJK.begin();
+//                     voxelIter != parcelElement.m_voxelIndicesIJK.end();
+//                     voxelIter++) {
+//                    const voxelIndexType& voxelIndex = *voxelIter;
+//                    if (voxelIndex.)
+//                }
+//                
+//                if (parcelElement.m_voxelIndicesIJK.size() > 0) {
+//                    parcelElement.m_vo
+//                    std::cout << "Parcel "
+//                    << qPrintable(parcelElement.m_parcelName)
+//                    << " contains voxels" << std::endl;
+//                }
+//            }
+        }
     }
     else if (isParcels) {
         int64_t ijk[3];
