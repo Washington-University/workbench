@@ -1715,7 +1715,9 @@ CiftiMappableDataFile::isCiftiInterfaceValid() const
 /**
  * Get connectivity value for a surface's node.  When the data is mapped
  * to parcels, the numerical value will not be valid.  
- 
+ *
+ * @param mapIndex
+ *     Index of the map.
  * @param structure
  *     Surface's structure.
  * @param nodeIndex
@@ -1726,9 +1728,13 @@ CiftiMappableDataFile::isCiftiInterfaceValid() const
  *     Numerical value out.
  * @param numericalValueOutValid
  *     Output that indicates the numerical value output is valid.
+ *     For label data, this value will be the lable key.
  * @param textValueOut
  *     Text containing node' value will always be valid if the method 
- *     returns true.
+ *     returns true.  For parcel data, this will contain the name of the
+ *     parcel.  For label data, this will contain the name of the label.
+ *     For numerical data, this will contain the text representation
+ *     of the numerical value.
  * @return
  *    True if the text value is valid.  The numerical value may or may not
  *    also be valid.
@@ -1830,7 +1836,22 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
             if (dataIndex < static_cast<int64_t>(mapData.size())) {
                 numericalValueOut = mapData[dataIndex];
                 numericalValueOutValid = true;
-                textValueOut = AString::number(numericalValueOut, 'f');
+                
+                if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
+                    const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                    const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
+                    const GiftiLabel* gl = glt->getLabel(labelKey);
+                    if (gl != NULL) {
+                        textValueOut += gl->getName();
+                    }
+                    else {
+                        textValueOut += ("InvalidLabelKey="
+                                    + AString::number(labelKey));
+                    }
+                }
+                else {
+                    textValueOut = AString::number(numericalValueOut, 'f');
+                }
                 return true;
             }
         }
@@ -1875,7 +1896,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
  *    Output containing identification information.
  */
 bool
-CiftiMappableDataFile::getMapSurfaceNodeIdentificationForMaps(const std::vector<int32_t> mapIndices,
+CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                               const StructureEnum::Enum structure,
                                                               const int nodeIndex,
                                                               const int32_t numberOfNodes,
@@ -1961,7 +1982,7 @@ CiftiMappableDataFile::getMapSurfaceNodeIdentificationForMaps(const std::vector<
                         textOut += gl->getName();
                     }
                     else {
-                        textOut += ("InvalidKey="
+                        textOut += ("InvalidLabelKey="
                                     + AString::number(value));
                     }
                     validID = true;
@@ -2115,23 +2136,40 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
 }
 
 /**
- * Get connectivity value for a voxel at the given coordinate.
+ * Get connectivity value for a voxel.  When the data is mapped
+ * to parcels, the numerical value will not be valid.
+ *
+ * @param mapIndex
+ *     Index of the map.
  * @param xyz
  *     Coordinate of voxel.
  * @param ijkOut
  *     Voxel indices of value.
- * @param textOut
- *     Text containing node value and for some types, the parcel.
+ * @param numericalValueOut
+ *     Numerical value out.
+ * @param numericalValueOutValid
+ *     Output that indicates the numerical value output is valid.
+ *     For label data, this value will be the lable key.
+ * @param textValueOut
+ *     Text containing node' value will always be valid if the method
+ *     returns true.  For parcel data, this will contain the name of the
+ *     parcel.  For label data, this will contain the name of the label.
+ *     For numerical data, this will contain the text representation
+ *     of the numerical value.
  * @return
- *    true if a value was available for the voxel, else false.
+ *    True if the text value is valid.  The numerical value may or may not
+ *    also be valid.
  */
 bool
 CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
-                                               const float xyz[3],
-                                               int64_t ijkOut[3],
-                                               AString& textOut) const
+                                              const float xyz[3],
+                                              int64_t ijkOut[3],
+                                              float& numericalValueOut,
+                                              bool& numericalValueOutValid,
+                                              AString& textValueOut) const
 {
-    textOut = "";
+    textValueOut = "";
+    numericalValueOutValid = false;
     
     if (isCiftiInterfaceValid() == false) {
         return false;
@@ -2143,46 +2181,82 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     
-    int64_t vfIJK[3];
+    int64_t ijk[3];
     enclosingVoxel(xyz[0],
                    xyz[1],
                    xyz[2],
-                   vfIJK[0],
-                   vfIJK[1],
-                   vfIJK[2]);
-    if (indexValid(vfIJK[0],
-                   vfIJK[1],
-                   vfIJK[2])) {
-        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(vfIJK[0],
-                                                                               vfIJK[1],
-                                                                               vfIJK[2]);
+                   ijk[0],
+                   ijk[1],
+                   ijk[2]);
+    if (indexValid(ijk[0],
+                   ijk[1],
+                   ijk[2])) {
+        /*
+         * Only set the IJK if the index is valid.
+         */
+        ijkOut[0] = ijk[0];
+        ijkOut[1] = ijk[1];
+        ijkOut[2] = ijk[2];
+        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(ijk[0],
+                                                                               ijk[1],
+                                                                               ijk[2]);
         if (dataOffset >= 0) {
-            std::vector<float> mapData;
-            getMapData(mapIndex,
-                       mapData);
-            CaretAssertVectorIndex(mapData,
-                                   dataOffset);
-            const float value = mapData[dataOffset];
-            
-            if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
-                textOut = "Invalid Label Index";
+            const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+            if (m_ciftiFacade->isMappingDataToBrainordinateParcels()) {
+                /*
+                 * Get content for map.
+                 */
+                int64_t parcelMapIndex = -1;
+                std::vector<CiftiParcelElement> parcels;
+                switch (m_brainordinateMappedDataAccess) {
+                    case DATA_ACCESS_INVALID:
+                        break;
+                    case DATA_ACCESS_WITH_COLUMN_METHODS:
+                        ciftiXML.getParcelsForColumns(parcels);
+                        parcelMapIndex = ciftiXML.getColumnParcelForVoxel(ijk);
+                        break;
+                    case DATA_ACCESS_WITH_ROW_METHODS:
+                        ciftiXML.getParcelsForRows(parcels);
+                        parcelMapIndex = ciftiXML.getRowParcelForVoxel(ijk);
+                        break;
+                }
                 
-                const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
-                const int32_t labelKey = static_cast<int32_t>(value);
-                const GiftiLabel* gl = glt->getLabel(labelKey);
-                if (gl != NULL) {
-                    textOut = gl->getName();
+                if ((parcelMapIndex >= 0)
+                    && (parcelMapIndex < static_cast<int64_t>(parcels.size()))) {
+                    textValueOut = parcels[parcelMapIndex].m_parcelName;
+                    return true;
                 }
             }
-            else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
-                textOut = AString::number(value);
-            }
             else {
-                CaretAssert(0);
+                std::vector<float> mapData;
+                getMapData(mapIndex,
+                           mapData);
+                CaretAssertVectorIndex(mapData,
+                                       dataOffset);
+                numericalValueOut = mapData[dataOffset];
+                
+                if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
+                    textValueOut = "Invalid Label Index";
+                    
+                    const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                    const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
+                    const GiftiLabel* gl = glt->getLabel(labelKey);
+                    if (gl != NULL) {
+                        textValueOut = gl->getName();
+                    }
+                    else {
+                        textValueOut += ("InvalidLabelKey="
+                                         + AString::number(labelKey));
+                    }
+                }
+                else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
+                    numericalValueOutValid = true;
+                    textValueOut = AString::number(numericalValueOut);
+                }
+                else {
+                    CaretAssert(0);
+                }
             }
-            ijkOut[0] = vfIJK[0];
-            ijkOut[1] = vfIJK[1];
-            ijkOut[2] = vfIJK[2];
             
             return true;
         }
@@ -2190,6 +2264,52 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
     
     return false;
 }
+
+/**
+ * Get the identification information for a surface node in the given maps.
+ *
+ * @param mapIndices
+ *    Indices of maps for which identification information is requested.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param ijkOut
+ *     Voxel indices of value.
+ * @param textOut
+ *    Output containing identification information.
+ */
+bool
+CiftiMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                           const float xyz[3],
+                                                           int64_t ijkOut[3],
+                                                           AString& textOut) const
+{
+    const int32_t numberOfMapIndices = static_cast<int32_t>(mapIndices.size());
+    textOut = "";
+    
+    for (int32_t i = 0; i < numberOfMapIndices; i++) {
+        const int32_t mapIndex = mapIndices[i];
+        
+        float numericalValue;
+        AString textValue;
+        bool numericalValueValid;
+        if (getMapVolumeVoxelValue(mapIndex,
+                                   xyz,
+                                   ijkOut,
+                                   numericalValue,
+                                   numericalValueValid,
+                                   textValue)) {
+            textOut += textValue;
+            textOut += " ";
+        }
+    }
+    
+    if (textOut.isEmpty() == false) {
+        return true;
+    }
+    
+    return false;
+}
+
 
 /**
  * Set the status to unmodified.

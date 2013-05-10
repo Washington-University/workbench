@@ -208,7 +208,14 @@ namespace caret {
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,
                                             const float xyz[3],
                                             int64_t ijkOut[3],
-                                            AString& textOut) const;
+                                            float& numericalValueOut,
+                                            bool& numericalValueOutValid,
+                                            AString& textValueOut) const;
+        
+        virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+                                                         const float xyz[3],
+                                                         int64_t ijkOut[3],
+                                                         AString& textOut) const;
         
         std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
         
@@ -224,7 +231,7 @@ namespace caret {
                                             bool& numericalValueOutValid,
                                             AString& textValueOut) const;
         
-        virtual bool getMapSurfaceNodeIdentificationForMaps(const std::vector<int32_t> mapIndices,
+        virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                             const StructureEnum::Enum structure,
                                                             const int nodeIndex,
                                                             const int32_t numberOfNodes,

@@ -199,26 +199,49 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
             const CiftiMappableDataFile* cmdf = *ciftiMapIter;
             if (cmdf->isEmpty() == false) {
                 const int numMaps = cmdf->getNumberOfMaps();
-                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-                    AString textValue;
-                    int64_t voxelIJK[3];
-                    if (cmdf->getMapVolumeVoxelValue(iMap,
-                                                    xyz,
-                                                    voxelIJK,
-                                                    textValue)) {
-                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-                                            + " "
-                                            + cmdf->getFileNameNoPath()
-                                            + " IJK ("
-                                            + AString::number(voxelIJK[0])
-                                            + ", "
-                                            + AString::number(voxelIJK[1])
-                                            + ", "
-                                            + AString::number(voxelIJK[2])
-                                            + ")  ");
-                        idText.addLine(true, boldText, textValue);
-                    }
+                std::vector<int32_t> mapIndices;
+                for (int32_t i = 0; i < numMaps; i++) {
+                    mapIndices.push_back(i);
                 }
+                
+                AString textValue;
+                int64_t voxelIJK[3];
+                if (cmdf->getVolumeVoxelIdentificationForMaps(mapIndices,
+                                                              xyz,
+                                                              voxelIJK,
+                                                              textValue)) {
+                    AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+                                        + " "
+                                        + cmdf->getFileNameNoPath()
+                                        + " IJK ("
+                                        + AString::number(voxelIJK[0])
+                                        + ", "
+                                        + AString::number(voxelIJK[1])
+                                        + ", "
+                                        + AString::number(voxelIJK[2])
+                                        + ")  ");
+                    idText.addLine(true, boldText, textValue);
+                }
+//                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+//                    AString textValue;
+//                    int64_t voxelIJK[3];
+//                    if (cmdf->getMapVolumeVoxelValue(iMap,
+//                                                    xyz,
+//                                                    voxelIJK,
+//                                                    textValue)) {
+//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+//                                            + " "
+//                                            + cmdf->getFileNameNoPath()
+//                                            + " IJK ("
+//                                            + AString::number(voxelIJK[0])
+//                                            + ", "
+//                                            + AString::number(voxelIJK[1])
+//                                            + ", "
+//                                            + AString::number(voxelIJK[2])
+//                                            + ")  ");
+//                        idText.addLine(true, boldText, textValue);
+//                    }
+//                }
             }
         }
         
@@ -298,7 +321,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
             
             AString textValue;
             
-            const bool valid = cmdf->getMapSurfaceNodeIdentificationForMaps(mapIndices,
+            const bool valid = cmdf->getSurfaceNodeIdentificationForMaps(mapIndices,
                                                                             surface->getStructure(),
                                                                             nodeNumber,
                                                                             surface->getNumberOfNodes(),
