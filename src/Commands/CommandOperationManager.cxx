@@ -484,22 +484,22 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << "   example.  Each option starts a new scope, and ends any scope that it is not" << endl;
     cout << "   valid in.  For example, this command is correct:" << endl;
     cout << endl;
-    cout << "$ " << programName << " -volume-math 'sin(x)' -fixnan 0 -var x x.nii.gz -subvolume 1" << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' sin_x.nii.gz -fixnan 0 -var x x.nii.gz -subvolume 1" << endl;
     cout << endl;
     cout << "   as is this one (though less intuitive):" << endl;
     cout << endl;
-    cout << "$ " << programName << " -volume-math -fixnan 0 -var x -subvolume 1 x.nii.gz 'sin(x)'" << endl;
+    cout << "$ " << programName << " -volume-math -fixnan 0 'sin(x)' -var x -subvolume 1 x.nii.gz sin_x.nii.gz" << endl;
     cout << endl;
     cout << "   while this one is not, because the -fixnan argument ends the scope of -var" << endl;
     cout << "   before all of its mandatory arguments are given:" << endl;
     cout << endl;
-    cout << "$ " << programName << " -volume-math 'sin(x)' -var x -fixnan 0 x.nii.gz -subvolume 1" << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' sin_x.nii.gz -var x -fixnan 0 x.nii.gz -subvolume 1" << endl;
     cout << endl;
     //guide for wrap, assuming 80 columns:                                                  |
     cout << "   and this one is incorrect because the -subvolume option occurs after the" << endl;
     cout << "   scope of -var has ended due to -fixnan:" << endl;
     cout << endl;
-    cout << "$ " << programName << " -volume-math 'sin(x)' -var x x.nii.gz -fixnan 0 -subvolume 1" << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' sin_x.nii.gz -var x x.nii.gz -fixnan 0 -subvolume 1" << endl;
     cout << endl;
 }
 
