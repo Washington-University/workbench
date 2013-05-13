@@ -44,10 +44,12 @@ class QComboBox;
 class QDoubleSpinBox;
 class QGridLayout;
 class QMenu;
+class QSpinBox;
 class QToolButton;
 
 namespace caret {
 
+    class EnumComboBoxTemplate;
     class Overlay;
     class WuQGridLayoutGroup;
     
@@ -82,7 +84,9 @@ namespace caret {
     private slots:
         void fileComboBoxSelected(int);
         
-        void mapComboBoxSelected(int);
+        void mapNameComboBoxSelected(int);
+        
+        void mapIndexSpinBoxValueChanged(int);
         
         void enabledCheckBoxClicked(bool);
         
@@ -91,6 +95,8 @@ namespace caret {
         void settingsActionTriggered();
                 
         void opacityDoubleSpinBoxValueChanged(double value);
+        
+        void yokingGroupActivated();
         
         void menuAddOverlayAboveTriggered();
         
@@ -121,7 +127,9 @@ namespace caret {
         
         QComboBox* fileComboBox;
         
-        QComboBox* mapComboBox;
+        QComboBox* mapNameComboBox;
+        
+        QSpinBox* m_mapIndexSpinBox;
         
         QDoubleSpinBox* opacityDoubleSpinBox;
         
@@ -130,6 +138,8 @@ namespace caret {
         QAction* colorBarAction;
         
         QAction* settingsAction;
+        
+        EnumComboBoxTemplate* m_yokingGroupComboBox;
         
         WuQGridLayoutGroup* gridLayoutGroup;
         

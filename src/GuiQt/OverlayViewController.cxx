@@ -49,6 +49,7 @@
 #undef __OVERLAY_VIEW_CONTROLLER_DECLARE__
 
 #include "CaretMappableDataFile.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventMapSettingsEditorDialogRequest.h"
@@ -118,14 +119,22 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->fileComboBox->setToolTip("Selects file for this overlay");
     
     /*
-     * Map Selection Check Box
+     * Map Index Spin Box
      */
-    this->mapComboBox = WuQFactory::newComboBox();
-    this->mapComboBox->setMinimumWidth(minComboBoxWidth);
-    this->mapComboBox->setMaximumWidth(maxComboBoxWidth);
-    QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
-                     this, SLOT(mapComboBoxSelected(int)));
-    this->mapComboBox->setToolTip("Selects map within the selected file");
+    m_mapIndexSpinBox = WuQFactory::newSpinBox();
+    QObject::connect(m_mapIndexSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(mapIndexSpinBoxValueChanged(int)));
+    m_mapIndexSpinBox->setToolTip("Select map by its index");
+    
+    /*
+     * Map Name Combo Box
+     */
+    this->mapNameComboBox = WuQFactory::newComboBox();
+    this->mapNameComboBox->setMinimumWidth(minComboBoxWidth);
+    this->mapNameComboBox->setMaximumWidth(maxComboBoxWidth);
+    QObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
+                     this, SLOT(mapNameComboBoxSelected(int)));
+    this->mapNameComboBox->setToolTip("Select map by its name");
     
     /*
      * Opacity double spin box
@@ -193,7 +202,37 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->constructionAction->setMenu(constructionMenu);
     constructionToolButton->setDefaultAction(this->constructionAction);
     constructionToolButton->setPopupMode(QToolButton::InstantPopup);
-        
+    
+    /*
+     * Yoking Group
+     */
+    m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
+    m_yokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
+    m_yokingGroupComboBox->getWidget()->setStatusTip("Select a yoking group (synchronized map selections)");
+    m_yokingGroupComboBox->getWidget()->setToolTip(("Select a yoking group (synchronized map selections).\n"
+                                                    "Overlays yoked to a yoking group all maintain\n"
+                                                    "the same selected map index."));
+    QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(yokingGroupActivated()));
+    
+    /*
+     * Change names of items in Yoking Group
+     */
+    QComboBox* yokeComboBox = m_yokingGroupComboBox->getComboBox();
+    const int numYokeItems = yokeComboBox->count();
+    if (numYokeItems > 0) {
+        for (int i = 1; i < numYokeItems; i++) {
+            yokeComboBox->setItemText(i, QString::number(i));
+        }
+    }
+    yokeComboBox->setFixedWidth(yokeComboBox->sizeHint().width());
+    
+    /*
+     * Limit to 4 yoking groups (off and groups 1 to 4).
+     */
+    yokeComboBox->setMaxCount(5);
+    
+    
     /*
      * Use layout group so that items can be shown/hidden
      */
@@ -215,8 +254,13 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                          row, 4);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
                                          row, 5);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
-                                         row, 6);
+        this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
+                                         row, 6,
+                                         Qt::AlignHCenter);
+        this->gridLayoutGroup->addWidget(m_mapIndexSpinBox,
+                                         row, 7);
+        this->gridLayoutGroup->addWidget(this->mapNameComboBox,
+                                         row, 8);
         
     }
     else {
@@ -241,17 +285,21 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(fileLabel,
                               row, 4);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
-                              row, 5);
+                              row, 5, 1, 2);
         
         row++;
         this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
                                          row, 1,
-                                         1, 3,
+                                         1, 2,
                                          Qt::AlignCenter);
+        this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
+                                         row, 3);
         this->gridLayoutGroup->addWidget(mapLabel,
                               row, 4);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
-                              row, 5);
+        this->gridLayoutGroup->addWidget(m_mapIndexSpinBox,
+                                         row, 5);
+        this->gridLayoutGroup->addWidget(this->mapNameComboBox,
+                              row, 6);
         
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
@@ -299,21 +347,68 @@ OverlayViewController::fileComboBoxSelected(int indx)
 }
 
 /**
- * Called when a selection is made from the file combo box.
+ * Called when a selection is made from the map index spin box.
+ * @parm indx
+ *    Index of selection.
+ */
+void
+OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
+{
+    /*
+     * Get the file that is selected from the file combo box
+     */
+    const int32_t fileIndex = this->fileComboBox->currentIndex();
+    void* pointer = this->fileComboBox->itemData(fileIndex).value<void*>();
+    CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
+    
+    /*
+     * Overlay indices range [0, N-1] but spin box shows [1, N].
+     */
+    const int overlayIndex = indx - 1;
+    
+    overlay->setSelectionData(file, overlayIndex);
+    
+    /*
+     * Need to update map name combo box.
+     */
+    mapNameComboBox->blockSignals(true);
+    if ((overlayIndex >= 0)
+        && (overlayIndex < mapNameComboBox->count())) {        
+        mapNameComboBox->setCurrentIndex(overlayIndex);
+    }
+    mapNameComboBox->blockSignals(false);
+    
+    this->updateUserInterfaceAndGraphicsWindow();
+}
+
+/**
+ * Called when a selection is made from the map name combo box.
  * @parm indx
  *    Index of selection.
  */
 void 
-OverlayViewController::mapComboBoxSelected(int indx)
+OverlayViewController::mapNameComboBoxSelected(int indx)
 {
     if (overlay == NULL) {
         return;
     }
     
+    /*
+     * Get the file that is selected from the file combo box
+     */
     const int32_t fileIndex = this->fileComboBox->currentIndex();
     void* pointer = this->fileComboBox->itemData(fileIndex).value<void*>();
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
+    
     overlay->setSelectionData(file, indx);
+    
+    /*
+     * Need to update map index spin box.
+     * Note that the map index spin box ranges [1, N].
+     */
+    m_mapIndexSpinBox->blockSignals(true);
+    m_mapIndexSpinBox->setValue(indx + 1);
+    m_mapIndexSpinBox->blockSignals(false);
     
     this->updateUserInterfaceAndGraphicsWindow();
 }
@@ -369,6 +464,18 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 }
 
 /**
+ * Called when the yoking group is changed.
+ */
+void
+OverlayViewController::yokingGroupActivated()
+{
+    YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
+    overlay->setYokingGroup(yokingGroup);
+    
+    this->updateUserInterfaceAndGraphicsWindow();
+}
+
+/**
  * Called when the settings action is selected.
  */
 void 
@@ -404,7 +511,6 @@ OverlayViewController::updateViewController(Overlay* overlay)
 //    this->widgetsGroup->blockAllSignals(true);
     
     this->fileComboBox->clear();
-    this->mapComboBox->clear();
     
     /*
      * Get the selection information for the overlay.
@@ -453,24 +559,42 @@ OverlayViewController::updateViewController(Overlay* overlay)
     }
     
     /*
-     * Load the column selection combo box.
+     * Load the map selection combo box
      */
+    int32_t numberOfMaps = 0;
+    this->mapNameComboBox->blockSignals(true);
+    this->mapNameComboBox->clear();
     if (selectedFile != NULL) {
-        const int32_t numMaps = selectedFile->getNumberOfMaps();
-        for (int32_t i = 0; i < numMaps; i++) {
-            this->mapComboBox->addItem(selectedFile->getMapName(i));
+        numberOfMaps = selectedFile->getNumberOfMaps();
+        for (int32_t i = 0; i < numberOfMaps; i++) {
+            this->mapNameComboBox->addItem(selectedFile->getMapName(i));
         }
-        this->mapComboBox->setCurrentIndex(selectedMapIndex);
+        this->mapNameComboBox->setCurrentIndex(selectedMapIndex);
     }
+    this->mapNameComboBox->blockSignals(false);
     
+    /*
+     * Load the map index spin box that ranges [1, N].
+     */
+    m_mapIndexSpinBox->blockSignals(true);
+    m_mapIndexSpinBox->setRange(1, numberOfMaps);
+    if (selectedFile != NULL) {
+        m_mapIndexSpinBox->setValue(selectedMapIndex + 1);
+    }
+    m_mapIndexSpinBox->blockSignals(false);
+
+    /*
+     * Update enable check box
+     */
     Qt::CheckState checkState = Qt::Unchecked;
     if (this->overlay != NULL) {
         if (this->overlay->isEnabled()) {
             checkState = Qt::Checked;
         }
     }
-    
     this->enabledCheckBox->setCheckState(checkState);
+    
+    m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(this->overlay->getYokingGroup());
     
     this->colorBarAction->blockSignals(true);
     this->colorBarAction->setChecked(overlay->isPaletteDisplayEnabled());
@@ -492,10 +616,12 @@ OverlayViewController::updateViewController(Overlay* overlay)
      * Make sure items are enabled at the appropriate time
      */
     this->fileComboBox->setEnabled(haveFile);
-    this->mapComboBox->setEnabled(haveFile);
+    this->mapNameComboBox->setEnabled(haveFile);
+    this->m_mapIndexSpinBox->setEnabled(haveFile);
     this->enabledCheckBox->setEnabled(haveFile);
     this->constructionAction->setEnabled(haveFile);
     this->opacityDoubleSpinBox->setEnabled(haveFile);
+    this->m_yokingGroupComboBox->getWidget()->setEnabled(haveFile);
     this->colorBarAction->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }

@@ -30,6 +30,7 @@
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 #include "WholeBrainVoxelDrawingMode.h"
+#include "YokingGroupEnum.h"
 
 namespace caret {
     class BrainStructure;
@@ -96,6 +97,10 @@ namespace caret {
         
         void setPaletteDisplayEnabled(const bool enabled);
         
+        YokingGroupEnum::Enum getYokingGroup() const;
+        
+        void setYokingGroup(const YokingGroupEnum::Enum yokingType);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -132,6 +137,9 @@ namespace caret {
         
         /** enabled status */
         bool m_enabled;
+        
+        /** yoking status */
+        YokingGroupEnum::Enum m_yokingGroup;
         
         /** available mappable files */
         //std::vector<CaretMappableDataFile*> m_mapFiles;

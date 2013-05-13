@@ -92,12 +92,14 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 0);
         gridLayout->setColumnStretch(5, 100);
-        gridLayout->setColumnStretch(6, 100);
+        gridLayout->setColumnStretch(6, 0);
+        gridLayout->setColumnStretch(8, 100);
         
         QLabel* onLabel       = new QLabel("On");
         QLabel* settingsLabel = new QLabel("Settings");
         QLabel* opacityLabel  = new QLabel("Opacity");
         QLabel* fileLabel     = new QLabel("File");
+        QLabel* yokeLabel     = new QLabel("Yoke");
         QLabel* mapLabel      = new QLabel("Map");
 
         const int row = gridLayout->rowCount();
@@ -105,7 +107,8 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->addWidget(settingsLabel, row, 1, 1, 3, Qt::AlignHCenter);
         gridLayout->addWidget(opacityLabel, row, 4, Qt::AlignHCenter);
         gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
-        gridLayout->addWidget(mapLabel, row, 6, Qt::AlignHCenter);
+        gridLayout->addWidget(yokeLabel, row, 6, Qt::AlignHCenter);
+        gridLayout->addWidget(mapLabel, row, 8, 1, 2, Qt::AlignHCenter);
     }
     else {
         gridLayout->setColumnStretch(0, 0);
@@ -113,7 +116,8 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 0);
-        gridLayout->setColumnStretch(5, 100);
+        gridLayout->setColumnStretch(5, 0);
+        gridLayout->setColumnStretch(6, 100);
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {

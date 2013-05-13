@@ -155,6 +155,7 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_name = "Overlay ";
     m_enabled = true;
     m_paletteDisplayedFlag = false;
+    m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
     m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
     
@@ -605,6 +606,50 @@ void
 Overlay::setPaletteDisplayEnabled(const bool enabled)
 {
     m_paletteDisplayedFlag = enabled;
+}
+
+/**
+ * @return Selected yoking group.
+ */
+YokingGroupEnum::Enum
+Overlay::getYokingGroup() const
+{
+    return m_yokingGroup;
+}
+
+/**
+ * Set the selected yoking group.
+ *
+ * @param yokingGroup
+ *    New value for yoking group.
+ */
+void
+Overlay::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
+{
+    m_yokingGroup = yokingGroup;
+    
+    if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+//    /*
+//     * Find another browser tab using the same yoking as 'me' and copy
+//     * yoked data from the other browser tab.
+//     */
+//    for (std::set<BrowserTabContent*>::iterator iter = s_allBrowserTabContent.begin();
+//         iter != s_allBrowserTabContent.end();
+//         iter++) {
+//        BrowserTabContent* btc = *iter;
+//        if (btc != this) {
+//            if (btc->getYokingGroup() == m_yokingGroup) {
+//                *m_viewingTransformation = *btc->m_viewingTransformation;
+//                *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
+//                *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
+//                *m_wholeBrainSliceSettings = *btc->m_wholeBrainSliceSettings;
+//                break;
+//            }
+//        }
+//    }
 }
 
 /**
