@@ -1188,59 +1188,13 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
         const StructureEnum::Enum structure = specFileDataFile->getStructure();
         
         
-        bool isFileSavable = true;
-        if (caretDataFile == NULL) {
-            isFileSavable = false;
+        bool isFileSavable = false;
+        if (caretDataFile != NULL) {
+            if (caretDataFile->supportsWriting()) {
+                isFileSavable = true;
+            }
         }
         const DataFileTypeEnum::Enum dataFileType = specFileDataFile->getDataFileType();
-        switch (dataFileType) {
-            case DataFileTypeEnum::BORDER:
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                isFileSavable = false;
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                isFileSavable = false;
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-                isFileSavable = false;
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-                isFileSavable = false;
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                break;
-            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                break;
-            case DataFileTypeEnum::FOCI:
-                break;
-            case DataFileTypeEnum::LABEL:
-                break;
-            case DataFileTypeEnum::METRIC:
-                break;
-            case DataFileTypeEnum::PALETTE:
-                break;
-            case DataFileTypeEnum::RGBA:
-                break;
-            case DataFileTypeEnum::SCENE:
-                break;
-            case DataFileTypeEnum::SPECIFICATION:
-                break;
-            case DataFileTypeEnum::SURFACE:
-                break;
-            case DataFileTypeEnum::VOLUME:
-                break;
-            case DataFileTypeEnum::UNKNOWN:
-                break;
-            default:
-                break;
-        }
         
         switch (m_dialogMode) {
             case MODE_MANAGE_FILES:

@@ -70,6 +70,8 @@ namespace caret {
         
         void setDisplayedInGUI(const bool displayedInGUI);
         
+        virtual bool supportsWriting() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                 const AString& instanceName);
         

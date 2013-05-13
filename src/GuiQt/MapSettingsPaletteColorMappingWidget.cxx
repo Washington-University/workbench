@@ -1554,6 +1554,15 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         }
     }
     
+    /*
+     * If no map attributes (one palette applies to all maps),
+     * update coloring for all maps since all of the maps will
+     * need their coloring updated.
+     */
+    if (this->caretMappableDataFile->hasMapAttributes() == false) {
+        assignToAllMaps = true;
+    }
+    
     this->updateHistogramPlot();
     
     PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();

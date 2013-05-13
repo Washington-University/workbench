@@ -154,6 +154,8 @@ namespace caret {
         virtual void updateScalarColoringForMap(const int32_t mapIndex,
                                                 const PaletteFile* paletteFile);
         
+        virtual bool isMapColoringValid(const int32_t mapIndex) const;
+        
         virtual void getDimensions(int64_t& dimOut1,
                                    int64_t& dimOut2,
                                    int64_t& dimOut3,

@@ -47,6 +47,8 @@ namespace caret {
         
         virtual ~CiftiBrainordinateDataSeriesFile();
         
+        virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
+        
     private:
         CiftiBrainordinateDataSeriesFile(const CiftiBrainordinateDataSeriesFile&);
 

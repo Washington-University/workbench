@@ -306,6 +306,19 @@ CaretDataFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes
     /* Nothing as subclasses needing to restore from scenes will override. */
 }
 
+/**
+ * @return True if this file type supports writing, else false.
+ *
+ * By default, this method returns true.  Files that do not support
+ * writing should override this method and return false.
+ */
+bool
+CaretDataFile::supportsWriting() const
+{
+    return true;
+}
+
+
 
 
 

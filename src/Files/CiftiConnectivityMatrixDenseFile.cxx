@@ -71,3 +71,15 @@ CiftiConnectivityMatrixDenseFile::~CiftiConnectivityMatrixDenseFile()
     
 }
 
+/**
+ * @return True if this file type supports writing, else false.
+ *
+ * Dense files do NOT support writing.
+ */
+bool
+CiftiConnectivityMatrixDenseFile::supportsWriting() const
+{
+    return false;
+}
+
+

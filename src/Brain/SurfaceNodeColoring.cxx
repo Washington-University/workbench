@@ -792,8 +792,10 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
     /*
      * Update coloring
      */
-    ciftiLabelFile->updateScalarColoringForMap(mapIndex,
-                                                    brain->getPaletteFile());
+    if (ciftiLabelFile->isMapColoringValid(mapIndex) == false) {
+        ciftiLabelFile->updateScalarColoringForMap(mapIndex,
+                                                   brain->getPaletteFile());
+    }
     
     std::vector<float> dataValues(numberOfNodes);
     
@@ -925,9 +927,10 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
     /*
      * Update coloring
      */
-    ciftiScalarFile->updateScalarColoringForMap(mapIndex,
+    if (ciftiScalarFile->isMapColoringValid(mapIndex) == false) {
+        ciftiScalarFile->updateScalarColoringForMap(mapIndex,
                                                     brain->getPaletteFile());
-
+    }
     
     std::vector<float> dataValues(numberOfNodes);
     const StructureEnum::Enum structure = brainStructure->getStructure();
@@ -995,8 +998,10 @@ SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainSt
     /*
      * Update coloring
      */
-    ciftiDataSeriesFile->updateScalarColoringForMap(mapIndex,
+    if (ciftiDataSeriesFile->isMapColoringValid(mapIndex) == false) {
+        ciftiDataSeriesFile->updateScalarColoringForMap(mapIndex,
                                                     brain->getPaletteFile());
+    }
 
     /*
      * Get Coloring

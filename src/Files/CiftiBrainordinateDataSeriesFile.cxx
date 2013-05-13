@@ -68,3 +68,28 @@ CiftiBrainordinateDataSeriesFile::~CiftiBrainordinateDataSeriesFile()
     
 }
 
+/**
+ * Update coloring for all maps.
+ *
+ * Note: Overridden since Data-Series files have one palette that is
+ * applied to ALL maps.  For data-series, just invalidate the coloring
+ * for all maps (data points).
+ *
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+CiftiBrainordinateDataSeriesFile::updateScalarColoringForAllMaps(const PaletteFile* /*paletteFile*/)
+{
+    /*
+     * Just need to invalidate coloring.
+     * Updating coloring for all maps would take time.
+     * Coloring update is triggered by code that colors nodes/voxels
+     * when drawing.
+     */
+    const int64_t numMaps = static_cast<int64_t>(getNumberOfMaps());
+    for (int64_t i = 0; i < numMaps; i++) {
+        CaretAssertVectorIndex(m_mapContent, i);
+        m_mapContent[i]->m_rgbaValid = false;
+    }
+}

@@ -46,6 +46,8 @@ namespace caret {
         
         virtual ~CiftiConnectivityMatrixDenseFile();
         
+        virtual bool supportsWriting() const;
+        
     private:
         CiftiConnectivityMatrixDenseFile(const CiftiConnectivityMatrixDenseFile&);
 

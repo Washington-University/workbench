@@ -1071,6 +1071,10 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
 /**
  * Update scalar coloring for a map.
  *
+ * Note that some CIFTI files can be slow to color due to the need to
+ * retrieve data for the map.  Use isMapColoringValid() to avoid 
+ * unnecessary calls to isMapColoringValid.
+ *
  * @param mapIndex
  *    Index of map.
  * @param paletteFile
@@ -1082,14 +1086,12 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    if (m_mapContent[mapIndex]->m_rgbaValid) {
-        return;
-    }
     
     std::vector<float> data;
     getMapData(mapIndex,
                data);
 
+    m_mapContent[mapIndex]->m_rgbaValid = false;
     if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
         m_mapContent[mapIndex]->updateColoring(data,
                                                paletteFile);
@@ -1102,6 +1104,25 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
         CaretAssert(0);
     }
 }
+
+/**
+ * Note that some CIFTI files can be slow to color due to the need to
+ * retrieve data for the map.  This method can be used to avoid calls
+ * to updateScalarColoringForMap.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    True if the coloring for the given map index is valid.
+ */
+bool
+CiftiMappableDataFile::isMapColoringValid(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    return m_mapContent[mapIndex]->m_rgbaValid;
+}
+
 
 /**
  * Get the dimensions of the volume.
@@ -1365,9 +1386,11 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
         return;
     }
     
-    CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-    nonConstThis->updateScalarColoringForMap(mapIndex,
-                                             paletteFile);
+    if (isMapColoringValid(mapIndex) == false) {
+        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+        nonConstThis->updateScalarColoringForMap(mapIndex,
+                                                 paletteFile);
+    }
     
     const int64_t dimI = m_volumeDimensions[0];
     const int64_t dimJ = m_volumeDimensions[1];
@@ -1527,9 +1550,11 @@ CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
         return;
     }
     
-    CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
-    nonConstThis->updateScalarColoringForMap(mapIndex,
+    if (isMapColoringValid(mapIndex) == false) {
+        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+        nonConstThis->updateScalarColoringForMap(mapIndex,
                                              paletteFile);
+    }
     
     CaretAssert(m_voxelIndicesToOffset);
     
