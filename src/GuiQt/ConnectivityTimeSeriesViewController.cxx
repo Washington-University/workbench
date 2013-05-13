@@ -418,6 +418,18 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
             this->frameSpinBox->setValue(frame+1);
             this->frameSpinBox->update();
             this->frameSpinBox->blockSignals(false);
+            
+            this->frameName->blockSignals(true);
+            double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep();
+            if(this->connectivityLoaderFile->hasDataSeriesLabels())
+            {
+                this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(frame));
+            }
+            else
+            {
+                this->frameName->setText(AString::number(currentTime,'f',2)+AString(" seconds"));                
+            }
+            this->frameName->blockSignals(false);
         }
         else if(timeSeriesViewController->yokeCheckBox->checkState() == Qt::Checked && 
                 this->yokeCheckBox->checkState() == Qt::Checked)
@@ -429,6 +441,18 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
                 this->frameSpinBox->setValue(frame+1);
                 this->frameSpinBox->update();
                 this->frameSpinBox->blockSignals(false);
+                
+                this->frameName->blockSignals(true);
+                double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep();
+                if(this->connectivityLoaderFile->hasDataSeriesLabels())
+                {
+                    this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(frame));
+                }
+                else
+                {
+                    this->frameName->setText(AString::number(currentTime,'f',2)+AString(" seconds"));                
+                }
+                this->frameName->blockSignals(false);
             }
             else
             {
@@ -438,6 +462,18 @@ ConnectivityTimeSeriesViewController::updateFrameSpinBox(ConnectivityTimeSeriesV
                 alreadyLoaded.insert(this->connectivityLoaderFile, true);                
                 this->connectivityLoaderFile->loadFrame(frame);
                 this->frameSpinBox->blockSignals(false);
+                
+                this->frameName->blockSignals(true);
+                double currentTime = double(frame)*this->connectivityLoaderFile->getTimeStep();
+                if(this->connectivityLoaderFile->hasDataSeriesLabels())
+                {
+                    this->frameName->setText(this->connectivityLoaderFile->getMapNameForRowIndex(frame));
+                }
+                else
+                {
+                    this->frameName->setText(AString::number(currentTime,'f',2)+AString(" seconds"));                
+                }
+                this->frameName->blockSignals(false);
             }            
         }
     }
