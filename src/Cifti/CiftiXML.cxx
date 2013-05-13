@@ -1398,6 +1398,7 @@ bool CiftiXML::addParcel(const int& direction, const CiftiParcelElement& parcel)
 bool CiftiXML::checkVolumeIndices(const vector<voxelIndexType>& ijkList) const
 {
     int64_t listSize = (int64_t)ijkList.size();
+    if (listSize == 0) return true;
     if (listSize % 3 != 0) return false;
     int64_t dims[3];
     vector<vector<float> > sform;//not used, but needed by the funciton
