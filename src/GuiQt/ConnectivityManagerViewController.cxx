@@ -38,6 +38,7 @@
 #include <QTemporaryFile>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <unistd.h>
 
 #define __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
 #include "ConnectivityManagerViewController.h"

@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 
 #include <QDateTime>
 #include <QDir>

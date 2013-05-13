@@ -33,6 +33,7 @@
 
 #include <QDir>
 #include <QFileDialog>
+#include <unistd.h>
 
 #include "MovieDialog.h"
 #include "ui_MovieDialog.h"
