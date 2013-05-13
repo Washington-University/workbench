@@ -156,6 +156,13 @@ namespace caret {
             return m_itemComboBox;
         }
         
+        /**
+         * @return The actual combo box.
+         */
+        QComboBox* getComboBox() {
+            return m_itemComboBox;
+        }
+        
     signals:
         /**
          * This signal is sent when the user chooses an item in the combobox. 
