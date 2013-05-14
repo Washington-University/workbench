@@ -25,6 +25,8 @@
  * 
  */ 
 
+#include <set>
+
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
@@ -158,10 +160,13 @@ namespace caret {
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;
+        
+        /** Tracks ALL valid overlays */
+        static std::set<Overlay*> s_allOverlays;
     };
     
 #ifdef __OVERLAY_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<Overlay*> Overlay::s_allOverlays;
 #endif // __OVERLAY_DECLARE__
 
 } // namespace

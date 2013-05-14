@@ -165,9 +165,16 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
     m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
                                                             &m_wholeBrainVoxelDrawingMode);
+    m_sceneAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
+                                                                  &m_yokingGroup);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
+    
+    /*
+     * Track all overlays
+     */
+    s_allOverlays.insert(this);
 }
 
 /**
@@ -175,6 +182,12 @@ Overlay::initializeOverlay(Model* modelDisplayController,
  */
 Overlay::~Overlay()
 {
+    /*
+     * No longer want to track this overlay.
+     */
+    CaretAssertMessage(s_allOverlays.erase(this),
+                       "Failed to remove an overlay from set that tracks all overlays.");
+    
     EventManager::get()->removeAllEventsFromListener(this);
     
     delete m_sceneAssistant;
@@ -317,6 +330,7 @@ Overlay::copyData(const Overlay* overlay)
     m_selectedMapFile = overlay->m_selectedMapFile;
     m_selectedMapUniqueID = overlay->m_selectedMapUniqueID;
     m_paletteDisplayedFlag = overlay->m_paletteDisplayedFlag;
+    m_yokingGroup = overlay->m_yokingGroup;
 }
 
 /**
