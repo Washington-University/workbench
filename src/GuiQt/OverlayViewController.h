@@ -117,6 +117,8 @@ namespace caret {
         
         QMenu* createConstructionMenu(QWidget* parent);
         
+        void validateYokingSelection();
+        
         const int32_t browserWindowIndex;
         
         const int32_t m_overlayIndex;

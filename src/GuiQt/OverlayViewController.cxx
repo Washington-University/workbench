@@ -50,6 +50,7 @@
 
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventOverlayYokingGroupGet.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventMapSettingsEditorDialogRequest.h"
@@ -57,6 +58,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "Overlay.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQWidgetObjectGroup.h"
@@ -207,7 +209,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Yoking Group
      */
     m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
-    m_yokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
+    m_yokingGroupComboBox->setup<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
     m_yokingGroupComboBox->getWidget()->setStatusTip("Select a yoking group (synchronized map selections)");
     m_yokingGroupComboBox->getWidget()->setToolTip(("Select a yoking group (synchronized map selections).\n"
                                                     "Overlays yoked to a yoking group all maintain\n"
@@ -341,7 +343,8 @@ OverlayViewController::fileComboBoxSelected(int indx)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     overlay->setSelectionData(file, 0);
     
-    this->updateViewController(this->overlay);
+    yokingGroupActivated();
+    // not needed with call to yokingGroupActivated, this->updateViewController(this->overlay);
     
     this->updateUserInterfaceAndGraphicsWindow();    
 }
@@ -464,15 +467,54 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 }
 
 /**
+ * Validate and possibly change the yoking group selection.
+ */
+void
+OverlayViewController::validateYokingSelection()
+{
+}
+
+
+/**
  * Called when the yoking group is changed.
  */
 void
 OverlayViewController::yokingGroupActivated()
 {
-    YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
-    overlay->setYokingGroup(yokingGroup);
-    
-    this->updateUserInterfaceAndGraphicsWindow();
+    OverlayYokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
+   
+    if (yokingGroup != overlay->getYokingGroup()) {
+        if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+            EventOverlayYokingGroupGet yokedOverlaysEvent(yokingGroup);
+            EventManager::get()->sendEvent(yokedOverlaysEvent.getPointer());
+            
+            CaretMappableDataFile* selectedFile = NULL;
+            int32_t selectedMapIndex;
+            overlay->getSelectionData(selectedFile,
+                                      selectedMapIndex);
+            if (selectedFile != NULL) {
+                AString message;
+                if (yokedOverlaysEvent.validateCompatibility(selectedFile,
+                                                           message)) {
+                    overlay->setYokingGroup(yokingGroup);
+                    yokedOverlaysEvent.synchronizeSelectedMaps(overlay);
+                }
+                else {
+                    message.appendWithNewLine("Yoking is not allowed and will be deselected.");
+                    WuQMessageBox::errorOk(m_yokingGroupComboBox->getWidget(),
+                                           message);
+                    overlay->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+                }
+            }
+        }
+        else {
+            overlay->setYokingGroup(yokingGroup);
+        }
+        
+        updateViewController(overlay);
+        
+        this->updateUserInterfaceAndGraphicsWindow();
+    }
 }
 
 /**
@@ -594,7 +636,9 @@ OverlayViewController::updateViewController(Overlay* overlay)
     }
     this->enabledCheckBox->setCheckState(checkState);
     
-    m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(this->overlay->getYokingGroup());
+    m_yokingGroupComboBox->blockSignals(true);
+    m_yokingGroupComboBox->setSelectedItem<OverlayYokingGroupEnum,OverlayYokingGroupEnum::Enum>(this->overlay->getYokingGroup());
+    m_yokingGroupComboBox->blockSignals(false);
     
     this->colorBarAction->blockSignals(true);
     this->colorBarAction->setChecked(overlay->isPaletteDisplayEnabled());
@@ -633,7 +677,12 @@ void
 OverlayViewController::updateUserInterfaceAndGraphicsWindow()
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+    else {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    }
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 

@@ -155,7 +155,7 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_name = "Overlay ";
     m_enabled = true;
     m_paletteDisplayedFlag = false;
-    m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
     
     m_wholeBrainVoxelDrawingMode = WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES;
     
@@ -165,16 +165,11 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
     m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
                                                             &m_wholeBrainVoxelDrawingMode);
-    m_sceneAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
+    m_sceneAssistant->add<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>("m_yokingGroup",
                                                                   &m_yokingGroup);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
-    
-    /*
-     * Track all overlays
-     */
-    s_allOverlays.insert(this);
 }
 
 /**
@@ -182,12 +177,6 @@ Overlay::initializeOverlay(Model* modelDisplayController,
  */
 Overlay::~Overlay()
 {
-    /*
-     * No longer want to track this overlay.
-     */
-    CaretAssertMessage(s_allOverlays.erase(this),
-                       "Failed to remove an overlay from set that tracks all overlays.");
-    
     EventManager::get()->removeAllEventsFromListener(this);
     
     delete m_sceneAssistant;
@@ -582,6 +571,20 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     
     selectedMapFileOut = m_selectedMapFile;
     if (selectedMapFileOut != NULL) {
+        /*
+         * Update for overlay yoking
+         */
+        if (m_yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+            const int32_t yokeMapIndex = OverlayYokingGroupEnum::getSelectedMapIndex(m_yokingGroup);
+            if ((yokeMapIndex >= 0)
+                && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
+                m_selectedMapUniqueID = selectedMapFileOut->getMapUniqueID(yokeMapIndex);
+            }
+            else if (yokeMapIndex >= selectedMapFileOut->getNumberOfMaps()) {
+                selectedMapUniqueIDOut = selectedMapFileOut->getNumberOfMaps() - 1;
+            }
+        }
+        
         selectedMapUniqueIDOut = m_selectedMapUniqueID;
         selectedMapIndexOut = m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
     }
@@ -599,7 +602,14 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                           const int32_t selectedMapIndex)
 {
     m_selectedMapFile = selectedMapFile;
-    m_selectedMapUniqueID = selectedMapFile->getMapUniqueID(selectedMapIndex);    
+    m_selectedMapUniqueID = selectedMapFile->getMapUniqueID(selectedMapIndex);
+    
+    if (m_yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        if (selectedMapFile != NULL) {
+            OverlayYokingGroupEnum::setSelectedMapIndex(m_yokingGroup,
+                                                        selectedMapIndex);
+        }
+    }
 }
 
 /**
@@ -625,7 +635,7 @@ Overlay::setPaletteDisplayEnabled(const bool enabled)
 /**
  * @return Selected yoking group.
  */
-YokingGroupEnum::Enum
+OverlayYokingGroupEnum::Enum
 Overlay::getYokingGroup() const
 {
     return m_yokingGroup;
@@ -638,11 +648,11 @@ Overlay::getYokingGroup() const
  *    New value for yoking group.
  */
 void
-Overlay::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
+Overlay::setYokingGroup(const OverlayYokingGroupEnum::Enum yokingGroup)
 {
     m_yokingGroup = yokingGroup;
     
-    if (m_yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+    if (m_yokingGroup == OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
         return;
     }
     

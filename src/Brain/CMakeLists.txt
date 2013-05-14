@@ -85,6 +85,7 @@ EventModelDelete.h
 EventModelGetAll.h
 EventModelSurfaceGet.h
 EventOverlayValidate.h
+EventOverlayYokingGroupGet.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FeatureColoringTypeEnum.h
@@ -108,6 +109,7 @@ ModelVolume.h
 ModelWholeBrain.h
 Overlay.h
 OverlaySet.h
+OverlayYokingGroupEnum.h
 ProjectionViewTypeEnum.h
 SelectionItemDataTypeEnum.h
 SelectionItem.h
@@ -172,6 +174,7 @@ EventModelDelete.cxx
 EventModelGetAll.cxx
 EventModelSurfaceGet.cxx
 EventOverlayValidate.cxx
+EventOverlayYokingGroupGet.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FeatureColoringTypeEnum.cxx
@@ -195,6 +198,7 @@ ModelVolume.cxx
 ModelWholeBrain.cxx
 Overlay.cxx
 OverlaySet.cxx
+OverlayYokingGroupEnum.cxx
 ProjectionViewTypeEnum.cxx
 SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx
