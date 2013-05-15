@@ -63,6 +63,7 @@ namespace caret {
                               const AString& ifdefName,
                               const AString& ifdefNameStaticDeclaration,
                               const bool hasCopyAndAssignment,
+                              const bool hasEventListener,
                               const bool hasScenes);
         
         void createImplementationFile(const AString& outputFileName,
@@ -71,6 +72,7 @@ namespace caret {
                                       const AString& eventTypeEnumName,
                                       const AString& ifdefNameStaticDeclaration,
                                       const bool hasCopyAndAssignment,
+                                      const bool hasEventListener,
                                       const bool hasScenes);
     };
     

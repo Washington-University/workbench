@@ -58,7 +58,8 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "\n"
                         "Usage:  <class-name> \n"
                         "        [-copy] \n"
-                        "        [-event <event-type-enum>]\n"
+                        "        [-event-class <event-type-enum>]\n"
+                        "        [-event-listener] \n"
                         "        [-no-parent] \n"
                         "        [-parent <parent-class-name>] \n"
                         "\n"
@@ -67,7 +68,7 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "    -copy\n"
                         "        Adds copy constructor and assignment operator\n"
                         "    \n"
-                        "    -event <event-type-enum>\n"
+                        "    -event-class <event-type-enum>\n"
                         "        When creating an Event subclass, using this\n"
                         "        option will automatically set the parent\n"
                         "        class to Event and place the given event\n"
@@ -76,6 +77,10 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "        \n"
                         "        For the <event-type-enum> there is no need\n"
                         "        to prepend it with \"EventTypeEnum::\".\n"
+                        "        \n"
+                        "    -event-listener \n"
+                        "        Implement the EventListenerInterface so\n"
+                        "        that the class may listen for events.\n"
                         "        \n"
                         "    -no-parent\n"
                         "        Created class is not derived from any other\n"
@@ -114,18 +119,22 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
     AString eventTypeEnumName;
     
     bool hasCopyAndAssignment = false;
+    bool hasEventListener = false;
     bool hasScenes = false;
     while (parameters.hasNext()) {
         const AString& param = parameters.nextString("Create Class Parameter");
         if (param == "-copy") {
             hasCopyAndAssignment = true;
         }
-        else if (param == "-event") {
+        else if (param == "-event-class") {
             eventTypeEnumName = parameters.nextString("Event Type Enum Name");
             if (eventTypeEnumName.contains("::") == false) {
                 eventTypeEnumName.insert(0,
                                          "EventTypeEnum::");
             }
+        }
+        else if (param == "-event-listener") {
+            hasEventListener = true;
         }
         else if (param == "-parent") {
             derivedFromClassName = parameters.nextString("Parent Class Name");
@@ -192,6 +201,7 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                            ifndefName, 
                            ifdefNameStaticDeclarations, 
                            hasCopyAndAssignment,
+                           hasEventListener,
                            hasScenes);
     
     this->createImplementationFile(implementationFileName,
@@ -200,6 +210,7 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                                    eventTypeEnumName,
                                    ifdefNameStaticDeclarations, 
                                    hasCopyAndAssignment,
+                                   hasEventListener,
                                    hasScenes);
 }
 
@@ -218,6 +229,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
  *    Name for "infdef" of static declarations.
  * @param hasCopyAndAssignment
  *    Has copy constructor and assignment operator.
+ * @param hasEventListener
+ *    Class implements the EventListener interface 
  * @param hasScenes
  *    Class implements the SceneableInterface for scene support.
  */
@@ -228,6 +241,7 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
                                          const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
                                      const bool hasCopyAndAssignment,
+                                     const bool hasEventListener,
                                      const bool hasScenes)
 {
     AString t;
@@ -244,6 +258,16 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     
     t += (this->getIncludeDeclaration(derivedFromClassName) + "\n");
     t += ("\n");    
+    if (hasEventListener) {
+        t += (this->getIncludeDeclaration("EventListenerInterface") + "\n");
+        if (derivedFromDeclaration.isEmpty()) {
+            derivedFromDeclaration += (" : ");
+        }
+        else {
+            derivedFromDeclaration += (", ");
+        }
+        derivedFromDeclaration += ("public EventListenerInterface");
+    }
     if (hasScenes) {
         t += (this->getIncludeDeclaration("SceneableInterface") + "\n");
         if (derivedFromDeclaration.isEmpty()) {
@@ -254,6 +278,7 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         }
         derivedFromDeclaration += ("public SceneableInterface");
     }
+    t += ("\n");
     t += ("\n");
     t += ("namespace caret {\n");
     if (hasScenes) {
@@ -296,6 +321,10 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     if (derivedFromClassName == "CaretObject") {
         t += ("        virtual AString toString() const;\n");
         t += ("        \n");
+    }
+    if (hasEventListener) {
+        t += ("        virtual void receiveEvent(Event* event);\n");
+        t += ("\n");
     }
     if (hasScenes) {
         t += ("        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,\n");
@@ -354,6 +383,8 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
  *    Name for "infdef" of static declarations.
  * @param hasCopyAndAssignment
  *    Has copy constructor and assignment operator.
+ * @param hasEventListener
+ *    Class implements the EventListener interface
  * @param hasScenes
  *    Class implements the SceneableInterface for scene support.
  */
@@ -364,6 +395,7 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
                                              const AString& eventTypeEnumName,
                                                  const AString& ifdefNameStaticDeclaration,
                                              const bool hasCopyAndAssignment,
+                                             const bool hasEventListener,
                                              const bool hasScenes)
 {
     AString module;
@@ -381,9 +413,13 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("#include \"" + className + ".h\"\n");
     t += ("#undef " + ifdefNameStaticDeclaration + "\n");
     t += ("\n");
+    t += (this->getIncludeDeclaration("CaretAssert") + "\n");
     if (eventTypeEnumName.isEmpty() == false) {
         t += ("#include \"EventTypeEnum.h\"\n");
         t += ("\n");
+    }
+    if (hasEventListener) {
+        t += (this->getIncludeDeclaration("EventManager") + "\n");
     }
     if (hasScenes) {
         t += (this->getIncludeDeclaration("SceneClass") + "\n");
@@ -417,6 +453,9 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("    m_sceneAssistant = new SceneClassAssistant();\n");
         t += ("    \n");
     }
+    if (hasEventListener) {
+        t += ("//    EventManager::get()->addEventListener(this, EventTypeEnum::);\n");
+    }
     t += ("}\n");
     t += ("\n");
     t += ("/**\n");
@@ -424,10 +463,12 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += (" */\n");
     t += ("" + className + "::~" + className + "()\n");
     t += ("{\n");
+    if (hasEventListener) {
+        t += ("    EventManager::get()->removeAllEventsFromListener(this);\n");
+    }
     if (hasScenes) {
         t += ("    delete m_sceneAssistant;\n");
     }
-    t += ("    \n");
     t += ("}\n");
     t += ("\n");
     
@@ -486,6 +527,26 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("\n");
     }
 
+    if (hasEventListener) {
+        t += ("/**\n");
+        t += (" * Receive an event.\n");
+        t += (" *\n");
+        t += (" * @param event\n");
+        t += (" *    An event for which this instance is listening.\n");
+        t += (" */\n");
+        t += ("void\n");
+        t += (className + "::receiveEvent(Event* event)\n");
+        t += ("{\n");
+        t += ("//    if (event->getEventType() == EventTypeEnum::) {\n");
+        t += ("//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME>*(event);\n");
+        t += ("//        CaretAssert(eventName);\n");
+        t += ("//\n");
+        t += ("//        event->setEventProcessed();\n");
+        t += ("//    }\n");
+        t += ("}\n");
+        t += ("\n");
+    }
+    
     if (hasScenes) {
         t += ("/**\n");
         t += (" * Save information specific to this type of model to the scene.\n");
