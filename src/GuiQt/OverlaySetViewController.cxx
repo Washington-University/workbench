@@ -49,6 +49,7 @@
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "OverlaySet.h"
@@ -258,9 +259,7 @@ OverlaySetViewController::processAddOverlayAbove(const int32_t overlayIndex)
     OverlaySet* overlaySet = getOverlaySet();
     if (overlaySet != NULL) {
         overlaySet->insertOverlayAbove(overlayIndex);
-        this->updateViewController();
-        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
-        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+        this->updateColoringAndGraphics();
     }
 }
 
@@ -275,9 +274,7 @@ OverlaySetViewController::processAddOverlayBelow(const int32_t overlayIndex)
     OverlaySet* overlaySet = getOverlaySet();
     if (overlaySet != NULL) {
         overlaySet->insertOverlayBelow(overlayIndex);
-        this->updateViewController();
-        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
-        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+        this->updateColoringAndGraphics();
     }
 }
 
@@ -292,9 +289,7 @@ OverlaySetViewController::processRemoveOverlay(const int32_t overlayIndex)
     OverlaySet* overlaySet = getOverlaySet();
     if (overlaySet != NULL) {
         overlaySet->removeDisplayedOverlay(overlayIndex);
-        this->updateViewController();
-        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
-        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+        this->updateColoringAndGraphics();
     }
 }
 
@@ -309,9 +304,7 @@ OverlaySetViewController::processMoveOverlayDown(const int32_t overlayIndex)
     OverlaySet* overlaySet = getOverlaySet();
     if (overlaySet != NULL) {
         overlaySet->moveDisplayedOverlayDown(overlayIndex);
-        this->updateViewController();
-        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
-        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+        this->updateColoringAndGraphics();
     }
 }
 
@@ -326,10 +319,21 @@ OverlaySetViewController::processMoveOverlayUp(const int32_t overlayIndex)
     OverlaySet* overlaySet = getOverlaySet();
     if (overlaySet != NULL) {
         overlaySet->moveDisplayedOverlayUp(overlayIndex);
-        this->updateViewController();
-        EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
-        EventManager::get()->sendEvent(graphicsUpdate.getPointer());
+        this->updateColoringAndGraphics();
     }
+}
+
+/**
+ * Update surface coloring and graphics after overlay changes.
+ */
+void
+OverlaySetViewController::updateColoringAndGraphics()
+{
+    this->updateViewController();
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+    EventManager::get()->sendEvent(graphicsUpdate.getPointer());
 }
 
 

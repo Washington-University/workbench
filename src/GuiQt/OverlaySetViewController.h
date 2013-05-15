@@ -85,6 +85,7 @@ namespace caret {
         
         void updateViewController();
         
+        void updateColoringAndGraphics();
 //        QSpinBox* overlayCountSpinBox;
         
         std::vector<OverlayViewController*> overlayViewControllers;
