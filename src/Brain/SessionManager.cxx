@@ -47,6 +47,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "OverlayYokingGroupEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 
@@ -57,7 +58,7 @@ using namespace caret;
  * Constructor.
  */
 SessionManager::SessionManager()
-: CaretObject(), EventListenerInterface()
+: CaretObject(), SceneableInterface(), EventListenerInterface()
 {
     m_caretPreferences = new CaretPreferences();
     
@@ -395,6 +396,28 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     
     /*
+     * Save overlay yoking groups.
+     */
+    std::vector<OverlayYokingGroupEnum::Enum> overlayYokingGroups;
+    OverlayYokingGroupEnum::getAllEnums(overlayYokingGroups);
+    const int32_t numOverlayYokingGroups = static_cast<int32_t>(overlayYokingGroups.size());
+    if (numOverlayYokingGroups > 0) {
+        std::vector<int32_t> overlayMapSelections(numOverlayYokingGroups, 1);
+        for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
+            const OverlayYokingGroupEnum::Enum enumValue = overlayYokingGroups[i];
+            if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+                const int32_t groupIndex = OverlayYokingGroupEnum::toIntegerCode(enumValue);
+                const int32_t mapIndex   = OverlayYokingGroupEnum::getSelectedMapIndex(enumValue);
+                overlayMapSelections[groupIndex] = mapIndex;
+            }
+        }
+        
+        sceneClass->addIntegerArray("OverlayYokingGroupArray",
+                                    &overlayMapSelections[0],
+                                    numOverlayYokingGroups);
+    }
+    
+    /*
      * Save brains
      */
     std::vector<SceneClass*> brainSceneClasses;
@@ -465,6 +488,35 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
+    }
+    
+    /*
+     * Restore overlay yoking groups
+     */
+    std::vector<OverlayYokingGroupEnum::Enum> overlayYokingGroups;
+    OverlayYokingGroupEnum::getAllEnums(overlayYokingGroups);
+    const int32_t numOverlayYokingGroups = static_cast<int32_t>(overlayYokingGroups.size());
+    if (numOverlayYokingGroups > 0) {
+        std::vector<int32_t> overlayMapSelections(numOverlayYokingGroups, 1);
+        
+        sceneClass->getIntegerArrayValue("OverlayYokingGroupArray",
+                                         &overlayMapSelections[0],
+                                         numOverlayYokingGroups,
+                                         1);
+        
+        for (int32_t i = 0; i < numOverlayYokingGroups; i++) {
+            bool isValid = false;
+            const OverlayYokingGroupEnum::Enum enumValue = OverlayYokingGroupEnum::fromIntegerCode(i,
+                                                                                                   &isValid);
+            if (enumValue != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+                if (isValid) {
+                    OverlayYokingGroupEnum::setSelectedMapIndex(enumValue, overlayMapSelections[i]);
+                }
+                else {
+                    OverlayYokingGroupEnum::setSelectedMapIndex(enumValue, 1);
+                }
+            }
+        }
     }
     
     /*

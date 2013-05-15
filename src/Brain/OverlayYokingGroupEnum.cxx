@@ -97,7 +97,7 @@ OverlayYokingGroupEnum::initialize()
                                     "1"));
     
     enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_2,
-                                    "OVERLAY_YOKING_GROUP_1", 
+                                    "OVERLAY_YOKING_GROUP_2", 
                                     "2"));
     
     enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_3,
