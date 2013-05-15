@@ -538,7 +538,7 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += (className + "::receiveEvent(Event* event)\n");
         t += ("{\n");
         t += ("//    if (event->getEventType() == EventTypeEnum::) {\n");
-        t += ("//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME>*(event);\n");
+        t += ("//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);\n");
         t += ("//        CaretAssert(eventName);\n");
         t += ("//\n");
         t += ("//        event->setEventProcessed();\n");
