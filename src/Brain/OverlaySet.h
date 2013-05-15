@@ -93,6 +93,8 @@ namespace caret {
                                      std::vector<LabelFile*>& labelFilesOut,
                                      std::vector<int32_t>& labelMapIndicesOut);
         
+        void resetOverlayYokingToOff();
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

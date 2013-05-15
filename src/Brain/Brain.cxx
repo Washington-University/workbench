@@ -61,7 +61,6 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
-#include "EventOverlayYokingGroupGet.h"
 #include "EventProgressUpdate.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
@@ -138,14 +137,12 @@ Brain::Brain()
     m_displayPropertiesVolume = new DisplayPropertiesVolume(this);
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
-    EventManager::get()->addEventListener(this, 
+    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_RELOAD);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
-    EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     
@@ -3960,78 +3957,6 @@ Brain::receiveEvent(Event* event)
         if (readSpecFileDataFilesEvent->getLoadIntoBrain() == this) {
             readSpecFileDataFilesEvent->setEventProcessed();
             loadFilesSelectedInSpecFile(readSpecFileDataFilesEvent);
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_OVERLAY_GET_YOKED) {
-        EventOverlayYokingGroupGet* overlayYokeEvent =
-        dynamic_cast<EventOverlayYokingGroupGet*>(event);
-        CaretAssert(overlayYokeEvent);
-        
-        const OverlayYokingGroupEnum::Enum requestedYokingGroup = overlayYokeEvent->getYokingGroup();
-        
-        /*
-         * Get indices of valid tabs
-         */
-        EventBrowserTabGetAll getAllTabs;
-        EventManager::get()->sendEvent(getAllTabs.getPointer());
-        std::vector<int32_t> allTabIndices = getAllTabs.getBrowserTabIndices();
-        const int32_t numValidTabs = static_cast<int32_t>(allTabIndices.size());
-        
-        std::vector<AString> overlayModelNames;
-        std::vector<int32_t> overlayTabIndices;
-        std::vector<OverlaySet*> overlaySets;
-        
-        /*
-         * Get overlay sets from all models
-         */
-        if (m_wholeBrainController != NULL) {
-            for (int32_t i = 0; i < numValidTabs; i++) {
-                overlayModelNames.push_back("All View");
-                overlayTabIndices.push_back(allTabIndices[i]);
-                overlaySets.push_back(m_wholeBrainController->getOverlaySet(allTabIndices[i]));
-            }
-        }
-        if (m_volumeSliceController != NULL) {
-            for (int32_t i = 0; i < numValidTabs; i++) {
-                overlayModelNames.push_back("Volume View");
-                overlayTabIndices.push_back(allTabIndices[i]);
-                overlaySets.push_back(m_volumeSliceController->getOverlaySet(allTabIndices[i]));
-            }
-        }
-        if (m_surfaceMontageController != NULL) {
-            for (int32_t i = 0; i < numValidTabs; i++) {
-                overlayModelNames.push_back("Surface Montage View");
-                overlayTabIndices.push_back(allTabIndices[i]);
-                overlaySets.push_back(m_surfaceMontageController->getOverlaySet(allTabIndices[i]));
-            }
-        }
-        
-        for (std::vector<BrainStructure*>::iterator bsIter = m_brainStructures.begin();
-             bsIter != m_brainStructures.end();
-             bsIter++) {
-            BrainStructure* bs = *bsIter;
-            for (int32_t i = 0; i < numValidTabs; i++) {
-                overlayModelNames.push_back("Structure " + StructureEnum::toGuiName(bs->getStructure()));
-                overlayTabIndices.push_back(allTabIndices[i]);
-                overlaySets.push_back(bs->getOverlaySet(allTabIndices[i]));
-            }
-        }
-        
-        /*
-         * Find the yoked overlays
-         */
-        const int32_t numItems = static_cast<int32_t>(overlayModelNames.size());
-        for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
-            OverlaySet* overlaySet = overlaySets[itemIndex];
-            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
-            for (int32_t iOverlay = 0; iOverlay < numOverlays; iOverlay++) {
-                Overlay* overlay = overlaySet->getOverlay(iOverlay);
-                if (overlay->getYokingGroup() == requestedYokingGroup) {
-                    overlayYokeEvent->addYokedOverlay(overlayModelNames[itemIndex],
-                                                      overlayTabIndices[itemIndex],
-                                                      overlay);
-                }
-            }
         }
     }
 }

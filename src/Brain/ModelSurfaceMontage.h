@@ -33,6 +33,7 @@
 
 namespace caret {
 
+    class OverlaySetArray;
     class SurfaceSelectionModel;
     
     /// Controls the display of a surface montage
@@ -124,7 +125,7 @@ namespace caret {
         std::vector<SurfaceMontageViewport> m_montageViewports[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Overlays sets for this model and for each tab */
-        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySetArray* m_overlaySetArray;
         
     };
 

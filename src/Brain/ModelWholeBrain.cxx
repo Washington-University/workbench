@@ -35,6 +35,7 @@
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "OverlaySet.h"
+#include "OverlaySetArray.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
@@ -57,9 +58,10 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
         m_leftEnabled[i] = true;
         m_rightEnabled[i] = true;
         m_leftRightSeparation[i] = 0.0;
-        m_cerebellumSeparation[i] = 0.0;        
-        m_overlaySet[i] = new OverlaySet(this);
+        m_cerebellumSeparation[i] = 0.0;
     }
+
+    m_overlaySetArray = new OverlaySetArray(this);
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
@@ -79,10 +81,9 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
  */
 ModelWholeBrain::~ModelWholeBrain()
 {
-    EventManager::get()->removeAllEventsFromListener(this);    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_overlaySet[i];
-    }
+    EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete m_overlaySetArray;
     
     delete m_sceneAssistant;
 }
@@ -384,10 +385,7 @@ ModelWholeBrain::receiveEvent(Event* /*event*/)
 OverlaySet* 
 ModelWholeBrain::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -400,10 +398,7 @@ ModelWholeBrain::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelWholeBrain::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -412,9 +407,7 @@ ModelWholeBrain::getOverlaySet(const int tabIndex) const
 void 
 ModelWholeBrain::initializeOverlays()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i]->initializeOverlays();
-    }
+    m_overlaySetArray->initializeOverlaySelections();
 }
 
 /**

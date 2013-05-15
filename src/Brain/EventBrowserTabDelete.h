@@ -43,12 +43,16 @@ namespace caret {
         
         BrowserTabContent* getBrowserTab();
         
+        int32_t getBrowserTabIndex() const;
+        
     private:
         EventBrowserTabDelete(const EventBrowserTabDelete&);
         
         EventBrowserTabDelete& operator=(const EventBrowserTabDelete&);
         
-        BrowserTabContent* browserTab;
+        BrowserTabContent* m_browserTab;
+        
+        int32_t m_browserTabIndex;
     };
 
 } // namespace

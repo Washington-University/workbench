@@ -437,6 +437,11 @@ OverlaySet::insertOverlayBelow(const int32_t overlayIndex)
 void 
 OverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 {
+    CaretAssertArrayIndex(m_overlays,
+                          BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS,
+                          overlayIndex);
+    m_overlays[overlayIndex]->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+    
     if (m_numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
         m_numberOfDisplayedOverlays--;
         for (int32_t i = overlayIndex; i < m_numberOfDisplayedOverlays; i++) {
@@ -853,6 +858,17 @@ OverlaySet::getSelectedMapIndicesForFile(const CaretMappableDataFile* caretMappa
     selectedMapIndicesOut.insert(selectedMapIndicesOut.end(),
                                  mapIndicesSet.begin(),
                                  mapIndicesSet.end());
+}
+
+/**
+ * Reset the yoking status of all overlays to off.
+ */
+void
+OverlaySet::resetOverlayYokingToOff()
+{
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        m_overlays[i]->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
+    }
 }
 
 

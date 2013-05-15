@@ -33,6 +33,7 @@ namespace caret {
 
     class Brain;
     class SceneClassAssistant;
+    class OverlaySetArray;
     class VolumeFile;
     
     /// Controls the display of a volumes.
@@ -77,7 +78,7 @@ namespace caret {
         VolumeFile* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
-        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySetArray* m_overlaySetArray;
         
         SceneClassAssistant* m_sceneAssistant;
     };

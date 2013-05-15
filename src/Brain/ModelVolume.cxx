@@ -28,6 +28,7 @@
 #include "EventManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
+#include "OverlaySetArray.h"
 #include "ModelVolume.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -46,9 +47,7 @@ ModelVolume::ModelVolume(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                          brain)
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i] = new OverlaySet(this);
-    }
+    m_overlaySetArray = new OverlaySetArray(this);
     m_lastVolumeFile = NULL;
     
     /*
@@ -62,10 +61,9 @@ ModelVolume::ModelVolume(Brain* brain)
  */
 ModelVolume::~ModelVolume()
 {
-    EventManager::get()->removeAllEventsFromListener(this);    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_overlaySet[i];
-    }
+    EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete m_overlaySetArray;
     
     delete m_sceneAssistant;
 }
@@ -106,12 +104,10 @@ ModelVolume::getNameForBrowserTab() const
 VolumeFile* 
 ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
-    CaretAssertArrayIndex(m_overlaySet,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          windowTabNumber);
-    VolumeFile* vf = m_overlaySet[windowTabNumber]->getUnderlayVolume();
+    OverlaySet* overlaySet = m_overlaySetArray->getOverlaySet(windowTabNumber);
+    VolumeFile* vf = overlaySet->getUnderlayVolume();
     if (vf == NULL) {
-        vf = m_overlaySet[windowTabNumber]->setUnderlayToVolume();
+        vf = overlaySet->setUnderlayToVolume();
     }
     
 //    EventBrowserTabGet getBrowserTabEvent(windowTabNumber);
@@ -160,10 +156,7 @@ ModelVolume::receiveEvent(Event* /*event*/)
 OverlaySet* 
 ModelVolume::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -176,10 +169,7 @@ ModelVolume::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelVolume::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -188,9 +178,7 @@ ModelVolume::getOverlaySet(const int tabIndex) const
 void 
 ModelVolume::initializeOverlays()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i]->initializeOverlays();
-    }
+    m_overlaySetArray->initializeOverlaySelections();
 }
 
 

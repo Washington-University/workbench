@@ -36,6 +36,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "OverlaySet.h"
+#include "OverlaySetArray.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -65,9 +66,8 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
         m_firstSurfaceEnabled[i] = false;
         m_secondSurfaceEnabled[i] = true;
     }
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i] = new OverlaySet(this);
-    }
+    
+    m_overlaySetArray = new OverlaySetArray(this);
 }
 
 /**
@@ -77,8 +77,9 @@ ModelSurfaceMontage::~ModelSurfaceMontage()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
+    delete m_overlaySetArray;
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_overlaySet[i];
         delete m_leftSurfaceSelectionModel[i];
         delete m_leftSecondSurfaceSelectionModel[i];
         delete m_rightSurfaceSelectionModel[i];
@@ -352,10 +353,7 @@ ModelSurfaceMontage::getNameForBrowserTab() const
 OverlaySet* 
 ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -368,10 +366,7 @@ ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -380,9 +375,7 @@ ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 void 
 ModelSurfaceMontage::initializeOverlays()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i]->initializeOverlays();
-    }
+    m_overlaySetArray->initializeOverlaySelections();
 }
 
 /**

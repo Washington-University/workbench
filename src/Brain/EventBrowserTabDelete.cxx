@@ -22,8 +22,8 @@
  * 
  */ 
 
-#include <algorithm>
-
+#include "CaretAssert.h"
+#include "BrowserTabContent.h"
 #include "EventBrowserTabDelete.h"
 
 using namespace caret;
@@ -34,7 +34,9 @@ using namespace caret;
 EventBrowserTabDelete::EventBrowserTabDelete(BrowserTabContent* browserTab)
 : Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE)
 {
-    this->browserTab = browserTab;
+    CaretAssert(browserTab);
+    m_browserTab = browserTab;
+    m_browserTabIndex = browserTab->getTabNumber();
 }
 
 /**
@@ -47,6 +49,9 @@ EventBrowserTabDelete::~EventBrowserTabDelete()
 
 /**
  * Get the browser tab that is to be deleted.
+ * Note that this may point to a browser tab that 
+ * has been deleted and using the pointer in this
+ * case could be a disaster.
  *
  * @return
  *    Pointer to browser tab that is to be deleted.
@@ -54,5 +59,15 @@ EventBrowserTabDelete::~EventBrowserTabDelete()
 BrowserTabContent* 
 EventBrowserTabDelete::getBrowserTab()
 {
-    return this->browserTab;
+    return m_browserTab;
 }
+
+/**
+ * @return Index of browser tab being deleted.
+ */
+int32_t
+EventBrowserTabDelete::getBrowserTabIndex() const
+{
+    return m_browserTabIndex;
+}
+

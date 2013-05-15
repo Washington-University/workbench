@@ -29,12 +29,12 @@
 #include "EventListenerInterface.h"
 #include "Model.h"
 #include "SurfaceTypeEnum.h"
-//#include "VolumeSliceCoordinateSelection.h"
 
 
 namespace caret {
 
     class Brain;
+    class OverlaySetArray;
     class SceneClassAssistant;
     class VolumeFile;
     
@@ -147,7 +147,7 @@ namespace caret {
         VolumeFile* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
-        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySetArray* m_overlaySetArray;
         
         SceneClassAssistant* m_sceneAssistant;
     };
