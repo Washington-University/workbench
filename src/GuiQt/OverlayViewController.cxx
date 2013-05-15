@@ -343,8 +343,8 @@ OverlayViewController::fileComboBoxSelected(int indx)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     overlay->setSelectionData(file, 0);
     
-    yokingGroupActivated();
-    // not needed with call to yokingGroupActivated, this->updateViewController(this->overlay);
+    validateYokingSelection();
+    // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
     
     this->updateUserInterfaceAndGraphicsWindow();    
 }
@@ -472,6 +472,54 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
 void
 OverlayViewController::validateYokingSelection()
 {
+    OverlayYokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
+    if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        CaretMappableDataFile* selectedFile = NULL;
+        int32_t selectedMapIndex;
+        overlay->getSelectionData(selectedFile,
+                                  selectedMapIndex);
+        if ((selectedFile != NULL)
+            && (selectedMapIndex >= 0)) {
+            /*
+             * Get info on overlay yoked to the selected yoking group
+             */
+            EventOverlayYokingGroupGet yokedOverlaysEvent(yokingGroup);
+            EventManager::get()->sendEvent(yokedOverlaysEvent.getPointer());
+            const int32_t numOverlaysYoked = yokedOverlaysEvent.getNumberOfYokedOverlays();
+            
+            /*
+             * Check compatibility based (number of maps in yoked overlays match)
+             * and warn use if there is an incompatibility.
+             */
+            AString message;
+            if (yokedOverlaysEvent.validateCompatibility(selectedFile,
+                                                         message) == false) {
+                message.appendWithNewLine("");
+                message.appendWithNewLine("Allow yoking?");
+                
+                message = WuQtUtilities::createWordWrappedToolTipText(message);
+                if (WuQMessageBox::warningYesNo(m_yokingGroupComboBox->getWidget(),
+                                                message) == false) {
+                    yokingGroup = OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF;
+                }
+            }
+            
+            overlay->setYokingGroup(yokingGroup);
+            if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+                if (numOverlaysYoked <= 0) {
+                    OverlayYokingGroupEnum::setSelectedMapIndex(yokingGroup,
+                                                                selectedMapIndex);
+                }
+            }
+        }
+    }
+    else {
+        overlay->setYokingGroup(yokingGroup);
+    }
+    
+    updateViewController(overlay);
+    
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 
@@ -483,39 +531,14 @@ OverlayViewController::yokingGroupActivated()
 {
     OverlayYokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>();
    
+    /*
+     * Has yoking group changed?
+     */
     if (yokingGroup != overlay->getYokingGroup()) {
-        if (yokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-            EventOverlayYokingGroupGet yokedOverlaysEvent(yokingGroup);
-            EventManager::get()->sendEvent(yokedOverlaysEvent.getPointer());
-            
-            CaretMappableDataFile* selectedFile = NULL;
-            int32_t selectedMapIndex;
-            overlay->getSelectionData(selectedFile,
-                                      selectedMapIndex);
-            if (selectedFile != NULL) {
-                AString message;
-                if (yokedOverlaysEvent.validateCompatibility(selectedFile,
-                                                           message)) {
-                    overlay->setYokingGroup(yokingGroup);
-                    yokedOverlaysEvent.synchronizeSelectedMaps(overlay);
-                }
-                else {
-                    message.appendWithNewLine("Yoking is not allowed and will be deselected.");
-                    WuQMessageBox::errorOk(m_yokingGroupComboBox->getWidget(),
-                                           message);
-                    overlay->setYokingGroup(OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF);
-                }
-            }
-        }
-        else {
-            overlay->setYokingGroup(yokingGroup);
-        }
-        
-        updateViewController(overlay);
-        
-        this->updateUserInterfaceAndGraphicsWindow();
+        validateYokingSelection();
     }
 }
+
 
 /**
  * Called when the settings action is selected.

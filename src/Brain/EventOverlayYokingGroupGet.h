@@ -68,11 +68,11 @@ namespace caret {
                              AString& overlayFileNameOut,
                              int32_t& overlayFileNumberOfMapsOut) const;
         
-        int32_t getMaximumMapIndex() const;
-
-        void setMapIndex(const int32_t mapIndex);
-        
-        void synchronizeSelectedMaps(Overlay* overlay);
+//        int32_t getMaximumMapIndex() const;
+//
+//        void setMapIndex(const int32_t mapIndex);
+//        
+//        void synchronizeSelectedMaps(Overlay* overlay);
         
         bool validateCompatibility(CaretMappableDataFile* overlayFile,
                                    AString& messageOut) const;

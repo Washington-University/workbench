@@ -179,84 +179,86 @@ EventOverlayYokingGroupGet::getYokedOverlay(const int32_t indx,
     overlayFileNumberOfMapsOut = yoi.m_overlayFileNumberOfMaps;
 }
 
-/**
- * @return The maximum map index for yoked overlays.  If the files 
- * selected in the overlays contains a different number of maps,
- * the value returned is the minimum number of maps.
- *
- * Note: -1 indicates no overlays are yoked.
- */
-int32_t
-EventOverlayYokingGroupGet::getMaximumMapIndex() const
-{
-    const int32_t numItems = getNumberOfYokedOverlays();
-    if (numItems <= 0) {
-        return -1;
-    }
-    
-    int32_t maximumMapIndex = std::numeric_limits<int32_t>::max();
-    
-    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
-        maximumMapIndex = std::min(maximumMapIndex,
-                                   m_yokedOverlays[itemIndex].m_overlayFileNumberOfMaps);
-    }
-    
-    return maximumMapIndex;
-}
+///**
+// * @return The maximum map index for yoked overlays.  If the files 
+// * selected in the overlays contains a different number of maps,
+// * the value returned is the minimum number of maps.
+// *
+// * Note: -1 indicates no overlays are yoked.
+// */
+//int32_t
+//EventOverlayYokingGroupGet::getMaximumMapIndex() const
+//{
+//    const int32_t numItems = getNumberOfYokedOverlays();
+//    if (numItems <= 0) {
+//        return -1;
+//    }
+//    
+//    int32_t maximumMapIndex = std::numeric_limits<int32_t>::max();
+//    
+//    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
+//        maximumMapIndex = std::min(maximumMapIndex,
+//                                   m_yokedOverlays[itemIndex].m_overlayFileNumberOfMaps);
+//    }
+//    
+//    return maximumMapIndex;
+//}
+//
+///**
+// * Set the map index for all yoked files.
+// *
+// * @param mapIndex
+// *    Index of the map for selection.
+// */
+//void
+//EventOverlayYokingGroupGet::setMapIndex(const int32_t mapIndex)
+//{
+//    const int32_t newMapIndex = std::min(mapIndex,
+//                                         getMaximumMapIndex());
+//    
+//    const int32_t numItems = getNumberOfYokedOverlays();
+//    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
+//        const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
+//        yoi.m_overlay->setSelectionData(yoi.m_overlayFile,
+//                                        newMapIndex);
+//    }
+//}
+
+///**
+// * Synchronize the selected maps in all yoked overlays.
+// *
+// * @param overlay
+// *    If there is more than one overlay, do not use this
+// *    overlays map index.
+// */
+//void
+//EventOverlayYokingGroupGet::synchronizeSelectedMaps(Overlay* overlay)
+//{
+//    const int32_t numItems = getNumberOfYokedOverlays();
+//    if (numItems == 1) {
+//        CaretMappableDataFile* cmdf = NULL;
+//        int32_t mapIndex;
+//        overlay->getSelectionData(cmdf, mapIndex);
+//        setMapIndex(mapIndex);
+//    }
+//    
+//    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
+//        const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
+//        if (yoi.m_overlay != overlay) {
+//            CaretMappableDataFile* cmdf = NULL;
+//            int32_t mapIndex;
+//            yoi.m_overlay->getSelectionData(cmdf, mapIndex);
+//            setMapIndex(mapIndex);
+//            break;
+//        }
+//    }
+//}
 
 /**
- * Set the map index for all yoked files.
- *
- * @param mapIndex
- *    Index of the map for selection.
- */
-void
-EventOverlayYokingGroupGet::setMapIndex(const int32_t mapIndex)
-{
-    const int32_t newMapIndex = std::min(mapIndex,
-                                         getMaximumMapIndex());
-    
-    const int32_t numItems = getNumberOfYokedOverlays();
-    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
-        const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
-        yoi.m_overlay->setSelectionData(yoi.m_overlayFile,
-                                        newMapIndex);
-    }
-}
-
-/**
- * Synchronize the selected maps in all yoked overlays.
- *
- * @param overlay
- *    If there is more than one overlay, do not use this
- *    overlays map index.
- */
-void
-EventOverlayYokingGroupGet::synchronizeSelectedMaps(Overlay* overlay)
-{
-    const int32_t numItems = getNumberOfYokedOverlays();
-    if (numItems == 1) {
-        CaretMappableDataFile* cmdf = NULL;
-        int32_t mapIndex;
-        overlay->getSelectionData(cmdf, mapIndex);
-        setMapIndex(mapIndex);
-    }
-    
-    for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
-        const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
-        if (yoi.m_overlay != overlay) {
-            CaretMappableDataFile* cmdf = NULL;
-            int32_t mapIndex;
-            yoi.m_overlay->getSelectionData(cmdf, mapIndex);
-            setMapIndex(mapIndex);
-            break;
-        }
-    }
-}
-
-/**
- * Validate compatibility of file with any overlays that
- * are currently yoked.
+ * Validate compatibility of the given file with any overlays that
+ * are currently yoked.  This must be called after the event 
+ * returns.  A file is compatible if it contains the same number of 
+ * maps.
  *
  * @param overlayFile
  *    File for testing compatibility.
@@ -301,21 +303,19 @@ EventOverlayYokingGroupGet::validateCompatibility(CaretMappableDataFile* overlay
     /*
      * Generate message about incompatible number of maps.
      */
-    messageOut = "Files contain an incompatible number of maps: ";
-    messageOut.appendWithNewLine(overlayFile->getFileNameNoPath()
-                                 + " contains "
-                                 + QString::number(overlayFile->getNumberOfMaps())
-                                 + " maps.");
+    messageOut = "Incompatible number of maps for yoking:\n";
+    messageOut.appendWithNewLine(QString::number(overlayFile->getNumberOfMaps())
+                                 + " maps in "
+                                 + overlayFile->getFileNameNoPath());
     for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
         const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
-        messageOut.appendWithNewLine(yoi.m_modelName
-                                     + " in tab "
-                                     + QString::number(yoi.m_tabIndex)
-                                     + " with file "
+        messageOut.appendWithNewLine(AString::number(yoi.m_overlayFileNumberOfMaps)
+                                     + " maps in "
                                      + yoi.m_overlayFileName
-                                     + " contains "
-                                     + AString::number(yoi.m_overlayFileNumberOfMaps)
-                                     + " maps.");
+                                     + " in tab "
+                                     + QString::number(yoi.m_tabIndex + 1)
+                                     + " "
+                                     + yoi.m_modelName);
     }
     
     return false;

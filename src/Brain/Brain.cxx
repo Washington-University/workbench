@@ -4033,8 +4033,6 @@ Brain::receiveEvent(Event* event)
                 }
             }
         }
-        
-        std::cout << "There are " << overlayYokeEvent->getNumberOfYokedOverlays() << " yoked overlays." << std::endl;
     }
 }
 

@@ -39,7 +39,6 @@
 
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventOverlayYokingGroupGet.h"
 
 using namespace caret;
 
