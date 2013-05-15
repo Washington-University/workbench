@@ -39,6 +39,8 @@
 
 namespace caret {
 
+    class CiftiMappableConnectivityMatrixDataFile;
+    
     class CiftiBrainordinateScalarFile : public CiftiMappableDataFile {
     
     public:
@@ -46,6 +48,9 @@ namespace caret {
         
         virtual ~CiftiBrainordinateScalarFile();
         
+        static CiftiBrainordinateScalarFile* newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
+                                                                                             AString& errorMessageOut);
+
     private:
         CiftiBrainordinateScalarFile(const CiftiBrainordinateScalarFile&);
 

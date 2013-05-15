@@ -123,6 +123,7 @@ namespace caret {
         
         AString m_rowLoadedTextForMapName;
 
+        friend class CiftiBrainordinateScalarFile;
     };
     
 #ifdef __CIFTI_MAPPABLE_CONNECTIVITY_MATRIX_DATA_FILE_DECLARE__

@@ -36,6 +36,14 @@
 #include "CiftiBrainordinateScalarFile.h"
 #undef __CIFTI_BRAINORDINATE_SCALAR_FILE_DECLARE__
 
+#include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiConnectivityMatrixDenseFile.h"
+
+#include "CiftiFacade.h"
+#include "CiftiFile.h"
+#include "CiftiInterface.h"
+#include "CiftiXML.h"
+
 using namespace caret;
 
 
@@ -68,4 +76,56 @@ CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
 {
     
 }
+
+CiftiBrainordinateScalarFile*
+CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
+                                                                              AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+ 
+    const CiftiConnectivityMatrixDenseFile* denseFile =
+       dynamic_cast<const CiftiConnectivityMatrixDenseFile*>(ciftiMatrixFile);
+    if (denseFile == NULL) {
+        errorMessageOut = "Only Cifti Dense Matrix Files are supported for conversion to Cifti Scalar Files.";
+        return NULL;
+    }
+    
+    const CiftiInterface* ciftiMatrixInterface = ciftiMatrixFile->m_ciftiInterface;
+    const CiftiFacade* ciftiMatrixFacade       = ciftiMatrixFile->m_ciftiFacade;
+    if (ciftiMatrixFacade == NULL) {
+        errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (Facade NULL).";
+        return NULL;
+    }
+    
+    if (ciftiMatrixFacade->getNumberOfMaps() <= 0) {
+        errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (No Maps).";
+        return NULL;
+    }
+    
+    std::vector<float> data;
+    ciftiMatrixFile->getMapData(0, data);
+    if (data.empty()) {
+        errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (mapData empty).";
+        return NULL;
+    }
+    
+    const int64_t rowCount = ciftiMatrixFacade->getNumberOfRows();
+    const int64_t columnCount = ciftiMatrixFacade->getNumberOfColumns();
+   
+    CiftiBrainordinateScalarFile* scalarFile = NULL;
+    
+    try {
+        CiftiFile* ciftiFile = new CiftiFile();
+        CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
+        scalarFile->m_ciftiInterface.grabNew(ciftiFile);
+        
+    }
+    catch (CiftiFileException* ce) {
+        if (scalarFile != NULL) {
+            delete scalarFile;
+        }
+    }
+    return NULL;
+}
+
 
