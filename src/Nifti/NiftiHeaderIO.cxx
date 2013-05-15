@@ -68,11 +68,11 @@ bool NiftiHeaderIO::isCompressed(const AString &fileName) const
 
 void NiftiHeaderIO::readFile(const AString &inputFile) throw (NiftiException)
 {
-	AString temp = inputFile;
-	QDir fpath(temp);
-	temp = fpath.toNativeSeparators(temp);
+    AString temp = inputFile;
+    QDir fpath(temp);
+    temp = fpath.toNativeSeparators(temp);
     if(this->isCompressed(inputFile))
-    { 	
+    {
         gzFile file = gzopen(temp.toStdString().c_str(),"r");
         readFile(file);
         gzclose(file);
@@ -88,23 +88,23 @@ void NiftiHeaderIO::readFile(const AString &inputFile) throw (NiftiException)
 
 
 
-void NiftiHeaderIO::writeFile(const AString &inputFile, NIFTI_BYTE_ORDER /*byteOrder*/) throw (NiftiException)
+void NiftiHeaderIO::writeFile(const AString &inputFile, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
 {
     AString temp;
-	temp = inputFile;
-	QDir fpath(temp);
-	temp = fpath.toNativeSeparators(temp);
+    temp = inputFile;
+    QDir fpath(temp);
+    temp = fpath.toNativeSeparators(temp);
     if(this->isCompressed(inputFile))
-    {		
+    {
         gzFile file = gzopen(temp.toStdString().c_str(),"w");
-        writeFile(file);
+        writeFile(file, byteOrder);
         gzclose(file);
     }
     else
     {
         QFile file(temp);
         file.open(QIODevice::WriteOnly);
-        writeFile(file);
+        writeFile(file, byteOrder);
         file.close();
     }
 }
@@ -133,8 +133,6 @@ void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
     else if((NIFTI2_VERSION(n1header))==1)
     {
         niftiVersion=1;
-        fixDimensions(n1header);
-
     }
     else if((NIFTI2_VERSION(n1header))==2)
     {
@@ -142,9 +140,8 @@ void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
         //read the rest of the bytes
         file.read((char *)&bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
         memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
-        fixDimensions(n2header);
     }
-    else throw NiftiException("Unrecognized Nifti Version.");    
+    else throw NiftiException("Unrecognized Nifti Version.");
 
     if(niftiVersion==1)
     {
@@ -154,6 +151,7 @@ void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
             m_swapNeeded=true;
             swapHeaderBytes(n1header);
         }
+        fixDimensions(n1header);
         nifti1Header.setHeaderStuct(n1header);
         nifti1Header.setNeedsSwapping(m_swapNeeded);
     }
@@ -164,6 +162,7 @@ void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
             m_swapNeeded = true;
             swapHeaderBytes(n2header);
         }
+        fixDimensions(n2header);
         nifti2Header.setHeaderStuct(n2header);
         nifti2Header.setNeedsSwapping(m_swapNeeded);
     }
@@ -337,7 +336,7 @@ void NiftiHeaderIO::writeFile(gzFile file, NIFTI_BYTE_ORDER byte_order) throw (N
         nifti_1_header header;
         nifti1Header.getHeaderStruct(header);
         fixDimensions(header);
-        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        if (byte_order == SWAPPED_BYTE_ORDER) swapHeaderBytes(header);
         memcpy(bytes,(char *)&header,sizeof(header));
 
     }
@@ -347,7 +346,7 @@ void NiftiHeaderIO::writeFile(gzFile file, NIFTI_BYTE_ORDER byte_order) throw (N
         nifti_2_header header;
         nifti2Header.getHeaderStruct(header);
         fixDimensions(header);
-        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        if (byte_order == SWAPPED_BYTE_ORDER) swapHeaderBytes(header);
         memcpy(bytes,(char *)&header,sizeof(header));
     }
     else throw NiftiException("NiftiHeaderIO only currently supports Nifti versions 1 and 2.");
@@ -372,7 +371,7 @@ void NiftiHeaderIO::writeFile(QFile &file, NIFTI_BYTE_ORDER byte_order) throw (N
         nifti_1_header header;
         nifti1Header.getHeaderStruct(header);
         fixDimensions(header);
-        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        if (byte_order == SWAPPED_BYTE_ORDER) swapHeaderBytes(header);
         memcpy(bytes,(char *)&header,sizeof(header));
 
     }
@@ -382,7 +381,7 @@ void NiftiHeaderIO::writeFile(QFile &file, NIFTI_BYTE_ORDER byte_order) throw (N
         nifti_2_header header;
         nifti2Header.getHeaderStruct(header);
         fixDimensions(header);
-        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        if (byte_order == SWAPPED_BYTE_ORDER) swapHeaderBytes(header);
         memcpy(bytes,(char *)&header,sizeof(header));
     }
     else throw NiftiException("NiftiHeaderIO only currently supports Nifti versions 1 and 2.");

@@ -62,6 +62,7 @@ public:
     void getCaching(CacheEnum &e) const;
     void getMatrixOffset(int64_t &offsetOut);
     void getNeedsSwapping(bool &needsSwappingOut);
+    bool getNeedsSwapping() const { return m_needsSwapping; }//this is always valid for whatever file it is reading from
 
     //Matrix IO
     void getRow(float * rowOut,const int64_t &rowIndex, const bool& tolerateShortRead = false) const throw (CiftiFileException);
@@ -74,10 +75,10 @@ public:
     //Flush Cache
     //void flushCache() throw (CiftiFileException);
     //Write to a new file
-    void writeToNewFile(const AString &fileNameIn, const int64_t &offsetIn, const bool &needsSwappingIn=false) throw (CiftiFileException);
+    void writeToNewFile(const AString &fileNameIn, const int64_t &offsetIn) throw (CiftiFileException);
     //Gets the file handle to the cache so that CiftiFile and write the header and xml
     QFile *getCacheFile();
-    void copyMatrix(QFile *output, QFile *input);
+    void copyMatrix(QFile *output, QFile *input, const bool& needsSwapping);
     void updateCache();
 protected:
     void copyHelper(const CiftiMatrix& rhs);

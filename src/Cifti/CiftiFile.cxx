@@ -227,13 +227,15 @@ void CiftiFile::writeFile(const AString &fileName)
 {
     QFile *file = this->m_matrix.getCacheFile();
     bool writingNewFile = true;
+    bool shouldSwap = false;
     
     if(file && m_caching == ON_DISK) 
     {
         AString cacheFileName = file->fileName();
-        if(QDir::toNativeSeparators(cacheFileName) != QDir::toNativeSeparators(fileName))
+        if(QDir::toNativeSeparators(cacheFileName) == QDir::toNativeSeparators(fileName))
         {
             writingNewFile = false;
+            shouldSwap = m_matrix.getNeedsSwapping();
         }
     }    
     
@@ -287,7 +289,12 @@ void CiftiFile::writeFile(const AString &fileName)
 
     //write out the file
     //write out header
-    m_headerIO.writeFile(*file);
+    if (shouldSwap)
+    {
+        m_headerIO.writeFile(*file, SWAPPED_BYTE_ORDER);
+    } else {
+        m_headerIO.writeFile(*file, NATIVE_BYTE_ORDER);
+    }
     file->flush();
 
     //write out the xml extension
@@ -298,7 +305,7 @@ void CiftiFile::writeFile(const AString &fileName)
     char eflags[4] = {1,0x00,0x00,0x00};
     int32_t ecode = NIFTI_ECODE_CIFTI;
     
-    if(this->m_swapNeeded) {
+    if(shouldSwap) {
         ByteSwapping::swapBytes(&length,1);
         ByteSwapping::swapBytes(&ecode,1);
     }
@@ -312,7 +319,7 @@ void CiftiFile::writeFile(const AString &fileName)
 
     //write the matrix
     if(writingNewFile) delete file;
-    m_matrix.writeToNewFile(fileName,vox_offset, false);
+    m_matrix.writeToNewFile(fileName,vox_offset);
     
 }
 
