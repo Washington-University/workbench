@@ -190,6 +190,10 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     }
      
     allConnectivityTimeSeriesViewControllers.insert(this);
+    
+    this->animateToolButton->setEnabled(false);
+    this->frameSpinBox->setEnabled(false);
+    this->frameName->setEnabled(false);
 }
 
 /**
