@@ -18,6 +18,7 @@
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ChartSetViewController.h"
+#include "CiftiConnectivityMatrixViewController.h"
 #include "ConnectivityManagerViewController.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
@@ -91,7 +92,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     m_borderSelectionViewController = NULL;
     m_ChartSetViewController = NULL;
-    m_connectivityViewController = NULL;
+    m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fiberTrajectorySelectionViewController = NULL;
     m_fociSelectionViewController = NULL;
@@ -121,10 +122,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                        "Layers");
     }
     if (isOverlayToolBox) {
-        m_connectivityViewController = new ConnectivityManagerViewController(orientation,
-                                                                                 browserWindowIndex,
-                                                                                 DataFileTypeEnum::CONNECTIVITY_DENSE);
-        m_connectivityTabIndex = addToTabWidget(m_connectivityViewController,
+        m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(orientation,
+                                                                                       this);
+        m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
     }
     if (isOverlayToolBox) {

@@ -15,6 +15,7 @@ namespace caret {
     class BorderSelectionViewController;
     class ChartSetViewController;
     class ConnectivityManagerViewController;
+    class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
     class FiberTrajectorySelectionViewController;
     class FociSelectionViewController;
@@ -67,7 +68,7 @@ namespace caret {
 
         ChartSetViewController* m_ChartSetViewController;
         
-        ConnectivityManagerViewController* m_connectivityViewController;
+        CiftiConnectivityMatrixViewController* m_connectivityMatrixViewController;
         
         ConnectivityManagerViewController* m_timeSeriesViewController;
         

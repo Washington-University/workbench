@@ -36,63 +36,66 @@
 
 #include <set>
 
-#include <QObject>
+#include <QWidget>
 
-class QAction;
+#include "EventListenerInterface.h"
+
 class QCheckBox;
 class QGridLayout;
 class QLineEdit;
-class QSpinBox;
+class QSignalMapper;
 
 namespace caret {
 
     class CiftiMappableConnectivityMatrixDataFile;
-    class WuQGridLayoutGroup;
     
-    class CiftiConnectivityMatrixViewController : public QObject {
+    class CiftiConnectivityMatrixViewController : public QWidget, EventListenerInterface {
         
         Q_OBJECT
 
     public:
         CiftiConnectivityMatrixViewController(const Qt::Orientation orientation,
-                                         QGridLayout* gridLayout,
-                                         QObject* parent);
+                                              QWidget* parent);
         
         virtual ~CiftiConnectivityMatrixViewController();
         
-        void updateViewController(CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile);
-        
-        void setVisible(bool visible);
-        
-        static QGridLayout* createGridLayout(const Qt::Orientation orientation);
+        void receiveEvent(Event* event);
         
     private slots:
-        void enabledCheckBoxStateChanged(int);
+        void enabledCheckBoxClicked(int);
 
     private:
         CiftiConnectivityMatrixViewController(const CiftiConnectivityMatrixViewController&);
 
         CiftiConnectivityMatrixViewController& operator=(const CiftiConnectivityMatrixViewController&);
         
-        void updateUserInterfaceAndGraphicsWindow();
-        
-        void updateOtherCiftiConnectivityMatrixViewControllers();
+        //void updateUserInterfaceAndGraphicsWindow();
         
         void updateViewController();
         
-        CiftiMappableConnectivityMatrixDataFile* m_ciftiConnectivityMatrixDataFile;
+        void updateOtherCiftiConnectivityMatrixViewControllers();
         
-        QCheckBox* m_enabledCheckBox;
+        std::vector<QCheckBox*> m_fileEnableCheckBoxes;
         
-        QLineEdit* m_fileNameLineEdit;
+        std::vector<QLineEdit*> m_fileNameLineEdits;
         
-        WuQGridLayoutGroup* m_gridLayoutGroup;
+        QGridLayout* m_gridLayout;
+        
+        QSignalMapper* m_signalMapperFileEnableCheckBox;
         
         static std::set<CiftiConnectivityMatrixViewController*> s_allCiftiConnectivityMatrixViewControllers;
+        
+        static int COLUMN_ENABLE_CHECKBOX;
+        static int COLUMN_COPY_BUTTON;
+        static int COLUMN_NAME_LINE_EDIT;
+        
     };
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
     std::set<CiftiConnectivityMatrixViewController*> CiftiConnectivityMatrixViewController::s_allCiftiConnectivityMatrixViewControllers;
+    int CiftiConnectivityMatrixViewController::COLUMN_ENABLE_CHECKBOX = 0;
+    int CiftiConnectivityMatrixViewController::COLUMN_COPY_BUTTON     = 1;
+    int CiftiConnectivityMatrixViewController::COLUMN_NAME_LINE_EDIT  = 2;
 #endif // __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

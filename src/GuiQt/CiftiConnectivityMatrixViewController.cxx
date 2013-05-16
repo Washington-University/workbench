@@ -38,24 +38,22 @@
 
 #include <QAction>
 #include <QCheckBox>
-#include <QFrame>
 #include <QGridLayout>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QToolButton>
-#include <QSpinBox>
+#include <QSignalMapper>
 
+#include "Brain.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "WuQGridLayoutGroup.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::CiftiConnectivityMatrixViewController 
@@ -66,33 +64,50 @@ using namespace caret;
  * Constructor.
  */
 CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(const Qt::Orientation orientation,
-                                                                   QGridLayout* gridLayout,
-                                                                   QObject* parent)
-: QObject(parent)
+                                                                             QWidget* parent)
+: QWidget(parent)
 {
-    m_ciftiConnectivityMatrixDataFile = NULL;
+    m_gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutMargins(m_gridLayout, 2, 2);
+    m_gridLayout->setColumnStretch(0, 0);
+    m_gridLayout->setColumnStretch(1, 0);
+    m_gridLayout->setColumnStretch(2, 100);
+    const int titleRow = m_gridLayout->rowCount();
+    m_gridLayout->addWidget(new QLabel("On"),
+                            titleRow, COLUMN_ENABLE_CHECKBOX);
+    m_gridLayout->addWidget(new QLabel("Copy"),
+                            titleRow, COLUMN_COPY_BUTTON);
+    m_gridLayout->addWidget(new QLabel("File"),
+                            titleRow, COLUMN_NAME_LINE_EDIT);
     
-    m_enabledCheckBox = new QCheckBox(" ");
-    QObject::connect(m_enabledCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(enabledCheckBoxStateChanged(int)));
+    m_signalMapperFileEnableCheckBox = new QSignalMapper(this);
+    QObject::connect(m_signalMapperFileEnableCheckBox, SIGNAL(mapped(int)),
+                     this, SLOT(enabledCheckBoxClicked(int)));
+//    m_enabledCheckBox = new QCheckBox(" ");
+//    QObject::connect(m_enabledCheckBox, SIGNAL(stateChanged(int)),
+//                     this, SLOT(enabledCheckBoxStateChanged(int)));
+//    
+//    m_fileNameLineEdit = new QLineEdit("                 ");
+//    m_fileNameLineEdit->setReadOnly(true);
     
-    m_fileNameLineEdit = new QLineEdit("                 ");
-    m_fileNameLineEdit->setReadOnly(true);
+//    if (orientation == Qt::Horizontal) {
+//        int row = m_gridLayoutGroup->rowCount();
+//        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
+//        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
+//    }
+//    else {
+//        int row = m_gridLayoutGroup->rowCount();
+//        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
+//        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
+//    }
     
-    m_gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
-                                                   this);
-    if (orientation == Qt::Horizontal) {
-        int row = m_gridLayoutGroup->rowCount();
-        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
-        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
-    }
-    else {
-        int row = m_gridLayoutGroup->rowCount();
-        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
-        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
-    }
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addLayout(m_gridLayout);
+    layout->addStretch();
     
     s_allCiftiConnectivityMatrixViewControllers.insert(this);
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -101,97 +116,111 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
 CiftiConnectivityMatrixViewController::~CiftiConnectivityMatrixViewController()
 {
     s_allCiftiConnectivityMatrixViewControllers.erase(this);
-}
-
-/**
- * Create the grid layout for this view controller using the given orientation.
- * @param orientation
- *    Orientation in toolbox.
- * @return
- *    GridLayout setup for this view controller.
- */
-QGridLayout* 
-CiftiConnectivityMatrixViewController::createGridLayout(const Qt::Orientation /*orientation*/)
-{
-    QGridLayout* gridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 100);
     
-    QLabel* onLabel = new QLabel("On");
-    QLabel* fileLabel = new QLabel("File");
-    
-    const int row = gridLayout->rowCount();
-    gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(fileLabel, row, 1, Qt::AlignHCenter);
-    
-    return gridLayout;
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
  * Update this view controller.
- * @param connectivityLoaderFile
- *    Connectivity loader file in this view controller.
- */
-void 
-CiftiConnectivityMatrixViewController::updateViewController(CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile)
-{
-    m_ciftiConnectivityMatrixDataFile = ciftiConnectivityMatrixFile;
-    if (m_ciftiConnectivityMatrixDataFile != NULL) {
-        Qt::CheckState enabledState = Qt::Unchecked;
-        if (m_ciftiConnectivityMatrixDataFile->isMapDataLoadingEnabled(0)) {
-            enabledState = Qt::Checked;
-        }
-        m_enabledCheckBox->setCheckState(enabledState);
-        
-        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileName());
-        
-    }
-}
-
-/**
- * Update the view controller.
  */
 void 
 CiftiConnectivityMatrixViewController::updateViewController()
 {
-    updateViewController(m_ciftiConnectivityMatrixDataFile);    
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
+    brain->getAllCiftiConnectivityMatrixFiles(files);
+    const int32_t numFiles = static_cast<int32_t>(files.size());
+
+    for (int32_t i = 0; i < numFiles; i++) {
+        QCheckBox* checkBox = NULL;
+        QLineEdit* lineEdit = NULL;
+        
+        if (i < static_cast<int32_t>(m_fileEnableCheckBoxes.size())) {
+            checkBox = m_fileEnableCheckBoxes[i];
+            lineEdit = m_fileNameLineEdits[i];
+        }
+        else {
+            checkBox = new QCheckBox("");
+            m_fileEnableCheckBoxes.push_back(checkBox);
+            
+            lineEdit = new QLineEdit();
+            m_fileNameLineEdits.push_back(lineEdit);
+            
+            QObject::connect(checkBox, SIGNAL(clicked(bool)),
+                             m_signalMapperFileEnableCheckBox, SLOT(map()));
+            m_signalMapperFileEnableCheckBox->setMapping(checkBox, i);
+            
+            const int row = m_gridLayout->rowCount();
+            m_gridLayout->addWidget(checkBox,
+                                    row, COLUMN_ENABLE_CHECKBOX);
+            m_gridLayout->addWidget(lineEdit,
+                                    row, COLUMN_NAME_LINE_EDIT);
+        }
+        
+        checkBox->setChecked(files[i]->isMapDataLoadingEnabled(0));
+        lineEdit->setText(files[i]->getFileName());
+    }
+
+
+    const int32_t numItems = static_cast<int32_t>(m_fileEnableCheckBoxes.size());
+    for (int32_t i = 0; i < numItems; i++) {
+        const bool showIt = (i < numFiles);
+        
+        m_fileEnableCheckBoxes[i]->setVisible(showIt);
+        m_fileNameLineEdits[i]->setVisible(showIt);
+    }
+    
+//    m_ciftiConnectivityMatrixDataFile = ciftiConnectivityMatrixFile;
+//    if (m_ciftiConnectivityMatrixDataFile != NULL) {
+//        Qt::CheckState enabledState = Qt::Unchecked;
+//        if (m_ciftiConnectivityMatrixDataFile->isMapDataLoadingEnabled(0)) {
+//            enabledState = Qt::Checked;
+//        }
+//        m_enabledCheckBox->setCheckState(enabledState);
+//        
+//        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileName());
+//        
+//    }
 }
 
 /**
- * Called when enabled check box changes state.
+ * Called when an enabled check box changes state.
+ * 
+ * @param indx
+ *    Index of checkbox that was clicked.
  */
 void
-CiftiConnectivityMatrixViewController::enabledCheckBoxStateChanged(int state)
+CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
 {
-    const bool selected = (state == Qt::Checked);
-    if (m_ciftiConnectivityMatrixDataFile != NULL) {
-        m_ciftiConnectivityMatrixDataFile->setMapDataLoadingEnabled(0, selected);
-        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileNameNoPath());
-        updateOtherCiftiConnectivityMatrixViewControllers();
-    }
-}
-
-/**
- * Set the visiblity of this overlay view controller.
- */
-void 
-CiftiConnectivityMatrixViewController::setVisible(bool visible)
-{
-    m_gridLayoutGroup->setVisible(visible);
-}
-
-/**
- * Update graphics and GUI after 
- */
-void 
-CiftiConnectivityMatrixViewController::updateUserInterfaceAndGraphicsWindow()
-{
+    CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
+    const bool newStatus = m_fileEnableCheckBoxes[indx]->isChecked();
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
+    brain->getAllCiftiConnectivityMatrixFiles(files);
+    CaretAssertVectorIndex(files, indx);
+    files[indx]->setMapDataLoadingEnabled(0, newStatus);
     updateOtherCiftiConnectivityMatrixViewControllers();
     
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//    const bool selected = (state == Qt::Checked);
+//    if (m_ciftiConnectivityMatrixDataFile != NULL) {
+//        m_ciftiConnectivityMatrixDataFile->setMapDataLoadingEnabled(0, selected);
+//        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileNameNoPath());
+//        updateOtherCiftiConnectivityMatrixViewControllers();
+//    }
 }
+
+///**
+// * Update graphics and GUI after 
+// */
+//void 
+//CiftiConnectivityMatrixViewController::updateUserInterfaceAndGraphicsWindow()
+//{
+//    updateOtherCiftiConnectivityMatrixViewControllers();
+//    
+//    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+//    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//}
 
 /**
  * Update other connectivity view controllers other than 'this' instance
@@ -200,20 +229,40 @@ CiftiConnectivityMatrixViewController::updateUserInterfaceAndGraphicsWindow()
 void 
 CiftiConnectivityMatrixViewController::updateOtherCiftiConnectivityMatrixViewControllers()
 {
-    if (m_ciftiConnectivityMatrixDataFile != NULL) {
-        for (std::set<CiftiConnectivityMatrixViewController*>::iterator iter = s_allCiftiConnectivityMatrixViewControllers.begin();
-             iter != s_allCiftiConnectivityMatrixViewControllers.end();
-             iter++) {
-            CiftiConnectivityMatrixViewController* clvc = *iter;
-            if (clvc != this) {
-                if (clvc->m_ciftiConnectivityMatrixDataFile == m_ciftiConnectivityMatrixDataFile) {
-                    clvc->updateViewController();
-                }
-            }
+    for (std::set<CiftiConnectivityMatrixViewController*>::iterator iter = s_allCiftiConnectivityMatrixViewControllers.begin();
+         iter != s_allCiftiConnectivityMatrixViewControllers.end();
+         iter++) {
+        CiftiConnectivityMatrixViewController* clvc = *iter;
+        if (clvc != this) {
+            clvc->updateViewController();
         }
     }
 }
 
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+CiftiConnectivityMatrixViewController::receiveEvent(Event* event)
+{
+    
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+        
+//        if (uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
+            if (uiEvent->isConnectivityUpdate()
+                || uiEvent->isToolBoxUpdate()) {
+                this->updateViewController();
+                uiEvent->setEventProcessed();
+            }
+//        }
+    }
+}
 
 
 

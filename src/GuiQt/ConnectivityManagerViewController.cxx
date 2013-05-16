@@ -49,7 +49,6 @@
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
-#include "CiftiConnectivityMatrixViewController.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -158,9 +157,6 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
 	frame_number = 0;
     
     switch (this->connectivityFileType) {
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->viewControllerGridLayout = CiftiConnectivityMatrixViewController::createGridLayout(orientation);
-            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
             this->timeSeriesButtonLayout = new QHBoxLayout();
@@ -345,13 +341,6 @@ ConnectivityManagerViewController::updateManagerViewController()
     Brain* brain = GuiManager::get()->getBrain();
     
     switch (this->connectivityFileType) {
-        case DataFileTypeEnum::CONNECTIVITY_DENSE:
-        {
-            std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
-            brain->getAllCiftiConnectivityMatrixFiles(files);
-            this->updateForConnectivityMatrixFiles(files);
-        }
-            break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
             std::vector<ConnectivityLoaderFile*> files;
@@ -362,38 +351,6 @@ ConnectivityManagerViewController::updateManagerViewController()
         default:
             break;
     }
-}
-
-/**
- * Update for dense connectivity files.
- * @param connectivityFiles
- *    The connectivity files.
- */
-void 
-ConnectivityManagerViewController::updateForConnectivityMatrixFiles(const std::vector<CiftiMappableConnectivityMatrixDataFile*>& connectivityMatrixFiles)
-{
-    /*
-     * Update, show (and possibly add) connectivity view controllers
-     */
-    const int32_t numDenseFiles = static_cast<int32_t>(connectivityMatrixFiles.size());
-    for (int32_t i = 0; i < numDenseFiles; i++) {
-        if (i >= static_cast<int32_t>(this->connectivityMatrixViewControllers.size())) {
-            this->connectivityMatrixViewControllers.push_back(new CiftiConnectivityMatrixViewController(this->orientation,
-                                                                           this->viewControllerGridLayout,
-                                                                           this));            
-        }
-        CiftiConnectivityMatrixViewController* cvc = this->connectivityMatrixViewControllers[i];
-        cvc->updateViewController(connectivityMatrixFiles[i]);
-        cvc->setVisible(true);
-    }
-    
-    /*
-     * Hide view controllers not needed
-     */
-    const int32_t numViewControllers = static_cast<int32_t>(this->connectivityMatrixViewControllers.size());
-    for (int32_t i = numDenseFiles; i < numViewControllers; i++) {
-        this->connectivityMatrixViewControllers[i]->setVisible(false);
-    }    
 }
 
 /**
