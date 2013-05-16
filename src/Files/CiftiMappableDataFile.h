@@ -323,6 +323,9 @@ namespace caret {
         
         void clearPrivate();
         
+        void initializeFromCiftiInterface(CiftiInterface* ciftiInterface,
+                                          const AString& filename) throw (DataFileException);
+        
         static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         
         virtual void getMapData(const int32_t mapIndex,

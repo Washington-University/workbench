@@ -77,6 +77,18 @@ CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
     
 }
 
+/**
+ * Create a Cifti Scalar File using the currently loaded row in a Cifti 
+ * connectivity matrix file.
+ *
+ * @param ciftiMatrixFile
+ *    Cifti connectivity matrix file.
+ * @param errorMessageOut
+ *    Will describe problem if there is an error.
+ * @return
+ *    Pointer to the newly created Cifti Scalar File.  If there is an error,
+ *    NULL will be returned and errorMessageOut will describe the problem.
+ */
 CiftiBrainordinateScalarFile*
 CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
                                                                               AString& errorMessageOut)
@@ -109,22 +121,46 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         return NULL;
     }
     
-    const int64_t rowCount = ciftiMatrixFacade->getNumberOfRows();
-    const int64_t columnCount = ciftiMatrixFacade->getNumberOfColumns();
-   
     CiftiBrainordinateScalarFile* scalarFile = NULL;
     
     try {
         CiftiFile* ciftiFile = new CiftiFile();
-        CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
-        scalarFile->m_ciftiInterface.grabNew(ciftiFile);
         
+        const CiftiXML& ciftiMatrixXML = ciftiMatrixInterface->getCiftiXML();
+        
+        /*
+         * Copy XML from matrix file
+         * and update to be a scalar file.
+         */
+        CiftiXML ciftiScalarXML = ciftiMatrixXML;
+        ciftiScalarXML.copyMapping(CiftiXML::ALONG_COLUMN,
+                                   ciftiMatrixXML,
+                                   CiftiXML::ALONG_ROW);
+        ciftiScalarXML.resetRowsToScalars(1);
+        ciftiScalarXML.setMapNameForColumnIndex(0, ciftiMatrixFile->getMapName(0));
+        
+        ciftiFile->setCiftiXML(ciftiScalarXML);
+        
+        ciftiFile->setRow(&data[0],
+                          0);
+        
+        CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
+        scalarFile->initializeFromCiftiInterface(ciftiFile, scalarFile->getFileName());
+        return scalarFile;
     }
-    catch (CiftiFileException* ce) {
+    catch (const CiftiFileException& ce) {
         if (scalarFile != NULL) {
             delete scalarFile;
         }
+        errorMessageOut = ce.whatString();
     }
+    catch (const DataFileException& de) {
+        if (scalarFile != NULL) {
+            delete scalarFile;
+        }
+        errorMessageOut = de.whatString();
+    }
+    
     return NULL;
 }
 

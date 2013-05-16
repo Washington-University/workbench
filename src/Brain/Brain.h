@@ -195,6 +195,8 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        void convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile) throw (DataFileException);
+        
         CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager();
         
         const CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager() const;

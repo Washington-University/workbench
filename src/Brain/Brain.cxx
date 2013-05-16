@@ -1279,6 +1279,32 @@ Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotN
 }
 
 /**
+ * Convert the loaded row in a Cifti Connectivity Matrix File into a single
+ * map in a Cifti Scalar File.  The file create is added to the "in-memory"
+ * files.
+ *
+ * @param ciftiMatrixFile
+ *     Cifti Matrix File whose loaded row is convert to a Cifti Scalar File.
+ * @throw
+ *     DataFileException if there is an error during conversion.
+ */
+void
+Brain::convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile) throw (DataFileException)
+{
+    AString errorMessage;
+    
+    CiftiBrainordinateScalarFile* scalarFile =
+    CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(ciftiMatrixFile,
+                                                                                  errorMessage);
+    
+    if (scalarFile == NULL) {
+        throw DataFileException(errorMessage);
+    }
+
+    m_connectivityDenseScalarFiles.push_back(scalarFile);
+}
+
+/**
  * Read a connectivity dense scalar file.
  *
  * @param reloadThisFileIfNotNull

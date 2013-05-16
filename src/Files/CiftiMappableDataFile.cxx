@@ -210,6 +210,276 @@ CiftiMappableDataFile:: getFileMetaData() const
     return m_metadata;
 }
 
+///**
+// * Read the file.
+// *
+// * @param filename
+// *    Name of the file to read.
+// * @throw
+// *    DataFileException if there is an error reading the file.
+// */
+//void
+//CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileException)
+//{
+//    clear();
+//    
+//    try {
+//        /*
+//         * Is the file on the network (name begins with http, ftp, etc.).
+//         */
+//        if (DataFile::isFileOnNetwork(filename)) {
+//            /*
+//             * Data in Xnat does not end with a valid file extension
+//             * but ends with HTTP search parameters.  Thus, if the
+//             * filename does not have a valid extension, assume that
+//             * the data is in Xnat.
+//             */
+//            bool isValidFileExtension = false;
+//            DataFileTypeEnum::fromName(filename,
+//                                       &isValidFileExtension);
+//            
+//            if (isValidFileExtension) {
+//                switch (m_fileReading) {
+//                    case FILE_READ_DATA_ALL:
+//                        break;
+//                    case FILE_READ_DATA_AS_NEEDED:
+//                        throw DataFileException(filename
+//                                                + " of type "
+//                                                + DataFileTypeEnum::toGuiName(getDataFileType())
+//                                                + " cannot be read over the network.  The file must be"
+//                                                " accessed by reading individual rows and/or columns"
+//                                                " and this cannot be performed over a network.");
+//                        break;
+//                }
+//                
+//                CaretTemporaryFile tempFile;
+//                tempFile.readFile(filename);
+//                
+//                CiftiFile* ciftiFile = new CiftiFile();
+//                ciftiFile->openFile(tempFile.getFileName(),
+//                                    IN_MEMORY);
+//                m_ciftiInterface.grabNew(ciftiFile);
+//            }
+//            else {
+//                CiftiXnat* ciftiXnat = new CiftiXnat();
+//                AString username = "";
+//                AString password = "";
+//                AString filenameToOpen = "";
+//                
+//                /*
+//                 * Username and password may be embedded in URL, so extract them.
+//                 */
+//                FileInformation fileInfo(filename);
+//                fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
+//                                                         username,
+//                                                         password);
+//                
+//                /*
+//                 * Always override with a password entered by the user.
+//                 */
+//                if (CaretDataFile::getFileReadingUsername().isEmpty() == false) {
+//                    username = CaretDataFile::getFileReadingUsername();
+//                    password = CaretDataFile::getFileReadingPassword();
+//                }
+//                
+//                ciftiXnat->setAuthentication(filenameToOpen,
+//                                             username,
+//                                             password);
+//                ciftiXnat->openURL(filenameToOpen);
+//                m_ciftiInterface.grabNew(ciftiXnat);
+//            }
+//        }
+//        else {
+//            CiftiFile* ciftiFile = new CiftiFile();
+//            switch (m_fileReading) {
+//                case FILE_READ_DATA_ALL:
+//                    ciftiFile->openFile(filename,
+//                                        IN_MEMORY);
+//                    break;
+//                case FILE_READ_DATA_AS_NEEDED:
+//                    ciftiFile->openFile(filename,
+//                                        ON_DISK);
+//                    break;
+//            }
+//            m_ciftiInterface.grabNew(ciftiFile);
+//        }
+//        
+//        /*
+//         * Need a pointer to the CIFTI XML.
+//         */
+//        CaretAssert(m_ciftiInterface);
+//        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+//        
+//        setFileName(filename);
+//        
+//        /*
+//         * Create the CIFTI facade for simplified access to CIFTI data
+//         */
+//        m_ciftiFacade.grabNew(new CiftiFacade(getDataFileType(),
+//                                              m_ciftiInterface));
+//        AString errorMessage;
+//        if (m_ciftiFacade->isValidCiftiFile() == false) {
+//            errorMessage.appendWithNewLine("Support for "
+//                                           + DataFileTypeEnum::toName(getDataFileType())
+//                                           + " needs to be implemented or is invalid type.");
+//        }
+//        
+//        /*
+//         * Get contents of the matrix.
+//         */
+//        const IndicesMapToDataType rowIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+//        AString rowIndexTypeName = ciftiIndexTypeToName(rowIndexTypeInFile);
+//        
+//        const IndicesMapToDataType columnIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+//        AString columnIndexTypeName = ciftiIndexTypeToName(columnIndexTypeInFile);
+//        
+//        /*
+//         * Validate type of data in rows and columns
+//         */
+//        if (m_requiredRowIndexType != rowIndexTypeInFile) {
+//            errorMessage.appendWithNewLine("Row Index Type should be "
+//                                           + ciftiIndexTypeToName(m_requiredRowIndexType)
+//                                           + " but is "
+//                                           + rowIndexTypeName);
+//        }
+//        if (m_requiredColumnIndexType != columnIndexTypeInFile) {
+//            errorMessage.appendWithNewLine("Column Index Type should be "
+//                                           + ciftiIndexTypeToName(m_requiredColumnIndexType)
+//                                           + " but is "
+//                                           + columnIndexTypeName);
+//        }
+//        
+//        
+//        if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
+//            /* OK */
+//        }
+//        else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
+//            /* OK */
+//        }
+//        else {
+//            errorMessage.appendWithNewLine("Data is neither color with label table nor palette.");
+//        }
+//        
+//        if (errorMessage.isEmpty() == false) {
+//            errorMessage = (getFileNameNoPath()
+//                            + errorMessage);
+//            clear();
+//            throw DataFileException(errorMessage);
+//        }
+//        
+//        /*
+//         * Copy the file metadata into a GiftiMetaData object.
+//         */
+//        m_ciftiFacade->getFileMetadata(m_metadata);
+//        
+//        /*
+//         * Get data for maps.
+//         */
+//        const int32_t numberOfMaps = m_ciftiFacade->getNumberOfMaps();
+//        for (int32_t i = 0; i < numberOfMaps; i++) {            
+//            MapContent* mc = new MapContent(m_ciftiFacade,
+//                                            i);
+//            m_mapContent.push_back(mc);
+//        }
+//        
+//        /*
+//         * Setup voxel mapping
+//         */
+//        std::vector<CiftiVolumeMap> voxelMapping;
+//        m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates(voxelMapping);
+//        m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
+//                                                               voxelMapping));
+//        
+//        /*
+//         * Indicate if volume mappable
+//         */
+//        if (m_voxelIndicesToOffset->isValid()) {
+//            m_containsVolumeData = true;
+//            
+//            VolumeBase::OrientTypes orient[3];
+//            int64_t dimensions[3];
+//            float origin[3];
+//            float spacing[3];
+//            if (ciftiXML.getVolumeAttributesForPlumb(orient,
+//                                                 dimensions,
+//                                                 origin,
+//                                                     spacing)) {
+//                m_volumeDimensions[0] = dimensions[0];
+//                m_volumeDimensions[1] = dimensions[1];
+//                m_volumeDimensions[2] = dimensions[2];
+//                m_volumeDimensions[3] = 1;
+//                m_volumeDimensions[4] = 1;
+//            }
+//        }
+//        
+//        AString mapNames;
+//        if (hasMapAttributes()) {
+//            for (int32_t i = 0; i < getNumberOfMaps(); i++) {
+//                mapNames.appendWithNewLine("        Map "
+//                                           + AString::number(i)
+//                                           + " Name: "
+//                                           + getMapName(i));
+//            }
+//            if (mapNames.isEmpty() == false) {
+//                mapNames.insert(0, "\n");
+//            }
+//        }
+//        
+//        /*
+//         * Map units
+//         */
+//        float startValue;
+//        float stepValue;
+//        NiftiTimeUnitsEnum::Enum units;
+//        m_ciftiFacade->getMapIntervalStartStepAndUnits(startValue,
+//                                                       stepValue,
+//                                                       units);
+//        const AString unitString(NiftiTimeUnitsEnum::toName(units)
+//                                 + ", "
+//                                 + AString::number(startValue)
+//                                 + ", "
+//                                 + AString::number(stepValue));
+//        
+//        const AString msg = (getFileNameNoPath()
+//                             + "\n   " + DataFileTypeEnum::toGuiName(getDataFileType())
+//                             + "\n   Rows: " + AString::number(m_ciftiFacade->getNumberOfRows())
+//                             + "\n   Columns: " + AString::number(m_ciftiFacade->getNumberOfColumns())
+//                             + "\n   RowType: " + rowIndexTypeName
+//                             + "\n   ColType: " + columnIndexTypeName
+//                             + "\n   Has Surface Data: " + AString::fromBool(m_ciftiFacade->containsSurfaceDataForMappingToBrainordinates())
+//                             + "\n   Has Volume Data: " + AString::fromBool(m_containsVolumeData)
+//                             + "\n   Voxel Count: " + AString::number(voxelMapping.size())
+//                             + "\n   Volume Dimensions: " + AString::fromNumbers(m_volumeDimensions, 5, ",")
+//                             + "\n   Number of Maps: " + AString::number(m_mapContent.size())
+//                             + mapNames
+//                             + "\n   Map Units, Start, Stop: " + unitString
+//                             + "\n   Map with Label Table: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithLabelTable())
+//                             + "\n   Map With Palette: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithPalette()));
+//                             
+//        CaretLogFine(msg);
+//        
+//        clearModified();
+//    }
+//    catch (CiftiFileException& e) {
+//        clear();
+//        throw DataFileException(e.whatString());
+//    }
+//    
+//    m_classNameHierarchy->update(this,
+//                                 true);
+//    m_forceUpdateOfGroupAndNameHierarchy = false;
+//    m_classNameHierarchy->setAllSelected(true);
+//
+//    CaretLogFiner("CLASS/NAME Table for : "
+//                  + this->getFileNameNoPath()
+//                  + "\n"
+//                  + m_classNameHierarchy->toString());
+//
+//    validateKeysAndLabels();
+//    
+//    validateAfterFileReading();
+//}
+
 /**
  * Read the file.
  *
@@ -224,6 +494,9 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
     clear();
     
     try {
+        
+        CiftiInterface* ciftiInterface = NULL;
+        
         /*
          * Is the file on the network (name begins with http, ftp, etc.).
          */
@@ -258,7 +531,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                 CiftiFile* ciftiFile = new CiftiFile();
                 ciftiFile->openFile(tempFile.getFileName(),
                                     IN_MEMORY);
-                m_ciftiInterface.grabNew(ciftiFile);
+                ciftiInterface = ciftiFile;
             }
             else {
                 CiftiXnat* ciftiXnat = new CiftiXnat();
@@ -286,7 +559,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                                              username,
                                              password);
                 ciftiXnat->openURL(filenameToOpen);
-                m_ciftiInterface.grabNew(ciftiXnat);
+                ciftiInterface = ciftiXnat;
             }
         }
         else {
@@ -301,12 +574,43 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                                         ON_DISK);
                     break;
             }
-            m_ciftiInterface.grabNew(ciftiFile);
+            ciftiInterface = ciftiFile;
         }
         
+        if (ciftiInterface != NULL) {
+            initializeFromCiftiInterface(ciftiInterface,
+                                         filename);
+        }
+    }
+    catch (CiftiFileException& e) {
+        clear();
+        throw DataFileException(e.whatString());
+    }
+    catch (DataFileException& e) {
+        clear();
+        throw e;
+    }
+}
+/**
+ * Initialize from a CIFTI Interface after either reading a CIFTI file
+ * or creating a CIFTI file.
+ *
+ * @param ciftiInterface
+ *     Typically a subclass such as CiftiFile ro CiftiXnat.
+ * @param filename
+ *     Name of the file.
+ */
+void
+CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterface,
+                                                    const AString& filename) throw (DataFileException)
+{
+    CaretAssert(ciftiInterface);
+    
+    try {
         /*
          * Need a pointer to the CIFTI XML.
          */
+        m_ciftiInterface.grabNew(ciftiInterface);
         CaretAssert(m_ciftiInterface);
         const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
         
@@ -376,7 +680,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
          * Get data for maps.
          */
         const int32_t numberOfMaps = m_ciftiFacade->getNumberOfMaps();
-        for (int32_t i = 0; i < numberOfMaps; i++) {            
+        for (int32_t i = 0; i < numberOfMaps; i++) {
             MapContent* mc = new MapContent(m_ciftiFacade,
                                             i);
             m_mapContent.push_back(mc);
@@ -401,8 +705,8 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
             float origin[3];
             float spacing[3];
             if (ciftiXML.getVolumeAttributesForPlumb(orient,
-                                                 dimensions,
-                                                 origin,
+                                                     dimensions,
+                                                     origin,
                                                      spacing)) {
                 m_volumeDimensions[0] = dimensions[0];
                 m_volumeDimensions[1] = dimensions[1];
@@ -455,7 +759,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                              + "\n   Map Units, Start, Stop: " + unitString
                              + "\n   Map with Label Table: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithLabelTable())
                              + "\n   Map With Palette: " + AString::fromBool(m_ciftiFacade->isBrainordinateDataColoredWithPalette()));
-                             
+        
         CaretLogFine(msg);
         
         clearModified();
@@ -464,24 +768,28 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         clear();
         throw DataFileException(e.whatString());
     }
+    catch (DataFileException& e) {
+        clear();
+        throw e;
+    }
     
     m_classNameHierarchy->update(this,
                                  true);
     m_forceUpdateOfGroupAndNameHierarchy = false;
     m_classNameHierarchy->setAllSelected(true);
-
+    
     CaretLogFiner("CLASS/NAME Table for : "
                   + this->getFileNameNoPath()
                   + "\n"
                   + m_classNameHierarchy->toString());
-
+    
     validateKeysAndLabels();
     
     validateAfterFileReading();
 }
 
 /**
- * This method is intended for overriding by subclasess so that they 
+ * This method is intended for overriding by subclasess so that they
  * can examine and verify the data that was read.  This method is
  * called after successfully reading a file.
  */
