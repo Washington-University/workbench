@@ -1302,6 +1302,7 @@ Brain::convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMa
     }
 
     m_connectivityDenseScalarFiles.push_back(scalarFile);
+    m_specFile->addCaretDataFile(scalarFile);
 }
 
 /**

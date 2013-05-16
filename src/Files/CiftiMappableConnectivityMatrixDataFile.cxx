@@ -98,6 +98,7 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
 {
     m_loadedRowData.clear();
     m_rowLoadedTextForMapName = "";
+    m_rowLoadedText = "";
     m_dataLoadingEnabled = true;
 }
 
@@ -488,7 +489,13 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                          + AString::number(nodeIndex)
                                          + ", Structure: "
                                          + StructureEnum::toName(structure));
-                
+
+                m_rowLoadedText = ("Row_"
+                                   + AString::number(rowIndex)
+                                   + "_Node_Index_"
+                                   + AString::number(nodeIndex)
+                                   + "_Structure_"
+                                   + StructureEnum::toGuiName(structure));
                 CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
                 m_loadedRowData.resize(dataCount);
                 m_ciftiInterface->getRow(&m_loadedRowData[0],
@@ -618,7 +625,10 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                          + StructureEnum::toName(structure)
                                          + ", Averaged Node Count: "
                                          + AString::number(numberOfNodeIndices));
-                
+                m_rowLoadedText =  ("Structure_"
+                                    + StructureEnum::toGuiName(structure)
+                                    + "_Averaged_Node_Count_"
+                                    + AString::number(numberOfNodeIndices));
                 /*
                  * Update the viewed data
                  */
@@ -706,6 +716,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
                                          + AString::fromNumbers(xyz, 3, ",")
                                          + ")");
                 
+                m_rowLoadedText = ("Row_"
+                                   + AString::number(rowIndex)
+                                   + "_Voxel_XYZ_"
+                                   + AString::fromNumbers(xyz, 3, "_").replace('-', 'm'));
+                
                 CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                 
                 dataWasLoaded = true;
@@ -725,6 +740,17 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     
     return rowIndex;
 }
+
+/**
+ * @return Text describing row loaded that uses 
+ * underscores as separators.
+ */
+AString
+CiftiMappableConnectivityMatrixDataFile::getRowLoadedText() const
+{
+    return m_rowLoadedText;
+}
+
 
 /**
  * Get the name of the map at the given index.  For connectivity matrix

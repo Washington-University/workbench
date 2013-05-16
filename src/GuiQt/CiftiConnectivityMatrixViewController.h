@@ -44,6 +44,7 @@ class QCheckBox;
 class QGridLayout;
 class QLineEdit;
 class QSignalMapper;
+class QToolButton;
 
 namespace caret {
 
@@ -64,6 +65,8 @@ namespace caret {
     private slots:
         void enabledCheckBoxClicked(int);
 
+        void copyToolButtonClicked(int);
+        
     private:
         CiftiConnectivityMatrixViewController(const CiftiConnectivityMatrixViewController&);
 
@@ -79,9 +82,13 @@ namespace caret {
         
         std::vector<QLineEdit*> m_fileNameLineEdits;
         
+        std::vector<QToolButton*> m_fileCopyToolButtons;
+        
         QGridLayout* m_gridLayout;
         
         QSignalMapper* m_signalMapperFileEnableCheckBox;
+        
+        QSignalMapper* m_signalMapperFileCopyToolButton;
         
         static std::set<CiftiConnectivityMatrixViewController*> s_allCiftiConnectivityMatrixViewControllers;
         

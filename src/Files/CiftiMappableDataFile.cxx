@@ -1950,6 +1950,13 @@ void
 CiftiMappableDataFile::validateKeysAndLabels() const
 {
     /*
+     * Skip if not label file
+     */
+    if (isMappedWithLabelTable() == false) {
+        return;
+    }
+    
+    /*
      * Skip if logging is not fine or less.
      */
     if (CaretLogger::getLogger()->isFine() == false) {

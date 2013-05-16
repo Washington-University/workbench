@@ -46,11 +46,13 @@
 
 #include "Brain.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -63,7 +65,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(const Qt::Orientation orientation,
+CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(const Qt::Orientation /*orientation*/,
                                                                              QWidget* parent)
 : QWidget(parent)
 {
@@ -83,23 +85,10 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
     m_signalMapperFileEnableCheckBox = new QSignalMapper(this);
     QObject::connect(m_signalMapperFileEnableCheckBox, SIGNAL(mapped(int)),
                      this, SLOT(enabledCheckBoxClicked(int)));
-//    m_enabledCheckBox = new QCheckBox(" ");
-//    QObject::connect(m_enabledCheckBox, SIGNAL(stateChanged(int)),
-//                     this, SLOT(enabledCheckBoxStateChanged(int)));
-//    
-//    m_fileNameLineEdit = new QLineEdit("                 ");
-//    m_fileNameLineEdit->setReadOnly(true);
     
-//    if (orientation == Qt::Horizontal) {
-//        int row = m_gridLayoutGroup->rowCount();
-//        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
-//        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
-//    }
-//    else {
-//        int row = m_gridLayoutGroup->rowCount();
-//        m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0);
-//        m_gridLayoutGroup->addWidget(m_fileNameLineEdit, row, 1);
-//    }
+    m_signalMapperFileCopyToolButton = new QSignalMapper(this);
+    QObject::connect(m_signalMapperFileCopyToolButton, SIGNAL(mapped(int)),
+                     this, SLOT(copyToolButtonClicked(int)));
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(m_gridLayout);
@@ -134,6 +123,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
     for (int32_t i = 0; i < numFiles; i++) {
         QCheckBox* checkBox = NULL;
         QLineEdit* lineEdit = NULL;
+        QToolButton* copyToolButton = NULL;
         
         if (i < static_cast<int32_t>(m_fileEnableCheckBoxes.size())) {
             checkBox = m_fileEnableCheckBoxes[i];
@@ -146,6 +136,15 @@ CiftiConnectivityMatrixViewController::updateViewController()
             lineEdit = new QLineEdit();
             m_fileNameLineEdits.push_back(lineEdit);
             
+            copyToolButton = new QToolButton();
+            copyToolButton->setText("Copy");
+            copyToolButton->setToolTip("Copy loaded row data to a new CIFTI Scalar File");
+            m_fileCopyToolButtons.push_back(copyToolButton);
+            
+            QObject::connect(copyToolButton, SIGNAL(clicked()),
+                             m_signalMapperFileCopyToolButton, SLOT(map()));
+            m_signalMapperFileCopyToolButton->setMapping(copyToolButton, i);
+            
             QObject::connect(checkBox, SIGNAL(clicked(bool)),
                              m_signalMapperFileEnableCheckBox, SLOT(map()));
             m_signalMapperFileEnableCheckBox->setMapping(checkBox, i);
@@ -153,6 +152,8 @@ CiftiConnectivityMatrixViewController::updateViewController()
             const int row = m_gridLayout->rowCount();
             m_gridLayout->addWidget(checkBox,
                                     row, COLUMN_ENABLE_CHECKBOX);
+            m_gridLayout->addWidget(copyToolButton,
+                                    row, COLUMN_COPY_BUTTON);
             m_gridLayout->addWidget(lineEdit,
                                     row, COLUMN_NAME_LINE_EDIT);
         }
@@ -167,6 +168,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
         const bool showIt = (i < numFiles);
         
         m_fileEnableCheckBoxes[i]->setVisible(showIt);
+        m_fileCopyToolButtons[i]->setVisible(showIt);
         m_fileNameLineEdits[i]->setVisible(showIt);
     }
     
@@ -210,8 +212,38 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
 //    }
 }
 
+
+/**
+ * Called when copy tool button is clicked.
+ *
+ * @param indx
+ *    Index of copy tool button that was clicked.
+ */
+void
+CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
+{
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
+    brain->getAllCiftiConnectivityMatrixFiles(files);
+    
+    CaretAssertVectorIndex(files, indx);
+    
+    try {
+        brain->convertCiftiMatrixFileToCiftiScalarFile(files[indx]);
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+    catch (const DataFileException& dfe) {
+        cursor.restoreCursor();
+        WuQMessageBox::errorOk(m_fileCopyToolButtons[indx],
+                               dfe.whatString());
+    }
+}
+
 ///**
-// * Update graphics and GUI after 
+// * Update graphics and GUI after
 // */
 //void 
 //CiftiConnectivityMatrixViewController::updateUserInterfaceAndGraphicsWindow()

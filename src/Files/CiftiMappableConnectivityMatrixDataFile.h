@@ -85,6 +85,8 @@ namespace caret {
         
         virtual AString getMapName(const int32_t mapIndex) const;
         
+        AString getRowLoadedText() const;
+        
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
 
@@ -123,6 +125,8 @@ namespace caret {
         
         AString m_rowLoadedTextForMapName;
 
+        AString m_rowLoadedText;
+        
         friend class CiftiBrainordinateScalarFile;
     };
     

@@ -70,6 +70,8 @@ namespace caret {
         
         void setDisplayedInGUI(const bool displayedInGUI);
         
+        virtual AString getFileNameNoExtension() const;
+        
         virtual bool supportsWriting() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

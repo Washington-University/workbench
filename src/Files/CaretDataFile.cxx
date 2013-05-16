@@ -318,6 +318,44 @@ CaretDataFile::supportsWriting() const
     return true;
 }
 
+/**
+ * @return The name (and path if present) of the file with the
+ * filename's extension removed.  
+ *
+ * First, all valid extensions
+ * from the DataFileTypeEnum are tested and if one matches it
+ * is used as the extension.  If none of the extensions from the
+ * DataFileTypeEnum match, anything including the last "." is 
+ * removed.  Lastly, if there is not "." in the name of the file
+ * the equivalent of getFileName() is returned.
+ */
+AString
+CaretDataFile::getFileNameNoExtension() const
+{
+    AString name = getFileName();
+    
+    std::vector<AString> dataFileTypeExtensions = DataFileTypeEnum::getAllFileExtensions(getDataFileType());
+    
+    
+    for (std::vector<AString>::iterator iter = dataFileTypeExtensions.begin();
+         iter != dataFileTypeExtensions.end();
+         iter++) {
+        const AString ext = *iter;
+        const int offset = name.lastIndexOf(ext);
+        if (offset > 0) {
+            name.resize(offset - 1);
+            return name;
+        }
+    }
+    
+    const int offset = name.lastIndexOf(".");
+    if (offset > 0) {
+        name.resize(offset - 1);
+    }
+    
+    return name;
+}
+
 
 
 
