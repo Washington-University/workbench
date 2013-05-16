@@ -58,7 +58,7 @@ using namespace caret;
  * Constructor.
  */
 SessionManager::SessionManager()
-: CaretObject(), SceneableInterface(), EventListenerInterface()
+: CaretObject(), EventListenerInterface(), SceneableInterface()
 {
     m_caretPreferences = new CaretPreferences();
     
