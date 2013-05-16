@@ -42,7 +42,7 @@ namespace caret {
             MAXIMUM_NUMBER_OF_BROWSER_TABS = 100,
             
             /// Maximum number of overlays
-            MAXIMUM_NUMBER_OF_OVERLAYS = 10,
+            MAXIMUM_NUMBER_OF_OVERLAYS = 50,
             
             /// Minimum number of overlays
             MINIMUM_NUMBER_OF_OVERLAYS = 3,
