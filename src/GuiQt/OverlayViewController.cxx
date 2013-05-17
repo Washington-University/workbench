@@ -214,26 +214,9 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     m_yokingGroupComboBox->getWidget()->setToolTip(("Select a yoking group (synchronized map selections).\n"
                                                     "Overlays yoked to a yoking group all maintain\n"
                                                     "the same selected map index."));
+    m_yokingGroupComboBox->getComboBox()->setFixedWidth(m_yokingGroupComboBox->getComboBox()->sizeHint().width() - 20);
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
-    
-    /*
-     * Change names of items in Yoking Group
-     */
-    QComboBox* yokeComboBox = m_yokingGroupComboBox->getComboBox();
-    const int numYokeItems = yokeComboBox->count();
-    if (numYokeItems > 0) {
-        for (int i = 1; i < numYokeItems; i++) {
-            yokeComboBox->setItemText(i, QString::number(i));
-        }
-    }
-    yokeComboBox->setFixedWidth(yokeComboBox->sizeHint().width());
-    
-    /*
-     * Limit to 4 yoking groups (off and groups 1 to 4).
-     */
-    yokeComboBox->setMaxCount(5);
-    
     
     /*
      * Use layout group so that items can be shown/hidden
@@ -276,8 +259,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
-                                         row, 0,
-                                         2, 1);
+                                         row, 0);
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1);
         this->gridLayoutGroup->addWidget(colorBarToolButton,
@@ -285,27 +267,60 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(constructionToolButton,
                                          row, 3);
         this->gridLayoutGroup->addWidget(fileLabel,
-                              row, 4);
+                                         row, 4);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
-                              row, 5, 1, 2);
+                                         row, 5, 1, 2);
         
         row++;
         this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
-                                         row, 1,
+                                         row, 0,
                                          1, 2,
                                          Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
-                                         row, 3);
+                                         row, 2,
+                                         1, 2);
         this->gridLayoutGroup->addWidget(mapLabel,
-                              row, 4);
+                                         row, 4);
         this->gridLayoutGroup->addWidget(m_mapIndexSpinBox,
                                          row, 5);
         this->gridLayoutGroup->addWidget(this->mapNameComboBox,
-                              row, 6);
+                                         row, 6);
         
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
                                          row, 0, 1, -1);
+//        int row = this->gridLayoutGroup->rowCount();
+//        this->gridLayoutGroup->addWidget(this->enabledCheckBox,
+//                                         row, 0,
+//                                         2, 1);
+//        this->gridLayoutGroup->addWidget(settingsToolButton,
+//                                         row, 1);
+//        this->gridLayoutGroup->addWidget(colorBarToolButton,
+//                                         row, 2);
+//        this->gridLayoutGroup->addWidget(constructionToolButton,
+//                                         row, 3);
+//        this->gridLayoutGroup->addWidget(fileLabel,
+//                              row, 4);
+//        this->gridLayoutGroup->addWidget(this->fileComboBox,
+//                              row, 5, 1, 2);
+//        
+//        row++;
+//        this->gridLayoutGroup->addWidget(this->opacityDoubleSpinBox,
+//                                         row, 1,
+//                                         1, 2,
+//                                         Qt::AlignCenter);
+//        this->gridLayoutGroup->addWidget(this->m_yokingGroupComboBox->getWidget(),
+//                                         row, 3);
+//        this->gridLayoutGroup->addWidget(mapLabel,
+//                              row, 4);
+//        this->gridLayoutGroup->addWidget(m_mapIndexSpinBox,
+//                                         row, 5);
+//        this->gridLayoutGroup->addWidget(this->mapNameComboBox,
+//                              row, 6);
+//        
+//        row++;
+//        this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
+//                                         row, 0, 1, -1);
     }
     //this->setFixedHeight(this->sizeHint().height());
 }

@@ -631,11 +631,36 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         /*
          * Get contents of the matrix.
          */
-        const IndicesMapToDataType rowIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+        IndicesMapToDataType rowIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
         AString rowIndexTypeName = ciftiIndexTypeToName(rowIndexTypeInFile);
         
         const IndicesMapToDataType columnIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
         AString columnIndexTypeName = ciftiIndexTypeToName(columnIndexTypeInFile);
+        
+        /*
+         * There are some Scalar and data series files that get
+         * row index type mixed up
+         */
+        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR) {
+            if (rowIndexTypeInFile == CIFTI_INDEX_TYPE_TIME_POINTS) {
+                CaretLogWarning(getFileNameNoPath()
+                                + " has row index type="
+                                + rowIndexTypeName
+                                + " which is incorrect for this CIFTI Scalar File and has been converted to "
+                                + ciftiIndexTypeToName(CIFTI_INDEX_TYPE_SCALARS));
+                rowIndexTypeInFile = CIFTI_INDEX_TYPE_SCALARS;
+            }
+        }
+        else if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES) {
+            if (rowIndexTypeInFile == CIFTI_INDEX_TYPE_SCALARS) {
+                CaretLogWarning(getFileNameNoPath()
+                                + " has row index type="
+                                + rowIndexTypeName
+                                + " which is incorrect for this CIFTI Data Series File and has been converted to "
+                                + ciftiIndexTypeToName(CIFTI_INDEX_TYPE_TIME_POINTS));
+                rowIndexTypeInFile = CIFTI_INDEX_TYPE_TIME_POINTS;
+            }
+        }
         
         /*
          * Validate type of data in rows and columns
