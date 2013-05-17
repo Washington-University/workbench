@@ -95,7 +95,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->overlay = NULL;
     
     int minComboBoxWidth = 200;
-    int maxComboBoxWidth = 400;
+    int maxComboBoxWidth = 100000; //400;
     if (orientation == Qt::Horizontal) {
         minComboBoxWidth = 50;
         maxComboBoxWidth = 100000;
