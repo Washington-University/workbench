@@ -1,5 +1,3 @@
-#ifdef VELAB_INTERNAL_RELEASE_ONLY
-
 /*LICENSE_START*/
 /*
  *  Copyright 1995-2002 Washington University School of Medicine
@@ -313,5 +311,4 @@ float AlgorithmSurfaceCortexLayer::getSubAlgorithmWeight()
     return 0.0f;
 }
 
-#endif // VELAB_INTERNAL_RELEASE_ONLY
 

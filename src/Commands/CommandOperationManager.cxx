@@ -225,11 +225,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyAffine()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyWarpfield()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAverage()));
-
-#ifdef VELAB_INTERNAL_RELEASE_ONLY
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
-#endif // VELAB_INTERNAL_RELEASE_ONLY
-
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceDistortion()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceGenerateInflated()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceInflation()));
