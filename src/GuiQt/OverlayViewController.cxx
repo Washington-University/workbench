@@ -214,7 +214,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     m_yokingGroupComboBox->getWidget()->setToolTip(("Select a yoking group (synchronized map selections).\n"
                                                     "Overlays yoked to a yoking group all maintain\n"
                                                     "the same selected map index."));
-    m_yokingGroupComboBox->getComboBox()->setFixedWidth(m_yokingGroupComboBox->getComboBox()->sizeHint().width() - 20);
+    m_yokingGroupComboBox->getComboBox()->setFixedWidth(m_yokingGroupComboBox->getComboBox()->sizeHint().width() - 10);
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokingGroupActivated()));
     
