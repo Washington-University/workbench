@@ -45,7 +45,7 @@ AString AlgorithmCiftiAverageROICorrelation::getCommandSwitch()
 
 AString AlgorithmCiftiAverageROICorrelation::getShortDescription()
 {
-    return "CORRELATE  ROI AVERAGE WITH ALL ROWS THEN AVERAGE ACROSS SUBJECTS";
+    return "CORRELATE ROI AVERAGE WITH ALL ROWS THEN AVERAGE ACROSS SUBJECTS";
 }
 
 OperationParameters* AlgorithmCiftiAverageROICorrelation::getParameters()
