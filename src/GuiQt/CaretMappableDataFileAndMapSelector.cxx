@@ -53,6 +53,7 @@
 #include "CaretMappableDataFileAndMapSelector.h"
 #undef __CARET_MAPPABLE_DATA_FILE_AND_MAP_SELECTOR_DECLARE__
 
+#include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "GiftiLabel.h"
@@ -61,6 +62,7 @@
 #include "GiftiMetaData.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "SpecFile.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -461,6 +463,13 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     this->brainStructure->addLabelFile(labelFile,
                                                        false);
                     fileIndex = this->brainStructure->getNumberOfLabelFiles() - 1;
+                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(labelFile);
+                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
+                                            brainStructure->getStructure(),
+                                            mapFileName,
+                                            true,
+                                            true,
+                                            false);
                 }
                     break;
                 case DataFileTypeEnum::METRIC:
@@ -473,6 +482,13 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     this->brainStructure->addMetricFile(metricFile,
                                                         false);
                     fileIndex = this->brainStructure->getNumberOfMetricFiles() - 1;
+                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(metricFile);//TSC: I stole this code out of Brain::readOrReloadDataFile and added some includes to get it working
+                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
+                                            brainStructure->getStructure(),
+                                            mapFileName,
+                                            true,
+                                            true,
+                                            false);
                 }
                     break;
                 default:
