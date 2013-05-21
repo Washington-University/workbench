@@ -89,26 +89,18 @@ void AlgorithmMetricROIsFromExtrema::useParameters(OperationParameters* myParams
     if (gaussOpt->m_present)
     {//set up to use a gaussian function
         sigma = (float)gaussOpt->getDouble(1);
-        if (sigma < 0.0f)
+        if (sigma <= 0.0f)
         {
             throw AlgorithmException("invalid sigma specified");
         }
     }
-    OverlapLogic overlapType = ALLOW;
+    OverlapLogicEnum::Enum overlapType = OverlapLogicEnum::ALLOW;
     OptionalParameter* overlapOpt = myParams->getOptionalParameter(6);
     if (overlapOpt->m_present)
     {
-        AString overlapString = overlapOpt->getString(1);
-        if (overlapString == "ALLOW")
-        {
-            overlapType = ALLOW;
-        } else if (overlapString == "CLOSEST") {
-            overlapType = CLOSEST;
-        } else if (overlapString == "EXCLUDE") {
-            overlapType = EXCLUDE;
-        } else {
-            throw AlgorithmException("unrecognized overlap method: " + overlapString);
-        }
+        bool ok = false;
+        overlapType = OverlapLogicEnum::fromName(overlapOpt->getString(1), &ok);
+        if (!ok) throw AlgorithmException("unrecognized overlap method: " + overlapOpt->getString(1));
     }
     int myColumn = -1;
     OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
@@ -124,7 +116,7 @@ void AlgorithmMetricROIsFromExtrema::useParameters(OperationParameters* myParams
 }
 
 AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& limit,
-                                                               MetricFile* myMetricOut, const float& sigma, const OverlapLogic& overlapType, const int& myColumn) : AbstractAlgorithm(myProgObj)
+                                                               MetricFile* myMetricOut, const float& sigma, const OverlapLogicEnum::Enum& overlapType, const int& myColumn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
@@ -174,13 +166,13 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
                     int listNum = (int)nodeList.size();
                     switch (overlapType)
                     {
-                        case ALLOW:
+                        case OverlapLogicEnum::ALLOW:
                             for (int k = 0; k < listNum; ++k)
                             {
                                 roiLists[mapCounter][nodeList[k]] = distList[k];
                             }
                             break;
-                        case CLOSEST:
+                        case OverlapLogicEnum::CLOSEST:
                             for (int k = 0; k < listNum; ++k)
                             {
                                 const int32_t& thisNode = nodeList[k];
@@ -201,7 +193,7 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
                                 }
                             }
                             break;
-                        case EXCLUDE:
+                        case OverlapLogicEnum::EXCLUDE:
                             for (int k = 0; k < listNum; ++k)
                             {
                                 const int32_t& thisNode = nodeList[k];
@@ -237,13 +229,13 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
                 int listNum = (int)nodeList.size();
                 switch (overlapType)
                 {
-                    case ALLOW:
+                    case OverlapLogicEnum::ALLOW:
                         for (int k = 0; k < listNum; ++k)
                         {
                             roiLists[mapCounter][nodeList[k]] = distList[k];
                         }
                         break;
-                    case CLOSEST:
+                    case OverlapLogicEnum::CLOSEST:
                         for (int k = 0; k < listNum; ++k)
                         {
                             const int32_t& thisNode = nodeList[k];
@@ -264,7 +256,7 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
                             }
                         }
                         break;
-                    case EXCLUDE:
+                    case OverlapLogicEnum::EXCLUDE:
                         for (int k = 0; k < listNum; ++k)
                         {
                             const int32_t& thisNode = nodeList[k];

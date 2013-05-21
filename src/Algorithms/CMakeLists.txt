@@ -82,6 +82,7 @@ AlgorithmVolumeRemoveIslands.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 AlgorithmVolumeWarpfieldResample.h
+OverlapLogicEnum.h
 
 AbstractAlgorithm.cxx
 AlgorithmCiftiAverage.cxx
@@ -148,6 +149,7 @@ AlgorithmVolumeRemoveIslands.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
 AlgorithmVolumeWarpfieldResample.cxx
+OverlapLogicEnum.cxx
 )
 
 #

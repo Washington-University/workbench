@@ -27,6 +27,8 @@
 
 #include "AbstractAlgorithm.h"
 
+#include "OverlapLogicEnum.h"
+
 namespace caret {
     
     class AlgorithmMetricROIsFromExtrema : public AbstractAlgorithm
@@ -36,14 +38,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        enum OverlapLogic
-        {
-            ALLOW,
-            CLOSEST,
-            EXCLUDE
-        };
-        AlgorithmMetricROIsFromExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& limit,
-                                       MetricFile* myMetricOut, const float& sigma = -1.0f, const OverlapLogic& overlapType = ALLOW, const int& myColumn = -1);
+        AlgorithmMetricROIsFromExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& limit, MetricFile* myMetricOut,
+                                       const float& sigma = -1.0f, const OverlapLogicEnum::Enum& overlapType = OverlapLogicEnum::ALLOW, const int& myColumn = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

@@ -90,7 +90,7 @@ void OperationSurfaceGeodesicROIs::useParameters(OperationParameters* myParams, 
     if (gaussOpt->m_present)
     {//set up to use a gaussian function
         sigma = (float)gaussOpt->getDouble(1);
-        if (sigma < 0.0f)
+        if (sigma <= 0.0f)
         {
             throw OperationException("invalid sigma specified");
         }
