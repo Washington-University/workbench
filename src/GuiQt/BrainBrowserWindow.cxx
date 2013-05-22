@@ -1224,6 +1224,9 @@ BrainBrowserWindow::processInformationDialog()
 void 
 BrainBrowserWindow::processCloseSpecFile()
 {
+    if(!WuQMessageBox::warningYesNo(this,
+        "<html>Are you sure you want to close the spec file?</html>")) return;
+
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrain();
     
