@@ -2245,13 +2245,18 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
                 if (nodeMap[i].m_surfaceNode == nodeIndex) {
                     std::vector<float> mapData;
                     getMapData(mapIndex, mapData);
-                    
-                    CaretAssertVectorIndex(mapData,
-                                           nodeMap[i].m_ciftiIndex);
-                    numericalValueOut = mapData[nodeMap[i].m_ciftiIndex];
-                    numericalValueOutValid = true;
-                    textValueOut = AString::number(numericalValueOut, 'f');
-                    return true;
+                    if (mapData.size() == 0)//if the node to load data for is not in the column mapping, we will have no map data
+                    {
+                        numericalValueOutValid = false;
+                        return false;
+                    } else {
+                        CaretAssertVectorIndex(mapData,
+                                            nodeMap[i].m_ciftiIndex);
+                        numericalValueOut = mapData[nodeMap[i].m_ciftiIndex];
+                        numericalValueOutValid = true;
+                        textValueOut = AString::number(numericalValueOut, 'f');
+                        return true;
+                    }
                 }
             }
         }
