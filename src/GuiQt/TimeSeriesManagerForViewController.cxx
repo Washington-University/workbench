@@ -36,6 +36,8 @@
 #include "SessionManager.h"
 #include "CaretPreferences.h"
 using namespace caret;
+
+#if 0
 TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(ConnectivityTimeSeriesViewController *ctsvc) : QObject(ctsvc)
 {
     m_ctsvc = ctsvc;    
@@ -140,5 +142,5 @@ void TimeSeriesManagerForViewController::setAnimationStartTime ( const double& t
    this->m_startTime = time;
    //TODOJS: Remember to update frame label...
 }
-
+#endif
 

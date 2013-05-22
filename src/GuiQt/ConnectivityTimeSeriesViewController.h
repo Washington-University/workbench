@@ -73,23 +73,13 @@ namespace caret {
         
         static QGridLayout* createGridLayout(const Qt::Orientation orientation);
         
-        QSpinBox *getFrameSpinBox();
-
-        QToolButton *getAnimateToolButton();
-
-        QAction *getAnimateAction();
-        
         ConnectivityLoaderFile* getConnectivityLoaderFile();
 
     public slots:
-        void animateActionTriggered(bool);
+        
         
     private slots:
-        void yokeCheckBoxStateChanged(int);
-
         void graphDisplayActionTriggered(bool);
-        
-        void frameSpinBoxValueChanged(int);
         
     private:
         ConnectivityTimeSeriesViewController(const ConnectivityTimeSeriesViewController&);
@@ -98,41 +88,21 @@ namespace caret {
         
         void updateUserInterfaceAndGraphicsWindow();
         
-        void updateOtherConnectivityTimeSeriesViewControllers();
-        
         void updateViewController();
-
-        void updateFrameSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded, int frame);        
-
-        void updateOtherYokedFrameSpinBoxes(int frame);
-
-        void updateOtherYokedAnimationButtons(bool checked);
         
-        void deleteAnimator();
-        
+        void updateOtherConnectivityTimeSeriesViewControllers();
+
         ConnectivityLoaderFile* connectivityLoaderFile;
         
         ConnectivityLoaderFile* previousConnectivityLoaderFile;
         
-        QCheckBox* yokeCheckBox;
+        
         
         QLineEdit* fileNameLineEdit;
 
         QToolButton *graphToolButton;
         
         QAction* graphDisplayAction;
-
-        QToolButton* animateToolButton;
-        
-        QAction* animateAction;
-        
-        TimeSeriesManagerForViewController* animator;
-        
-        QSpinBox* frameSpinBox;
-        
-        double animationStartTime;
-
-        QLineEdit* frameName;
 
         WuQGridLayoutGroup* gridLayoutGroup;
         

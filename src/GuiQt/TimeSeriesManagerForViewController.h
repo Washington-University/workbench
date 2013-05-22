@@ -29,7 +29,7 @@
 #include "QTimer"
 
 class QSpinBox;
-
+#if 0
 namespace caret {
 
     class ConnectivityTimeSeriesViewController;
@@ -71,3 +71,4 @@ private:
 
 }
 #endif // TIMESERIESMANAGERFORVIEWCONTROLLER_H
+#endif

@@ -132,7 +132,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                browserWindowIndex,
                                                                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
         m_timeSeriesTabIndex = addToTabWidget(m_timeSeriesViewController,
-                             "Data Series");
+                             "Charting");
     }
     /*if (1) {//isChartsToolBox) {
         m_ChartSetViewController = new ChartSetViewController(orientation,
