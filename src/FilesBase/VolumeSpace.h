@@ -25,6 +25,8 @@
  *
  */
 
+#include "CaretAssert.h"
+
 #include "stdint.h"
 #include <vector>
 
@@ -96,6 +98,18 @@ namespace caret
             if (indexIn2 < 0 || indexIn2 >= m_dims[1]) return false;
             if (indexIn3 < 0 || indexIn3 >= m_dims[2]) return false;
             return true;
+        }
+        
+        inline int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3) const
+        {
+            CaretAssert(indexValid(indexIn1, indexIn2, indexIn3));
+            return indexIn1 + m_dims[0] * (indexIn2 + m_dims[1] * indexIn3);
+        }
+        
+        template <typename T>
+        inline int64_t getIndex(const T* indexIn) const
+        {
+            return getIndex(indexIn[0], indexIn[1], indexIn[2]);//implicit cast to int64_t
         }
     };
 

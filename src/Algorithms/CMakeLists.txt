@@ -79,6 +79,7 @@ AlgorithmVolumeParcelResamplingGeneric.h
 AlgorithmVolumeParcelSmoothing.h
 AlgorithmVolumeReduce.h
 AlgorithmVolumeRemoveIslands.h
+AlgorithmVolumeROIsFromExtrema.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 AlgorithmVolumeWarpfieldResample.h
@@ -146,6 +147,7 @@ AlgorithmVolumeParcelResamplingGeneric.cxx
 AlgorithmVolumeParcelSmoothing.cxx
 AlgorithmVolumeReduce.cxx
 AlgorithmVolumeRemoveIslands.cxx
+AlgorithmVolumeROIsFromExtrema.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
 AlgorithmVolumeWarpfieldResample.cxx
