@@ -58,7 +58,7 @@ OperationParameters* AlgorithmVolumeGradient::getParameters()
     presmoothOpt->addDoubleParameter(1, "kernel", "sigma for gaussian weighting function, in mm");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(4, "-roi", "select a region of interest to take the gradient of");
-    roiOption->addVolumeParameter(1, "roi-volume", "the region to smooth within");
+    roiOption->addVolumeParameter(1, "roi-volume", "the region to take the gradient within");
     
     OptionalParameter* vecOption = ret->createOptionalParameter(5, "-vectors", "output vectors");
     vecOption->addVolumeOutputParameter(1, "vector-volume-out", "the vectors as a volume file");

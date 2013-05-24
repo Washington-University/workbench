@@ -169,7 +169,7 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
     init(myCifti, undoFisher);
     const CiftiXML& myXML = myCifti->getCiftiXML();
     CiftiXML myNewXML = myXML;
-    myNewXML.resetRowsToScalars(1);
+    myNewXML.resetDirectionToScalars(CiftiXML::ALONG_ROW, 1);
     myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 0, "gradient");
     myCiftiOut->setCiftiXML(myNewXML);
     vector<StructureEnum::Enum> surfaceList, volumeList;
