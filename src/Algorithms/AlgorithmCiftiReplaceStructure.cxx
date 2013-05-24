@@ -53,7 +53,7 @@ AString AlgorithmCiftiReplaceStructure::getShortDescription()
 OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "cifti", "the cifti to modify");//in place read/write is not a case in OperationParameters currently, could hack it by using a CiftiParameter...
+    ret->addStringParameter(1, "cifti", "the cifti to modify");//has to use in-memory currently, only way for single-cifti constructor to work, which is the only way it can be useful in other algorithms
     
     ret->addStringParameter(2, "direction", "which dimension to interpret as a single map, ROW or COLUMN");
     
@@ -86,7 +86,7 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
 void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams, ProgressObject* /*myProgObj*/)
 {
     AString ciftiName = myParams->getString(1);
-    CiftiFile myCifti(ciftiName, ON_DISK);
+    CiftiFile myCifti(ciftiName, IN_MEMORY);
     AString dirName = myParams->getString(2);
     int myDir;
     if (dirName == "ROW")
@@ -137,6 +137,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         LabelFile* labelIn = labelOpt->getLabel(2);
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn);
     }
+    myCifti.writeFile(ciftiName);
 }
 
 AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
