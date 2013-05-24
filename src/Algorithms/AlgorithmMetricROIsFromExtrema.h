@@ -29,17 +29,24 @@
 
 #include "OverlapLogicEnum.h"
 
+#include <map>
+#include <vector>
+
 namespace caret {
+    
+    class GeodesicHelper;
     
     class AlgorithmMetricROIsFromExtrema : public AbstractAlgorithm
     {
         AlgorithmMetricROIsFromExtrema();
+        void processMap(const float* data, std::vector<float>& excludeDists, std::vector<int32_t> excludeSouces, std::vector<std::map<int32_t, float> >& roiLists,
+                        int64_t& mapCounter, CaretPointer<GeodesicHelper>& myHelp, const float& limit, const float* roiData, const OverlapLogicEnum::Enum& overlapType, const int& numNodes);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmMetricROIsFromExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& limit, MetricFile* myMetricOut,
-                                       const float& sigma = -1.0f, const OverlapLogicEnum::Enum& overlapType = OverlapLogicEnum::ALLOW, const int& myColumn = -1);
+                                       const float& sigma = -1.0f, const MetricFile* myRoi = NULL, const OverlapLogicEnum::Enum& overlapType = OverlapLogicEnum::ALLOW, const int& myColumn = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

@@ -31,8 +31,6 @@
 #include "SurfaceFile.h"
 
 #include <cmath>
-#include <map>
-#include <vector>
 
 using namespace caret;
 using namespace std;
@@ -61,10 +59,13 @@ OperationParameters* AlgorithmMetricROIsFromExtrema::getParameters()
     OptionalParameter* gaussOpt = ret->createOptionalParameter(5, "-gaussian", "generate a gaussian kernel instead of a flat ROI");
     gaussOpt->addDoubleParameter(1, "sigma", "the sigma for the gaussian kernel, in mm");
     
-    OptionalParameter* overlapOpt = ret->createOptionalParameter(6, "-overlap-logic", "how to handle overlapping ROIs, default ALLOW");
+    OptionalParameter* roiOption = ret->createOptionalParameter(6, "-roi", "select a region of interest to use");
+    roiOption->addMetricParameter(1, "roi-metric", "the area to use, as a metric");
+    
+    OptionalParameter* overlapOpt = ret->createOptionalParameter(7, "-overlap-logic", "how to handle overlapping ROIs, default ALLOW");
     overlapOpt->addStringParameter(1, "method", "the method of resolving overlaps");
     
-    OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single input column to use");
+    OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single input column to use");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
@@ -94,8 +95,14 @@ void AlgorithmMetricROIsFromExtrema::useParameters(OperationParameters* myParams
             throw AlgorithmException("invalid sigma specified");
         }
     }
+    MetricFile* myRoi = NULL;
+    OptionalParameter* roiOption = myParams->getOptionalParameter(6);
+    if (roiOption->m_present)
+    {
+        myRoi = roiOption->getMetric(1);
+    }
     OverlapLogicEnum::Enum overlapType = OverlapLogicEnum::ALLOW;
-    OptionalParameter* overlapOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* overlapOpt = myParams->getOptionalParameter(7);
     if (overlapOpt->m_present)
     {
         bool ok = false;
@@ -103,7 +110,7 @@ void AlgorithmMetricROIsFromExtrema::useParameters(OperationParameters* myParams
         if (!ok) throw AlgorithmException("unrecognized overlap method: " + overlapOpt->getString(1));
     }
     int myColumn = -1;
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
+    OptionalParameter* columnSelect = myParams->getOptionalParameter(8);
     if (columnSelect->m_present)
     {
         myColumn = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
@@ -112,15 +119,21 @@ void AlgorithmMetricROIsFromExtrema::useParameters(OperationParameters* myParams
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmMetricROIsFromExtrema(myProgObj, mySurf, myMetric, limit, myMetricOut, sigma, overlapType, myColumn);
+    AlgorithmMetricROIsFromExtrema(myProgObj, mySurf, myMetric, limit, myMetricOut, sigma, myRoi, overlapType, myColumn);
 }
 
 AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& limit,
-                                                               MetricFile* myMetricOut, const float& sigma, const OverlapLogicEnum::Enum& overlapType, const int& myColumn) : AbstractAlgorithm(myProgObj)
+                                                               MetricFile* myMetricOut, const float& sigma, const MetricFile* myRoi, const OverlapLogicEnum::Enum& overlapType, const int& myColumn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
     if (myMetric->getNumberOfNodes() != numNodes) throw AlgorithmException("surface and metric files have different number of nodes");
+    const float* roiData = NULL;
+    if (myRoi != NULL)
+    {
+        if (myRoi->getNumberOfNodes() != numNodes) throw AlgorithmException("roi metric has a different number of nodes");
+        roiData = myRoi->getValuePointerForColumn(0);
+    }
     int numCols = myMetric->getNumberOfColumns();
     if (myColumn < -1 || myColumn >= numCols)
     {
@@ -129,25 +142,46 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
     int64_t extremaCount = 0;
     if (myColumn == -1)
     {
-        for (int i = 0; i < numCols; ++i)
+        if (roiData == NULL)
         {
-            const float* data = myMetric->getValuePointerForColumn(i);
+            for (int i = 0; i < numCols; ++i)
+            {
+                const float* data = myMetric->getValuePointerForColumn(i);
+                for (int j = 0; j < numNodes; ++j)
+                {
+                    if (data[j] != 0.0f) ++extremaCount;
+                }
+            }
+        } else {
+            for (int i = 0; i < numCols; ++i)
+            {
+                const float* data = myMetric->getValuePointerForColumn(i);
+                for (int j = 0; j < numNodes; ++j)
+                {
+                    if (roiData[j] > 0.0f && data[j] != 0.0f) ++extremaCount;
+                }
+            }
+        }
+    } else {
+        if (roiData == NULL)
+        {
+            const float* data = myMetric->getValuePointerForColumn(0);
             for (int j = 0; j < numNodes; ++j)
             {
                 if (data[j] != 0.0f) ++extremaCount;
             }
-        }
-    } else {
-        const float* data = myMetric->getValuePointerForColumn(0);
-        for (int j = 0; j < numNodes; ++j)
-        {
-            if (data[j] != 0.0f) ++extremaCount;
+        } else {
+            const float* data = myMetric->getValuePointerForColumn(0);
+            for (int j = 0; j < numNodes; ++j)
+            {
+                if (roiData[j] > 0.0f && data[j] != 0.0f) ++extremaCount;
+            }
         }
     }
     if (extremaCount >= (1LL<<31)) throw AlgorithmException("too many output maps for a metric file");//hopefully this is never needed
     int32_t mapsOut = (int32_t)extremaCount;
     vector<float> excludeDists(numNodes, -1.0f);
-    vector<int32_t> excludeSouces(numNodes, -1);
+    vector<int32_t> excludeSources(numNodes, -1);
     vector<map<int32_t, float> > roiLists(mapsOut);
     CaretPointer<GeodesicHelper> myHelp = mySurf->getGeodesicHelper();
     int64_t mapCounter = 0;
@@ -156,129 +190,11 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
         for (int i = 0; i < numCols; ++i)
         {
             const float* data = myMetric->getValuePointerForColumn(i);
-            for (int j = 0; j < numNodes; ++j)
-            {
-                if (data[j] != 0.0f)
-                {
-                    vector<int32_t> nodeList;
-                    vector<float> distList;
-                    myHelp->getNodesToGeoDist(j, limit, nodeList, distList);
-                    int listNum = (int)nodeList.size();
-                    switch (overlapType)
-                    {
-                        case OverlapLogicEnum::ALLOW:
-                            for (int k = 0; k < listNum; ++k)
-                            {
-                                roiLists[mapCounter][nodeList[k]] = distList[k];
-                            }
-                            break;
-                        case OverlapLogicEnum::CLOSEST:
-                            for (int k = 0; k < listNum; ++k)
-                            {
-                                const int32_t& thisNode = nodeList[k];
-                                const float& thisDist = distList[k];
-                                if (excludeDists[thisNode] < 0.0f)
-                                {
-                                    excludeDists[thisNode] = thisDist;
-                                    excludeSouces[thisNode] = mapCounter;
-                                    roiLists[mapCounter][thisNode] = thisDist;
-                                } else {
-                                    if (excludeDists[thisNode] > thisDist)
-                                    {
-                                        roiLists[excludeSouces[thisNode]].erase(thisNode);
-                                    }
-                                    excludeDists[thisNode] = thisDist;
-                                    excludeSouces[thisNode] = mapCounter;
-                                    roiLists[mapCounter][thisNode] = thisDist;
-                                }
-                            }
-                            break;
-                        case OverlapLogicEnum::EXCLUDE:
-                            for (int k = 0; k < listNum; ++k)
-                            {
-                                const int32_t& thisNode = nodeList[k];
-                                const float& thisDist = distList[k];
-                                if (excludeDists[thisNode] < 0.0f)
-                                {
-                                    excludeDists[thisNode] = thisDist;
-                                    excludeSouces[thisNode] = mapCounter;
-                                    roiLists[mapCounter][thisNode] = thisDist;
-                                } else {
-                                    if (excludeSouces[thisNode] != -1)
-                                    {
-                                        roiLists[excludeSouces[thisNode]].erase(thisNode);
-                                        excludeSouces[thisNode] = -1;
-                                    }
-                                }
-                            }
-                            break;
-                    }
-                    ++mapCounter;
-                }
-            }
+            processMap(data, excludeDists, excludeSources, roiLists, mapCounter, myHelp, limit, roiData, overlapType, numNodes);
         }
     } else {
         const float* data = myMetric->getValuePointerForColumn(0);
-        for (int j = 0; j < numNodes; ++j)
-        {
-            if (data[j] != 0.0f)
-            {
-                vector<int32_t> nodeList;
-                vector<float> distList;
-                myHelp->getNodesToGeoDist(j, limit, nodeList, distList);
-                int listNum = (int)nodeList.size();
-                switch (overlapType)
-                {
-                    case OverlapLogicEnum::ALLOW:
-                        for (int k = 0; k < listNum; ++k)
-                        {
-                            roiLists[mapCounter][nodeList[k]] = distList[k];
-                        }
-                        break;
-                    case OverlapLogicEnum::CLOSEST:
-                        for (int k = 0; k < listNum; ++k)
-                        {
-                            const int32_t& thisNode = nodeList[k];
-                            const float& thisDist = distList[k];
-                            if (excludeDists[thisNode] < 0.0f)
-                            {
-                                excludeDists[thisNode] = thisDist;
-                                excludeSouces[thisNode] = mapCounter;
-                                roiLists[mapCounter][thisNode] = thisDist;
-                            } else {
-                                if (excludeDists[thisNode] > thisDist)
-                                {
-                                    roiLists[excludeSouces[thisNode]].erase(thisNode);
-                                }
-                                excludeDists[thisNode] = thisDist;
-                                excludeSouces[thisNode] = mapCounter;
-                                roiLists[mapCounter][thisNode] = thisDist;
-                            }
-                        }
-                        break;
-                    case OverlapLogicEnum::EXCLUDE:
-                        for (int k = 0; k < listNum; ++k)
-                        {
-                            const int32_t& thisNode = nodeList[k];
-                            const float& thisDist = distList[k];
-                            if (excludeDists[thisNode] < 0.0f)
-                            {
-                                excludeDists[thisNode] = thisDist;
-                                excludeSouces[thisNode] = mapCounter;
-                                roiLists[mapCounter][thisNode] = thisDist;
-                            } else {
-                                if (excludeSouces[thisNode] != -1)
-                                {
-                                    roiLists[excludeSouces[thisNode]].erase(thisNode);
-                                    excludeSouces[thisNode] = -1;
-                                }
-                            }
-                        }
-                        break;
-                }
-                ++mapCounter;
-            }
-        }
+        processMap(data, excludeDists, excludeSources, roiLists, mapCounter, myHelp, limit, roiData, overlapType, numNodes);
     }
     CaretAssert(mapCounter == extremaCount);
     myMetricOut->setNumberOfNodesAndColumns(numNodes, mapsOut);
@@ -320,6 +236,91 @@ AlgorithmMetricROIsFromExtrema::AlgorithmMetricROIsFromExtrema(ProgressObject* m
             {
                 tempCol[iter->first] = 0.0f;//rezero changed values for next map
             }
+        }
+    }
+}
+
+void AlgorithmMetricROIsFromExtrema::processMap(const float* data, vector<float>& excludeDists, vector<int32_t> excludeSources, vector<map<int32_t, float> >& roiLists,
+                                                int64_t& mapCounter, CaretPointer<GeodesicHelper>& myHelp, const float& limit, const float* roiData,
+                                                const OverlapLogicEnum::Enum& overlapType, const int& numNodes)
+{
+    for (int j = 0; j < numNodes; ++j)
+    {
+        if ((roiData != NULL || roiData[j] > 0.0f) && data[j] != 0.0f)
+        {
+            vector<int32_t> nodeList;
+            vector<float> distList;
+            myHelp->getNodesToGeoDist(j, limit, nodeList, distList);
+            int listNum = (int)nodeList.size();
+            switch (overlapType)
+            {
+                case OverlapLogicEnum::ALLOW:
+                    if (roiData == NULL)
+                    {
+                        for (int k = 0; k < listNum; ++k)
+                        {
+                            const int32_t& thisNode = nodeList[k];
+                            roiLists[mapCounter][thisNode] = distList[k];
+                        }
+                    } else {
+                        for (int k = 0; k < listNum; ++k)
+                        {
+                            const int32_t& thisNode = nodeList[k];
+                            if (roiData[thisNode] > 0.0f)
+                            {
+                                roiLists[mapCounter][thisNode] = distList[k];
+                            }
+                        }
+                    }
+                    break;
+                case OverlapLogicEnum::CLOSEST:
+                    for (int k = 0; k < listNum; ++k)
+                    {
+                        const int32_t& thisNode = nodeList[k];
+                        if (roiData == NULL || roiData[thisNode] > 0.0f)
+                        {
+                            const float& thisDist = distList[k];
+                            if (excludeDists[thisNode] < 0.0f)
+                            {
+                                excludeDists[thisNode] = thisDist;
+                                excludeSources[thisNode] = mapCounter;
+                                roiLists[mapCounter][thisNode] = thisDist;
+                            } else {
+                                if (excludeDists[thisNode] > thisDist)
+                                {
+                                    roiLists[excludeSources[thisNode]].erase(thisNode);
+                                }
+                                excludeDists[thisNode] = thisDist;
+                                excludeSources[thisNode] = mapCounter;
+                                roiLists[mapCounter][thisNode] = thisDist;
+                            }
+                        }
+                    }
+                    break;
+                case OverlapLogicEnum::EXCLUDE:
+                    for (int k = 0; k < listNum; ++k)
+                    {
+                        const int32_t& thisNode = nodeList[k];
+                        if (roiData == NULL || roiData[thisNode] > 0.0f)
+                        {
+                            const float& thisDist = distList[k];
+                            if (excludeDists[thisNode] < 0.0f)
+                            {
+                                excludeDists[thisNode] = thisDist;
+                                excludeSources[thisNode] = mapCounter;
+                                roiLists[mapCounter][thisNode] = thisDist;
+                            } else {
+                                if (excludeSources[thisNode] != -1)
+                                {
+                                    roiLists[excludeSources[thisNode]].erase(thisNode);
+                                    excludeSources[thisNode] = -1;
+                                }
+                            }
+                        }
+                    }
+                    break;
+            }
+            ++mapCounter;
         }
     }
 }
