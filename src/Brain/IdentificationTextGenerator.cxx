@@ -462,15 +462,6 @@ IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappab
                                                                 mapIndicesOut.end());
         mapIndicesOut.resize(std::distance(mapIndicesOut.begin(),
                                         uniqueIter));
-        
-        
-        for (std::vector<int>::iterator iter = mapIndicesOut.begin();
-             iter != mapIndicesOut.end();
-             iter++) {
-            std::cout << *iter << " ";
-        }
-        std::cout << std::endl;
-        
     }
 }
 
