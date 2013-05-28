@@ -95,25 +95,11 @@ EventManager::~EventManager()
             << ", count is: "
             << el.size()
             << std::endl;
-            
-/*
- * This will not work because it is likely the object
- * has been deleted and this simply crashes.
-            for (EVENT_LISTENER_CONTAINER_ITERATOR iter = el.begin();
-                 iter != el.end();
-                 iter++) {
-                EventListenerInterface* listener = *iter;
-                CaretObject* caretObject = dynamic_cast<CaretObject*>(listener);
-                if (caretObject != NULL) {
-                    std::cout << "   " << caretObject->toString();
-                }
-            }
- */
         }
     }
     
     /*
-     * Verify that all listeners were removed.
+     * Verify that all processed listeners were removed.
      */ 
     for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
         EVENT_LISTENER_CONTAINER el = this->eventProcessedListeners[i];
@@ -182,7 +168,13 @@ void
 EventManager::addEventListener(EventListenerInterface* eventListener,
                                const EventTypeEnum::Enum listenForEventType)
 {
+#ifdef CONTAINER_VECTOR
     this->eventListeners[listenForEventType].push_back(eventListener);
+#elif CONTAINER_HASH_SET
+    this->el[listenForEventType].insert(eventListener);
+#else
+    INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
+#endif
     
     //std::cout << "Adding listener from class "
     //<< typeid(*eventListener).name()
@@ -204,6 +196,11 @@ void
 EventManager::addProcessedEventListener(EventListenerInterface* eventListener,
                                const EventTypeEnum::Enum listenForEventType)
 {
+#ifdef CONTAINER_VECTOR
+#elif CONTAINER_HASH_SET
+#else
+    INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
+#endif
     this->eventProcessedListeners[listenForEventType].push_back(eventListener);
     
     //std::cout << "Adding listener from class "
@@ -225,59 +222,87 @@ void
 EventManager::removeEventFromListener(EventListenerInterface* eventListener,
                                   const EventTypeEnum::Enum listenForEventType)
 {
-    EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
-    
+#ifdef CONTAINER_VECTOR
     /*
-     * Remove the listener by creating a new container
-     * of non-matching listeners.
+     * Remove from NORMAL listeners
      */
-    EVENT_LISTENER_CONTAINER updatedListeners;
-    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
-         iter != listeners.end();
-         iter++) {
-        if (*iter == eventListener) {
-            //std::cout << "Removing listener from class "
-            //<< typeid(*eventListener).name()
-            //<< " for "
-            //<< EventTypeEnum::toName(listenForEventType)
-            //<< std::endl;            
-        }
-        else {
-            updatedListeners.push_back(*iter);
-        }
+    EVENT_LISTENER_CONTAINER& listeners = this->eventListeners[listenForEventType];
+    EVENT_LISTENER_CONTAINER_ITERATOR eventIter = std::find(listeners.begin(),
+                                                            listeners.end(),
+                                                            eventListener);
+    if (eventIter != listeners.end()) {
+        listeners.erase(eventIter);
     }
-    
-    if (updatedListeners.size() != listeners.size()) {
-        this->eventListeners[listenForEventType] = updatedListeners;
-    }
-    
-    
-    
-    EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[listenForEventType];
-    
+
     /*
-     * Remove the listener by creating a new container
-     * of non-matching listeners.
+     * Remove from PROCESSED listeners
+     * These are issued AFTER all of the NORMAL listeners have been notified
      */
-    EVENT_LISTENER_CONTAINER updatedProcessedListeners;
-    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
-         iter != processedListeners.end();
-         iter++) {
-        if (*iter == eventListener) {
-            //std::cout << "Removing listener from class "
-            //<< typeid(*eventListener).name()
-            //<< " for "
-            //<< EventTypeEnum::toName(listenForEventType)
-            //<< std::endl;            
-        }
-        else {
-            updatedProcessedListeners.push_back(*iter);
-        }
+    EVENT_LISTENER_CONTAINER& processedListeners = this->eventProcessedListeners[listenForEventType];
+    EVENT_LISTENER_CONTAINER_ITERATOR processedEventIter = std::find(processedListeners.begin(),
+                                                                     processedListeners.end(),
+                                                                     eventListener);
+    if (processedEventIter != processedListeners.end()) {
+        processedListeners.erase(processedEventIter);
     }
     
-    if (updatedProcessedListeners.size() != processedListeners.size()) {
-        this->eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
-    }
+//    EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
+//    
+//    /*
+//     * Remove the listener by creating a new container
+//     * of non-matching listeners.
+//     */
+//    EVENT_LISTENER_CONTAINER updatedListeners;
+//    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
+//         iter != listeners.end();
+//         iter++) {
+//        if (*iter == eventListener) {
+//            //std::cout << "Removing listener from class "
+//            //<< typeid(*eventListener).name()
+//            //<< " for "
+//            //<< EventTypeEnum::toName(listenForEventType)
+//            //<< std::endl;
+//        }
+//        else {
+//            updatedListeners.push_back(*iter);
+//        }
+//    }
+//    
+//    if (updatedListeners.size() != listeners.size()) {
+//        this->eventListeners[listenForEventType] = updatedListeners;
+//    }
+//    
+//    
+//    EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[listenForEventType];
+//    
+//    /*
+//     * Remove the listener by creating a new container
+//     * of non-matching listeners.
+//     */
+//    EVENT_LISTENER_CONTAINER updatedProcessedListeners;
+//    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
+//         iter != processedListeners.end();
+//         iter++) {
+//        if (*iter == eventListener) {
+//            //std::cout << "Removing listener from class "
+//            //<< typeid(*eventListener).name()
+//            //<< " for "
+//            //<< EventTypeEnum::toName(listenForEventType)
+//            //<< std::endl;
+//        }
+//        else {
+//            updatedProcessedListeners.push_back(*iter);
+//        }
+//    }
+//    
+//    if (updatedProcessedListeners.size() != processedListeners.size()) {
+//        this->eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
+//    }
+#elif CONTAINER_HASH_SET
+    this->el[listenForEventType].erase(eventListener);
+#else
+    INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
+#endif
 }
 
 /**

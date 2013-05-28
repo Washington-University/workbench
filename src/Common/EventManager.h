@@ -25,17 +25,49 @@
  * 
  */ 
 
+#include <functional>
 #include <vector>
-
-#include <CaretObject.h>
-
-#include "Event.h"
-
 #include <stdint.h>
+
+#include "CaretObject.h"
+
+#include "CaretHashSet.h"
+//#include "Event.h"
+#include "EventTypeEnum.h"
+
+#define CONTAINER_VECTOR 1
+//#define CONTAINER_HASH_SET 1
+
+#ifdef CONTAINER_VECTOR
+#include <vector>
+#elif CONTAINER_HASH_SET
+#include "CaretHashSet.h"
+#else
+   INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
+#endif
 
 namespace caret {
 
+    class Event;
     class EventListenerInterface;
+    
+#ifdef CONTAINER_HASH_SET
+    class EventListenerCompareHash {
+    public:
+        bool operator()(const EventListenerInterface* e1,
+                        const EventListenerInterface* e2) const {
+            return (e1 == e2);
+        }
+    };
+    
+    class EventListenerInterfaceHash {
+    public:
+        size_t operator()(const EventListenerInterface* p) const {
+            EventListenerInterface* el = const_cast<EventListenerInterface*>(p);
+            return reinterpret_cast<size_t>((void*)el);
+        }
+    };
+#endif // CONTAINER_HASH_SET
     
     class EventManager : public CaretObject {
         
@@ -66,8 +98,15 @@ namespace caret {
         
         virtual ~EventManager();
         
+#ifdef CONTAINER_VECTOR
         typedef std::vector<EventListenerInterface*> EVENT_LISTENER_CONTAINER;
         typedef std::vector<EventListenerInterface*>::iterator EVENT_LISTENER_CONTAINER_ITERATOR;
+#elif CONTAINER_HASH_SET
+        EV_TEST el[EventTypeEnum::EVENT_COUNT];
+        
+#else
+        INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
+#endif
         
         EVENT_LISTENER_CONTAINER eventListeners[EventTypeEnum::EVENT_COUNT];
         
