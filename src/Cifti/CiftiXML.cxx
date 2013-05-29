@@ -1164,12 +1164,12 @@ bool CiftiXML::hasColumnVolumeData() const
 
 bool CiftiXML::hasColumnSurfaceData(const StructureEnum::Enum& structure) const
 {
-    return (findSurfaceModel(m_dimToMapLookup[1], structure) != NULL);
+    return hasSurfaceData(ALONG_COLUMN, structure);
 }
 
 bool CiftiXML::hasRowSurfaceData(const StructureEnum::Enum& structure) const
 {
-    return (findSurfaceModel(m_dimToMapLookup[0], structure) != NULL);
+    return hasSurfaceData(ALONG_ROW, structure);
 }
 
 bool CiftiXML::hasSurfaceData(const int& direction, const StructureEnum::Enum& structure) const
@@ -1178,7 +1178,39 @@ bool CiftiXML::hasSurfaceData(const int& direction, const StructureEnum::Enum& s
     {
         return false;
     }
-    return (findSurfaceModel(m_dimToMapLookup[direction], structure) != NULL);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return (findSurfaceModel(m_dimToMapLookup[direction], structure) != NULL);
+    } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
+        bool found = false;
+        for (int i = 0; i < (int)myMap->m_parcelSurfaces.size(); ++i)
+        {
+            if (myMap->m_parcelSurfaces[i].m_structure == structure)
+            {
+                found = true;//TODO: figure out if we should just return true here
+            }
+        }
+        if (!found) return false;
+        for (int64_t i = 0; i < (int64_t)myMap->m_parcels.size(); ++i)
+        {
+            const CiftiParcelElement& myParcel = myMap->m_parcels[i];
+            for (int j = 0; j < (int)myParcel.m_nodeElements.size(); ++j)
+            {
+                const CiftiParcelNodesElement& myNodes = myParcel.m_nodeElements[j];
+                if (myNodes.m_structure == structure && myNodes.m_nodes.size() != 0) return true;//instead of checking that at least one parcel actually uses it
+            }
+        }
+        return false;
+    } else {
+        return false;
+    }
 }
 
 bool CiftiXML::addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
