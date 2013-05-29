@@ -32,8 +32,8 @@
 #include "EventTypeEnum.h"
 
 //#define CONTAINER_VECTOR 1
-#define CONTAINER_HASH_SET 1
-//#define CONTAINER_SET 1
+//#define CONTAINER_HASH_SET 1
+#define CONTAINER_SET 1
 
 #ifdef CONTAINER_VECTOR
 #include <vector>
