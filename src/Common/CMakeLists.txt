@@ -38,6 +38,9 @@ CaretCompact3DLookup.h
 CaretCompactLookup.h
 CaretException.h
 CaretFunctionName.h
+CaretHashFun.h
+CaretHashSet.h
+CaretHashTable.h
 CaretHeap.h
 CaretHttpManager.h
 CaretLogger.h
