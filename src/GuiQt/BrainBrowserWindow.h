@@ -158,6 +158,7 @@ namespace caret {
         void processConnectToConnectomeDataBase();
         
         void processHcpWebsiteInBrowser();
+        void processHcpFeatureRequestWebsiteInBrowser();
         
         void processShowSurfacePropertiesDialog();
         
@@ -280,6 +281,7 @@ namespace caret {
         QAction* m_connectToConnectomeDatabaseAction;
 
         QAction* m_helpHcpWebsiteAction;
+        QAction* m_helpHcpFeatureRequestAction;
         QAction* m_helpOnlineAction;
         QAction* m_helpSearchOnlineAction;
         

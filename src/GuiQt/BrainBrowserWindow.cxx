@@ -546,6 +546,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processHcpWebsiteInBrowser()));
     
+    m_helpHcpFeatureRequestAction =
+    WuQtUtilities::createAction("Submit HCP Software Feature Request...",
+                                "Go to HCP Feature Request Website in your computer's web browser",
+                                this,
+                                this,
+                                SLOT(processHcpFeatureRequestWebsiteInBrowser()));
+    
     m_helpOnlineAction =
     WuQtUtilities::createAction("Show Help (Online)...",
                                 "Show the Help Window",
@@ -1141,6 +1148,7 @@ BrainBrowserWindow::createMenuHelp()
     QMenu* menu = new QMenu("Help", this);
     
     menu->addAction(m_helpHcpWebsiteAction);
+    menu->addAction(m_helpHcpFeatureRequestAction);
     menu->addSeparator();
     menu->addAction(m_helpOnlineAction);
     menu->addAction(m_helpSearchOnlineAction);
@@ -2378,6 +2386,16 @@ void
 BrainBrowserWindow::processHcpWebsiteInBrowser()
 {
     QUrl url("https://humanconnectome.org");
+    QDesktopServices::openUrl(url);
+}
+
+/**
+ * Load the HCP Feature Request Website into the user's web browser.
+ */
+void
+BrainBrowserWindow::processHcpFeatureRequestWebsiteInBrowser()
+{
+    QUrl url("http://humanconnectome.org/contact/feature-request.php");
     QDesktopServices::openUrl(url);
 }
 
