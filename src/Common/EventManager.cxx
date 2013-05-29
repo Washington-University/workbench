@@ -73,8 +73,8 @@ using namespace caret;
  */
 EventManager::EventManager()
 {
-    this->eventIssuedCounter = 0;
-    this->eventBlockingCounter.resize(EventTypeEnum::EVENT_COUNT, 0);
+    m_eventIssuedCounter = 0;
+    m_eventBlockingCounter.resize(EventTypeEnum::EVENT_COUNT, 0);
 }
 
 /**
@@ -86,7 +86,7 @@ EventManager::~EventManager()
      * Verify that all listeners were removed.
      */ 
     for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
-        EVENT_LISTENER_CONTAINER el = this->eventListeners[i];
+        EVENT_LISTENER_CONTAINER el = m_eventListeners[i];
         if (el.empty() == false) {
             EventTypeEnum::Enum enumValue = static_cast<EventTypeEnum::Enum>(i);
             std::cout 
@@ -102,7 +102,7 @@ EventManager::~EventManager()
      * Verify that all processed listeners were removed.
      */ 
     for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
-        EVENT_LISTENER_CONTAINER el = this->eventProcessedListeners[i];
+        EVENT_LISTENER_CONTAINER el = m_eventProcessedListeners[i];
         if (el.empty() == false) {
             EventTypeEnum::Enum enumValue = static_cast<EventTypeEnum::Enum>(i);
             std::cout 
@@ -121,10 +121,10 @@ EventManager::~EventManager()
 void 
 EventManager::createEventManager()
 {
-    CaretAssertMessage((EventManager::singletonEventManager == NULL), 
+    CaretAssertMessage((EventManager::s_singletonEventManager == NULL),
                        "Event manager has already been created.");
     
-    EventManager::singletonEventManager = new EventManager();
+    EventManager::s_singletonEventManager = new EventManager();
 }
 
 /**
@@ -134,11 +134,11 @@ EventManager::createEventManager()
 void 
 EventManager::deleteEventManager()
 {
-    CaretAssertMessage((EventManager::singletonEventManager != NULL), 
+    CaretAssertMessage((EventManager::s_singletonEventManager != NULL), 
                        "Event manager does not exist, cannot delete it.");
     
-    delete EventManager::singletonEventManager;
-    EventManager::singletonEventManager = NULL;
+    delete EventManager::s_singletonEventManager;
+    EventManager::s_singletonEventManager = NULL;
 }
 
 /**
@@ -149,11 +149,11 @@ EventManager::deleteEventManager()
 EventManager* 
 EventManager::get()
 {
-    CaretAssertMessage(EventManager::singletonEventManager,
+    CaretAssertMessage(EventManager::s_singletonEventManager,
                        "Event manager was not created.\n"
                        "It must be created with EventManager::createEventManager().");
     
-    return EventManager::singletonEventManager;
+    return EventManager::s_singletonEventManager;
 }
 
 /**
@@ -169,9 +169,11 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
                                const EventTypeEnum::Enum listenForEventType)
 {
 #ifdef CONTAINER_VECTOR
-    this->eventListeners[listenForEventType].push_back(eventListener);
+    m_eventListeners[listenForEventType].push_back(eventListener);
 #elif CONTAINER_HASH_SET
-    this->el[listenForEventType].insert(eventListener);
+    m_eventListeners[listenForEventType].insert(eventListener);
+#elif CONTAINER_SET
+    m_eventListeners[listenForEventType].insert(eventListener);
 #else
     INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
@@ -197,11 +199,14 @@ EventManager::addProcessedEventListener(EventListenerInterface* eventListener,
                                const EventTypeEnum::Enum listenForEventType)
 {
 #ifdef CONTAINER_VECTOR
+    m_eventProcessedListeners[listenForEventType].push_back(eventListener);
 #elif CONTAINER_HASH_SET
+    m_eventProcessedListeners[listenForEventType].insert(eventListener);
+#elif CONTAINER_SET
+    m_eventProcessedListeners[listenForEventType].insert(eventListener);
 #else
     INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
-    this->eventProcessedListeners[listenForEventType].push_back(eventListener);
     
     //std::cout << "Adding listener from class "
     //<< typeid(*eventListener).name()
@@ -226,7 +231,7 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
     /*
      * Remove from NORMAL listeners
      */
-    EVENT_LISTENER_CONTAINER& listeners = this->eventListeners[listenForEventType];
+    EVENT_LISTENER_CONTAINER& listeners = m_eventListeners[listenForEventType];
     EVENT_LISTENER_CONTAINER_ITERATOR eventIter = std::find(listeners.begin(),
                                                             listeners.end(),
                                                             eventListener);
@@ -238,7 +243,7 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
      * Remove from PROCESSED listeners
      * These are issued AFTER all of the NORMAL listeners have been notified
      */
-    EVENT_LISTENER_CONTAINER& processedListeners = this->eventProcessedListeners[listenForEventType];
+    EVENT_LISTENER_CONTAINER& processedListeners = m_eventProcessedListeners[listenForEventType];
     EVENT_LISTENER_CONTAINER_ITERATOR processedEventIter = std::find(processedListeners.begin(),
                                                                      processedListeners.end(),
                                                                      eventListener);
@@ -246,7 +251,7 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
         processedListeners.erase(processedEventIter);
     }
     
-//    EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
+//    EVENT_LISTENER_CONTAINER listeners = m_eventListeners[listenForEventType];
 //    
 //    /*
 //     * Remove the listener by creating a new container
@@ -269,11 +274,11 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
 //    }
 //    
 //    if (updatedListeners.size() != listeners.size()) {
-//        this->eventListeners[listenForEventType] = updatedListeners;
+//        m_eventListeners[listenForEventType] = updatedListeners;
 //    }
 //    
 //    
-//    EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[listenForEventType];
+//    EVENT_LISTENER_CONTAINER processedListeners = m_eventProcessedListeners[listenForEventType];
 //    
 //    /*
 //     * Remove the listener by creating a new container
@@ -296,10 +301,14 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
 //    }
 //    
 //    if (updatedProcessedListeners.size() != processedListeners.size()) {
-//        this->eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
+//        m_eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
 //    }
 #elif CONTAINER_HASH_SET
-    this->el[listenForEventType].erase(eventListener);
+    m_eventListeners[listenForEventType].erase(eventListener);
+    m_eventProcessedListeners[listenForEventType].erase(eventListener);
+#elif CONTAINER_SET
+    m_eventListeners[listenForEventType].erase(eventListener);
+    m_eventProcessedListeners[listenForEventType].erase(eventListener);
 #else
     INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
@@ -314,7 +323,7 @@ void
 EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
 {
     for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
-        this->removeEventFromListener(eventListener, static_cast<EventTypeEnum::Enum>(i));
+        removeEventFromListener(eventListener, static_cast<EventTypeEnum::Enum>(i));
     }
 }
 
@@ -328,7 +337,7 @@ void
 EventManager::sendEvent(Event* event)
 {   
     EventTypeEnum::Enum eventType = event->getEventType();
-    const AString eventNumberString = AString::number(this->eventIssuedCounter);
+    const AString eventNumberString = AString::number(m_eventIssuedCounter);
     const AString eventMessagePrefix = ("Event "
                                         + eventNumberString
                                         + ": "
@@ -338,20 +347,20 @@ EventManager::sendEvent(Event* event)
                                         + " ");
     
     const int32_t eventTypeIndex = static_cast<int32_t>(eventType);
-    CaretAssertVectorIndex(this->eventBlockingCounter, eventTypeIndex);
-    if (this->eventBlockingCounter[eventTypeIndex] > 0) {
+    CaretAssertVectorIndex(m_eventBlockingCounter, eventTypeIndex);
+    if (m_eventBlockingCounter[eventTypeIndex] > 0) {
         AString msg = (eventMessagePrefix
                        + " is blocked.  Blocking counter="
-                       + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+                       + AString::number(m_eventBlockingCounter[eventTypeIndex]));
         CaretLogFiner(msg);
     }
     else {
         /*
          * Get listeners for event.
          */
-        EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
+        EVENT_LISTENER_CONTAINER listeners = m_eventListeners[eventType];
         
-        const AString eventNumberString = AString::number(this->eventIssuedCounter);
+        const AString eventNumberString = AString::number(m_eventIssuedCounter);
         
         AString msg = (eventMessagePrefix + " SENT.");
         CaretLogFiner(msg);
@@ -387,7 +396,7 @@ EventManager::sendEvent(Event* event)
             /*
              * Send event to each of the PROCESSED listeners.
              */
-            EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[eventType];
+            EVENT_LISTENER_CONTAINER processedListeners = m_eventProcessedListeners[eventType];
             for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
                  iter != processedListeners.end();
                  iter++) {
@@ -413,7 +422,7 @@ EventManager::sendEvent(Event* event)
         }
     }    
     
-    this->eventIssuedCounter++;
+    m_eventIssuedCounter++;
 }
 
 /**
@@ -437,24 +446,24 @@ EventManager::blockEvent(const EventTypeEnum::Enum eventType,
                          const bool blockStatus)
 {
     const int32_t eventTypeIndex = static_cast<int32_t>(eventType);
-    CaretAssertVectorIndex(this->eventBlockingCounter, eventTypeIndex);
+    CaretAssertVectorIndex(m_eventBlockingCounter, eventTypeIndex);
     
     const AString eventName = EventTypeEnum::toName(eventType);
     
     if (blockStatus) {
-        this->eventBlockingCounter[eventTypeIndex]++;
+        m_eventBlockingCounter[eventTypeIndex]++;
         CaretLogFiner("Blocking event "
                       + eventName
                       + " blocking counter is now "
-                      + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+                      + AString::number(m_eventBlockingCounter[eventTypeIndex]));
     }
     else {
-        if (this->eventBlockingCounter[eventTypeIndex] > 0) {
-            this->eventBlockingCounter[eventTypeIndex]--;
+        if (m_eventBlockingCounter[eventTypeIndex] > 0) {
+            m_eventBlockingCounter[eventTypeIndex]--;
             CaretLogFiner("Unblocking event "
                           + eventName
                           + " blocking counter is now "
-                          + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+                          + AString::number(m_eventBlockingCounter[eventTypeIndex]));
         }
         else {
             const AString message("Trying to unblock event "

@@ -25,23 +25,23 @@
  * 
  */ 
 
-#include <functional>
-#include <vector>
 #include <stdint.h>
 
 #include "CaretObject.h"
 
-#include "CaretHashSet.h"
-//#include "Event.h"
 #include "EventTypeEnum.h"
 
-#define CONTAINER_VECTOR 1
-//#define CONTAINER_HASH_SET 1
+//#define CONTAINER_VECTOR 1
+#define CONTAINER_HASH_SET 1
+//#define CONTAINER_SET 1
 
 #ifdef CONTAINER_VECTOR
 #include <vector>
 #elif CONTAINER_HASH_SET
+#include <functional>
 #include "CaretHashSet.h"
+#elif CONTAINER_SET
+#include <set>
 #else
    INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
@@ -98,32 +98,48 @@ namespace caret {
         
         virtual ~EventManager();
         
+        /**
+         * Define the container
+         */
 #ifdef CONTAINER_VECTOR
         typedef std::vector<EventListenerInterface*> EVENT_LISTENER_CONTAINER;
-        typedef std::vector<EventListenerInterface*>::iterator EVENT_LISTENER_CONTAINER_ITERATOR;
 #elif CONTAINER_HASH_SET
-        EV_TEST el[EventTypeEnum::EVENT_COUNT];
-        
+        typedef caret::hash_set<EventListenerInterface*,
+                                   EventListenerInterfaceHash,
+                                   EventListenerCompareHash> EVENT_LISTENER_CONTAINER;
+#elif CONTAINER_SET
+        typedef std::set<EventListenerInterface*> EVENT_LISTENER_CONTAINER;
 #else
         INTENTIONAL_COMPILER_ERROR_MISSING_CONTAINER_TYPE
 #endif
         
-        EVENT_LISTENER_CONTAINER eventListeners[EventTypeEnum::EVENT_COUNT];
+        /**
+         * Iterator for the container 
+         */
+        typedef EVENT_LISTENER_CONTAINER::iterator EVENT_LISTENER_CONTAINER_ITERATOR;
         
-        EVENT_LISTENER_CONTAINER eventProcessedListeners[EventTypeEnum::EVENT_COUNT];
+        /**
+         * The event listeners
+         */
+        EVENT_LISTENER_CONTAINER m_eventListeners[EventTypeEnum::EVENT_COUNT];
+        
+        /**
+         * Special listeners that are notified AFTER the eventListeners
+         */
+        EVENT_LISTENER_CONTAINER m_eventProcessedListeners[EventTypeEnum::EVENT_COUNT];
         
         /** Counter that is incremented each time an event is issued */
-        int64_t eventIssuedCounter;
+        int64_t m_eventIssuedCounter;
         
         /** A counter for blocking events of each type */
-        std::vector<int64_t> eventBlockingCounter;
+        std::vector<int64_t> m_eventBlockingCounter;
         
-        static EventManager* singletonEventManager;
+        static EventManager* s_singletonEventManager;
         
     };
     
 #ifdef __EVENT_MANAGER_MAIN__
-    EventManager* EventManager::singletonEventManager = NULL;
+    EventManager* EventManager::s_singletonEventManager = NULL;
 #endif // __EVENT_MANAGER_MAIN__
     
 } // namespace
