@@ -2430,6 +2430,32 @@ CiftiMappableDataFile::getSeriesDataForSurfaceNode(const StructureEnum::Enum str
 }
 
 /**
+ * Get the series data (oone data value for each map) for a voxel at the
+ * given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of the voxel.
+ * @param seriesDataOut
+ *     Series data for the given voxel.
+ * @return
+ *     True if output data is valid, else false.
+ */
+bool
+CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
+                                                         std::vector<float>& seriesDataOut) const
+{
+    if (isCiftiInterfaceValid() == false) {
+        return false;
+    }
+    
+    const bool valid = m_ciftiFacade->getSeriesDataForVoxelAtCoordinate(xyz,
+                                                                        seriesDataOut);
+    
+    return valid;
+}
+
+
+/**
  * Get the node coloring for the surface.
  * @param surface
  *    Surface whose nodes are colored.

@@ -61,6 +61,7 @@ BrainOpenGLViewportContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
+ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 ConnectivityLoaderManager.h
 DisplayProperties.h
@@ -151,6 +152,7 @@ BrainOpenGLViewportContent.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
+ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 ConnectivityLoaderManager.cxx
 DisplayProperties.cxx

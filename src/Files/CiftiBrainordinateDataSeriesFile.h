@@ -34,13 +34,14 @@
  */
 /*LICENSE_END*/
 
-
+#include "ChartableInterface.h"
 #include "CiftiMappableDataFile.h"
-
 
 namespace caret {
 
-    class CiftiBrainordinateDataSeriesFile : public CiftiMappableDataFile {
+    class TimeLine;
+    
+    class CiftiBrainordinateDataSeriesFile : public CiftiMappableDataFile, public ChartableInterface {
         
     public:
         CiftiBrainordinateDataSeriesFile();
@@ -49,10 +50,33 @@ namespace caret {
         
         virtual void updateScalarColoringForAllMaps(const PaletteFile* paletteFile);
         
+        virtual bool isChartingEnabled() const;
+        
+        virtual void setChartingEnabled(const bool enabled);
+        
+        virtual bool isChartingSupported() const;
+        
+        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
+                                                     const std::vector<int32_t>& nodeIndices,
+                                                     TimeLine& timeLineOut) throw (DataFileException);
+        
+        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum structure,
+                                             const int32_t nodeIndex,
+                                             TimeLine& timeLineOut) throw (DataFileException);
+        
+        virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
+                                                   TimeLine& timeLineOut) throw (DataFileException);
+        
     private:
         CiftiBrainordinateDataSeriesFile(const CiftiBrainordinateDataSeriesFile&);
 
         CiftiBrainordinateDataSeriesFile& operator=(const CiftiBrainordinateDataSeriesFile&);
+        
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
         
     public:
 
@@ -61,6 +85,7 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
 
+        bool m_chartingEnabled;
     };
     
 #ifdef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__

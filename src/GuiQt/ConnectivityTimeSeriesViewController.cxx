@@ -51,9 +51,10 @@
 
 #include "Brain.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
+#include "ChartableInterface.h"
+//#include "ConnectivityLoaderFile.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -148,7 +149,7 @@ ConnectivityTimeSeriesViewController::~ConnectivityTimeSeriesViewController()
  * @return The connectivity loader file in this view controller.
  * NULL if not valid.
  */
-ConnectivityLoaderFile* 
+ChartableInterface* 
 ConnectivityTimeSeriesViewController::getConnectivityLoaderFile()
 {
     return this->connectivityLoaderFile;
@@ -191,17 +192,19 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
+ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* connectivityLoaderFile)
 {
     this->connectivityLoaderFile = connectivityLoaderFile;
     if (this->connectivityLoaderFile != NULL) {        
 
         Qt::CheckState enabledState = Qt::Unchecked;
         
-        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
+        CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(this->connectivityLoaderFile);
+        CaretAssert(mappableDataFile);
+        this->fileNameLineEdit->setText(mappableDataFile->getFileName());
 
         enabledState = Qt::Unchecked;
-        if(this->connectivityLoaderFile->isTimeSeriesGraphEnabled()) {
+        if(this->connectivityLoaderFile->isChartingEnabled()) {
             enabledState = Qt::Checked;
         }
         this->graphToolButton->blockSignals(true);
@@ -243,12 +246,10 @@ void
 ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 {
     if (this->connectivityLoaderFile != NULL) {
-        if (this->connectivityLoaderFile->isDenseTimeSeries()) {
-            this->connectivityLoaderFile->setTimeSeriesGraphEnabled(status);
+            this->connectivityLoaderFile->setChartingEnabled(status);
             GuiManager::get()->getTimeCourseDialog((void *)this->connectivityLoaderFile)->setTimeSeriesGraphEnabled(status);
             this->updateOtherConnectivityTimeSeriesViewControllers();
         }
-    }
 }
 
 /**

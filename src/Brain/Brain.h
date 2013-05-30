@@ -43,6 +43,8 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class ChartingDataManager;
+    class ChartableInterface;
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
@@ -195,6 +197,10 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        ChartingDataManager* getChartingDataManager();
+        
+        const ChartingDataManager* getChartingDataManager() const;
+        
         void convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile) throw (DataFileException);
         
         CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager();
@@ -290,6 +296,10 @@ namespace caret {
         const CiftiBrainordinateDataSeriesFile* getConnectivityDataSeriesFile(int32_t indx) const;
         
         void getConnectivityDataSeriesFiles(std::vector<CiftiBrainordinateDataSeriesFile*>& connectivityDataSeriesFilesOut) const;
+        
+        void getAllChartableDataFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
+        
+        void getAllChartableDataFilesWithChartingEnabled(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
         
         AString getCurrentDirectory() const;
         
@@ -510,6 +520,8 @@ namespace caret {
         ModelWholeBrain* m_wholeBrainController;
         
         ModelSurfaceMontage* m_surfaceMontageController;
+        
+        ChartingDataManager* m_chartingDataManager;
         
         ConnectivityLoaderManager* m_connectivityLoaderManager;
         

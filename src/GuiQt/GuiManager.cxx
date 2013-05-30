@@ -44,7 +44,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
-#include "ConnectivityLoaderManager.h"
+#include "ChartingDataManager.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
@@ -1768,8 +1768,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
     cursor.showWaitCursor();
     
     Brain* brain = GuiManager::get()->getBrain();
-    ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
     CiftiConnectivityMatrixDataFileManager* ciftiMan = brain->getCiftiConnectivityMatrixDataFileManager();
+    ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
     IdentificationManager* identificationManager = brain->getIdentificationManager();
     
     bool updateGraphicsFlag = false;
@@ -1833,22 +1833,40 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
             Surface* surface = idNode->getSurface();
             const int32_t nodeIndex = idNode->getNodeNumber();
             try {
-                TimeLine timeLine;
-                connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
+                //TimeLine timeLine;
+                //connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
                 ciftiMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
                 
-                surface->getTimeLineInformation(nodeIndex,timeLine);
-                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
-                updateGraphicsFlag = true;
+//                surface->getTimeLineInformation(nodeIndex,timeLine);
                 
-                QList <TimeLine> tlV;
-                connMan->getSurfaceTimeLines(tlV);
-                if(tlV.size()!=0)
-                {
-                    GuiManager::get()->addTimeLines(tlV);
+                QList<TimeLine> timeLines;
+                chartingDataManager->loadChartForSurfaceNode(surface,
+                                                             nodeIndex,
+                                                             timeLines);
+                if (timeLines.empty() == false) {
+                    const int numTimeLines = timeLines.size();
+                    for (int itl = 0; itl < numTimeLines; itl++) {
+                        surface->getTimeLineInformation(nodeIndex,
+                                                        timeLines[itl]);
+                    }
+                    GuiManager::get()->addTimeLines(timeLines);
+                    EventUpdateTimeCourseDialog e;
+                    EventManager::get()->sendEvent(e.getPointer());
                 }
-                EventUpdateTimeCourseDialog e;
-                EventManager::get()->sendEvent(e.getPointer());
+                
+                updateGraphicsFlag = true;
+
+//                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
+//                updateGraphicsFlag = true;
+//                
+//                QList <TimeLine> tlV;
+//                connMan->getSurfaceTimeLines(tlV);
+//                if(tlV.size()!=0)
+//                {
+//                    GuiManager::get()->addTimeLines(tlV);
+//                }
+//                EventUpdateTimeCourseDialog e;
+//                EventManager::get()->sendEvent(e.getPointer());
             }
             catch (const DataFileException& e) {
                 cursor.restoreCursor();
@@ -1873,8 +1891,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 updateGraphicsFlag = true;
                 
                 try {
-                    connMan->loadDataForVoxelAtCoordinate(xyz,
-                                                          ciftiLoadingInfo);
+//                    connMan->loadDataForVoxelAtCoordinate(xyz,
+//                                                          ciftiLoadingInfo);
                     ciftiMan->loadDataForVoxelAtCoordinate(xyz,
                                                            ciftiLoadingInfo);
                 }
@@ -1884,22 +1902,31 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                     cursor.showWaitCursor();
                 }
                 try {
-                    connMan->loadTimeLineForVoxelAtCoordinate(xyz,
-                                                              ciftiLoadingInfo);
+//                    connMan->loadTimeLineForVoxelAtCoordinate(xyz,
+//                                                              ciftiLoadingInfo);
+                    QList<TimeLine> timeLines;
+                    chartingDataManager->loadChartForVoxelAtCoordinate(xyz,
+                                                                       timeLines);
+                    if (timeLines.empty() == false) {
+                        GuiManager::get()->addTimeLines(timeLines);
+                        
+                        EventUpdateTimeCourseDialog e;
+                        EventManager::get()->sendEvent(e.getPointer());
+                    }
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
                     QMessageBox::critical(parentWidget, "", e.whatString());
                     cursor.showWaitCursor();
                 }
-                QList <TimeLine> tlV;
-                connMan->getVolumeTimeLines(tlV);
-                if(tlV.size()!=0)
-                {
-                    GuiManager::get()->addTimeLines(tlV);
-                }
-                EventUpdateTimeCourseDialog e;
-                EventManager::get()->sendEvent(e.getPointer());
+//                QList <TimeLine> tlV;
+//                connMan->getVolumeTimeLines(tlV);
+//                if(tlV.size()!=0)
+//                {
+//                    GuiManager::get()->addTimeLines(tlV);
+//                }
+//                EventUpdateTimeCourseDialog e;
+//                EventManager::get()->sendEvent(e.getPointer());
             }
         }
         /*

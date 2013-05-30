@@ -919,11 +919,9 @@ CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
                                          std::vector<float>& seriesDataOut) const
 {
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-    const int64_t nodeRowIndex = ciftiXML.getRowIndexForNode(nodeIndex,
-                                                             structure);
-    const int64_t nodeColumnIndex = ciftiXML.getColumnIndexForNode(nodeIndex,
-                                                             structure);
     if (m_loadBrainordinateDataFromColumns) {
+        const int64_t nodeRowIndex = ciftiXML.getRowIndexForNode(nodeIndex,
+                                                                 structure);
         if (nodeRowIndex >= 0) {
             seriesDataOut.resize(m_numberOfColumns);
             m_ciftiInterface->getRow(&seriesDataOut[0],
@@ -932,6 +930,48 @@ CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
         }
     }
     else if (m_loadBrainordinateDataFromRows) {
+        const int64_t nodeColumnIndex = ciftiXML.getColumnIndexForNode(nodeIndex,
+                                                                       structure);
+        if (nodeColumnIndex >= 0) {
+            seriesDataOut.resize(m_numberOfRows);
+            m_ciftiInterface->getColumn(&seriesDataOut[0],
+                                        nodeColumnIndex);
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return false;
+}
+
+/**
+ * Get the series data (one data value from each map) for a voxel at
+ * the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of the voxel.
+ * @param seriesDataOut
+ *     Series data for given node.
+ * @return
+ *     True if output data is valid, else false.
+ */
+bool
+CiftiFacade::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
+                                               std::vector<float>& seriesDataOut) const
+{
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    if (m_loadBrainordinateDataFromColumns) {
+        const int64_t nodeRowIndex = ciftiXML.getRowIndexForVoxelCoordinate(xyz);
+        if (nodeRowIndex >= 0) {
+            seriesDataOut.resize(m_numberOfColumns);
+            m_ciftiInterface->getRow(&seriesDataOut[0],
+                                     nodeRowIndex);
+            return true;
+        }
+    }
+    else if (m_loadBrainordinateDataFromRows) {
+        const int64_t nodeColumnIndex = ciftiXML.getColumnIndexForVoxelCoordinate(xyz);
         if (nodeColumnIndex >= 0) {
             seriesDataOut.resize(m_numberOfRows);
             m_ciftiInterface->getColumn(&seriesDataOut[0],

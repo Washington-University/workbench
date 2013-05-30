@@ -343,9 +343,13 @@ ConnectivityManagerViewController::updateManagerViewController()
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
-            std::vector<ConnectivityLoaderFile*> files;
-            brain->getConnectivityTimeSeriesFiles(files);
-            this->updateForTimeSeriesFiles(files);
+//            std::vector<ConnectivityLoaderFile*> files;
+//            brain->getConnectivityTimeSeriesFiles(files);
+//            this->updateForTimeSeriesFiles(files);
+            
+            std::vector<ChartableInterface*> chartFiles;
+            brain->getAllChartableDataFiles(chartFiles);
+            this->updateForTimeSeriesFiles(chartFiles);
         }
             break;
         default:
@@ -359,7 +363,7 @@ ConnectivityManagerViewController::updateManagerViewController()
  *    The time series files.
  */
 void 
-ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles)
+ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<ChartableInterface*>& timeSeriesFiles)
 {
     /*
      * Update, show (and possibly add) time series view controllers

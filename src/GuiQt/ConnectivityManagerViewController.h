@@ -55,7 +55,7 @@ class TimeCourseDialog;
 
 namespace caret {
 
-    class ConnectivityLoaderFile;
+    class ChartableInterface;
     class ConnectivityTimeSeriesViewController;
     class CiftiConnectivityMatrixViewController;
     class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {
@@ -86,7 +86,7 @@ namespace caret {
         
         void updateManagerViewController();
         
-        void updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles);
+        void updateForTimeSeriesFiles(const std::vector<ChartableInterface*>& timeSeriesFiles);
 
         void captureFrame(AString filename);
 

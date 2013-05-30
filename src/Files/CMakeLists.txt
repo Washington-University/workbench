@@ -28,6 +28,7 @@ CaretDataFile.h
 CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
+ChartableInterface.h
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h

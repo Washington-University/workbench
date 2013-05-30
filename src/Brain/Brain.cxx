@@ -34,6 +34,8 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "ChartingDataManager.h"
+#include "ChartableInterface.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
@@ -105,6 +107,7 @@ using namespace caret;
 Brain::Brain()
 {
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager(this);
+    m_chartingDataManager = new ChartingDataManager(this);
     m_connectivityLoaderManager = new ConnectivityLoaderManager(this);
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
@@ -203,6 +206,7 @@ Brain::~Brain()
 
     delete m_specFile;
     delete m_ciftiConnectivityMatrixDataFileManager;
+    delete m_chartingDataManager;
     delete m_connectivityLoaderManager;
     delete m_paletteFile;
     if (m_surfaceMontageController != NULL) {
@@ -2014,6 +2018,64 @@ Brain::getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCift
     }
 }
 
+/**
+ * Get all of the Chartable Data Files.  Only files that implement the 
+ * ChartableInterface AND return true for ChartableInterface::isChartingSupported()
+ * are included in the returned files.
+ *
+ * @param chartableDataFilesOut
+ *    Contains all chartable data files upon exit.
+ */
+void
+Brain::getAllChartableDataFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const
+{
+    chartableDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        ChartableInterface* chartFile = dynamic_cast<ChartableInterface*>(*iter);
+        if (chartFile != NULL) {
+            if (chartFile->isChartingSupported()) {
+                chartableDataFilesOut.push_back(chartFile);
+            }
+        }
+    }
+}
+
+/**
+ * Get all of the Chartable Data Files.  Only files that implement the
+ * ChartableInterface, return true for ChartableInterface::isChartingSupported(),
+ * AND return true for ChartableInterface::isChartingEnabled()
+ * are included in the returned files.
+ *
+ * @param chartableDataFilesOut
+ *    Contains all chartable data files upon exit.
+ */
+void
+Brain::getAllChartableDataFilesWithChartingEnabled(std::vector<ChartableInterface*>& chartableDataFilesOut) const
+{
+    chartableDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        ChartableInterface* chartFile = dynamic_cast<ChartableInterface*>(*iter);
+        if (chartFile != NULL) {
+            if (chartFile->isChartingSupported()) {
+                if (chartFile->isChartingEnabled()) {
+                    chartableDataFilesOut.push_back(chartFile);
+                }
+            }
+        }
+    }
+}
 
 /**
  * @return Number of cifti dense parcel files.
@@ -4004,6 +4066,24 @@ const CiftiConnectivityMatrixDataFileManager*
 Brain::getCiftiConnectivityMatrixDataFileManager() const
 {
     return m_ciftiConnectivityMatrixDataFileManager;
+}
+
+/**
+ * @return The charting data manager.
+ */
+ChartingDataManager*
+Brain::getChartingDataManager()
+{
+    return m_chartingDataManager;
+}
+
+/**
+ * @return The charting data manager.
+ */
+const ChartingDataManager*
+Brain::getChartingDataManager() const
+{
+    return m_chartingDataManager;
 }
 
 

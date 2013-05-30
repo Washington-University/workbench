@@ -35,13 +35,15 @@
 /*LICENSE_END*/
 
 
+#include "ChartableInterface.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
 
     class CiftiMappableConnectivityMatrixDataFile;
+    class TimeLine;
     
-    class CiftiBrainordinateScalarFile : public CiftiMappableDataFile {
+    class CiftiBrainordinateScalarFile : public CiftiMappableDataFile, public ChartableInterface {
     
     public:
         CiftiBrainordinateScalarFile();
@@ -51,10 +53,33 @@ namespace caret {
         static CiftiBrainordinateScalarFile* newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
                                                                                              AString& errorMessageOut);
 
+        virtual bool isChartingEnabled() const;
+        
+        virtual void setChartingEnabled(const bool enabled);
+        
+        virtual bool isChartingSupported() const;
+        
+        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
+                                                     const std::vector<int32_t>& nodeIndices,
+                                                     TimeLine& timeLineOut) throw (DataFileException);
+        
+        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum structure,
+                                             const int32_t nodeIndex,
+                                             TimeLine& timeLineOut) throw (DataFileException);
+        
+        virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
+                                                   TimeLine& timeLineOut) throw (DataFileException);
+        
     private:
         CiftiBrainordinateScalarFile(const CiftiBrainordinateScalarFile&);
 
         CiftiBrainordinateScalarFile& operator=(const CiftiBrainordinateScalarFile&);
+        
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
         
     public:
 
@@ -62,6 +87,8 @@ namespace caret {
 
     private:
 
+        bool m_chartingEnabled;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

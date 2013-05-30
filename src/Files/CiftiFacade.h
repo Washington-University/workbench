@@ -112,6 +112,9 @@ namespace caret {
                                          const int32_t nodeIndex,
                                          std::vector<float>& seriesDataOut) const;
         
+        bool getSeriesDataForVoxelAtCoordinate(const float xyz[3],
+                                               std::vector<float>& seriesDataOut) const;
+        
         bool containsSurfaceDataForMappingToBrainordinates() const;
         
         bool containsVolumeDataForMappingToBrainordinates() const;

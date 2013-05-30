@@ -52,7 +52,8 @@ class QToolButton;
 
 namespace caret {
 
-    class ConnectivityLoaderFile;
+    class ChartableInterface;
+    //class ConnectivityLoaderFile;
     class TimeSeriesManagerForViewController;
     class WuQGridLayoutGroup;
     
@@ -67,13 +68,13 @@ namespace caret {
         
         virtual ~ConnectivityTimeSeriesViewController();
         
-        void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
+        void updateViewController(ChartableInterface* connectivityLoaderFile);
         
         void setVisible(bool visible);
         
         static QGridLayout* createGridLayout(const Qt::Orientation orientation);
         
-        ConnectivityLoaderFile* getConnectivityLoaderFile();
+        ChartableInterface* getConnectivityLoaderFile();
 
     public slots:
         
@@ -92,9 +93,9 @@ namespace caret {
         
         void updateOtherConnectivityTimeSeriesViewControllers();
 
-        ConnectivityLoaderFile* connectivityLoaderFile;
+        ChartableInterface* connectivityLoaderFile;
         
-        ConnectivityLoaderFile* previousConnectivityLoaderFile;
+        ChartableInterface* previousConnectivityLoaderFile;
         
         
         
