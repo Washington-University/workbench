@@ -272,14 +272,6 @@ m_containsSurfaceDataForMappingToBrainordinates(false)
  */
 CiftiFacade::~CiftiFacade()
 {
-    for (std::map<StructureEnum::Enum, std::vector<int64_t>*>::iterator iter =
-         m_mapsOfDataIndicesForSurfaceNodes.begin();
-         iter != m_mapsOfDataIndicesForSurfaceNodes.end();
-         iter++) {
-        std::vector<int64_t>* vec = iter->second;
-        delete vec;
-    }
-    
     m_mapsOfDataIndicesForSurfaceNodes.clear();
 }
 
@@ -534,13 +526,13 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum
      * and obtaining the mappings is costly.  See if data has been
      * cached for the given structure.
      */
-    std::map<StructureEnum::Enum, std::vector<int64_t>*>::iterator structureIter =
+    std::map<StructureEnum::Enum, std::vector<int64_t> >::iterator structureIter =
         m_mapsOfDataIndicesForSurfaceNodes.find(structure);
     if (structureIter != m_mapsOfDataIndicesForSurfaceNodes.end()) {
         /*
          * Data indices are available, so simply return them
          */
-        const std::vector<int64_t>* dataIndices = structureIter->second;
+        const std::vector<int64_t>* dataIndices = &structureIter->second;
         const int64_t numNodes = static_cast<int64_t>(dataIndices->size());
         
         if (numNodes == surfaceNumberOfNodes) {
@@ -552,13 +544,12 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum
              * but remove structure from cached data and let
              * the mappings be recreated.
              */
-            delete structureIter->second;
             m_mapsOfDataIndicesForSurfaceNodes.erase(structureIter);
         }
     }
     
-    std::vector<int64_t>* dataIndicesForNodes = new std::vector<int64_t>(surfaceNumberOfNodes,
-                                                                         -1);
+    std::vector<int64_t> dataIndicesForNodes(surfaceNumberOfNodes,
+                                             -1);
     
     
     if (m_useParcelsForBrainordinateMapping) {
@@ -577,7 +568,7 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum
                 CaretAssert(0);
             }
             
-            (*dataIndicesForNodes)[i] = dataIndex;
+            dataIndicesForNodes[i] = dataIndex;
         }
     }
     else {
@@ -589,15 +580,26 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum
                 const CiftiSurfaceMap& csm = surfaceMaps[i];
                 CaretAssert((csm.m_surfaceNode >= 0)
                             && (csm.m_surfaceNode < surfaceNumberOfNodes));
-                (*dataIndicesForNodes)[csm.m_surfaceNode] = csm.m_ciftiIndex;
+                dataIndicesForNodes[csm.m_surfaceNode] = csm.m_ciftiIndex;
             }
         }
     }
     
+    /*
+     * Insert returns a pair containing
+     *  1) iterator pointing to inserted element
+     *  2) bool with true indicating new element created or false if the key
+     *     alread existed.
+     */
+    std::pair<std::map<StructureEnum::Enum, std::vector<int64_t> >::iterator, bool> insertInfo =
     m_mapsOfDataIndicesForSurfaceNodes.insert(std::make_pair(structure,
                                                              dataIndicesForNodes));
+    CaretAssert(insertInfo.second);
     
-    return dataIndicesForNodes;
+    /*
+     * Return pointer to the vector containing the node indices
+     */
+    return &insertInfo.first->second;
 }
 
 /**

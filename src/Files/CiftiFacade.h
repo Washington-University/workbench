@@ -166,7 +166,7 @@ namespace caret {
          * the node.  Since CIFTI mappings do not change, caching this information
          * saves time.
          */
-        mutable std::map<StructureEnum::Enum, std::vector<int64_t>*> m_mapsOfDataIndicesForSurfaceNodes;
+        mutable std::map<StructureEnum::Enum, std::vector<int64_t> > m_mapsOfDataIndicesForSurfaceNodes;
         
         /**
          * Cache volume mapping since CIFTI mappings do not change
