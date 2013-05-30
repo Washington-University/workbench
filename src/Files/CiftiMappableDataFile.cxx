@@ -714,10 +714,18 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         /*
          * Setup voxel mapping
          */
-        std::vector<CiftiVolumeMap> voxelMapping;
-        m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates(voxelMapping);
-        m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
-                                                               voxelMapping));
+        const std::vector<CiftiVolumeMap>* voxelMapping =
+        m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates();
+        if (voxelMapping != NULL) {
+            m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
+                                                                   *voxelMapping));
+        }
+        else {
+            std::vector<CiftiVolumeMap> emptyVoxelMapping;
+            m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
+                                                                   emptyVoxelMapping));
+        }
+        
         
         /*
          * Indicate if volume mappable
@@ -769,6 +777,10 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
                                  + ", "
                                  + AString::number(stepValue));
         
+        const int64_t voxelCount = ((voxelMapping != NULL)
+                                    ? voxelMapping->size()
+                                    : 0);
+        
         const AString msg = (getFileNameNoPath()
                              + "\n   " + DataFileTypeEnum::toGuiName(getDataFileType())
                              + "\n   Rows: " + AString::number(m_ciftiFacade->getNumberOfRows())
@@ -777,7 +789,7 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
                              + "\n   ColType: " + columnIndexTypeName
                              + "\n   Has Surface Data: " + AString::fromBool(m_ciftiFacade->containsSurfaceDataForMappingToBrainordinates())
                              + "\n   Has Volume Data: " + AString::fromBool(m_containsVolumeData)
-                             + "\n   Voxel Count: " + AString::number(voxelMapping.size())
+                             + "\n   Voxel Count: " + AString::number(voxelCount)
                              + "\n   Volume Dimensions: " + AString::fromNumbers(m_volumeDimensions, 5, ",")
                              + "\n   Number of Maps: " + AString::number(m_mapContent.size())
                              + mapNames
@@ -2478,18 +2490,20 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     }
     
     const MapContent* mc = m_mapContent[mapIndex];
-    std::vector<int64_t> dataIndicesForNodes;
-    m_ciftiFacade->getSurfaceDataIndicesForMappingToBrainordinates(dataIndicesForNodes,
-                                                                   structure,
+    const std::vector<int64_t>* dataIndicesForNodes =
+    m_ciftiFacade->getSurfaceDataIndicesForMappingToBrainordinates(structure,
                                                                    surfaceNumberOfNodes);
+    if (dataIndicesForNodes == NULL) {
+        return false;
+    }
 
     bool validColorsFlag = false;
     
     for (int64_t iNode = 0; iNode < surfaceNumberOfNodes; iNode++) {
-        CaretAssertVectorIndex(dataIndicesForNodes,
+        CaretAssertVectorIndex((*dataIndicesForNodes),
                                iNode);
         
-        const int64_t dataIndex = dataIndicesForNodes[iNode];
+        const int64_t dataIndex = (*dataIndicesForNodes)[iNode];
         
         const int64_t node4 = iNode * 4;
         CaretAssertArrayIndex(surfaceRGBA, (surfaceNumberOfNodes * 4), node4);

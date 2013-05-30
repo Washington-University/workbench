@@ -62,7 +62,9 @@ CiftiFacade::CiftiFacade(const DataFileTypeEnum::Enum dataFileType,
 m_dataFileType(dataFileType),
 m_ciftiInterface(ciftiInterface),
 m_ciftiFileType(CIFTI_INVALID),
-m_validCiftiFile(false)
+m_validCiftiFile(false),
+m_volumeMappingValid(false),
+m_containsSurfaceDataForMappingToBrainordinates(false)
 {
     CaretAssert(ciftiInterface);
     
@@ -221,6 +223,48 @@ m_validCiftiFile(false)
         }
     }
 
+    /*
+     * Check for surface node mappings
+     */
+    m_containsSurfaceDataForMappingToBrainordinates = false;
+    std::vector<StructureEnum::Enum> allStructures;
+    StructureEnum::getAllEnums(allStructures);
+    for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
+         iter != allStructures.end();
+         iter++) {
+        if (m_useColumnMapsForBrainordinateMapping) {
+            if (m_ciftiInterface->hasColumnSurfaceData(*iter)) {
+                m_containsSurfaceDataForMappingToBrainordinates = true;
+                break;
+            }
+        }
+        else if (m_useRowMapsForBrainordinateMapping) {
+            if (m_ciftiInterface->hasRowSurfaceData(*iter)) {
+                m_containsSurfaceDataForMappingToBrainordinates = true;
+                break;
+            }
+        }
+    }
+  
+    /*
+     * Cache voxel mapping
+     */
+    m_volumeMapping.clear();
+    
+    m_volumeMappingValid = false;
+    if (m_useColumnMapsForBrainordinateMapping) {
+        m_volumeMappingValid = m_ciftiInterface->getVolumeMapForColumns(m_volumeMapping);
+    }
+    else if (m_useRowMapsForBrainordinateMapping) {
+        m_volumeMappingValid = m_ciftiInterface->getVolumeMapForRows(m_volumeMapping);
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    CaretAssertMessage(m_containsSurfaceDataForMappingToBrainordinates
+                       || m_volumeMappingValid,
+                       "Contains NO data for mapping to brainordinates");
 }
 
 /**
@@ -228,7 +272,15 @@ m_validCiftiFile(false)
  */
 CiftiFacade::~CiftiFacade()
 {
+    for (std::map<StructureEnum::Enum, std::vector<int64_t>*>::iterator iter =
+         m_mapsOfDataIndicesForSurfaceNodes.begin();
+         iter != m_mapsOfDataIndicesForSurfaceNodes.end();
+         iter++) {
+        std::vector<int64_t>* vec = iter->second;
+        delete vec;
+    }
     
+    m_mapsOfDataIndicesForSurfaceNodes.clear();
 }
 
 /**
@@ -377,45 +429,37 @@ CiftiFacade::getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfac
  * @return
  *    True if mapping is valid, else false.
  */
-bool
-CiftiFacade::getVolumeMapForMappingDataToBrainordinates(std::vector<CiftiVolumeMap>& mappingOut) const
+const std::vector<CiftiVolumeMap>*
+CiftiFacade::getVolumeMapForMappingDataToBrainordinates() const
 {
-    mappingOut.clear();
-    
-    bool validFlag = false;
-    if (m_useColumnMapsForBrainordinateMapping) {
-        validFlag = m_ciftiInterface->getVolumeMapForColumns(mappingOut);
-    }
-    else if (m_useRowMapsForBrainordinateMapping) {
-        validFlag = m_ciftiInterface->getVolumeMapForRows(mappingOut);
-    }
-    else {
-        CaretAssert(0);
+    if (m_volumeMappingValid) {
+        return &m_volumeMapping;
     }
     
-    return validFlag;
+    return NULL;
 }
-/**
- * Get the parcels for mapping to brainordinates.
- *
- * @param parcelsOut
- *    Output containing parcels.
- * @return True if parcels are valid, else false.
- */
-bool
-CiftiFacade::getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const
-{
-    bool validFlag = false;
-    
-    if (m_useColumnMapsForBrainordinateMapping) {
-        validFlag = m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcelsOut);
-    }
-    else if (m_useRowMapsForBrainordinateMapping) {
-        validFlag = m_ciftiInterface->getCiftiXML().getParcelsForRows(parcelsOut);
-    }
-    
-    return validFlag;
-}
+
+///**
+// * Get the parcels for mapping to brainordinates.
+// *
+// * @param parcelsOut
+// *    Output containing parcels.
+// * @return True if parcels are valid, else false.
+// */
+//bool
+//CiftiFacade::getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const
+//{
+//    bool validFlag = false;
+//    
+//    if (m_useColumnMapsForBrainordinateMapping) {
+//        validFlag = m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcelsOut);
+//    }
+//    else if (m_useRowMapsForBrainordinateMapping) {
+//        validFlag = m_ciftiInterface->getCiftiXML().getParcelsForRows(parcelsOut);
+//    }
+//    
+//    return validFlag;
+//}
 
 ///**
 // * Get the Parcel Nodes Element for the surface with the given structure.
@@ -466,21 +510,55 @@ CiftiFacade::isMappingDataToBrainordinateParcels() const
  * Get the indices into the data for the surface nodes of the given structure.
  * Works for brainordinates mapped a surfaces or parcels.
  *
- * @param dataIndicesForNodes
- *    Upon exit, value 'i' contains an index into the data for node 'i'.
- *    If the value 'i' is negative, there is no data for the node 'i'.
  * @param structure
  *    Surface's structure.
  * @param surfaceNumberOfNodes
  *    Number of nodes in the surface.
+ * @return 
+ *    Upon exit, a vector that contains 'surfaceNumberOfNodes' elements
+ *    where the vector is indexed by the node index and the value at the
+ *    index is an offset into the data for the node or a negative value 
+ *    if there is no corresponding data for the node index.
+ *    NULL is returned if there is no mapping for the structure.
  */
-bool
-CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(std::vector<int64_t>& dataIndicesForNodes,
-                                                             const StructureEnum::Enum structure,
-                                                    const int64_t surfaceNumberOfNodes) const
+const std::vector<int64_t>* 
+CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
+                                                             const int64_t surfaceNumberOfNodes) const
 {
-    dataIndicesForNodes.resize(surfaceNumberOfNodes,
-                               -1);
+    if (surfaceNumberOfNodes <= 0) {
+        return NULL;
+    }
+    
+    /*
+     * Data is cached internally since the CIFTI mappings do not change
+     * and obtaining the mappings is costly.  See if data has been
+     * cached for the given structure.
+     */
+    std::map<StructureEnum::Enum, std::vector<int64_t>*>::iterator structureIter =
+        m_mapsOfDataIndicesForSurfaceNodes.find(structure);
+    if (structureIter != m_mapsOfDataIndicesForSurfaceNodes.end()) {
+        /*
+         * Data indices are available, so simply return them
+         */
+        const std::vector<int64_t>* dataIndices = structureIter->second;
+        const int64_t numNodes = static_cast<int64_t>(dataIndices->size());
+        
+        if (numNodes == surfaceNumberOfNodes) {
+            return dataIndices;
+        }
+        else {
+            /*
+             * Number of node has changed?  Should not happen
+             * but remove structure from cached data and let
+             * the mappings be recreated.
+             */
+            delete structureIter->second;
+            m_mapsOfDataIndicesForSurfaceNodes.erase(structureIter);
+        }
+    }
+    
+    std::vector<int64_t>* dataIndicesForNodes = new std::vector<int64_t>(surfaceNumberOfNodes,
+                                                                         -1);
     
     
     if (m_useParcelsForBrainordinateMapping) {
@@ -499,7 +577,7 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(std::vector<int64_t
                 CaretAssert(0);
             }
             
-            dataIndicesForNodes[i] = dataIndex;
+            (*dataIndicesForNodes)[i] = dataIndex;
         }
     }
     else {
@@ -511,11 +589,15 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(std::vector<int64_t
                 const CiftiSurfaceMap& csm = surfaceMaps[i];
                 CaretAssert((csm.m_surfaceNode >= 0)
                             && (csm.m_surfaceNode < surfaceNumberOfNodes));
-                dataIndicesForNodes[csm.m_surfaceNode] = csm.m_ciftiIndex;
+                (*dataIndicesForNodes)[csm.m_surfaceNode] = csm.m_ciftiIndex;
             }
         }
     }
-    return false;
+    
+    m_mapsOfDataIndicesForSurfaceNodes.insert(std::make_pair(structure,
+                                                             dataIndicesForNodes));
+    
+    return dataIndicesForNodes;
 }
 
 /**
@@ -524,46 +606,7 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(std::vector<int64_t
 bool
 CiftiFacade::containsSurfaceDataForMappingToBrainordinates() const
 {
-    std::vector<CiftiSurfaceMap> mapping;
-    
-    /*
-     * Check for surface node mappings
-     */
-    std::vector<StructureEnum::Enum> allStructures;
-    StructureEnum::getAllEnums(allStructures);
-    for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
-         iter != allStructures.end();
-         iter++) {
-        getSurfaceMapForMappingDataToBrainordinates(mapping,
-                                                    *iter);
-            
-        if (mapping.empty() == false) {
-            return true;
-        }
-    }
-    
-    /*
-     * Check for parcel node mappings.
-     */
-    std::vector<CiftiParcelElement> parcels;
-    getParcelMapForMappingToBrainordinates(parcels);
-    for (std::vector<CiftiParcelElement>::iterator iter = parcels.begin();
-         iter != parcels.end();
-         iter++) {
-        const CiftiParcelElement& cpe = *iter;
-        const std::vector<CiftiParcelNodesElement> parcelNodes = cpe.m_nodeElements;
-        
-        for (std::vector<CiftiParcelNodesElement>::const_iterator nodesIter = parcelNodes.begin();
-             nodesIter != parcelNodes.end();
-             nodesIter++) {
-            const CiftiParcelNodesElement& cpne = *nodesIter;
-            if (cpne.m_nodes.empty() == false) {
-                return true;
-            }
-        }
-    }
-    
-    return false;
+    return m_containsSurfaceDataForMappingToBrainordinates;
 }
 
 /**
@@ -572,29 +615,31 @@ CiftiFacade::containsSurfaceDataForMappingToBrainordinates() const
 bool
 CiftiFacade::containsVolumeDataForMappingToBrainordinates() const
 {
-    std::vector<CiftiVolumeMap> mapping;
-    getVolumeMapForMappingDataToBrainordinates(mapping);
+    return m_volumeMappingValid;
     
-    if (mapping.empty()) {
-        return false;
-    }
-    
-    /*
-     * Check for parcel node mappings.
-     */
-    std::vector<CiftiParcelElement> parcels;
-    getParcelMapForMappingToBrainordinates(parcels);
-    for (std::vector<CiftiParcelElement>::iterator iter = parcels.begin();
-         iter != parcels.end();
-         iter++) {
-        const CiftiParcelElement& cpe = *iter;
-        
-        if (cpe.m_voxelIndicesIJK.empty() == false) {
-            return true;
-        }
-    }
-    
-    return true;
+//    std::vector<CiftiVolumeMap> mapping;
+//    getVolumeMapForMappingDataToBrainordinates(mapping);
+//    
+//    if (mapping.empty()) {
+//        return false;
+//    }
+//    
+//    /*
+//     * Check for parcel node mappings.
+//     */
+//    std::vector<CiftiParcelElement> parcels;
+//    getParcelMapForMappingToBrainordinates(parcels);
+//    for (std::vector<CiftiParcelElement>::iterator iter = parcels.begin();
+//         iter != parcels.end();
+//         iter++) {
+//        const CiftiParcelElement& cpe = *iter;
+//        
+//        if (cpe.m_voxelIndicesIJK.empty() == false) {
+//            return true;
+//        }
+//    }
+//    
+//    return true;
 }
 
 /**

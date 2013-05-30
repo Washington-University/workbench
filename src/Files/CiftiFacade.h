@@ -80,16 +80,12 @@ namespace caret {
         
         bool isMappingDataToBrainordinateParcels() const;
         
-        bool getSurfaceDataIndicesForMappingToBrainordinates(std::vector<int64_t>& dataIndicesForNodes,
-                                                             const StructureEnum::Enum structure,
-                                                             const int64_t surfaceNumberOfNodes) const;
+        const std::vector<int64_t>* getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
+                                                                                    const int64_t surfaceNumberOfNodes) const;
         
-        bool getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfaceMap>& mappingOut,
-                                                         const StructureEnum::Enum structure) const;
+        const std::vector<CiftiVolumeMap>* getVolumeMapForMappingDataToBrainordinates() const;
         
-        bool getVolumeMapForMappingDataToBrainordinates(std::vector<CiftiVolumeMap>& mappingOut) const;
-        
-        bool getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const;
+//        bool getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const;
         
 //        bool getParcelSurfaceMapForMappingToBrainordinates(CiftiParcelNodesElement& nodeParcelsOut,
 //                                                           const StructureEnum::Enum structure) const;
@@ -141,6 +137,9 @@ namespace caret {
 
         CiftiFacade& operator=(const CiftiFacade&);
         
+        bool getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfaceMap>& mappingOut,
+                                                         const StructureEnum::Enum structure) const;
+        
         const DataFileTypeEnum::Enum m_dataFileType;
         
         CiftiInterface* m_ciftiInterface;
@@ -161,6 +160,21 @@ namespace caret {
         
         float m_mapIntervalStepValue;
         
+        /**
+         * For each structure, the vector contains indices into the data for
+         * each node in the surface.  If the value is negative, there is no data
+         * the node.  Since CIFTI mappings do not change, caching this information
+         * saves time.
+         */
+        mutable std::map<StructureEnum::Enum, std::vector<int64_t>*> m_mapsOfDataIndicesForSurfaceNodes;
+        
+        /**
+         * Cache volume mapping since CIFTI mappings do not change
+         * to save time.
+         */
+        std::vector<CiftiVolumeMap> m_volumeMapping;
+        bool m_volumeMappingValid;
+        
 //        bool m_connectivityMatrixFileFlag;
         
         bool m_useColumnMapsForBrainordinateMapping;
@@ -180,6 +194,9 @@ namespace caret {
         bool m_useParcelsForBrainordinateMapping;
         
         bool m_containsMapAttributes;
+        
+        bool m_containsSurfaceDataForMappingToBrainordinates;
+        
     };
     
 #ifdef __CIFTI_FACADE_DECLARE__
