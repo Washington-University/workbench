@@ -203,7 +203,7 @@ AlgorithmVolumeROIsFromExtrema::AlgorithmVolumeROIsFromExtrema(ProgressObject* m
             {
                 iscratch = jscratch + ivec * i;
                 float tempf = iscratch.length();
-                if (tempf < limit)
+                if (tempf <= limit)
                 {
                     stencil.push_back(i);
                     stencil.push_back(j);
