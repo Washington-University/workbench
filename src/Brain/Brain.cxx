@@ -46,8 +46,6 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
-#include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFiberTrajectory.h"
@@ -108,7 +106,6 @@ Brain::Brain()
 {
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager(this);
     m_chartingDataManager = new ChartingDataManager(this);
-    m_connectivityLoaderManager = new ConnectivityLoaderManager(this);
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
@@ -207,7 +204,6 @@ Brain::~Brain()
     delete m_specFile;
     delete m_ciftiConnectivityMatrixDataFileManager;
     delete m_chartingDataManager;
-    delete m_connectivityLoaderManager;
     delete m_paletteFile;
     if (m_surfaceMontageController != NULL) {
         delete m_surfaceMontageController;
@@ -429,14 +425,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_connectivityMatrixParcelDenseFiles.clear();
     
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = m_connectivityChartTemporaryFiles.begin();
-         cltsfi != m_connectivityChartTemporaryFiles.end();
-         cltsfi++) {
-        ConnectivityLoaderFile* clf = *cltsfi;
-        delete clf;
-    }
-    m_connectivityChartTemporaryFiles.clear();
-    
     if (m_paletteFile != NULL) {
         delete m_paletteFile;
     }
@@ -445,7 +433,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_paletteFile->clearModified();
     
     m_ciftiConnectivityMatrixDataFileManager->reset();
-    m_connectivityLoaderManager->reset();
     
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
@@ -1730,101 +1717,6 @@ Brain::readConnectivityDataSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
     return file;
 }
 
-
-/**
- * Read a connectivity time series file.
- *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
- * @param filename
- *    Name of the file.
- * @throws DataFileException
- *    If reading failed.
- */
-ConnectivityLoaderFile*
-Brain::readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
-                                      const AString& filename) throw (DataFileException)
-{
-    ConnectivityLoaderFile* clf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        clf = dynamic_cast<ConnectivityLoaderFile*>(reloadThisFileIfNotNull);
-        CaretAssert(clf);
-    }
-    else {
-        clf = new ConnectivityLoaderFile();
-    }
-    
-    try {
-        if (DataFile::isFileOnNetwork(filename)) {
-            clf->setupNetworkFile(filename,
-                                  DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
-                                  CaretDataFile::getFileReadingUsername(),
-                                  CaretDataFile::getFileReadingPassword());
-        }
-        else {
-            clf->setupLocalFile(filename, 
-                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-            clf->loadFrame(0);
-        }
-        
-        validateConnectivityFile(clf);
-        clf->clearModified();
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete clf;
-        }
-        throw dfe;
-    }
-    
-    if (reloadThisFileIfNotNull == NULL) {
-        m_connectivityChartTemporaryFiles.push_back(clf);
-    }
-    
-    return clf;
-}
-
-/**
- * Verify the number of nodes in the CIFTI file matches any 
- * surface structures that are currently loaded.
- * @param clf
- *    The CIFTI file.
- * @throw If the number of nodes for a structure in the CIFTI file
- *    does not match the number of nodes in a currently loaded
- *    structure.
- */
-void 
-Brain::validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException)
-{
-    const int32_t numBrainStructures = getNumberOfBrainStructures();
-    for (int32_t i = 0; i < numBrainStructures; i++) {
-        const StructureEnum::Enum structure = getBrainStructure(i)->getStructure();
-        const int numNodes = getBrainStructure(i)->getNumberOfNodes();
-        
-        const int numConnNodes = clf->getSurfaceNumberOfNodes(structure);
-        if (numConnNodes > 0) {
-            if (numNodes != numConnNodes) {
-                AString msg = ("The CIFTI file "
-                               + clf->getFileNameNoPath()
-                               + " contains "
-                               + AString::number(numConnNodes)
-                               + " for structure "
-                               + StructureEnum::toGuiName(structure)
-                               + " but the corresponding surface brain structure contains "
-                               + AString::number(numNodes)
-                               + " nodes.");
-                throw DataFileException(msg);
-            }
-        }
-    }
-}
-
-
 /**
  * Read a palette file.
  *
@@ -1887,20 +1779,6 @@ Brain::readSceneFile(CaretDataFile* reloadThisFileIfNotNull,
     }
     
     return sf;
-}
-
-/**
- * Get mappable connectivity files of ALL Types
- * @param connectivityFilesOut
- *   Contains all mappable connectivity files on exit.
- */
-void 
-Brain::getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const
-{
-    connectivityFilesOfAllTypes.clear();
-    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-                                       m_connectivityChartTemporaryFiles.begin(),
-                                       m_connectivityChartTemporaryFiles.end());
 }
 
 /**
@@ -2438,54 +2316,6 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityM
 //                                           m_connectivityMatrixParcelDenseFiles.begin(),
 //                                           m_connectivityMatrixParcelDenseFiles.end());
 }
-
-
-/**
- * @return Number of connectivity time series files.
- */
-int32_t 
-Brain::getNumberOfConnectivityTimeSeriesFiles() const
-{
-    return m_connectivityChartTemporaryFiles.size(); 
-}
-
-/**
- * Get the connectivity time series file at the given index.
- * @param indx
- *    Index of file.
- * @return Conectivity file at index.
- */
-ConnectivityLoaderFile* 
-Brain::getConnectivityTimeSeriesFile(int32_t indx)
-{
-    CaretAssertVectorIndex(m_connectivityChartTemporaryFiles, indx);
-    return m_connectivityChartTemporaryFiles[indx];
-}
-
-/**
- * Get the connectivity time series file at the given index.
- * @param indx
- *    Index of file.
- * @return Conectivity file at index.
- */
-const ConnectivityLoaderFile*
-Brain::getConnectivityTimeSeriesFile(int32_t indx) const
-{
-    CaretAssertVectorIndex(m_connectivityChartTemporaryFiles, indx);
-    return m_connectivityChartTemporaryFiles[indx];
-}
-
-/**
- * Get ALL connectivity time series files.
- * @param connectivityTimeSeriesFilesOut
- *   Contains all connectivity time series files on exit.
- */
-void 
-Brain::getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& connectivityTimeSeriesFilesOut) const
-{
-    connectivityTimeSeriesFilesOut = m_connectivityChartTemporaryFiles;
-}
-
 
 /**
  * @return Number of border files.
@@ -3275,32 +3105,10 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                                                                           dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                if (reloadThisDataFileIfNotNull == NULL) {
-                    /*
-                     * Read as time-series for display in chart
-                     */
-                    readConnectivityTimeSeriesFile(NULL,
-                                                   dataFileName);
-                }
-                
-                /*
-                 * Now read as scalars
-                 */
                 caretDataFileRead = readConnectivityDenseScalarFile(reloadThisDataFileIfNotNull,
                                                                         dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                if (reloadThisDataFileIfNotNull == NULL) {
-                    /*
-                     * Read as time-series for display in chart
-                     */
-                    readConnectivityTimeSeriesFile(NULL,
-                                                   dataFileName);
-                }
-                
-                /*
-                 * Now read as data series
-                 */
                 caretDataFileRead = readConnectivityDataSeriesFile(reloadThisDataFileIfNotNull,
                                                                    dataFileName);
                 break;
@@ -4086,25 +3894,6 @@ Brain::getChartingDataManager() const
     return m_chartingDataManager;
 }
 
-
-/**
- * @return The connectivity loader manager.
- */
-ConnectivityLoaderManager* 
-Brain::getConnectivityLoaderManager()
-{
-    return m_connectivityLoaderManager;
-}
-
-/**
- * @return The connectivity loader manager.
- */
-const ConnectivityLoaderManager* 
-Brain::getConnectivityLoaderManager() const
-{
-    return m_connectivityLoaderManager;
-}
-
 /**
  * @return  The current directory.
  */
@@ -4276,10 +4065,6 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixParcelDenseFiles.begin(),
                            m_connectivityMatrixParcelDenseFiles.end());
     
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityChartTemporaryFiles.begin(),
-                           m_connectivityChartTemporaryFiles.end());
-    
     allDataFilesOut.push_back(m_paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),
@@ -4429,22 +4214,6 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         m_connectivityDataSeriesFiles.erase(dataSeriesIterator);
         wasRemoved = true;
         caretDataFile = NULL;
-
-        /*
-         * Temporary issue is that data series files are loaded twice once as data
-         * series (for display on brainordinates) and once as time series for display
-         * in chart.
-         */
-        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = m_connectivityChartTemporaryFiles.begin();
-             connIter != m_connectivityChartTemporaryFiles.end();
-             connIter++) {
-            ConnectivityLoaderFile* clf = *connIter;
-            if (clf->getFileName() == name) {
-                delete clf;
-                m_connectivityChartTemporaryFiles.erase(connIter);
-                break;
-            }
-        }
     }
     
     std::vector<CiftiBrainordinateLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
@@ -4491,22 +4260,6 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         m_connectivityDenseScalarFiles.erase(connScalarIterator);
         wasRemoved = true;
         caretDataFile = NULL;
-
-        /*
-         * Temporary issue is that dense scalar files are loaded twice once as data
-         * series (for display on brainordinates) and once as time series for display
-         * in chart.
-         */
-        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = m_connectivityChartTemporaryFiles.begin();
-             connIter != m_connectivityChartTemporaryFiles.end();
-             connIter++) {
-            ConnectivityLoaderFile* clf = *connIter;
-            if (clf->getFileName() == name) {
-                delete clf;
-                m_connectivityChartTemporaryFiles.erase(connIter);
-                break;
-            }
-        }
     }
     
     std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
@@ -4571,17 +4324,6 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         caretDataFile = NULL;
     }
 
-    std::vector<ConnectivityLoaderFile*>::iterator timeIterator = std::find(m_connectivityChartTemporaryFiles.begin(),
-                                                                            m_connectivityChartTemporaryFiles.end(),
-                                                                            caretDataFile);
-    if (timeIterator != m_connectivityChartTemporaryFiles.end()) {
-        ConnectivityLoaderFile* timeFile = *timeIterator;
-        delete timeFile;
-        m_connectivityChartTemporaryFiles.erase(timeIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
-    }
-    
     std::vector<FociFile*>::iterator fociIterator = std::find(m_fociFiles.begin(),
                                                                   m_fociFiles.end(),
                                                                   caretDataFile);
@@ -4878,8 +4620,6 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
      */
     sceneClass->addClass(m_ciftiConnectivityMatrixDataFileManager->saveToScene(sceneAttributes,
                                                                                "m_ciftiConnectivityMatrixDataFileManager"));
-    sceneClass->addClass(m_connectivityLoaderManager->saveToScene(sceneAttributes,
-                                                                  "m_connectivityLoaderManager"));
     
     /*
      * Save Group/Name Selection Hierarchies
@@ -5039,12 +4779,6 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
-    /*
-     * Restore connectivity data
-     */
-    m_connectivityLoaderManager->restoreFromScene(sceneAttributes,
-                                                  sceneClass->getClass("m_connectivityLoaderManager"));
-
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

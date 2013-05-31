@@ -181,6 +181,7 @@ GuiManager::GuiManager(QObject* parent)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
 }
@@ -839,6 +840,9 @@ GuiManager::receiveEvent(Event* event)
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
         this->processUpdateTimeCourseDialogs();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        this->removeInvalidTimeCourseDialogs();
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW) {
         EventMapSettingsEditorDialogRequest* mapEditEvent =
         dynamic_cast<EventMapSettingsEditorDialogRequest*>(event);
@@ -1267,6 +1271,22 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 }
 
 /**
+ * Removes the dialog from the non-modal dialogs BUT DOES NOT delete
+ * the dialog.
+ */
+void
+GuiManager::removeNonModalDialog(QWidget* dialog)
+{
+    std::vector<QWidget*>::iterator iter = std::find(nonModalDialogs.begin(),
+                                           nonModalDialogs.end(),
+                                           dialog);
+    if (iter != nonModalDialogs.end()) {
+        nonModalDialogs.erase(iter);
+    }
+}
+
+
+/**
  * Show the custom view dialog.
  * @param browserWindow
  *    Window on which dialog was requested.
@@ -1375,10 +1395,44 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
 }
 
 /**
+ * Remove time course dialogs whose corresponding file no longer exists.
+ */
+void
+GuiManager::removeInvalidTimeCourseDialogs()
+{
+    std::vector<ChartableInterface*> allChartFiles;
+    getBrain()->getAllChartableDataFiles(allChartFiles);
+    
+    std::vector<ChartableInterface*> chartFilesNoLongerValid;
+    
+    /*
+     * Find TimeCourse dialogs that should be updated or closed
+     */
+    for (QMap<ChartableInterface *,TimeCourseDialog *>::iterator mapIter = timeCourseDialogs.begin();
+         mapIter != timeCourseDialogs.end();
+         mapIter++) {
+        ChartableInterface* chartFile = mapIter.key();
+        if (std::find(allChartFiles.begin(),
+                      allChartFiles.end(),
+                      chartFile) == allChartFiles.end()) {
+            chartFilesNoLongerValid.push_back(chartFile);
+        }
+    }
+    
+    for (std::vector<ChartableInterface*>::iterator chartFileIter = chartFilesNoLongerValid.begin();
+         chartFileIter != chartFilesNoLongerValid.end();
+         chartFileIter++) {
+        ChartableInterface* tcd = *chartFileIter;
+        removeTimeCourseDialog(tcd);
+    }
+}
+
+/**
  * Show Timeseries Time Course
  */
 void GuiManager::processUpdateTimeCourseDialogs()
 {
+    removeInvalidTimeCourseDialogs();
     //if(!this->timeCourseDialog) this->timeCourseDialog = this->getTimeCourseDialog();
     QList<TimeCourseDialog *> list = this->timeCourseDialogs.values();
     for(int i=0;i<list.size();i++)
@@ -1390,7 +1444,7 @@ void GuiManager::processUpdateTimeCourseDialogs()
 /**
   * Allows Connectivity Manager to update the Time Course Dialog
   */
-TimeCourseDialog * GuiManager::getTimeCourseDialog(void *id)
+TimeCourseDialog * GuiManager::getTimeCourseDialog(ChartableInterface *id)
 {
     if(timeCourseDialogs.contains(id)) return timeCourseDialogs.value(id);
     BrainBrowserWindow* browserWindow = NULL;
@@ -1427,9 +1481,14 @@ void GuiManager::addTimeLines(QList <TimeLine> &tlV)
 /**
  * Removes Time Course Dialog from GuiManager and calls destroy on object
  */
-void GuiManager::removeTimeCourseDialog(void *id)
+void GuiManager::removeTimeCourseDialog(ChartableInterface *id)
 {
+    TimeCourseDialog* tcd = timeCourseDialogs.value(id);
     this->timeCourseDialogs.remove(id);
+    if (tcd != NULL) {
+        removeNonModalDialog(tcd);
+        delete tcd;
+    }
     //this->nonModalDialogs remove
 }
 
@@ -1842,6 +1901,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 QList<TimeLine> timeLines;
                 chartingDataManager->loadChartForSurfaceNode(surface,
                                                              nodeIndex,
+                                                             true, // only charting enabled files
                                                              timeLines);
                 if (timeLines.empty() == false) {
                     const int numTimeLines = timeLines.size();
@@ -1906,6 +1966,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
 //                                                              ciftiLoadingInfo);
                     QList<TimeLine> timeLines;
                     chartingDataManager->loadChartForVoxelAtCoordinate(xyz,
+                                                                       true, // only charting enabled files
                                                                        timeLines);
                     if (timeLines.empty() == false) {
                         GuiManager::get()->addTimeLines(timeLines);

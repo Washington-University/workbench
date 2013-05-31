@@ -40,7 +40,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ColorManager.h"
-#include "ConnectivityLoaderManager.h"
 #include "IdentifiedItemNode.h"
 #include "SceneClassAssistant.h"
 #include "SceneClass.h"
@@ -189,9 +188,9 @@ std::vector<IdentifiedItemNode>
 IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enum structure,
                                                         const int32_t surfaceNumberOfNodes) const
 {
-    ConnectivityLoaderManager* clm = m_brain->getConnectivityLoaderManager();
-    QList<TimeLine> surfaceTimeLines;
-    clm->getSurfaceTimeLines(surfaceTimeLines);
+//    ConnectivityLoaderManager* clm = m_brain->getConnectivityLoaderManager();
+//    QList<TimeLine> surfaceTimeLines;
+//    clm->getSurfaceTimeLines(surfaceTimeLines);
     
     std::vector<IdentifiedItemNode> nodeItemsOut;
     
@@ -223,28 +222,28 @@ IdentificationManager::getNodeIdentifiedItemsForSurface(const StructureEnum::Enu
                         nodeID.setSymbolSize(m_identifcationSymbolSize);
                     }
                     
-                    for (QList<TimeLine>::iterator iter = surfaceTimeLines.begin();
-                         iter != surfaceTimeLines.end();
-                         iter++) {
-                        const TimeLine& tl = *iter;
-                        if (tl.structure == structure) {
-                            if (tl.surfaceNumberOfNodes == surfaceNumberOfNodes) {
-                                if ((int32_t)tl.nodeid == nodeID.getNodeIndex()) {
-                                    Qt::GlobalColor qtColor = ColorManager().getColor(tl.colorID);
-                                    const int32_t colorInt = qtColor;
-                                    const int redByte = (colorInt & 0x00ff0000) >> 16;
-                                    const int greenByte = (colorInt & 0x0000ff00) >> 8;
-                                    const int blueByte = (colorInt & 0x000000ff);
-                                    const float rgb[3] = {
-                                        static_cast<float>(redByte) / 255.0,
-                                        static_cast<float>(greenByte) / 255.0,
-                                        static_cast<float>(blueByte) / 255.0
-                                    };
-                                    nodeID.setSymbolRGB(rgb);
-                                }
-                            }
-                        }
-                    }
+//                    for (QList<TimeLine>::iterator iter = surfaceTimeLines.begin();
+//                         iter != surfaceTimeLines.end();
+//                         iter++) {
+//                        const TimeLine& tl = *iter;
+//                        if (tl.structure == structure) {
+//                            if (tl.surfaceNumberOfNodes == surfaceNumberOfNodes) {
+//                                if ((int32_t)tl.nodeid == nodeID.getNodeIndex()) {
+//                                    Qt::GlobalColor qtColor = ColorManager().getColor(tl.colorID);
+//                                    const int32_t colorInt = qtColor;
+//                                    const int redByte = (colorInt & 0x00ff0000) >> 16;
+//                                    const int greenByte = (colorInt & 0x0000ff00) >> 8;
+//                                    const int blueByte = (colorInt & 0x000000ff);
+//                                    const float rgb[3] = {
+//                                        static_cast<float>(redByte) / 255.0,
+//                                        static_cast<float>(greenByte) / 255.0,
+//                                        static_cast<float>(blueByte) / 255.0
+//                                    };
+//                                    nodeID.setSymbolRGB(rgb);
+//                                }
+//                            }
+//                        }
+//                    }
                     nodeItemsOut.push_back(nodeID);
                 }
             }

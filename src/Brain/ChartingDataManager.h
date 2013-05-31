@@ -53,14 +53,19 @@ namespace caret {
         
         void loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceFile,
                                              const std::vector<int32_t>& nodeIndices,
+                                             const bool requireChartingEnableInFiles,
                                              QList<TimeLine>& timeLinesOut) const throw (DataFileException);
         
         void loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
                                      const int32_t nodeIndex,
+                                     const bool requireChartingEnableInFiles,
                                      QList<TimeLine>& timeLinesOut) const throw (DataFileException);
         
         void loadChartForVoxelAtCoordinate(const float xyz[3],
+                                           const bool requireChartingEnableInFiles,
                                            QList<TimeLine>& timeLinesOut) const throw (DataFileException);
+        
+        bool hasNetworkFiles() const;
         
     private:
         ChartingDataManager(const ChartingDataManager&);

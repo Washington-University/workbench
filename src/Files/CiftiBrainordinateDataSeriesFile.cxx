@@ -135,6 +135,8 @@ CiftiBrainordinateDataSeriesFile::setChartingEnabled(const bool enabled)
 
 /**
  * Load the average of chart data for a group of surface nodes.
+ * Note: This method will return a chart even if charting for
+ * this file is disabled.
  *
  * @param structure
  *     The surface's structure
@@ -150,55 +152,53 @@ CiftiBrainordinateDataSeriesFile::loadAverageChartForSurfaceNodes(const Structur
                                                                   const std::vector<int32_t>& nodeIndices,
                                                                   TimeLine& timeLineOut) throw (DataFileException)
 {
-    if (m_chartingEnabled) {
-        std::vector<double> dataAverage;
-        double numValidNodes = 0.0;
-        
-        std::vector<float> data;
-        
-        const int64_t numNodeIndices = static_cast<int64_t>(nodeIndices.size());
-        for (int64_t iNode = 0; iNode < numNodeIndices; iNode++) {
-            if (getSeriesDataForSurfaceNode(structure,
-                                            nodeIndices[iNode],
-                                            data)) {
-                const int64_t numData = static_cast<int64_t>(data.size());
-                if (numData > 0) {
-                    if (dataAverage.empty()) {
-                        dataAverage.resize(numData,
-                                           0.0);
-                    }
-                    
-                    for (int64_t iData = 0; iData < numData; iData++) {
-                        dataAverage[iData] += data[iData];
-                        numValidNodes += 1.0;
-                    }
+    std::vector<double> dataAverage;
+    double numValidNodes = 0.0;
+    
+    std::vector<float> data;
+    
+    const int64_t numNodeIndices = static_cast<int64_t>(nodeIndices.size());
+    for (int64_t iNode = 0; iNode < numNodeIndices; iNode++) {
+        if (getSeriesDataForSurfaceNode(structure,
+                                        nodeIndices[iNode],
+                                        data)) {
+            const int64_t numData = static_cast<int64_t>(data.size());
+            if (numData > 0) {
+                if (dataAverage.empty()) {
+                    dataAverage.resize(numData,
+                                       0.0);
+                }
+                
+                for (int64_t iData = 0; iData < numData; iData++) {
+                    dataAverage[iData] += data[iData];
+                    numValidNodes += 1.0;
                 }
             }
         }
-        
-        if (numValidNodes > 0.0) {
-            const int64_t numData = static_cast<int64_t>(dataAverage.size());
-            for (int64_t i = 0; i < numData; i++) {
-                dataAverage[i] /= numValidNodes;
-            }
-            
-            timeLineOut.x.resize(numData);
-            timeLineOut.y.resize(numData);
-            for (int64_t i = 0; i < numData; i++) {
-                timeLineOut.x[i] = i;
-                timeLineOut.y[i] = data[i];
-            }
-            timeLineOut.nodeid = 0;
-            timeLineOut.type = AVERAGE;
-            timeLineOut.id = (void*)this;
-            timeLineOut.filename = getFileName();
-            
-            float start, step;
-            getMapIntervalStartAndStep(start, step);
-            timeLineOut.timeStep = step;
-            
-            return true;
+    }
+    
+    if (numValidNodes > 0.0) {
+        const int64_t numData = static_cast<int64_t>(dataAverage.size());
+        for (int64_t i = 0; i < numData; i++) {
+            dataAverage[i] /= numValidNodes;
         }
+        
+        timeLineOut.x.resize(numData);
+        timeLineOut.y.resize(numData);
+        for (int64_t i = 0; i < numData; i++) {
+            timeLineOut.x[i] = i;
+            timeLineOut.y[i] = data[i];
+        }
+        timeLineOut.nodeid = 0;
+        timeLineOut.type = AVERAGE;
+        timeLineOut.id = this;
+        timeLineOut.filename = getFileName();
+        
+        float start, step;
+        getMapIntervalStartAndStep(start, step);
+        timeLineOut.timeStep = step;
+        
+        return true;
     }
     
     return false;
@@ -206,6 +206,8 @@ CiftiBrainordinateDataSeriesFile::loadAverageChartForSurfaceNodes(const Structur
 
 /**
  * Load chart data for a surface node.
+ * Note: This method will return a chart even if charting for
+ * this file is disabled.
  *
  * @param structure
  *     The surface's structure
@@ -221,35 +223,35 @@ CiftiBrainordinateDataSeriesFile::loadChartForSurfaceNode(const StructureEnum::E
                                                           const int32_t nodeIndex,
                                                           TimeLine& timeLineOut) throw (DataFileException)
 {
-    if (m_chartingEnabled) {
-        std::vector<float> data;
-        if (getSeriesDataForSurfaceNode(structure,
-                                        nodeIndex,
-                                        data)) {
-            const int64_t numData = static_cast<int64_t>(data.size());
-            timeLineOut.nodeid = nodeIndex;
-            timeLineOut.x.resize(numData);
-            timeLineOut.y.resize(numData);
-            for (int64_t i = 0; i < numData; i++) {
-                timeLineOut.x[i] = i;
-                timeLineOut.y[i] = data[i];
-            }
-            timeLineOut.id = (void*)this;
-            timeLineOut.filename = getFileName();
-            
-            float start, step;
-            getMapIntervalStartAndStep(start, step);
-            timeLineOut.timeStep = step;
-            
-            return true;
+    std::vector<float> data;
+    if (getSeriesDataForSurfaceNode(structure,
+                                    nodeIndex,
+                                    data)) {
+        const int64_t numData = static_cast<int64_t>(data.size());
+        timeLineOut.nodeid = nodeIndex;
+        timeLineOut.x.resize(numData);
+        timeLineOut.y.resize(numData);
+        for (int64_t i = 0; i < numData; i++) {
+            timeLineOut.x[i] = i;
+            timeLineOut.y[i] = data[i];
         }
+        timeLineOut.id = this;
+        timeLineOut.filename = getFileName();
+        
+        float start, step;
+        getMapIntervalStartAndStep(start, step);
+        timeLineOut.timeStep = step;
+        
+        return true;
     }
     
     return false;
 }
 
 /**
- * Load chart data for a voxel.
+ * Load chart data for a voxel
+ * Note: This method will return a chart even if charting for
+ * this file is disabled.
  *
  * @param xyz
  *     Coordinate of voxel.
@@ -262,31 +264,48 @@ bool
 CiftiBrainordinateDataSeriesFile::loadChartForVoxelAtCoordinate(const float xyz[3],
                                                                 TimeLine& timeLineOut) throw (DataFileException)
 {
-    if (m_chartingEnabled) {
-        std::vector<float> data;
-        if (getSeriesDataForVoxelAtCoordinate(xyz, data)) {
-            const int64_t numData = static_cast<int64_t>(data.size());
-            timeLineOut.x.resize(numData);
-            timeLineOut.y.resize(numData);
-            for (int64_t i = 0; i < numData; i++) {
-                timeLineOut.x[i] = i;
-                timeLineOut.y[i] = data[i];
-            }
-            timeLineOut.id = (void*)this;
-            timeLineOut.filename = getFileName();
-            
-            timeLineOut.label = "Voxel XYZ:[" + AString::fromNumbers(xyz,3,AString(", ")) + "]";
-            
-            float start, step;
-            getMapIntervalStartAndStep(start, step);
-            timeLineOut.timeStep = step;
-            
-            return true;
+    std::vector<float> data;
+    if (getSeriesDataForVoxelAtCoordinate(xyz, data)) {
+        const int64_t numData = static_cast<int64_t>(data.size());
+        timeLineOut.x.resize(numData);
+        timeLineOut.y.resize(numData);
+        for (int64_t i = 0; i < numData; i++) {
+            timeLineOut.x[i] = i;
+            timeLineOut.y[i] = data[i];
         }
+        timeLineOut.id = this;
+        timeLineOut.filename = getFileName();
+        
+        timeLineOut.label = "Voxel XYZ:[" + AString::fromNumbers(xyz,3,AString(", ")) + "]";
+        
+        float start, step;
+        getMapIntervalStartAndStep(start, step);
+        timeLineOut.timeStep = step;
+        
+        return true;
     }
     
     return false;
 }
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+CaretMappableDataFile*
+CiftiBrainordinateDataSeriesFile::getCaretMappableDataFile()
+{
+    return dynamic_cast<CaretMappableDataFile*>(this);
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+const CaretMappableDataFile*
+CiftiBrainordinateDataSeriesFile::getCaretMappableDataFile() const
+{
+    return dynamic_cast<const CaretMappableDataFile*>(this);
+}
+
 
 /**
  * Save file data from the scene.  For subclasses that need to

@@ -22,6 +22,7 @@
  * 
  */ 
 
+#if 0
 #include "TimeSeriesManagerForViewController.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
@@ -37,7 +38,6 @@
 #include "CaretPreferences.h"
 using namespace caret;
 
-#if 0
 TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(ConnectivityTimeSeriesViewController *ctsvc) : QObject(ctsvc)
 {
     m_ctsvc = ctsvc;    

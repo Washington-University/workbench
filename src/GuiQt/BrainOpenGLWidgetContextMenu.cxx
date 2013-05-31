@@ -48,8 +48,6 @@
 #include "ChartingDataManager.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
-#include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
@@ -239,7 +237,8 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         }
         
         std::vector<ChartableInterface*> chartableFiles;
-        brain->getAllChartableDataFilesWithChartingEnabled(chartableFiles);
+        brain->getAllChartableDataFiles(chartableFiles);
+        
         if (chartableFiles.empty() == false) {
             const QString text = ("Show Charts for Nodes Inside Border "
                                   + borderID->getBorder()->getName());
@@ -276,11 +275,6 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
     QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
     
-    std::vector<QAction*> connectivityActions;
-    QActionGroup* connectivityActionGroup = new QActionGroup(this);
-    QObject::connect(connectivityActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(parcelConnectivityActionSelected(QAction*)));
-    
     std::vector<QAction*> dataSeriesActions;
     QActionGroup* dataSeriesActionGroup = new QActionGroup(this);
     QObject::connect(dataSeriesActionGroup, SIGNAL(triggered(QAction*)),
@@ -298,11 +292,10 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
         bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
         
-        ConnectivityLoaderManager* clm = NULL;
-        bool hasTimeSeries = brain->getNumberOfConnectivityTimeSeriesFiles() > 0 ? true : false;
-        if (hasTimeSeries) {
-            clm = brain->getConnectivityLoaderManager();
-        }    
+        std::vector<ChartableInterface*> chartableFiles;
+        brain->getAllChartableDataFiles(chartableFiles);
+        const bool haveChartableFiles = (chartableFiles.empty() == false);
+        ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
     
         Model* model = this->browserTabContent->getModelControllerForDisplay();
         if (model != NULL) {
@@ -346,7 +339,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                                                                     giftiLabel->getName(),
                                                                     surface,
                                                                     nodeNumber,
-                                                                    clm,
+                                                                    chartingDataManager,
                                                                     connMatrixMan);
                     this->parcelConnectivities.push_back(pc);
                     
@@ -360,16 +353,14 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                         ciftiConnectivityActions.push_back(action);
                     }
                     
-                    if (clm != NULL) {
-                        if (hasTimeSeries) {
-                            const AString tsActionName("Show Data Series Graph For Parcel "
-                                                       + giftiLabel->getName()
-                                                       + " in map "
-                                                       + mapName);
-                            QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
-                            tsAction->setData(qVariantFromValue((void*)pc));                            
-                            dataSeriesActions.push_back(tsAction);
-                        }
+                    if (haveChartableFiles) {
+                        const AString tsActionName("Show Data Series Graph For Parcel "
+                                                   + giftiLabel->getName()
+                                                   + " in map "
+                                                   + mapName);
+                        QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
+                        tsAction->setData(qVariantFromValue((void*)pc));                            
+                        dataSeriesActions.push_back(tsAction);
                     }
                 }
             }
@@ -391,15 +382,6 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
              ciftiConnIter != ciftiConnectivityActions.end();
              ciftiConnIter++) {
             this->addAction(*ciftiConnIter);
-        }
-    }
-    
-    if (connectivityActions.empty() == false) {
-        this->addSeparator();
-        for (std::vector<QAction*>::iterator connIter = connectivityActions.begin();
-             connIter != connectivityActions.end();
-             connIter++) {
-            this->addAction(*connIter);
         }
     }
     
@@ -606,49 +588,6 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
 }
 
 /**
- * Called when a connectivity action is selected.
- * @param action
- *    Action that was selected.
- */
-void 
-BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
-{
-    void* pointer = action->data().value<void*>();
-    ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
-    
-    std::vector<int32_t> nodeIndices;
-    pc->labelFile->getNodeIndicesWithLabelKey(pc->labelFileMapIndex, 
-                                              pc->labelKey,
-                                              nodeIndices);
-    if (nodeIndices.empty()) {
-        WuQMessageBox::errorOk(this,
-                               "No vertices match label " + pc->labelName);
-        return;
-    }
-    
-    if (this->warnIfNetworkNodeCountIsLarge(pc->connectivityLoaderManager, 
-                                            nodeIndices) == false) {
-        return;
-    }
-    
-    try {
-        ProgressReportingDialog progressDialog("Connectivity Within Parcel",
-                                               "",
-                                               this);
-        progressDialog.setValue(0);
-        pc->connectivityLoaderManager->loadAverageDataForSurfaceNodes(pc->surface,
-                                                                      nodeIndices);
-    }
-    catch (const DataFileException& e) {
-        WuQMessageBox::errorOk(this, e.whatString());
-    }
-    
-    
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
-}
-
-/**
  * Called when border cifti connectivity is selected.
  */
 void
@@ -686,7 +625,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
             return;
         }
         
-        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getConnectivityLoaderManager(),
+        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getChartingDataManager(),
                                                 nodeIndices) == false) {
             return;
         }
@@ -713,70 +652,83 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
     }
 }
 
-/**
- * Called when border connectivity is selected.
- */
-void 
-BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
-{
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
-    Border* border = borderID->getBorder();
-    Surface* surface = borderID->getSurface();
-    
-    const int32_t numberOfNodes = surface->getNumberOfNodes();
-    LabelFile labelFile;
-    labelFile.setNumberOfNodesAndColumns(numberOfNodes, 1);
-    const int32_t labelKey = labelFile.getLabelTable()->addLabel("TempLabel", 1.0f, 1.0f, 1.0f, 1.0f);
-    const int32_t mapIndex = 0;
-    
-    try {
-        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
-                                                         surface,
-                                                         border,
-                                                         false,
-                                                         mapIndex,
-                                                         labelKey,
-                                                         &labelFile);
-        std::vector<int32_t> nodeIndices;
-        nodeIndices.reserve(numberOfNodes);
-        for (int32_t i = 0; i < numberOfNodes; i++) {
-            if (labelFile.getLabelKey(i, mapIndex) == labelKey) {
-                nodeIndices.push_back(i);
-            }
-        }
-        
-        if (nodeIndices.empty()) {
-            WuQMessageBox::errorOk(this,
-                                   "No vertices found inside border " + border->getName());
-            return;
-        }
-        
-        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getConnectivityLoaderManager(), 
-                                                nodeIndices) == false) {
-            return;
-        }
-        
-        try {
-            ProgressReportingDialog progressDialog("Connectivity Within Border",
-                                                    "",
-                                                    this);
-            progressDialog.setValue(0);
-            ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
-            connectivityLoaderManager->loadAverageDataForSurfaceNodes(surface,
-                                                                          nodeIndices);
-        }
-        catch (const DataFileException& e) {
-            WuQMessageBox::errorOk(this, e.whatString());
-        }
-        
-        
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
-    }
-    catch (const AlgorithmException& e) {
-        WuQMessageBox::errorOk(this, e.whatString());
-    }
-}
+///**
+// * Called when border connectivity is selected.
+// */
+//void 
+//BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
+//{
+//    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+//    Border* border = borderID->getBorder();
+//    Surface* surface = borderID->getSurface();
+//    
+//    const int32_t numberOfNodes = surface->getNumberOfNodes();
+//    LabelFile labelFile;
+//    labelFile.setNumberOfNodesAndColumns(numberOfNodes, 1);
+//    const int32_t labelKey = labelFile.getLabelTable()->addLabel("TempLabel", 1.0f, 1.0f, 1.0f, 1.0f);
+//    const int32_t mapIndex = 0;
+//    
+//    try {
+//        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+//                                                         surface,
+//                                                         border,
+//                                                         false,
+//                                                         mapIndex,
+//                                                         labelKey,
+//                                                         &labelFile);
+//        std::vector<int32_t> nodeIndices;
+//        nodeIndices.reserve(numberOfNodes);
+//        for (int32_t i = 0; i < numberOfNodes; i++) {
+//            if (labelFile.getLabelKey(i, mapIndex) == labelKey) {
+//                nodeIndices.push_back(i);
+//            }
+//        }
+//        
+//        if (nodeIndices.empty()) {
+//            WuQMessageBox::errorOk(this,
+//                                   "No vertices found inside border " + border->getName());
+//            return;
+//        }
+//        
+//        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getChartingDataManager(),
+//                                                nodeIndices) == false) {
+//            return;
+//        }
+//        
+//        try {
+//            ProgressReportingDialog progressDialog("Connectivity Within Border",
+//                                                    "",
+//                                                    this);
+//            progressDialog.setValue(0);
+//            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
+//            
+//            QList<TimeLine> timeLines;
+//            ChartingDataManager* chartingDataManger = borderID->getBrain()->getChartingDataManager();
+//            chartingDataManger->loadAverageChartForSurfaceNodes(surface,
+//                                                                 nodeIndices,
+//                                                                true,
+//                                                                 timeLines);
+//            if (showAllGraphs) {
+//                displayAllDataSeriesGraphs();
+//            }
+//            
+//            GuiManager::get()->addTimeLines(timeLines);
+//            EventUpdateTimeCourseDialog e;
+//            EventManager::get()->sendEvent(e.getPointer());
+//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+//        }
+//        catch (const DataFileException& e) {
+//            WuQMessageBox::errorOk(this, e.whatString());
+//        }
+//        
+//        
+//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+//        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
+//    }
+//    catch (const AlgorithmException& e) {
+//        WuQMessageBox::errorOk(this, e.whatString());
+//    }
+//}
 
 /**
  * Called when a connectivity action is selected.
@@ -799,7 +751,7 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
         return;
     }
     
-    if (this->warnIfNetworkNodeCountIsLarge(pc->connectivityLoaderManager, 
+    if (this->warnIfNetworkNodeCountIsLarge(pc->chartingDataManager,
                                             nodeIndices) == false) {
         return;
     }
@@ -809,25 +761,29 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
                                                "",
                                                this);
         progressDialog.setValue(0);
-        TimeLine tl;
-        for(int i=0;i<3;i++) tl.point[i] = 0.0;
-        tl.parcelName = pc->labelName;       
-        tl.structureName = StructureEnum::toGuiName(pc->surface->getStructure());
-        tl.label = tl.structureName + ":" + tl.parcelName;
-        pc->connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(pc->surface,
-                                                                      nodeIndices, tl);
-
-        QList <TimeLine> tlV;
-        pc->connectivityLoaderManager->getSurfaceTimeLines(tlV);
-        if(tlV.size()!=0)
-        {                    
-//            CAUSES ALL CHART DIALOGS TO DISPLAY INCLUDING EMPTY ONES
-//            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
-//            if (showAllGraphs) {
-//                displayAllDataSeriesGraphs();
-//            }
+        
+        const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
+        QList<TimeLine> timeLines;
+        pc->chartingDataManager->loadAverageChartForSurfaceNodes(pc->surface,
+                                                            nodeIndices,
+                                                                 true,  // only files with charting enabled
+                                                            timeLines);
+        if(timeLines.size()!=0)
+        {
+            for (int i = 0; i < timeLines.size(); i++) {
+                TimeLine &tl = timeLines[i];
+                for(int i=0;i<3;i++) tl.point[i] = 0.0;
+                tl.parcelName = pc->labelName;
+                tl.structureName = StructureEnum::toGuiName(pc->surface->getStructure());
+                tl.label = tl.structureName + ":" + tl.parcelName;
+            }
+            
+            GuiManager::get()->addTimeLines(timeLines);
+            
+            if (showAllGraphs) {
+                displayAllDataSeriesGraphs();
+            }
         }
-        GuiManager::get()->addTimeLines(tlV);
         EventUpdateTimeCourseDialog e;
         EventManager::get()->sendEvent(e.getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -876,7 +832,7 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
             return;
         }
         
-        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getConnectivityLoaderManager(), 
+        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getChartingDataManager(),
                                                 nodeIndices) == false) {
             return;
         }
@@ -886,17 +842,19 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
                                                    "",
                                                    this);
             progressDialog.setValue(0);
-            TimeLine tl;
-            for(int i=0;i<3;i++) tl.point[i] = 0.0;
-            tl.borderClassName = border->getClassName();
-            tl.borderName = border->getName();
-            tl.structureName = StructureEnum::toGuiName(border->getStructure());
-            tl.label =  tl.structureName + ":" + tl.borderClassName + ":" + tl.borderName;
+//            TimeLine tl;
+//            for(int i=0;i<3;i++) tl.point[i] = 0.0;
+//            tl.borderClassName = border->getClassName();
+//            tl.borderName = border->getName();
+//            tl.structureName = StructureEnum::toGuiName(border->getStructure());
+//            tl.label =  tl.structureName + ":" + tl.borderClassName + ":" + tl.borderName;
             
+            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
             ChartingDataManager* chartingDataManager = borderID->getBrain()->getChartingDataManager();
             QList<TimeLine> timeLines;
             chartingDataManager->loadAverageChartForSurfaceNodes(surface,
                                                                  nodeIndices,
+                                                                 true,  // only files with charting enabled
                                                                  timeLines);
             if (timeLines.empty() == false) {
                 const int numTimelines = timeLines.size();
@@ -910,11 +868,9 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
                     timeLines[itl].label =  timeLines[itl].structureName + ":" + timeLines[itl].borderClassName + ":" + timeLines[itl].borderName;
                 }
                 
-//                CAUSES ALL CHART DIALOGS TO DISPLAY INCLUDING EMPTY ONES
-//                const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
-//                if (showAllGraphs) {
-//                    displayAllDataSeriesGraphs();
-//                }
+                if (showAllGraphs) {
+                    displayAllDataSeriesGraphs();
+                }
                 
                 GuiManager::get()->addTimeLines(timeLines);
                 EventUpdateTimeCourseDialog e;
@@ -943,8 +899,6 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
         catch (const DataFileException& e) {
             WuQMessageBox::errorOk(this, e.whatString());
         }   
-        
-  
     }
     catch (const AlgorithmException& e) {
         WuQMessageBox::errorOk(this, e.whatString());
@@ -953,27 +907,27 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
 }
 
 /**
- * @return If not data series graphs are enabled, enable all of them and return 
+ * @return If no data series graphs are enabled, enable all of them and return 
  * true.  Else, return false.
  */
 bool
 BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<ConnectivityLoaderFile*> dataSeriesFiles;
-    brain->getConnectivityTimeSeriesFiles(dataSeriesFiles);
-    if (dataSeriesFiles.empty()) {
+    std::vector<ChartableInterface*> chartFiles;
+    brain->getAllChartableDataFiles(chartFiles);
+    if (chartFiles.empty()) {
         return false;
     }
     
     /*
      * Exit if any data series graph is enabled.
      */
-    for (std::vector<ConnectivityLoaderFile*>::iterator iter = dataSeriesFiles.begin();
-         iter != dataSeriesFiles.end();
+    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+         iter != chartFiles.end();
          iter++) {
-        ConnectivityLoaderFile* clf = *iter;
-        if (clf->isTimeSeriesGraphEnabled()) {
+        ChartableInterface* chartFile = *iter;
+        if (chartFile->isChartingEnabled()) {
             return false;
         }
     }
@@ -981,11 +935,11 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
     /*
      * Enable and display all data series graphs.
      */
-    for (std::vector<ConnectivityLoaderFile*>::iterator iter = dataSeriesFiles.begin();
-         iter != dataSeriesFiles.end();
+    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+         iter != chartFiles.end();
          iter++) {
-        ConnectivityLoaderFile* clf = *iter;
-        clf->setTimeSeriesGraphEnabled(true);
+        ChartableInterface* chartFile = *iter;
+        chartFile->setChartingEnabled(true);
     }
 
     return true;
@@ -998,14 +952,14 @@ void
 BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<ConnectivityLoaderFile*> dataSeriesFiles;
-    brain->getConnectivityTimeSeriesFiles(dataSeriesFiles);
-    for (std::vector<ConnectivityLoaderFile*>::iterator iter = dataSeriesFiles.begin();
-         iter != dataSeriesFiles.end();
+    std::vector<ChartableInterface*> chartFiles;
+    brain->getAllChartableDataFiles(chartFiles);
+    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+         iter != chartFiles.end();
          iter++) {
-        ConnectivityLoaderFile* clf = *iter;
-        clf->setTimeSeriesGraphEnabled(true);
-        TimeCourseDialog* tcd = GuiManager::get()->getTimeCourseDialog((void *)clf);
+        ChartableInterface* chartFile = *iter;
+        chartFile->setChartingEnabled(true);
+        TimeCourseDialog* tcd = GuiManager::get()->getTimeCourseDialog(chartFile);
         tcd->setTimeSeriesGraphEnabled(true);
         tcd->show();
     }    
@@ -1284,15 +1238,15 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const CiftiConnectiv
  * and the number of nodes is large, warn the user since this will
  * be a very slow operation.
  *
- * @param clm
- *    The connectivity manager.
+ * @param chartingDataManager
+ *    The charting data manager.
  * @param nodeIndices
  *    Indices of nodes that will have connectivity data retrieved.
  * @return 
  *    true if process should continue, false if user cancels.
  */
 bool 
-BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ConnectivityLoaderManager* clm,
+BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ChartingDataManager* chartingDataManager,
                                                             const std::vector<int32_t>& nodeIndices)
 {
     const int32_t numNodes = static_cast<int32_t>(nodeIndices.size());
@@ -1300,7 +1254,7 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ConnectivityLo
         return true;
     }
     
-    if (clm->hasNetworkFiles() == false) {
+    if (chartingDataManager->hasNetworkFiles() == false) {
         return true;
     }
     

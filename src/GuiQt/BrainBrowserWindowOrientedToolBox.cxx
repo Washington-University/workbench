@@ -17,6 +17,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
+#include "ChartableInterface.h"
 #include "ChartSetViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
 #include "ConnectivityManagerViewController.h"
@@ -467,7 +468,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          */
         bool haveBorders    = false;
         bool haveCiftiMatrix = false;
-        bool haveDataSeries = false;
+        bool haveChartFiles = false;
         bool haveFibers     = false;
         bool haveFoci       = false;
         bool haveLabels     = false;
@@ -481,6 +482,12 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
              iter != allDataFiles.end();
              iter++) {
             const CaretDataFile* caretDataFile = *iter;
+            
+            const ChartableInterface* chartableInterface = dynamic_cast<const ChartableInterface*>(caretDataFile);
+            if (chartableInterface != NULL) {
+                haveChartFiles = true;
+            }
+            
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
                 case DataFileTypeEnum::BORDER:
@@ -498,7 +505,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                    haveDataSeries = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     haveFibers = true;
@@ -578,7 +584,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * automatically selected.
          */
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveCiftiMatrix);
-        if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveDataSeries);
+        if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveChartFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);

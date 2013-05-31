@@ -47,7 +47,6 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
@@ -70,7 +69,7 @@ using namespace caret;
 
 /**
  * \class caret::ConnectivityManagerViewController 
- * \brief View-Controller for the ConnectivityLoaderManager
+ * \brief View-Controller for the Connectivity Files
  * \ingroup GuiQt
  */
 /**
@@ -343,10 +342,6 @@ ConnectivityManagerViewController::updateManagerViewController()
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
-//            std::vector<ConnectivityLoaderFile*> files;
-//            brain->getConnectivityTimeSeriesFiles(files);
-//            this->updateForTimeSeriesFiles(files);
-            
             std::vector<ChartableInterface*> chartFiles;
             brain->getAllChartableDataFiles(chartFiles);
             this->updateForTimeSeriesFiles(chartFiles);

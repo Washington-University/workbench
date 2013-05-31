@@ -49,6 +49,7 @@ namespace caret {
     class Brain;
     class BrainBrowserWindow;
     class BrowserTabContent;
+    class ChartableInterface;
     class CursorManager;
     class CustomViewDialog;
     class ImageFile;
@@ -62,7 +63,6 @@ namespace caret {
     class SceneFile;
     class SelectionManager;
     class SurfacePropertiesEditorDialog;
-    class ConnectivityLoaderControl;
     
     /**
      * Manages the graphical user-interface.
@@ -140,9 +140,9 @@ namespace caret {
                                                      ImageFile& imageFileOut,
                                                      bool updateWindow = true);
         void processUpdateTimeCourseDialogs();
-        TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
+        TimeCourseDialog *getTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
         void addTimeLines(QList <TimeLine> &tlV);
-        void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
+        void removeTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
         void updateAnimationStartTime(double value); 
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -187,6 +187,10 @@ namespace caret {
         
         void showHideSceneDialog(const bool status,
                                  BrainBrowserWindow* parentBrainBrowserWindow);
+        
+        void removeInvalidTimeCourseDialogs();
+        
+        void removeNonModalDialog(QWidget* dialog);
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
@@ -240,7 +244,7 @@ namespace caret {
          */
         std::vector<QWidget*> nonModalDialogs;
         
-        QMap<void *,TimeCourseDialog *> timeCourseDialogs;
+        QMap<ChartableInterface *,TimeCourseDialog *> timeCourseDialogs;
         
         /**
          * If Workbench is started by double-clicking a data file in

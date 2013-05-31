@@ -64,7 +64,6 @@
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "TimeCourseDialog.h"
-#include "TimeSeriesManagerForViewController.h"
 #include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
@@ -86,8 +85,8 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
                                                                    QObject* parent)
 : QObject(parent)
 {
-    this->connectivityLoaderFile = NULL;
-    this->previousConnectivityLoaderFile = NULL;
+    this->chartableDataFile = NULL;
+    this->previousChartableDataFile = NULL;
     
     
     
@@ -150,9 +149,9 @@ ConnectivityTimeSeriesViewController::~ConnectivityTimeSeriesViewController()
  * NULL if not valid.
  */
 ChartableInterface* 
-ConnectivityTimeSeriesViewController::getConnectivityLoaderFile()
+ConnectivityTimeSeriesViewController::getChartableDataFile()
 {
-    return this->connectivityLoaderFile;
+    return this->chartableDataFile;
 }
 
 /**
@@ -188,23 +187,23 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
 
 /**
  * Update this view controller.
- * @param connectivityLoaderFile
+ * @param chartableDataFile
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* connectivityLoaderFile)
+ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* chartableDataFile)
 {
-    this->connectivityLoaderFile = connectivityLoaderFile;
-    if (this->connectivityLoaderFile != NULL) {        
+    this->chartableDataFile = chartableDataFile;
+    if (this->chartableDataFile != NULL) {        
 
         Qt::CheckState enabledState = Qt::Unchecked;
         
-        CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(this->connectivityLoaderFile);
+        CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(this->chartableDataFile);
         CaretAssert(mappableDataFile);
         this->fileNameLineEdit->setText(mappableDataFile->getFileName());
 
         enabledState = Qt::Unchecked;
-        if(this->connectivityLoaderFile->isChartingEnabled()) {
+        if(this->chartableDataFile->isChartingEnabled()) {
             enabledState = Qt::Checked;
         }
         this->graphToolButton->blockSignals(true);
@@ -212,7 +211,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
         this->graphToolButton->blockSignals(false);       
     }
      
-    this->previousConnectivityLoaderFile = this->connectivityLoaderFile;
+    this->previousChartableDataFile = this->chartableDataFile;
 }
 
 /**
@@ -221,7 +220,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
 void 
 ConnectivityTimeSeriesViewController::updateViewController()
 {
-    this->updateViewController(this->connectivityLoaderFile);    
+    this->updateViewController(this->chartableDataFile);    
 }
 
 
@@ -245,9 +244,9 @@ ConnectivityTimeSeriesViewController::setVisible(bool visible)
 void 
 ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 {
-    if (this->connectivityLoaderFile != NULL) {
-            this->connectivityLoaderFile->setChartingEnabled(status);
-            GuiManager::get()->getTimeCourseDialog((void *)this->connectivityLoaderFile)->setTimeSeriesGraphEnabled(status);
+    if (this->chartableDataFile != NULL) {
+            this->chartableDataFile->setChartingEnabled(status);
+            GuiManager::get()->getTimeCourseDialog(this->chartableDataFile)->setTimeSeriesGraphEnabled(status);
             this->updateOtherConnectivityTimeSeriesViewControllers();
         }
 }
@@ -259,7 +258,7 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 void 
 ConnectivityTimeSeriesViewController::updateOtherConnectivityTimeSeriesViewControllers()
 {
-    if (this->connectivityLoaderFile != NULL) {
+    if (this->chartableDataFile != NULL) {
         for (std::set<ConnectivityTimeSeriesViewController*>::iterator iter = allConnectivityTimeSeriesViewControllers.begin();
              iter != allConnectivityTimeSeriesViewControllers.end();
              iter++) {

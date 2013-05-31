@@ -57,8 +57,6 @@ namespace caret {
     class CiftiFiberTrajectoryFile;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
-    class ConnectivityLoaderFile;
-    class ConnectivityLoaderManager;
     class DisplayProperties;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
@@ -207,13 +205,7 @@ namespace caret {
         
         const CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager() const;
         
-        ConnectivityLoaderManager* getConnectivityLoaderManager();
-        
-        const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
-        
         void getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCiftiMappableDataFilesOut) const;
-        
-        void getMappableConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
         
         int32_t getNumberOfConnectivityMatrixDenseFiles() const;
         
@@ -280,12 +272,6 @@ namespace caret {
         void getConnectivityMatrixParcelDenseFiles(std::vector<CiftiConnectivityMatrixParcelDenseFile*>& connectivityParcelDenseFilesOut) const;
         
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
-        
-        ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx);
-        
-        const ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx) const;
-        
-        void getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& connectivityTimeSeriesFilesOut) const;
         
         void getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityMatrixDataFile*>& allCiftiConnectivityMatrixFiles) const;
         
@@ -455,11 +441,6 @@ namespace caret {
         CiftiBrainordinateDataSeriesFile* readConnectivityDataSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
                                             const AString& filename) throw (DataFileException);
         
-        ConnectivityLoaderFile* readConnectivityTimeSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
-                                                               const AString& filename) throw (DataFileException);
-        
-        void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
-        
         FociFile* readFociFile(CaretDataFile* reloadThisFileIfNotNull,
                           const AString& filename) throw (DataFileException);
         
@@ -505,8 +486,6 @@ namespace caret {
         
         std::vector<CiftiConnectivityMatrixParcelDenseFile*> m_connectivityMatrixParcelDenseFiles;
         
-        std::vector<ConnectivityLoaderFile*> m_connectivityChartTemporaryFiles;
-        
         std::vector<CiftiBrainordinateDataSeriesFile*> m_connectivityDataSeriesFiles;
         
         mutable AString m_currentDirectory;
@@ -522,8 +501,6 @@ namespace caret {
         ModelSurfaceMontage* m_surfaceMontageController;
         
         ChartingDataManager* m_chartingDataManager;
-        
-        ConnectivityLoaderManager* m_connectivityLoaderManager;
         
         CiftiConnectivityMatrixDataFileManager* m_ciftiConnectivityMatrixDataFileManager;
         

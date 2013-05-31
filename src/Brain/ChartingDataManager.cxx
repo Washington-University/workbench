@@ -75,6 +75,10 @@ ChartingDataManager::~ChartingDataManager()
  *     The surface file
  * @param nodeIndices
  *     Indices of nodes whose chart data is averaged
+ * @param requireChartingEnableInFiles
+ *     If true, only files that have charting enabled have charts loaded.
+ *     If false, charts are loaded from all files regardless of charting 
+ *     enabled status.
  * @param timeLinesOut
  *     Will contain any newly created charts upon exit.
  * @return
@@ -83,6 +87,7 @@ ChartingDataManager::~ChartingDataManager()
 void
 ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceFile,
                                                      const std::vector<int32_t>& nodeIndices,
+                                                     const bool requireChartingEnableInFiles,
                                                      QList<TimeLine>& timeLinesOut) const throw (DataFileException)
 {
     CaretAssert(surfaceFile);
@@ -90,7 +95,12 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
     timeLinesOut.clear();
     
     std::vector<ChartableInterface*> chartFiles;
-    m_brain->getAllChartableDataFiles(chartFiles);
+    if (requireChartingEnableInFiles) {
+        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    }
+    else {
+        m_brain->getAllChartableDataFiles(chartFiles);
+    }
     
     const StructureEnum::Enum structure = surfaceFile->getStructure();
     
@@ -114,12 +124,17 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
  *     The surface file
  * @param nodeIndex
  *     Index of node.
+ * @param requireChartingEnableInFiles
+ *     If true, only files that have charting enabled have charts loaded.
+ *     If false, charts are loaded from all files regardless of charting
+ *     enabled status.
  * @param timeLinesOut
  *     Will contain any newly created charts upon exit.
  */
 void
 ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
                                              const int32_t nodeIndex,
+                                             const bool requireChartingEnableInFiles,
                                              QList<TimeLine>& timeLinesOut) const throw (DataFileException)
 {
     CaretAssert(surfaceFile);
@@ -127,7 +142,12 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
     timeLinesOut.clear();
     
     std::vector<ChartableInterface*> chartFiles;
-    m_brain->getAllChartableDataFiles(chartFiles);
+    if (requireChartingEnableInFiles) {
+        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    }
+    else {
+        m_brain->getAllChartableDataFiles(chartFiles);
+    }
     
     const StructureEnum::Enum structure = surfaceFile->getStructure();
     
@@ -149,6 +169,10 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
  *
  * @param xyz
  *     Coordinate of voxel.
+ * @param requireChartingEnableInFiles
+ *     If true, only files that have charting enabled have charts loaded.
+ *     If false, charts are loaded from all files regardless of charting
+ *     enabled status.
  * @param timeLinesOut
  *     Will contain any newly created charts upon exit.
  * @return
@@ -156,12 +180,18 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
  */
 void
 ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3],
+                                                   const bool requireChartingEnableInFiles,
                                                    QList<TimeLine>& timeLinesOut) const throw (DataFileException)
 {
     timeLinesOut.clear();
     
     std::vector<ChartableInterface*> chartFiles;
-    m_brain->getAllChartableDataFiles(chartFiles);
+    if (requireChartingEnableInFiles) {
+        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    }
+    else {
+        m_brain->getAllChartableDataFiles(chartFiles);
+    }
     
     for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
          fileIter != chartFiles.end();
@@ -173,3 +203,43 @@ ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3],
         }
     }
 }
+
+/**
+ * @return True if there are charting that retrieve data from the network.
+ */
+bool
+ChartingDataManager::hasNetworkFiles() const
+{
+    /*
+     * At this time, all 'chartable' files are read in their entirety
+     * so all data is local once the file is read.
+     */
+    return false;
+    
+//    std::vector<ChartableInterface*> chartFiles;
+//    if (requireChartingEnableInFiles) {
+//        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+//    }
+//    else {
+//        m_brain->getAllChartableDataFiles(chartFiles);
+//    }
+//    
+//    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+//         fileIter != chartFiles.end();
+//         fileIter++) {
+//        ChartableInterface* chartFile = *fileIter;
+//        
+//        CaretDataFile* caretDataFile = dynamic_cast<CaretDataFile*>(chartFile);
+//        CaretAssert(caretDataFile);
+//        if (caretDataFile->isEmpty() == false) {
+//            const AString filename = caretDataFile->getFileName();
+//            if (CaretDataFile::isFileOnNetwork(filename)) {
+//                return true;
+//            }
+//        }
+//    }
+//    
+//    return false;
+}
+
+

@@ -67,6 +67,10 @@ namespace caret {
         virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
                                                    TimeLine& timeLineOut) throw (DataFileException);
         
+        virtual CaretMappableDataFile* getCaretMappableDataFile();
+        
+        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
+        
     private:
         CiftiBrainordinateDataSeriesFile(const CiftiBrainordinateDataSeriesFile&);
 

@@ -46,7 +46,7 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class CiftiConnectivityMatrixDataFileManager;
-    class ConnectivityLoaderManager;
+    class ChartingDataManager;
     class SelectionManager;
     class LabelFile;
     class Surface;
@@ -89,13 +89,11 @@ namespace caret {
         
         void parcelCiftiConnectivityActionSelected(QAction* action);
 
-        void parcelConnectivityActionSelected(QAction* action);
-        
         void parcelDataSeriesActionSelected(QAction* action);
         
         void borderCiftiConnectivitySelected();
 
-        void borderConnectivitySelected();
+//        void borderConnectivitySelected();
         
         void borderDataSeriesSelected();
         
@@ -108,7 +106,7 @@ namespace caret {
                                const QString& labelName,
                                Surface* surface,
                                const int32_t nodeNumber,
-                               ConnectivityLoaderManager* connectivityLoaderManager,
+                               ChartingDataManager* chartingDataManager,
                                CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
                 this->labelFile = labelFile;
                 this->labelFileMapIndex = labelFileMapIndex;
@@ -116,7 +114,7 @@ namespace caret {
                 this->labelName = labelName;
                 this->surface = surface;
                 this->nodeNumber = nodeNumber;
-                this->connectivityLoaderManager = connectivityLoaderManager;
+                this->chartingDataManager = chartingDataManager;
                 this->ciftiConnectivityManager = ciftiConnectivityManager;
             }
             
@@ -127,14 +125,14 @@ namespace caret {
             Surface* surface;
             int32_t nodeNumber;
             CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
-            ConnectivityLoaderManager* connectivityLoaderManager;
+            ChartingDataManager* chartingDataManager;
         };
         
         BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);
 
         BrainOpenGLWidgetContextMenu& operator=(const BrainOpenGLWidgetContextMenu&);
                 
-        bool warnIfNetworkNodeCountIsLarge(const ConnectivityLoaderManager* clm,
+        bool warnIfNetworkNodeCountIsLarge(const ChartingDataManager* chartingDataManager,
                                            const std::vector<int32_t>& nodeIndices);
         bool warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,
                                            const std::vector<int32_t>& nodeIndices);

@@ -32,6 +32,9 @@
 #include "StructureEnum.h"
 #include "QVector"
 namespace caret {
+    
+    class ChartableInterface;
+    
 enum TimeLineType {
     NODE,
     AVERAGE
@@ -39,14 +42,15 @@ enum TimeLineType {
 class TimeLine {
 public:
     TimeLine();
-    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn,void * idIn = NULL);
+    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn,ChartableInterface * idIn = NULL);
     virtual ~TimeLine();
     uint64_t nodeid;
     double point[3];
     QVector<double> x;
     QVector<double> y;
     ColorId colorID;
-    void *id;//pointer to originating clf that helps us track where timeline came from
+    ChartableInterface *id;//pointer to originating clf that helps us track where timeline came from
+    //void *id;//pointer to originating clf that helps us track where timeline came from
     AString filename;
     int64_t clmID; //the timelines number in the connectivity loader manager
     double timeStep;

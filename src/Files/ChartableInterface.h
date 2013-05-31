@@ -40,6 +40,7 @@
 
 namespace caret {
 
+    class CaretMappableDataFile;
     class TimeLine;
     
     /**
@@ -53,6 +54,16 @@ namespace caret {
 //        ChartableInterface() { }
 //        
 //        virtual ~ChartableInterface() { }
+        
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
+        virtual CaretMappableDataFile* getCaretMappableDataFile() = 0;
+        
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
+        virtual const CaretMappableDataFile* getCaretMappableDataFile() const = 0;
         
         /**
          * @return Is charting enabled for this file?
@@ -75,7 +86,9 @@ namespace caret {
         virtual void setChartingEnabled(const bool enabled) = 0;
         
         /**
-         * Load the average of chart data for a group of surface nodes.
+         * Load the average of chart data for a group of surface nodes
+         * Note: This method will return a chart even if charting for
+         * this file is disabled.
          *
          * @param structure
          *     The surface's structure
@@ -91,7 +104,9 @@ namespace caret {
                                                      TimeLine& timeLineOut) throw (DataFileException) = 0;
         
         /**
-         * Load chart data for a surface node.
+         * Load chart data for a surface node
+         * Note: This method will return a chart even if charting for
+         * this file is disabled.
          *
          * @param structure
          *     The surface's structure
@@ -107,7 +122,9 @@ namespace caret {
                                              TimeLine& timeLineOut) throw (DataFileException) = 0;
         
         /**
-         * Load chart data for a voxel.
+         * Load chart data for a voxel
+         * Note: This method will return a chart even if charting for
+         * this file is disabled.
          *
          * @param xyz
          *     Coordinate of voxel.
