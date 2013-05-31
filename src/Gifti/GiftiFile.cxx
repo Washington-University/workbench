@@ -873,6 +873,20 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
             << e.whatString().toStdString();
         throw DataFileException(AString::fromStdString(str.str()));
     }
+    
+    /*
+     * If any maps are missing names, give them default names.
+     */
+    const int32_t numArrays = getNumberOfDataArrays();
+    for (int32_t i = 0; i < numArrays; i++) {
+        AString arrayName = getDataArrayName(i);
+        if (arrayName.isEmpty()) {
+            arrayName = ("#"
+                         + AString::number(i + 1));
+            setDataArrayName(i,
+                             arrayName);
+        }
+    }
 }
 
 /**
