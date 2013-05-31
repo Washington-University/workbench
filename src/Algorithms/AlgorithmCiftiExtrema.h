@@ -38,9 +38,11 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfDist, const float& volDist, const int& myDir, CiftiFile* myCiftiOut,
-                              const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL, const float& surfPresmooth = -1.0f,
-                              const float& volPresmooth = -1.0f, const bool& thresholdMode = false, const float& lowThresh = 0.0f, const float& highThresh = 0.0f,
-                              const bool& sumMaps = false, const bool& consolidateMode = false, const bool& ignoreMinima = false, const bool& ignoreMaxima = false);
+                              const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
+                              const float& surfPresmooth = -1.0f, const float& volPresmooth = -1.0f,
+                              const bool& thresholdMode = false, const float& lowThresh = 0.0f, const float& highThresh = 0.0f,
+                              const bool& mergedVolume = false, const bool& sumMaps = false, const bool& consolidateMode = false,
+                              const bool& ignoreMinima = false, const bool& ignoreMaxima = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

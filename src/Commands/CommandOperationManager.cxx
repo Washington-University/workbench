@@ -44,6 +44,7 @@
 #include "AlgorithmCiftiReduce.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 #include "AlgorithmCiftiResample.h"
+#include "AlgorithmCiftiROIsFromExtrema.h"
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiSmoothing.h"
 #include "AlgorithmCiftiTranspose.h"
@@ -206,6 +207,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiResample()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSeparate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiTranspose()));

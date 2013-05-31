@@ -55,22 +55,30 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     
     ret->addStringParameter(2, "direction", "which direction to separate into components, ROW or COLUMN");
     
-    OptionalParameter* metricOpt = ret->createOptionalParameter(3, "-metric", "separate a surface model into a metric file");
+    OptionalParameter* labelOpt = ret->createOptionalParameter(3, "-label", "separate a surface model into a surface label file");
+    labelOpt->addStringParameter(1, "structure", "the structure to output");
+    labelOpt->addLabelOutputParameter(2, "label-out", "the output label file");
+    OptionalParameter* labelRoiOpt = labelOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data");
+    labelRoiOpt->addMetricOutputParameter(1, "roi-out", "the roi output metric");
+    
+    OptionalParameter* metricOpt = ret->createOptionalParameter(4, "-metric", "separate a surface model into a metric file");
     metricOpt->addStringParameter(1, "structure", "the structure to output");
     metricOpt->addMetricOutputParameter(2, "metric-out", "the output metric");
-    OptionalParameter* metricRoiOpt = metricOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data, in case the structure isn't the full surface");
+    OptionalParameter* metricRoiOpt = metricOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data");
     metricRoiOpt->addMetricOutputParameter(1, "roi-out", "the roi output metric");
     
-    OptionalParameter* volumeOpt = ret->createOptionalParameter(4, "-volume", "separate a volume model into a volume file");
+    OptionalParameter* volumeOpt = ret->createOptionalParameter(5, "-volume", "separate a volume model into a volume file");
     volumeOpt->addStringParameter(1, "structure", "the structure to output");
     volumeOpt->addVolumeOutputParameter(2, "volume-out", "the output volume");
     OptionalParameter* volumeRoiOpt = volumeOpt->createOptionalParameter(3, "-roi", "also output the roi of which voxels have data");
     volumeRoiOpt->addVolumeOutputParameter(1, "roi-out", "the roi output volume");
-    volumeOpt->createOptionalParameter(4, "-crop", "crop volumes to the size of the parcel rather than using the original volume size");
+    volumeOpt->createOptionalParameter(4, "-crop", "crop volumes to the size of the component rather than using the original volume size");
     
-    OptionalParameter* labelOpt = ret->createOptionalParameter(5, "-label", "separate a surface model into a surface label file");
-    labelOpt->addStringParameter(1, "structure", "the structure to output");
-    labelOpt->addLabelOutputParameter(2, "label-out", "the output label file");
+    OptionalParameter* volumeAllOpt = ret->createOptionalParameter(6, "-volume-all", "separate all volume models into a volume file");
+    volumeAllOpt->addVolumeOutputParameter(1, "volume-out", "the output volume");
+    OptionalParameter* volumeAllRoiOpt = volumeAllOpt->createOptionalParameter(2, "-roi", "also output the roi of which voxels have data");
+    volumeAllRoiOpt->addVolumeOutputParameter(1, "roi-out", "the roi output volume");
+    volumeAllOpt->createOptionalParameter(3, "-crop", "crop volumes to the size of the data rather than using the original volume size");
     
     AString helpText = AString("You must specify -metric, -volume, or -label for this command to do anything.  Output volumes will line up with their ") +
         "original positions, whether or not they are cropped.  For dtseries, use COLUMN, and if your matrix is fully symmetric, COLUMN is " +
@@ -98,7 +106,26 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
-    OptionalParameter* metricOpt = myParams->getOptionalParameter(3);
+    OptionalParameter* labelOpt = myParams->getOptionalParameter(3);
+    if (labelOpt->m_present)
+    {
+        AString structName = labelOpt->getString(1);
+        bool ok = false;
+        StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
+        if (!ok)
+        {
+            throw AlgorithmException("unrecognized structure type");
+        }
+        LabelFile* labelOut = labelOpt->getOutputLabel(2);
+        MetricFile* roiOut = NULL;
+        OptionalParameter* labelRoiOpt = labelOpt->getOptionalParameter(3);
+        if (labelRoiOpt->m_present)
+        {
+            roiOut = labelRoiOpt->getOutputMetric(1);
+        }
+        AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, labelOut, roiOut);
+    }
+    OptionalParameter* metricOpt = myParams->getOptionalParameter(4);
     if (metricOpt->m_present)
     {
         AString structName = metricOpt->getString(1);
@@ -117,7 +144,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         }
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, metricOut, roiOut);
     }
-    OptionalParameter* volumeOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* volumeOpt = myParams->getOptionalParameter(5);
     if (volumeOpt->m_present)
     {
         AString structName = volumeOpt->getString(1);
@@ -138,18 +165,19 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, volOut, offset, roiOut, cropVol);
     }
-    OptionalParameter* labelOpt = myParams->getOptionalParameter(5);
-    if (labelOpt->m_present)
+    OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
+    if (volumeAllOpt->m_present)
     {
-        AString structName = volumeOpt->getString(1);
-        bool ok = false;
-        StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
-        if (!ok)
+        VolumeFile* volOut = volumeAllOpt->getOutputVolume(1);
+        VolumeFile* roiOut = NULL;
+        OptionalParameter* volumeAllRoiOpt = volumeAllOpt->getOptionalParameter(2);
+        if (volumeAllRoiOpt->m_present)
         {
-            throw AlgorithmException("unrecognized structure type");
+            roiOut = volumeAllRoiOpt->getOutputVolume(1);
         }
-        LabelFile* labelOut = labelOpt->getOutputLabel(2);
-        AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, labelOut);
+        bool cropVol = volumeAllOpt->getOptionalParameter(3)->m_present;
+        int64_t offset[3];
+        AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, volOut, offset, roiOut, cropVol);
     }
 }
 
@@ -466,6 +494,98 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     }
 }
 
+AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir, VolumeFile* volOut, int64_t offsetOut[3],
+                                               VolumeFile* roiOut, const bool& cropVol): AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    const CiftiXML& myXML = ciftiIn->getCiftiXML();
+    int64_t myDims[3];
+    vector<vector<float> > mySform;
+    vector<CiftiVolumeMap> myMap;
+    vector<int64_t> newdims;
+    int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
+    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
+    {
+        throw AlgorithmException("input cifti has no volume space information");
+    }
+    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti separate");
+    if (!myXML.getVolumeMap(myDir, myMap))
+    {
+        throw AlgorithmException("no volume components found in specified dimension");
+    }
+    int64_t numVoxels = (int64_t)myMap.size();
+    if (cropVol)
+    {
+        newdims.resize(3);
+        getCroppedVolSpaceAll(ciftiIn, myDir, newdims.data(), mySform, offsetOut);
+    } else {
+        newdims.push_back(myDims[0]);
+        newdims.push_back(myDims[1]);
+        newdims.push_back(myDims[2]);
+        offsetOut[0] = 0;
+        offsetOut[1] = 0;
+        offsetOut[2] = 0;
+    }
+    if (roiOut != NULL)
+    {
+        roiOut->reinitialize(newdims, mySform);
+        roiOut->setValueAllVoxels(0.0f);
+    }
+    CaretArray<float> rowScratch(rowSize);
+    if (myDir == CiftiXML::ALONG_COLUMN)
+    {
+        if (rowSize > 1) newdims.push_back(rowSize);
+        volOut->reinitialize(newdims, mySform);
+        volOut->setValueAllVoxels(0.0f);
+        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        {
+            volOut->setType(SubvolumeAttributes::LABEL);
+            for (int j = 0; j < rowSize; ++j)
+            {
+                (*volOut->getMapLabelTable(j)) = (*myXML.getLabelTableForRowIndex(j));
+            }
+        }
+        for (int64_t i = 0; i < numVoxels; ++i)
+        {
+            int64_t thisvoxel[3] = { myMap[i].m_ijk[0] - offsetOut[0], myMap[i].m_ijk[1] - offsetOut[1], myMap[i].m_ijk[2] - offsetOut[2] };
+            if (roiOut != NULL)
+            {
+                roiOut->setValue(1.0f, thisvoxel);
+            }
+            ciftiIn->getRow(rowScratch, myMap[i].m_ciftiIndex);
+            for (int j = 0; j < rowSize; ++j)
+            {
+                volOut->setValue(rowScratch[j], thisvoxel, j);
+            }
+        }
+    } else {
+        if (colSize > 1) newdims.push_back(colSize);
+        volOut->reinitialize(newdims, mySform);
+        volOut->setValueAllVoxels(0.0f);
+        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        {
+            volOut->setType(SubvolumeAttributes::LABEL);
+            for (int j = 0; j < colSize; ++j)
+            {
+                (*volOut->getMapLabelTable(j)) = (*myXML.getLabelTableForColumnIndex(j));
+            }
+        }
+        for (int64_t i = 0; i < colSize; ++i)
+        {
+            ciftiIn->getRow(rowScratch, i);
+            for (int64_t j = 0; j < numVoxels; ++j)
+            {
+                int64_t thisvoxel[3] = { myMap[j].m_ijk[0] - offsetOut[0], myMap[j].m_ijk[1] - offsetOut[1], myMap[j].m_ijk[2] - offsetOut[2] };
+                if (i == 0 && roiOut != NULL)
+                {
+                    roiOut->setValue(1.0f, thisvoxel);
+                }
+                volOut->setValue(rowScratch[myMap[j].m_ciftiIndex], thisvoxel, i);
+            }
+        }
+    }
+}
+
 void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiFile* ciftiIn, const int& myDir, const StructureEnum::Enum& myStruct, int64_t dimsOut[3],
                                                 vector<vector<float> >& sformOut, int64_t offsetOut[3])
 {
@@ -488,6 +608,57 @@ void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiFile* ciftiIn, const 
         {
             throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
         }
+    }
+    int64_t numVoxels = (int64_t)myMap.size();
+    if (numVoxels > 0)
+    {//make a voxel bounding box to minimize memory usage
+        int extrema[6] = { myMap[0].m_ijk[0],
+            myMap[0].m_ijk[0],
+            myMap[0].m_ijk[1],
+            myMap[0].m_ijk[1],
+            myMap[0].m_ijk[2],
+            myMap[0].m_ijk[2]
+        };
+        for (int64_t i = 1; i < numVoxels; ++i)
+        {
+            if (myMap[i].m_ijk[0] < extrema[0]) extrema[0] = myMap[i].m_ijk[0];
+            if (myMap[i].m_ijk[0] > extrema[1]) extrema[1] = myMap[i].m_ijk[0];
+            if (myMap[i].m_ijk[1] < extrema[2]) extrema[2] = myMap[i].m_ijk[1];
+            if (myMap[i].m_ijk[1] > extrema[3]) extrema[3] = myMap[i].m_ijk[1];
+            if (myMap[i].m_ijk[2] < extrema[4]) extrema[4] = myMap[i].m_ijk[2];
+            if (myMap[i].m_ijk[2] > extrema[5]) extrema[5] = myMap[i].m_ijk[2];
+        }
+        dimsOut[0] = extrema[1] - extrema[0] + 1;
+        dimsOut[1] = extrema[3] - extrema[2] + 1;
+        dimsOut[2] = extrema[5] - extrema[4] + 1;
+        offsetOut[0] = extrema[0];
+        offsetOut[1] = extrema[2];
+        offsetOut[2] = extrema[4];
+        Vector3D ivec, jvec, kvec, shift;
+        ivec[0] = sformOut[0][0]; ivec[1] = sformOut[1][0]; ivec[2] = sformOut[2][0];
+        jvec[0] = sformOut[0][1]; jvec[1] = sformOut[1][1]; jvec[2] = sformOut[2][1];
+        kvec[0] = sformOut[0][2]; kvec[1] = sformOut[1][2]; kvec[2] = sformOut[2][2];
+        shift = offsetOut[0] * ivec + offsetOut[1] * jvec + offsetOut[2] * kvec;
+        sformOut[0][3] += shift[0];//fix the sform to align to the old position with the new dimensions
+        sformOut[1][3] += shift[1];
+        sformOut[2][3] += shift[2];
+    } else {
+        throw AlgorithmException("cropped volume requested, but no voxels exist in this structure");
+    }
+}
+
+void AlgorithmCiftiSeparate::getCroppedVolSpaceAll(const CiftiFile* ciftiIn, const int& myDir, int64_t dimsOut[3], vector<vector<float> >& sformOut, int64_t offsetOut[3])
+{
+    const CiftiXML& myXML = ciftiIn->getCiftiXML();
+    vector<CiftiVolumeMap> myMap;
+    int64_t myDims[3];
+    if (!myXML.getVolumeDimsAndSForm(myDims, sformOut))
+    {
+        throw AlgorithmException("input cifti has no volume space information");
+    }
+    if (!myXML.getVolumeMap(myDir, myMap))
+    {
+        throw AlgorithmException("no volume components found in specified dimension");
     }
     int64_t numVoxels = (int64_t)myMap.size();
     if (numVoxels > 0)

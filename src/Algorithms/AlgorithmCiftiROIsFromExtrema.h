@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_CIFTI_REPLACE_STRUCTURE_H__
-#define __ALGORITHM_CIFTI_REPLACE_STRUCTURE_H__
+#ifndef __ALGORITHM_CIFTI_ROIS_FROM_EXTREMA_H__
+#define __ALGORITHM_CIFTI_ROIS_FROM_EXTREMA_H__
 
 /*LICENSE_START*/
 /*
@@ -26,33 +26,29 @@
  */
 
 #include "AbstractAlgorithm.h"
-#include "StructureEnum.h"
+
+#include "OverlapLogicEnum.h"
 
 namespace caret {
     
-    class AlgorithmCiftiReplaceStructure : public AbstractAlgorithm
+    class AlgorithmCiftiROIsFromExtrema : public AbstractAlgorithm
     {
-        AlgorithmCiftiReplaceStructure();
+        AlgorithmCiftiROIsFromExtrema();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const StructureEnum::Enum& myStruct, const MetricFile* metricIn);
-        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const StructureEnum::Enum& myStruct, const LabelFile* labelIn);
-        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped = true);
-        AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
-                                       const VolumeFile* volIn, const bool& fromCropped = true);
+        AlgorithmCiftiROIsFromExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfLimit, const float& volLimit, const int& myDir, CiftiFile* myCiftiOut,
+                                      const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL, const float& surfSigma = -1.0f,
+                                      const float& volSigma = -1.0f, const OverlapLogicEnum::Enum& myLogic = OverlapLogicEnum::ALLOW, const bool& mergedVolume = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmCiftiReplaceStructure> AutoAlgorithmCiftiReplaceStructure;
+    typedef TemplateAutoOperation<AlgorithmCiftiROIsFromExtrema> AutoAlgorithmCiftiROIsFromExtrema;
 
 }
 
-#endif //__ALGORITHM_CIFTI_REPLACE_STRUCTURE_H__
+#endif //__ALGORITHM_CIFTI_ROIS_FROM_EXTREMA_H__

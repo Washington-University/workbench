@@ -34,6 +34,7 @@ AlgorithmCiftiParcellate.h
 AlgorithmCiftiReduce.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiResample.h
+AlgorithmCiftiROIsFromExtrema.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
 AlgorithmCiftiTranspose.h
@@ -102,6 +103,7 @@ AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiResample.cxx
+AlgorithmCiftiROIsFromExtrema.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx
 AlgorithmCiftiTranspose.cxx

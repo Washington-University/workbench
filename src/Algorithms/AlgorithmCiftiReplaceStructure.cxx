@@ -57,18 +57,22 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     
     ret->addStringParameter(2, "direction", "which dimension to interpret as a single map, ROW or COLUMN");
     
-    OptionalParameter* metricOpt = ret->createOptionalParameter(3, "-metric", "replace the data in a surface component");
+    OptionalParameter* labelOpt = ret->createOptionalParameter(3, "-label", "replace the data in a surface label component");
+    labelOpt->addStringParameter(1, "structure", "the structure to replace the data of");
+    labelOpt->addLabelParameter(2, "label", "the input label file");
+
+    OptionalParameter* metricOpt = ret->createOptionalParameter(4, "-metric", "replace the data in a surface component");
     metricOpt->addStringParameter(1, "structure", "the structure to replace the data of");
     metricOpt->addMetricParameter(2, "metric", "the input metric");
 
-    OptionalParameter* volumeOpt = ret->createOptionalParameter(4, "-volume", "replace the data in a volume component");
+    OptionalParameter* volumeOpt = ret->createOptionalParameter(5, "-volume", "replace the data in a volume component");
     volumeOpt->addStringParameter(1, "structure", "the structure to replace the data of");
     volumeOpt->addVolumeOutputParameter(2, "volume", "the input volume");
-    volumeOpt->createOptionalParameter(3, "-from-cropped", "interpret the input as a volume cropped to the size of the parcel");
+    volumeOpt->createOptionalParameter(3, "-from-cropped", "the input is cropped to the size of the component");
 
-    OptionalParameter* labelOpt = ret->createOptionalParameter(5, "-label", "replace the data in a surface label component");
-    labelOpt->addStringParameter(1, "structure", "the structure to replace the data of");
-    labelOpt->addLabelParameter(2, "label", "the input label file");
+    OptionalParameter* volumeAllOpt = ret->createOptionalParameter(5, "-volume-all", "replace the data in all volume components");
+    volumeAllOpt->addVolumeOutputParameter(1, "volume", "the input volume");
+    volumeAllOpt->createOptionalParameter(2, "-from-cropped", "the input is cropped to the size of the data");
 
     AString helpText = AString("You must specify -metric, -volume, or -label for this command to do anything.  Input volumes must line up with the ") +
         "output of -cifti-separate.  For dtseries, use COLUMN, and if your matrix will be fully symmetric, COLUMN is " +
@@ -97,7 +101,20 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
-    OptionalParameter* metricOpt = myParams->getOptionalParameter(3);
+    OptionalParameter* labelOpt = myParams->getOptionalParameter(3);
+    if (labelOpt->m_present)
+    {
+        AString structName = labelOpt->getString(1);
+        bool ok = false;
+        StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
+        if (!ok)
+        {
+            throw AlgorithmException("unrecognized structure type");
+        }
+        LabelFile* labelIn = labelOpt->getLabel(2);
+        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn);
+    }
+    OptionalParameter* metricOpt = myParams->getOptionalParameter(4);
     if (metricOpt->m_present)
     {
         AString structName = metricOpt->getString(1);
@@ -110,7 +127,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         MetricFile* metricIn = metricOpt->getMetric(2);
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, metricIn);
     }
-    OptionalParameter* volumeOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* volumeOpt = myParams->getOptionalParameter(5);
     if (volumeOpt->m_present)
     {
         AString structName = volumeOpt->getString(1);
@@ -120,22 +137,16 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         {
             throw AlgorithmException("unrecognized structure type");
         }
-        VolumeFile* volIn = volumeOpt->getOutputVolume(2);
+        VolumeFile* volIn = volumeOpt->getVolume(2);
         bool fromCropVol = volumeOpt->getOptionalParameter(3)->m_present;
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, volIn, fromCropVol);
     }
-    OptionalParameter* labelOpt = myParams->getOptionalParameter(5);
-    if (labelOpt->m_present)
+    OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
+    if (volumeAllOpt->m_present)
     {
-        AString structName = labelOpt->getString(1);
-        bool ok = false;
-        StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
-        if (!ok)
-        {
-            throw AlgorithmException("unrecognized structure type");
-        }
-        LabelFile* labelIn = labelOpt->getLabel(2);
-        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn);
+        VolumeFile* volIn = volumeAllOpt->getVolume(1);
+        bool fromCropVol = volumeAllOpt->getOptionalParameter(2)->m_present;
+        AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, volIn, fromCropVol);
     }
     myCifti.writeFile(ciftiName);
 }
@@ -373,6 +384,187 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
     {
         newdims.resize(3);
         AlgorithmCiftiSeparate::getCroppedVolSpace(ciftiInOut, myDir, myStruct, newdims.data(), mySform, offset);
+    } else {
+        newdims.push_back(myDims[0]);
+        newdims.push_back(myDims[1]);
+        newdims.push_back(myDims[2]);
+        offset[0] = 0;
+        offset[1] = 0;
+        offset[2] = 0;
+    }
+    if (!volIn->matchesVolumeSpace(newdims.data(), mySform))
+    {
+        throw AlgorithmException("input volume doesn't match volume space and dimensions in CIFTI");
+    }
+    CaretArray<float> rowScratch(rowSize, 0.0f);//initialize with default unused label in case dlabel and short reads due to uninitialized on-disk cifti
+    vector<int64_t> volDims;
+    volIn->getDimensions(volDims);
+    if (myDir == CiftiXML::ALONG_COLUMN)
+    {
+        if (volDims[3] != rowSize)
+        {
+            throw AlgorithmException("volume has the wrong number of subvolumes");
+        }
+        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        {
+            if (volIn->getType() != SubvolumeAttributes::LABEL) throw ("replace structure called on cifti label file with non-label volume");
+            ciftiInOut->convertToInMemory();
+            vector<map<int32_t, int32_t> > remapArray(rowSize);
+            vector<set<int32_t> > usedArray(rowSize);
+            for (int64_t i = 0; i < rowSize; ++i)
+            {
+                GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
+                remapArray[i] = myTable.append(*(myXML.getLabelTableForRowIndex(i)));
+                *(myXML.getLabelTableForRowIndex(i)) = myTable;
+            }
+            set<int64_t> writeRows;
+            for (int64_t i = 0; i < numVoxels; ++i)
+            {
+                writeRows.insert(myMap[i].m_ciftiIndex);
+            }
+            for (int64_t i = 0; i < colSize; ++i)
+            {
+                if (writeRows.find(i) == writeRows.end())
+                {
+                    ciftiInOut->getRow(rowScratch, i, true);
+                    bool rowChanged = false;
+                    for (int64_t j = 0; j < rowSize; ++j)
+                    {
+                        int32_t tempKey = (int32_t)floor(rowScratch[j] + 0.5f);
+                        map<int32_t, int32_t>::iterator iter = remapArray[j].find(tempKey);
+                        if (iter != remapArray[j].end())
+                        {
+                            if (iter->first != iter->second)
+                            {
+                                rowChanged = true;
+                                rowScratch[j] = iter->second;//remap the key if its value changes
+                                usedArray[j].insert(iter->second);
+                            } else {
+                                usedArray[j].insert(tempKey);
+                            }
+                        } else {
+                            rowChanged = true;
+                            int32_t unusedLabel = ciftiInOut->getCiftiXML().getLabelTableForRowIndex(j)->getUnassignedLabelKey();
+                            rowScratch[j] = unusedLabel;
+                            usedArray[j].insert(unusedLabel);
+                        }
+                    }
+                    if (rowChanged) ciftiInOut->setRow(rowScratch, i);
+                }
+            }
+            for (int64_t i = 0; i < numVoxels; ++i)
+            {
+                int64_t thisvoxel[3] = { myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2] };
+                for (int j = 0; j < rowSize; ++j)
+                {
+                    int32_t tempKey = (int32_t)floor(volIn->getValue(thisvoxel, j) + 0.5f);
+                    usedArray[j].insert(tempKey);
+                    rowScratch[j] = tempKey;
+                }
+                ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+            }
+            for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
+            {
+                myXML.getLabelTableForRowIndex(i)->deleteUnusedLabels(usedArray[i]);
+            }
+        } else {
+            for (int64_t i = 0; i < numVoxels; ++i)
+            {
+                int64_t thisvoxel[3] = { myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2] };
+                for (int j = 0; j < rowSize; ++j)
+                {
+                    rowScratch[j] = volIn->getValue(thisvoxel, j);
+                }
+                ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+            }
+        }
+    } else {
+        if (volDims[3] != colSize)
+        {
+            throw AlgorithmException("volume has the wrong number of subvolumes");
+        }
+        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        {
+            if (volIn->getType() != SubvolumeAttributes::LABEL) throw ("replace structure called on cifti label file with non-label volume");
+            ciftiInOut->convertToInMemory();
+            set<int64_t> writeCols;
+            for (int64_t i = 0; i < numVoxels; ++i)
+            {
+                writeCols.insert(myMap[i].m_ciftiIndex);
+            }
+            for (int64_t i = 0; i < colSize; ++i)
+            {
+                GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
+                map<int32_t, int32_t> remap = myTable.append(*(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)));
+                *(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)) = myTable;
+                ciftiInOut->getRow(rowScratch, i, true);
+                set<int32_t> used;
+                int32_t unusedKey = myTable.getUnassignedLabelKey();
+                for(int64_t j = 0; j < rowSize; ++j)
+                {
+                    if (writeCols.find(j) == writeCols.end())
+                    {
+                        int32_t tempKey = (int32_t)floor(rowScratch[j] + 0.5f);
+                        map<int32_t, int32_t>::iterator iter = remap.find(tempKey);
+                        if (iter != remap.end())
+                        {
+                            rowScratch[j] = iter->second;
+                            used.insert(iter->second);
+                        } else {
+                            rowScratch[j] = unusedKey;
+                            used.insert(unusedKey);
+                        }
+                    }
+                }
+                for (int64_t j = 0; j < numVoxels; ++j)
+                {
+                    int64_t thisvoxel[3] = { myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2] };
+                    int32_t tempKey = (int32_t)floor(volIn->getValue(thisvoxel, i) + 0.5f);
+                    rowScratch[myMap[j].m_ciftiIndex] = tempKey;
+                    used.insert(tempKey);
+                }
+                ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)->deleteUnusedLabels(used);
+                ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+            }
+        } else {
+            for (int64_t i = 0; i < colSize; ++i)
+            {
+                ciftiInOut->getRow(rowScratch, i, true);//the on-disk cifti file may not have been allocated yet, so short reads are okay
+                for (int64_t j = 0; j < numVoxels; ++j)
+                {
+                    int64_t thisvoxel[3] = { myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2] };
+                    rowScratch[myMap[j].m_ciftiIndex] = volIn->getValue(thisvoxel, i);
+                }
+                ciftiInOut->setRow(rowScratch, i);
+            }
+        }
+    }
+}
+
+AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
+                                                               const VolumeFile* volIn, const bool& fromCropped): AbstractAlgorithm(myProgObj)
+{
+    const CiftiXML& myXML = ciftiInOut->getCiftiXML();
+    LevelProgress myProgress(myProgObj);
+    int64_t myDims[3], offset[3];
+    vector<vector<float> > mySform;
+    vector<CiftiVolumeMap> myMap;
+    vector<int64_t> newdims;
+    int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
+    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported in cifti replace structure");
+    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
+    {
+        throw AlgorithmException("input cifti has no volume space information");
+    }
+    if (!myXML.getVolumeMap(myDir, myMap))
+    {
+        throw AlgorithmException("no volume components found in specified dimension");
+    }
+    int64_t numVoxels = (int64_t)myMap.size();
+    if (fromCropped)
+    {
+        newdims.resize(3);
+        AlgorithmCiftiSeparate::getCroppedVolSpaceAll(ciftiInOut, myDir, newdims.data(), mySform, offset);
     } else {
         newdims.push_back(myDims[0]);
         newdims.push_back(myDims[1]);

@@ -75,13 +75,15 @@ OperationParameters* AlgorithmCiftiExtrema::getParameters()
     thresholdOpt->addDoubleParameter(1, "low", "the largest value to consider for being a minimum");
     thresholdOpt->addDoubleParameter(2, "high", "the smallest value to consider for being a maximum");
     
-    ret->createOptionalParameter(12, "-sum-maps", "output the sum of the extrema maps instead of each map separately");
+    ret->createOptionalParameter(12, "-merged-volume", "treat volume components as if they were a single component");
     
-    ret->createOptionalParameter(13, "-consolidate-mode", "use consolidation of local minima instead of a large neighborhood");
+    ret->createOptionalParameter(13, "-sum-maps", "output the sum of the extrema maps instead of each map separately");
     
-    ret->createOptionalParameter(14, "-only-maxima", "only find the maxima");
+    ret->createOptionalParameter(14, "-consolidate-mode", "use consolidation of local minima instead of a large neighborhood");
     
-    ret->createOptionalParameter(15, "-only-minima", "only find the minima");
+    ret->createOptionalParameter(15, "-only-maxima", "only find the maxima");
+    
+    ret->createOptionalParameter(16, "-only-minima", "only find the minima");
 
     ret->setHelpText(
         AString("The input cifti file must have a brain models mapping along the specified direction.  ") +
@@ -143,19 +145,20 @@ void AlgorithmCiftiExtrema::useParameters(OperationParameters* myParams, Progres
         lowThresh = (float)thresholdOpt->getDouble(1);
         highThresh = (float)thresholdOpt->getDouble(2);
     }
-    bool sumMaps = myParams->getOptionalParameter(12)->m_present;
-    bool consolidateMode = myParams->getOptionalParameter(13)->m_present;
-    bool ignoreMinima = myParams->getOptionalParameter(14)->m_present;
-    bool ignoreMaxima = myParams->getOptionalParameter(15)->m_present;
+    bool mergedVolume = myParams->getOptionalParameter(12)->m_present;
+    bool sumMaps = myParams->getOptionalParameter(13)->m_present;
+    bool consolidateMode = myParams->getOptionalParameter(14)->m_present;
+    bool ignoreMinima = myParams->getOptionalParameter(15)->m_present;
+    bool ignoreMaxima = myParams->getOptionalParameter(16)->m_present;
     if (ignoreMinima && ignoreMaxima) throw AlgorithmException("you may not specify both -only-maxima and -only-minima");
     AlgorithmCiftiExtrema(myProgObj, myCifti, surfDist, volDist, myDir, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfPresmooth,
-                          volPresmooth, thresholdMode, lowThresh, highThresh, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
+                          volPresmooth, thresholdMode, lowThresh, highThresh, mergedVolume, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
 }
 
 AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfDist, const float& volDist, const int& myDir,
                                              CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
                                              const float& surfPresmooth, const float& volPresmooth, const bool& thresholdMode, const float& lowThresh,
-                                             const float& highThresh, const bool& sumMaps, const bool& consolidateMode,
+                                             const float& highThresh, const bool& mergedVolume, const bool& sumMaps, const bool& consolidateMode,
                                              const bool& ignoreMinima, const bool& ignoreMaxima) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -245,18 +248,32 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
         }
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
     }
-    for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
+    if (mergedVolume)
     {
         VolumeFile myVol, myRoi, myVolOut;
         int64_t offset[3];
-        AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
+        AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, &myRoi, true);
         if (thresholdMode)
         {
             AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, lowThresh, highThresh, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
         } else {
             AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
         }
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
+    } else {
+        for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
+        {
+            VolumeFile myVol, myRoi, myVolOut;
+            int64_t offset[3];
+            AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
+            if (thresholdMode)
+            {
+                AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, lowThresh, highThresh, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
+            } else {
+                AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
+            }
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
+        }
     }
 }
 
