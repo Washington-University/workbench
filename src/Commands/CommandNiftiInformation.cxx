@@ -29,6 +29,8 @@
 #include "CiftiXML.h"
 #include "DataFileTypeEnum.h"
 
+#include <vector>
+
 using namespace caret;
 using namespace std;
 CommandNiftiInformation::CommandNiftiInformation() : CommandOperation("-nifti-information",
@@ -120,23 +122,18 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
                 cout << xmlString << endl;
             }
             if(printMatrix) {
-                CiftiHeader header;
-                cf.getHeader(header);
-                std::vector <int64_t> dim;
-                header.getDimensions(dim);
-                int64_t dim0 = dim[4];
-                int64_t dim1 = dim[5];
-                float *row = new float[dim1];
+                int64_t dim0 = cf.getNumberOfRows();
+                int64_t dim1 = cf.getNumberOfColumns();
+                vector<float> row(dim1);
                 AString rowString;
                 for(int64_t i = 0;i<dim0;i++)
                 {
 
-                    cf.getRow(row,i);
+                    cf.getRow(row.data(), i);
 
-                    rowString = AString::fromNumbers(row,dim1,",");
+                    rowString = AString::fromNumbers(row, ",");
                     cout << "Row " << i << ": " << rowString << endl;
                 }
-                delete [] row;
             }
         }
         else
