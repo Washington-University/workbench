@@ -43,6 +43,7 @@ namespace caret {
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
+    class CaretMappableDataFile;
     class ChartingDataManager;
     class ChartableInterface;
     class CiftiBrainordinateDataSeriesFile;
@@ -293,6 +294,8 @@ namespace caret {
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                              const bool includeSpecFile = false) const;
+        
+        void getAllMappableDataFiles(std::vector<CaretMappableDataFile*>& allCaretMappableDataFilesOut) const;
         
         bool isFileValid(const CaretDataFile* caretDataFile) const;
 

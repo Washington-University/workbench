@@ -2847,9 +2847,24 @@ void
 Brain::updateVolumeSliceController()
 {
     bool isValid = false;
-    if (getNumberOfVolumeFiles() > 0) {
-        isValid = true;
+    std::vector<CaretMappableDataFile*> allCaretMappableDataFiles;
+    getAllMappableDataFiles(allCaretMappableDataFiles);
+    for (std::vector<CaretMappableDataFile*>::iterator iter = allCaretMappableDataFiles.begin();
+         iter != allCaretMappableDataFiles.end();
+         iter++) {
+        CaretMappableDataFile* cmdf = *iter;
+        if (cmdf->isVolumeMappable()) {
+            if (cmdf->isEmpty() == false) {
+                isValid = true;
+                break;                
+            }
+        }
     }
+    
+//    bool isValid = false;
+//    if (getNumberOfVolumeFiles() > 0) {
+//        isValid = true;
+//    }
     
     if (isValid) {
         if (m_volumeSliceController == NULL) {
@@ -3996,6 +4011,31 @@ Brain::determineDisplayedDataFiles()
     }
 }
 
+/**
+ * Get All CaretMappableDataFiles.
+ *
+ * @param allCaretMappableDataFilesOut
+ *   Will contain instance of CaretMappableDataFiles upon exit. 
+ */
+void
+Brain::getAllMappableDataFiles(std::vector<CaretMappableDataFile*>& allCaretMappableDataFilesOut) const
+{
+    allCaretMappableDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allDataFiles;
+    getAllDataFiles(allDataFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
+         iter != allDataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(cdf);
+        if (cmdf != NULL) {
+            allCaretMappableDataFilesOut.push_back(cmdf);
+        }
+    }
+}
+    
 
 /**
  * Get all loaded data files.
