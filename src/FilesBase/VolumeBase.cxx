@@ -71,10 +71,6 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_dimensions[3] = 1;
     for (int i = 0; i < max(3, numDims); ++i)
     {
-        if (i < numDims && dimensionsIn[i] < 1)
-        {
-            throw DataFileException("invalid dimensions specified");
-        }
         if (i > 2)
         {
             m_dimensions[3] *= dimensionsIn[i];
