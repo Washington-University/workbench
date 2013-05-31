@@ -40,6 +40,8 @@
 #include "CiftiFacade.h"
 #include "CaretLogger.h"
 #include "CiftiInterface.h"
+#include "EventManager.h"
+#include "EventProgressUpdate.h"
 #include "SceneClass.h"
 
 using namespace caret;
@@ -569,6 +571,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         return;
     }
     
+    const bool isDenseMatrix = (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE);
+    const int32_t progressUpdateInterval = 1;
+    
     try {
         bool dataWasLoaded = false;
         
@@ -588,11 +593,29 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
             
             int64_t rowSuccessCount = 0;
             
+            bool userCancelled = false;
+            EventProgressUpdate progressEvent(0,
+                                              numberOfNodeIndices,
+                                              0,
+                                              "Starting");
             /*
              * Read rows for each node
              */
             for (int32_t i = 0; i < numberOfNodeIndices; i++) {
                 const int32_t nodeIndex = nodeIndices[i];
+                
+                if (isDenseMatrix) {
+                    if ((i % progressUpdateInterval) == 0) {
+                        progressEvent.setProgress(i,
+                                                  "Loading data");
+                        EventManager::get()->sendEvent(progressEvent.getPointer());
+                        if (progressEvent.isCancelled()) {
+                            userCancelled = true;
+                            break;
+                        }
+                    }
+                }
+                
                 const int64_t rowIndex = getRowIndexForNodeWhenLoading(structure,
                                                                        surfaceNumberOfNodes,
                                                                        nodeIndex);
@@ -613,7 +636,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                 }
             }
             
-            if (rowSuccessCount > 0) {
+            if (userCancelled) {
+                m_loadedRowData.clear();
+                m_loadedRowData.resize(dataCount, 0.0);
+            }
+            else if (rowSuccessCount > 0) {
                 /*
                  * Average the data
                  */
