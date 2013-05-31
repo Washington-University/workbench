@@ -355,9 +355,12 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
+    const float thresholdMinimum = -std::numeric_limits<float>::max();
+    const float thresholdMaximum =  std::numeric_limits<float>::max();
     
     this->thresholdLowSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                    this);
+    this->thresholdLowSlider->setRange(thresholdMinimum, thresholdMaximum);
     WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSlider->getWidget(), 
                                           "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSlider);
@@ -365,7 +368,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
                      this, SLOT(thresholdLowSliderValueChanged(double)));
     this->thresholdHighSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                     this);
-    WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSlider->getWidget(), 
+    this->thresholdHighSlider->setRange(thresholdMinimum, thresholdMaximum);
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSlider->getWidget(),
                                           "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSlider);
     QObject::connect(this->thresholdHighSlider, SIGNAL(valueChanged(double)),
@@ -373,8 +377,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     
     const int spinBoxWidth = 80.0;
     this->thresholdLowSpinBox =
-       WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0,
-                                                                   1.0,
+       WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(thresholdMinimum,
+                                                                   thresholdMaximum,
                                                                    1.0,
                                                                    3,
                                                                    this,
@@ -385,8 +389,8 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdLowSpinBox->setFixedWidth(spinBoxWidth);
 
     this->thresholdHighSpinBox =
-       WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1.0,
-                                                                   1.0,
+    WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(thresholdMinimum,
+                                                                   thresholdMaximum,
                                                                    1.0,
                                                                    3,
                                                                    this,
@@ -976,18 +980,18 @@ MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretM
         float minValue  = statistics->getMin();
         float maxValue  = statistics->getMax();
         
-        this->thresholdLowSlider->setRange(minValue, maxValue);
+//        this->thresholdLowSlider->setRange(minValue, maxValue);
         this->thresholdLowSlider->setValue(lowValue);
         
-        this->thresholdHighSlider->setRange(minValue, maxValue);
+//        this->thresholdHighSlider->setRange(minValue, maxValue);
         this->thresholdHighSlider->setValue(highValue);
         
-        this->thresholdLowSpinBox->setMinimum(minValue);
-        this->thresholdLowSpinBox->setMaximum(maxValue);
+//        this->thresholdLowSpinBox->setMinimum(minValue);
+//        this->thresholdLowSpinBox->setMaximum(maxValue);
         this->thresholdLowSpinBox->setValue(lowValue);
         
-        this->thresholdHighSpinBox->setMinimum(minValue);
-        this->thresholdHighSpinBox->setMaximum(maxValue);
+//        this->thresholdHighSpinBox->setMinimum(minValue);
+//        this->thresholdHighSpinBox->setMaximum(maxValue);
         this->thresholdHighSpinBox->setValue(highValue);
         
         /*
