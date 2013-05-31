@@ -605,7 +605,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
                                             const int32_t tabIndex,
                                             const VolumeSliceViewPlaneEnum::Enum viewPlane)
 {
-    VolumeFile* vf = modelDisplayControllerVolume->getUnderlayVolumeFile(tabIndex);
+    VolumeMappableInterface* vf = modelDisplayControllerVolume->getUnderlayVolumeFile(tabIndex);
 
     /*
      * Apply some scaling and translation so that the volume slice, by default
@@ -5866,7 +5866,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
      * from center so override the X-coordinate to zero.
      */
     float center[3] = { 0.0, 0.0, 0.0 };
-    VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
+    VolumeMappableInterface* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
     if (underlayVolumeFile != NULL) {
         BoundingBox volumeBoundingBox;
         underlayVolumeFile->getVoxelSpaceBoundingBox(volumeBoundingBox);

@@ -34,7 +34,7 @@ namespace caret {
     class Brain;
     class SceneClassAssistant;
     class OverlaySetArray;
-    class VolumeFile;
+    class VolumeMappableInterface;
     
     /// Controls the display of a volumes.
     class ModelVolume : public Model, public EventListenerInterface {
@@ -44,7 +44,7 @@ namespace caret {
         
         virtual ~ModelVolume();
         
-        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
+        VolumeMappableInterface* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
         void updateController(const int32_t windowTabNumber);
         
@@ -75,7 +75,7 @@ namespace caret {
         virtual AString getNameForBrowserTab() const;
         
     private:
-        VolumeFile* m_lastVolumeFile;
+        VolumeMappableInterface* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;

@@ -39,6 +39,7 @@ namespace caret {
     class SceneClassAssistant;
     class Surface;
     class VolumeFile;
+    class VolumeMappableInterface;
     
     class OverlaySet : public CaretObject, public SceneableInterface {
         
@@ -59,7 +60,7 @@ namespace caret {
         
         Overlay* getUnderlay();
         
-        VolumeFile* getUnderlayVolume();
+        VolumeMappableInterface* getUnderlayVolume();
         
         Overlay* getOverlay(const int32_t overlayNumber);
         
@@ -81,7 +82,7 @@ namespace caret {
         
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
         
-        VolumeFile* setUnderlayToVolume();
+        VolumeMappableInterface* setUnderlayToVolume();
         
         void initializeOverlays();
         

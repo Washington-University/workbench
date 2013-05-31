@@ -101,11 +101,11 @@ ModelVolume::getNameForBrowserTab() const
  * @return 
  *    Bottom-most volume or NULL if no volumes available.
  */
-VolumeFile* 
+VolumeMappableInterface* 
 ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
     OverlaySet* overlaySet = m_overlaySetArray->getOverlaySet(windowTabNumber);
-    VolumeFile* vf = overlaySet->getUnderlayVolume();
+    VolumeMappableInterface* vf = overlaySet->getUnderlayVolume();
     if (vf == NULL) {
         vf = overlaySet->setUnderlayToVolume();
     }

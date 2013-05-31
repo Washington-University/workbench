@@ -36,7 +36,7 @@ namespace caret {
     class Brain;
     class OverlaySetArray;
     class SceneClassAssistant;
-    class VolumeFile;
+    class VolumeMappableInterface;
     
     /// Controls the display of a whole brain.
     class ModelWholeBrain : public Model, public EventListenerInterface {
@@ -46,7 +46,7 @@ namespace caret {
         
         virtual ~ModelWholeBrain();
         
-        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
+        VolumeMappableInterface* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
         void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut);
         
@@ -144,7 +144,7 @@ namespace caret {
         
 //        mutable VolumeSliceCoordinateSelection m_volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        VolumeFile* m_lastVolumeFile;
+        VolumeMappableInterface* m_lastVolumeFile;
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;

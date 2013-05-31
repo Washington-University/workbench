@@ -644,7 +644,7 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
     if (m_volumeModel != NULL) {
         if (m_volumeModel != previousVolumeModel) {
         
-            VolumeFile* underlayVolume = m_volumeModel->getOverlaySet(m_tabNumber)->getUnderlayVolume();
+            VolumeMappableInterface* underlayVolume = m_volumeModel->getOverlaySet(m_tabNumber)->getUnderlayVolume();
             if (underlayVolume != NULL) {
                 /*
                  * Set montage slice spacing based upon slices

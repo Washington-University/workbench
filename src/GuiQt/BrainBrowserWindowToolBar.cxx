@@ -1980,7 +1980,7 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    VolumeFile* vf = NULL;
+    VolumeMappableInterface* vf = NULL;
     ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     if (volumeController != NULL) {
         if (this->getDisplayedModelController() == volumeController) {
@@ -2027,7 +2027,7 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    VolumeFile* vf = NULL;
+    VolumeMappableInterface* vf = NULL;
     ModelVolume* volumeController = btc->getDisplayedVolumeModel();
     if (volumeController != NULL) {
         vf = volumeController->getUnderlayVolumeFile(tabIndex);
@@ -3788,7 +3788,7 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    VolumeFile* underlayVolumeFile = NULL;
+    VolumeMappableInterface* underlayVolumeFile = NULL;
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
@@ -3831,7 +3831,7 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    VolumeFile* underlayVolumeFile = NULL;
+    VolumeMappableInterface* underlayVolumeFile = NULL;
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {

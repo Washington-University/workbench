@@ -183,7 +183,7 @@ ModelWholeBrain::updateController()
             }
         }
         
-        VolumeFile* vf = getUnderlayVolumeFile(i);
+        VolumeMappableInterface* vf = getUnderlayVolumeFile(i);
         if (vf != NULL) {
 //            m_volumeSlicesSelected[i].updateForVolumeFile(vf);
         }
@@ -237,10 +237,10 @@ ModelWholeBrain::getNameForBrowserTab() const
  *    Bottom-most volume or NULL if not available (such as 
  *    when all overlay are not volumes or they are disabled).
  */
-VolumeFile* 
+VolumeMappableInterface* 
 ModelWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
-    VolumeFile* vf = NULL;
+    VolumeMappableInterface* vf = NULL;
     
     EventBrowserTabGet getBrowserTabEvent(windowTabNumber);
     EventManager::get()->sendEvent(getBrowserTabEvent.getPointer());

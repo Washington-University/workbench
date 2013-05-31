@@ -238,10 +238,10 @@ OverlaySet::getUnderlay()
  * @return Returns the bottom-most overlay that is set a a volume file.
  * Will return NULL if no, enabled overlays are set to a volume file.
  */
-VolumeFile* 
+VolumeMappableInterface*
 OverlaySet::getUnderlayVolume()
 {
-    VolumeFile* vf = NULL;
+    VolumeMappableInterface* vf = NULL;
     
     for (int32_t i = (getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
         if (m_overlays[i]->isEnabled()) {
@@ -251,7 +251,7 @@ OverlaySet::getUnderlayVolume()
                                                 mapIndex);
             
             if (mapFile != NULL) {
-                vf = dynamic_cast<VolumeFile*>(mapFile);
+                vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
                 if (vf != NULL) {
                     break;
                 }
@@ -267,10 +267,10 @@ OverlaySet::getUnderlayVolume()
  * @return Returns the volume file that was selected or NULL if no
  *    volume file was found.
  */
-VolumeFile* 
+VolumeMappableInterface* 
 OverlaySet::setUnderlayToVolume()
 {
-    VolumeFile * vf = getUnderlayVolume();
+    VolumeMappableInterface * vf = getUnderlayVolume();
     
     if (vf == NULL) {
         const int32_t overlayIndex = getNumberOfDisplayedOverlays() - 1;
@@ -286,9 +286,11 @@ OverlaySet::setUnderlayToVolume()
             
             const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
             for (int32_t i = 0; i < numMapFiles; i++) {
-                vf = dynamic_cast<VolumeFile*>(mapFiles[i]);
+                vf = dynamic_cast<VolumeMappableInterface*>(mapFiles[i]);
                 if (vf != NULL) {
-                    m_overlays[overlayIndex]->setSelectionData(vf, 0);
+                    CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(vf);
+                    CaretAssert(cmdf);
+                    m_overlays[overlayIndex]->setSelectionData(cmdf, 0);
                     break;
                 }
             }

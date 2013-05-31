@@ -589,7 +589,7 @@ void MovieDialog::processUpdateVolumeSlice()
 
 
 //	VolumeSliceCoordinateSelection* vscs = btc->getSelectedVolumeSlices();
-	VolumeFile* vf = mv->getUnderlayVolumeFile(tabIndex);
+	VolumeMappableInterface* vf = mv->getUnderlayVolumeFile(tabIndex);
 	std::vector<int64_t> dim;
 	vf->getDimensions(dim);
 	VolumeSliceViewPlaneEnum::Enum vpe = btc->getSliceViewPlane();
