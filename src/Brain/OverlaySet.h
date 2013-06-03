@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 #include "Overlay.h"
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -113,6 +114,17 @@ namespace caret {
         OverlaySet& operator=(const OverlaySet&);
         
         Overlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        
+        bool findFilesWithMapNamed(std::vector<const CaretMappableDataFile*> matchedFilesOut,
+                                  std::vector<int32_t> matchedFileIndicesOut,
+                                  const std::vector<StructureEnum::Enum>& matchToStructures,
+                                  const std::vector<const CaretMappableDataFile*>& matchToMapFiles,
+                                  const bool matchToVolumeData,
+                                  const AString matchToName1,
+                                  const AString matchToName2 = "",
+                                  const AString matchToName3 = "",
+                                  const AString matchToName4 = "",
+                                  const AString matchToName5 = "");
         
         Model* m_modelDisplayController;
         
