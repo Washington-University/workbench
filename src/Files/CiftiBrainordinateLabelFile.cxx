@@ -36,6 +36,8 @@
 #include "CiftiBrainordinateLabelFile.h"
 #undef __CIFTI_BRAINORDINATE_LABEL_FILE_DECLARE__
 
+#include "CiftiFacade.h"
+
 using namespace caret;
 
 
@@ -68,3 +70,43 @@ CiftiBrainordinateLabelFile::~CiftiBrainordinateLabelFile()
     
 }
 
+/**
+ * For the given structure with the given number of nodes, get indices of all
+ * nodes in the map that have the same label key (node value).
+ *
+ * @param structure
+ *     Structure of surface.
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param mapIndex
+ *     Index of the map.
+ * @param labelKey
+ *     Desired label key.
+ */
+void
+CiftiBrainordinateLabelFile::getNodeIndicesWithLabelKey(const StructureEnum::Enum structure,
+                                const int32_t surfaceNumberOfNodes,
+                                const int32_t mapIndex,
+                                const int32_t labelKey,
+                                std::vector<int32_t>& nodeIndicesOut) const
+{
+    nodeIndicesOut.clear();
+    const std::vector<int64_t>* dataIndices = m_ciftiFacade->getSurfaceDataIndicesForMappingToBrainordinates(structure,
+                                                                   surfaceNumberOfNodes);
+    if (dataIndices != NULL) {
+        std::vector<float> mapData;
+        getMapData(mapIndex,
+                   mapData);
+        
+        for (int32_t i = 0; i < surfaceNumberOfNodes; i++) {
+            const int64_t dataIndex = (*dataIndices)[i];
+            if (dataIndex >= 0) {
+                CaretAssertVectorIndex(mapData, dataIndex);
+                const int32_t dataKey = static_cast<int32_t>(mapData[dataIndex]);
+                if (dataKey == labelKey) {
+                    nodeIndicesOut.push_back(i);
+                }
+            }
+        }
+    }
+}

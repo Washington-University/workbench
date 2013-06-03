@@ -46,6 +46,12 @@ namespace caret {
         
         virtual ~CiftiBrainordinateLabelFile();
         
+        void getNodeIndicesWithLabelKey(const StructureEnum::Enum structure,
+                                        const int32_t surfaceNumberOfNodes,
+                                        const int32_t mapIndex,
+                                        const int32_t labelKey,
+                                        std::vector<int32_t>& nodeIndicesOut) const;
+        
     private:
         CiftiBrainordinateLabelFile(const CiftiBrainordinateLabelFile&);
 

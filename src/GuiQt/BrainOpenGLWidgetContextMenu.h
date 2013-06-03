@@ -45,6 +45,7 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
+    class CaretMappableDataFile;
     class CiftiConnectivityMatrixDataFileManager;
     class ChartingDataManager;
     class SelectionManager;
@@ -100,25 +101,20 @@ namespace caret {
     private:
         class ParcelConnectivity {
         public:
-            ParcelConnectivity(LabelFile* labelFile,
+            ParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
                                const int32_t labelFileMapIndex,
                                const int32_t labelKey,
                                const QString& labelName,
                                Surface* surface,
                                const int32_t nodeNumber,
                                ChartingDataManager* chartingDataManager,
-                               CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
-                this->labelFile = labelFile;
-                this->labelFileMapIndex = labelFileMapIndex;
-                this->labelKey = labelKey;
-                this->labelName = labelName;
-                this->surface = surface;
-                this->nodeNumber = nodeNumber;
-                this->chartingDataManager = chartingDataManager;
-                this->ciftiConnectivityManager = ciftiConnectivityManager;
-            }
+                               CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager);
             
-            LabelFile* labelFile;
+            ~ParcelConnectivity();
+            
+            void getNodeIndices(std::vector<int32_t>& nodeIndicesOut) const;
+            
+            CaretMappableDataFile* mappableLabelFile;
             int32_t labelFileMapIndex;
             int32_t labelKey;
             QString labelName;

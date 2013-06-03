@@ -46,6 +46,7 @@
 #include "BrowserTabContent.h"
 #include "ChartableInterface.h"
 #include "ChartingDataManager.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
@@ -299,69 +300,93 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
     
         Model* model = this->browserTabContent->getModelControllerForDisplay();
         if (model != NULL) {
-            OverlaySet* overlaySet = model->getOverlaySet(this->browserTabContent->getTabNumber());
+            std::vector<CaretMappableDataFile*> allMappableLabelFiles;
             
-            std::vector<LabelFile*> labelFiles;
-            std::vector<int32_t> labelMapIndices;
+            std::vector<CiftiBrainordinateLabelFile*> ciftiLabelFiles;
+            brain->getConnectivityDenseLabelFiles(ciftiLabelFiles);
+            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
+                                 ciftiLabelFiles.begin(),
+                                 ciftiLabelFiles.end());
             
-            bool useAllLabelFiles = true;
-            if (useAllLabelFiles) {
                 std::vector<LabelFile*> brainStructureLabelFiles;
                 surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
-                const int numBrainStructureLabelFiles = static_cast<int32_t>(brainStructureLabelFiles.size());
-                for (int32_t i = 0; i < numBrainStructureLabelFiles; i++) {
-                    LabelFile* lf = brainStructureLabelFiles[i];
-                    const int32_t numMaps = lf->getNumberOfMaps();
-                    for (int im = 0; im < numMaps; im++) {
-                        labelFiles.push_back(lf);
-                        labelMapIndices.push_back(im);
-                    }
-                }
-            }
-            else {
-                overlaySet->getLabelFilesForSurface(surface,
-                                                    labelFiles,
-                                                    labelMapIndices);
-            }
-            const int32_t numberOfLabelFiles = static_cast<int32_t>(labelFiles.size());
+            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
+                                 brainStructureLabelFiles.begin(),
+                                 brainStructureLabelFiles.end());
             
+            const int32_t numberOfLabelFiles = static_cast<int32_t>(allMappableLabelFiles.size());
             for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
-                LabelFile* labelFile = dynamic_cast<LabelFile*>(labelFiles[ilf]);
-                const int32_t mapIndex = labelMapIndices[ilf];
-                const int labelKey = labelFile->getLabelKey(nodeNumber,
+                CaretMappableDataFile* mappableLabelFile = allMappableLabelFiles[ilf];
+                const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
+                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+                    
+                    int32_t labelKey = -1;
+                    AString labelName;
+                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+                    LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
+                    
+                    if (ciftiLabelFile != NULL) {
+                        float nodeValue;
+                        bool nodeValueValid = false;
+                        AString stringValue;
+                        if (ciftiLabelFile->getMapSurfaceNodeValue(mapIndex,
+                                                                   surface->getStructure(),
+                                                                   nodeNumber,
+                                                                   surface->getNumberOfNodes(),
+                                                                   nodeValue,
+                                                                   nodeValueValid,
+                                                                   stringValue)) {
+                            if (nodeValueValid) {
+                                labelKey = static_cast<int32_t>(nodeValue);
+                                const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
+                                labelName =  labelTable->getLabelName(labelKey);
+                            }
+                        }
+                    }
+                    else if (labelFile != NULL) {
+                        labelKey = labelFile->getLabelKey(nodeNumber,
+                                                          mapIndex);
+                        labelName = labelFile->getLabelName(nodeNumber,
                                                             mapIndex);
-                const AString mapName = labelFile->getMapName(mapIndex);
-                const GiftiLabel* giftiLabel = labelFile->getLabelTable()->getLabel(labelKey);
-                if (giftiLabel != NULL) {
-                    ParcelConnectivity* pc = new ParcelConnectivity(labelFile,
-                                                                    mapIndex,
-                                                                    labelKey,
-                                                                    giftiLabel->getName(),
-                                                                    surface,
-                                                                    nodeNumber,
-                                                                    chartingDataManager,
-                                                                    connMatrixMan);
-                    this->parcelConnectivities.push_back(pc);
-                    
-                    if (hasCiftiConnectivity) {
-                        const AString actionName("Show Cifti Connectivity For Parcel "
-                                                 + giftiLabel->getName()
-                                                 + " in map "
-                                                 + mapName);
-                        QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
-                        action->setData(qVariantFromValue((void*)pc));
-                        ciftiConnectivityActions.push_back(action);
+                    }
+                    else {
+                        CaretAssertMessage(0,
+                                           "Should never get here, new or invalid label file type");
                     }
                     
-                    if (haveChartableFiles) {
-                        const AString tsActionName("Show Data Series Graph For Parcel "
-                                                   + giftiLabel->getName()
-                                                   + " in map "
-                                                   + mapName);
-                        QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
-                        tsAction->setData(qVariantFromValue((void*)pc));                            
-                        dataSeriesActions.push_back(tsAction);
+                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
+                    if (labelName.isEmpty() == false) {
+                        ParcelConnectivity* pc = new ParcelConnectivity(mappableLabelFile,
+                                                                        mapIndex,
+                                                                        labelKey,
+                                                                        labelName,
+                                                                        surface,
+                                                                        nodeNumber,
+                                                                        chartingDataManager,
+                                                                        connMatrixMan);
+                        this->parcelConnectivities.push_back(pc);
+                        
+                        if (hasCiftiConnectivity) {
+                            const AString actionName("Show Cifti Connectivity For Parcel "
+                                                     + labelName
+                                                     + " in map "
+                                                     + mapName);
+                            QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
+                            action->setData(qVariantFromValue((void*)pc));
+                            ciftiConnectivityActions.push_back(action);
+                        }
+                        
+                        if (haveChartableFiles) {
+                            const AString tsActionName("Show Data Series Graph For Parcel "
+                                                       + labelName
+                                                       + " in map "
+                                                       + mapName);
+                            QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
+                            tsAction->setData(qVariantFromValue((void*)pc));
+                            dataSeriesActions.push_back(tsAction);
+                        }
                     }
+                    
                 }
             }
         }
@@ -556,9 +581,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
-    pc->labelFile->getNodeIndicesWithLabelKey(pc->labelFileMapIndex,
-                                              pc->labelKey,
-                                              nodeIndices);
+    pc->getNodeIndices(nodeIndices);
     if (nodeIndices.empty()) {
         WuQMessageBox::errorOk(this,
                                "No vertices match label " + pc->labelName);
@@ -742,9 +765,7 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
-    pc->labelFile->getNodeIndicesWithLabelKey(pc->labelFileMapIndex, 
-                                              pc->labelKey,
-                                              nodeIndices);
+    pc->getNodeIndices(nodeIndices);
     if (nodeIndices.empty()) {
         WuQMessageBox::errorOk(this,
                                "No vertices match label " + pc->labelName);
@@ -1224,7 +1245,7 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const CiftiConnectiv
     
     const QString msg = ("There are "
                          + QString::number(numNodes)
-                         + " vertices in the selected region.  Loading data for "
+                         + " vertices in the selected region.  Loading data from the network for "
                          + "this quantity of vertices may take a very long time.");
     const bool result = WuQMessageBox::warningYesNo(this,
                                                     "Do you want to continue?",
@@ -1268,4 +1289,58 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ChartingDataMa
     return result;
 }
 
+BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
+                   const int32_t labelFileMapIndex,
+                   const int32_t labelKey,
+                   const QString& labelName,
+                   Surface* surface,
+                   const int32_t nodeNumber,
+                   ChartingDataManager* chartingDataManager,
+                   CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
+    this->mappableLabelFile = mappableLabelFile;
+    this->labelFileMapIndex = labelFileMapIndex;
+    this->labelKey = labelKey;
+    this->labelName = labelName;
+    this->surface = surface;
+    this->nodeNumber = nodeNumber;
+    this->chartingDataManager = chartingDataManager;
+    this->ciftiConnectivityManager = ciftiConnectivityManager;
+}
+
+BrainOpenGLWidgetContextMenu::ParcelConnectivity::~ParcelConnectivity()
+{
+    
+}
+
+/**
+ * Get the indices inside the parcel.
+ *
+ * @param nodeIndicesOut
+ *    Contains node indices upon exit.
+ */
+void
+BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int32_t>& nodeIndicesOut) const
+{
+    nodeIndicesOut.clear();
+    
+    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+    LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
+    if (ciftiLabelFile != NULL) {
+        ciftiLabelFile->getNodeIndicesWithLabelKey(surface->getStructure(),
+                                                   surface->getNumberOfNodes(),
+                                                   labelFileMapIndex,
+                                                   labelKey,
+                                                   nodeIndicesOut);
+    }
+    else if (labelFile != NULL) {
+        labelFile->getNodeIndicesWithLabelKey(labelFileMapIndex,
+                                              labelKey,
+                                              nodeIndicesOut);
+    }
+    else {
+        CaretAssertMessage(0,
+                           "Should never get here, new or invalid label file type");
+    }
+    
+}
 
