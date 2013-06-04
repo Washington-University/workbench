@@ -76,6 +76,7 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
  m_ciftiInterface(ciftiInterface)
 {
     m_dataValid = false;
+    m_volumeSpace = new VolumeSpace();
     
     const int32_t numberOfCiftiVolumeVoxels = static_cast<int32_t>(ciftiVoxelMapping.size());
     if (numberOfCiftiVolumeVoxels <= 0) {
@@ -105,6 +106,9 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
     if (numberOfVoxels <= 0) {
         return;
     }
+    
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    ciftiXML.getVolumeSpace(*m_volumeSpace);
     
 //    m_voxelOffsets.resize(numberOfVoxels,
 //                          -1);
@@ -161,7 +165,7 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
  */
 SparseVolumeIndexer::~SparseVolumeIndexer()
 {
-    
+    delete m_volumeSpace;
 }
 
 /**
@@ -228,12 +232,8 @@ SparseVolumeIndexer::coordinateToIndices(const float x,
 {
     if (m_dataValid) {
         if (m_ciftiInterface != NULL) {
-            const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-            VolumeSpace volumeSpace;
-            if (ciftiXML.getVolumeSpace(volumeSpace)) {
-                volumeSpace.enclosingVoxel(x, y, z, iOut, jOut, kOut);
-                return true;
-            }
+            m_volumeSpace->enclosingVoxel(x, y, z, iOut, jOut, kOut);
+            return true;
         }
     }
     
@@ -295,12 +295,8 @@ SparseVolumeIndexer::indicesToCoordinate(const int64_t i,
 {
     if (m_dataValid) {
         if (m_ciftiInterface != NULL) {
-            const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-            VolumeSpace volumeSpace;
-            if (ciftiXML.getVolumeSpace(volumeSpace)) {
-                volumeSpace.indexToSpace(i, j, k, xOut, yOut, zOut);
-                return true;
-            }
+            m_volumeSpace->indexToSpace(i, j, k, xOut, yOut, zOut);
+            return true;
         }
     }
     

@@ -40,6 +40,7 @@
 
 namespace caret {
     class CiftiInterface;
+    class VolumeSpace;
     
     class SparseVolumeIndexer : public CaretObject {
         
@@ -107,6 +108,8 @@ namespace caret {
         CaretCompact3DLookup<int64_t> m_voxelIndexLookup;
         
         const CiftiInterface* m_ciftiInterface;
+        
+        VolumeSpace* m_volumeSpace;
         
 //        std::vector<int32_t> m_voxelOffsets;
         
