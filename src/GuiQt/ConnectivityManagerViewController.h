@@ -75,9 +75,7 @@ namespace caret {
     private slots:
         void graphActionTriggered();
 
-        void movieActionTriggered(bool status);
-
-        void renderMovieActionTriggered(bool status);
+        void matrixActionTriggered();
         
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
@@ -87,13 +85,7 @@ namespace caret {
         void updateManagerViewController();
         
         void updateForTimeSeriesFiles(const std::vector<ChartableInterface*>& timeSeriesFiles);
-
-        void captureFrame(AString filename);
-
-		void processRotateTransformation(const double dx,
-			const double dy,
-			const double dz);
-
+		
         Qt::Orientation orientation;
         
         int32_t browserWindowIndex;
@@ -112,48 +104,9 @@ namespace caret {
 
         QAction* graphAction;
 
-        QLabel *frameRepeatLabel;
+        QToolButton* matrixToolButton;
 
-        QSpinBox *frameRepeatSpinBox;
-
-        QLabel *frameRotateLabel;
-
-        QLabel *frameRotateXLabel;
-
-        QDoubleSpinBox *frameRotateXSpinBox;
-
-        QLabel *frameRotateYLabel;
-
-        QDoubleSpinBox *frameRotateYSpinBox;
-
-        QLabel *frameRotateZLabel;
-
-        QDoubleSpinBox *frameRotateZSpinBox;
-
-        QLabel *frameRotateCountLabel;
-
-        QSpinBox *frameRotateCountSpinBox;
-
-        QLabel *frameRotateReverseDirectionLabel;
-
-        QCheckBox *frameRotateReverseDirection;
-
-        QToolButton *renderMovieButton;
-
-        QAction *renderMovieAction;
-
-        QToolButton *movieToolButton;
-
-        QAction* movieAction;
-
-		int frame_number;
-
-        double dx;
-        double dy;
-        double dz;               
-        bool frameCountEnabled;
-        int frameCount;
-        bool reverseDirection;
+        QAction* matrixAction;
 
         TimeCourseDialog *tcDialog;
         

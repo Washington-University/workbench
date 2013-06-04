@@ -92,69 +92,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->timeSeriesButtonLayout = NULL;
     this->graphToolButton = NULL;
     this->graphAction = NULL;
-    this->movieToolButton = NULL;
-    this->movieAction = NULL;
-
-    this->frameRepeatLabel = NULL;
-    this->frameRepeatSpinBox = NULL;
-    this->frameRotateXLabel = NULL;
-    this->frameRotateXSpinBox = NULL;
-    this->frameRotateYLabel = NULL;
-    this->frameRotateYSpinBox = NULL;
-    this->frameRotateZLabel = NULL;
-    this->frameRotateZSpinBox = NULL;
-    this->frameRotateCountLabel = NULL;
-    this->frameRotateReverseDirectionLabel = NULL;
-    this->frameRotateReverseDirection = NULL;
-    this->renderMovieButton = NULL;
-
-    this->frameRepeatLabel = new QLabel("Repeat Frames: ");
-    this->frameRepeatSpinBox = WuQFactory::newSpinBox();
-    this->frameRepeatSpinBox->setMaximum(59);
-    this->frameRepeatSpinBox->setMinimum(0);
-
-    this->frameRotateLabel = new QLabel("Rotate: ");
-    this->frameRotateXLabel = new QLabel("X:");
-    this->frameRotateXSpinBox = WuQFactory::newDoubleSpinBox();
-    this->frameRotateXSpinBox->setMaximum(180.0);
-    this->frameRotateXSpinBox->setMinimum(-180.0);
-
-    this->frameRotateYLabel = new QLabel("Y:");
-    this->frameRotateYSpinBox = WuQFactory::newDoubleSpinBox();
-    this->frameRotateYSpinBox->setMaximum(180.0);
-    this->frameRotateYSpinBox->setMinimum(-180.0);
-
-    this->frameRotateZLabel = new QLabel("Z:");
-    this->frameRotateZSpinBox = WuQFactory::newDoubleSpinBox();
-    this->frameRotateZSpinBox->setMaximum(180.0);
-    this->frameRotateZSpinBox->setMinimum(-180.0);
-
-    this->frameRotateCountLabel = new QLabel();
-	this->frameRotateCountLabel->setText("Rotate Frame Count:");
-    this->frameRotateCountSpinBox = WuQFactory::newSpinBox();
-
-    this->frameRotateReverseDirectionLabel = new QLabel("Reverse Direction");
-    this->frameRotateReverseDirection = new QCheckBox();
-    this->renderMovieButton = new QToolButton();
-    this->renderMovieAction = WuQtUtilities::createAction("Record",
-        "Animate Rotation...",
-        this,
-        this,
-        SLOT(renderMovieActionTriggered(bool)));
-    this->renderMovieAction->setCheckable(true);
-    this->renderMovieButton->setDefaultAction(this->renderMovieAction);
-
-	this->movieAction = WuQtUtilities::createAction("Movie...",
-		"Record Time Course Movie...",
-		this,
-		this,
-		SLOT(movieActionTriggered(bool)));
-
-	this->movieAction->setCheckable(true);
-	this->movieToolButton = new QToolButton();
-	this->movieToolButton->setDefaultAction(this->movieAction);
-	frame_number = 0;
-    
+	
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
@@ -176,9 +114,25 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
             this->graphToolButton = new QToolButton();
             this->graphToolButton->setDefaultAction(this->graphAction);
 
-            
 
-            this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);
+            QIcon matrixIcon;
+            const bool matrixIconValid = WuQtUtilities::loadIcon(":/time_series_graph.png",
+                matrixIcon);
+
+            this->matrixAction = WuQtUtilities::createAction("Matrix...",
+                "Launch pconn Matrix Viewer...",
+                this,
+                this,
+                SLOT(matrixActionTriggered()));
+
+            if(matrixIconValid) {
+                this->matrixAction->setIcon(matrixIcon);
+            }
+            this->matrixToolButton = new QToolButton();
+            this->matrixToolButton->setDefaultAction(this->matrixAction);
+
+            this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);           
+        
         }
             break;
         default:
@@ -192,34 +146,16 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     if(this->timeSeriesButtonLayout)
     {
         if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
-        /*if(this->movieToolButton) this->timeSeriesButtonLayout->addWidget(this->movieToolButton,0,Qt::AlignLeft);
-        if(this->frameRepeatLabel) this->timeSeriesButtonLayout->addWidget(this->frameRepeatLabel,0, Qt::AlignLeft);
-        if(this->frameRepeatSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRepeatSpinBox,0, Qt::AlignLeft);
-
-        if(this->frameRotateLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateLabel,0, Qt::AlignLeft);
-        if(this->frameRotateXLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateXLabel,0, Qt::AlignLeft);
-        if(this->frameRotateXSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateXSpinBox, 0, Qt::AlignLeft);
-        if(this->frameRotateYLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateYLabel,0, Qt::AlignLeft);
-        if(this->frameRotateYSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateYSpinBox, 0, Qt::AlignLeft);
-        if(this->frameRotateZLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateZLabel,0, Qt::AlignLeft);
-        if(this->frameRotateZSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateZSpinBox, 0, Qt::AlignLeft);
-
-        if(this->frameRotateCountLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountLabel, 0, Qt::AlignLeft);
-        if(this->frameRotateCountSpinBox) this->timeSeriesButtonLayout->addWidget(this->frameRotateCountSpinBox, 0, Qt::AlignLeft);
-
-        if(this->frameRotateReverseDirectionLabel) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirectionLabel, 0, Qt::AlignLeft);
-        if(this->frameRotateReverseDirection) this->timeSeriesButtonLayout->addWidget(this->frameRotateReverseDirection, 0, Qt::AlignLeft);
-        if(this->renderMovieButton) this->timeSeriesButtonLayout->addWidget(this->renderMovieButton, 100, Qt::AlignLeft);
-*/
+        if(this->matrixToolButton) this->timeSeriesButtonLayout->addWidget(this->matrixToolButton,0,Qt::AlignLeft);
+        this->timeSeriesButtonLayout->addSpacerItem(new QSpacerItem(40,20,QSizePolicy::Expanding, QSizePolicy::Minimum));
+        
         layout->addLayout(this->timeSeriesButtonLayout);
     }
     
     layout->addLayout(this->viewControllerGridLayout);
     layout->addStretch();    
 
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);    
 }
 
 /**
@@ -243,95 +179,20 @@ ConnectivityManagerViewController::graphActionTriggered()
    
 }
 
+
 void
-ConnectivityManagerViewController::movieActionTriggered(bool status)
+ConnectivityManagerViewController::matrixActionTriggered()
 {
-    if(!status&&(frame_number > 0))
+/*    if(!this->tcDialog)
     {
-        //render frames....
-
-        QString formatString("Movie Files (*.mpg)");
-
-        AString fileName = QFileDialog::getSaveFileName( this, tr("Save File"),QString::null, formatString );
-        AString tempDir = QDir::tempPath();
-        if ( !fileName.isEmpty() )
-        {
-            unlink(fileName);
-            CaretLogInfo("Rendering movie to:" + fileName);
-            AString ffmpeg = SystemUtilities::getWorkbenchHome() + AString("/ffmpeg ");
-                //QCoreApplication::applicationDirPath() + AString("/ffmpeg ");
-
-            double frame_rate = 30.0/double(1 + this->frameRepeatSpinBox->value());
-            
-            AString command = ffmpeg + AString("-threads 4 -r " + AString::number(frame_rate) + " -i "+ tempDir + "/movie%d.png -r 30 -q:v 1 -f mpeg1video " + fileName);
-            CaretLogFine("running " + command);
-
-            system(command.toAscii().data());
-            CaretLogFine("Finished rendering " + fileName);
-            
-        }
-        for(int i = 0;i<frame_number;i++)
-        {
-            AString tempFile = tempDir + "/movie" + AString::number(i) + AString(".png");
-            unlink(tempFile);
-        }
-        frame_number = 0;
+        this->tcDialog = new TimeCourseDialog(this);
     }
+    tcDialog->setTimeSeriesGraphEnabled(true);
+    //tcDialog->show();
+    tcDialog->updateDialog(true);*/
+
 }
 
-void ConnectivityManagerViewController::captureFrame(AString filename)
-{
-    const int browserWindowIndex = 0;
-
-    int32_t imageX = 0;
-    int32_t imageY = 0;
-    
-    ImageFile imageFile;
-    QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
-        imageX,
-        imageY,
-        imageFile,
-        false);
-    QApplication::restoreOverrideCursor();
-
-
-    if (valid == false) {
-        WuQMessageBox::errorOk(this, 
-            "Invalid window selected");
-        return;
-    }
-    
-    std::vector<AString> imageFileExtensions;
-    AString defaultFileExtension;
-    ImageFile::getImageFileExtensions(imageFileExtensions, 
-        defaultFileExtension);
-
-    
-
-    bool validExtension = false;
-    for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
-        extensionIterator != imageFileExtensions.end();
-        extensionIterator++) {
-            if (filename.endsWith(*extensionIterator)) {
-                validExtension = true;
-            }
-    }
-
-    if (validExtension == false) {
-        if (defaultFileExtension.isEmpty() == false) {
-            filename += ("." + defaultFileExtension);
-        }
-    }
-
-    try {
-        imageFile.writeFile(filename);
-    }
-    catch (const DataFileException& /*e*/) {
-        QString msg("Unable to save: " + filename);
-        WuQMessageBox::errorOk(this, msg);
-    }
-}
 
 
 void 
@@ -408,149 +269,9 @@ ConnectivityManagerViewController::receiveEvent(Event* event)
             }
         }
     }
-    else if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
-        
-        AString tempPath = QDir::tempPath();
-
-        if(this->movieAction->isChecked())
-        {
-            /*dx = this->frameRotateXSpinBox->value();
-            dy = this->frameRotateYSpinBox->value();
-            dz = this->frameRotateZSpinBox->value();
-            frameCount = this->frameRotateCountSpinBox->value();
-            reverseDirection = this->frameRotateReverseDirection->isEnabled();*/
-            
-            if(frameCountEnabled && frameCount)
-            {                
-                if(!reverseDirection) 
-                {
-                    if(frameCount <= frame_number)
-                    {
-                        this->renderMovieButton->setChecked(false);
-                        dx = dy = dz = 0.0;
-                        return;
-                    }
-                }
-                else
-                {
-                    if(!(frame_number %frameCount) &&
-                        (frame_number > 0))
-                    {
-                        dx *= -1.0;
-                        dy *= -1.0;
-                        dz *= -1.0;
-                    }
-                }
-            }
-            
-            this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
-			if(this->frameRotateXSpinBox->value() || this->frameRotateYSpinBox->value() || this->frameRotateZSpinBox->value())
-			{
-                
-                this->processRotateTransformation(dx,dy,dz);
-			}
-			AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
-			CaretLogFine(temp);
-            CaretLogFine("frame number:" + QString::number(frame_number));
-			frame_number++;
-        }
-    }
-    else if(event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
-
-        AString tempPath = QDir::tempPath();
-
-        if(this->movieAction->isChecked())
-        {
-            
-            if(frameCountEnabled && frameCount)
-            {                
-                if(!reverseDirection) 
-                {
-                    if(frameCount <= frame_number)
-                    {
-                        this->renderMovieButton->setChecked(false);
-                        dx = dy = dz = 0.0;
-                        return;
-                    }
-                }
-                else
-                {
-                    if(!(frame_number %frameCount) &&
-                        (frame_number > 0))
-                    {
-                        dx *= -1.0;
-                        dy *= -1.0;
-                        dz *= -1.0;
-                    }
-                }
-            }
-
-            this->captureFrame(tempPath + AString("/movie") + AString::number(frame_number) + AString(".png"));
-            if(this->frameRotateXSpinBox->value() || this->frameRotateYSpinBox->value() || this->frameRotateZSpinBox->value())
-            {
-                this->processRotateTransformation(this->frameRotateXSpinBox->value(),this->frameRotateYSpinBox->value(),this->frameRotateZSpinBox->value());
-            }
-            AString temp = tempPath + AString("/movie") + AString::number(frame_number) + AString(".png");
-            CaretLogFine(temp);
-            CaretLogFine("frame number:" + QString::number(frame_number));
-            frame_number++;
-        }
-    }
-
-
 }
 
-void ConnectivityManagerViewController::renderMovieActionTriggered(bool status)
-{
-    this->renderMovieButton->setChecked(status);
 
-    dx = this->frameRotateXSpinBox->value();
-    dy = this->frameRotateYSpinBox->value();
-    dz = this->frameRotateZSpinBox->value();
-    frameCount = this->frameRotateCountSpinBox->value();
-	reverseDirection = this->frameRotateReverseDirection->isChecked();
-    frameCountEnabled = this->frameRotateCountSpinBox->value() ? true : false;
-    if(status)
-    {
-        this->renderMovieButton->setText("Stop");
-               
 
-        while(this->renderMovieButton->isChecked())
-        {            
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
-            QCoreApplication::instance()->processEvents();
-        }        
-    }
-    else
-    {        
-        this->renderMovieButton->setText("Play");
-    }
 
-}
 
-#if 1
-#include <Matrix4x4.h>
-#include "BrowserTabContent.h"
-#include "Model.h"
-
-void 
-ConnectivityManagerViewController::processRotateTransformation(const double dx,
-                                                  const double dy,
-                                                  const double dz)
-{
-	BrowserTabContent* browserTabContent = 
-		GuiManager::get()->getBrowserTabContentForBrowserWindow(browserWindowIndex, true);
-	if (browserTabContent == NULL) {
-		return;
-	}
-    Model* modelController = browserTabContent->getModelControllerForDisplay();
-    if (modelController != NULL) {
-        Matrix4x4 rotationMatrix = browserTabContent->getRotationMatrix();
-        rotationMatrix.rotateX(dx);
-        rotationMatrix.rotateY(dy);
-        rotationMatrix.rotateZ(dz);
-        browserTabContent->setRotationMatrix(rotationMatrix);
-    }
-}
-
-#endif

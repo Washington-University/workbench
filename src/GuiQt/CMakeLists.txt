@@ -40,6 +40,7 @@ CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
+ChartingDialog.h
 ChartSetViewController.h
 ChartViewController.h
 CiftiConnectivityMatrixViewController.h
@@ -87,6 +88,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
+Table.h
 TimeCourseDialog.h
 TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
@@ -143,6 +145,7 @@ CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
 ChartSetViewController.h
 ChartViewController.h
+ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
 ConnectivityManagerViewController.h
@@ -208,6 +211,7 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
+Table.h
 TimeCourseDialog.h
 TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
@@ -261,6 +265,7 @@ CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
+ChartingDialog.cxx
 ChartSetViewController.cxx
 ChartViewController.cxx
 CiftiConnectivityMatrixViewController.cxx
@@ -327,6 +332,7 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
+Table.cxx
 TimeCourseDialog.cxx
 TimeCoursePlotter.cxx
 TimeSeriesManagerForViewController.cxx
@@ -364,7 +370,9 @@ WuQtUtilities.cxx
 )
 
 SET(FORMS
+    ChartingDialog.ui
     MovieDialog.ui
+	Table.ui
     TimeCourseDialog.ui)
 
 
