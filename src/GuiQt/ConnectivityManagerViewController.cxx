@@ -47,6 +47,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ChartingDialog.h"
 #include "ConnectivityTimeSeriesViewController.h"
 #include "EventManager.h"
 #include "EventListenerInterface.h"
@@ -92,6 +93,10 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->timeSeriesButtonLayout = NULL;
     this->graphToolButton = NULL;
     this->graphAction = NULL;
+
+    this->chartingDialog = NULL;
+    this->matrixToolButton = NULL;
+    this->matrixAction = NULL;
 	
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
@@ -183,13 +188,13 @@ ConnectivityManagerViewController::graphActionTriggered()
 void
 ConnectivityManagerViewController::matrixActionTriggered()
 {
-/*    if(!this->tcDialog)
+  if(!this->chartingDialog)
     {
-        this->tcDialog = new TimeCourseDialog(this);
+        this->chartingDialog = new ChartingDialog(this);
     }
-    tcDialog->setTimeSeriesGraphEnabled(true);
-    //tcDialog->show();
-    tcDialog->updateDialog(true);*/
+    //this->chartingDialog->setTimeSeriesGraphEnabled(true);
+    chartingDialog->show();
+    //->updateDialog(true);
 
 }
 
