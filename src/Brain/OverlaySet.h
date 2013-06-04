@@ -33,6 +33,7 @@
 
 namespace caret {
 
+    class Brain;
     class BrainStructure;
     class BrowserTabContent;
     class LabelFile;
@@ -109,22 +110,40 @@ namespace caret {
         void initializeOverlaySet(Model* modelDisplayController,
                                   BrainStructure* brainStructure);
 
+        void findUnderlayFiles(Brain* brain,
+                               const std::vector<StructureEnum::Enum>& matchToStructures,
+                               const bool includeVolumeFiles,
+                               std::vector<CaretMappableDataFile*>& filesOut,
+                               std::vector<int32_t>& mapIndicesOut);
+        
+        void findMiddleLayerFiles(Brain* brain,
+                                  const std::vector<StructureEnum::Enum>& matchToStructures,
+                                  const bool includeVolumeFiles,
+                                  std::vector<CaretMappableDataFile*>& filesOut,
+                                  std::vector<int32_t>& mapIndicesOut);
+        
+        void findOverlayFiles(Brain* brain,
+                              const std::vector<StructureEnum::Enum>& matchToStructures,
+                              const bool includeVolumeFiles,
+                              std::vector<CaretMappableDataFile*>& filesOut,
+                              std::vector<int32_t>& mapIndicesOut);
+        
+        
         OverlaySet(const OverlaySet&);
         
         OverlaySet& operator=(const OverlaySet&);
         
         Overlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
-        bool findFilesWithMapNamed(std::vector<const CaretMappableDataFile*> matchedFilesOut,
-                                  std::vector<int32_t> matchedFileIndicesOut,
-                                  const std::vector<StructureEnum::Enum>& matchToStructures,
-                                  const std::vector<const CaretMappableDataFile*>& matchToMapFiles,
-                                  const bool matchToVolumeData,
-                                  const AString matchToName1,
-                                  const AString matchToName2 = "",
-                                  const AString matchToName3 = "",
-                                  const AString matchToName4 = "",
-                                  const AString matchToName5 = "");
+        bool findFilesWithMapNamed(std::vector<CaretMappableDataFile*>& matchedFilesOut,
+                                   std::vector<int32_t>& matchedFileIndicesOut,
+                                   const Brain* brain,
+                                   const std::vector<StructureEnum::Enum>& matchToStructures,
+                                   const DataFileTypeEnum::Enum dataFileType,
+                                   const bool matchToVolumeData,
+                                   const AString& matchToNamesRegularExpressionText,
+                                   const bool matchToNamesRegularExpressionResult,
+                                   const bool matchOneFilePerStructure);
         
         Model* m_modelDisplayController;
         
@@ -133,10 +152,21 @@ namespace caret {
         int32_t m_numberOfDisplayedOverlays;
         
         SceneClassAssistant* m_sceneAssistant;
+
+        /** regular expression for matching myeline names - NOT saved to scenes */
+        static const AString s_myelinMatchRegularExpressionText;
+        
+        /** regular expression for matching shape names - NOT saved to scenes */
+        static const AString s_shapeMatchRegularExpressionText;
+        
+        /** regular expression for matching shape and myelin names - NOT saved to scenes */
+        static const AString s_shapeMyelinMatchRegularExpressionText;
     };
     
 #ifdef __OVERLAY_SET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    AString const OverlaySet::s_myelinMatchRegularExpressionText = "(myelin)";
+    AString const OverlaySet::s_shapeMatchRegularExpressionText = "(sulc|shape|curv|depth|thick)";
+    AString const OverlaySet::s_shapeMyelinMatchRegularExpressionText = "(myelin|sulc|shape|curv|depth|thick)";
 #endif // __OVERLAY_SET_DECLARE__
 
 } // namespace

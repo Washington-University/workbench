@@ -4036,6 +4036,31 @@ Brain::getAllMappableDataFiles(std::vector<CaretMappableDataFile*>& allCaretMapp
     }
 }
     
+/**
+ * Get All CaretMappableDataFiles of the given data file type.
+ *
+ * @param caretMappableDataFilesOut
+ *   Contains CaretMappableDataFiles matching data file type upon exit.
+ */
+void
+Brain::getAllMappableDataFileWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
+                                              std::vector<CaretMappableDataFile*>& caretMappableDataFilesOut) const
+{
+    caretMappableDataFilesOut.clear();
+    
+    std::vector<CaretMappableDataFile*> allFiles;
+    getAllMappableDataFiles(allFiles);
+    
+    for (std::vector<CaretMappableDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        CaretMappableDataFile* cmdf = *iter;
+        if (cmdf->getDataFileType() == dataFileType) {
+            caretMappableDataFilesOut.push_back(cmdf);
+        }
+    }
+}
+
 
 /**
  * Get all loaded data files.

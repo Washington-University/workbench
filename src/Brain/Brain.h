@@ -297,6 +297,9 @@ namespace caret {
         
         void getAllMappableDataFiles(std::vector<CaretMappableDataFile*>& allCaretMappableDataFilesOut) const;
         
+        void getAllMappableDataFileWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
+                                                    std::vector<CaretMappableDataFile*>& caretMappableDataFilesOut) const;
+        
         bool isFileValid(const CaretDataFile* caretDataFile) const;
 
         void determineDisplayedDataFiles();
