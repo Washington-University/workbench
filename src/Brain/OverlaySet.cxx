@@ -902,7 +902,7 @@ OverlaySet::findOverlayFiles(Brain* brain,
                               includeVolumeFiles,
                               "",
                               true,
-                              false) == false) {
+                              true) == false) {
         
         /*
          * Second, try to find LABEL files
@@ -915,7 +915,7 @@ OverlaySet::findOverlayFiles(Brain* brain,
                               includeVolumeFiles,
                               "",
                               true,
-                              false);
+                              true);
     }
     
     if (includeVolumeFiles) {
