@@ -1847,28 +1847,12 @@ const CiftiBrainModelElement* CiftiXML::findVolumeModel(const int& myMapIndex, c
 
 bool CiftiXML::matchesForColumns(const CiftiXML& rhs) const
 {
-    if (this == &rhs) return true;//compare pointers to skip checking object against itself
-    if (m_dimToMapLookup[1] == -1 || m_root.m_matrices.size() == 0)
-    {
-        return (rhs.m_dimToMapLookup[1] == -1 || rhs.m_root.m_matrices.size() == 0);
-    }
-    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[1]);
-    CaretAssertVectorIndex(rhs.m_root.m_matrices[0].m_matrixIndicesMap, rhs.m_dimToMapLookup[1]);
-    if (!matchesVolumeSpace(rhs)) return false;
-    return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_dimToMapLookup[1]]);
+    return mappingMatches(ALONG_COLUMN, rhs, ALONG_COLUMN);
 }
 
 bool CiftiXML::matchesForRows(const CiftiXML& rhs) const
 {
-    if (this == &rhs) return true;//compare pointers to skip checking object against itself
-    if (m_dimToMapLookup[0] == -1 || m_root.m_matrices.size() == 0)
-    {
-        return (rhs.m_dimToMapLookup[0] == -1 || rhs.m_root.m_matrices.size() == 0);
-    }
-    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[0]);
-    CaretAssertVectorIndex(rhs.m_root.m_matrices[0].m_matrixIndicesMap, rhs.m_dimToMapLookup[0]);
-    if (!matchesVolumeSpace(rhs)) return false;
-    return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] == rhs.m_root.m_matrices[0].m_matrixIndicesMap[rhs.m_dimToMapLookup[0]]);
+    return mappingMatches(ALONG_ROW, rhs, ALONG_ROW);
 }
 
 bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const int& otherDirection) const
@@ -1881,6 +1865,7 @@ bool CiftiXML::mappingMatches(const int& direction, const CiftiXML& other, const
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
     CaretAssertVectorIndex(other.m_root.m_matrices[0].m_matrixIndicesMap, other.m_dimToMapLookup[otherDirection]);
+    if (hasVolumeData(direction) && !(other.hasVolumeData(otherDirection) && matchesVolumeSpace(other))) return false;
     return (m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] == other.m_root.m_matrices[0].m_matrixIndicesMap[other.m_dimToMapLookup[otherDirection]]);
 }
 

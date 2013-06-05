@@ -189,7 +189,7 @@ namespace caret {
         ///get the mapping for a volume in columns, returns false and empty vector if not found
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
             
-        ///get the mapping for a volume in columns, returns false and empty vector if not found
+        ///get the mapping for a volume, returns false and empty vector if not found
         bool getVolumeMap(const int& direction, std::vector<CiftiVolumeMap>& mappingOut) const;
             
         ///get the mapping for a volume in rows, returns false and empty vector if not found
