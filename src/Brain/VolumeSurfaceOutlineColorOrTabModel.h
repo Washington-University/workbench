@@ -58,7 +58,6 @@ namespace caret {
                 ITEM_TYPE_COLOR
             };
             
-            
             Item(const CaretColorEnum::Enum color);
             
             Item(const int32_t browserTabIndex);
@@ -66,6 +65,8 @@ namespace caret {
             ~Item();
 
             bool isValid() const;
+            
+            bool equals(const Item& item) const;
             
             AString getName();
             
@@ -103,7 +104,7 @@ namespace caret {
         
         Item* getSelectedItem();
         
-        void setSelectedItem(Item* item);
+        void setSelectedItem(const Item* item);
         
         void setColor(const CaretColorEnum::Enum color);
         
@@ -119,12 +120,9 @@ namespace caret {
 
         VolumeSurfaceOutlineColorOrTabModel& operator=(const VolumeSurfaceOutlineColorOrTabModel&);
         
-        std::vector<Item*> m_colorItems;
-        std::vector<Item*> m_browserTabItems;
+        std::vector<Item*> m_allItems;
         
         Item* m_selectedItem;
-        
-        int32_t m_previousSelectedItemIndex;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_COLOR_OR_TAB_MODEL_DECLARE__

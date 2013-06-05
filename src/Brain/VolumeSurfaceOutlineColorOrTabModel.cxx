@@ -67,7 +67,6 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
 : CaretObject()
 {
     m_selectedItem = NULL;
-    m_previousSelectedItemIndex = -1;
     
     std::vector<CaretColorEnum::Enum> allColors;
     CaretColorEnum::getAllEnums(allColors);
@@ -75,14 +74,22 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
          iter != allColors.end();
          iter++) {
         Item* item = new Item(*iter);
-        m_colorItems.push_back(item);
+        m_allItems.push_back(item);
     }
     
-    m_browserTabItems.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                                 NULL);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         Item* item = new Item(i);
-        m_browserTabItems[i] = item;
+        m_allItems.push_back(item);
+    }
+    
+    for (std::vector<Item*>::iterator iter = m_allItems.begin();
+         iter != m_allItems.end();
+         iter++) {
+        Item* item = *iter;
+        if (item->isValid()) {
+            m_selectedItem = const_cast<Item*>(item);
+            break;
+        }
     }
 }
 
@@ -91,21 +98,13 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
  */
 VolumeSurfaceOutlineColorOrTabModel::~VolumeSurfaceOutlineColorOrTabModel()
 {
-    for (std::vector<Item*>::iterator iter = m_colorItems.begin();
-         iter != m_colorItems.end();
+    for (std::vector<Item*>::iterator iter = m_allItems.begin();
+         iter != m_allItems.end();
          iter++) {
         Item* item = *iter;
         delete item;
     }
-    m_colorItems.clear();
-    
-    for (std::vector<Item*>::iterator iter = m_browserTabItems.begin();
-         iter != m_browserTabItems.end();
-         iter++) {
-        Item* item = *iter;
-        delete item;
-    }
-    m_browserTabItems.clear();
+    m_allItems.clear();
 }
 
 /**
@@ -116,12 +115,13 @@ VolumeSurfaceOutlineColorOrTabModel::~VolumeSurfaceOutlineColorOrTabModel()
 void 
 VolumeSurfaceOutlineColorOrTabModel::copyVolumeSurfaceOutlineColorOrTabModel(VolumeSurfaceOutlineColorOrTabModel* modelToCopy)
 {
-    switch (getSelectedItem()->getItemType()) {
+    Item* otherItem = modelToCopy->getSelectedItem();
+    switch (otherItem->getItemType()) {
         case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
-            setColor(modelToCopy->getSelectedItem()->getColor());
+            setColor(otherItem->getColor());
             break;
         case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
-            setBrowserTabIndex(modelToCopy->getSelectedItem()->getBrowserTabIndex());
+            setBrowserTabIndex(otherItem->getBrowserTabIndex());
             break;
     }
 }
@@ -135,25 +135,15 @@ VolumeSurfaceOutlineColorOrTabModel::getValidItems()
     std::vector<Item*> items;
 
     /*
-     * Limit to valid tabs
+     * Return all valid items
      */
-    for (std::vector<Item*>::iterator iter = m_browserTabItems.begin();
-         iter != m_browserTabItems.end();
+    for (std::vector<Item*>::iterator iter = m_allItems.begin();
+         iter != m_allItems.end();
          iter++) {
         Item* item = *iter;
         if (item->isValid()) {
             items.push_back(item);
         }        
-    }
-    
-    /*
-     * All color items are valid
-     */
-    for (std::vector<Item*>::iterator iter = m_colorItems.begin();
-         iter != m_colorItems.end();
-         iter++) {
-        Item* item = *iter;
-        items.push_back(item);
     }
     
     return items;    
@@ -166,35 +156,52 @@ VolumeSurfaceOutlineColorOrTabModel::getValidItems()
 VolumeSurfaceOutlineColorOrTabModel::Item* 
 VolumeSurfaceOutlineColorOrTabModel::getSelectedItem()
 {
-    std::vector<Item*> allItems = getValidItems();
-    const int32_t numItems = static_cast<int32_t>(allItems.size());
-    bool foundSelctedItem = false;
-    for (int32_t i = 0; i < numItems; i++) {
-        if (allItems[i] == m_selectedItem) {
-            foundSelctedItem = true;
-            m_previousSelectedItemIndex = i;
-            break;
-        }
-    }
+    const int32_t numItems = static_cast<int32_t>(m_allItems.size());
     
-    if (foundSelctedItem == false) {
-        m_selectedItem = NULL;
+    /*
+     * Make sure selected item is valid
+     */
+    int32_t itemIndex = -1;
+    if (m_selectedItem != NULL) {
+        for (int32_t i = 0; i < numItems; i++) {
+            if (m_allItems[i] == m_selectedItem) {
+                if (m_allItems[i]->isValid() == false) {
+                    /*
+                     * Selected item is invalid
+                     */
+                    m_selectedItem = NULL;
+                }
+                itemIndex = i;
+                
+                break;
+            }
+        }
     }
     
     if (m_selectedItem == NULL) {
-        if (m_previousSelectedItemIndex >= 0) {
-            if (m_previousSelectedItemIndex >= numItems) {
-                m_previousSelectedItemIndex = numItems - 1;
+        
+        /*
+         * Choose the previous valid item
+         */
+        if (itemIndex >= 0) {
+            for (int iBack = (itemIndex - 1); iBack >= 0; iBack--) {
+                if (m_allItems[iBack]->isValid()) {
+                    m_selectedItem = m_allItems[iBack];
+                    break;
+                }
             }
         }
-        else {
-            if (numItems > 0) {
-                m_previousSelectedItemIndex = 0;
+        
+        if (m_selectedItem == NULL) {
+            /*
+             * Choose first valid item
+             */
+            for (int i = 0; i < numItems; i++) {
+                if (m_allItems[i]->isValid()) {
+                    m_selectedItem = m_allItems[i];
+                    break;
+                }
             }
-        }
-
-        if (m_previousSelectedItemIndex >= 0) {
-            m_selectedItem = allItems[m_previousSelectedItemIndex];
         }
     }
     
@@ -206,15 +213,14 @@ VolumeSurfaceOutlineColorOrTabModel::getSelectedItem()
  * @param item
  *   New selected item.
  */
-void 
-VolumeSurfaceOutlineColorOrTabModel::setSelectedItem(Item* item)
+void
+VolumeSurfaceOutlineColorOrTabModel::setSelectedItem(const Item* item)
 {
-    m_selectedItem = item;
     std::vector<Item*> allItems = getValidItems();
     const int32_t numItems = static_cast<int32_t>(allItems.size());
     for (int32_t i = 0; i < numItems; i++) {
-        if (allItems[i] == m_selectedItem) {
-            m_previousSelectedItemIndex = i;
+        if (item->equals(*allItems[i])) {
+            m_selectedItem = allItems[i];
             break;
         }
     }
@@ -280,10 +286,10 @@ VolumeSurfaceOutlineColorOrTabModel::saveToScene(const SceneAttributes* sceneAtt
                                             "VolumeSurfaceOutlineColorOrTabModel",
                                             1);
     
-    sceneClass->addInteger("m_previousSelectedItemIndex", 
-                           m_previousSelectedItemIndex);
-    sceneClass->addChild(m_selectedItem->saveToScene(sceneAttributes, 
-                                                     "m_selectedItem"));
+    if (m_selectedItem != NULL) {
+        sceneClass->addChild(m_selectedItem->saveToScene(sceneAttributes,
+                                                         "m_selectedItem"));
+    }
 
     return sceneClass;
 }
@@ -308,10 +314,10 @@ VolumeSurfaceOutlineColorOrTabModel::restoreFromScene(const SceneAttributes* sce
         return;
     }
     
-    m_previousSelectedItemIndex = sceneClass->getIntegerValue("m_previousSelectedItemIndex",
-                                                              -1);
-    m_selectedItem->restoreFromScene(sceneAttributes, 
-                                     sceneClass->getClass("m_selectedItem"));
+    Item item(0);
+    item.restoreFromScene(sceneAttributes,
+                          sceneClass->getClass("m_selectedItem"));
+    setSelectedItem(&item);
 }
 
 
@@ -359,6 +365,36 @@ VolumeSurfaceOutlineColorOrTabModel::Item::~Item()
 }
 
 /**
+ * Is this item equal to another item?
+ *
+ * @param item
+ *    Item for comparison.
+ * @return 
+ *    True if items are equal, else false.
+ */
+bool
+VolumeSurfaceOutlineColorOrTabModel::Item::equals(const Item& item) const
+{
+    if (m_itemType == item.m_itemType) {
+        switch (m_itemType) {
+            case ITEM_TYPE_BROWSER_TAB:
+                if (m_browserTabIndex == item.m_browserTabIndex) {
+                    return true;
+                }
+                break;
+            case ITEM_TYPE_COLOR:
+                if (m_color == item.m_color) {
+                    return true;
+                }
+                break;
+        }
+    }
+    
+    return false;
+}
+
+
+/**
  * @return Is this item valid?
  */
 bool 
@@ -391,11 +427,13 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getName()
     switch(m_itemType) {
         case ITEM_TYPE_BROWSER_TAB:
         {
-            BrowserTabContent* btc = getBrowserTabContent();
-            if (btc != NULL) {
-                name = ("Tab "
-                        + AString::number(btc->getTabNumber() + 1));
-            }
+//            BrowserTabContent* btc = getBrowserTabContent();
+//            if (btc != NULL) {
+//                name = ("Tab "
+//                        + AString::number(btc->getTabNumber() + 1));
+//            }
+            name = ("Tab "
+                    + AString::number(m_browserTabIndex + 1));
         }
             break;
         case ITEM_TYPE_COLOR:
