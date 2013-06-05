@@ -162,6 +162,8 @@ namespace caret {
         
         void processShowSurfacePropertiesDialog();
         
+        void processHelpMenuAboutToShow();
+        
         void processGraphicsTiming();
         
         void processProjectFoci();
@@ -286,6 +288,7 @@ namespace caret {
         QAction* m_helpSearchOnlineAction;
         
         QAction* m_helpGraphicsTimingAction;
+        std::vector<QAction*> m_helpMenuActionsOnlyShownWithAltKeyDown;
         
         QAction* m_overlayToolBoxAction;
         
