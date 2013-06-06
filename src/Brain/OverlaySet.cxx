@@ -789,13 +789,15 @@ OverlaySet::findUnderlayFiles(Brain* brain,
                     if (testIt) {
                         if (vf->getNumberOfMaps() > 0) {
                             PaletteColorMapping* pcm = vf->getMapPaletteColorMapping(0);
-                            const AString paletteName = pcm->getSelectedPaletteName();
-                            if (paletteName.contains("gray")
-                                || paletteName.contains("grey")) {
-                                filesOut.push_back(vf);
-                                mapIndicesOut.push_back(0);
-                                foundAnatomyVolume = true;
-                                break;
+                            if (pcm != NULL) {
+                                const AString paletteName = pcm->getSelectedPaletteName();
+                                if (paletteName.contains("gray")
+                                    || paletteName.contains("grey")) {
+                                    filesOut.push_back(vf);
+                                    mapIndicesOut.push_back(0);
+                                    foundAnatomyVolume = true;
+                                    break;
+                                }
                             }
                         }
                     }
