@@ -224,14 +224,17 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
     }
     if (mergedVolume)
     {
-        VolumeFile myVol, myRoi, myVolOut;
-        volOffsets.resize(3);
-        AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, volOffsets.data(), &myRoi, true);//without structure, it returns a combined volume
-        volROIs.push_back(CaretPointer<VolumeFile>(new VolumeFile()));
-        AlgorithmVolumeROIsFromExtrema(NULL, &myVol, volLimit, volROIs.back(), volSigma, &myRoi, myLogic);
-        vector<int64_t> tempDims;
-        volROIs.back()->getDimensions(tempDims);
-        mapCount += tempDims[3];//because getNumberOfMaps only returns int32
+        if (myCifti->getCiftiXML().hasVolumeData(myDir))
+        {
+            VolumeFile myVol, myRoi, myVolOut;
+            volOffsets.resize(3);
+            AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, volOffsets.data(), &myRoi, true);//without structure, it returns a combined volume
+            volROIs.push_back(CaretPointer<VolumeFile>(new VolumeFile()));
+            AlgorithmVolumeROIsFromExtrema(NULL, &myVol, volLimit, volROIs.back(), volSigma, &myRoi, myLogic);
+            vector<int64_t> tempDims;
+            volROIs.back()->getDimensions(tempDims);
+            mapCount += tempDims[3];//because getNumberOfMaps only returns int32
+        }
     } else {
         volOffsets.resize(volumeList.size() * 3);
         for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
@@ -269,20 +272,23 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
         }
         if (mergedVolume)
         {
-            vector<float> scratchrow(myXML.getNumberOfColumns(), 0.0f);
-            vector<CiftiVolumeMap> myMap;
-            myXML.getVolumeMap(myDir, myMap);
-            vector<int64_t> tempDims;
-            volROIs[0]->getDimensions(tempDims);
-            for (int64_t b = 0; b < tempDims[3]; ++b)
+            if (myXML.hasVolumeData(myDir))
             {
-                for (int64_t j = 0; j < (int64_t)myMap.size(); ++j)
+                vector<float> scratchrow(myXML.getNumberOfColumns(), 0.0f);
+                vector<CiftiVolumeMap> myMap;
+                myXML.getVolumeMap(myDir, myMap);
+                vector<int64_t> tempDims;
+                volROIs[0]->getDimensions(tempDims);
+                for (int64_t b = 0; b < tempDims[3]; ++b)
                 {
-                    int64_t myijk[3] = { myMap[j].m_ijk[0] - volOffsets[0], myMap[j].m_ijk[1] - volOffsets[1], myMap[j].m_ijk[2] - volOffsets[2] };
-                    scratchrow[myMap[j].m_ciftiIndex] = volROIs[0]->getValue(myijk, b);
+                    for (int64_t j = 0; j < (int64_t)myMap.size(); ++j)
+                    {
+                        int64_t myijk[3] = { myMap[j].m_ijk[0] - volOffsets[0], myMap[j].m_ijk[1] - volOffsets[1], myMap[j].m_ijk[2] - volOffsets[2] };
+                        scratchrow[myMap[j].m_ciftiIndex] = volROIs[0]->getValue(myijk, b);
+                    }
+                    myCiftiOut->setRow(scratchrow.data(), curRow);
+                    ++curRow;
                 }
-                myCiftiOut->setRow(scratchrow.data(), curRow);
-                ++curRow;
             }
         } else {
             for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
@@ -350,10 +356,6 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                             for (int64_t b = 0; b < tempDims[3]; ++b)
                             {
                                 scratchrow[startColumn + b] = volROIs[0]->getValue(myijk, b);
-                                /*if (scratchrow[startColumn + b] != 0.0f)
-                                {
-                                    cout << "hit" << endl;
-                                }//*/
                             }
                             myCiftiOut->setRow(scratchrow.data(), curRow);
                             ++curRow;

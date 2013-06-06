@@ -250,16 +250,19 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
     }
     if (mergedVolume)
     {
-        VolumeFile myVol, myRoi, myVolOut;
-        int64_t offset[3];
-        AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, &myRoi, true);
-        if (thresholdMode)
+        if (myCifti->getCiftiXML().hasVolumeData(myDir))
         {
-            AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, lowThresh, highThresh, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
-        } else {
-            AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
+            VolumeFile myVol, myRoi, myVolOut;
+            int64_t offset[3];
+            AlgorithmCiftiSeparate(NULL, myCifti, myDir, &myVol, offset, &myRoi, true);
+            if (thresholdMode)
+            {
+                AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, lowThresh, highThresh, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
+            } else {
+                AlgorithmVolumeExtrema(NULL, &myVol, volDist, &myVolOut, &myRoi, volPresmooth, sumMaps, consolidateMode, ignoreMinima, ignoreMaxima);
+            }
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
         }
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, &myVolOut, true);
     } else {
         for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
         {
