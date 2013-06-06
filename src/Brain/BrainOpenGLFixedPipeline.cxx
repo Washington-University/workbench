@@ -3425,6 +3425,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         
                         for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                             VolumeMappableInterface* vf = volumeDrawInfo[iVol].volumeFile;
+                            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(vf);
+                            CaretAssert(mapFile);
+                            
                             int64_t voxelIndices[3];
                             vf->enclosingVoxel(voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2],
                                                voxelIndices[0], voxelIndices[1], voxelIndices[2]);
@@ -3435,7 +3438,17 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                     voxelID->setVoxelIJK(voxelIndices);
                                     voxelID->setScreenDepth(depth);
                                     this->setSelectedItemScreenXYZ(voxelID, voxelCoordinates);
-                                    CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));
+                                    float voxelXYZ[3];
+                                    vf->indexToSpace(voxelIndices,
+                                                     voxelXYZ);
+                                    CaretLogFine("Selected Voxel from file name/IJK/coords/ID-coords: "
+                                                 + mapFile->getFileNameNoPath()
+                                                 + AString::fromNumbers(voxelIndices, 3, ",")
+                                                   + "   "
+                                                   + AString::fromNumbers(voxelXYZ, 3, " ")
+                                                   + "   "
+                                                   + AString::fromNumbers(voxelCoordinates, 3, " "));
+
                                     break;
                                 }
                             }
@@ -3448,7 +3461,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     
     glEnable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
-    //    glEnable(GL_DEPTH_TEST);
+    //    glEnable(GL_DEPTH_TEST); olumeFile
     
     glDisable(GL_BLEND);
 }

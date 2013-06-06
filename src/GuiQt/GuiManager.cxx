@@ -1860,6 +1860,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
          * If there is a voxel ID but no node ID, identify a
          * node near the voxel coordinate, if it is close by.
          */
+        bool nodeIdentificationCreatedFromVoxelIdentificationFlag = false;
         if (idNode->isValid() == false) {
             if (idVoxel->isValid()) {
                 double doubleXYZ[3];
@@ -1878,6 +1879,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                         idNode->setBrain(brain);
                         idNode->setSurface(surface);
                         idNode->setNodeNumber(nodeIndex);
+                        nodeIdentificationCreatedFromVoxelIdentificationFlag = true;
                     }
                 }
             }
@@ -2027,10 +2029,17 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                                                     surface->getStructure(),
                                                     surface->getNumberOfNodes(),
                                                     nodeIndex);
-            if (issuedIdentificationLocationEvent == false) {
-                EventIdentificationHighlightLocation idLocation(xyz);
-                EventManager::get()->sendEvent(idLocation.getPointer());
-                issuedIdentificationLocationEvent = true;
+            /*
+             * Only issue identification event for node 
+             * if it WAS NOT created from the voxel identification
+             * location.
+             */
+            if (nodeIdentificationCreatedFromVoxelIdentificationFlag == false) {
+                if (issuedIdentificationLocationEvent == false) {
+                    EventIdentificationHighlightLocation idLocation(xyz);
+                    EventManager::get()->sendEvent(idLocation.getPointer());
+                    issuedIdentificationLocationEvent = true;
+                }
             }
         }
         

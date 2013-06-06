@@ -115,47 +115,233 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     this->generateVolumeFociIdentifcationText(idText,
                                               idManager->getVolumeFocusIdentification());
     
-    const SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
-    if (voxelID->isValid()) {
-        int64_t ijk[3];
-        const VolumeMappableInterface* idVolumeFile = voxelID->getVolumeFile();
-        voxelID->getVoxelIJK(ijk);
-        float x, y, z;
-        idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
-                
-        idText.addLine(false,
-                       "Voxel XYZ ("
-                       + AString::number(x)
-                       + ", "
-                       + AString::number(y)
-                       + ", "
-                       + AString::number(z)
-                       + ")");
-        
-        const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
-        
-        /*
-         * In first loop, show values for 'idVolumeFile' (the underlay volume)
-         * In second loop, show values for all other volume files
-         */
-        for (int32_t iLoop = 0; iLoop < 2; iLoop++) {
-            for (int32_t i = 0; i < numVolumeFiles; i++) {
-                const VolumeFile* vf = brain->getVolumeFile(i);
-                if (vf == idVolumeFile) {
-                    if (iLoop != 0) {
-                        continue;
-                    }
-                }
-                else if (iLoop == 0) {
+    this->generateVolumeIdentificationText(idText,
+                                           brain,
+                                           idManager->getVoxelIdentification());
+    
+//    const SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
+//    if (voxelID->isValid()) {
+//        int64_t ijk[3];
+//        const VolumeMappableInterface* idVolumeFile = voxelID->getVolumeFile();
+//        voxelID->getVoxelIJK(ijk);
+//        float x, y, z;
+//        idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
+//                
+//        idText.addLine(false,
+//                       "Voxel XYZ ("
+//                       + AString::number(x)
+//                       + ", "
+//                       + AString::number(y)
+//                       + ", "
+//                       + AString::number(z)
+//                       + ")");
+//        
+//        const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
+//        
+//        /*
+//         * In first loop, show values for 'idVolumeFile' (the underlay volume)
+//         * In second loop, show values for all other volume files
+//         */
+//        for (int32_t iLoop = 0; iLoop < 2; iLoop++) {
+//            for (int32_t i = 0; i < numVolumeFiles; i++) {
+//                const VolumeFile* vf = brain->getVolumeFile(i);
+//                if (vf == idVolumeFile) {
+//                    if (iLoop != 0) {
+//                        continue;
+//                    }
+//                }
+//                else if (iLoop == 0) {
+//                    continue;
+//                }
+//                
+//                int64_t vfI, vfJ, vfK;
+//                vf->enclosingVoxel(x, y, z,
+//                                   vfI, vfJ, vfK);
+//                
+//                if (vf->indexValid(vfI, vfJ, vfK)) {
+//                    AString boldText = vf->getFileNameNoPath();
+//                    boldText += (" IJK ("
+//                                 + AString::number(vfI)
+//                                 + ", "
+//                                 + AString::number(vfJ)
+//                                 + ", "
+//                                 + AString::number(vfK)
+//                                 + ")  ");
+//                    
+//                    AString text;
+//                    const int32_t numMaps = vf->getNumberOfMaps();
+//                    for (int jMap = 0; jMap < numMaps; jMap++) {
+//                        if (jMap > 0) {
+//                            text += " ";
+//                        }
+//                        if (vf->getType() == SubvolumeAttributes::LABEL) {
+//                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfI, vfJ, vfK, jMap));
+//                            const GiftiLabelTable* glt = vf->getMapLabelTable(jMap);
+//                            const GiftiLabel* gl = glt->getLabel(labelIndex);
+//                            if (gl != NULL) {
+//                                text += gl->getName();
+//                            }
+//                            else {
+//                                text += ("LABLE_MISSING_FOR_INDEX=" 
+//                                         + AString::number(labelIndex));
+//                            }
+//                        }
+//                        else {
+//                            text += AString::number(vf->getValue(vfI, vfJ, vfK, jMap));
+//                        }
+//                    }
+//                    
+//                    idText.addLine(true,
+//                                   boldText,
+//                                   text);
+//                }
+//            }            
+//        }
+//        
+//        const float xyz[3] = { x, y, z };
+//
+//        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
+//        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
+//        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
+//             ciftiMapIter != allCiftiMappableDataFiles.end();
+//             ciftiMapIter++) {
+//            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
+//            if (cmdf->isEmpty() == false) {
+//                const int numMaps = cmdf->getNumberOfMaps();
+//                std::vector<int32_t> mapIndices;
+//                for (int32_t i = 0; i < numMaps; i++) {
+//                    mapIndices.push_back(i);
+//                }
+//
+//                /*
+//                 * Limit dense scalar and data series to maps selected in the overlay.
+//                 */
+//                if ((cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
+//                    || (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+//                    getMapIndicesOfFileUsedInOverlays(cmdf,
+//                                                      mapIndices);
+//                }
+//                
+//                AString textValue;
+//                int64_t voxelIJK[3];
+//                if (cmdf->getVolumeVoxelIdentificationForMaps(mapIndices,
+//                                                              xyz,
+//                                                              voxelIJK,
+//                                                              textValue)) {
+//                    AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
+//                                        + " "
+//                                        + cmdf->getFileNameNoPath()
+//                                        + " IJK ("
+//                                        + AString::number(voxelIJK[0])
+//                                        + ", "
+//                                        + AString::number(voxelIJK[1])
+//                                        + ", "
+//                                        + AString::number(voxelIJK[2])
+//                                        + ")  ");
+//                    idText.addLine(true, boldText, textValue);
+//                }
+//            }
+//        }
+//        
+//    }
+    
+    return idText.toString();
+}
+
+/**
+ * Generate identification text for volume voxel identification.
+ *
+ * @param idText
+ *     String builder for identification text.
+ * @param brain
+ *     The brain.
+ * @param idVolumeVoxel
+ *     Information for volume voxel ID.
+ */
+void
+IdentificationTextGenerator::generateVolumeIdentificationText(IdentificationStringBuilder& idText,
+                                                              const Brain* brain,
+                                                              const SelectionItemVoxel* idVolumeVoxel) const
+{
+    if (idVolumeVoxel->isValid() == false) {
+        return;
+    }
+    
+    int64_t ijk[3];
+    const VolumeMappableInterface* idVolumeFile = idVolumeVoxel->getVolumeFile();
+    idVolumeVoxel->getVoxelIJK(ijk);
+    float x, y, z;
+    idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
+    
+    idText.addLine(false,
+                   "Voxel XYZ ("
+                   + AString::number(x)
+                   + ", "
+                   + AString::number(y)
+                   + ", "
+                   + AString::number(z)
+                   + ")");
+    
+    const float xyz[3] = { x, y, z };
+
+    
+    /*
+     * Get all volume files
+     */
+    std::vector<const VolumeMappableInterface*> volumeInterfaces;
+    const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
+    for (int32_t i = 0; i < numVolumeFiles; i++) {
+        const VolumeFile* vf = brain->getVolumeFile(i);
+        volumeInterfaces.push_back(vf);
+    }
+    
+    /*
+     * Get the CIFTI files that are volume mappable
+     */
+    std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
+    brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
+    for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
+         ciftiMapIter != allCiftiMappableDataFiles.end();
+         ciftiMapIter++) {
+        const CiftiMappableDataFile* cmdf = *ciftiMapIter;
+        if (cmdf->isEmpty() == false) {
+            if (cmdf->isVolumeMappable()) {
+                volumeInterfaces.push_back(cmdf);
+            }
+        }
+    }
+    
+    /*
+     * In first loop, show values for 'idVolumeFile' (the underlay volume)
+     * In second loop, show values for all other volume files
+     */
+    const int32_t numberOfVolumeMappableFiles = static_cast<int32_t>(volumeInterfaces.size());
+    for (int32_t iLoop = 0; iLoop < 2; iLoop++) {
+        for (int32_t i = 0; i < numberOfVolumeMappableFiles; i++) {
+            const VolumeMappableInterface* volumeInterfaceFile = volumeInterfaces[i];
+            const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volumeInterfaceFile);
+            const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeInterfaceFile);
+            CaretAssert((volumeFile != NULL)
+                        || (ciftiFile != NULL));
+            const CaretMappableDataFile* caretMappableDataFile = dynamic_cast<const CaretMappableDataFile*>(volumeInterfaceFile);
+            CaretAssert(caretMappableDataFile != NULL);
+            
+            if (volumeInterfaceFile == idVolumeFile) {
+                if (iLoop != 0) {
                     continue;
                 }
-                
-                int64_t vfI, vfJ, vfK;
-                vf->enclosingVoxel(x, y, z,
-                                   vfI, vfJ, vfK);
-                
-                if (vf->indexValid(vfI, vfJ, vfK)) {
-                    AString boldText = vf->getFileNameNoPath();
+            }
+            else if (iLoop == 0) {
+                continue;
+            }
+            
+            int64_t vfI, vfJ, vfK;
+            volumeInterfaceFile->enclosingVoxel(x, y, z,
+                               vfI, vfJ, vfK);
+            
+            if (volumeInterfaceFile->indexValid(vfI, vfJ, vfK)) {
+                if (volumeFile != NULL) {
+                    AString boldText = caretMappableDataFile->getFileNameNoPath();
                     boldText += (" IJK ("
                                  + AString::number(vfI)
                                  + ", "
@@ -165,25 +351,30 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                  + ")  ");
                     
                     AString text;
-                    const int32_t numMaps = vf->getNumberOfMaps();
+                    const int32_t numMaps = caretMappableDataFile->getNumberOfMaps();
                     for (int jMap = 0; jMap < numMaps; jMap++) {
                         if (jMap > 0) {
                             text += " ";
                         }
-                        if (vf->getType() == SubvolumeAttributes::LABEL) {
-                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfI, vfJ, vfK, jMap));
-                            const GiftiLabelTable* glt = vf->getMapLabelTable(jMap);
-                            const GiftiLabel* gl = glt->getLabel(labelIndex);
-                            if (gl != NULL) {
-                                text += gl->getName();
+                        if (volumeFile != NULL) {
+                            if (volumeFile->getType() == SubvolumeAttributes::LABEL) {
+                                const int32_t labelIndex = static_cast<int32_t>(volumeFile->getValue(vfI, vfJ, vfK, jMap));
+                                const GiftiLabelTable* glt = volumeFile->getMapLabelTable(jMap);
+                                const GiftiLabel* gl = glt->getLabel(labelIndex);
+                                if (gl != NULL) {
+                                    text += gl->getName();
+                                }
+                                else {
+                                    text += ("LABLE_MISSING_FOR_INDEX="
+                                             + AString::number(labelIndex));
+                                }
                             }
                             else {
-                                text += ("LABLE_MISSING_FOR_INDEX=" 
-                                         + AString::number(labelIndex));
+                                text += AString::number(volumeFile->getValue(vfI, vfJ, vfK, jMap));
                             }
                         }
-                        else {
-                            text += AString::number(vf->getValue(vfI, vfJ, vfK, jMap));
+                        else if (ciftiFile != NULL) {
+                            
                         }
                     }
                     
@@ -191,77 +382,46 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                    boldText,
                                    text);
                 }
-            }            
-        }
-        
-        const float xyz[3] = { x, y, z };
-
-        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
-        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
-        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
-             ciftiMapIter != allCiftiMappableDataFiles.end();
-             ciftiMapIter++) {
-            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
-            if (cmdf->isEmpty() == false) {
-                const int numMaps = cmdf->getNumberOfMaps();
-                std::vector<int32_t> mapIndices;
-                for (int32_t i = 0; i < numMaps; i++) {
-                    mapIndices.push_back(i);
+                else if (ciftiFile != NULL) {
+                    if (ciftiFile->isEmpty() == false) {
+                        const int numMaps = ciftiFile->getNumberOfMaps();
+                        std::vector<int32_t> mapIndices;
+                        for (int32_t i = 0; i < numMaps; i++) {
+                            mapIndices.push_back(i);
+                        }
+                        
+                        /*
+                         * Limit dense scalar and data series to maps selected in the overlay.
+                         */
+                        if ((ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
+                            || (ciftiFile->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+                            getMapIndicesOfFileUsedInOverlays(ciftiFile,
+                                                              mapIndices);
+                        }
+                        
+                        AString textValue;
+                        int64_t voxelIJK[3];
+                        if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
+                                                                      xyz,
+                                                                      voxelIJK,
+                                                                      textValue)) {
+                            AString boldText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
+                                                + " "
+                                                + ciftiFile->getFileNameNoPath()
+                                                + " IJK ("
+                                                + AString::number(voxelIJK[0])
+                                                + ", "
+                                                + AString::number(voxelIJK[1])
+                                                + ", "
+                                                + AString::number(voxelIJK[2])
+                                                + ")  ");
+                            idText.addLine(true, boldText, textValue);
+                        }
+                    }
                 }
-
-                /*
-                 * Limit dense scalar and data series to maps selected in the overlay.
-                 */
-                if ((cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
-                    || (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
-                    getMapIndicesOfFileUsedInOverlays(cmdf,
-                                                      mapIndices);
-                }
-                
-                AString textValue;
-                int64_t voxelIJK[3];
-                if (cmdf->getVolumeVoxelIdentificationForMaps(mapIndices,
-                                                              xyz,
-                                                              voxelIJK,
-                                                              textValue)) {
-                    AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-                                        + " "
-                                        + cmdf->getFileNameNoPath()
-                                        + " IJK ("
-                                        + AString::number(voxelIJK[0])
-                                        + ", "
-                                        + AString::number(voxelIJK[1])
-                                        + ", "
-                                        + AString::number(voxelIJK[2])
-                                        + ")  ");
-                    idText.addLine(true, boldText, textValue);
-                }
-//                for (int32_t iMap = 0; iMap < numMaps; iMap++) {
-//                    AString textValue;
-//                    int64_t voxelIJK[3];
-//                    if (cmdf->getMapVolumeVoxelValue(iMap,
-//                                                    xyz,
-//                                                    voxelIJK,
-//                                                    textValue)) {
-//                        AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-//                                            + " "
-//                                            + cmdf->getFileNameNoPath()
-//                                            + " IJK ("
-//                                            + AString::number(voxelIJK[0])
-//                                            + ", "
-//                                            + AString::number(voxelIJK[1])
-//                                            + ", "
-//                                            + AString::number(voxelIJK[2])
-//                                            + ")  ");
-//                        idText.addLine(true, boldText, textValue);
-//                    }
-//                }
             }
         }
-        
     }
-    
-    return idText.toString();
 }
 
 /**

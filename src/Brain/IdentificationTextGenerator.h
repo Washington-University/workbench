@@ -37,6 +37,7 @@ namespace caret {
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemSurfaceNode;
+    class SelectionItemVoxel;
     class SelectionManager;
     class IdentificationStringBuilder;
     
@@ -71,6 +72,10 @@ namespace caret {
         void generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,
                                                const SelectionItemSurfaceNode* idSurfaceNode) const;
+        
+        void generateVolumeIdentificationText(IdentificationStringBuilder& idText,
+                                               const Brain* brain,
+                                               const SelectionItemVoxel* idVolumeVoxel) const;
         
         void getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
                                                std::vector<int32_t>& mapIndicesOut) const;
