@@ -1814,7 +1814,16 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                         rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] * 255.0);
                         rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] * 255.0);
                         rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] * 255.0);
-                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] * 255.0);
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
             }
@@ -1834,7 +1843,16 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                         rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] * 255.0);
                         rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] * 255.0);
                         rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] * 255.0);
-                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] * 255.0);
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
             }
@@ -1854,7 +1872,16 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                         rgbaOut[rgbaOffset]   = (mapRGBA[dataOffset4] * 255.0);
                         rgbaOut[rgbaOffset+1] = (mapRGBA[dataOffset4+1] * 255.0);
                         rgbaOut[rgbaOffset+2] = (mapRGBA[dataOffset4+2] * 255.0);
-                        rgbaOut[rgbaOffset+3] = (mapRGBA[dataOffset4+3] * 255.0);
+                        /*
+                         * A negative value for alpha indicates "do not draw".
+                         * Since unsigned bytes do not have negative values,
+                         * change the value to zero (which indicates "transparent").
+                         */
+                        float alpha = mapRGBA[dataOffset4+3];
+                        if (alpha < 0.0) {
+                            alpha = 0.0;
+                        }
+                        rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
             }
@@ -1914,7 +1941,17 @@ CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
         rgbaOut[0] = (mapRGBA[dataOffset4] * 255.0);
         rgbaOut[1] = (mapRGBA[dataOffset4+1] * 255.0);
         rgbaOut[2] = (mapRGBA[dataOffset4+2] * 255.0);
-        rgbaOut[3] = (mapRGBA[dataOffset4+3] * 255.0);
+        
+        /*
+         * A negative value for alpha indicates "do not draw".
+         * Since unsigned bytes do not have negative values,
+         * change the value to zero (which indicates "transparent").
+         */
+        float alpha = mapRGBA[dataOffset4+3];
+        if (alpha < 0.0) {
+            alpha = 0.0;
+        }
+        rgbaOut[3] = (alpha * 255.0);
     }
 }
 
