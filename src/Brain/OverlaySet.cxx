@@ -764,14 +764,41 @@ OverlaySet::findUnderlayFiles(Brain* brain,
     
     if (includeVolumeFiles) {
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
-        for (int32_t i = 0; i < numVolumes; i++) {
-            VolumeFile* vf = brain->getVolumeFile(i);
-            if ((vf->getType() == SubvolumeAttributes::ANATOMY)
-                || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
-                if (vf->getNumberOfMaps() > 0) {
-                    filesOut.push_back(vf);
-                    mapIndicesOut.push_back(0);
-                    break;
+        if (numVolumes > 0) {
+            bool foundAnatomyVolume = false;
+
+            for (int32_t i = 0; i < numVolumes; i++) {
+                VolumeFile* vf = brain->getVolumeFile(i);
+                if (vf->getType() == SubvolumeAttributes::ANATOMY) {
+                    if (vf->getNumberOfMaps() > 0) {
+                        filesOut.push_back(vf);
+                        mapIndicesOut.push_back(0);
+                        foundAnatomyVolume = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (foundAnatomyVolume == false) {
+                for (int32_t i = 0; i < numVolumes; i++) {
+                    VolumeFile* vf = brain->getVolumeFile(i);
+                    bool testIt = true;
+                    if (vf->getType() == SubvolumeAttributes::LABEL) {
+                        testIt = false;
+                    }
+                    if (testIt) {
+                        if (vf->getNumberOfMaps() > 0) {
+                            PaletteColorMapping* pcm = vf->getMapPaletteColorMapping(0);
+                            const AString paletteName = pcm->getSelectedPaletteName();
+                            if (paletteName.contains("gray")
+                                || paletteName.contains("grey")) {
+                                filesOut.push_back(vf);
+                                mapIndicesOut.push_back(0);
+                                foundAnatomyVolume = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
