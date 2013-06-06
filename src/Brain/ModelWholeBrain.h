@@ -103,6 +103,8 @@ namespace caret {
         
         void initializeOverlays();
                                             
+        virtual void initializeSelectedSurfaces();
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);

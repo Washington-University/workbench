@@ -411,6 +411,39 @@ ModelWholeBrain::initializeOverlays()
 }
 
 /**
+ * Initialize the selected surfaces.
+ */
+void
+ModelWholeBrain::initializeSelectedSurfaces()
+{
+    std::vector<SurfaceTypeEnum::Enum> surfaceTypes;
+    getAvailableSurfaceTypes(surfaceTypes);
+    
+    if (std::find(surfaceTypes.begin(),
+                  surfaceTypes.end(),
+                  SurfaceTypeEnum::ANATOMICAL) != surfaceTypes.end()) {
+        for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+            setSelectedSurfaceType(iTab,
+                                   SurfaceTypeEnum::ANATOMICAL);
+        }
+    }
+    
+    const int32_t numberOfStructures = m_brain->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numberOfStructures; i++) {
+        const BrainStructure* brainStructure = m_brain->getBrainStructure(i);
+        Surface* surface = const_cast<Surface*>(brainStructure->getVolumeInteractionSurface());
+        if (surface != NULL) {
+            const StructureEnum::Enum structure = brainStructure->getStructure();
+            for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+                setSelectedSurface(structure,
+                                   iTab,
+                                   surface);
+            }
+        }
+    }
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

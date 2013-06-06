@@ -564,12 +564,18 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
        eventAllControllers.getModels();
 
     ModelSurface* leftSurfaceController = NULL;
+    ModelSurface* leftSurfaceInflated = NULL;
+    ModelSurface* leftSurfaceVeryInflated = NULL;
     int32_t leftSurfaceTypeCode = 1000000;
     
     ModelSurface* rightSurfaceController = NULL;
+    ModelSurface* rightSurfaceInflated = NULL;
+    ModelSurface* rightSurfaceVeryInflated = NULL;
     int32_t rightSurfaceTypeCode = 1000000;
 
     ModelSurface* cerebellumSurfaceController = NULL;
+    ModelSurface* cerebellumSurfaceInflated = NULL;
+    ModelSurface* cerebellumSurfaceVeryInflated = NULL;
     int32_t cerebellumSurfaceTypeCode = 1000000;
     
     ModelSurfaceMontage* surfaceMontageController = NULL;
@@ -593,17 +599,35 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                         cerebellumSurfaceController = surfaceController;
                         cerebellumSurfaceTypeCode = surfaceTypeCode;
                     }
+                    if (surfaceType == SurfaceTypeEnum::INFLATED) {
+                        cerebellumSurfaceInflated = surfaceController;
+                    }
+                    else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
+                        cerebellumSurfaceVeryInflated = surfaceController;
+                    }
                     break;
                 case StructureEnum::CORTEX_LEFT:
                     if (surfaceTypeCode < leftSurfaceTypeCode) {
                         leftSurfaceController = surfaceController;
                         leftSurfaceTypeCode = surfaceTypeCode;
                     }
+                    if (surfaceType == SurfaceTypeEnum::INFLATED) {
+                        leftSurfaceInflated = surfaceController;
+                    }
+                    else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
+                        leftSurfaceVeryInflated = surfaceController;
+                    }
                     break;
                 case StructureEnum::CORTEX_RIGHT:
                     if (surfaceTypeCode < rightSurfaceTypeCode) {
                         rightSurfaceController = surfaceController;
                         rightSurfaceTypeCode = surfaceTypeCode;
+                    }
+                    if (surfaceType == SurfaceTypeEnum::INFLATED) {
+                        rightSurfaceInflated = surfaceController;
+                    }
+                    else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
+                        rightSurfaceVeryInflated = surfaceController;
                     }
                     break;
                 default:
@@ -622,6 +646,25 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         else {
             CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
         }
+    }
+    
+    if (cerebellumSurfaceInflated != NULL) {
+        cerebellumSurfaceController = cerebellumSurfaceInflated;
+    }
+    else if (cerebellumSurfaceVeryInflated != NULL) {
+        cerebellumSurfaceController = cerebellumSurfaceVeryInflated;
+    }
+    if (leftSurfaceInflated != NULL) {
+        leftSurfaceController = leftSurfaceInflated;
+    }
+    else if (leftSurfaceVeryInflated != NULL) {
+        leftSurfaceController = leftSurfaceVeryInflated;
+    }
+    if (rightSurfaceInflated != NULL) {
+        rightSurfaceController = rightSurfaceInflated;
+    }
+    else if (rightSurfaceVeryInflated != NULL) {
+        rightSurfaceController = rightSurfaceVeryInflated;
     }
     
     int32_t numberOfTabsNeeded = 0;

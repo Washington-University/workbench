@@ -44,7 +44,7 @@ namespace caret {
         
         virtual ~ModelSurfaceMontage();
         
-        void initializeSurfaces();
+        virtual void initializeSelectedSurfaces();
         
         virtual void receiveEvent(Event* event);
         

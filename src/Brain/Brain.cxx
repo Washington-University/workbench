@@ -3470,15 +3470,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
          iter != allModels.end();
          iter++) {
         Model* mdc = *iter;
+        mdc->initializeSelectedSurfaces();
         mdc->initializeOverlays();
-        
-        /*
-         * Initialize the surfaces for montage
-         */
-        ModelSurfaceMontage* montageModel = dynamic_cast<ModelSurfaceMontage*>(mdc);
-        if (montageModel != NULL) {
-            montageModel->initializeSurfaces();
-        }
     }
     
     /*

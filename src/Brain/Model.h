@@ -68,6 +68,8 @@ namespace caret {
         
         virtual const OverlaySet* getOverlaySet(const int tabIndex) const = 0;
         
+        virtual void initializeSelectedSurfaces();
+
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         

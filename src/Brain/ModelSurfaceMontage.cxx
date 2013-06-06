@@ -98,8 +98,11 @@ ModelSurfaceMontage::receiveEvent(Event* /*event*/)
 {
 }
 
+/**
+ * Initialize the selected surfaces.
+ */
 void
-ModelSurfaceMontage::initializeSurfaces()
+ModelSurfaceMontage::initializeSelectedSurfaces()
 {
     Surface* leftAnatSurface = NULL;
     BrainStructure* leftBrainStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_LEFT,

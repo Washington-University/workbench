@@ -111,6 +111,16 @@ Model::getBrain()
 }
 
 /**
+ * Intended for overriding by sub-classes so that they
+ * can selected the desired surfaces after file loading.
+ */
+void
+Model::initializeSelectedSurfaces()
+{
+    /* nothing */
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
