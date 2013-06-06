@@ -155,63 +155,6 @@ void OperationCiftiSeparateAll::processSurfaceComponent(const CiftiFile* myCifti
 
 void OperationCiftiSeparateAll::processVolume(const CiftiFile* myCifti, const int& myDir, VolumeFile* outData, VolumeFile* outROI)
 {
-    const CiftiXML& myXML = myCifti->getCiftiXML();//largely copied from AlgorithmCiftiSeparate
-    int64_t myDims[3];
-    vector<vector<float> > mySform;
-    vector<CiftiVolumeMap> myMap;
-    int rowSize = myCifti->getNumberOfColumns(), colSize = myCifti->getNumberOfRows();
-    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
-    {
-        throw OperationException("input cifti has no volume space information");
-    }
-    if (!myXML.getVolumeMap(myDir, myMap))
-    {
-        throw OperationException("structure not found in specified dimension");
-    }
-    int64_t numVoxels = (int64_t)myMap.size();
-    vector<int64_t> newdims;
-    newdims.push_back(myDims[0]);
-    newdims.push_back(myDims[1]);
-    newdims.push_back(myDims[2]);
-    if (outROI != NULL)
-    {
-        outROI->reinitialize(newdims, mySform);
-        outROI->setValueAllVoxels(0.0f);
-    }
-    CaretArray<float> rowScratch(rowSize);
-    if (myDir == CiftiXML::ALONG_COLUMN)
-    {
-        if (rowSize > 1) newdims.push_back(rowSize);
-        outData->reinitialize(newdims, mySform);
-        outData->setValueAllVoxels(0.0f);
-        for (int64_t i = 0; i < numVoxels; ++i)
-        {
-            if (outROI != NULL)
-            {
-                outROI->setValue(1.0f, myMap[i].m_ijk);
-            }
-            myCifti->getRow(rowScratch, myMap[i].m_ciftiIndex);
-            for (int j = 0; j < rowSize; ++j)
-            {
-                outData->setValue(rowScratch[j], myMap[i].m_ijk, j);
-            }
-        }
-    } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw OperationException("direction not supported by OperationCiftiSeparateAll");
-        if (colSize > 1) newdims.push_back(colSize);
-        outData->reinitialize(newdims, mySform);
-        outData->setValueAllVoxels(0.0f);
-        for (int64_t i = 0; i < colSize; ++i)
-        {
-            myCifti->getRow(rowScratch, i);
-            for (int64_t j = 0; j < numVoxels; ++j)
-            {
-                if (i == 0 && outROI != NULL)
-                {
-                    outROI->setValue(1.0f, myMap[i].m_ijk);
-                }
-                outData->setValue(rowScratch[myMap[j].m_ciftiIndex], myMap[i].m_ijk, i);
-            }
-        }
-    }
+    int64_t offset[3];
+    AlgorithmCiftiSeparate(NULL, myCifti, myDir, outData, offset, outROI, false);
 }
