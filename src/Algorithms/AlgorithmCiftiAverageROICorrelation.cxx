@@ -260,19 +260,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
             verifyVolumeComponent(i, ciftiList[i], volROI);
         }
     }
-    vector<vector<double> > accum(colSize, vector<double>(numMaps, 0.0));
     vector<vector<float> > tempresult(colSize, vector<float>(numMaps));
-    for (int i = 0; i < numCifti; ++i)
-    {
-        processCifti(ciftiList[i], tempresult, leftROI, rightROI, cerebROI, volROI, numMaps, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
-        for (int j = 0; j < colSize; ++j)
-        {
-            for (int myMap = 0; myMap < numMaps; ++myMap)
-            {
-                accum[j][myMap] += tempresult[j][myMap];
-            }
-        }
-    }
     CiftiXML newXml = baseXML;
     newXml.resetRowsToScalars(numMaps);
     for (int i = 0; i < numMaps; ++i)
@@ -280,13 +268,34 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
         newXml.setMapNameForIndex(CiftiXML::ALONG_ROW, i, nameFile->getMapName(i));
     }
     ciftiOut->setCiftiXML(newXml);
-    for (int i = 0; i < colSize; ++i)
+    if (numCifti > 1)//skip averaging in single subject case
     {
-        for (int myMap = 0; myMap < numMaps; ++myMap)
+        vector<vector<double> > accum(colSize, vector<double>(numMaps, 0.0));
+        for (int i = 0; i < numCifti; ++i)
         {
-            tempresult[i][myMap] = accum[i][myMap] / numCifti;
+            processCifti(ciftiList[i], tempresult, leftROI, rightROI, cerebROI, volROI, numMaps, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
+            for (int j = 0; j < colSize; ++j)
+            {
+                for (int myMap = 0; myMap < numMaps; ++myMap)
+                {
+                    accum[j][myMap] += tempresult[j][myMap];
+                }
+            }
         }
-        ciftiOut->setRow(tempresult[i].data(), i);
+        for (int i = 0; i < colSize; ++i)
+        {
+            for (int myMap = 0; myMap < numMaps; ++myMap)
+            {
+                tempresult[i][myMap] = accum[i][myMap] / numCifti;
+            }
+            ciftiOut->setRow(tempresult[i].data(), i);
+        }
+    } else {
+        processCifti(ciftiList[0], tempresult, leftROI, rightROI, cerebROI, volROI, numMaps, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
+        for (int i = 0; i < colSize; ++i)
+        {
+            ciftiOut->setRow(tempresult[i].data(), i);
+        }
     }
 }
 
@@ -324,19 +333,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
         cerebAreaSurf->computeNodeAreas(cerebAreaData);
         cerebAreaPointer = cerebAreaData.data();
     }
-    vector<vector<double> > accum(colSize, vector<double>(numMaps, 0.0));
     vector<vector<float> > tempresult(colSize, vector<float>(numMaps));
-    for (int i = 0; i < numCifti; ++i)
-    {
-        processCifti(ciftiList[i], tempresult, ciftiROI, numMaps, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
-        for (int j = 0; j < colSize; ++j)
-        {
-            for (int myMap = 0; myMap < numMaps; ++myMap)
-            {
-                accum[j][myMap] += tempresult[j][myMap];
-            }
-        }
-    }
     CiftiXML newXml = baseXML;
     newXml.resetRowsToScalars(numMaps);
     for (int i = 0; i < numMaps; ++i)
@@ -344,13 +341,34 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
         newXml.setMapNameForIndex(CiftiXML::ALONG_ROW, i, ciftiROI->getCiftiXML().getMapNameForRowIndex(i));
     }
     ciftiOut->setCiftiXML(newXml);
-    for (int i = 0; i < colSize; ++i)
+    if (numCifti > 1)//skip averaging in single subject case
     {
-        for (int myMap = 0; myMap < numMaps; ++myMap)
+        vector<vector<double> > accum(colSize, vector<double>(numMaps, 0.0));
+        for (int i = 0; i < numCifti; ++i)
         {
-            tempresult[i][myMap] = accum[i][myMap] / numCifti;
+            processCifti(ciftiList[i], tempresult, ciftiROI, numMaps, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
+            for (int j = 0; j < colSize; ++j)
+            {
+                for (int myMap = 0; myMap < numMaps; ++myMap)
+                {
+                    accum[j][myMap] += tempresult[j][myMap];
+                }
+            }
         }
-        ciftiOut->setRow(tempresult[i].data(), i);
+        for (int i = 0; i < colSize; ++i)
+        {
+            for (int myMap = 0; myMap < numMaps; ++myMap)
+            {
+                tempresult[i][myMap] = accum[i][myMap] / numCifti;
+            }
+            ciftiOut->setRow(tempresult[i].data(), i);
+        }
+    } else {
+        processCifti(ciftiList[0], tempresult, ciftiROI, numMaps, leftAreaPointer, rightAreaPointer, cerebAreaPointer);
+        for (int i = 0; i < colSize; ++i)
+        {
+            ciftiOut->setRow(tempresult[i].data(), i);
+        }
     }
 }
 
