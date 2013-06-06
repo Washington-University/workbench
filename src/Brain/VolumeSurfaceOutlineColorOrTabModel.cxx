@@ -68,17 +68,17 @@ VolumeSurfaceOutlineColorOrTabModel::VolumeSurfaceOutlineColorOrTabModel()
 {
     m_selectedItem = NULL;
     
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        Item* item = new Item(i);
+        m_allItems.push_back(item);
+    }
+    
     std::vector<CaretColorEnum::Enum> allColors;
     CaretColorEnum::getAllEnums(allColors);
     for (std::vector<CaretColorEnum::Enum>::iterator iter = allColors.begin();
          iter != allColors.end();
          iter++) {
         Item* item = new Item(*iter);
-        m_allItems.push_back(item);
-    }
-    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        Item* item = new Item(i);
         m_allItems.push_back(item);
     }
     
