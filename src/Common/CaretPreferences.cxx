@@ -814,6 +814,29 @@ CaretPreferences::setSplashScreenEnabled(const bool enabled)
 }
 
 /**
+ * @return Is the Develop Menu enabled?
+ */
+bool
+CaretPreferences::isDevelopMenuEnabled() const
+{
+    return this->developMenuEnabled;
+}
+
+/**
+ * Set the Develop Menu enabled.
+ * @param enabled
+ *    New status.
+ */
+void
+CaretPreferences::setDevelopMenuEnabled(const bool enabled)
+{
+    this->developMenuEnabled = enabled;
+    this->setBoolean(CaretPreferences::NAME_DEVELOP_MENU,
+                     this->developMenuEnabled);
+}
+
+
+/**
  * Initialize/Read the preferences
  */
 void 
@@ -880,6 +903,9 @@ CaretPreferences::readPreferences()
     
     this->splashScreenEnabled = this->getBoolean(CaretPreferences::NAME_SPLASH_SCREEN,
                                                  true);
+    
+    this->developMenuEnabled = this->getBoolean(CaretPreferences::NAME_DEVELOP_MENU,
+                                                false);
     
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);

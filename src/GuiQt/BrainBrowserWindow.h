@@ -162,13 +162,9 @@ namespace caret {
         
         void processShowSurfacePropertiesDialog();
         
-        void processHelpMenuAboutToShow();
-        
         void processGraphicsTiming();
         
         void processProjectFoci();
-        
-        void processMenuDeveloper(QAction*);
         
     private:
         // Contains status of components such as enter/exit full screen
@@ -203,7 +199,7 @@ namespace caret {
         void createActionsUsedByToolBar();
         void createMenus();
         
-        QMenu* createMenuDeveloper();
+        QMenu* createMenuDevelop();
         QMenu* createMenuFile();
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();
@@ -287,8 +283,7 @@ namespace caret {
         QAction* m_helpOnlineAction;
         QAction* m_helpSearchOnlineAction;
         
-        QAction* m_helpGraphicsTimingAction;
-        std::vector<QAction*> m_helpMenuActionsOnlyShownWithAltKeyDown;
+        QAction* m_developerGraphicsTimingAction;
         
         QAction* m_overlayToolBoxAction;
         

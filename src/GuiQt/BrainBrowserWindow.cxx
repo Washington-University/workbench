@@ -569,7 +569,7 @@ BrainBrowserWindow::createActions()
                                 SLOT(processShowSearchHelpOnlineWindow()));
     m_helpSearchOnlineAction->setEnabled(false);
 
-    m_helpGraphicsTimingAction =
+    m_developerGraphicsTimingAction =
     WuQtUtilities::createAction("Time Graphics Update",
                                 "Show the average time for updating the windows graphics",
                                 this,
@@ -599,6 +599,8 @@ BrainBrowserWindow::createActions()
 void 
 BrainBrowserWindow::createMenus()
 {
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+
     /*
      * Create the menu bar and add menus to it.
      */
@@ -615,14 +617,12 @@ BrainBrowserWindow::createMenus()
         menubar->addMenu(volumeMenu);
     }
     menubar->addMenu(createMenuConnect());
+    if (prefs->isDevelopMenuEnabled()) {
+        QMenu* developMenu = createMenuDevelop();
+        menubar->addMenu(developMenu);
+    }
     menubar->addMenu(createMenuWindow());
     menubar->addMenu(createMenuHelp());
-#ifdef VELAB_INTERNAL_RELEASE_ONLY
-    QMenu* developerMenu = createMenuDeveloper();
-    if (developerMenu != NULL) {
-        menubar->addMenu(developerMenu);
-    }
-#endif // VELAB_INTERNAL_RELEASE_ONLY
 }
 
 //const QString developerMenuTextOpenSpecTable = "Open Spec File";
@@ -631,37 +631,14 @@ BrainBrowserWindow::createMenus()
  * @return Create and return the developer menu.
  */
 QMenu*
-BrainBrowserWindow::createMenuDeveloper()
+BrainBrowserWindow::createMenuDevelop()
 {
-    return NULL;
-//    QMenu* menu = new QMenu("Developer",
-//                            this);
-//    QObject::connect(menu, SIGNAL(triggered(QAction*)),
-//                     this, SLOT(processMenuDeveloper(QAction*)));
-//    
-//    menu->addAction(developerMenuTextOpenSpecTable);
-//    return menu;
-}
-
-/**
- * Process a developer menu selection.
- */
-void
-BrainBrowserWindow::processMenuDeveloper(QAction* action)
-{
-    const QString text = action->text();
+    QMenu* menu = new QMenu("Develop",
+                            this);
+    menu->addAction(m_developerGraphicsTimingAction);
     
-//    if (text == developerMenuTextOpenSpecTable) {
-//    }
-//    else {
-        const QString msg = ("Unrecognized selection from Developer Menu: "
-                              + text);
-        
-        WuQMessageBox::errorOk(this,
-                               msg);
-//    }
+    return menu;
 }
-
 
 /**
  * Create the file menu.
@@ -1146,50 +1123,14 @@ QMenu*
 BrainBrowserWindow::createMenuHelp()
 {
     QMenu* menu = new QMenu("Help", this);
-    QObject::connect(menu, SIGNAL(aboutToShow()),
-                     this, SLOT(processHelpMenuAboutToShow()));
-    
-//    const AString toolTip = WuQtUtilities::createWordWrappedToolTipText(
-//        "Holding down the Alt Key (Option on Mac) when selecting the "
-//                     + menu->title()
-//                     + " menu will add developer menu items");
-//    menu->setToolTip(toolTip);
     
     menu->addAction(m_helpHcpWebsiteAction);
     menu->addAction(m_helpHcpFeatureRequestAction);
     menu->addSeparator();
     menu->addAction(m_helpOnlineAction);
     menu->addAction(m_helpSearchOnlineAction);
-    QAction* developerSeparator = menu->addSeparator();
-    menu->addAction(m_helpGraphicsTimingAction);
-    
-    m_helpMenuActionsOnlyShownWithAltKeyDown.push_back(developerSeparator);
-    m_helpMenuActionsOnlyShownWithAltKeyDown.push_back(m_helpGraphicsTimingAction);
     
     return menu;
-}
-
-/**
- * Called when help menu is about to show.
- * Sets visibility of actions that are only displayed
- * when the ALT key is down.
- */
-void
-BrainBrowserWindow::processHelpMenuAboutToShow()
-{
-    Qt::KeyboardModifiers keyMods = QApplication::queryKeyboardModifiers();
-    
-    bool showActions = false;
-    if (keyMods == Qt::AltModifier) {
-        showActions = true;
-    }
-
-    for (std::vector<QAction*>::iterator iter = m_helpMenuActionsOnlyShownWithAltKeyDown.begin();
-         iter != m_helpMenuActionsOnlyShownWithAltKeyDown.end();
-         iter++) {
-        QAction* action = *iter;
-        action->setVisible(showActions);
-    }
 }
 
 /**

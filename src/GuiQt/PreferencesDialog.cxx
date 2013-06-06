@@ -49,6 +49,7 @@
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
 #include "WuQFactory.h"
+#include "WuQMessageBox.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -95,6 +96,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     this->addSplashItems();
     this->addTimeCourseItems();
     this->addVolumeItems();
+    this->addDevelopItems();
     
     this->setCentralWidget(widget);
 }
@@ -183,6 +185,7 @@ PreferencesDialog::updateDialog()
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
     this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
+    this->developMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -420,7 +423,7 @@ void PreferencesDialog::addSplashItems()
 }
 
 /**
- * Called when add data file to spec file option changed.
+ * Called when show splash screen option changed.
  * @param value
  *   New value.
  */
@@ -428,6 +431,39 @@ void PreferencesDialog::splashScreenShowAtStartupComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setSplashScreenEnabled(value);
+}
+
+/**
+ * Add develop items.
+ */
+void
+PreferencesDialog::addDevelopItems()
+{
+    this->developMenuEnabledComboBox = new WuQTrueFalseComboBox("On",
+                                                                "Off",
+                                                                this);
+    QObject::connect(this->developMenuEnabledComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(developMenuEnabledComboBoxChanged(bool)));
+    this->addWidgetToLayout("Show Develop Menu in Menu Bar",
+                            this->developMenuEnabledComboBox->getWidget());
+}
+
+/**
+ * Called when show develop menu option changed.
+ * @param value
+ *   New value.
+ */
+void
+PreferencesDialog::developMenuEnabledComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setDevelopMenuEnabled(value);
+    
+    const AString msg = ("The Develop menu will "
+                         + QString((value ? "appear" : " not appear"))
+                         + " in newly opened windows.");
+    WuQMessageBox::informationOk(this->developMenuEnabledComboBox->getWidget(),
+                                 msg);
 }
 
 

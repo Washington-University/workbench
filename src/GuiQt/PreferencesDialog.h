@@ -63,10 +63,13 @@ namespace caret {
         
         void splashScreenShowAtStartupComboBoxChanged(bool value);
         
+        void developMenuEnabledComboBoxChanged(bool value);
+        
         void animationStartChanged(double value);
         
     private:
         void addColorItems();
+        void addDevelopItems();
         void addLoggingItems();
         void addSplashItems();
         void addVolumeItems();
@@ -92,6 +95,8 @@ namespace caret {
         WuQTrueFalseComboBox* volumeAxesMontageCoordinatesComboBox;
         
         WuQTrueFalseComboBox* splashScreenShowAtStartupComboBox;
+        
+        WuQTrueFalseComboBox* developMenuEnabledComboBox;
         
         QDoubleSpinBox* animationStartDoubleSpinBox;
         

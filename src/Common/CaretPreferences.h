@@ -96,6 +96,10 @@ namespace caret {
         
         void setSplashScreenEnabled(const bool enabled);
         
+        bool isDevelopMenuEnabled() const;
+        
+        void setDevelopMenuEnabled(const bool enabled);
+        
         int32_t getToolBoxType() const;
         
         void setToolBoxType(const int32_t toolBoxType);
@@ -175,6 +179,8 @@ namespace caret {
         
         bool splashScreenEnabled;
         
+        bool developMenuEnabled;
+        
         double animationStartTime;
         
         int32_t toolBoxType;
@@ -187,6 +193,7 @@ namespace caret {
         static const AString NAME_AXES_COORDINATE;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
+        static const AString NAME_DEVELOP_MENU;
 //        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_PREVIOUS_SPEC_FILES;
@@ -204,6 +211,7 @@ namespace caret {
     const AString CaretPreferences::NAME_AXES_COORDINATE     = "volumeAxesCoordinates";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
+    const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
