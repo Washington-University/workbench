@@ -46,6 +46,7 @@
 #include "CaretMappableDataFile.h"
 #include "ChartingDataManager.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiFiberTrajectoryManager.h"
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
@@ -1827,7 +1828,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
     cursor.showWaitCursor();
     
     Brain* brain = GuiManager::get()->getBrain();
-    CiftiConnectivityMatrixDataFileManager* ciftiMan = brain->getCiftiConnectivityMatrixDataFileManager();
+    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager = brain->getCiftiConnectivityMatrixDataFileManager();
+    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
     ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
     IdentificationManager* identificationManager = brain->getIdentificationManager();
     
@@ -1894,12 +1896,12 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
             Surface* surface = idNode->getSurface();
             const int32_t nodeIndex = idNode->getNodeNumber();
             try {
-                //TimeLine timeLine;
-                //connMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
-                ciftiMan->loadDataForSurfaceNode(surface, nodeIndex, ciftiLoadingInfo);
+                ciftiConnectivityManager->loadDataForSurfaceNode(surface,
+                                                                 nodeIndex,
+                                                                 ciftiLoadingInfo);
                 
-//                surface->getTimeLineInformation(nodeIndex,timeLine);
-                
+                ciftiFiberTrajectoryManager->loadDataForSurfaceNode(surface,
+                                                                    nodeIndex);
                 QList<TimeLine> timeLines;
                 chartingDataManager->loadChartForSurfaceNode(surface,
                                                              nodeIndex,
@@ -1917,18 +1919,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 }
                 
                 updateGraphicsFlag = true;
-
-//                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, ciftiLoadingInfo);
-//                updateGraphicsFlag = true;
-//                
-//                QList <TimeLine> tlV;
-//                connMan->getSurfaceTimeLines(tlV);
-//                if(tlV.size()!=0)
-//                {
-//                    GuiManager::get()->addTimeLines(tlV);
-//                }
-//                EventUpdateTimeCourseDialog e;
-//                EventManager::get()->sendEvent(e.getPointer());
             }
             catch (const DataFileException& e) {
                 cursor.restoreCursor();
@@ -1953,9 +1943,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 updateGraphicsFlag = true;
                 
                 try {
-//                    connMan->loadDataForVoxelAtCoordinate(xyz,
-//                                                          ciftiLoadingInfo);
-                    ciftiMan->loadDataForVoxelAtCoordinate(xyz,
+                    ciftiConnectivityManager->loadDataForVoxelAtCoordinate(xyz,
                                                            ciftiLoadingInfo);
                 }
                 catch (const DataFileException& e) {
@@ -1964,8 +1952,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                     cursor.showWaitCursor();
                 }
                 try {
-//                    connMan->loadTimeLineForVoxelAtCoordinate(xyz,
-//                                                              ciftiLoadingInfo);
                     QList<TimeLine> timeLines;
                     chartingDataManager->loadChartForVoxelAtCoordinate(xyz,
                                                                        true, // only charting enabled files
@@ -1982,14 +1968,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                     QMessageBox::critical(parentWidget, "", e.whatString());
                     cursor.showWaitCursor();
                 }
-//                QList <TimeLine> tlV;
-//                connMan->getVolumeTimeLines(tlV);
-//                if(tlV.size()!=0)
-//                {
-//                    GuiManager::get()->addTimeLines(tlV);
-//                }
-//                EventUpdateTimeCourseDialog e;
-//                EventManager::get()->sendEvent(e.getPointer());
             }
         }
         /*

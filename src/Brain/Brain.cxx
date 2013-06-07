@@ -46,6 +46,7 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
+#include "CiftiFiberTrajectoryManager.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFiberTrajectory.h"
@@ -105,6 +106,8 @@ using namespace caret;
 Brain::Brain()
 {
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager(this);
+    m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager(this);
+    
     m_chartingDataManager = new ChartingDataManager(this);
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
@@ -203,6 +206,7 @@ Brain::~Brain()
 
     delete m_specFile;
     delete m_ciftiConnectivityMatrixDataFileManager;
+    delete m_ciftiFiberTrajectoryManager;
     delete m_chartingDataManager;
     delete m_paletteFile;
     if (m_surfaceMontageController != NULL) {
@@ -433,6 +437,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_paletteFile->clearModified();
     
     m_ciftiConnectivityMatrixDataFileManager->reset();
+    m_ciftiFiberTrajectoryManager->reset();
     
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
@@ -4678,6 +4683,8 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
      */
     sceneClass->addClass(m_ciftiConnectivityMatrixDataFileManager->saveToScene(sceneAttributes,
                                                                                "m_ciftiConnectivityMatrixDataFileManager"));
+    sceneClass->addClass(m_ciftiFiberTrajectoryManager->saveToScene(sceneAttributes,
+                                                                  "m_ciftiFiberTrajectoryManager"));
     
     /*
      * Save Group/Name Selection Hierarchies
@@ -4799,6 +4806,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
                                                                sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
 
+    m_ciftiFiberTrajectoryManager->restoreFromScene(sceneAttributes,
+                                                    sceneClass->getClass("m_ciftiFiberTrajectoryManager"));
+    
     /*
      * Restore all models
      */
@@ -4883,5 +4893,24 @@ Brain::getIdentificationManager()
 {
     return m_identificationManager;
 }
+
+/**
+ * @return The CIFTI Fiber Trajectory Manager
+ */
+CiftiFiberTrajectoryManager*
+Brain::getCiftiFiberTrajectoryManager()
+{
+    return m_ciftiFiberTrajectoryManager;
+}
+
+/**
+ * @return The CIFTI Fiber Trajectory Manager (const method)
+ */
+const CiftiFiberTrajectoryManager*
+Brain::getCiftiFiberTrajectoryManager() const
+{
+    return m_ciftiFiberTrajectoryManager;
+}
+
 
 

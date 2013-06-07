@@ -63,6 +63,7 @@ BrainStructureNodeAttributes.h
 BrowserTabContent.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
+CiftiFiberTrajectoryManager.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
@@ -153,6 +154,7 @@ BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
+CiftiFiberTrajectoryManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
