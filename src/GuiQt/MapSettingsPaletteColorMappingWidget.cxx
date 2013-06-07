@@ -47,6 +47,7 @@
 #include "Brain.h"
 #include "CaretMappableDataFile.h"
 #include "DescriptiveStatistics.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -58,7 +59,6 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
-#include "PaletteEnums.h"
 #include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
@@ -353,6 +353,12 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QObject::connect(this->thresholdTypeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(thresholdTypeChanged(int)));
     
+    QLabel* thresholdRangeLabel = new QLabel("Range");
+    this->thresholdRangeModeComboBox = new EnumComboBoxTemplate(this);
+    QObject::connect(this->thresholdRangeModeComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(applySelections()));
+    this->thresholdRangeModeComboBox->setup<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>();
+    
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
     const float thresholdMinimum = -std::numeric_limits<float>::max();
@@ -435,16 +441,19 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 3, Qt::AlignLeft);
     thresholdAdjustmentWidget->setFixedHeight(thresholdAdjustmentWidget->sizeHint().height());
     
-    QWidget* typeWidget = new QWidget();
-    QHBoxLayout* typeLayout = new QHBoxLayout(typeWidget);
-    this->setLayoutMargins(typeLayout);
-    typeLayout->addWidget(thresholdTypeLabel, 0);
-    typeLayout->addWidget(thresholdTypeComboBox, 100);
+    QWidget* topWidget = new QWidget();
+    QHBoxLayout* topLayout = new QHBoxLayout(topWidget);
+    this->setLayoutMargins(topLayout);
+    topLayout->addWidget(thresholdTypeLabel);
+    topLayout->addWidget(this->thresholdTypeComboBox);
+    topLayout->addWidget(thresholdRangeLabel);
+    topLayout->addWidget(this->thresholdRangeModeComboBox->getWidget());
+    topLayout->addStretch();
     
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
     QVBoxLayout* layout = new QVBoxLayout(thresholdGroupBox);
     this->setLayoutMargins(layout);
-    layout->addWidget(typeWidget, 0, Qt::AlignLeft);
+    layout->addWidget(topWidget, 0, Qt::AlignLeft);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(thresholdAdjustmentWidget);
     thresholdGroupBox->setFixedHeight(thresholdGroupBox->sizeHint().height());
@@ -975,6 +984,8 @@ MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretM
                 this->thresholdShowInsideRadioButton->setChecked(true);
                 break;
         }
+        
+        this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(paletteColorMapping->getThresholdRangeMode());
         
         const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
         float minValue  = statistics->getMin();
@@ -1545,6 +1556,9 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
     else if (this->thresholdShowOutsideRadioButton->isChecked()) {
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
+    
+    const PaletteThresholdRangeModeEnum::Enum thresholdRange = this->thresholdRangeModeComboBox->getSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>();
+    this->paletteColorMapping->setThresholdRangeMode(thresholdRange);
     
     bool assignToAllMaps = false;
     if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {

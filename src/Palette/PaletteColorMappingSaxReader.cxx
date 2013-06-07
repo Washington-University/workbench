@@ -70,13 +70,13 @@ PaletteColorMappingSaxReader::startElement(const AString& /* namespaceURI */,
                this->state = STATE_READING_ELEMENTS;
                 
                 int32_t version = attributes.getValueAsInt(PaletteColorMappingXmlElements::XML_ATTRIBUTE_VERSION_NUMBER);
-                if (version > PaletteColorMappingXmlElements::VERSION_NUMBER) {
+                if (version > PaletteColorMappingXmlElements::XML_VERSION_NUMBER) {
                     std::ostringstream str;
                     str
                     << "Version of PaletteColorMapping ("
                     << version
                     << ") is greater than version(s) supported ("
-                    << PaletteColorMappingXmlElements::VERSION_NUMBER
+                    << PaletteColorMappingXmlElements::XML_VERSION_NUMBER
                     << ").";
                     throw XmlSaxParserException(AString::fromStdString(str.str()));
                 }
@@ -267,6 +267,18 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                }
                else {
                    throw XmlSaxParserException("PaletteColorMappingXmlElements::auto scale percenter does not contain four values.");
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_RANGE_MODE) {
+               bool isValid = false;
+               PaletteThresholdRangeModeEnum::Enum rangeMode = PaletteThresholdRangeModeEnum::fromName(this->elementText,
+                                                       &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setThresholdRangeMode(rangeMode);
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteThresholdRangeModeEnum::Enum: "
+                                               + this->elementText);
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {

@@ -30,6 +30,7 @@
 #include "CaretObject.h"
 
 #include "PaletteEnums.h"
+#include "PaletteThresholdRangeModeEnum.h"
 #include "XmlException.h"
 
 namespace caret {
@@ -178,6 +179,10 @@ namespace caret {
         
         void setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType);
         
+        PaletteThresholdRangeModeEnum::Enum getThresholdRangeMode() const;
+        
+        void setThresholdRangeMode(const PaletteThresholdRangeModeEnum::Enum rangeMode);
+        
         AString getThresholdDataName() const;
         
         void setThresholdDataName(const AString& thresholdDataName);
@@ -234,6 +239,8 @@ namespace caret {
         PaletteThresholdTypeEnum::Enum thresholdType;
         
         PaletteThresholdTestEnum::Enum thresholdTest;
+        
+        PaletteThresholdRangeModeEnum::Enum thresholdRangeMode;
         
         float thresholdNormalMinimum;
         

@@ -44,6 +44,7 @@ namespace caret {
     
     class CaretMappableDataFile;
     class DescriptiveStatistics;
+    class EnumComboBoxTemplate;
     class FastStatistics;
     class Histogram;
     class PaletteColorMapping;
@@ -138,6 +139,8 @@ namespace caret {
         
         QRadioButton* thresholdShowInsideRadioButton;
         QRadioButton* thresholdShowOutsideRadioButton;
+        
+        EnumComboBoxTemplate* thresholdRangeModeComboBox;
         
         QwtPlot* thresholdPlot;
         

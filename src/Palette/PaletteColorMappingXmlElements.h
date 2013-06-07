@@ -46,9 +46,10 @@ namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES = "ThresholdMappedAvgAreaValues";
     static const AString XML_TAG_THRESHOLD_DATA_NAME = "ThresholdDataName";
     static const AString XML_TAG_THRESHOLD_FAILURE_IN_GREEN = "ThresholdFailureInGreen";
+    static const AString XML_TAG_THRESHOLD_RANGE_MODE = "ThresholdRangeMode";
     
     static const AString XML_ATTRIBUTE_VERSION_NUMBER = "Version";
-    static const int VERSION_NUMBER = 1;    
+    static const int XML_VERSION_NUMBER = 1;
 }  // namespace
 
 #endif // __PALETTE_COLOR_MAPPING_XML_ELEMENTS_H__

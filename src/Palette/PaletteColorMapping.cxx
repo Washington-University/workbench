@@ -32,7 +32,7 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
-#include "PaletteXmlElements.h"
+#include "PaletteColorMappingXmlElements.h"
 #include "XmlSaxParser.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
@@ -124,6 +124,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->thresholdMappedAverageAreaMaximum = pcm.thresholdMappedAverageAreaMaximum;
     this->thresholdDataName = pcm.thresholdDataName;
     this->thresholdShowFailureInGreen = pcm.thresholdShowFailureInGreen;
+    this->thresholdRangeMode = pcm.thresholdRangeMode;
     
     this->clearModified();
 }
@@ -161,7 +162,8 @@ PaletteColorMapping::operator==(const PaletteColorMapping& pcm) const
         && (this->thresholdMappedAverageAreaMinimum == pcm.thresholdMappedAverageAreaMinimum)
         && (this->thresholdMappedAverageAreaMaximum == pcm.thresholdMappedAverageAreaMaximum)
         && (this->thresholdDataName == pcm.thresholdDataName)
-        && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)) {
+        && (this->thresholdShowFailureInGreen == pcm.thresholdShowFailureInGreen)
+        && (this->thresholdRangeMode == pcm.thresholdRangeMode)) {
         return true;
     }
     
@@ -196,6 +198,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->thresholdMappedAverageAreaMaximum =  1.0f;
     this->thresholdDataName = "";
     this->thresholdShowFailureInGreen = false;
+    this->thresholdRangeMode = PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_MAP;
     this->modifiedFlag = false;
 }
 
@@ -211,12 +214,12 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
 {
     XmlAttributes attributes;
     attributes.addAttribute(
-                            PaletteXmlElements::XML_ATTRIBUTE_VERSION_NUMBER,
-                            PaletteXmlElements::XML_VERSION_NUMBER);
+                            PaletteColorMappingXmlElements::XML_ATTRIBUTE_VERSION_NUMBER,
+                            PaletteColorMappingXmlElements::XML_VERSION_NUMBER);
     xmlWriter.writeStartElement(
-                                PaletteXmlElements::XML_TAG_PALETTE_COLOR_MAPPING,
+                                PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING,
                                 attributes);
-    xmlWriter.writeElementCharacters(PaletteXmlElements::XML_TAG_SCALE_MODE,
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_SCALE_MODE,
                                      PaletteScaleModeEnum::toName(this->scaleMode));
     float autoScaleValues[4] = {
         this->autoScalePercentageNegativeMaximum,
@@ -225,7 +228,7 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
         this->autoScalePercentagePositiveMaximum
     };
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES,
+                                     PaletteColorMappingXmlElements::XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES,
                                      autoScaleValues,
                                      4);
     float userScaleValues[4] = {
@@ -235,39 +238,39 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
         this->userScalePositiveMaximum
     };
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_USER_SCALE_VALUES,
+                                     PaletteColorMappingXmlElements::XML_TAG_USER_SCALE_VALUES,
                                      userScaleValues,
                                      4);
-    xmlWriter.writeElementCharacters(PaletteXmlElements::XML_TAG_PALETTE_NAME,
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_PALETTE_NAME,
                                      XmlUtilities::encodeXmlSpecialCharacters(this->selectedPaletteName));
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_INTERPOLATE,
+                                     PaletteColorMappingXmlElements::XML_TAG_INTERPOLATE,
                                      this->interpolatePaletteFlag);
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_DISPLAY_POSITIVE,
+                                     PaletteColorMappingXmlElements::XML_TAG_DISPLAY_POSITIVE,
                                      this->displayPositiveDataFlag);
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_DISPLAY_ZERO,
+                                     PaletteColorMappingXmlElements::XML_TAG_DISPLAY_ZERO,
                                      this->displayZeroDataFlag);
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_DISPLAY_NEGATIVE,
+                                     PaletteColorMappingXmlElements::XML_TAG_DISPLAY_NEGATIVE,
                                      this->displayNegativeDataFlag);
     
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_TEST,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_TEST,
                                      PaletteThresholdTestEnum::toName(this->thresholdTest));
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_TYPE,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_TYPE,
                                      PaletteThresholdTypeEnum::toName(this->thresholdType));
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
                                      this->thresholdShowFailureInGreen);
     float normalValues[2] = {
         this->thresholdNormalMinimum,
         this->thresholdNormalMaximum
     };
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES,
                                      normalValues,
                                      2);
     
@@ -276,7 +279,7 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
         this->thresholdMappedMaximum
     };
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_MAPPED_VALUES,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_VALUES,
                                      mappedValues,
                                      2);
     
@@ -285,14 +288,16 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
         this->thresholdMappedAverageAreaMaximum
     };
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES,
                                      mappedAvgAreaValues,
                                      2);
     
     xmlWriter.writeElementCharacters(
-                                     PaletteXmlElements::XML_TAG_THRESHOLD_DATA_NAME,
+                                     PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_DATA_NAME,
                                      XmlUtilities::encodeXmlSpecialCharacters(this->thresholdDataName));
     
+    xmlWriter.writeElementCharacters(PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_RANGE_MODE,
+                                     PaletteThresholdRangeModeEnum::toName(this->thresholdRangeMode));
     
     xmlWriter.writeEndElement();
 }
@@ -1056,8 +1061,8 @@ PaletteColorMapping::getThresholdType() const
 
 /**
  * Set the threshold type.
- * @param thresholdType - The threshold type.
  *
+ * @param thresholdType - The threshold type.
  */
 void
 PaletteColorMapping::setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType)
@@ -1065,6 +1070,30 @@ PaletteColorMapping::setThresholdType(const PaletteThresholdTypeEnum::Enum thres
     if (this->thresholdType != thresholdType) {
         this->thresholdType = thresholdType;
         this->setModified();
+    }
+}
+
+/**
+ * @return The threshold range mode.
+ */
+PaletteThresholdRangeModeEnum::Enum
+PaletteColorMapping::getThresholdRangeMode() const
+{
+    return this->thresholdRangeMode;
+}
+
+/**
+ * Set the threshold range mode.
+ *
+ * @param rangeMode
+ *    New value for range mode.
+ */
+void
+PaletteColorMapping::setThresholdRangeMode(const PaletteThresholdRangeModeEnum::Enum rangeMode)
+{
+    if (this->thresholdRangeMode != rangeMode) {
+        this->thresholdRangeMode = rangeMode;
+        setModified();
     }
 }
 

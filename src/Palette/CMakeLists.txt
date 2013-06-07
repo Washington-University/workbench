@@ -21,14 +21,17 @@ ADD_LIBRARY(Palette
 Palette.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
+PaletteColorMappingXmlElements.h
 PaletteEnums.h
 PaletteScalarAndColor.h
+PaletteThresholdRangeModeEnum.h
 
 Palette.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteEnums.cxx
 PaletteScalarAndColor.cxx
+PaletteThresholdRangeModeEnum.cxx
 )
 
 #
