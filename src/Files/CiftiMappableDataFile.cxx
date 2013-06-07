@@ -3016,5 +3016,39 @@ CiftiMappableDataFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
     mapIntervalStepValueOut = 1.0;
 }
 
+/**
+ * Get the minimum and maximum values from ALL maps in this file.
+ * Note that not all files (due to size of file) are able to provide
+ * the minimum and maximum values from the file.  The return value
+ * indicates success/failure.  If the failure (false) is returned
+ * the returned values are likely +/- the maximum float values.
+ *
+ * @param dataRangeMinimumOut
+ *    Minimum data value found.
+ * @param dataRangeMaximumOut
+ *    Maximum data value found.
+ * @return
+ *    True if the values are valid, else false.
+ */
+bool
+CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
+                                               float& dataRangeMaximumOut) const
+{
+    dataRangeMaximumOut = std::numeric_limits<float>::max();
+    dataRangeMinimumOut = -dataRangeMaximumOut;
+    
+    /*
+     * Dense is very large but at this time is [-1, 1]
+     */
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+        dataRangeMaximumOut = 1.0;
+        dataRangeMinimumOut = -1;
+        return true;
+    }
+    
+    return false;
+}
+
+
 
 

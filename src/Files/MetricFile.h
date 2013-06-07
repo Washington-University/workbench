@@ -73,6 +73,9 @@ namespace caret {
         
         void initializeColumn(const int32_t columnIndex, const float& value = 0.0f);
         
+        virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
+                                             float& dataRangeMaximumOut) const;
+        
     protected:
         /**
          * Validate the contents of the file after it

@@ -94,6 +94,8 @@ namespace caret {
         
         void updateHistogramPlot();
         
+        void updateThresholdControlsMinimumMaximumRangeValues();
+        
         void setLayoutMargins(QLayout* layout);
         
         const DescriptiveStatistics* getDescriptiveStatisticsForHistogram(const DescriptiveStatistics* statisticsForAll) const;

@@ -357,3 +357,53 @@ void MetricFile::initializeColumn(const int32_t columnIndex, const float& value)
     }
     setModified();
 }
+
+/**
+ * Get the minimum and maximum values from ALL maps in this file.
+ * Note that not all files (due to size of file) are able to provide
+ * the minimum and maximum values from the file.  The return value
+ * indicates success/failure.  If the failure (false) is returned
+ * the returned values are likely +/- the maximum float values.
+ *
+ * @param dataRangeMinimumOut
+ *    Minimum data value found.
+ * @param dataRangeMaximumOut
+ *    Maximum data value found.
+ * @return
+ *    True if the values are valid, else false.
+ */
+bool
+MetricFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
+                                               float& dataRangeMaximumOut) const
+{
+    const int32_t numberOfMaps = getNumberOfMaps();
+
+    if (numberOfMaps > 0) {
+        dataRangeMaximumOut = -std::numeric_limits<float>::max();
+        dataRangeMinimumOut = std::numeric_limits<float>::max();
+        
+        for (int32_t i = 0; i < numberOfMaps; ++i) {
+            GiftiDataArray* gda = this->giftiFile->getDataArray(i);
+            float mapMin, mapMax;
+            gda->getMinMaxValuesFloat(mapMin,
+                                      mapMax);
+            
+            if (mapMin < dataRangeMinimumOut) {
+                dataRangeMinimumOut = mapMin;
+            }
+            if (mapMax > dataRangeMaximumOut) {
+                dataRangeMaximumOut = mapMax;
+            }
+            
+        }
+    }
+    else {
+        dataRangeMaximumOut = std::numeric_limits<float>::max();
+        dataRangeMinimumOut = -dataRangeMaximumOut;
+    }
+    
+    return true;
+}
+
+
+

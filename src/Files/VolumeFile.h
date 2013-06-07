@@ -237,6 +237,9 @@ namespace caret {
                                  const int64_t mapIndex,
                                  const float rgba[4]);
         
+        virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
+                                             float& dataRangeMaximumOut) const;
+        
     private:
         friend class VolumeFileVoxelColorizer;
     };

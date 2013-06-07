@@ -236,6 +236,9 @@ namespace caret {
         // get minimum and maximum values (valid for int data only)
         void getMinMaxValues(int& minValue, int& maxValue) const;
         
+        void getMinMaxValuesFloat(float& minValue,
+                                  float& maxValue) const;
+        
         // remap integer values that are indices to a table
         //void remapIntValues(const std::vector<int32_t>& remappingTable);
         

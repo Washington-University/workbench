@@ -1445,6 +1445,34 @@ GiftiDataArray::getMinMaxValues(int& minValue, int& maxValue) const
 }
 
 /**
+ * Get the minimum and maximum values for float data.
+ *
+ * @param minValue
+ *     Output minimum value.
+ * @param maxValue
+ *     Output maximum value.
+ */
+void
+GiftiDataArray::getMinMaxValuesFloat(float& minValue,
+                          float& maxValue) const
+{
+    if (minMaxFloatValuesValid == false) {
+        minValueFloat =  std::numeric_limits<float>::max();
+        maxValueFloat = -std::numeric_limits<float>::max();
+        
+        int64_t numItems = getTotalNumberOfElements();
+        for (int64_t i = 0; i < numItems; i++) {
+            minValueFloat = std::min(minValueFloat, dataPointerFloat[i]);
+            maxValueFloat = std::max(maxValueFloat, dataPointerFloat[i]);
+        }
+        minMaxFloatValuesValid = true;
+    }
+    
+    minValue = minValueFloat;
+    maxValue = maxValueFloat;
+}
+
+/**
  * set all elements of array to zero.
  */
 void 

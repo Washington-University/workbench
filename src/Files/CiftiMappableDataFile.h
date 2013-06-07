@@ -263,6 +263,9 @@ namespace caret {
         virtual void getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
                                                 float& mapIntervalStepValueOut) const;
         
+        virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
+                                             float& dataRangeMaximumOut) const;
+        
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
         

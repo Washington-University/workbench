@@ -168,3 +168,28 @@ CaretMappableDataFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
     mapIntervalStepValueOut = 1.0;
 }
 
+/**
+ * Get the minimum and maximum values from ALL maps in this file.
+ * Note that not all files (due to size of file) are able to provide
+ * the minimum and maximum values from the file.  The return value
+ * indicates success/failure.  If the failure (false) is returned
+ * the returned values are likely +/- the maximum float values.
+ *
+ * @param dataRangeMinimumOut
+ *    Minimum data value found.
+ * @param dataRangeMaximumOut
+ *    Maximum data value found.
+ * @return
+ *    True if the values are valid, else false.
+ */
+bool
+CaretMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
+                                               float& dataRangeMaximumOut) const
+{
+    dataRangeMaximumOut = std::numeric_limits<float>::max();
+    dataRangeMinimumOut = -dataRangeMaximumOut;
+    
+    return false;
+}
+
+
