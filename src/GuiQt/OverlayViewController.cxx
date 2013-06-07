@@ -691,9 +691,11 @@ OverlayViewController::updateViewController(Overlay* overlay)
 //    this->widgetsGroup->setEnabled(this->overlay != NULL);
 
     const bool haveFile = (selectedFile != NULL);
+    bool haveMultipleMaps = false;
     bool dataIsMappedWithPalette = false;
     if (haveFile) {
         dataIsMappedWithPalette = selectedFile->isMappedWithPalette();
+        haveMultipleMaps = (selectedFile->getNumberOfMaps() > 1);
     }
     
     /*
@@ -701,11 +703,11 @@ OverlayViewController::updateViewController(Overlay* overlay)
      */
     this->fileComboBox->setEnabled(haveFile);
     this->mapNameComboBox->setEnabled(haveFile);
-    this->m_mapIndexSpinBox->setEnabled(haveFile);
+    this->m_mapIndexSpinBox->setEnabled(haveMultipleMaps);
     this->enabledCheckBox->setEnabled(haveFile);
-    this->constructionAction->setEnabled(haveFile);
+    this->constructionAction->setEnabled(true);
     this->opacityDoubleSpinBox->setEnabled(haveFile);
-    this->m_yokingGroupComboBox->getWidget()->setEnabled(haveFile);
+    this->m_yokingGroupComboBox->getWidget()->setEnabled(haveMultipleMaps);
     this->colorBarAction->setEnabled(dataIsMappedWithPalette);
     this->settingsAction->setEnabled(true);
 }
