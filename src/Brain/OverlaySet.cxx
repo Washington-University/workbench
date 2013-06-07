@@ -246,15 +246,17 @@ OverlaySet::getUnderlayVolume()
     
     for (int32_t i = (getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
         if (m_overlays[i]->isEnabled()) {
-            CaretMappableDataFile* mapFile;
+            CaretMappableDataFile* mapFile = NULL;
             int32_t mapIndex;
             m_overlays[i]->getSelectionData(mapFile,
-                                                mapIndex);
+                                            mapIndex);
             
             if (mapFile != NULL) {
-                vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
-                if (vf != NULL) {
-                    break;
+                if (mapFile->isVolumeMappable()) {
+                    vf = dynamic_cast<VolumeMappableInterface*>(mapFile);
+                    if (vf != NULL) {
+                        break;
+                    }
                 }
             }
         }
@@ -287,12 +289,14 @@ OverlaySet::setUnderlayToVolume()
             
             const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
             for (int32_t i = 0; i < numMapFiles; i++) {
-                vf = dynamic_cast<VolumeMappableInterface*>(mapFiles[i]);
-                if (vf != NULL) {
-                    CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(vf);
-                    CaretAssert(cmdf);
-                    m_overlays[overlayIndex]->setSelectionData(cmdf, 0);
-                    break;
+                if (mapFiles[i]->isVolumeMappable()) {
+                    vf = dynamic_cast<VolumeMappableInterface*>(mapFiles[i]);
+                    if (vf != NULL) {
+                        CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(vf);
+                        CaretAssert(cmdf);
+                        m_overlays[overlayIndex]->setSelectionData(cmdf, 0);
+                        break;
+                    }
                 }
             }
         }
