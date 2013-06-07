@@ -51,21 +51,22 @@ OperationParameters* AlgorithmCiftiAverageDenseROI::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
-    ret->addStringParameter(1, "cifti-list-file", "a text file containing a list of cifti filenames to average across");
+    ret->addCiftiOutputParameter(1, "cifti-out", "output cifti dscalar file");
     
-    ret->addCiftiOutputParameter(2, "cifti-out", "output cifti file");
-    
-    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "vertices to use from left hempsphere");
+    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(2, "-left-roi", "vertices to use from left hempsphere");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     
-    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "vertices to use from right hempsphere");
+    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(3, "-right-roi", "vertices to use from right hempsphere");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     
-    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cerebellum-roi", "vertices to use from cerebellum");
+    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(4, "-cerebellum-roi", "vertices to use from cerebellum");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     
-    OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxels to use");
+    OptionalParameter* volRoiOpt = ret->createOptionalParameter(5, "-vol-roi", "voxels to use");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
+    
+    ParameterComponent* ciftiOpt = ret->createRepeatableParameter(6, "-cifti", "specify an input cifti file");
+    ciftiOpt->addCiftiParameter(1, "cifti-in", "a cifti file to average across");
     
     ret->setHelpText(
         AString("Averages rows within the ROI(s), across all files, equal weight for each matching row.")
@@ -75,83 +76,38 @@ OperationParameters* AlgorithmCiftiAverageDenseROI::getParameters()
 
 void AlgorithmCiftiAverageDenseROI::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    AString listFileName = myParams->getString(1);
-    CiftiFile* ciftiOut = myParams->getOutputCifti(2);
+    CiftiFile* ciftiOut = myParams->getOutputCifti(1);
     MetricFile* leftROI = NULL;
-    OptionalParameter* leftRoiOpt = myParams->getOptionalParameter(3);
+    OptionalParameter* leftRoiOpt = myParams->getOptionalParameter(2);
     if (leftRoiOpt->m_present)
     {
         leftROI = leftRoiOpt->getMetric(1);
     }
     MetricFile* rightROI = NULL;
-    OptionalParameter* rightRoiOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* rightRoiOpt = myParams->getOptionalParameter(3);
     if (rightRoiOpt->m_present)
     {
         rightROI = rightRoiOpt->getMetric(1);
     }
     MetricFile* cerebROI = NULL;
-    OptionalParameter* cerebRoiOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* cerebRoiOpt = myParams->getOptionalParameter(4);
     if (cerebRoiOpt->m_present)
     {
         cerebROI = cerebRoiOpt->getMetric(1);
     }
     VolumeFile* volROI = NULL;
-    OptionalParameter* volRoiOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* volRoiOpt = myParams->getOptionalParameter(5);
     if (volRoiOpt->m_present)
     {
         volROI = volRoiOpt->getVolume(1);
     }
-    fstream textFile(listFileName.toLocal8Bit().constData(), fstream::in);
-    if (!textFile.good())
-    {
-        throw AlgorithmException("error opening input file for reading");
-    }
     vector<const CiftiInterface*> ciftiList;
-    try
+    const vector<ParameterComponent*>& ciftiInstances = *(myParams->getRepeatableParameterInstances(6));
+    for (int i = 0; i < (int)ciftiInstances.size(); ++i)
     {
-        string myLine;
-        while (textFile.good())
-        {
-            if (!getline(textFile, myLine))
-            {
-                break;
-            }
-            if (myLine == "")
-            {
-                continue;//skip blank lines
-            }
-            FileInformation ciftiFileInfo(myLine.c_str());
-            if (!ciftiFileInfo.exists())
-            {
-                throw AlgorithmException(AString("file does not exist: ") + myLine.c_str());//throw inside try block so that the error handling path is the same
-            }
-            CiftiFile* tempCifti = new CiftiFile(myLine.c_str(), ON_DISK);
-            ciftiList.push_back(tempCifti);
-        }
-        AlgorithmCiftiAverageDenseROI(myProgObj, ciftiList, ciftiOut, leftROI, rightROI, cerebROI, volROI);
-    } catch (CaretException& e) {//catch exceptions to prevent memory leaks
-        for (size_t i = 0; i < ciftiList.size(); ++i)
-        {
-            delete ciftiList[i];
-        }
-        throw e;
-    } catch (std::exception& e) {
-        for (size_t i = 0; i < ciftiList.size(); ++i)
-        {
-            delete ciftiList[i];
-        }
-        throw AlgorithmException(e.what());
-    } catch (...) {
-        for (size_t i = 0; i < ciftiList.size(); ++i)
-        {
-            delete ciftiList[i];
-        }
-        throw;
+        ciftiList.push_back(ciftiInstances[i]->getCifti(1));
     }
-    for (size_t i = 0; i < ciftiList.size(); ++i)
-    {
-        delete ciftiList[i];
-    }
+    AlgorithmCiftiAverageDenseROI(myProgObj, ciftiList, ciftiOut, leftROI, rightROI, cerebROI, volROI);
 }
 
 AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut,
@@ -209,7 +165,8 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     if (accumCount == 0) throw AlgorithmException("no data matched the ROI(s)");
     CiftiXML newXml = baseXML;
     newXml.applyRowMapToColumns();
-    newXml.resetRowsToTimepoints(1.0f, 1);
+    newXml.resetRowsToScalars(1);
+    newXml.setMapNameForRowIndex(0, "row average");
     ciftiOut->setCiftiXML(newXml);
     vector<float> outCol(rowSize);
     for (int i = 0; i < rowSize; ++i)

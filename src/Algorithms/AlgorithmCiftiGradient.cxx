@@ -142,7 +142,8 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         }
         if (outputAverage)
         {
-            myNewXML.resetRowsToTimepoints(1.0f, 1);
+            myNewXML.resetRowsToScalars(1);
+            myNewXML.setMapNameForRowIndex(0, "gradient average");
         }
     } else {
         if (!myXML.getStructureListsForRows(surfaceList, volumeList))
@@ -151,8 +152,9 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         }
         if (outputAverage)
         {
-            myNewXML.applyRowMapToColumns();//dtseries always has brainordinates on columns, so flip it
-            myNewXML.resetRowsToTimepoints(1.0f, 1);
+            myNewXML.applyRowMapToColumns();//dscalar always has brainordinates on columns, so flip it
+            myNewXML.resetRowsToScalars(1);
+            myNewXML.setMapNameForRowIndex(0, "gradient average");
         }
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
