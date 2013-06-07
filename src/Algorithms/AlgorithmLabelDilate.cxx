@@ -58,7 +58,7 @@ OperationParameters* AlgorithmLabelDilate::getParameters()
     ret->addLabelOutputParameter(4, "label-out", "the output label file");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with value zero");
-    roiOpt->addMetricParameter(1, "roi-metric", "metric file, all positive values denote vertices to have their values replaced");
+    roiOpt->addMetricParameter(1, "roi-metric", "metric file, positive values denote vertices to have their values replaced");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
     columnSelect->addStringParameter(1, "column", "the column number or name");

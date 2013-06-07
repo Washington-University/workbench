@@ -59,7 +59,7 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-voxel-roi", "specify an roi of voxels to overwrite, rather than voxels with value zero");
-    roiOpt->addMetricParameter(1, "roi-volume", "volume file, all positive values denote voxels to have their values replaced");
+    roiOpt->addMetricParameter(1, "roi-volume", "volume file, positive values denote voxels to have their values replaced");
     
     OptionalParameter* subvolSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume to dilate");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
