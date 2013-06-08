@@ -27,6 +27,8 @@
 #include "CaretMappableDataFile.h"
 #undef __CARET_MAPPABLE_DATA_FILE_DECLARE__
 
+#include <limits>
+
 using namespace caret;
 
 

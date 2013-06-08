@@ -38,6 +38,8 @@
 #include "VolumeFileVoxelColorizer.h"
 #include "VolumeSpline.h"
 
+#include <limits>
+
 using namespace caret;
 using namespace std;
 

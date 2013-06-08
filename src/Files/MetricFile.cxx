@@ -31,6 +31,8 @@
 #include "NiftiEnums.h"
 #include "PaletteColorMapping.h"
 
+#include <limits>
+
 using namespace caret;
 
 /**
