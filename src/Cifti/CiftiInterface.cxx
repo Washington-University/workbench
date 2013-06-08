@@ -25,8 +25,51 @@
 
 #include "CiftiInterface.h"
 
+#include <limits>
+#include <vector>
+
 using namespace caret;
 using namespace std;
+
+CiftiInterface::CiftiInterface()
+{
+    m_dataRangeValid = false;
+}
+
+void CiftiInterface::invalidateDataRange()
+{
+    m_dataRangeValid = false;
+}
+
+bool CiftiInterface::getDataRangeFromAllMaps(float& minOut, float& maxOut) const
+{
+    if (!m_dataRangeValid)
+    {
+        int64_t numRows = getNumberOfRows(), rowSize = getNumberOfColumns();
+        if (numRows <= 0 || rowSize <= 0)
+        {
+            maxOut = numeric_limits<float>::max();
+            minOut = -maxOut;
+            return false;
+        }
+        m_dataRangeMin = numeric_limits<float>::max();
+        m_dataRangeMax = -m_dataRangeMin;
+        vector<float> tempRow(rowSize);
+        for (int64_t row = 0; row < numRows; ++row)
+        {
+            getRow(tempRow.data(), row);
+            for (int64_t i = 0; i < rowSize; ++i)
+            {
+                if (tempRow[i] > m_dataRangeMax) m_dataRangeMax = tempRow[i];
+                if (tempRow[i] < m_dataRangeMin) m_dataRangeMin = tempRow[i];
+            }
+        }
+        m_dataRangeValid = true;
+    }
+    minOut = m_dataRangeMin;
+    maxOut = m_dataRangeMax;
+    return true;
+}
 
 bool CiftiInterface::checkColumnIndex(int64_t index) const
 {

@@ -77,19 +77,28 @@ public:
     { m_matrix.getRow(rowOut, rowIndex); }
     /// set Row
     void setRow(float * rowIn, const int64_t &rowIndex) throw (CiftiFileException)
-    { m_matrix.setRow(rowIn, rowIndex); }
+    {
+        invalidateDataRange();
+        m_matrix.setRow(rowIn, rowIndex);
+    }
     /// get Column
     void getColumn(float * columnOut, const int64_t &columnIndex) const throw (CiftiFileException)
     { m_matrix.getColumn(columnOut, columnIndex); }
     /// set Column
     void setColumn(float * columnIn, const int64_t &columnIndex) throw (CiftiFileException)
-    { m_matrix.setColumn(columnIn, columnIndex); }
+    {
+        invalidateDataRange();
+        m_matrix.setColumn(columnIn, columnIndex);
+    }
     /// get Matrix
     void getMatrix(float *matrixOut) throw (CiftiFileException)
     { m_matrix.getMatrix(matrixOut); }
     /// set Matrix
     void setMatrix(float *matrixIn) throw (CiftiFileException)
-    { m_matrix.setMatrix(matrixIn); }
+    {
+        invalidateDataRange();
+        m_matrix.setMatrix(matrixIn);
+    }
     // setup Matrix
     //void setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn = 0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
     /// setup Matrix

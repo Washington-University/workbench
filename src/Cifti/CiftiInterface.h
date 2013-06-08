@@ -34,10 +34,13 @@ namespace caret
     
     class CiftiInterface
     {
+        mutable bool m_dataRangeValid;
+        mutable float m_dataRangeMin, m_dataRangeMax;
     protected:
         CiftiXML m_xml;
         bool checkRowIndex(int64_t index) const;
         bool checkColumnIndex(int64_t index) const;
+        CiftiInterface();
     public:
         ///get a row
         virtual void getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException) = 0;
@@ -86,6 +89,12 @@ namespace caret
         
         ///get a column by frame
         bool getColumnFromFrame(float* columnOut, const int frame) const;
+        
+        ///get data range
+        bool getDataRangeFromAllMaps(float& minOut, float& maxOut) const;
+        
+        ///called when something changes the data
+        void invalidateDataRange();
         
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const

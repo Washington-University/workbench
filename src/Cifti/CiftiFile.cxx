@@ -166,6 +166,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
 
 void CiftiFile::setupMatrix() throw (CiftiFileException)
 {
+    invalidateDataRange();
 
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
     QByteArray xmlBytes;
