@@ -451,7 +451,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
         MetricFile origMetric, origROI;
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origMetric, &origROI);
         MetricFile newMetric, newDilate, resampleROI, *newUse;
-        newUse = &origMetric;
+        newUse = &newMetric;
         AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curArea, newArea, &origROI, &resampleROI, surfLargest);
         if (surfdilatemm > 0.0f)
         {
