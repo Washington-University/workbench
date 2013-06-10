@@ -906,3 +906,92 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
         }
     }
 }
+
+/**
+ * Convert the slice coloring to outline mode.
+ *
+ * @param rgbaInOut
+ *    Coloring for the slice (input and output)
+ * @param xdim
+ *    X-dimension of slice (number of columns)
+ * @param ydim
+ *    Y-dimension of slice (number of rows).
+ */
+void
+NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
+                                                        const int64_t xdim,
+                                                        const int64_t ydim)
+{
+    /*
+     * Copy the rgba colors
+     */
+    const int64_t numRGBA = xdim * ydim * 4;
+    if (numRGBA <= 0) {
+        return;
+    }
+    std::vector<uint8_t> sliceCopyVector(numRGBA);
+    uint8_t* rgba = &sliceCopyVector[0];
+    
+    for (int64_t i = 0; i < numRGBA; i++) {
+        rgba[i] = rgbaInOut[i];
+    }
+    
+    /*
+     * Examine coloring for all voxels except those along the edge
+     */
+    const int64_t lastX = xdim - 1;
+    const int64_t lastY = ydim - 1;
+    for (int64_t i = 1; i < lastX; i++) {
+        for (int64_t j = 1; j < lastY; j++) {
+            const int iStart = i - 1;
+            const int iEnd   = i + 1;
+            const int jStart = j - 1;
+            const int jEnd   = j + 1;
+            
+            const int64_t myOffset = (i + (xdim * j)) * 4;
+            CaretAssert(myOffset < numRGBA);
+            
+            const uint8_t* myRGBA = &rgba[myOffset];
+            if (myRGBA[3] <= 0) {
+                continue;
+            }
+            
+            /*
+             * Determine if voxel colors match voxel coloring
+             * of ALL immediate neighbors (8-connected).
+             */
+            bool allTheSame = true;
+            for (int64_t iNeigh = iStart; iNeigh <= iEnd; iNeigh++) {
+                for (int64_t jNeigh = jStart; jNeigh <= jEnd; jNeigh++) {
+                    const int64_t neighOffset = (iNeigh + (xdim * jNeigh)) * 4;
+                    CaretAssert(neighOffset < numRGBA);
+                    const uint8_t* neighRGBA = &rgba[neighOffset];
+                    
+                    for (int64_t k = 0; k < 4; k++) {
+                        if (myRGBA[k] != neighRGBA[k]) {
+                            allTheSame = false;
+                            break;
+                        }
+                    }
+                    
+                    if (allTheSame == false) {
+                        break;
+                    }
+                }
+                if (allTheSame == false) {
+                    break;
+                }
+            }
+            
+            /*
+             * If voxel's coloring matches all neighbors, use alpha
+             * to turn of coloring in OUTPUT coloring.
+             */
+            if (allTheSame) {
+                rgbaInOut[myOffset + 3] = 0.0;
+            }
+        }
+    }
+}
+
+

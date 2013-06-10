@@ -3133,6 +3133,38 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                                     slicePlane,
                                                     drawingSliceIndex,
                                                     sliceVoxelsRGBA);
+            
+            /*
+             * Is label outline mode?
+             */
+            if (volumeDrawInfo[iVol].mapFile->isMappedWithLabelTable()) {
+                if (isOutlineMode) {
+                    int64_t xdim = 0;
+                    int64_t ydim = 0;
+                    switch (slicePlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            CaretAssert(0);
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            xdim = dimI;
+                            ydim = dimJ;
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            xdim = dimI;
+                            ydim = dimK;
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            xdim = dimJ;
+                            ydim = dimK;
+                            break;
+                    }
+                    
+                    NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
+                                                                            xdim,
+                                                                            ydim);
+                }
+            }
+            
             /*
              * Voxels not colored will have negative alpha so fix it.
              */

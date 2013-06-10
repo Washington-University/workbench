@@ -90,6 +90,11 @@ namespace caret {
                                                const int32_t* labelIndices,
                                                const int32_t numberOfIndices,
                                                uint8_t* rgbv);
+        
+        static void convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
+                                                      const int64_t xdim,
+                                                      const int64_t ydim);
+        
     private:
         NodeAndVoxelColoring();
         
