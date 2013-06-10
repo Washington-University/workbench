@@ -3034,6 +3034,8 @@ bool
 CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                                float& dataRangeMaximumOut) const
 {
+    CaretAssert(m_ciftiInterface);
+    
     /*
      * Dense is very large but at this time is [-1, 1]
      */
@@ -3056,6 +3058,29 @@ CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     dataRangeMinimumOut = -dataRangeMaximumOut;
     
     return false;
+}
+
+/**
+ * Get the number of nodes for the structure in this file.  This may be
+ * from the row or column.
+ *
+ * @param structure
+ *     Structure for which number of nodes is requested.
+ * @return
+ *     Number of nodes corresponding to structure.  If no matching structure
+ *     is found, a negative value is returned.
+ */
+int32_t
+CiftiMappableDataFile::getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+{
+    CaretAssert(m_ciftiInterface);
+    
+    int32_t numNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+    if (numNodes < 0) {
+        numNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+    }
+    
+    return numNodes;
 }
 
 

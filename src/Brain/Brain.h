@@ -471,6 +471,8 @@ namespace caret {
         
         void updateSurfaceMontageController();
         
+        void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const throw (DataFileException);
+        
         std::vector<BrainStructure*> m_brainStructures;
         
         std::vector<BorderFile*> m_borderFiles;

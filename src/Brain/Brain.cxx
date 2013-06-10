@@ -1133,6 +1133,41 @@ Brain::readFociFile(CaretDataFile* reloadThisFileIfNotNull,
 }
 
 /**
+ * Validate a CIFTI Mappable Data File.
+ * A file is valid if its surface mappings match the loaded surfaces.
+ *
+ * @param ciftiMapFile
+ *    File examined for validity.
+ * @throws DataFileException
+ *    If the file is found to be incompatible with the loaded surfaces.
+ */
+void
+Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const throw (DataFileException)
+{
+    const int32_t numBrainStructures = getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        const StructureEnum::Enum structure = getBrainStructure(i)->getStructure();
+        const int numNodes = getBrainStructure(i)->getNumberOfNodes();
+        
+        const int numConnNodes = ciftiMapFile->getSurfaceNumberOfNodes(structure);
+        if (numConnNodes > 0) {
+            if (numNodes != numConnNodes) {
+                AString msg = ("The CIFTI file "
+                               + ciftiMapFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(numConnNodes)
+                               + " nodes for structure "
+                               + StructureEnum::toGuiName(structure)
+                               + " but the corresponding surface brain structure contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
+                throw DataFileException(msg);
+            }
+        }
+    }
+}
+
+/**
  * Read a connectivity matrix dense file.
  *
  * @param reloadThisFileIfNotNull
@@ -1162,6 +1197,7 @@ Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
     try {
         cmdf->readFile(filename);
         cmdf->clearModified();
+        validateCiftiMappableDataFile(cmdf);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1209,6 +1245,7 @@ Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
     
     try {
         file->readFile(filename);
+        validateCiftiMappableDataFile(file);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1254,8 +1291,7 @@ Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotN
 
     try {
         file->readFile(filename);
-        
-        //validateConnectivityFile(clf);
+        validateCiftiMappableDataFile(file);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1328,6 +1364,7 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
     
     try {
         clf->readFile(filename);
+        validateCiftiMappableDataFile(clf);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1610,8 +1647,7 @@ Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
     
     try {
         file->readFile(filename);
-        
-        //validateConnectivityFile(clf);
+        validateCiftiMappableDataFile(file);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1657,8 +1693,7 @@ Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotN
     
     try {
         file->readFile(filename);
-        
-        //validateConnectivityFile(clf);
+        validateCiftiMappableDataFile(file);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {
@@ -1704,6 +1739,7 @@ Brain::readConnectivityDataSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
     
     try {
         file->readFile(filename);
+        validateCiftiMappableDataFile(file);
     }
     catch (const DataFileException& dfe) {
         if (reloadThisFileIfNotNull != NULL) {

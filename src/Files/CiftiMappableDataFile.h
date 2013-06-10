@@ -241,6 +241,8 @@ namespace caret {
                                                             const int32_t numberOfNodes,
                                                             AString& textOut) const;
         
+        int32_t getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+        
         bool getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
                                          const int32_t nodeIndex,
                                          std::vector<float>& seriesDataOut) const;
