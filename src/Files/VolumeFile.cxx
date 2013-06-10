@@ -162,6 +162,8 @@ VolumeFile::clear()
     m_splinesValid = false;
     m_frameSplineValid.clear();
     m_frameSplines.clear();
+    
+    m_dataRangeValid = false;
 }
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
@@ -479,6 +481,7 @@ void VolumeFile::updateCaretExtension()
 
 void VolumeFile::validateMembers()
 {
+    m_dataRangeValid = false;
     m_splinesValid = false;
     int numMaps = getNumberOfMaps();
     m_brickAttributes.clear();//invalidate brick attributes first
@@ -1249,10 +1252,45 @@ bool
 VolumeFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                                float& dataRangeMaximumOut) const
 {
-    dataRangeMaximumOut = std::numeric_limits<float>::max();
-    dataRangeMinimumOut = -dataRangeMaximumOut;
+    /*
+     * No data?
+     */
+    if (m_dataSize <= 0) {
+        dataRangeMaximumOut = std::numeric_limits<float>::max();
+        dataRangeMinimumOut = -dataRangeMaximumOut;
+        return false;
+    }
     
-    return false;
+    /*
+     * If valid, no need to update
+     */
+    if (m_dataRangeValid) {
+        dataRangeMinimumOut = m_dataRangeMinimum;
+        dataRangeMaximumOut = m_dataRangeMaximum;
+        return true;
+    }
+    
+    /*
+     * Update range.
+     */
+    m_dataRangeMaximum = -std::numeric_limits<float>::max();
+    m_dataRangeMinimum = std::numeric_limits<float>::max();
+    
+    for (int64_t i = 0; i < m_dataSize; i++) {
+        if (m_data[i] > m_dataRangeMaximum) {
+            m_dataRangeMaximum = m_data[i];
+        }
+        if (m_data[i] < m_dataRangeMinimum) {
+            m_dataRangeMinimum = m_data[i];
+        }
+    }
+    
+    dataRangeMinimumOut = m_dataRangeMinimum;
+    dataRangeMaximumOut = m_dataRangeMaximum;
+    
+    m_dataRangeValid = true;
+    
+    return true;
 }
 
 

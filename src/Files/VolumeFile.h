@@ -79,6 +79,12 @@ namespace caret {
         
         mutable std::vector<VolumeSpline> m_frameSplines;
         
+        mutable bool m_dataRangeValid;
+        
+        mutable float m_dataRangeMinimum;
+        
+        mutable float m_dataRangeMaximum;
+        
     public:
         
         enum InterpType
