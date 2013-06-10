@@ -1289,6 +1289,10 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ChartingDataMa
     return result;
 }
 
+/* ------------------------------------------------------------------------- */
+/**
+ * Constructor.
+ */
 BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
                    const int32_t labelFileMapIndex,
                    const int32_t labelKey,
@@ -1307,6 +1311,9 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappab
     this->ciftiConnectivityManager = ciftiConnectivityManager;
 }
 
+/**
+ * Destructor.
+ */
 BrainOpenGLWidgetContextMenu::ParcelConnectivity::~ParcelConnectivity()
 {
     
@@ -1343,4 +1350,35 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int
     }
     
 }
+
+/* ------------------------------------------------------------------------- */
+/**
+ * Constructor.
+ */
+BrainOpenGLWidgetContextMenu::VolumeParcelConnectivity::VolumeParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
+                                                                                 const int32_t labelFileMapIndex,
+                                                                                 const int32_t labelKey,
+                                                                                 const QString& labelName,
+                                                                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                                                 const float sliceCoordinate,
+                                                                                 ChartingDataManager* chartingDataManager,
+                                                                                 CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
+    this->mappableLabelFile = mappableLabelFile;
+    this->labelFileMapIndex = labelFileMapIndex;
+    this->labelKey = labelKey;
+    this->labelName = labelName;
+    this->slicePlane = slicePlane;
+    this->sliceCoordinate = sliceCoordinate;
+    this->chartingDataManager = chartingDataManager;
+    this->ciftiConnectivityManager = ciftiConnectivityManager;
+}
+
+/**
+ * Destructor.
+ */
+BrainOpenGLWidgetContextMenu::VolumeParcelConnectivity::~VolumeParcelConnectivity()
+{
+    
+}
+
 

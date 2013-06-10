@@ -39,6 +39,8 @@
 
 #include <QMenu>
 
+#include "VolumeSliceViewPlaneEnum.h"
+
 class QAction;
 
 namespace caret {
@@ -119,6 +121,30 @@ namespace caret {
             int32_t labelKey;
             QString labelName;
             Surface* surface;
+            int32_t nodeNumber;
+            CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
+            ChartingDataManager* chartingDataManager;
+        };
+        
+        class VolumeParcelConnectivity {
+        public:
+            VolumeParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
+                                     const int32_t labelFileMapIndex,
+                                     const int32_t labelKey,
+                                     const QString& labelName,
+                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                     const float sliceCoordinate,
+                                     ChartingDataManager* chartingDataManager,
+                                     CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager);
+            
+            ~VolumeParcelConnectivity();
+            
+            CaretMappableDataFile* mappableLabelFile;
+            int32_t labelFileMapIndex;
+            int32_t labelKey;
+            QString labelName;
+            VolumeSliceViewPlaneEnum::Enum slicePlane;
+            float sliceCoordinate;
             int32_t nodeNumber;
             CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
             ChartingDataManager* chartingDataManager;
