@@ -409,9 +409,14 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QLabel* thresholdRangeLabel = new QLabel("Range");
     this->thresholdRangeModeComboBox = new EnumComboBoxTemplate(this);
     QObject::connect(this->thresholdRangeModeComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(applySelections()));
+                     this, SLOT(thresholdRangeModeChanged()));
     this->thresholdRangeModeComboBox->setup<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>();
-    
+    const AString rangeModeToolTip = ("Controls range of threshold controls\n"
+                                      "   File: Range is from all values in file.\n"
+                                      "   Map:  Range is from all values in selected map.\n"
+                                      "   Unlimited: Range is +/- infinity.");
+    this->thresholdRangeModeComboBox->getWidget()->setToolTip(WuQtUtilities::createWordWrappedToolTipText(rangeModeToolTip));
+                                      
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
     const float thresholdMinimum = -std::numeric_limits<float>::max();
@@ -524,6 +529,18 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     this->thresholdAdjustmentWidgetGroup->add(this->thresholdRangeModeComboBox->getWidget());
     
     return thresholdGroupBox;
+}
+
+/**
+ * Called when threshold range mode is changed.
+ */
+void
+MapSettingsPaletteColorMappingWidget::thresholdRangeModeChanged()
+{
+    const PaletteThresholdRangeModeEnum::Enum thresholdRange = this->thresholdRangeModeComboBox->getSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>();
+    this->paletteColorMapping->setThresholdRangeMode(thresholdRange);    
+    updateThresholdControlsMinimumMaximumRangeValues();
+    applySelections();
 }
 
 /**
@@ -1041,7 +1058,9 @@ MapSettingsPaletteColorMappingWidget::updateEditor(CaretMappableDataFile* caretM
         }
         
         const PaletteThresholdRangeModeEnum::Enum thresholdRangeMode = paletteColorMapping->getThresholdRangeMode();
+        this->thresholdRangeModeComboBox->blockSignals(true);
         this->thresholdRangeModeComboBox->setSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>(thresholdRangeMode);
+        this->thresholdRangeModeComboBox->blockSignals(false);
         updateThresholdControlsMinimumMaximumRangeValues();
 
         const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
@@ -1593,9 +1612,6 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
-    const PaletteThresholdRangeModeEnum::Enum thresholdRange = this->thresholdRangeModeComboBox->getSelectedItem<PaletteThresholdRangeModeEnum, PaletteThresholdRangeModeEnum::Enum>();
-    this->paletteColorMapping->setThresholdRangeMode(thresholdRange);
-    
     bool assignToAllMaps = false;
     if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
         assignToAllMaps = true;
@@ -1617,7 +1633,6 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
         assignToAllMaps = true;
     }
     
-    this->updateThresholdControlsMinimumMaximumRangeValues();
     this->updateHistogramPlot();
     
     PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();

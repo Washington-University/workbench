@@ -75,6 +75,7 @@ namespace caret {
         void thresholdLowSliderValueChanged(double);
         void thresholdHighSliderValueChanged(double);
         void thresholdTypeChanged(int);
+        void thresholdRangeModeChanged();
         
         void histogramControlChanged();
         void histogramResetViewButtonClicked();
