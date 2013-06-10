@@ -3034,9 +3034,6 @@ bool
 CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                                float& dataRangeMaximumOut) const
 {
-    dataRangeMaximumOut = std::numeric_limits<float>::max();
-    dataRangeMinimumOut = -dataRangeMaximumOut;
-    
     /*
      * Dense is very large but at this time is [-1, 1]
      */
@@ -3045,6 +3042,18 @@ CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
         dataRangeMinimumOut = -1;
         return true;
     }
+    else {
+        if (m_ciftiInterface->getDataRangeFromAllMaps(dataRangeMinimumOut,
+                                                      dataRangeMaximumOut)) {
+            return true;
+        }
+    }
+    
+    /*
+     * Default
+     */
+    dataRangeMaximumOut = std::numeric_limits<float>::max();
+    dataRangeMinimumOut = -dataRangeMaximumOut;
     
     return false;
 }
