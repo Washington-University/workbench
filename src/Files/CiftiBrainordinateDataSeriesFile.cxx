@@ -133,6 +133,17 @@ CiftiBrainordinateDataSeriesFile::setChartingEnabled(const bool enabled)
     m_chartingEnabled = enabled;
 }
 
+ChartTypeEnum::Enum CiftiBrainordinateDataSeriesFile::getDefaultChartType() const
+{
+    return ChartTypeEnum::PLOT2D;
+}
+
+void CiftiBrainordinateDataSeriesFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
+{
+    list.clear();
+    list.push_back(ChartTypeEnum::PLOT2D);    
+}
+
 /**
  * Load the average of chart data for a group of surface nodes.
  * Note: This method will return a chart even if charting for

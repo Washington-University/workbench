@@ -86,6 +86,8 @@ namespace caret {
         virtual AString getMapName(const int32_t mapIndex) const;
         
         AString getRowLoadedText() const;
+
+        virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
         
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
@@ -105,9 +107,6 @@ namespace caret {
         
     private:
         void clearPrivate();
-        
-        virtual void getMapData(const int32_t mapIndex,
-                                std::vector<float>& dataOut) const;
         
         int64_t getRowIndexForNodeWhenLoading(const StructureEnum::Enum structure,
                                               const int64_t surfaceNumberOfNodes,

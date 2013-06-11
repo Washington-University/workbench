@@ -43,7 +43,7 @@
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 
-class ChartingDialog;        
+
 class QAction;
 class QCheckBox;
 class QDoubleSpinBox;
@@ -55,8 +55,8 @@ class QSpinBox;
 class TimeCourseDialog;
 
 namespace caret {
-
     class ChartableInterface;
+    class ChartingDialog;        
     class ConnectivityTimeSeriesViewController;
     class CiftiConnectivityMatrixViewController;
     class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {

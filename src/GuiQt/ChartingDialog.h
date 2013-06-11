@@ -7,10 +7,12 @@ namespace Ui {
 class ChartingDialog;
 }
 
+#include "CaretMappableDataFile.h"
 class TimeCourseControls;
 class Table;
 class Plot2D;
 
+namespace caret {
 class ChartingDialog : public QDialog
 {
     Q_OBJECT
@@ -19,6 +21,7 @@ public:
     explicit ChartingDialog(QWidget *parent = 0);
     ~ChartingDialog();
     void setChartMode(QString type);
+    void openPconnMatrix(CaretMappableDataFile *pconnFile);
 private slots:
     void on_closeButton_clicked();
 
@@ -30,5 +33,5 @@ private:
     Table *table;
     Plot2D *plot2d;
 };
-
+}
 #endif // CHARTINGDIALOG_H

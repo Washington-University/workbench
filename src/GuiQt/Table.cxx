@@ -15,21 +15,21 @@ Table::Table(QWidget *parent) :
 
 void Table::createModel()
 {
-    int xSize = 14;
-    int ySize = 6;
-    model = new QStandardItemModel(xSize,ySize,this);
-    model->setData(model->index(0,0,QModelIndex()), QColor(0,0,0), Qt::BackgroundColorRole);
+    model = new QStandardItemModel(0,0,this);
+    model->setData(model->index(0,0,QModelIndex()), QColor(0,0,0), Qt::BackgroundColorRole);    
 
     ui->tableView->setModel(model);
 
     std::vector<std::vector<QColor>> colors;
-    createColors(xSize,ySize,colors);
-    populate(colors);
+    //createColors(ncols,nrows,colors);
+    //populate(colors);
 
 }
 
 void Table::populate(std::vector< std::vector <QColor>> &colors)
 {
+    model->setRowCount(colors.size());
+    model->setColumnCount(colors[0].size());
     for(int x = 0;x<colors.size();x++)
     {
         for(int y = 0;y<colors[x].size();y++)
@@ -40,30 +40,30 @@ void Table::populate(std::vector< std::vector <QColor>> &colors)
 
 }
 
-void Table::populate(int xSize, int ySize)
+void Table::populate(int nCols, int nRows)
 {
-    int x_step = 255/(xSize-1);
-    int y_step = 255/(ySize-1);
+    int x_step = 255/(nCols-1);
+    int y_step = 255/(nRows-1);
 
-    for(int x = 0;x<xSize;x++)
+    for(int x = 0;x<nCols;x++)
     {
-        for(int y = 0;y<ySize;y++)
+        for(int y = 0;y<nRows;y++)
         {
             model->setData(model->index(x,y,QModelIndex()), QColor(x*x_step,(x*x_step+y*y_step)/2,y*y_step), Qt::BackgroundColorRole);
         }
     }
 }
 
-void Table::createColors(int xSize, int ySize, std::vector< std::vector <QColor>> &colors)
+void Table::createColors(int nCols, int nRows, std::vector< std::vector <QColor>> &colors)
 {
-    colors.resize(xSize);
-    for(int i = 0;i<xSize;i++) colors[i].resize(ySize);
-    int x_step = 255/(xSize-1);
-    int y_step = 255/(ySize-1);
+    colors.resize(nCols);
+    for(int i = 0;i<nCols;i++) colors[i].resize(nRows);
+    int x_step = 255/(nCols-1);
+    int y_step = 255/(nRows-1);
 
-    for(int x = 0;x<xSize;x++)
+    for(int x = 0;x<nCols;x++)
     {
-        for(int y = 0;y<ySize;y++)
+        for(int y = 0;y<nRows;y++)
         {
             colors[x][y] = QColor(x*x_step,(x*x_step+y*y_step)/2,y*y_step);
         }

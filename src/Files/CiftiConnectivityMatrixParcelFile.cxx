@@ -58,7 +58,7 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
                                           CIFTI_INDEX_TYPE_PARCELS,
                                           CIFTI_INDEX_TYPE_PARCELS,
                                           CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS,
-                                          CiftiMappableDataFile::DATA_ACCESS_INVALID)
+                                          CiftiMappableDataFile::DATA_ACCESS_INVALID),ChartableInterface()
 {
     
 }
@@ -69,5 +69,67 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
 CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
 {
     
+}
+
+
+/**
+ * @return Is charting enabled for this file?
+ */
+bool
+CiftiConnectivityMatrixParcelFile::isChartingEnabled() const
+{
+    return m_chartingEnabled;
+}
+
+/**
+ * @return Return true if the file's current state supports
+ * charting data, else false.  Typically a brainordinate file
+ * is chartable if it contains more than one map.
+ */
+bool
+CiftiConnectivityMatrixParcelFile::isChartingSupported() const
+{
+    return true;    
+}
+
+/**
+ * Set charting enabled for this file.
+ *
+ * @param enabled
+ *    New status for charting enabled.
+ */
+void
+CiftiConnectivityMatrixParcelFile::setChartingEnabled(const bool enabled)
+{
+    m_chartingEnabled = enabled;
+}
+
+ChartTypeEnum::Enum CiftiConnectivityMatrixParcelFile::getDefaultChartType() const
+{
+    return ChartTypeEnum::MATRIX;
+}
+
+void CiftiConnectivityMatrixParcelFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
+{
+    list.clear();
+    list.push_back(ChartTypeEnum::MATRIX);    
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+CaretMappableDataFile*
+CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile()
+{
+    return dynamic_cast<CaretMappableDataFile*>(this);
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+const CaretMappableDataFile*
+CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile() const
+{
+    return dynamic_cast<const CaretMappableDataFile*>(this);
 }
 

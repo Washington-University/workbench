@@ -164,6 +164,8 @@ namespace caret {
         
         virtual void getDimensions(std::vector<int64_t>& dimsOut) const;
         
+        virtual void getMapDimensions(std::vector<int64_t> &dim) const;
+
         virtual const int64_t& getNumberOfComponents() const;
         
         virtual void indexToSpace(const float& indexIn1,
@@ -276,6 +278,10 @@ namespace caret {
     public:
         
         // ADD_NEW_METHODS_HERE
+      
+
+        virtual void getMapRGBA(const int32_t row,
+            std::vector<float>& rgba, PaletteFile *paletteFile);
         
     protected:
         /** The CIFTI XML (Do not delete since points to data in m_ciftiInterface */
@@ -336,8 +342,7 @@ namespace caret {
         
         static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         
-        virtual void getMapData(const int32_t mapIndex,
-                                std::vector<float>& dataOut) const;
+        
         
         void validateKeysAndLabels() const;
         

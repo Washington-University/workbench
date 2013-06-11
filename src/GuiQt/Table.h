@@ -16,9 +16,9 @@ public:
     explicit Table(QWidget *parent = 0);
     ~Table();
     void createModel();
-    void populate(int xSize, int ySize);
+    void populate(int nCols, int nRows);
     void populate(std::vector< std::vector <QColor>> &colors);
-    void createColors(int xSize, int ySize, std::vector< std::vector <QColor>> &colors);
+    void createColors(int nCols,int nRows, std::vector< std::vector <QColor>> &colors);
 
 private:
     Ui::Table *ui;

@@ -42,7 +42,6 @@ class QAction;
 class QDialog;
 class QWebView;
 class QWidget;
-
 class MovieDialog;
 namespace caret {
     
@@ -50,6 +49,7 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class ChartableInterface;
+    class ChartingDialog;
     class CursorManager;
     class CustomViewDialog;
     class ImageFile;
@@ -141,6 +141,7 @@ namespace caret {
                                                      bool updateWindow = true);
         void processUpdateTimeCourseDialogs();
         TimeCourseDialog *getTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
+        ChartingDialog *getChartingDialog(ChartableInterface *id);
         void addTimeLines(QList <TimeLine> &tlV);
         void removeTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
         void updateAnimationStartTime(double value); 
@@ -245,6 +246,8 @@ namespace caret {
         std::vector<QWidget*> nonModalDialogs;
         
         QMap<ChartableInterface *,TimeCourseDialog *> timeCourseDialogs;
+
+        QMap<ChartableInterface *,ChartingDialog *> chartingDialogs;
         
         /**
          * If Workbench is started by double-clicking a data file in

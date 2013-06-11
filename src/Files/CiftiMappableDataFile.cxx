@@ -1,4 +1,3 @@
-
 /*LICENSE_START*/
 /*
  * Copyright 2013 Washington University,
@@ -1098,13 +1097,65 @@ CiftiMappableDataFile::isMappedWithPalette() const
  *     A vector that will contain the data for the map upon exit.
  */
 void
-CiftiMappableDataFile::getMapData(const int32_t mapIndex,
+CiftiMappableDataFile::getMapData(const int32_t row,
                                   std::vector<float>& dataOut) const
 {
+                                              
+    m_ciftiInterface->getRow(&row
+        rowIndex);
+}
+
+void 
+CiftiMappableDataFile::getMapRGBA(const int32_t row, std::vector<float> &rgba,PaletteFile *paletteFile)
+{
     CaretAssertVectorIndex(m_mapContent,
-                           mapIndex);
-    m_ciftiFacade->getDataForMapOrSeriesIndex(mapIndex,
-                                              dataOut);
+        0);
+
+    const int ncols = m_ciftiFacade->getNumberOfColumns();
+    const int nrows = m_ciftiFacade->getNumberOfRows();
+    std::vector<float> data;
+    data.resize(ncols*rows);
+    
+
+    for(int i = 0;i<nrows;i++)
+    {
+        m_ciftiInterface->getRow(&data[i*ncols],i);
+    }
+    
+    //MapContent* mc = m_mapContent[0];
+    //if(!mc->m_rgbaValid) mc->updateColoring(data,paletteFile);
+   
+    PaletteColorMapping *paletteColorMapping = m_ciftiFacade->getPaletteColorMappingForMapOrSeriesIndex();
+    {
+        CaretAssert(paletteColorMapping);
+        const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+        const Palette* palette = paletteFile->getPaletteByName(paletteName);
+        if (palette != NULL) {
+            m_fastStatistics->update(&data[0],
+                data.size());
+
+            rgba.resize(ncols*nrows*4);
+            NodeAndVoxelColoring::colorScalarsWithPalette(m_fastStatistics,
+                m_paletteColorMapping,
+                palette,
+                &data[0],
+                &data[0],
+                m_dataCount,
+                &rgba[0]);
+        }
+        else {
+            std::fill(m_rgba.begin(),
+                m_rgba.end(),
+                0.0);
+        }
+    }    
+}
+
+void 
+CiftiMappableDataFile::getMapDimensions(std::vector<int64_t> &dim) const
+{
+    dim.push_back(m_ciftiInterface->getNumberOfRows());
+    dim.push_back(m_ciftiInterface->getNumberOfColumns());
 }
 
 

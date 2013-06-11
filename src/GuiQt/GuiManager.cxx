@@ -45,6 +45,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "ChartingDataManager.h"
+#include "ChartingDialog.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CursorDisplayScoped.h"
@@ -1467,6 +1468,31 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog(ChartableInterface *id)
     }
     return this->timeCourseDialogs[id];
 }
+
+ChartingDialog * GuiManager::getChartingDialog(ChartableInterface *id)
+{
+    if(chartingDialogs.contains(id)) return chartingDialogs.value(id);
+    BrainBrowserWindow* browserWindow = NULL;
+
+    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
+        if (m_brainBrowserWindows[i] != NULL && m_brainBrowserWindows[i]->isVisible()) {
+            if (m_brainBrowserWindows[i] != NULL) {
+                browserWindow = m_brainBrowserWindows[i];
+                break;
+            }
+        }
+    }
+
+    if(browserWindow == NULL) return NULL;//not the best error checking but at least it
+    //won't crash
+    if (this->chartingDialogs[id] == NULL) {
+        this->chartingDialogs.insert(id, new ChartingDialog(browserWindow));
+        this->nonModalDialogs.push_back(this->chartingDialogs[id]);
+    }
+    return this->chartingDialogs[id];
+}
+
+
 
 /**
  * Adds time lines to all corresponding time course dialogs

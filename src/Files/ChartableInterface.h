@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "ChartTypeEnum.h"
 #include "DataFileException.h"
 #include "StructureEnum.h"
 
@@ -84,6 +84,19 @@ namespace caret {
          *    New status for charting enabled.
          */
         virtual void setChartingEnabled(const bool enabled) = 0;
+
+        /**
+         * Returns the Default Chart Type
+         */
+        
+        virtual ChartTypeEnum::Enum getDefaultChartType() const = 0;
+
+        /**
+         *   Returns a list of supported Chart Types
+         */
+
+        virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const = 0;
+
         
         /**
          * Load the average of chart data for a group of surface nodes

@@ -54,6 +54,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "ChartableInterface.h"
+#include "ChartingDialog.h"
 //#include "ConnectivityLoaderFile.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
@@ -105,6 +106,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     if (graphIconValid) {
         this->graphDisplayAction->setIcon(graphIcon);
     }
+   
     this->graphDisplayAction->setCheckable(true);
     this->graphToolButton = new QToolButton();
     this->graphToolButton->setDefaultAction(this->graphDisplayAction); 
@@ -206,8 +208,20 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
         if(this->chartableDataFile->isChartingEnabled()) {
             enabledState = Qt::Checked;
         }
+
+        if(this->chartableDataFile->getDefaultChartType() == ChartTypeEnum::MATRIX)
+        {
+            this->graphDisplayAction->setCheckable(false);
+        }
+        else
+        {
+            this->graphDisplayAction->setCheckable(true);
+        }
         this->graphToolButton->blockSignals(true);
-        this->graphToolButton->setChecked(enabledState);
+        if(this->chartableDataFile->getDefaultChartType() != ChartTypeEnum::MATRIX)
+        {
+            this->graphToolButton->setChecked(enabledState);
+        }        
         this->graphToolButton->blockSignals(false);       
     }
      
@@ -245,10 +259,19 @@ void
 ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 {
     if (this->chartableDataFile != NULL) {
+        if(this->chartableDataFile->getDefaultChartType() == ChartTypeEnum::MATRIX)
+        {
+            ChartingDialog *dialog = GuiManager::get()->getChartingDialog(this->chartableDataFile);
+            dialog->openPconnMatrix(this->chartableDataFile->getCaretMappableDataFile());
+            dialog->show();
+        }
+        else
+        {
             this->chartableDataFile->setChartingEnabled(status);
             GuiManager::get()->getTimeCourseDialog(this->chartableDataFile)->setTimeSeriesGraphEnabled(status);
             this->updateOtherConnectivityTimeSeriesViewControllers();
-        }
+        }        
+    }
 }
 
 /**

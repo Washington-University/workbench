@@ -1,9 +1,16 @@
+#include "Brain.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CaretMappableDataFile.h"
 #include "ChartingDialog.h"
-#include "ui_chartingdialog.h"
+#include "GuiManager.h"
+#include "ui_ChartingDialog.h"
 #include "TimeCourseControls.h"
+#include "PaletteFile.h"
 #include "Plot2d.h"
 #include "Table.h"
 #include "QVBoxLayout"
+
+using namespace caret;
 
 ChartingDialog::ChartingDialog(QWidget *parent) :
     QDialog(parent),
@@ -23,7 +30,7 @@ ChartingDialog::~ChartingDialog()
 
 void ChartingDialog::on_closeButton_clicked()
 {
-    this->parent()->deleteLater();
+    this->hide();
 }
 
 void ChartingDialog::setChartMode(QString type)
@@ -51,4 +58,34 @@ void ChartingDialog::setChartMode(QString type)
 void ChartingDialog::on_comboBox_currentIndexChanged(const QString &arg1)
 {
     setChartMode(arg1);
+}
+
+void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
+{
+    CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(pconnFile);
+    if(matrix == NULL) return;
+    
+    std::vector<int64_t> dim;
+    matrix->getMapDimensions(dim);
+    PaletteFile *pf = GuiManager::get()->getBrain()->getPaletteFile();
+    
+    int ncols = dim[0];
+    std::vector<float> rgba;
+    
+    matrix->getMapRGBA(0,rgba,pf);
+    int nrows = rgba.size()/4;
+    if(nrows != dim[1]) return; //add error message
+    std::vector<std::vector<QColor>> cMatrix;
+    cMatrix.resize(ncols);
+    for(int i = 0;i<ncols;i++) cMatrix[i].resize(nrows);
+    
+    for(int i = 0;i<ncols;i++)
+    {
+        matrix->getMapRGBA(i,rgba,pf);
+        for(int j = 0;j<nrows;j++)
+        {
+            cMatrix[i][j] = QColor(rgba[j*4],rgba[j*4+1],rgba[j*4+2],rgba[j*4+3]);
+        }
+    }  
+    table->populate(cMatrix);
 }

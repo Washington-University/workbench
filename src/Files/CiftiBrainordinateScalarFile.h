@@ -40,6 +40,7 @@
 
 namespace caret {
 
+    class ChartTypeEnum;
     class CiftiMappableConnectivityMatrixDataFile;
     class TimeLine;
     
@@ -58,6 +59,10 @@ namespace caret {
         virtual void setChartingEnabled(const bool enabled);
         
         virtual bool isChartingSupported() const;
+
+        virtual ChartTypeEnum::Enum getDefaultChartType() const;
+
+        virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const;
         
         virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
                                                      const std::vector<int32_t>& nodeIndices,

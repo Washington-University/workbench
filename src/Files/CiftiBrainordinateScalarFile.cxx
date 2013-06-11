@@ -39,6 +39,7 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiConnectivityMatrixDenseFile.h"
 
+#include "ChartTypeEnum.h"
 #include "CiftiFile.h"
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
@@ -203,6 +204,18 @@ CiftiBrainordinateScalarFile::isChartingSupported() const
     }
     
     return false;
+}
+
+
+ChartTypeEnum::Enum CiftiBrainordinateScalarFile::getDefaultChartType() const
+{
+    return ChartTypeEnum::PLOT2D;
+}
+
+void CiftiBrainordinateScalarFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
+{
+    list.clear();
+    list.push_back(ChartTypeEnum::PLOT2D);    
 }
 
 /**
