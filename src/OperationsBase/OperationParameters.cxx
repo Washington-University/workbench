@@ -230,59 +230,32 @@ void OperationParameters::setHelpText(const AString& textIn)
 
 void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    CiftiParameter* myParam = new CiftiParameter(key, name, description);
-    myParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
-    m_outputList.push_back(myParam);
+    m_outputList.push_back(new CiftiParameter(key, name, description));
 }
 
 void ParameterComponent::addFociOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    FociParameter* myParam = new FociParameter(key, name, description);
-    myParam->m_parameter.grabNew(new FociFile());
-    m_outputList.push_back(myParam);
+    m_outputList.push_back(new FociParameter(key, name, description));
 }
-
-/*void ParameterComponent::addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description)
-{
-    m_outputList.push_back(new DoubleParameter(key, name, description));
-}//*/
 
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    MetricParameter* myParam = new MetricParameter(key, name, description);
-    myParam->m_parameter.grabNew(new MetricFile());
-    m_outputList.push_back(myParam);
+    m_outputList.push_back(new MetricParameter(key, name, description));
 }
-
-/*void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description)
-{
-    m_outputList.push_back(new IntegerParameter(key, name, description));
-}//*/
 
 void ParameterComponent::addLabelOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    LabelParameter* myParam = new LabelParameter(key, name, description);
-    myParam->m_parameter.grabNew(new LabelFile());
-    m_outputList.push_back(myParam);
+    m_outputList.push_back(new LabelParameter(key, name, description));
 }
-
-/*void ParameterComponent::addStringOutputParameter(const int32_t key, const AString& name, const AString& description)
-{
-    m_outputList.push_back(new StringParameter(key, name, description));
-}//*/
 
 void ParameterComponent::addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    SurfaceParameter* myParam = new SurfaceParameter(key, name, description);
-    myParam->m_parameter.grabNew(new SurfaceFile());
-    m_outputList.push_back(myParam);
+    m_outputList.push_back(new SurfaceParameter(key, name, description));
 }
 
 void ParameterComponent::addVolumeOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    VolumeParameter* myParam = new VolumeParameter(key, name, description);
-    myParam->m_parameter.grabNew(new VolumeFile());
-    m_outputList.push_back(myParam);
+    m_outputList.push_back(new VolumeParameter(key, name, description));
 }
 
 AString& OperationParameters::getHelpText()

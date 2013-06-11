@@ -28,9 +28,11 @@
 #include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
+#include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
+#include "FociFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "OperationException.h"
@@ -168,6 +170,27 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
+            case OperationParametersEnum::FOCI:
+            {
+                CaretPointer<FociFile> myFile(new FociFile());
+                myFile->readFile(nextArg);
+                const GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    AString prov = md->get(PROVENANCE_NAME);
+                    if (prov != "")
+                    {
+                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                    }
+                }
+                ((FociParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
+                }
+                break;
+            }
             case OperationParametersEnum::INT:
             {
                 parameters.backup();
@@ -300,12 +323,14 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::CIFTI:
             {
                 CiftiParameter* myParam = (CiftiParameter*)myComponent->m_outputList[i];
+                myParam->m_parameter.grabNew(new CiftiFile());
                 myParam->m_parameter->setCiftiCacheFile(nextArg);
                 break;//we do the metadata stuff in provenanceForOnDiskOutputs() for this type
             }
             case OperationParametersEnum::LABEL:
             {
-                LabelFile* myFile = ((LabelParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                CaretPointer<LabelFile>& myFile = ((LabelParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new LabelFile());
                 GiftiMetaData* md = myFile->getFileMetaData();
                 if (md != NULL)
                 {
@@ -315,7 +340,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::METRIC:
             {
-                MetricFile* myFile = ((MetricParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                CaretPointer<MetricFile>& myFile = ((MetricParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new MetricFile());
                 GiftiMetaData* md = myFile->getFileMetaData();
                 if (md != NULL)
                 {
@@ -325,7 +351,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::SURFACE:
             {
-                SurfaceFile* myFile = ((SurfaceParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                CaretPointer<SurfaceFile>& myFile = ((SurfaceParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new SurfaceFile());
                 GiftiMetaData* md = myFile->getFileMetaData();
                 if (md != NULL)
                 {
@@ -335,7 +362,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::VOLUME:
             {
-                VolumeFile* myFile = ((VolumeParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                CaretPointer<VolumeFile>& myFile = ((VolumeParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new VolumeFile());
                 GiftiMetaData* md = myFile->getFileMetaData();
                 if (md != NULL)
                 {
@@ -343,8 +371,26 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            default:
+            case OperationParametersEnum::FOCI:
+            {
+                CaretPointer<FociFile>& myFile = ((FociParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new FociFile());
+                GiftiMetaData* md = myFile->getFileMetaData();
+                if (md != NULL)
+                {
+                    md->set(PROVENANCE_NAME, m_provenance);
+                }
                 break;
+            }
+            case OperationParametersEnum::DOUBLE://ignore these output types
+            case OperationParametersEnum::INT:
+            case OperationParametersEnum::STRING:
+            case OperationParametersEnum::BOOL:
+                CaretLogWarning("encountered ignored output type, " + OperationParametersEnum::toName(myComponent->m_outputList[i]->getType()));
+                break;
+            default:
+                CaretAssertMessage(false, "Output of this parameter type has not been implemented in parser");//assert instead of throw because this is a code error, not a user error
+                throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either
         }
         outAssociation.push_back(tempItem);
         if (debug)
