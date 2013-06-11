@@ -311,16 +311,34 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
             }
         }
     } else {
+        vector<int64_t> surfaceStart, volumeStart;
+        int64_t mystart = 0;
+        for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
+        {
+            surfaceStart.push_back(mystart);
+            mystart += surfROIs[whichStruct]->getNumberOfMaps();
+        }
+        if (mergedVolume)
+        {
+            volumeStart.push_back(mystart);
+        } else {
+            for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
+            {
+                volumeStart.push_back(mystart);
+                vector<int64_t> tempDims;
+                volROIs[whichStruct]->getDimensions(tempDims);
+                mystart += tempDims[3];
+            }
+        }
         int64_t curRow = 0;
         while (curRow < myXML.getNumberOfRows())
         {
             bool found = false;
-            int64_t startColumn = 0;//in order to produce the same result as doing transpose, rois, transpose, we track the start position for each structure
             for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
             {
                 vector<CiftiSurfaceMap> myMap;
                 myXML.getSurfaceMap(myDir, myMap, surfaceList[whichStruct]);
-                if (myMap.size() > 0 && myMap[0].m_ciftiIndex == curRow)//NOTE: cifti indexes in these maps are always linear ascending
+                if (myMap.size() > 0 && myMap[0].m_ciftiIndex == curRow)//NOTE: cifti indexes in structure maps are always linear ascending
                 {
                     vector<float> scratchrow(myXML.getNumberOfColumns(), 0.0f);
                     for (int64_t j = 0; j < (int64_t)myMap.size(); ++j)
@@ -328,7 +346,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                         CaretAssert(curRow == myMap[j].m_ciftiIndex);
                         for (int k = 0; k < surfROIs[whichStruct]->getNumberOfColumns(); ++k)
                         {
-                            scratchrow[startColumn + k] = surfROIs[whichStruct]->getValue(myMap[j].m_surfaceNode, k);
+                            scratchrow[surfaceStart[whichStruct] + k] = surfROIs[whichStruct]->getValue(myMap[j].m_surfaceNode, k);
                         }
                         myCiftiOut->setRow(scratchrow.data(), curRow);
                         ++curRow;
@@ -336,31 +354,33 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                     found = true;
                     break;
                 }
-                startColumn += surfROIs[whichStruct]->getNumberOfColumns();
             }
             if (!found)
             {
                 if (mergedVolume)
                 {
-                    vector<CiftiVolumeMap> myMap;
-                    myXML.getVolumeMap(myDir, myMap);
-                    if (myMap.size() > 0 && myMap[0].m_ciftiIndex == curRow)//NOTE: even though this is a merged map, it should still have indexes in ascending order
+                    for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)//NOTE: merged map may not be in ascending order, or contiguous, so don't use it
                     {
-                        vector<int64_t> tempDims;
-                        volROIs[0]->getDimensions(tempDims);
-                        vector<float> scratchrow(myXML.getNumberOfColumns(), 0.0f);
-                        for (int64_t j = 0; j < (int64_t)myMap.size(); ++j)
+                        vector<CiftiVolumeMap> myMap;
+                        myXML.getVolumeStructureMapForColumns(myMap, volumeList[whichStruct]);
+                        if (myMap.size() > 0 && myMap[0].m_ciftiIndex == curRow)
                         {
-                            CaretAssert(curRow == myMap[j].m_ciftiIndex);//check just in case
-                            int64_t myijk[3] = { myMap[j].m_ijk[0] - volOffsets[0], myMap[j].m_ijk[1] - volOffsets[1], myMap[j].m_ijk[2] - volOffsets[2] };
-                            for (int64_t b = 0; b < tempDims[3]; ++b)
+                            vector<int64_t> tempDims;
+                            volROIs[0]->getDimensions(tempDims);
+                            vector<float> scratchrow(myXML.getNumberOfColumns(), 0.0f);
+                            for (int64_t j = 0; j < (int64_t)myMap.size(); ++j)
                             {
-                                scratchrow[startColumn + b] = volROIs[0]->getValue(myijk, b);
+                                CaretAssert(curRow == myMap[j].m_ciftiIndex);
+                                int64_t myijk[3] = { myMap[j].m_ijk[0] - volOffsets[0], myMap[j].m_ijk[1] - volOffsets[1], myMap[j].m_ijk[2] - volOffsets[2] };
+                                for (int64_t b = 0; b < tempDims[3]; ++b)
+                                {
+                                    scratchrow[volumeStart[0] + b] = volROIs[0]->getValue(myijk, b);
+                                }
+                                myCiftiOut->setRow(scratchrow.data(), curRow);
+                                ++curRow;
                             }
-                            myCiftiOut->setRow(scratchrow.data(), curRow);
-                            ++curRow;
+                            found = true;
                         }
-                        found = true;
                     }
                 } else {
                     for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
@@ -378,7 +398,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                                 int64_t myijk[3] = { myMap[j].m_ijk[0] - volOffsets[whichStruct * 3], myMap[j].m_ijk[1] - volOffsets[whichStruct * 3 + 1], myMap[j].m_ijk[2] - volOffsets[whichStruct * 3 + 2] };
                                 for (int64_t b = 0; b < tempDims[3]; ++b)
                                 {
-                                    scratchrow[startColumn + b] = volROIs[whichStruct]->getValue(myijk, b);
+                                    scratchrow[volumeStart[whichStruct] + b] = volROIs[whichStruct]->getValue(myijk, b);
                                 }
                                 myCiftiOut->setRow(scratchrow.data(), curRow);
                                 ++curRow;
@@ -386,7 +406,6 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                             found = true;
                             break;
                         }
-                        startColumn += tempDims[3];
                     }
                 }
             }
