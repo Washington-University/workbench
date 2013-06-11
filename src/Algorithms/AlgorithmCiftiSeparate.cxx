@@ -24,6 +24,7 @@
 
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmException.h"
+#include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "CiftiFile.h"
 #include "GiftiLabelTable.h"
@@ -55,19 +56,19 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     
     ret->addStringParameter(2, "direction", "which direction to separate into components, ROW or COLUMN");
     
-    OptionalParameter* labelOpt = ret->createOptionalParameter(3, "-label", "separate a surface model into a surface label file");
+    ParameterComponent* labelOpt = ret->createRepeatableParameter(3, "-label", "separate a surface model into a surface label file");
     labelOpt->addStringParameter(1, "structure", "the structure to output");
     labelOpt->addLabelOutputParameter(2, "label-out", "the output label file");
     OptionalParameter* labelRoiOpt = labelOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data");
     labelRoiOpt->addMetricOutputParameter(1, "roi-out", "the roi output metric");
     
-    OptionalParameter* metricOpt = ret->createOptionalParameter(4, "-metric", "separate a surface model into a metric file");
+    ParameterComponent* metricOpt = ret->createRepeatableParameter(4, "-metric", "separate a surface model into a metric file");
     metricOpt->addStringParameter(1, "structure", "the structure to output");
     metricOpt->addMetricOutputParameter(2, "metric-out", "the output metric");
     OptionalParameter* metricRoiOpt = metricOpt->createOptionalParameter(3, "-roi", "also output the roi of which vertices have data");
     metricRoiOpt->addMetricOutputParameter(1, "roi-out", "the roi output metric");
     
-    OptionalParameter* volumeOpt = ret->createOptionalParameter(5, "-volume", "separate a volume model into a volume file");
+    ParameterComponent* volumeOpt = ret->createRepeatableParameter(5, "-volume", "separate a volume model into a volume file");
     volumeOpt->addStringParameter(1, "structure", "the structure to output");
     volumeOpt->addVolumeOutputParameter(2, "volume-out", "the output volume");
     OptionalParameter* volumeRoiOpt = volumeOpt->createOptionalParameter(3, "-roi", "also output the roi of which voxels have data");
@@ -80,9 +81,10 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     volumeAllRoiOpt->addVolumeOutputParameter(1, "roi-out", "the roi output volume");
     volumeAllOpt->createOptionalParameter(3, "-crop", "crop volumes to the size of the data rather than using the original volume size");
     
-    AString helpText = AString("You must specify -metric, -volume, or -label for this command to do anything.  Output volumes will line up with their ") +
-        "original positions, whether or not they are cropped.  For dtseries, use COLUMN, and if your matrix is fully symmetric, COLUMN is " +
-        "more efficient.  The structure argument must be one of the following:\n";
+    AString helpText = AString("You must specify -metric, -volume-all, -volume, or -label for this command to do anything.  ") +
+        "Output volumes will spatially line up with their original positions, whether or not they are cropped.  " +
+        "For dtseries, use COLUMN, and if your matrix is fully symmetric, COLUMN is more efficient.  " +
+        "The structure argument must be one of the following:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
@@ -106,62 +108,62 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
-    OptionalParameter* labelOpt = myParams->getOptionalParameter(3);
-    if (labelOpt->m_present)
+    const vector<ParameterComponent*>& labelInstances = *(myParams->getRepeatableParameterInstances(3));
+    for (int i = 0; i < (int)labelInstances.size(); ++i)
     {
-        AString structName = labelOpt->getString(1);
+        AString structName = labelInstances[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
             throw AlgorithmException("unrecognized structure type");
         }
-        LabelFile* labelOut = labelOpt->getOutputLabel(2);
+        LabelFile* labelOut = labelInstances[i]->getOutputLabel(2);
         MetricFile* roiOut = NULL;
-        OptionalParameter* labelRoiOpt = labelOpt->getOptionalParameter(3);
+        OptionalParameter* labelRoiOpt = labelInstances[i]->getOptionalParameter(3);
         if (labelRoiOpt->m_present)
         {
             roiOut = labelRoiOpt->getOutputMetric(1);
         }
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, labelOut, roiOut);
     }
-    OptionalParameter* metricOpt = myParams->getOptionalParameter(4);
-    if (metricOpt->m_present)
+    const vector<ParameterComponent*>& metricInstances = *(myParams->getRepeatableParameterInstances(4));
+    for (int i = 0; i < (int)metricInstances.size(); ++i)
     {
-        AString structName = metricOpt->getString(1);
+        AString structName = metricInstances[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
             throw AlgorithmException("unrecognized structure type");
         }
-        MetricFile* metricOut = metricOpt->getOutputMetric(2);
+        MetricFile* metricOut = metricInstances[i]->getOutputMetric(2);
         MetricFile* roiOut = NULL;
-        OptionalParameter* metricRoiOpt = metricOpt->getOptionalParameter(3);
+        OptionalParameter* metricRoiOpt = metricInstances[i]->getOptionalParameter(3);
         if (metricRoiOpt->m_present)
         {
             roiOut = metricRoiOpt->getOutputMetric(1);
         }
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, metricOut, roiOut);
     }
-    OptionalParameter* volumeOpt = myParams->getOptionalParameter(5);
-    if (volumeOpt->m_present)
+    const vector<ParameterComponent*>& volumeInstances = *(myParams->getRepeatableParameterInstances(5));
+    for (int i = 0; i < (int)volumeInstances.size(); ++i)
     {
-        AString structName = volumeOpt->getString(1);
+        AString structName = volumeInstances[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
             throw AlgorithmException("unrecognized structure type");
         }
-        VolumeFile* volOut = volumeOpt->getOutputVolume(2);
+        VolumeFile* volOut = volumeInstances[i]->getOutputVolume(2);
         VolumeFile* roiOut = NULL;
-        OptionalParameter* volumeRoiOpt = volumeOpt->getOptionalParameter(3);
+        OptionalParameter* volumeRoiOpt = volumeInstances[i]->getOptionalParameter(3);
         if (volumeRoiOpt->m_present)
         {
             roiOut = volumeRoiOpt->getOutputVolume(1);
         }
-        bool cropVol = volumeOpt->getOptionalParameter(4)->m_present;
+        bool cropVol = volumeInstances[i]->getOptionalParameter(4)->m_present;
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, ciftiIn, myDir, myStruct, volOut, offset, roiOut, cropVol);
     }
@@ -189,6 +191,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
+        if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS) CaretLogWarning("creating a metric file from cifti label data");
         if (!ciftiIn->getSurfaceMapForColumns(myMap, myStruct))
         {
             throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
@@ -229,6 +232,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         }
     } else {
         if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported by cifti separate");
+        if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS) CaretLogWarning("creating a metric file from cifti label data");
         if (!ciftiIn->getSurfaceMapForRows(myMap, myStruct))
         {
             throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
