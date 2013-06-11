@@ -380,6 +380,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                                 ++curRow;
                             }
                             found = true;
+                            break;
                         }
                     }
                 } else {
