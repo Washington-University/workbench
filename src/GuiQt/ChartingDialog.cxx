@@ -72,19 +72,19 @@ void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
     int ncols = dim[0];
     std::vector<float> rgba;
     
-    matrix->getMapRGBA(0,rgba,pf);
-    int nrows = rgba.size()/4;
-    if(nrows != dim[1]) return; //add error message
+    matrix->getMatrixRGBA(rgba,pf);
+    int nrows = dim[1];
+    if(rgba.size() != nrows*ncols*4) return; //add error message
     std::vector<std::vector<QColor>> cMatrix;
-    cMatrix.resize(ncols);
-    for(int i = 0;i<ncols;i++) cMatrix[i].resize(nrows);
+    cMatrix.resize(nrows);
+    for(int i = 0;i<nrows;i++) cMatrix[i].resize(ncols);
     
-    for(int i = 0;i<ncols;i++)
-    {
-        matrix->getMapRGBA(i,rgba,pf);
-        for(int j = 0;j<nrows;j++)
+    for(int i = 0;i<nrows;i++)
+    {        
+        for(int j = 0;j<ncols;j++)
         {
-            cMatrix[i][j] = QColor(rgba[j*4],rgba[j*4+1],rgba[j*4+2],rgba[j*4+3]);
+            
+            cMatrix[i][j] = QColor(rgba[(i*ncols+j)*4]*255,rgba[(i*ncols+j)*4+1]*255,rgba[(i*ncols+j)*4+2]*255,fabs(rgba[(i*ncols+j)*4+3]*255));
         }
     }  
     table->populate(cMatrix);

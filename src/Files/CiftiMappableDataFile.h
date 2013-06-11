@@ -278,10 +278,10 @@ namespace caret {
     public:
         
         // ADD_NEW_METHODS_HERE
-      
+        virtual void getMapData(const int32_t mapIndex,
+            std::vector<float>& dataOut) const;
 
-        virtual void getMapRGBA(const int32_t row,
-            std::vector<float>& rgba, PaletteFile *paletteFile);
+        virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
         
     protected:
         /** The CIFTI XML (Do not delete since points to data in m_ciftiInterface */
