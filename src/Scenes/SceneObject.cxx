@@ -59,7 +59,11 @@ using namespace caret;
  */
 SceneObject::SceneObject(const QString& name,
                          const SceneObjectDataTypeEnum::Enum dataType)
+#ifdef CARET_SCENE_DEBUG
 : CaretObject(), m_name(name), m_dataType(dataType)
+#else   // CARET_SCENE_DEBUG
+: m_name(name), m_dataType(dataType)
+#endif  // CARET_SCENE_DEBUG
 {
     CaretAssert(name.isEmpty() == false);
 }

@@ -40,8 +40,12 @@
 
 namespace caret {
 
+#ifdef CARET_SCENE_DEBUG
     class SceneObject : public CaretObject {
-        
+#else   // CARET_SCENE_DEBUG
+    class SceneObject {
+#endif  // CARET_SCENE_DEBUG
+    
     public:
         virtual ~SceneObject();
         

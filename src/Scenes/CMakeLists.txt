@@ -4,6 +4,17 @@
 PROJECT (Scenes)
 
 #
+# SceneObject is derived from CaretObject.  When a scene is created many 
+# instances of SceneObject may be created via its subclasses. 
+# When compiled with debugging on, CaretObject maintains a call stack
+# and new/delete is tracked for all CaretObjects.  As a result, the many 
+# instances of SceneObject will cause reading of scenes to be slow and
+# memory usage to become excessive.  So, do not derive SceneObject from
+# CaretObject unless CARET_SCENE_DEBUG is defined.
+#
+#ADD_DEFINITIONS(-DCARET_SCENE_DEBUG)
+
+#
 # Use XML from Qt but not GUI.
 #
 SET(QT_DONT_USE_QTGUI TRUE)
