@@ -363,7 +363,7 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
     
     const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
     
-    CaretLogSevere("For node "
+    CaretLogFine("For node "
                    + AString::number(nodeIndex)
                    + " number of rows loaded: "
                    + AString::number(numFibers));
