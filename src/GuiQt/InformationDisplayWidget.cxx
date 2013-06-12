@@ -328,9 +328,9 @@ InformationDisplayWidget::showPropertiesDialog()
     
     m_propertiesDialogSizeSpinBox = ded.addDoubleSpinBox("Symbol Size:", 
                                                         info->getIdentificationSymbolSize(),
-                                                       0.5,
+                                                       0.1,
                                                        100000.0,
-                                                       0.5);
+                                                       0.1);
     m_propertiesDialogSizeSpinBox->setDecimals(1);
     m_propertiesDialogSizeSpinBox->setSuffix("mm");
     QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
