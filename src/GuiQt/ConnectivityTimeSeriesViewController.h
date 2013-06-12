@@ -49,6 +49,7 @@ class QLabel;
 class QLineEdit;
 class QSpinBox;
 class QToolButton;
+class QModelIndex;
 
 namespace caret {
 
@@ -75,6 +76,7 @@ namespace caret {
         ChartableInterface* getChartableDataFile();
 
     public slots:
+            void currentRowChanged(const QModelIndex & current, const QModelIndex & previous );
         
         
     private slots:
@@ -106,6 +108,9 @@ namespace caret {
         WuQGridLayoutGroup* gridLayoutGroup;
         
         static std::set<ConnectivityTimeSeriesViewController*> allConnectivityTimeSeriesViewControllers;
+
+        bool matrixDisplayed;//extra initialization, such as hooking up of signals and slots between the dialogs matrix view and the mappable data
+                         //file, happen only if the chart is actually displayed.
     };
     
 #ifdef __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__

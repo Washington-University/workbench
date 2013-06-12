@@ -8,6 +8,7 @@ class ChartingDialog;
 }
 
 #include "CaretMappableDataFile.h"
+#include "QTableView.h"
 class TimeCourseControls;
 class Table;
 class Plot2D;
@@ -21,16 +22,18 @@ public:
     explicit ChartingDialog(QWidget *parent = 0);
     ~ChartingDialog();
     void setChartMode(QString type);
-    void openPconnMatrix(CaretMappableDataFile *pconnFile);
+    void openPconnMatrix(CaretMappableDataFile *pconnFile);    
+    QTableView * getMatrixTableView();
 private slots:
     void on_closeButton_clicked();
 
-    void on_comboBox_currentIndexChanged(const QString &arg1);
+    void on_comboBox_currentIndexChanged(const QString &arg1);  
+    
 
 private:
-    Ui::ChartingDialog *ui;
-    TimeCourseControls *form;
     Table *table;
+    Ui::ChartingDialog *ui;
+    TimeCourseControls *form;    
     Plot2D *plot2d;
 };
 }

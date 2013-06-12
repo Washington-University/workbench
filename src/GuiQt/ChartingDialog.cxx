@@ -17,10 +17,15 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
     ui(new Ui::ChartingDialog)
 {
     ui->setupUi(this);
+
+#ifdef CARET_OS_WINDOWS
+    this->setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);
+#endif
     //form = new TimeCourseControls();
     table = new Table();
     //plot2d = new Plot2D();
     ui->comboBox->setCurrentIndex(1);
+    ui->comboBox->hide();
 }
 
 ChartingDialog::~ChartingDialog()
@@ -59,9 +64,10 @@ void ChartingDialog::on_comboBox_currentIndexChanged(const QString &arg1)
 {
     setChartMode(arg1);
 }
-
+//#include "PaletteColorMapping.h"
 void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
 {
+    //pconnFile->getMapPaletteColorMapping(0)->getSelectedPaletteName();
     CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(pconnFile);
     if(matrix == NULL) return;
     
@@ -88,4 +94,12 @@ void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
         }
     }  
     table->populate(cMatrix);
+    
+    //this->resize(table->width()+20,table->height()+40);
+}
+
+QTableView * 
+ChartingDialog::getMatrixTableView() 
+{ 
+    return this->table->getTableView();
 }

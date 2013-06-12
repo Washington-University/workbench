@@ -18,6 +18,8 @@ void Table::createModel()
     model = new QStandardItemModel(0,0,this);
     model->setData(model->index(0,0,QModelIndex()), QColor(0,0,0), Qt::BackgroundColorRole);    
 
+    ui->tableView->verticalHeader()->setDefaultSectionSize(20);
+    ui->tableView->horizontalHeader()->setDefaultSectionSize(20);
     ui->tableView->setModel(model);
 
     std::vector<std::vector<QColor>> colors;
@@ -51,7 +53,7 @@ void Table::populate(int nCols, int nRows)
         {
             model->setData(model->index(x,y,QModelIndex()), QColor(x*x_step,(x*x_step+y*y_step)/2,y*y_step), Qt::BackgroundColorRole);
         }
-    }
+    }    
 }
 
 void Table::createColors(int nCols, int nRows, std::vector< std::vector <QColor>> &colors)
@@ -70,8 +72,12 @@ void Table::createColors(int nCols, int nRows, std::vector< std::vector <QColor>
     }
 }
 
-
 Table::~Table()
 {
     delete ui;
+}
+
+QTableView *Table::getTableView()
+{
+    return ui->tableView;
 }

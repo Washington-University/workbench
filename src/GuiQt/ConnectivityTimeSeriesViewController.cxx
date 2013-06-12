@@ -47,6 +47,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QToolButton>
+#include <QItemSelectionModel> 
 #include <QSpinBox>
 
 #include "Brain.h"
@@ -134,6 +135,8 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     }    
     
     allConnectivityTimeSeriesViewControllers.insert(this);
+
+    matrixDisplayed = false;
     
     
 }
@@ -224,10 +227,28 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
         }        
         this->graphToolButton->blockSignals(false);       
     }
-     
+    //remove signal/slot for clicking in cell array
+    if(matrixDisplayed)
+    {
+        //disconnect slots
+         
+        matrixDisplayed = false;
+        
+        /*QObject::connect(GuiManager::get()->getChartingDialog(this->chartableDataFile)->getMatrixTableView()->selectionModel(),
+            SIGNAL(currentRowChanged(const QModelIndex & current, const QModelIndex & previous )),
+            this,
+            SLOT*/
+    }
     this->previousChartableDataFile = this->chartableDataFile;
 }
 
+
+void 
+ConnectivityTimeSeriesViewController::currentRowChanged(const QModelIndex & current, const QModelIndex & previous )
+{
+    //CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(this->chartableDataFile->getCaretMappableDataFile());
+    //matrix->set
+}
 /**
  * Update the view controller.
  */
@@ -255,15 +276,18 @@ ConnectivityTimeSeriesViewController::setVisible(bool visible)
  * @param status
  *    New status.
  */
+
 void 
 ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 {
     if (this->chartableDataFile != NULL) {
         if(this->chartableDataFile->getDefaultChartType() == ChartTypeEnum::MATRIX)
         {
-            ChartingDialog *dialog = GuiManager::get()->getChartingDialog(this->chartableDataFile);
+            ChartingDialog *dialog = GuiManager::get()->getChartingDialog(this->chartableDataFile);            
+
             dialog->openPconnMatrix(this->chartableDataFile->getCaretMappableDataFile());
             dialog->show();
+            matrixDisplayed = true;
         }
         else
         {

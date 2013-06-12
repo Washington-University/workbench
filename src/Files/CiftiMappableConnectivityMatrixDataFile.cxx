@@ -159,10 +159,10 @@ void
 CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t mapIndex,
                                   std::vector<float>& dataOut) const
 {
-    int nCols = m_ciftiInterface->getNumberOfColumns();
-    dataOut.resize(nCols);
-    m_ciftiInterface->getColumn(&dataOut[0],mapIndex);
-    //dataOut = m_loadedRowData;
+    //int nCols = m_ciftiInterface->getNumberOfColumns();
+    //dataOut.resize(nCols);
+    //m_ciftiInterface->getColumn(&dataOut[0],mapIndex);
+    dataOut = m_loadedRowData;
 }
 
 /**
