@@ -48,6 +48,7 @@
 #include "ChartingDataManager.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -276,6 +277,11 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
     QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
     
+    std::vector<QAction*> ciftiFiberTrajectoryActions;
+    QActionGroup* ciftiFiberTrajectoryActionGroup = new QActionGroup(this);
+    QObject::connect(ciftiFiberTrajectoryActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelCiftiFiberTrajectoryActionSelected(QAction*)));
+    
     std::vector<QAction*> dataSeriesActions;
     QActionGroup* dataSeriesActionGroup = new QActionGroup(this);
     QObject::connect(dataSeriesActionGroup, SIGNAL(triggered(QAction*)),
@@ -292,6 +298,14 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
         brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
         bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
+        
+        CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
+        std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
+        const int32_t numFiberFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
+        for (int32_t i = 0; i < numFiberFiles; i++) {
+            ciftiFiberTrajectoryFiles.push_back(brain->getConnectivityFiberTrajectoryFile(i));
+        }
+        const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
         
         std::vector<ChartableInterface*> chartableFiles;
         brain->getAllChartableDataFiles(chartableFiles);
@@ -363,7 +377,8 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                                                                         surface,
                                                                         nodeNumber,
                                                                         chartingDataManager,
-                                                                        connMatrixMan);
+                                                                        connMatrixMan,
+                                                                        ciftiFiberTrajectoryManager);
                         this->parcelConnectivities.push_back(pc);
                         
                         if (hasCiftiConnectivity) {
@@ -376,6 +391,16 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                             ciftiConnectivityActions.push_back(action);
                         }
                         
+                        if (haveCiftiFiberTrajectoryFiles) {
+                            const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
+                                                              + labelName
+                                                              + " in map "
+                                                              + mapName);
+                            QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
+                            fiberTrajAction->setData(qVariantFromValue((void*)pc));
+                            ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
+                        }
+                        
                         if (haveChartableFiles) {
                             const AString tsActionName("Show Data Series Graph For Parcel "
                                                        + labelName
@@ -386,7 +411,6 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
                             dataSeriesActions.push_back(tsAction);
                         }
                     }
-                    
                 }
             }
         }
@@ -410,6 +434,14 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         }
     }
     
+    if (ciftiFiberTrajectoryActions.empty() == false) {
+        this->addSeparator();
+        for (std::vector<QAction*>::iterator ciftiFiberIter = ciftiFiberTrajectoryActions.begin();
+             ciftiFiberIter != ciftiFiberTrajectoryActions.end();
+             ciftiFiberIter++) {
+            this->addAction(*ciftiFiberIter);
+        }
+    }
     if(dataSeriesActions.empty() == false) {
         this->addSeparator();            
         for (std::vector<QAction*>::iterator tsIter = dataSeriesActions.begin();
@@ -600,6 +632,47 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
         progressDialog.setValue(0);
         pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->surface,
                                                                       nodeIndices);
+    }
+    catch (const DataFileException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+    }
+    
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when a cifti connectivity action is selected.
+ * @param action
+ *    Action that was selected.
+ */
+void
+BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* action)
+{
+    void* pointer = action->data().value<void*>();
+    ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
+    
+    std::vector<int32_t> nodeIndices;
+    pc->getNodeIndices(nodeIndices);
+    if (nodeIndices.empty()) {
+        WuQMessageBox::errorOk(this,
+                               "No vertices match label " + pc->labelName);
+        return;
+    }
+    
+    if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
+                                            nodeIndices) == false) {
+        return;
+    }
+    
+    try {
+        ProgressReportingDialog progressDialog("Trajectory Within Parcel",
+                                               "",
+                                               this);
+        progressDialog.setValue(0);
+        pc->ciftiFiberTrajectoryManager->loadDataAverageForSurfaceNodes(pc->surface,
+                                                                        nodeIndices);
     }
     catch (const DataFileException& e) {
         WuQMessageBox::errorOk(this, e.whatString());
@@ -1300,7 +1373,8 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappab
                    Surface* surface,
                    const int32_t nodeNumber,
                    ChartingDataManager* chartingDataManager,
-                   CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
+                   CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
+                   CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager) {
     this->mappableLabelFile = mappableLabelFile;
     this->labelFileMapIndex = labelFileMapIndex;
     this->labelKey = labelKey;
@@ -1309,6 +1383,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappab
     this->nodeNumber = nodeNumber;
     this->chartingDataManager = chartingDataManager;
     this->ciftiConnectivityManager = ciftiConnectivityManager;
+    this->ciftiFiberTrajectoryManager = ciftiFiberTrajectoryManager;
 }
 
 /**

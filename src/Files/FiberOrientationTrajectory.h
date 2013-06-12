@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <vector>
 #include <stdint.h>
 
 
@@ -45,13 +46,22 @@ namespace caret {
     class FiberOrientationTrajectory {
         
     public:
-        FiberOrientationTrajectory(const FiberFractions* fiberFractions,
-                                   const FiberOrientation* fiberOrientation,
+        FiberOrientationTrajectory(const FiberOrientation* fiberOrientation,
                                    const int64_t rowIndex);
         
         virtual ~FiberOrientationTrajectory();
         
-        const FiberFractions* m_fiberFractions;
+        void addFiberFractions(const FiberFractions& fiberFraction);
+        
+        void averageFiberFractions();
+        
+        int64_t m_totalCount;
+        
+        std::vector<float> m_fiberFractions;
+        
+        float m_distance;
+        
+        //const FiberFractions* m_fiberFractions;
         
         const FiberOrientation* m_fiberOrientation;
         
@@ -67,6 +77,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        int64_t m_itemCount;
+        
 
         // ADD_NEW_MEMBERS_HERE
 

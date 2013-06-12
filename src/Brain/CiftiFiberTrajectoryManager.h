@@ -55,7 +55,8 @@ namespace caret {
         bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex) throw (DataFileException);
         
-        void reset();
+        bool loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);        void reset();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);

@@ -36,6 +36,9 @@
 #include "FiberOrientationTrajectory.h"
 #undef __FIBER_ORIENTATION_TRAJECTORY_DECLARE__
 
+#include "CaretAssert.h"
+#include "CaretSparseFile.h"
+
 using namespace caret;
 
 
@@ -48,13 +51,15 @@ using namespace caret;
 /**
  * Constructor.
  */
-FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberFractions* fiberFractions,
-                                                       const FiberOrientation* fiberOrientation,
+FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* fiberOrientation,
                                                        const int64_t rowIndex)
-: m_fiberFractions(fiberFractions),
-m_fiberOrientation(fiberOrientation),
+: m_fiberOrientation(fiberOrientation),
 m_rowIndex(rowIndex)
 {
+    m_totalCount = 0;
+    m_fiberFractions.clear();
+    m_distance = 0.0;
+    m_itemCount = 0;
 }
 
 /**
@@ -62,6 +67,43 @@ m_rowIndex(rowIndex)
  */
 FiberOrientationTrajectory::~FiberOrientationTrajectory()
 {
+    
+}
+
+void
+FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
+{
+    m_totalCount += fiberFraction.totalCount;
+    const int64_t num = static_cast<int64_t>(fiberFraction.fiberFractions.size());
+    if (m_fiberFractions.empty()) {
+        m_fiberFractions.resize(num, 0.0);
+    }
+    else {
+        CaretAssert(m_fiberFractions.size() == fiberFraction.fiberFractions.size());
+    }
+    
+    for (int64_t i = 0; i < num; i++) {
+        m_fiberFractions[i] += fiberFraction.fiberFractions[i];
+    }
+    
+    m_distance += fiberFraction.distance;
+    
+    m_itemCount++;
+}
+
+void
+FiberOrientationTrajectory::averageFiberFractions()
+{
+    if (m_itemCount > 1) {
+        m_totalCount /= m_itemCount;
+        
+        const int64_t num = static_cast<int64_t>(m_fiberFractions.size());
+        for (int64_t i = 0; i < num; i++) {
+            m_fiberFractions[i] /= m_itemCount;
+        }
+        
+        m_distance /= m_itemCount;
+    }
     
 }
 

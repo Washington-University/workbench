@@ -6076,27 +6076,26 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
             const FiberOrientationTrajectory* fiberTraj = trajectories[iTraj];
             const FiberOrientation* orientation = fiberTraj->m_fiberOrientation;
-            const FiberFractions* fiberFractions = fiberTraj->m_fiberFractions;
             
-            if (fiberFractions->fiberFractions.size() != 3) {
+            if (fiberTraj->m_fiberFractions.size() != 3) {
                 CaretLogWarning("Fiber Trajectory index="
                                 + AString::number(iTraj)
                                 + " has "
-                                + AString::number(fiberFractions->fiberFractions.size())
+                                + AString::number(fiberTraj->m_fiberFractions.size())
                                 + " fibers != 3 from file "
                                 + trajFile->getFileNameNoPath());
                 
                 continue;
             }
-            else if (fiberFractions->totalCount < streamlineThreshold) {
+            else if (fiberTraj->m_totalCount < streamlineThreshold) {
                 continue;
             }
 
             float fiberOpacities[3] = { 0.0, 0.0, 0.0 };
             const float fiberCounts[3] = {
-                fiberFractions->fiberFractions[0] * fiberFractions->totalCount,
-                fiberFractions->fiberFractions[1] * fiberFractions->totalCount,
-                fiberFractions->fiberFractions[2] * fiberFractions->totalCount
+                fiberTraj->m_fiberFractions[0] * fiberTraj->m_totalCount,
+                fiberTraj->m_fiberFractions[1] * fiberTraj->m_totalCount,
+                fiberTraj->m_fiberFractions[2] * fiberTraj->m_totalCount
             };
             
             /*
@@ -6113,16 +6112,16 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                                          - countMinimumOpacity) / countRangeOpacity;
                     break;
                 case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
-                    fiberOpacities[0] = ((fiberCounts[0] * fiberFractions->distance)
+                    fiberOpacities[0] = ((fiberCounts[0] * fiberTraj->m_distance)
                                          - distanceMinimumOpacity) / distanceRangeOpacity;
-                    fiberOpacities[1] = ((fiberCounts[1] * fiberFractions->distance)
+                    fiberOpacities[1] = ((fiberCounts[1] * fiberTraj->m_distance)
                                          - distanceMinimumOpacity) / distanceRangeOpacity;
-                    fiberOpacities[2] = ((fiberCounts[2] * fiberFractions->distance)
+                    fiberOpacities[2] = ((fiberCounts[2] * fiberTraj->m_distance)
                                          - distanceMinimumOpacity) / distanceRangeOpacity;
                     break;
                 case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
                 {
-                    const float distanceLog = std::log(fiberFractions->distance);
+                    const float distanceLog = std::log(fiberTraj->m_distance);
                     fiberOpacities[0] = ((fiberCounts[0] * distanceLog)
                                          - distanceMinimumOpacity) / distanceRangeOpacity;
                     fiberOpacities[1] = ((fiberCounts[1] * distanceLog)
@@ -6132,11 +6131,11 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                 }
                     break;
                 case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
-                    fiberOpacities[0] = (fiberFractions->fiberFractions[0]
+                    fiberOpacities[0] = (fiberTraj->m_fiberFractions[0]
                                          - proportionMinimumOpacity) /proportionRangeOpacity;
-                    fiberOpacities[1] = (fiberFractions->fiberFractions[1]
+                    fiberOpacities[1] = (fiberTraj->m_fiberFractions[1]
                                          - proportionMinimumOpacity) /proportionRangeOpacity;
-                    fiberOpacities[2] = (fiberFractions->fiberFractions[2]
+                    fiberOpacities[2] = (fiberTraj->m_fiberFractions[2]
                                          - proportionMinimumOpacity) /proportionRangeOpacity;
                     break;
             }

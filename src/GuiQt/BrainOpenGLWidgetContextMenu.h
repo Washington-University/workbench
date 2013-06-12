@@ -49,6 +49,7 @@ namespace caret {
     class BrowserTabContent;
     class CaretMappableDataFile;
     class CiftiConnectivityMatrixDataFileManager;
+    class CiftiFiberTrajectoryManager;
     class ChartingDataManager;
     class SelectionManager;
     class LabelFile;
@@ -89,6 +90,8 @@ namespace caret {
         void identifySurfaceNodeSelected();
 
         void identifyVoxelSelected();
+
+        void parcelCiftiFiberTrajectoryActionSelected(QAction* action);
         
         void parcelCiftiConnectivityActionSelected(QAction* action);
 
@@ -110,7 +113,8 @@ namespace caret {
                                Surface* surface,
                                const int32_t nodeNumber,
                                ChartingDataManager* chartingDataManager,
-                               CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager);
+                               CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
+                               CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager);
             
             ~ParcelConnectivity();
             
@@ -124,6 +128,7 @@ namespace caret {
             int32_t nodeNumber;
             CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
             ChartingDataManager* chartingDataManager;
+            CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager;
         };
         
         class VolumeParcelConnectivity {

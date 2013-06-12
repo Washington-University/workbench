@@ -104,9 +104,62 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFi
             CiftiFiberOrientationFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
             trajFile->loadDataForSurfaceNode(connFiberFile,
                                              surfaceFile->getStructure(),
+                                             surfaceFile->getNumberOfNodes(),
                                              nodeIndex);
             dataWasLoaded = true;
         }
+    }
+    
+    return dataWasLoaded;
+}
+
+/**
+ * Load data for the given surface node index.
+ *
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndex
+ *    Index of the surface node.
+ * @return
+ *    true if any data was loaded, else false.
+ */
+bool
+CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    bool dataWasLoaded = false;
+    AString errorMessage;
+    
+    /*
+     * Load fiber trajectory data
+     */
+    const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
+    if (numFiberFiles > 0) {
+        const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+        for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
+            int32_t fiberFileIndex = iTrajFileIndex;
+            if (fiberFileIndex >= numFiberFiles) {
+                fiberFileIndex = 0;
+            }
+            
+            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+            CiftiFiberOrientationFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
+            
+            try {
+                trajFile->loadDataAverageForSurfaceNodes(connFiberFile,
+                                                         surfaceFile->getStructure(),
+                                                         surfaceFile->getNumberOfNodes(),
+                                                         nodeIndices);
+                dataWasLoaded = true;
+            }
+            catch (const DataFileException& dfe) {
+                errorMessage.appendWithNewLine(dfe.whatString());
+            }
+        }
+    }
+    
+    if (errorMessage.isEmpty() == false) {
+        throw DataFileException(errorMessage);
     }
     
     return dataWasLoaded;

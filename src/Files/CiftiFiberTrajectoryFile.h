@@ -82,7 +82,13 @@ namespace caret {
         
         void loadDataForSurfaceNode(CiftiFiberOrientationFile* fiberOrientFile,
                                     const StructureEnum::Enum structure,
+                                    const int32_t surfaceNumberOfNodes,
                                     const int32_t nodeIndex) throw (DataFileException);
+        
+        void loadDataAverageForSurfaceNodes(CiftiFiberOrientationFile* fiberOrientFile,
+                                            const StructureEnum::Enum structure,
+                                            const int32_t surfaceNumberOfNodes,
+                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
         const std::vector<FiberOrientationTrajectory*>& getLoadedFiberOrientationTrajectories() const;
         
@@ -107,8 +113,6 @@ namespace caret {
         
         std::vector<FiberOrientationTrajectory*> m_fiberOrientationTrajectories;
 
-        std::vector<FiberFractions> m_fiberFractions;
-                        
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
