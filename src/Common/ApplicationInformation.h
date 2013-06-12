@@ -52,6 +52,8 @@ namespace caret {
         
         void getAllInformation(std::vector<AString>& informationValues) const;
         
+        AString getCompiledWithDebugStatus() const;
+        
     private:
         ApplicationInformation(const ApplicationInformation&);
 
@@ -64,6 +66,8 @@ namespace caret {
         AString commit;
         
         AString commitDate;
+        
+        AString compiledWithDebugOn;
     };
     
 #ifdef __APPLICATION_INFORMATION_DECLARE__

@@ -59,6 +59,13 @@ ApplicationInformation::ApplicationInformation()
     this->version = "Beta 0.82";
     this->commit = "commit: @COMMIT@";
     this->commitDate = "commit date: @COMMIT_DATE@";
+
+#ifdef NDEBUG
+    this->compiledWithDebugOn = "Compiled Debug: NO";
+#else
+    this->compiledWithDebugOn = "Compiled Debug: YES";
+#endif // NDEBUG
+
 }
 
 /**
@@ -88,6 +95,16 @@ ApplicationInformation::getVersion() const
 }
 
 /**
+ * @return Text indicating if Workbench was compiled with Debug on.
+ */
+AString
+ApplicationInformation::getCompiledWithDebugStatus() const
+{
+   return this->compiledWithDebugOn;
+}
+        
+
+/**
  * Get all information.
  * @param informationValues
  *    Output information.
@@ -108,5 +125,7 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     informationValues.push_back(commit);
     
     informationValues.push_back(commitDate);
+
+    informationValues.push_back(this->compiledWithDebugOn);
 }
 

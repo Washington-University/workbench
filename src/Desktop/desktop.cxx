@@ -304,11 +304,10 @@ main(int argc, char* argv[])
         caretLoggerIsValid = true;
         qInstallMsgHandler(messageHandlerForQt);//this handler uses caretlogger, so we must install it after the logger is available
 
-#ifdef NDEBUG
-        CaretLogConfig("Compiled with debugging OFF");
-#else
-        CaretLogConfig("Compiled with debugging ON");
-#endif // NDEBUG
+        /*
+         * Log debug status
+         */
+        CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
         
         /*
         * Parameters for the program.
