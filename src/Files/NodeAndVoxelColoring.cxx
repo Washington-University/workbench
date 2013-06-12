@@ -642,30 +642,29 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                 rgbaOut[i4+2] = rgbaPositiveOne[2];
                 rgbaOut[i4+3] = rgbaPositiveOne[3];
             }
-            continue;
         }
-        if (normalValue <= -1.0) {
+        else if (normalValue <= -1.0) {
             if (rgbaNegativeOneValid) {
                 rgbaOut[i4]   = rgbaNegativeOne[0];
                 rgbaOut[i4+1] = rgbaNegativeOne[1];
                 rgbaOut[i4+2] = rgbaNegativeOne[2];
                 rgbaOut[i4+3] = rgbaNegativeOne[3];
             }
-            continue;
         }
-        
-        /*
-         * Color scalar using palette
-         */
-        float rgba[4];
-        palette->getPaletteColor(normalValue,
-                                 interpolateFlag,
-                                 rgba);
-        if (rgba[3] > 0.0f) {
-            rgbaOut[i4]   = rgba[0];
-            rgbaOut[i4+1] = rgba[1];
-            rgbaOut[i4+2] = rgba[2];
-            rgbaOut[i4+3] = rgba[3];
+        else {
+            /*
+             * Color scalar using palette
+             */
+            float rgba[4];
+            palette->getPaletteColor(normalValue,
+                                     interpolateFlag,
+                                     rgba);
+            if (rgba[3] > 0.0f) {
+                rgbaOut[i4]   = rgba[0];
+                rgbaOut[i4+1] = rgba[1];
+                rgbaOut[i4+2] = rgba[2];
+                rgbaOut[i4+3] = rgba[3];
+            }
         }
         
         /*
