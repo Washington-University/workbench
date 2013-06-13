@@ -18,8 +18,8 @@ public:
     ~Table();
     void createModel();
     void populate(int nCols, int nRows);
-    void populate(std::vector< std::vector <QColor>> &colors);
-    void createColors(int nCols,int nRows, std::vector< std::vector <QColor>> &colors);    
+    void populate(std::vector< std::vector <QColor> > &colors);
+    void createColors(int nCols,int nRows, std::vector< std::vector <QColor> > &colors);    
     QTableView *getTableView();
 private:    
      Ui::Table *ui;

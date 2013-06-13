@@ -1,5 +1,5 @@
 #include "Table.h"
-#include "ui_table.h"
+#include "ui_Table.h"
 #include "QStandardItemModel"
 #include "QColor"
 #include <vector>
@@ -22,13 +22,13 @@ void Table::createModel()
     ui->tableView->horizontalHeader()->setDefaultSectionSize(20);
     ui->tableView->setModel(model);
 
-    std::vector<std::vector<QColor>> colors;
+    std::vector<std::vector<QColor> > colors;
     //createColors(ncols,nrows,colors);
     //populate(colors);
 
 }
 
-void Table::populate(std::vector< std::vector <QColor>> &colors)
+void Table::populate(std::vector< std::vector <QColor> > &colors)
 {
     model->setRowCount(colors.size());
     model->setColumnCount(colors[0].size());
@@ -56,7 +56,7 @@ void Table::populate(int nCols, int nRows)
     }    
 }
 
-void Table::createColors(int nCols, int nRows, std::vector< std::vector <QColor>> &colors)
+void Table::createColors(int nCols, int nRows, std::vector< std::vector <QColor> > &colors)
 {
     colors.resize(nCols);
     for(int i = 0;i<nCols;i++) colors[i].resize(nRows);

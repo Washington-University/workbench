@@ -81,7 +81,7 @@ void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
     matrix->getMatrixRGBA(rgba,pf);
     int nrows = dim[1];
     if(rgba.size() != nrows*ncols*4) return; //add error message
-    std::vector<std::vector<QColor>> cMatrix;
+    std::vector<std::vector<QColor> > cMatrix;
     cMatrix.resize(nrows);
     for(int i = 0;i<nrows;i++) cMatrix[i].resize(ncols);
     

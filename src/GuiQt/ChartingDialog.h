@@ -8,7 +8,7 @@ class ChartingDialog;
 }
 
 #include "CaretMappableDataFile.h"
-#include "QTableView.h"
+#include <QTableView>
 class TimeCourseControls;
 class Table;
 class Plot2D;
