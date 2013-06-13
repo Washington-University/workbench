@@ -417,16 +417,32 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     const int32_t i4 = i * 4;
                     const float valid = overlayRGBV[i4 + 3];
                     if (valid > 0.0 ) {
-                        if ((opacity < 1.0) && (firstOverlayFlag == false)) {
-                            
-                            rgbaNodeColors[i4]   = (overlayRGBV[i4]   * opacity) 
-                            + (rgbaNodeColors[i4] * oneMinusOpacity);
-                            rgbaNodeColors[i4+1] = (overlayRGBV[i4+1] * opacity)
-                            + (rgbaNodeColors[i4+1] * oneMinusOpacity);
-                            rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity)
-                            + (rgbaNodeColors[i4+2] * oneMinusOpacity);
+                        if (opacity < 1.0) {
+//                            if (firstOverlayFlag) {
+//                                /*
+//                                 * When first overlay, there is nothing to 
+//                                 * blend with
+//                                 */
+//                                rgbaNodeColors[i4]   = (overlayRGBV[i4]   * opacity);
+//                                rgbaNodeColors[i4+1] = (overlayRGBV[i4+1] * opacity);
+//                                rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity);
+//                            }
+//                            else {
+                                /*
+                                 * Blend with underlaying colors
+                                 */
+                                rgbaNodeColors[i4]   = (overlayRGBV[i4]   * opacity)
+                                + (rgbaNodeColors[i4] * oneMinusOpacity);
+                                rgbaNodeColors[i4+1] = (overlayRGBV[i4+1] * opacity)
+                                + (rgbaNodeColors[i4+1] * oneMinusOpacity);
+                                rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity)
+                                + (rgbaNodeColors[i4+2] * oneMinusOpacity);
+//                            }
                         }
                         else {
+                            /*
+                             * No opacity so simple replace coloring
+                             */
                             rgbaNodeColors[i4] = overlayRGBV[i4];
                             rgbaNodeColors[i4+1] = overlayRGBV[i4+1];
                             rgbaNodeColors[i4+2] = overlayRGBV[i4+2];
