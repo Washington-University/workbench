@@ -526,6 +526,75 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     return rowIndex;
 }
 
+
+/**
+ * Load connectivity data for the given map index.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ * @param structure
+ *    Surface's structure.
+ * @param nodeIndex
+ *    Index of node number.
+ * @return
+ *    Index of row that was loaded or -1 if no data was loaded.
+ */
+bool 
+CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) throw (DataFileException)
+{
+    if (isCiftiInterfaceValid() == false) {
+        return false;
+    }
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (m_dataLoadingEnabled == false) {
+        return false;
+    }
+    
+    
+    
+    try {
+        bool dataWasLoaded = false;
+        
+        if (rowIndex >= 0) {
+            const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+            if (dataCount > 0) {
+                m_rowLoadedTextForMapName = ("Row: "
+                                         + AString::number(rowIndex+1)                                         
+                                         );
+
+                m_rowLoadedText = ("Row_"
+                                   + AString::number(rowIndex+1)
+                                   );
+                CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+                m_loadedRowData.resize(dataCount);
+                m_ciftiInterface->getRow(&m_loadedRowData[0],
+                                         rowIndex);
+                
+                CaretLogFine("Read row " + AString::number(rowIndex+1));
+                
+                dataWasLoaded = true;
+            }
+        }
+        
+        if (dataWasLoaded == false) {
+            CaretLogFine("FAILED to read row " + AString::number(rowIndex+1));
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+    CaretAssertVectorIndex(m_mapContent, 0);
+    m_mapContent[0]->invalidateColoring();
+    
+    return true;
+}
+
 /**
  * Load connectivity data for the surface's nodes and then average the data.
  *

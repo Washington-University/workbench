@@ -88,6 +88,8 @@ namespace caret {
         AString getRowLoadedText() const;
 
         virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
+
+        bool loadMapData(const int32_t rowIndex) throw (DataFileException);
         
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
