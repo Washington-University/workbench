@@ -338,9 +338,9 @@ InformationDisplayWidget::showPropertiesDialog()
     
     m_propertiesDialogMostRecentSizeSpinBox = ded.addDoubleSpinBox("Most Recent ID Symbol Size:",
                                                                    info->getMostRecentIdentificationSymbolSize(),
-                                                                   0.5,
+                                                                   0.1,
                                                                    100000.0,
-                                                                   0.5);
+                                                                   0.1);
     m_propertiesDialogMostRecentSizeSpinBox->setDecimals(1);
     m_propertiesDialogMostRecentSizeSpinBox->setSuffix("mm");
     QObject::connect(m_propertiesDialogMostRecentSizeSpinBox, SIGNAL(valueChanged(double)),
