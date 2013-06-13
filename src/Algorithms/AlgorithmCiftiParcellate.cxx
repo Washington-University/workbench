@@ -118,7 +118,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     int64_t numCols = myInputXML.getNumberOfColumns(), numRows = myInputXML.getNumberOfRows();
     vector<float> scratchRow(numCols);
     vector<int64_t> parcelCounts(numParcels, 0);
-    for (int64_t j = 0; j < numCols; ++j)
+    for (int64_t j = 0; j < (int64_t)indexToParcel.size(); ++j)
     {
         int parcel = indexToParcel[j];
         CaretAssert(parcel > -2 && parcel < numParcels);
