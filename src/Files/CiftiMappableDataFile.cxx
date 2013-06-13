@@ -2626,7 +2626,7 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
         const int64_t node4 = iNode * 4;
         CaretAssertArrayIndex(surfaceRGBA, (surfaceNumberOfNodes * 4), node4);
         
-        if (dataIndex > 0) {
+        if (dataIndex >= 0) {
             CaretAssert(dataIndex < mc->m_dataCount);
             
             const int64_t data4 = dataIndex * 4;
