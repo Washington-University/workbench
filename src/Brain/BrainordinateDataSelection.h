@@ -72,7 +72,7 @@ namespace caret {
         
         std::vector<int32_t> getSurfaceNodeIndices() const;
         
-        const float* getVoxelXYZ() const;
+        void getVoxelXYZ(float xyzOut[3]) const;
         
         void setSurfaceLoading(const SurfaceFile* surfaceFile,
                                const int32_t nodeInde);

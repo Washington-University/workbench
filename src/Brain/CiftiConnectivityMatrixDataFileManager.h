@@ -37,17 +37,16 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
-#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 namespace caret {
 
     class Brain;
+    class BrainordinateDataSelection;
     class SurfaceFile;
     
     class CiftiConnectivityMatrixDataFileManager
     : public CaretObject,
-    public EventListenerInterface,
     public SceneableInterface
     {
         
@@ -67,8 +66,6 @@ namespace caret {
                                           std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
         void reset();
-        
-        void receiveEvent(Event* event);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -91,47 +88,6 @@ namespace caret {
         
     private:
 
-        class BrainordinateDataLoaded {
-        public:
-            BrainordinateDataLoaded();
-            
-            ~BrainordinateDataLoaded();
-            
-            void reset();
-            
-            void setSurfaceLoading(const SurfaceFile* surfaceFile,
-                                   const int32_t nodeInde);
-            
-            void setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
-                                          const std::vector<int32_t>& nodeIndices);
-            
-            void setVolumeLoading(const float xyz[3]);
-            
-            void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                  const SceneClass* sceneClass,
-                                  Brain* brain,
-                                  CiftiConnectivityMatrixDataFileManager* ciftiMan);
-            
-            SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                    const AString& instanceName);
-            
-        private:
-            enum Mode {
-                MODE_NONE,
-                MODE_SURFACE_AVERAGE,
-                MODE_SURFACE_NODE,
-                MODE_VOXEL_XYZ
-            };
-            
-            Mode m_mode;
-            
-            AString m_surfaceFileName;
-            
-            std::vector<int32_t> m_surfaceFileNodeIndices;
-            
-            float m_voxelXYZ[3];
-        };
-        
         // ADD_NEW_MEMBERS_HERE
         
         Brain* m_brain;
@@ -141,7 +97,7 @@ namespace caret {
          * cifti connectivity data was loaded.  This information is 
          * then saved/restored during scene operations.
          */
-        BrainordinateDataLoaded m_brainordinateDataLoaded;
+        BrainordinateDataSelection* m_brainordinateDataSelection;
     };
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__

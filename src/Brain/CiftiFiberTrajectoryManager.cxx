@@ -288,7 +288,8 @@ CiftiFiberTrajectoryManager::restoreFromScene(const SceneAttributes* sceneAttrib
         }
     }
     catch (const DataFileException& dfe) {
-        
+        sceneAttributes->addToErrorMessage("Restoring Trajectory Data: "
+                                           + dfe.whatString());
     }
 }
 

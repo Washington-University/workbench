@@ -112,12 +112,16 @@ BrainordinateDataSelection::getSurfaceNodeIndices() const
 }
 
 /**
- * @return The voxel XYZ-coordinates for use when mode is MODE_VOXEL_XYZ
+ * Get the voxel XYZ-coordinates for use when mode is MODE_VOXEL_XYZ
+ * @param xyzOut
+ *    Output into which coordinates are loaded.
  */
-const float*
-BrainordinateDataSelection::getVoxelXYZ() const
+void
+BrainordinateDataSelection::getVoxelXYZ(float xyzOut[3]) const
 {
-    return m_voxelXYZ;
+    xyzOut[0] = m_voxelXYZ[0];
+    xyzOut[1] = m_voxelXYZ[1];
+    xyzOut[2] = m_voxelXYZ[2];
 }
 
 /**
