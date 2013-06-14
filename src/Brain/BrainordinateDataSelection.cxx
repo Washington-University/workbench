@@ -215,15 +215,18 @@ BrainordinateDataSelection::restoreFromScene(const SceneAttributes* sceneAttribu
     
     m_surfaceFileNodeIndices.clear();
     const ScenePrimitiveArray* nodeIndicesArray = sceneClass->getPrimitiveArray("m_surfaceFileNodeIndices");
-    const int32_t numNodeIndices = nodeIndicesArray->getNumberOfArrayElements();
-    m_surfaceFileNodeIndices.reserve(numNodeIndices);
-    for (int32_t i = 0; i < numNodeIndices; i++) {
-        m_surfaceFileNodeIndices.push_back(nodeIndicesArray->integerValue(i));
+    if (nodeIndicesArray != NULL) {
+        const int32_t numNodeIndices = nodeIndicesArray->getNumberOfArrayElements();
+        m_surfaceFileNodeIndices.reserve(numNodeIndices);
+        for (int32_t i = 0; i < numNodeIndices; i++) {
+            m_surfaceFileNodeIndices.push_back(nodeIndicesArray->integerValue(i));
+        }
     }
     
     sceneClass->getFloatArrayValue("m_voxelXYZ",
                                    m_voxelXYZ,
-                                   3);
+                                   3,
+                                   0.0);
     
 }
 
