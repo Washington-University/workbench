@@ -81,9 +81,6 @@ namespace caret {
                                        float& scalingOut,
                                        float rotationMatrixOut[4][4]) const;
         
-    private:
-        void resetViewPrivate(const int windowTabNumber);
-        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                  SceneClass* sceneClass) = 0;
