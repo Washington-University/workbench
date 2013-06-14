@@ -6075,90 +6075,105 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         const int64_t numTraj = static_cast<int64_t>(trajectories.size());
         for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
             const FiberOrientationTrajectory* fiberTraj = trajectories[iTraj];
-            const FiberOrientation* orientation = fiberTraj->m_fiberOrientation;
+            const FiberOrientation* orientation = fiberTraj->getFiberOrientation();
             
-            if (fiberTraj->m_fiberFractions.size() != 3) {
-                CaretLogWarning("Fiber Trajectory index="
-                                + AString::number(iTraj)
-                                + " has "
-                                + AString::number(fiberTraj->m_fiberFractions.size())
-                                + " fibers != 3 from file "
-                                + trajFile->getFileNameNoPath());
-                
-                continue;
-            }
-            else if (fiberTraj->m_totalCount < streamlineThreshold) {
-                continue;
-            }
+            double fiberOpacitiesSum[3] = { 0.0, 0.0, 0.0 };
+            int64_t numberOfFiberOpacitiesForAveraging = 0;
+            
+            const int64_t numberOfFiberFractions = fiberTraj->getNumberOfFiberFractions();
+            for (int64_t iFraction = 0; iFraction < numberOfFiberFractions; iFraction++) {
+                const FiberFractions* fiberFraction = fiberTraj->getFiberFraction(iFraction);
 
-            float fiberOpacities[3] = { 0.0, 0.0, 0.0 };
-            const float fiberCounts[3] = {
-                fiberTraj->m_fiberFractions[0] * fiberTraj->m_totalCount,
-                fiberTraj->m_fiberFractions[1] * fiberTraj->m_totalCount,
-                fiberTraj->m_fiberFractions[2] * fiberTraj->m_totalCount
-            };
-            
-            /*
-             * Set opacities for each fiber using mapping of minimum and
-             * maximum opacities
-             */
-            switch (displayMode) {
-                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
-                    fiberOpacities[0] = (fiberCounts[0]
-                                         - countMinimumOpacity) / countRangeOpacity;
-                    fiberOpacities[1] = (fiberCounts[1]
-                                         - countMinimumOpacity) / countRangeOpacity;
-                    fiberOpacities[2] = (fiberCounts[2]
-                                         - countMinimumOpacity) / countRangeOpacity;
-                    break;
-                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
-                    fiberOpacities[0] = ((fiberCounts[0] * fiberTraj->m_distance)
-                                         - distanceMinimumOpacity) / distanceRangeOpacity;
-                    fiberOpacities[1] = ((fiberCounts[1] * fiberTraj->m_distance)
-                                         - distanceMinimumOpacity) / distanceRangeOpacity;
-                    fiberOpacities[2] = ((fiberCounts[2] * fiberTraj->m_distance)
-                                         - distanceMinimumOpacity) / distanceRangeOpacity;
-                    break;
-                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
-                {
-                    const float distanceLog = std::log(fiberTraj->m_distance);
-                    fiberOpacities[0] = ((fiberCounts[0] * distanceLog)
-                                         - distanceMinimumOpacity) / distanceRangeOpacity;
-                    fiberOpacities[1] = ((fiberCounts[1] * distanceLog)
-                                         - distanceMinimumOpacity) / distanceRangeOpacity;
-                    fiberOpacities[2] = ((fiberCounts[2] * distanceLog)
-                                         - distanceMinimumOpacity) / distanceRangeOpacity;
+                const int64_t fiberFractionTotalCount = fiberFraction->totalCount;
+                if (fiberFraction->fiberFractions.size() != 3) {
+                    CaretLogWarning("Fiber Trajectory index="
+                                    + AString::number(iTraj)
+                                    + " has "
+                                    + AString::number(fiberFraction->fiberFractions.size())
+                                    + " fibers != 3 from file "
+                                    + trajFile->getFileNameNoPath());
+                    
+                    continue;
                 }
-                    break;
-                case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
-                    fiberOpacities[0] = (fiberTraj->m_fiberFractions[0]
-                                         - proportionMinimumOpacity) /proportionRangeOpacity;
-                    fiberOpacities[1] = (fiberTraj->m_fiberFractions[1]
-                                         - proportionMinimumOpacity) /proportionRangeOpacity;
-                    fiberOpacities[2] = (fiberTraj->m_fiberFractions[2]
-                                         - proportionMinimumOpacity) /proportionRangeOpacity;
-                    break;
-            }
-            int32_t drawCount = 3;
-            for (int32_t i = 0; i < 3; i++) {
-                if (fiberOpacities[i] > 1.0) {
-                    fiberOpacities[i] = 1.0;
+                else if (fiberFraction->totalCount < streamlineThreshold) {
+                    continue;
                 }
-                else if (fiberOpacities[i] <= 0.0) {
-                    fiberOpacities[i] = 0.0;
-                    drawCount--;
+                float fiberOpacities[3] = { 0.0, 0.0, 0.0 };
+                const float fiberCounts[3] = {
+                    fiberFraction->fiberFractions[0] * fiberFractionTotalCount,
+                    fiberFraction->fiberFractions[1] * fiberFractionTotalCount,
+                    fiberFraction->fiberFractions[2] * fiberFractionTotalCount
+                };
+                
+                const float fiberFractionDistance = fiberFraction->distance;
+                
+                /*
+                 * Set opacities for each fiber using mapping of minimum and
+                 * maximum opacities
+                 */
+                switch (displayMode) {
+                    case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
+                        fiberOpacities[0] = (fiberCounts[0]
+                                             - countMinimumOpacity) / countRangeOpacity;
+                        fiberOpacities[1] = (fiberCounts[1]
+                                             - countMinimumOpacity) / countRangeOpacity;
+                        fiberOpacities[2] = (fiberCounts[2]
+                                             - countMinimumOpacity) / countRangeOpacity;
+                        break;
+                    case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
+                        fiberOpacities[0] = ((fiberCounts[0] * fiberFractionDistance)
+                                             - distanceMinimumOpacity) / distanceRangeOpacity;
+                        fiberOpacities[1] = ((fiberCounts[1] * fiberFractionDistance)
+                                             - distanceMinimumOpacity) / distanceRangeOpacity;
+                        fiberOpacities[2] = ((fiberCounts[2] * fiberFractionDistance)
+                                             - distanceMinimumOpacity) / distanceRangeOpacity;
+                        break;
+                    case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
+                    {
+                        const float distanceLog = std::log(fiberFractionDistance);
+                        fiberOpacities[0] = ((fiberCounts[0] * distanceLog)
+                                             - distanceMinimumOpacity) / distanceRangeOpacity;
+                        fiberOpacities[1] = ((fiberCounts[1] * distanceLog)
+                                             - distanceMinimumOpacity) / distanceRangeOpacity;
+                        fiberOpacities[2] = ((fiberCounts[2] * distanceLog)
+                                             - distanceMinimumOpacity) / distanceRangeOpacity;
+                    }
+                        break;
+                    case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
+                        fiberOpacities[0] = (fiberFraction->fiberFractions[0]
+                                             - proportionMinimumOpacity) /proportionRangeOpacity;
+                        fiberOpacities[1] = (fiberFraction->fiberFractions[1]
+                                             - proportionMinimumOpacity) /proportionRangeOpacity;
+                        fiberOpacities[2] = (fiberFraction->fiberFractions[2]
+                                             - proportionMinimumOpacity) /proportionRangeOpacity;
+                        break;
                 }
-            }
-            if (drawCount <= 0) {
-                continue;
+                int32_t drawCount = 3;
+                for (int32_t i = 0; i < 3; i++) {
+                    if (fiberOpacities[i] > 1.0) {
+                        fiberOpacities[i] = 1.0;
+                    }
+                    else if (fiberOpacities[i] <= 0.0) {
+                        fiberOpacities[i] = 0.0;
+                        drawCount--;
+                    }
+                }
+                if (drawCount > 0) {
+                    fiberOpacitiesSum[0] += fiberOpacities[0];
+                    fiberOpacitiesSum[1] += fiberOpacities[1];
+                    fiberOpacitiesSum[2] += fiberOpacities[2];
+                    numberOfFiberOpacitiesForAveraging++;
+                }
             }
             
-            orientation->m_fibers[0]->m_opacityForDrawing = fiberOpacities[0];
-            orientation->m_fibers[1]->m_opacityForDrawing = fiberOpacities[1];
-            orientation->m_fibers[2]->m_opacityForDrawing = fiberOpacities[2];
-            
-            addFiberOrientationForDrawing(&fiberOrientDispInfo,
-                                          orientation);
+            if (numberOfFiberOpacitiesForAveraging > 0) {
+                orientation->m_fibers[0]->m_opacityForDrawing = fiberOpacitiesSum[0] / numberOfFiberOpacitiesForAveraging;
+                orientation->m_fibers[1]->m_opacityForDrawing = fiberOpacitiesSum[1] / numberOfFiberOpacitiesForAveraging;
+                orientation->m_fibers[2]->m_opacityForDrawing = fiberOpacitiesSum[2] / numberOfFiberOpacitiesForAveraging;
+                
+                addFiberOrientationForDrawing(&fiberOrientDispInfo,
+                                              orientation);
+            }
         }
     }
     

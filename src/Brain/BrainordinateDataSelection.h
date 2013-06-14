@@ -1,9 +1,9 @@
-#ifndef __FIBER_ORIENTATION_TRAJECTORY__H_
-#define __FIBER_ORIENTATION_TRAJECTORY__H_
+#ifndef __BRAINORDINATE_DATA_SELECTION_H__
+#define __BRAINORDINATE_DATA_SELECTION_H__
 
 /*LICENSE_START*/
 /*
- * Copyright 2012 Washington University,
+ * Copyright 2013 Washington University,
  * All rights reserved.
  *
  * Connectome DB and Connectome Workbench are part of the integrated Connectome 
@@ -34,75 +34,75 @@
  */
 /*LICENSE_END*/
 
-#include <vector>
-#include <stdint.h>
 
+#include "CaretObject.h"
+#include "SceneableInterface.h"
 
 namespace caret {
 
-    struct FiberFractions;
-    class FiberOrientation;
+    class SurfaceFile;
     
-    class FiberOrientationTrajectory {
-        
+    class BrainordinateDataSelection
+    : public CaretObject,
+    public SceneableInterface {
+    
     public:
-        FiberOrientationTrajectory(const FiberOrientation* fiberOrientation,
-                                   const int64_t rowIndex);
+        BrainordinateDataSelection();
         
-        virtual ~FiberOrientationTrajectory();
-        
-        void addFiberFractions(const FiberFractions& fiberFraction);
-        
-        /**
-         * @return the Fiber Orientation.
-         */
-        inline const FiberOrientation* getFiberOrientation() const { return m_fiberOrientation; }
-        
-        /**
-         * @return The row index from which this data originated.
-         */
-        inline int64_t getRowIndex() const { return m_rowIndex; }
-        
-        /**
-         * @return The number of fiber fractions.
-         */
-        inline int64_t getNumberOfFiberFractions() const { return m_fiberFractions.size(); }
-        
-        /**
-         * Get the fiber fraction at the given index.
-         *
-         * @param indx
-         *    Index of the fiber fraction.
-         * @return 
-         *    Fiber fraction at the given index.
-         */
-        inline const FiberFractions* getFiberFraction(const int64_t indx) const {
-            return &m_fiberFractions[indx];
-        }
+        virtual ~BrainordinateDataSelection();
         
     private:
-        FiberOrientationTrajectory(const FiberOrientationTrajectory&);
+        BrainordinateDataSelection(const BrainordinateDataSelection&);
 
-        FiberOrientationTrajectory& operator=(const FiberOrientationTrajectory&);
+        BrainordinateDataSelection& operator=(const BrainordinateDataSelection&);
         
     public:
-
-        // ADD_NEW_METHODS_HERE
-
+        enum Mode {
+            MODE_NONE,
+            MODE_SURFACE_AVERAGE,
+            MODE_SURFACE_NODE,
+            MODE_VOXEL_XYZ
+        };
+        
+        void reset();
+        
+        Mode getMode() const;
+        
+        AString getSurfaceFileName() const;
+        
+        std::vector<int32_t> getSurfaceNodeIndices() const;
+        
+        const float* getVoxelXYZ() const;
+        
+        void setSurfaceLoading(const SurfaceFile* surfaceFile,
+                               const int32_t nodeInde);
+        
+        void setSurfaceAverageLoading(const SurfaceFile* surfaceFile,
+                                      const std::vector<int32_t>& nodeIndices);
+        
+        void setVolumeLoading(const float xyz[3]);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                const AString& instanceName);
+        
     private:
-        const FiberOrientation* m_fiberOrientation;
-        
-        const int64_t m_rowIndex;
-        
-        std::vector<FiberFractions> m_fiberFractions;
-
         // ADD_NEW_MEMBERS_HERE
 
+        Mode m_mode;
+        
+        AString m_surfaceFileName;
+        
+        std::vector<int32_t> m_surfaceFileNodeIndices;
+        
+        float m_voxelXYZ[3];
     };
     
-#ifdef __FIBER_ORIENTATION_TRAJECTORY_DECLARE__
+#ifdef __BRAINORDINATE_DATA_SELECTION_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __FIBER_ORIENTATION_TRAJECTORY_DECLARE__
+#endif // __BRAINORDINATE_DATA_SELECTION_DECLARE__
 
 } // namespace
-#endif  //__FIBER_ORIENTATION_TRAJECTORY__H_
+#endif  //__BRAINORDINATE_DATA_SELECTION_H__

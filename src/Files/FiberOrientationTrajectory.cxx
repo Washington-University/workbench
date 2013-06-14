@@ -56,10 +56,6 @@ FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* f
 : m_fiberOrientation(fiberOrientation),
 m_rowIndex(rowIndex)
 {
-    m_totalCount = 0;
-    m_fiberFractions.clear();
-    m_distance = 0.0;
-    m_itemCount = 0;
 }
 
 /**
@@ -73,37 +69,6 @@ FiberOrientationTrajectory::~FiberOrientationTrajectory()
 void
 FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
 {
-    m_totalCount += fiberFraction.totalCount;
-    const int64_t num = static_cast<int64_t>(fiberFraction.fiberFractions.size());
-    if (m_fiberFractions.empty()) {
-        m_fiberFractions.resize(num, 0.0);
-    }
-    else {
-        CaretAssert(m_fiberFractions.size() == fiberFraction.fiberFractions.size());
-    }
-    
-    for (int64_t i = 0; i < num; i++) {
-        m_fiberFractions[i] += fiberFraction.fiberFractions[i];
-    }
-    
-    m_distance += fiberFraction.distance;
-    
-    m_itemCount++;
-}
-
-void
-FiberOrientationTrajectory::averageFiberFractions()
-{
-    if (m_itemCount > 1) {
-        m_totalCount /= m_itemCount;
-        
-        const int64_t num = static_cast<int64_t>(m_fiberFractions.size());
-        for (int64_t i = 0; i < num; i++) {
-            m_fiberFractions[i] /= m_itemCount;
-        }
-        
-        m_distance /= m_itemCount;
-    }
-    
+    m_fiberFractions.push_back(fiberFraction);
 }
 

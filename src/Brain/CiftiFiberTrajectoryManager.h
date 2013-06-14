@@ -36,13 +36,13 @@
 
 
 #include "CaretObject.h"
-
 #include "DataFileException.h"
 #include "SceneableInterface.h"
 
 namespace caret {
 
     class Brain;
+    class BrainordinateDataSelection;
     class SurfaceFile;
     
     class CiftiFiberTrajectoryManager : public CaretObject, public SceneableInterface {
@@ -75,6 +75,7 @@ namespace caret {
         
         Brain* m_brain;
 
+        BrainordinateDataSelection* m_brainordinateDataSelection;
     };
     
 #ifdef __CIFTI_FIBER_TRAJECTORY_MANAGER_DECLARE__

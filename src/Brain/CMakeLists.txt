@@ -58,6 +58,7 @@ BrainOpenGLShapeRing.h
 BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
+BrainordinateDataSelection.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
@@ -149,6 +150,7 @@ BrainOpenGLShapeCube.cxx
 BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeSphere.cxx
 BrainOpenGLViewportContent.cxx
+BrainordinateDataSelection.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
