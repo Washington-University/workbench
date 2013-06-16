@@ -156,6 +156,7 @@ namespace caret {
 
         void processIdentification(SelectionManager* selectionManager,
                                    QWidget* parentWidget);
+		void updateMatrixViewDialogs();
         
     public slots:
         void processBringAllWindowsToFront();

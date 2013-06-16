@@ -82,10 +82,12 @@ namespace caret {
         virtual void clear();
         
         virtual bool isEmpty() const;
-        
-        virtual AString getMapName(const int32_t mapIndex) const;
+
+		virtual AString getMapName(const int32_t mapIndex) const;
         
         AString getRowLoadedText() const;
+
+		int64_t getRowLoadedIndex() const;
 
         virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
 
@@ -112,10 +114,10 @@ namespace caret {
         
         int64_t getRowIndexForNodeWhenLoading(const StructureEnum::Enum structure,
                                               const int64_t surfaceNumberOfNodes,
-                                              const int64_t nodeIndex) const;
+                                              const int64_t nodeIndex);
         
         int64_t getRowIndexForVoxelWhenLoading(const int32_t mapIndex,
-                                               const float xyz[3]) const;
+                                               const float xyz[3]);
         
         
         // ADD_NEW_MEMBERS_HERE
@@ -127,6 +129,8 @@ namespace caret {
         AString m_rowLoadedTextForMapName;
 
         AString m_rowLoadedText;
+
+		int64_t m_currentRowLoadedIndex;
         
         friend class CiftiBrainordinateScalarFile;
     };

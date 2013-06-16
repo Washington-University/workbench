@@ -1838,6 +1838,36 @@ GuiManager::getNameOfDataFileToOpenAfterStartup() const
     return m_nameOfDataFileToOpenAfterStartup;
 }
 
+// NOTE: This function will go away, and will be replaced with updateDialog event listeners on the matrix view GUI
+#include <ChartableInterface.h>
+#include <CiftiMappableConnectivityMatrixDataFile.h>
+void
+GuiManager::updateMatrixViewDialogs()
+{
+	Brain *brain = GuiManager::get()->getBrain();
+	std::vector<ChartableInterface *> chartableFiles;
+	brain->getAllChartableDataFiles(chartableFiles);		
+
+	for (std::vector<ChartableInterface*>::iterator iter = chartableFiles.begin();
+		iter != chartableFiles.end();
+		iter++) 
+	{
+		ChartableInterface *ci = *iter;
+		if(ci->getDefaultChartType() != ChartTypeEnum::MATRIX) continue;
+		CiftiMappableConnectivityMatrixDataFile* cmdf = static_cast<CiftiMappableConnectivityMatrixDataFile*>((ci->getCaretMappableDataFile()));
+		if(cmdf == NULL) continue;
+
+		if (cmdf->isEmpty() == false) {
+			int64_t rowIndex = cmdf->getRowLoadedIndex();
+			QTableView *table = GuiManager::get()->getChartingDialog(ci)->getMatrixTableView();
+			if(table == NULL) continue;
+			table->blockSignals(true);
+			table->selectRow(rowIndex);
+			table->update();
+			table->blockSignals(false);
+		}
+	}	
+}
 /**
  * Process identification after item(s) selected using a selection manager.
  *
@@ -2106,6 +2136,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
     }
     
     if (updateGraphicsFlag) {
+		updateMatrixViewDialogs();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
