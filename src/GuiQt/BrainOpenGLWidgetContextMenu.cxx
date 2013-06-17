@@ -50,6 +50,7 @@
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUpdateTimeCourseDialog.h"
@@ -625,6 +626,9 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
         return;
     }
     
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     try {
         ProgressReportingDialog progressDialog("Connectivity Within Parcel",
                                                "",
@@ -634,6 +638,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                                                                       nodeIndices);
     }
     catch (const DataFileException& e) {
+        cursor.restoreCursor();
         WuQMessageBox::errorOk(this, e.whatString());
     }
     
@@ -666,6 +671,9 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
         return;
     }
     
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     try {
         ProgressReportingDialog progressDialog("Trajectory Within Parcel",
                                                "",
@@ -675,6 +683,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
                                                                         nodeIndices);
     }
     catch (const DataFileException& e) {
+        cursor.restoreCursor();
         WuQMessageBox::errorOk(this, e.whatString());
     }
     
@@ -726,6 +735,9 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
             return;
         }
         
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
         try {
             ProgressReportingDialog progressDialog("Connectivity Within Border",
                                                    "",
@@ -736,6 +748,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
                                                           nodeIndices);
         }
         catch (const DataFileException& e) {
+            cursor.restoreCursor();
             WuQMessageBox::errorOk(this, e.whatString());
         }
         
@@ -850,6 +863,9 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
         return;
     }
     
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     try {
         ProgressReportingDialog progressDialog("Data Series Within Parcel",
                                                "",
@@ -883,6 +899,7 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     catch (const DataFileException& e) {
+        cursor.restoreCursor();
         WuQMessageBox::errorOk(this, e.whatString());
     }   
   
@@ -930,6 +947,9 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
                                                 nodeIndices) == false) {
             return;
         }
+        
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
         
         try {
             ProgressReportingDialog progressDialog("Data Series Within Border",
@@ -991,6 +1011,7 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
 
         }
         catch (const DataFileException& e) {
+            cursor.restoreCursor();
             WuQMessageBox::errorOk(this, e.whatString());
         }   
     }
