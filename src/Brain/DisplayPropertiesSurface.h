@@ -68,6 +68,10 @@ namespace caret {
         
         void setDisplayNormalVectors(const bool displayNormalVectors);
         
+        float getOpacity() const;
+        
+        void setOpacity(const float opacity);
+        
     private:
         DisplayPropertiesSurface(const DisplayPropertiesSurface&);
 
@@ -80,6 +84,8 @@ namespace caret {
         bool m_displayNormalVectors;
         
         SurfaceDrawingTypeEnum::Enum m_surfaceDrawingType;
+        
+        float m_opacity;
     };
     
 #ifdef __DISPLAY_PROPERTIES_SURFACE_DECLARE__

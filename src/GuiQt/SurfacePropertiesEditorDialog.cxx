@@ -50,6 +50,7 @@ using namespace caret;
 #include "GuiManager.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "SceneClass.h"
@@ -100,6 +101,14 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     QObject::connect(m_displayNormalVectorsComboBox, SIGNAL(statusChanged(bool)),
                      this,  SLOT(surfaceDisplayPropertyChanged()));
     
+    QLabel* opacityLabel = new QLabel("Opacity: ");
+    m_opacitySpinBox = WuQFactory::newDoubleSpinBox();
+    m_opacitySpinBox->setRange(0.0, 1.0);
+    m_opacitySpinBox->setSingleStep(0.1);
+    m_opacitySpinBox->setDecimals(2);
+    QObject::connect(m_opacitySpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(surfaceDisplayPropertyChanged()));
+    
     QWidget* w = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(w);
     WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
@@ -115,6 +124,9 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     row++;
     gridLayout->addWidget(nodeSizeLabel, row, 0);
     gridLayout->addWidget(m_nodeSizeSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(opacityLabel, row, 0);
+    gridLayout->addWidget(m_opacitySpinBox, row, 1);
     row++;
 
     setCentralWidget(w);
@@ -158,7 +170,9 @@ SurfacePropertiesEditorDialog::surfaceDisplayPropertyChanged()
     dps->setDisplayNormalVectors(m_displayNormalVectorsComboBox->isTrue());
     dps->setLinkSize(m_linkSizeSpinBox->value());
     dps->setNodeSize(m_nodeSizeSpinBox->value());
+    dps->setOpacity(m_opacitySpinBox->value());
     
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
@@ -176,6 +190,7 @@ SurfacePropertiesEditorDialog::updateDialog()
     m_displayNormalVectorsComboBox->setStatus(dps->isDisplayNormalVectors());
     m_linkSizeSpinBox->setValue(dps->getLinkSize());
     m_nodeSizeSpinBox->setValue(dps->getNodeSize());
+    m_opacitySpinBox->setValue(dps->getOpacity());
     
     m_updateInProgress = false;
 }

@@ -78,6 +78,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_surfaceDrawingTypeComboBox;
         
+        QDoubleSpinBox* m_opacitySpinBox;
+        
         bool m_updateInProgress;
         
         // ADD_NEW_MEMBERS_HERE

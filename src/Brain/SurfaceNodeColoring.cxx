@@ -37,6 +37,7 @@
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "DisplayPropertiesSurface.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
@@ -277,12 +278,15 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
     
     const BrainStructure* brainStructure = surface->getBrainStructure();
     CaretAssert(brainStructure);
+    const Brain* brain = brainStructure->getBrain();
+    CaretAssert(brain);
     
     bool firstOverlayFlag = true;
     float* overlayRGBV = new float[numNodes * 4];
+    
     for (int32_t iOver = (numberOfDisplayedOverlays - 1); iOver >= 0; iOver--) {
         Overlay* overlay = overlaySet->getOverlay(iOver);
-        if (overlay->isEnabled()) {
+        if (overlay->isEnabled()) {            
             std::vector<CaretMappableDataFile*> mapFiles;
             CaretMappableDataFile* selectedMapFile;
             AString selectedMapUniqueID;
@@ -418,7 +422,15 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     const float valid = overlayRGBV[i4 + 3];
                     if (valid > 0.0 ) {
                         if (opacity < 1.0) {
-//                            if (firstOverlayFlag) {
+                            if (firstOverlayFlag) {
+                                /*
+                                 * Just replace coloring
+                                 * First overlay opacity is used for overall
+                                 * surface opacity.
+                                 */
+                                rgbaNodeColors[i4] = overlayRGBV[i4];
+                                rgbaNodeColors[i4+1] = overlayRGBV[i4+1];
+                                rgbaNodeColors[i4+2] = overlayRGBV[i4+2];
 //                                /*
 //                                 * When first overlay, there is nothing to 
 //                                 * blend with
@@ -426,8 +438,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
 //                                rgbaNodeColors[i4]   = (overlayRGBV[i4]   * opacity);
 //                                rgbaNodeColors[i4+1] = (overlayRGBV[i4+1] * opacity);
 //                                rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity);
-//                            }
-//                            else {
+                            }
+                            else {
                                 /*
                                  * Blend with underlaying colors
                                  */
@@ -437,7 +449,7 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                 + (rgbaNodeColors[i4+1] * oneMinusOpacity);
                                 rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity)
                                 + (rgbaNodeColors[i4+2] * oneMinusOpacity);
-//                            }
+                            }
                         }
                         else {
                             /*
@@ -452,6 +464,18 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 
                 firstOverlayFlag = false;
             }
+        }
+    }
+    
+    /*
+     * Opacity from first overlay is used as overall surface opacity
+     * so replace alpha with opacity
+     */
+    const float opacity = brain->getDisplayPropertiesSurface()->getOpacity();
+    if (opacity < 1.0) {
+        for (int32_t i = 0; i < numNodes; i++) {
+            const int32_t i4 = i * 4;
+            rgbaNodeColors[i4+3] = opacity;
         }
     }
     

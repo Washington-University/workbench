@@ -1021,8 +1021,19 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                            nodeColoringRGBA);
                     break;
                 case SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES:
+                    /*
+                     * Enable alpha blending so that surface transparency
+                     * (using first overlay opacity) will function.
+                     */
+                    GLboolean blendingEnabled = false;
+                    glGetBooleanv(GL_BLEND, &blendingEnabled);
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
+                    if (blendingEnabled == false) {
+                        glDisable(GL_BLEND);
+                    }
                     break;
             }
             if (dps->isDisplayNormalVectors()) {
@@ -1034,7 +1045,10 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             this->drawSurfaceBorderBeingDrawn(surface);
             break;
         case MODE_IDENTIFICATION:
-            glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
+            /*
+             * Disable shading since ID info is encoded in rgba coloring
+             */
+            glShadeModel(GL_FLAT); 
             if (drawingType != SurfaceDrawingTypeEnum::DRAW_HIDE) {
                 this->drawSurfaceNodes(surface,
                                        nodeColoringRGBA);
@@ -1044,14 +1058,23 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
+            /*
+             * Re-enable shading since ID info is encoded in rgba coloring
+             */
             glShadeModel(GL_SMOOTH);
             break;
         case MODE_PROJECTION:
-            glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
+            /*
+             * Disable shading since ID info is encoded in rgba coloring
+             */
+            glShadeModel(GL_FLAT);
             if (drawingType != SurfaceDrawingTypeEnum::DRAW_HIDE) {
                 this->drawSurfaceTriangles(surface,
                                            nodeColoringRGBA);
             }
+            /*
+             * Re-enable shading since ID info is encoded in rgba coloring
+             */
             glShadeModel(GL_SMOOTH);
             break;
     }
@@ -6594,61 +6617,61 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
     
-    /*
-     * Draw the surfaces. 
-     */
     Brain* brain = wholeBrainController->getBrain();
-    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
-    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
-        BrainStructure* brainStructure = brain->getBrainStructure(i);
-        const StructureEnum::Enum structure = brainStructure->getStructure();
-        Surface* surface = wholeBrainController->getSelectedSurface(structure, 
-                                                                    tabNumberIndex);
-        if (surface != NULL) {
-            float dx = 0.0;
-            float dy = 0.0;
-            float dz = 0.0;
-            
-            bool drawIt = false;
-            switch (structure) {
-                case StructureEnum::CORTEX_LEFT:
-                    drawIt = browserTabContent->isWholeBrainLeftEnabled();
-                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
-                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-                        dx -= surface->getBoundingBox()->getMaxX();
-                    }
-                    break;
-                case StructureEnum::CORTEX_RIGHT:
-                    drawIt = browserTabContent->isWholeBrainRightEnabled();
-                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
-                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
-                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
-                        dx -= surface->getBoundingBox()->getMinX();
-                    }
-                    break;
-                case StructureEnum::CEREBELLUM:
-                    drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
-                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
-                    break;
-                default:
-                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
-                    break;
-            }
-            
-            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainController, 
-                                                                                         surface, 
-                                                                                         this->windowTabIndex);
-            
-            if (drawIt) {
-                glPushMatrix();
-                glTranslatef(dx, dy, dz);
-                this->drawSurface(surface,
-                                  nodeColoringRGBA);
-                glPopMatrix();
-            }
-        }
-    }
+//    /*
+//     * Draw the surfaces. 
+//     */
+//    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+//    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+//        BrainStructure* brainStructure = brain->getBrainStructure(i);
+//        const StructureEnum::Enum structure = brainStructure->getStructure();
+//        Surface* surface = wholeBrainController->getSelectedSurface(structure, 
+//                                                                    tabNumberIndex);
+//        if (surface != NULL) {
+//            float dx = 0.0;
+//            float dy = 0.0;
+//            float dz = 0.0;
+//            
+//            bool drawIt = false;
+//            switch (structure) {
+//                case StructureEnum::CORTEX_LEFT:
+//                    drawIt = browserTabContent->isWholeBrainLeftEnabled();
+//                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
+//                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+//                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+//                        dx -= surface->getBoundingBox()->getMaxX();
+//                    }
+//                    break;
+//                case StructureEnum::CORTEX_RIGHT:
+//                    drawIt = browserTabContent->isWholeBrainRightEnabled();
+//                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
+//                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+//                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+//                        dx -= surface->getBoundingBox()->getMinX();
+//                    }
+//                    break;
+//                case StructureEnum::CEREBELLUM:
+//                    drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
+//                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
+//                    break;
+//                default:
+//                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+//                    break;
+//            }
+//            
+//            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainController, 
+//                                                                                         surface, 
+//                                                                                         this->windowTabIndex);
+//            
+//            if (drawIt) {
+//                glPushMatrix();
+//                glTranslatef(dx, dy, dz);
+//                this->drawSurface(surface,
+//                                  nodeColoringRGBA);
+//                glPopMatrix();
+//            }
+//        }
+//    }
 
     /*
      * Need depth testing for drawing slices
@@ -6710,9 +6733,64 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
             }
         }
     }
-    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
+//    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
         drawSurfaceFiberOrientations();
         drawSurfaceFiberTrajectories();
+//    }
+    
+    /*
+     * Draw surfaces last so that opacity works.
+     */
+    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+        BrainStructure* brainStructure = brain->getBrainStructure(i);
+        const StructureEnum::Enum structure = brainStructure->getStructure();
+        Surface* surface = wholeBrainController->getSelectedSurface(structure,
+                                                                    tabNumberIndex);
+        if (surface != NULL) {
+            float dx = 0.0;
+            float dy = 0.0;
+            float dz = 0.0;
+            
+            bool drawIt = false;
+            switch (structure) {
+                case StructureEnum::CORTEX_LEFT:
+                    drawIt = browserTabContent->isWholeBrainLeftEnabled();
+                    dx = -browserTabContent->getWholeBrainLeftRightSeparation();
+                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+                        dx -= surface->getBoundingBox()->getMaxX();
+                    }
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    drawIt = browserTabContent->isWholeBrainRightEnabled();
+                    dx = browserTabContent->getWholeBrainLeftRightSeparation();
+                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
+                        dx -= surface->getBoundingBox()->getMinX();
+                    }
+                    break;
+                case StructureEnum::CEREBELLUM:
+                    drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
+                    dz = browserTabContent->getWholeBrainCerebellumSeparation();
+                    break;
+                default:
+                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+                    break;
+            }
+            
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainController,
+                                                                                         surface,
+                                                                                         this->windowTabIndex);
+            
+            if (drawIt) {
+                glPushMatrix();
+                glTranslatef(dx, dy, dz);
+                this->drawSurface(surface,
+                                  nodeColoringRGBA);
+                glPopMatrix();
+            }
+        }
     }
 }
 

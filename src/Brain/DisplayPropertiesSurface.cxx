@@ -51,6 +51,7 @@ DisplayPropertiesSurface::DisplayPropertiesSurface(Brain* brain)
     m_linkSize = 2.0;
     m_nodeSize = 2.0;
     m_surfaceDrawingType = SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES;
+    m_opacity = 1.0;
     
     m_sceneAssistant->add("m_displayNormalVectors",
                           &m_displayNormalVectors);
@@ -58,6 +59,8 @@ DisplayPropertiesSurface::DisplayPropertiesSurface(Brain* brain)
                           &m_linkSize);
     m_sceneAssistant->add("m_nodeSize",
                           &m_nodeSize);
+    m_sceneAssistant->add("m_opacity",
+                          &m_opacity);
     m_sceneAssistant->add<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>("m_surfaceDrawingType",
                                                                 &m_surfaceDrawingType);
     
@@ -248,6 +251,27 @@ void
 DisplayPropertiesSurface::setDisplayNormalVectors(const bool displayNormalVectors)
 {
     m_displayNormalVectors = displayNormalVectors;
+}
+
+/**
+ * @return The overall surface opacity.
+ */
+float
+DisplayPropertiesSurface::getOpacity() const
+{
+    return m_opacity;
+}
+
+/**
+ * Set the overall surface opacity.
+ *
+ * @param opacity
+ *    New value for opacity.
+ */
+void
+DisplayPropertiesSurface::setOpacity(const float opacity)
+{
+    m_opacity = opacity;
 }
 
 
