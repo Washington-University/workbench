@@ -125,6 +125,7 @@
 #include "OperationShowScene.h"
 #include "OperationSpecFileMerge.h"
 #include "OperationSurfaceClosestVertex.h"
+#include "OperationSurfaceGeodesicDistance.h"
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationSurfaceInformation.h"
 #include "OperationSurfaceVertexAreas.h"
@@ -291,6 +292,7 @@ CommandOperationManager::CommandOperationManager()
     }
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
