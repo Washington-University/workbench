@@ -423,21 +423,21 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     if (valid > 0.0 ) {
                         if (opacity < 1.0) {
                             if (firstOverlayFlag) {
-                                /*
-                                 * Just replace coloring
-                                 * First overlay opacity is used for overall
-                                 * surface opacity.
-                                 */
-                                rgbaNodeColors[i4] = overlayRGBV[i4];
-                                rgbaNodeColors[i4+1] = overlayRGBV[i4+1];
-                                rgbaNodeColors[i4+2] = overlayRGBV[i4+2];
 //                                /*
-//                                 * When first overlay, there is nothing to 
-//                                 * blend with
+//                                 * Just replace coloring
+//                                 * First overlay opacity is used for overall
+//                                 * surface opacity.
 //                                 */
-//                                rgbaNodeColors[i4]   = (overlayRGBV[i4]   * opacity);
-//                                rgbaNodeColors[i4+1] = (overlayRGBV[i4+1] * opacity);
-//                                rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity);
+//                                rgbaNodeColors[i4] = overlayRGBV[i4];
+//                                rgbaNodeColors[i4+1] = overlayRGBV[i4+1];
+//                                rgbaNodeColors[i4+2] = overlayRGBV[i4+2];
+                                /*
+                                 * When first overlay, there is nothing to 
+                                 * blend with
+                                 */
+                                rgbaNodeColors[i4]   = (overlayRGBV[i4]   * opacity);
+                                rgbaNodeColors[i4+1] = (overlayRGBV[i4+1] * opacity);
+                                rgbaNodeColors[i4+2] = (overlayRGBV[i4+2] * opacity);
                             }
                             else {
                                 /*
