@@ -48,6 +48,8 @@ public:
     
    void addAttribute(const AString& name, const AString& value);
 
+    void addAttribute(const AString& name, const char* value);
+    
    void addAttribute(const AString& name, const int32_t value);
 
     void addAttribute(const AString& name, const std::vector<int32_t>& value, const AString& separator);

@@ -65,6 +65,20 @@ XmlAttributes::addAttribute(const AString& name, const AString& value) {
 }
 
 /**
+ * Add an attribute.  Without this method, "char*" values are 
+ * interpreted as booleans.
+ *
+ * @param name - Name of attribute.
+ * @param value - Value of attribute.
+ */
+void
+XmlAttributes::addAttribute(const AString& name, const char* value)
+{
+    names.push_back(AString(name));
+    values.push_back(value);
+}
+
+/**
  * Add an attribute.
  *
  * @param name - Name of attribute.
