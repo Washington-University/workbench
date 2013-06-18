@@ -55,15 +55,42 @@ void ChartingDialog::setChartMode(QString type)
     }
     else if(type == "Matrix View")
     {
-        layout->insertWidget(1,table,50);
-        this->table->show();
+        if(true)
+        {
+            this->getMatrixTableView()->show();
+        }
+        else
+        {
+            layout->insertWidget(1,table,50);
+            this->table->show();
+        }
+
     }
 }
+
+
 
 void ChartingDialog::on_comboBox_currentIndexChanged(const QString &arg1)
 {
     setChartMode(arg1);
 }
+
+void ChartingDialog::updateDialog(bool show=false)
+{
+    if(true)
+    {
+        this->getMatrixTableView()->show();
+    }
+    else
+    {
+        layout->insertWidget(1,table,50);
+        this->table->show();
+    }
+
+
+
+}
+
 //#include "PaletteColorMapping.h"
 void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
 {
