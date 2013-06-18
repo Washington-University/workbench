@@ -135,10 +135,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }    
     
-    allConnectivityTimeSeriesViewControllers.insert(this);
-
-    matrixDisplayed = false;
-    
+    allConnectivityTimeSeriesViewControllers.insert(this);    
     
 }
 
@@ -236,6 +233,8 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
         //disconnect slots
          
         fileChanged = false;
+
+        if(previousChartableDataFile) GuiManager::get()->getChartingDialog(this->previousChartableDataFile)->getMatrixTableView()->disconnect(this);
         
         QObject::connect(GuiManager::get()->getChartingDialog(this->chartableDataFile)->getMatrixTableView()->selectionModel(),
             SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex & )),
@@ -279,7 +278,7 @@ ConnectivityTimeSeriesViewController::setVisible(bool visible)
 }
 
 /**
- * Called when graph display tool button is triggered.
+ * Called when graph display tool button is triggXered.
  * @param status
  *    New status.
  */
@@ -293,8 +292,8 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
             ChartingDialog *dialog = GuiManager::get()->getChartingDialog(this->chartableDataFile);            
 
             dialog->openPconnMatrix(this->chartableDataFile->getCaretMappableDataFile());
-            dialog->show();
-            matrixDisplayed = true;
+            //dialog->show();
+            dialog->showDialog();
         }
         else
         {

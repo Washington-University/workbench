@@ -9,7 +9,7 @@
 #include "Plot2d.h"
 #include "Table.h"
 #include "QVBoxLayout"
-
+#include "QPoint"
 using namespace caret;
 
 ChartingDialog::ChartingDialog(QWidget *parent) :
@@ -21,11 +21,14 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
 #ifdef CARET_OS_WINDOWS
     this->setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);
 #endif
+    connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
+            this, SLOT(customContextMenuRequestedSlot(const QPoint &)));
     //form = new TimeCourseControls();
     table = new Table();
     //plot2d = new Plot2D();
     ui->comboBox->setCurrentIndex(1);
     ui->comboBox->hide();
+
 }
 
 ChartingDialog::~ChartingDialog()
@@ -37,7 +40,10 @@ void ChartingDialog::on_closeButton_clicked()
 {
     this->hide();
 }
+#include "BrainBrowserWindow.h"
 
+#include <QList>
+#include <QObjectList>
 void ChartingDialog::setChartMode(QString type)
 {
     QVBoxLayout *layout = (QVBoxLayout *)this->layout();
@@ -54,41 +60,55 @@ void ChartingDialog::setChartMode(QString type)
         this->plot2d->show();*/
     }
     else if(type == "Matrix View")
-    {
-        if(true)
-        {
-            this->getMatrixTableView()->show();
-        }
-        else
-        {
-            layout->insertWidget(1,table,50);
-            this->table->show();
-        }
-
+    { 
+        layout->insertWidget(1,table,100);
+        this->ui->toolBarWidget->hide();
+        this->ui->toolBoxWidget->hide();
+        //layout->removeWidget(this->ui->toolBarWidget);
+        //layout->removeWidget(this->ui->toolBoxWidget);
+        this->layout()->setSpacing(0);        
+        this->layout()->setContentsMargins(0,0,0,0);
+        this->table->layout()->setContentsMargins(0,0,0,0);
+        QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
+        
+        this->resize(rect.width(),rect.height());
+        
+        this->table->show();
     }
 }
 
+void ChartingDialog::showToolBar(bool show)
+{
+    if(show)
+    //{
+        this->ui->toolBarWidget->show();//this->ui->toolBarWidget->adjustSize();}
+    else
+        this->ui->toolBarWidget->hide();
+}
 
+void ChartingDialog::showToolBox(bool show)
+{
+    if(show)
+        this->ui->toolBoxWidget->show();
+    else
+        this->ui->toolBoxWidget->hide();
+}
 
 void ChartingDialog::on_comboBox_currentIndexChanged(const QString &arg1)
 {
     setChartMode(arg1);
 }
 
-void ChartingDialog::updateDialog(bool show=false)
+#include <QScrollBar>
+void ChartingDialog::showDialog()
 {
-    if(true)
-    {
-        this->getMatrixTableView()->show();
-    }
-    else
-    {
-        layout->insertWidget(1,table,50);
-        this->table->show();
-    }
-
-
-
+    QVBoxLayout *layout = (QVBoxLayout *)this->layout();
+    QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
+    //this->getMatrixTableView()->verticalScrollBar()->hide();
+    //this->getMatrixTableView()->horizontalScrollBar()->hide();
+    this->resize(rect.width(),rect.height()+6);
+    //this->getMatrixTableView()->setFrameRect(rect);
+    this->show();
 }
 
 //#include "PaletteColorMapping.h"
@@ -129,4 +149,23 @@ QTableView *
 ChartingDialog::getMatrixTableView() 
 { 
     return this->table->getTableView();
+}
+
+#include <QMenu>
+#include <QAction>
+void ChartingDialog::customContextMenuRequestedSlot(const QPoint &pos)
+{
+    QMenu menu;
+    QAction *toggleToolBar = new QAction("Show Toolbar",&menu);
+    toggleToolBar->setCheckable(1);
+    toggleToolBar->setChecked(!(ui->toolBarWidget->isHidden()));
+    connect(toggleToolBar,SIGNAL(toggled(bool)),this,SLOT(showToolBar(bool)));
+    menu.addAction(toggleToolBar);
+
+    QAction *toggleToolBox = new QAction("Show Toolbox",&menu);
+    toggleToolBox->setCheckable(1);
+    toggleToolBox->setChecked(!(ui->toolBoxWidget->isHidden()));
+    connect(toggleToolBox,SIGNAL(toggled(bool)),this,SLOT(showToolBox(bool)));
+    menu.addAction(toggleToolBox);
+    menu.exec(QCursor::pos());
 }

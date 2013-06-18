@@ -109,8 +109,6 @@ namespace caret {
         
         static std::set<ConnectivityTimeSeriesViewController*> allConnectivityTimeSeriesViewControllers;
 
-        bool matrixDisplayed;//extra initialization, such as hooking up of signals and slots between the dialogs matrix view and the mappable data
-                         //file, happen only if the chart is actually displayed.
     };
     
 #ifdef __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__

@@ -24,11 +24,18 @@ public:
     void setChartMode(QString type);
     void openPconnMatrix(CaretMappableDataFile *pconnFile);    
     QTableView * getMatrixTableView();
+    void showDialog();
+
+
 private slots:
     void on_closeButton_clicked();
 
     void on_comboBox_currentIndexChanged(const QString &arg1);  
     
+    void showToolBar(bool show=true);
+    void showToolBox(bool show=true);
+
+    void customContextMenuRequestedSlot(const QPoint &pos);
 
 private:
     Table *table;

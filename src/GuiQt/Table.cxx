@@ -122,3 +122,46 @@ QTableView *Table::getTableView()
     return ui->tableView;
 }
 
+#include <QDesktopWidget>
+const QRect Table::adjustTableSize(
+    QTableView* tv,
+    const QVBoxLayout* lay/*,
+    const int& maxRows,
+    const int& maxCols*/) {
+        int maxCols = tv->model()->columnCount();
+        int maxRows = tv->model()->rowCount();
+        // get Desktop size
+        using std::size_t;
+        QDesktopWidget desktop;
+        size_t desW = desktop.screen()->width();
+        size_t desH = desktop.screen()->height();
+
+        int leftM,rightM,topM,bottomM;
+        lay->getContentsMargins(&leftM,&topM,&rightM,&bottomM);
+
+        size_t extraTopHeight = topM + tv->frameWidth();
+        size_t extraBottomHeight = bottomM + tv->frameWidth();
+        size_t extraLeftWidth = leftM + tv->frameWidth();
+        size_t extraRightWidth = rightM + tv->frameWidth();
+        size_t w = tv->verticalHeader()->width() + extraLeftWidth + extraRightWidth;
+        size_t h = tv->horizontalHeader()->height() + extraTopHeight + extraBottomHeight;
+        for(size_t col = 0; col < maxCols; ++col) {
+            w += tv->columnWidth(col);
+        }
+        for(size_t row = 0; row < maxRows; ++row ) {
+            h += tv->rowHeight(row);
+        }
+
+        std::size_t x,y;
+        if((w - extraLeftWidth - extraRightWidth) > desW) {
+            x = 0;
+            w = desW - extraLeftWidth - extraRightWidth;
+        } else
+            x = (desW - w)/2;
+        if(h - extraTopHeight - extraBottomHeight - QStyle::PM_TitleBarHeight > desH) {
+            y = extraTopHeight + QStyle::PM_TitleBarHeight;
+            h = desH - (extraTopHeight + QStyle::PM_TitleBarHeight + extraBottomHeight);
+        } else
+            y = (desH - h)/2;
+        return QRect(x,y,w,h);
+}

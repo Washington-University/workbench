@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QWidget>
 #include <QStandardItemModel>
+#include <QVBoxLayout>
 #include <QTableView>
 
 namespace Ui {
@@ -19,10 +20,13 @@ public:
     void createModel();
     void populate(int nCols, int nRows);
     void populate(std::vector< std::vector <QColor> > &colors);
-    void createColors(int nCols,int nRows, std::vector< std::vector <QColor> > &colors);    
+    void createColors(int nCols,int nRows, std::vector< std::vector <QColor> > &colors);
     QTableView *getTableView();
+    const QRect adjustTableSize(
+        QTableView* tv,
+        const QVBoxLayout* lay);
 private:    
-     Ui::Table *ui;
+    Ui::Table *ui;
     QStandardItemModel *model;
 };
 
