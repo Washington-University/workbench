@@ -28,6 +28,12 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
     //plot2d = new Plot2D();
     ui->comboBox->setCurrentIndex(1);
     ui->comboBox->hide();
+    QObject::connect(getMatrixTableView()->selectionModel(),
+        SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex & )),
+        this,
+        SLOT(currentRowChanged(const QModelIndex &,const QModelIndex &)));
+
+    showDialogFirstTime = true;
 
 }
 
@@ -35,6 +41,13 @@ ChartingDialog::~ChartingDialog()
 {
     delete ui;    
 }
+
+void ChartingDialog::currentRowChanged(const QModelIndex &row,const QModelIndex &)
+{
+    this->ui->rowTextLabel->setText(this->cmf->getRowName(row.row()));
+
+}
+
 
 void ChartingDialog::on_closeButton_clicked()
 {
@@ -102,22 +115,23 @@ void ChartingDialog::on_comboBox_currentIndexChanged(const QString &arg1)
 #include <QScrollBar>
 void ChartingDialog::showDialog()
 {
-    QVBoxLayout *layout = (QVBoxLayout *)this->layout();
-    QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
-    //this->getMatrixTableView()->verticalScrollBar()->hide();
-    //this->getMatrixTableView()->horizontalScrollBar()->hide();
-    this->resize(rect.width(),rect.height()+6);
-    //this->getMatrixTableView()->setFrameRect(rect);
+    if(showDialogFirstTime)
+    {
+        showDialogFirstTime = false;
+
+        QVBoxLayout *layout = (QVBoxLayout *)this->layout();
+        QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
+        this->resize(rect.width(),rect.height()+6);
+    }
     this->show();
 }
 
-//#include "PaletteColorMapping.h"
 void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
 {
     //pconnFile->getMapPaletteColorMapping(0)->getSelectedPaletteName();
     CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(pconnFile);
     if(matrix == NULL) return;
-    
+    this->cmf = matrix;
     std::vector<int64_t> dim;
     matrix->getMapDimensions(dim);
     PaletteFile *pf = GuiManager::get()->getBrain()->getPaletteFile();
@@ -140,9 +154,8 @@ void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
             cMatrix[i][j] = QColor(rgba[(i*ncols+j)*4]*255,rgba[(i*ncols+j)*4+1]*255,rgba[(i*ncols+j)*4+2]*255,fabs(rgba[(i*ncols+j)*4+3]*255));
         }
     }  
-    table->populate(cMatrix);
-    
-    //this->resize(table->width()+20,table->height()+40);
+    table->populate(cMatrix);    
+
 }
 
 QTableView * 

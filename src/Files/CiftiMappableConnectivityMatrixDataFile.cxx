@@ -874,6 +874,15 @@ CiftiMappableConnectivityMatrixDataFile::getMapName(const int32_t /*mapIndex*/) 
     return m_rowLoadedTextForMapName;
 }
 
+AString
+CiftiMappableConnectivityMatrixDataFile::getRowName(const int32_t rowIndex) const
+{
+    const CiftiXML xml = m_ciftiInterface->getCiftiXML();
+    std::vector<CiftiParcelElement> plist;
+    xml.getParcelsForRows(plist);
+    return plist[rowIndex].m_parcelName;
+}
+
 /**
  * Save file data from the scene.  For subclasses that need to
  * save to a scene, this method should be overriden.  sceneClass

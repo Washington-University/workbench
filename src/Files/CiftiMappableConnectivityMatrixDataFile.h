@@ -84,6 +84,8 @@ namespace caret {
         virtual bool isEmpty() const;
 
 		virtual AString getMapName(const int32_t mapIndex) const;
+
+        AString getRowName(const int32_t rowIndex) const;
         
         AString getRowLoadedText() const;
 

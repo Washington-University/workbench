@@ -8,6 +8,7 @@ class ChartingDialog;
 }
 
 #include "CaretMappableDataFile.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include <QTableView>
 class TimeCourseControls;
 class Table;
@@ -36,12 +37,15 @@ private slots:
     void showToolBox(bool show=true);
 
     void customContextMenuRequestedSlot(const QPoint &pos);
+    void currentRowChanged(const QModelIndex &row,const QModelIndex &);
 
 private:
     Table *table;
     Ui::ChartingDialog *ui;
     TimeCourseControls *form;    
     Plot2D *plot2d;
+    bool showDialogFirstTime;
+    CiftiMappableConnectivityMatrixDataFile *cmf;
 };
 }
 #endif // CHARTINGDIALOG_H

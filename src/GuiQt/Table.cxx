@@ -61,10 +61,6 @@ void Table::createModel()
     ui->tableView->setItemDelegate(new BackgroundDelegate(this));
     ui->tableView->setStyleSheet("selection-background-color: rgba(128, 128, 128, 40);");
 
-    std::vector<std::vector<QColor> > colors;
-    //createColors(ncols,nrows,colors);
-    //populate(colors);
-
 }
 
 void Table::populate(std::vector< std::vector <QColor> > &colors)
@@ -80,36 +76,6 @@ void Table::populate(std::vector< std::vector <QColor> > &colors)
         }
     }
 
-}
-
-void Table::populate(int nCols, int nRows)
-{
-    int x_step = 255/(nCols-1);
-    int y_step = 255/(nRows-1);
-
-    for(int x = 0;x<nCols;x++)
-    {
-        for(int y = 0;y<nRows;y++)
-        {
-            model->setData(model->index(x,y,QModelIndex()), QColor(x*x_step,(x*x_step+y*y_step)/2,y*y_step), Qt::BackgroundColorRole);
-        }
-    }    
-}
-
-void Table::createColors(int nCols, int nRows, std::vector< std::vector <QColor> > &colors)
-{
-    colors.resize(nCols);
-    for(int i = 0;i<nCols;i++) colors[i].resize(nRows);
-    int x_step = 255/(nCols-1);
-    int y_step = 255/(nRows-1);
-
-    for(int x = 0;x<nCols;x++)
-    {
-        for(int y = 0;y<nRows;y++)
-        {
-            colors[x][y] = QColor(x*x_step,(x*x_step+y*y_step)/2,y*y_step);
-        }
-    }
 }
 
 Table::~Table()
