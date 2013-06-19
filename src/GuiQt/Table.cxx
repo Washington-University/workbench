@@ -71,8 +71,7 @@ void Table::populate(std::vector< std::vector <QColor> > &colors)
     {
         for(int y = 0;y<colors[x].size();y++)
         {
-            model->setData(model->index(x,y,QModelIndex()), colors[x][y], Qt::BackgroundColorRole);
-            //model->setData(model->index(x,y,QModelIndex()), colors[x][y], Qt::ForegroundRole);
+            model->setData(model->index(x,y,QModelIndex()), colors[x][y], Qt::BackgroundColorRole);            
         }
     }
 

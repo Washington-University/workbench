@@ -76,8 +76,7 @@ namespace caret {
         ChartableInterface* getChartableDataFile();
 
     public slots:
-            void currentRowChanged(const QModelIndex & current, const QModelIndex & previous );
-        
+                    
         
     private slots:
         void graphDisplayActionTriggered(bool);

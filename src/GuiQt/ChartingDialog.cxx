@@ -2,6 +2,10 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFile.h"
 #include "ChartingDialog.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "GuiManager.h"
 #include "ui_ChartingDialog.h"
 #include "TimeCourseControls.h"
@@ -32,6 +36,8 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
         SIGNAL(currentChanged(const QModelIndex &, const QModelIndex & )),
         this,
         SLOT(currentChanged(const QModelIndex &,const QModelIndex &)));
+	QObject::connect(getMatrixTableView()->selectionModel(),SIGNAL(currentChanged(const QModelIndex &,const QModelIndex &)),this, 
+		SLOT(currentRowChanged(const QModelIndex &,const QModelIndex &)));
 
     showDialogFirstTime = true;
 
@@ -126,37 +132,73 @@ void ChartingDialog::showDialog()
     }
     this->show();
 }
+#include <ChartableInterface.h>
+void ChartingDialog::currentRowChanged(const QModelIndex & current, const QModelIndex & previous )
+{
+	cmf->loadMapData(current.row());
+	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());
+	std::vector<ChartableInterface *> chartableFiles;
+	GuiManager::get()->getBrain()->getAllChartableDataFiles(chartableFiles);
+	for(std::vector<ChartableInterface *>::iterator iter = chartableFiles.begin();iter != chartableFiles.end();iter++)
+	{
+		if((*iter)->getCaretMappableDataFile() == this->cmf) continue;		
+		int row = current.row();
+		ChartingDialog *chart = GuiManager::get()->getChartingDialog(*iter);
+		if(chart->isHidden()) continue;
+		if(chart->getMatrixTableView()->model()->rowCount() != this->getMatrixTableView()->model()->rowCount()) continue;
+		chart->updateSelectedRow(row);
+	}
+	EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+	EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+	EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+
+
+void ChartingDialog::updateMatrix()
+{	
+	std::vector<int64_t> dim;
+	cmf->getMapDimensions(dim);
+	PaletteFile *pf = GuiManager::get()->getBrain()->getPaletteFile();
+
+	int ncols = dim[0];
+	std::vector<float> rgba;
+
+	cmf->getMatrixRGBA(rgba,pf);
+	int nrows = dim[1];
+	if(rgba.size() != nrows*ncols*4) return; //add error message
+	std::vector<std::vector<QColor> > cMatrix;
+	cMatrix.resize(nrows);
+	for(int i = 0;i<nrows;i++) cMatrix[i].resize(ncols);
+
+	for(int i = 0;i<nrows;i++)
+	{        
+		for(int j = 0;j<ncols;j++)
+		{
+
+			cMatrix[i][j] = QColor(rgba[(i*ncols+j)*4]*255,rgba[(i*ncols+j)*4+1]*255,rgba[(i*ncols+j)*4+2]*255,fabs(rgba[(i*ncols+j)*4+3]*255));
+		}
+	}  
+	table->populate(cMatrix);
+}
+
+void ChartingDialog::updateSelectedRow(int32_t &row)
+{
+	getMatrixTableView()->blockSignals(true);
+	getMatrixTableView()->selectRow(row);
+	getMatrixTableView()->blockSignals(false);
+	this->ui->rowTextLabel->setText(this->cmf->getRowName(row));
+	cmf->loadMapData(row);
+	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());	
+}
 
 void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
 {
     //pconnFile->getMapPaletteColorMapping(0)->getSelectedPaletteName();
     CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(pconnFile);
     if(matrix == NULL) return;
-    this->cmf = matrix;
-    std::vector<int64_t> dim;
-    matrix->getMapDimensions(dim);
-    PaletteFile *pf = GuiManager::get()->getBrain()->getPaletteFile();
-    
-    int ncols = dim[0];
-    std::vector<float> rgba;
-    
-    matrix->getMatrixRGBA(rgba,pf);
-    int nrows = dim[1];
-    if(rgba.size() != nrows*ncols*4) return; //add error message
-    std::vector<std::vector<QColor> > cMatrix;
-    cMatrix.resize(nrows);
-    for(int i = 0;i<nrows;i++) cMatrix[i].resize(ncols);
-    
-    for(int i = 0;i<nrows;i++)
-    {        
-        for(int j = 0;j<ncols;j++)
-        {
-            
-            cMatrix[i][j] = QColor(rgba[(i*ncols+j)*4]*255,rgba[(i*ncols+j)*4+1]*255,rgba[(i*ncols+j)*4+2]*255,fabs(rgba[(i*ncols+j)*4+3]*255));
-        }
-    }  
-    table->populate(cMatrix);    
-
+	this->cmf = matrix;
+    updateMatrix();		
 }
 
 QTableView * 

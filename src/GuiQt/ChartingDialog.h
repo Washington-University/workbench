@@ -26,8 +26,9 @@ public:
     void openPconnMatrix(CaretMappableDataFile *pconnFile);    
     QTableView * getMatrixTableView();
     void showDialog();
-
-
+	void updateSelectedRow(int32_t &row);
+public slots:
+	
 private slots:
     void on_closeButton_clicked();
 
@@ -38,7 +39,8 @@ private slots:
 
     void customContextMenuRequestedSlot(const QPoint &pos);
     void currentChanged(const QModelIndex &row,const QModelIndex &col);
-
+	void updateMatrix();	
+	void currentRowChanged(const QModelIndex & current, const QModelIndex & previous );
 private:
     Table *table;
     Ui::ChartingDialog *ui;

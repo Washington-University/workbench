@@ -195,9 +195,7 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
  */
 void 
 ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* chartableDataFile)
-{
-    bool fileChanged = false;
-    if(this->chartableDataFile != chartableDataFile) fileChanged = true;
+{   
     this->chartableDataFile = chartableDataFile;
     if (this->chartableDataFile != NULL) {        
 
@@ -226,35 +224,13 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
             this->graphToolButton->setChecked(enabledState);
         }        
         this->graphToolButton->blockSignals(false);       
-    }
-    //remove signal/slot for clicking in cell array
-    if(fileChanged)
-    {
-        //disconnect slots
-         
-        fileChanged = false;
+    }    
 
-        if(previousChartableDataFile) GuiManager::get()->getChartingDialog(this->previousChartableDataFile)->getMatrixTableView()->disconnect(this);
-        
-        QObject::connect(GuiManager::get()->getChartingDialog(this->chartableDataFile)->getMatrixTableView()->selectionModel(),
-            SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex & )),
-            this,
-            SLOT(currentRowChanged(const QModelIndex &,const QModelIndex &)));
-    }
+    
     this->previousChartableDataFile = this->chartableDataFile;
 }
 
 
-void 
-ConnectivityTimeSeriesViewController::currentRowChanged(const QModelIndex & current, const QModelIndex & previous )
-{
-    CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(this->chartableDataFile->getCaretMappableDataFile());
-    matrix->loadMapData(current.row());
-    matrix->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
 /**
  * Update the view controller.
  */
