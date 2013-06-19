@@ -168,6 +168,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     }
 
     this->tabBar->setShape(QTabBar::RoundedNorth);
+    this->tabBar->setMovable(true);
 #ifdef Q_OS_MACX
     /*
      * Adding a parent to the style will result in it
