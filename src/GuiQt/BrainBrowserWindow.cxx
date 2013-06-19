@@ -86,6 +86,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "VtkFileExporter.h"
 
 using namespace caret;
 
@@ -569,13 +570,6 @@ BrainBrowserWindow::createActions()
                                 SLOT(processShowSearchHelpOnlineWindow()));
     m_helpSearchOnlineAction->setEnabled(false);
 
-    m_developerGraphicsTimingAction =
-    WuQtUtilities::createAction("Time Graphics Update",
-                                "Show the average time for updating the windows graphics",
-                                this,
-                                this,
-                                SLOT(processGraphicsTiming()));
-    
     m_connectToAllenDatabaseAction =
     WuQtUtilities::createAction("Allen Brain Institute Database...",
                                 "Open a connection to the Allen Brain Institute Database",
@@ -591,6 +585,20 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processConnectToConnectomeDataBase()));
     m_connectToConnectomeDatabaseAction->setEnabled(false);
+    
+    m_developerGraphicsTimingAction =
+    WuQtUtilities::createAction("Time Graphics Update",
+                                "Show the average time for updating the windows graphics",
+                                this,
+                                this,
+                                SLOT(processDevelopGraphicsTiming()));
+    
+    m_developerExportVtkFileAction = 
+    WuQtUtilities::createAction("Export to VTK File",
+                                "Export model(s) to VTK File",
+                                this,
+                                this,
+                                SLOT(processDevelopExportVtkFile()));
 }
 
 /**
@@ -635,6 +643,7 @@ BrainBrowserWindow::createMenuDevelop()
 {
     QMenu* menu = new QMenu("Develop",
                             this);
+    menu->addAction(m_developerExportVtkFileAction);
     menu->addAction(m_developerGraphicsTimingAction);
     
     return menu;
@@ -1137,7 +1146,7 @@ BrainBrowserWindow::createMenuHelp()
  * Time the graphics drawing.
  */
 void
-BrainBrowserWindow::processGraphicsTiming()
+BrainBrowserWindow::processDevelopGraphicsTiming()
 {
     ElapsedTimer et;
     et.start();
@@ -1154,6 +1163,83 @@ BrainBrowserWindow::processGraphicsTiming()
                          + timeString);
     WuQMessageBox::informationOk(this, msg);
 }
+
+
+/**
+ * Export to VTK file.
+ */
+void
+BrainBrowserWindow::processDevelopExportVtkFile()
+{
+    static QString previousVtkFileName = "";
+    
+    BrowserTabContent* btc = getBrowserTabContent();
+    if (btc != NULL) {
+        const int32_t tabIndex = btc->getTabNumber();
+        std::vector<SurfaceFile*> surfaceFiles;
+        std::vector<const float*> surfaceFilesColoring;
+        
+        ModelSurface* modelSurface = btc->getDisplayedSurfaceModel();
+        ModelWholeBrain* modelWholeBrain = btc->getDisplayedWholeBrainModel();
+        if (modelSurface != NULL) {
+            SurfaceFile* sf = modelSurface->getSurface();
+            surfaceFiles.push_back(sf);
+            surfaceFilesColoring.push_back(sf->getSurfaceNodeColoringRgbaForBrowserTab(tabIndex));
+        }
+        else if (modelWholeBrain != NULL) {
+            std::vector<Surface*> wholeBrainSurfaces = modelWholeBrain->getSelectedSurfaces(tabIndex);
+            
+            for (std::vector<Surface*>::iterator iter = wholeBrainSurfaces.begin();
+                 iter != wholeBrainSurfaces.end();
+                 iter++) {
+                Surface* surface = *iter;
+                
+                surfaceFiles.push_back(surface);
+                surfaceFilesColoring.push_back(surface->getWholeBrainNodeColoringRgbaForBrowserTab(tabIndex));
+            }
+        }
+        
+        
+        if (surfaceFiles.empty() == false) {
+            QString vtkSurfaceFileFilter = "VTK Poly Data File (*.vtp)";
+            
+            CaretFileDialog cfd(this,
+                                "Export to VTK File",
+                                GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                vtkSurfaceFileFilter);
+            cfd.selectFilter(vtkSurfaceFileFilter);
+            cfd.setAcceptMode(QFileDialog::AcceptSave);
+            cfd.setFileMode(CaretFileDialog::AnyFile);
+            if (previousVtkFileName.isEmpty() == false) {
+                cfd.selectFile(previousVtkFileName);
+            }
+            
+            if (cfd.exec() == CaretFileDialog::Accepted) {
+                QStringList selectedFiles = cfd.selectedFiles();
+                if (selectedFiles.size() > 0) {
+                    const QString vtkFileName = selectedFiles[0];
+                    if (vtkFileName.isEmpty() == false) {
+                        try {
+                            previousVtkFileName = vtkFileName;
+                            
+                            VtkFileExporter::writeSurfaces(surfaceFiles,
+                                                           surfaceFilesColoring,
+                                                           vtkFileName);
+                        }
+                        catch (const DataFileException& dfe) {
+                            WuQMessageBox::errorOk(this,
+                                                   dfe.whatString());
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            WuQMessageBox::errorOk(this, "Displayed model does not support exporting to VTK File at this time.");
+        }
+    }
+}
+
 
 /**
  * Project foci.

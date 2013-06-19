@@ -162,7 +162,9 @@ namespace caret {
         
         void processShowSurfacePropertiesDialog();
         
-        void processGraphicsTiming();
+        void processDevelopGraphicsTiming();
+        
+        void processDevelopExportVtkFile();
         
         void processProjectFoci();
         
@@ -284,6 +286,7 @@ namespace caret {
         QAction* m_helpSearchOnlineAction;
         
         QAction* m_developerGraphicsTimingAction;
+        QAction* m_developerExportVtkFileAction;
         
         QAction* m_overlayToolBoxAction;
         

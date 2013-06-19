@@ -95,6 +95,7 @@ VolumeFile.h
 VolumeFileVoxelColorizer.h
 VolumePaddingHelper.h
 VolumeSpline.h
+VtkFileExporter.h
 WarpfieldFile.h
 
 AffineFile.cxx
@@ -173,6 +174,7 @@ VolumeFile.cxx
 VolumeFileVoxelColorizer.cxx
 VolumePaddingHelper.cxx
 VolumeSpline.cxx
+VtkFileExporter.cxx
 WarpfieldFile.cxx
 )
 
