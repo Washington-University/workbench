@@ -74,6 +74,8 @@ namespace caret {
         
         virtual int32_t getNumberOfColumns() const;
         
+        void setNumberOfNodesAndTriangles(const int32_t& nodes, const int32_t& triangles);
+        
         const float* getCoordinate(const int32_t nodeIndex) const;
         
         void getCoordinate(const int32_t nodeIndex,
@@ -81,6 +83,8 @@ namespace caret {
         
         void setCoordinate(const int32_t nodeIndex,
                            const float xyzIn[3]);
+
+        void setCoordinate(const int32_t nodeIndex, const float xIn, const float yIn, const float zIn);
 
         void setCoordinates(const float *coordinates);
         
@@ -92,7 +96,11 @@ namespace caret {
         
         int getNumberOfTriangles() const;
         
-        const int32_t* getTriangle(const int32_t) const;
+        const int32_t* getTriangle(const int32_t index) const;
+        
+        void setTriangle(const int32_t& index, const int32_t* nodes);
+        
+        void setTriangle(const int32_t& index, const int32_t& node1, const int32_t& node2, const int32_t& node3);
         
         int32_t getTriangleThatSharesEdge(const int32_t n1,
                                           const int32_t n2,
@@ -164,6 +172,8 @@ namespace caret {
         void invalidateNormals();
         
         void translateToCenterOfMass();
+        
+        void flipNormals();
         
         ///check that it has EXACTLY the same topology, with no flipped normals or rotated or reordered triangles
         bool matchesTopology(const SurfaceFile& rhs) const;

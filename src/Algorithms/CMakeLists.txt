@@ -61,7 +61,9 @@ AlgorithmSurfaceApplyAffine.h
 AlgorithmSurfaceApplyWarpfield.h
 AlgorithmSurfaceAverage.h
 AlgorithmSurfaceCortexLayer.h
+AlgorithmSurfaceCreateSphere.h
 AlgorithmSurfaceDistortion.h
+AlgorithmSurfaceFlipLR.h
 AlgorithmSurfaceGenerateInflated.h
 AlgorithmSurfaceInflation.h
 AlgorithmSurfaceMatch.h
@@ -131,7 +133,9 @@ AlgorithmSurfaceApplyAffine.cxx
 AlgorithmSurfaceApplyWarpfield.cxx
 AlgorithmSurfaceAverage.cxx
 AlgorithmSurfaceCortexLayer.cxx
+AlgorithmSurfaceCreateSphere.cxx
 AlgorithmSurfaceDistortion.cxx
+AlgorithmSurfaceFlipLR.cxx
 AlgorithmSurfaceGenerateInflated.cxx
 AlgorithmSurfaceInflation.cxx
 AlgorithmSurfaceMatch.cxx

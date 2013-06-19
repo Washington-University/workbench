@@ -1,0 +1,94 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "AlgorithmSurfaceFlipLR.h"
+#include "AlgorithmException.h"
+
+#include "SurfaceFile.h"
+
+using namespace caret;
+using namespace std;
+
+AString AlgorithmSurfaceFlipLR::getCommandSwitch()
+{
+    return "-surface-flip-lr";
+}
+
+AString AlgorithmSurfaceFlipLR::getShortDescription()
+{
+    return "MIRROR A SURFACE THROUGH THE YZ PLANE";
+}
+
+OperationParameters* AlgorithmSurfaceFlipLR::getParameters()
+{
+    OperationParameters* ret = new OperationParameters();
+    ret->addSurfaceParameter(1, "surface", "the surface to flip");
+    
+    ret->addSurfaceOutputParameter(2, "surface-out", "the output flipped surface");
+    
+    ret->setHelpText(
+        AString("This command negates the x coordinate of each vertex, and flips the surface normals, so that you have a surface of ") +
+        "opposite handedness with the same features and node correspondence, with normals consistent with the original surface.  " +
+        "That is, if the input surface has normals facing outward, the output surface will also have normals facing outward."
+    );
+    return ret;
+}
+
+void AlgorithmSurfaceFlipLR::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+{
+    SurfaceFile* mySurf = myParams->getSurface(1);
+    SurfaceFile* mySurfOut = myParams->getOutputSurface(2);
+    AlgorithmSurfaceFlipLR(myProgObj, mySurf, mySurfOut);
+}
+
+AlgorithmSurfaceFlipLR::AlgorithmSurfaceFlipLR(ProgressObject* myProgObj, const SurfaceFile* mySurf, SurfaceFile* mySurfOut) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    mySurfOut->setNumberOfNodesAndTriangles(mySurf->getNumberOfNodes(), mySurf->getNumberOfTriangles());
+    int numNodes = mySurf->getNumberOfNodes();
+    float tempcoord[3];
+    for (int i = 0; i < numNodes; ++i)
+    {
+        mySurf->getCoordinate(i, tempcoord);
+        tempcoord[0] = -tempcoord[0];
+        mySurfOut->setCoordinate(i, tempcoord);
+    }
+    int numTiles = mySurf->getNumberOfTriangles();
+    for (int i = 0; i < numTiles; ++i)
+    {
+        const int32_t* temptile = mySurf->getTriangle(i);
+        mySurfOut->setTriangle(i, temptile[1], temptile[0], temptile[2]);
+    }
+}
+
+float AlgorithmSurfaceFlipLR::getAlgorithmInternalWeight()
+{
+    return 1.0f;//override this if needed, if the progress bar isn't smooth
+}
+
+float AlgorithmSurfaceFlipLR::getSubAlgorithmWeight()
+{
+    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
+    return 0.0f;
+}

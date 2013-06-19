@@ -69,7 +69,9 @@
 #include "AlgorithmSurfaceApplyWarpfield.h"
 #include "AlgorithmSurfaceAverage.h"
 #include "AlgorithmSurfaceCortexLayer.h"
+#include "AlgorithmSurfaceCreateSphere.h"
 #include "AlgorithmSurfaceDistortion.h"
+#include "AlgorithmSurfaceFlipLR.h"
 #include "AlgorithmSurfaceGenerateInflated.h"
 #include "AlgorithmSurfaceInflation.h"
 #include "AlgorithmSurfaceMatch.h"
@@ -125,6 +127,7 @@
 #include "OperationShowScene.h"
 #include "OperationSpecFileMerge.h"
 #include "OperationSurfaceClosestVertex.h"
+#include "OperationSurfaceFlipNormals.h"
 #include "OperationSurfaceGeodesicDistance.h"
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationSurfaceInformation.h"
@@ -234,7 +237,9 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceApplyWarpfield()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCortexLayer()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceCreateSphere()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceDistortion()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceFlipLR()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceGenerateInflated()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceInflation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceMatch()));
@@ -292,6 +297,7 @@ CommandOperationManager::CommandOperationManager()
     }
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceFlipNormals()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));

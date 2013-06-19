@@ -116,7 +116,10 @@ SurfaceFile::clear()
         delete this->boundingBox;
         this->boundingBox = NULL;
     }
-    
+    coordinateDataArray = NULL;
+    coordinatePointer = NULL;
+    triangleDataArray = NULL;
+    trianglePointer = NULL;
     GiftiTypeFile::clear();
     invalidateHelpers();
     this->invalidateNodeColoringForBrowserTabs();
@@ -267,6 +270,29 @@ SurfaceFile::getNumberOfColumns() const
     return 0;
 }
 
+void SurfaceFile::setNumberOfNodesAndTriangles(const int32_t& nodes, const int32_t& triangles)
+{
+    if (this->boundingBox != NULL) {
+        delete this->boundingBox;
+        this->boundingBox = NULL;
+    }
+    coordinateDataArray = NULL;
+    coordinatePointer = NULL;
+    triangleDataArray = NULL;
+    trianglePointer = NULL;
+    giftiFile->clearAndKeepMetadata();
+    invalidateHelpers();
+    this->invalidateNodeColoringForBrowserTabs();
+    std::vector<int64_t> dims(2);
+    dims[1] = 3;
+    dims[0] = nodes;
+    giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_POINTSET, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, dims, GiftiEncodingEnum::GZIP_BASE64_BINARY));
+    dims[0] = triangles;
+    giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_TRIANGLE, NiftiDataTypeEnum::NIFTI_TYPE_INT32, dims, GiftiEncodingEnum::GZIP_BASE64_BINARY));
+    validateDataArraysAfterReading();
+    setModified();
+}
+
 /**
  * Get a coordinate.
  *
@@ -315,12 +341,18 @@ void
 SurfaceFile::setCoordinate(const int32_t nodeIndex,
                            const float xyzIn[3])
 {
+    setCoordinate(nodeIndex, xyzIn[0], xyzIn[1], xyzIn[2]);
+}
+
+void SurfaceFile::setCoordinate(const int32_t nodeIndex, const float xIn, const float yIn, const float zIn)
+{
     CaretAssert(this->coordinatePointer);
     const int32_t offset = nodeIndex * 3;
     CaretAssert((offset >= 0) && (offset < (this->getNumberOfNodes() * 3)));
-    this->coordinatePointer[offset] = xyzIn[0];
-    this->coordinatePointer[offset+1] = xyzIn[1];
-    this->coordinatePointer[offset+2] = xyzIn[2];
+    this->coordinatePointer[offset] = xIn;
+    this->coordinatePointer[offset+1] = yIn;
+    this->coordinatePointer[offset+2] = zIn;
+    invalidateNormals();
     invalidateHelpers();
     setModified();
 }
@@ -332,6 +364,7 @@ SurfaceFile::setCoordinates(const float *coordinates)
     
     memcpy(this->coordinatePointer, coordinates, 3 * sizeof(float) * getNumberOfNodes());    
     invalidateHelpers();
+    invalidateNormals();
     //setModified();
 }
 
@@ -369,6 +402,24 @@ SurfaceFile::getTriangle(const int32_t indx) const
     CaretAssert((indx >= 0) && (indx < this->getNumberOfTriangles()));
     const int32_t offset = indx * 3;
     return &(this->trianglePointer[offset]);
+}
+
+void SurfaceFile::setTriangle(const int32_t& index, const int32_t* nodes)
+{
+    setTriangle(index, nodes[0], nodes[1], nodes[2]);
+}
+
+void SurfaceFile::setTriangle(const int32_t& index, const int32_t& node1, const int32_t& node2, const int32_t& node3)
+{
+    CaretAssert(trianglePointer != NULL);
+    CaretAssert((index >= 0) && (index < getNumberOfTriangles()));
+    const int32_t offset = index * 3;
+    trianglePointer[offset] = node1;
+    trianglePointer[offset + 1] = node2;
+    trianglePointer[offset + 2] = node3;
+    invalidateHelpers();
+    invalidateNormals();
+    setModified();
 }
 
 /**
@@ -977,6 +1028,23 @@ SurfaceFile::translateToCenterOfMass()
         matrix.setTranslation(-cx, -cy, -cz);
         applyMatrix(matrix);
     }
+}
+
+void SurfaceFile::flipNormals()
+{
+    if (trianglePointer == NULL) return;
+    const int numTiles = getNumberOfTriangles();
+    int32_t tempvert;
+    for (int i = 0; i < numTiles; ++i)//swap first and second verts of all triangles
+    {
+        int offset = i * 3;
+        tempvert = trianglePointer[offset];
+        trianglePointer[offset] = trianglePointer[offset + 1];
+        trianglePointer[offset + 1] = tempvert;
+    }
+    invalidateNormals();
+    invalidateHelpers();//sorted topology helpers would change, so just for completeness
+    setModified();
 }
 
 /**
