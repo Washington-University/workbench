@@ -323,7 +323,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::CIFTI:
             {
                 CiftiParameter* myParam = (CiftiParameter*)myComponent->m_outputList[i];
-                myParam->m_parameter.grabNew(new CiftiFile());
+                myParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
                 myParam->m_parameter->setCiftiCacheFile(nextArg);
                 break;//we do the metadata stuff in provenanceForOnDiskOutputs() for this type
             }

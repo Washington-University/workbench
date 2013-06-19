@@ -42,6 +42,8 @@
 #include "SurfaceFile.h"
 #include "XmlWriter.h"
 
+#include <limits>
+
 using namespace caret;
 
 
