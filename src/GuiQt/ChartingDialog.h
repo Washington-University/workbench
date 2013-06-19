@@ -26,7 +26,7 @@ public:
     void openPconnMatrix(CaretMappableDataFile *pconnFile);    
     QTableView * getMatrixTableView();
     void showDialog();
-	void updateSelectedRow(int32_t &row);
+	void updateSelectedItem(int32_t &row,int32_t &col);
 public slots:
 	
 private slots:

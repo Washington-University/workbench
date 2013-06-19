@@ -143,10 +143,11 @@ void ChartingDialog::currentRowChanged(const QModelIndex & current, const QModel
 	{
 		if((*iter)->getCaretMappableDataFile() == this->cmf) continue;		
 		int row = current.row();
+		int col = current.column();
 		ChartingDialog *chart = GuiManager::get()->getChartingDialog(*iter);
 		if(chart->isHidden()) continue;
 		if(chart->getMatrixTableView()->model()->rowCount() != this->getMatrixTableView()->model()->rowCount()) continue;
-		chart->updateSelectedRow(row);
+		chart->updateSelectedItem(row,col);
 	}
 	EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 	EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -182,12 +183,13 @@ void ChartingDialog::updateMatrix()
 	table->populate(cMatrix);
 }
 
-void ChartingDialog::updateSelectedRow(int32_t &row)
+void ChartingDialog::updateSelectedItem(int32_t &row, int32_t &col)
 {
 	getMatrixTableView()->blockSignals(true);
 	getMatrixTableView()->selectRow(row);
 	getMatrixTableView()->blockSignals(false);
 	this->ui->rowTextLabel->setText(this->cmf->getRowName(row));
+	this->ui->columnTextLabel->setText(this->cmf->getColumnName(col));
 	cmf->loadMapData(row);
 	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());	
 }
