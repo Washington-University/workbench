@@ -8,6 +8,7 @@ class ChartingDialog;
 }
 
 #include "CaretMappableDataFile.h"
+#include "EventListenerInterface.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include <QTableView>
 class TimeCourseControls;
@@ -15,7 +16,7 @@ class Table;
 class Plot2D;
 
 namespace caret {
-class ChartingDialog : public QDialog
+class ChartingDialog : public QDialog, public EventListenerInterface
 {
     Q_OBJECT
     
@@ -27,6 +28,7 @@ public:
     QTableView * getMatrixTableView();
     void showDialog();
 	void updateSelectedItem(int32_t &row,int32_t &col);
+	void receiveEvent(Event* event);
 public slots:
 	
 private slots:

@@ -47,6 +47,7 @@
 #include "CiftiXnat.h"
 #include "CiftiXML.h"
 #include "DescriptiveStatistics.h"
+#include "EventManager.h"
 #include "EventCiftiMappableDataFileColoringUpdated.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
@@ -1500,6 +1501,9 @@ CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
     else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
         m_mapContent[mapIndex]->updateColoring(data,
                                                paletteFile);
+		EventCiftiMappableDataFileColoringUpdated event;
+		event.cmf = this;
+		EventManager::get()->sendEvent(&event);
     }
     else {
         CaretAssert(0);

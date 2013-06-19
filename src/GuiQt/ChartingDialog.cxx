@@ -3,9 +3,11 @@
 #include "CaretMappableDataFile.h"
 #include "ChartingDialog.h"
 #include "EventManager.h"
+#include "EventCiftiMappableDataFileColoringUpdated.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventListenerInterface.h"
 #include "GuiManager.h"
 #include "ui_ChartingDialog.h"
 #include "TimeCourseControls.h"
@@ -38,7 +40,8 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
         SLOT(currentChanged(const QModelIndex &,const QModelIndex &)));
 	QObject::connect(getMatrixTableView()->selectionModel(),SIGNAL(currentChanged(const QModelIndex &,const QModelIndex &)),this, 
 		SLOT(currentRowChanged(const QModelIndex &,const QModelIndex &)));
-
+	
+	EventManager::get()->addEventListener(this,EventTypeEnum::EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED);
     showDialogFirstTime = true;
 
 }
@@ -53,6 +56,19 @@ void ChartingDialog::currentChanged(const QModelIndex &current,const QModelIndex
     this->ui->rowTextLabel->setText(this->cmf->getRowName(current.row()));
     this->ui->columnTextLabel->setText(this->cmf->getColumnName(current.column()));
 
+}
+
+void ChartingDialog::receiveEvent(Event* event)
+{
+	if(event->getEventType()==EventTypeEnum::EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED)
+	{
+		EventCiftiMappableDataFileColoringUpdated *up = dynamic_cast<EventCiftiMappableDataFileColoringUpdated*>(event);
+		if(cmf==(up->cmf)) 
+		{
+			updateMatrix(); 
+			//up->setEventProcessed();
+		}
+	}
 }
 
 
