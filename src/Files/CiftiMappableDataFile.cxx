@@ -47,6 +47,7 @@
 #include "CiftiXnat.h"
 #include "CiftiXML.h"
 #include "DescriptiveStatistics.h"
+#include "EventCiftiMappableDataFileColoringUpdated.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"

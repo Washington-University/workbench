@@ -112,6 +112,8 @@ public:
         EVENT_UPDATE_ANIMATION_START_TIME,
         /** Event to update yoked windows (graphics and toolbar) */
         EVENT_UPDATE_YOKED_WINDOWS,
+        /** Event to track cifti mappable data file color updating */
+        EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };
