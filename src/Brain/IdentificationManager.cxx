@@ -64,7 +64,7 @@ IdentificationManager::IdentificationManager(Brain* brain)
     m_sceneAssistant = new SceneClassAssistant();
     
     m_contralateralIdentificationEnabled = false;
-    m_volumeIdentificationEnabled = true;
+    m_volumeIdentificationEnabled = false;
     m_identificationSymbolColor = CaretColorEnum::WHITE;
     m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
     m_identifcationSymbolSize = 3.0;
