@@ -37,7 +37,7 @@ private slots:
     void showToolBox(bool show=true);
 
     void customContextMenuRequestedSlot(const QPoint &pos);
-    void currentRowChanged(const QModelIndex &row,const QModelIndex &);
+    void currentChanged(const QModelIndex &row,const QModelIndex &col);
 
 private:
     Table *table;

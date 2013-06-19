@@ -879,8 +879,17 @@ CiftiMappableConnectivityMatrixDataFile::getRowName(const int32_t rowIndex) cons
 {
     const CiftiXML xml = m_ciftiInterface->getCiftiXML();
     std::vector<CiftiParcelElement> plist;
-    xml.getParcelsForRows(plist);
+    xml.getParcelsForColumns(plist);
     return plist[rowIndex].m_parcelName;
+}
+
+AString
+CiftiMappableConnectivityMatrixDataFile::getColumnName(const int32_t columnIndex) const
+{
+    const CiftiXML xml = m_ciftiInterface->getCiftiXML();
+    std::vector<CiftiParcelElement> plist;
+    xml.getParcelsForRows(plist);
+    return plist[columnIndex].m_parcelName;
 }
 
 /**

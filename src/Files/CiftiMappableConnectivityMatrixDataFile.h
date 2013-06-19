@@ -87,6 +87,8 @@ namespace caret {
 
         AString getRowName(const int32_t rowIndex) const;
         
+        AString getColumnName(const int32_t rowIndex) const;
+
         AString getRowLoadedText() const;
 
 		int64_t getRowLoadedIndex() const;

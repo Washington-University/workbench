@@ -29,9 +29,9 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
     ui->comboBox->setCurrentIndex(1);
     ui->comboBox->hide();
     QObject::connect(getMatrixTableView()->selectionModel(),
-        SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex & )),
+        SIGNAL(currentChanged(const QModelIndex &, const QModelIndex & )),
         this,
-        SLOT(currentRowChanged(const QModelIndex &,const QModelIndex &)));
+        SLOT(currentChanged(const QModelIndex &,const QModelIndex &)));
 
     showDialogFirstTime = true;
 
@@ -42,9 +42,10 @@ ChartingDialog::~ChartingDialog()
     delete ui;    
 }
 
-void ChartingDialog::currentRowChanged(const QModelIndex &row,const QModelIndex &)
+void ChartingDialog::currentChanged(const QModelIndex &current,const QModelIndex &)
 {
-    this->ui->rowTextLabel->setText(this->cmf->getRowName(row.row()));
+    this->ui->rowTextLabel->setText(this->cmf->getRowName(current.row()));
+    this->ui->columnTextLabel->setText(this->cmf->getColumnName(current.column()));
 
 }
 
