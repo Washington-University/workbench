@@ -58,13 +58,18 @@ git pull -u
 # contain just the output that shows the errors.
 # Catch output and echo to screen.
 #
+#CC_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang
+#CXX_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang++
+CC_COMPILER=gcc
+CXX_COMPILER=g++
+
 echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
 cmake \
    -DCMAKE_BUILD_TYPE=Release \
-   -DCMAKE_C_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang \
-   -DCMAKE_CXX_COMPILER=/usr/local/clang-llvm/clang+llvm-3.2-x86_64-apple-darwin11/bin/clang++ \
+   -DCMAKE_C_COMPILER=${CC_COMPILER} \
+   -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
    ${SRC_DIR}
 make -j2 
 make -j2
