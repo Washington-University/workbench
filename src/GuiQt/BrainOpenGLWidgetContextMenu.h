@@ -95,7 +95,7 @@ namespace caret {
         
         void parcelCiftiConnectivityActionSelected(QAction* action);
 
-        void parcelDataSeriesActionSelected(QAction* action);
+        void parcelChartableDataActionSelected(QAction* action);
         
         void borderCiftiConnectivitySelected();
 
@@ -106,7 +106,14 @@ namespace caret {
     private:
         class ParcelConnectivity {
         public:
-            ParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
+            enum ParcelType {
+                PARCEL_TYPE_INVALID,
+                PARCEL_TYPE_SURFACE_NODES,
+                PARCEL_TYPE_VOLUME_VOXELS
+            };
+            
+            ParcelConnectivity(const ParcelType parcelType,
+                               CaretMappableDataFile* mappableLabelFile,
                                const int32_t labelFileMapIndex,
                                const int32_t labelKey,
                                const QString& labelName,
@@ -116,10 +123,11 @@ namespace caret {
                                CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
                                CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager);
             
-            ~ParcelConnectivity();
+            virtual ~ParcelConnectivity();
             
             void getNodeIndices(std::vector<int32_t>& nodeIndicesOut) const;
             
+            ParcelType parcelType;
             CaretMappableDataFile* mappableLabelFile;
             int32_t labelFileMapIndex;
             int32_t labelKey;
@@ -129,30 +137,6 @@ namespace caret {
             CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
             ChartingDataManager* chartingDataManager;
             CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager;
-        };
-        
-        class VolumeParcelConnectivity {
-        public:
-            VolumeParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
-                                     const int32_t labelFileMapIndex,
-                                     const int32_t labelKey,
-                                     const QString& labelName,
-                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                     const float sliceCoordinate,
-                                     ChartingDataManager* chartingDataManager,
-                                     CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager);
-            
-            ~VolumeParcelConnectivity();
-            
-            CaretMappableDataFile* mappableLabelFile;
-            int32_t labelFileMapIndex;
-            int32_t labelKey;
-            QString labelName;
-            VolumeSliceViewPlaneEnum::Enum slicePlane;
-            float sliceCoordinate;
-            int32_t nodeNumber;
-            CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
-            ChartingDataManager* chartingDataManager;
         };
         
         BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);
@@ -168,7 +152,16 @@ namespace caret {
         
         void displayAllDataSeriesGraphs();
         
-        void addIdentificationAction(const SelectionManager* identificationManager);
+        void addIdentificationActions();
+        
+        void addBorderRegionOfInterestActions();
+        
+        void addFociActions();
+        
+        void addLabelRegionOfInterestActions();
+        
+        void addActionsToMenu(QList<QAction*>& actionsToAdd,
+                              const bool addSeparatorBeforeActions);
         
         std::vector<ParcelConnectivity*> parcelConnectivities;
         

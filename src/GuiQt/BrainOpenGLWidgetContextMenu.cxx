@@ -110,312 +110,173 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
     this->browserTabContent = browserTabContent;
     
     /*
-     * Accumlate identification actions
+     * Add the identification actions.
      */
-    std::vector<QAction*> identificationActions;
+    addIdentificationActions();
     
     /*
-     * Identify Border
+     * Add the border options.
      */
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
-    if (borderID->isValid()) {
-        const QString text = ("Identify Border ("
-                              + borderID->getBorder()->getName()
-                              + ") Under Mouse");
-        identificationActions.push_back(WuQtUtilities::createAction(text, 
-                                                                    "", 
-                                                                    this, 
-                                                                    this, 
-                                                                    SLOT(identifySurfaceBorderSelected())));
-    }
-
-    /*
-     * Identify Surface Focus
-     */
-    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
-    if (focusID->isValid()) {
-        const QString text = ("Identify Surface Focus ("
-                              + focusID->getFocus()->getName()
-                              + ") Under Mouse");
-        identificationActions.push_back(WuQtUtilities::createAction(text,
-                                                                    "",
-                                                                    this,
-                                                                    this,
-                                                                    SLOT(identifySurfaceFocusSelected())));
-    }
+    addBorderRegionOfInterestActions();
     
     /*
-     * Identify Node
+     * Add the foci actions.
      */
-    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
-    if (surfaceID->isValid()) {
-        const int32_t nodeIndex = surfaceID->getNodeNumber();
-        const Surface* surface = surfaceID->getSurface();
-        const QString text = ("Identify Vertex "
-                              + QString::number(nodeIndex)
-                              + " ("
-                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-                              + ") Under Mouse");
-
-        identificationActions.push_back(WuQtUtilities::createAction(text,
-                                                                    "", 
-                                                                    this, 
-                                                                    this, 
-                                                                    SLOT(identifySurfaceNodeSelected())));
-    }
+    addFociActions();
     
     /*
-     * Identify Voxel
+     * Add the label region of interest operations
      */
-    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
-    if (idVoxel->isValid()) {
-        int64_t ijk[3];
-        idVoxel->getVoxelIJK(ijk);
-        const AString text = ("Identify Voxel ("
-                              + AString::fromNumbers(ijk, 3, ",")
-                              + ")");
-        identificationActions.push_back(WuQtUtilities::createAction(text,
-                                                                    "", 
-                                                                    this, 
-                                                                    this, 
-                                                                    SLOT(identifyVoxelSelected())));
-    }
+    addLabelRegionOfInterestActions();
     
-    /*
-     * Identify Volume Focus
-     */
-    SelectionItemFocusVolume* focusVolID = this->identificationManager->getVolumeFocusIdentification();
-    if (focusVolID->isValid()) {
-        const QString text = ("Identify Volume Focus ("
-                              + focusVolID->getFocus()->getName()
-                              + ") Under Mouse");
-        identificationActions.push_back(WuQtUtilities::createAction(text,
-                                                                    "",
-                                                                    this,
-                                                                    this,
-                                                                    SLOT(identifyVolumeFocusSelected())));
-    }
-    
-    if (identificationActions.empty() == false) {
-        this->addSeparator();
-        
-        for (std::vector<QAction*>::iterator idIter = identificationActions.begin();
-             idIter != identificationActions.end();
-             idIter++) {
-            this->addAction(*idIter);
-        }
-    }
-    
-    
-    std::vector<QAction*> borderConnectivityActions;
-    
-    /*static bool run = false;
-    if(!run)
-    {
-        run = true;
-        const AString actionName("Show Time series For Parcel ");
-        QAction* action = connectivityActionGroup->addAction(actionName);
-        dataSeriesActions.push_back(action);
-
-    }*/
-
-    if (borderID->isValid()) {
-        Brain* brain = borderID->getBrain();
-        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-        bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
-        
-        /*
-         * Connectivity actions for borders
-         */
-        if (hasCiftiConnectivity) {
-            const QString text = ("Show CIFTI Connectivity for Nodes Inside Border "
-                                  + borderID->getBorder()->getName());
-            QAction* action = WuQtUtilities::createAction(text,
-                                                          "",
-                                                          this,
-                                                          this,
-                                                          SLOT(borderCiftiConnectivitySelected()));
-            borderConnectivityActions.push_back(action);
-        }
-        
-        std::vector<ChartableInterface*> chartableFiles;
-        brain->getAllChartableDataFiles(chartableFiles);
-        
-        if (chartableFiles.empty() == false) {
-            const QString text = ("Show Charts for Nodes Inside Border "
-                                  + borderID->getBorder()->getName());
-            QAction* action = WuQtUtilities::createAction(text,
-                                                          "",
-                                                          this,
-                                                          this,
-                                                          SLOT(borderDataSeriesSelected()));
-            borderConnectivityActions.push_back(action);
-        }
-        
-//        bool hasTimeSeries = brain->getNumberOfConnectivityTimeSeriesFiles() > 0 ? true : false;
-//        ConnectivityLoaderManager* clm = NULL;
-//        if (hasTimeSeries) {
-//            clm = brain->getConnectivityLoaderManager();
-//        }        
-//        if (clm != NULL) {
-//            if(hasTimeSeries)
-//            {
-//                const QString text = ("Show Data Series Graph for Nodes Inside Border "
-//                                      + borderID->getBorder()->getName());
-//                QAction* action = WuQtUtilities::createAction(text,
-//                                                              "",
-//                                                              this,
-//                                                              this,
-//                                                              SLOT(borderDataSeriesSelected()));
-//                borderConnectivityActions.push_back(action);
-//            }   
+//    /*
+//     * Identify Node
+//     */
+//    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+//    
+//    std::vector<QAction*> ciftiConnectivityActions;
+//    QActionGroup* ciftiConnectivityActionGroup = new QActionGroup(this);
+//    QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
+//    
+//    std::vector<QAction*> ciftiFiberTrajectoryActions;
+//    QActionGroup* ciftiFiberTrajectoryActionGroup = new QActionGroup(this);
+//    QObject::connect(ciftiFiberTrajectoryActionGroup, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(parcelCiftiFiberTrajectoryActionSelected(QAction*)));
+//    
+//    std::vector<QAction*> dataSeriesActions;
+//    QActionGroup* dataSeriesActionGroup = new QActionGroup(this);
+//    QObject::connect(dataSeriesActionGroup, SIGNAL(triggered(QAction*)),
+//                     this, SLOT(parcelChartableDataActionSelected(QAction*)));
+//    if (surfaceID->isValid()) {
+//        /*
+//         * Connectivity actions for labels
+//         */
+//        Brain* brain = surfaceID->getBrain();
+//        Surface* surface = surfaceID->getSurface();
+//        const int32_t nodeNumber = surfaceID->getNodeNumber();
+//        
+//        CiftiConnectivityMatrixDataFileManager* connMatrixMan = brain->getCiftiConnectivityMatrixDataFileManager();
+//        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+//        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+//        bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
+//        
+//        CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
+//        std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
+//        const int32_t numFiberFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
+//        for (int32_t i = 0; i < numFiberFiles; i++) {
+//            ciftiFiberTrajectoryFiles.push_back(brain->getConnectivityFiberTrajectoryFile(i));
 //        }
-    }
-    
-    std::vector<QAction*> ciftiConnectivityActions;
-    QActionGroup* ciftiConnectivityActionGroup = new QActionGroup(this);
-    QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
-    
-    std::vector<QAction*> ciftiFiberTrajectoryActions;
-    QActionGroup* ciftiFiberTrajectoryActionGroup = new QActionGroup(this);
-    QObject::connect(ciftiFiberTrajectoryActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(parcelCiftiFiberTrajectoryActionSelected(QAction*)));
-    
-    std::vector<QAction*> dataSeriesActions;
-    QActionGroup* dataSeriesActionGroup = new QActionGroup(this);
-    QObject::connect(dataSeriesActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(parcelDataSeriesActionSelected(QAction*)));
-    if (surfaceID->isValid()) {
-        /*
-         * Connectivity actions for labels
-         */
-        Brain* brain = surfaceID->getBrain();
-        Surface* surface = surfaceID->getSurface();
-        const int32_t nodeNumber = surfaceID->getNodeNumber();
-        
-        CiftiConnectivityMatrixDataFileManager* connMatrixMan = brain->getCiftiConnectivityMatrixDataFileManager();
-        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-        bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
-        
-        CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
-        std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
-        const int32_t numFiberFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
-        for (int32_t i = 0; i < numFiberFiles; i++) {
-            ciftiFiberTrajectoryFiles.push_back(brain->getConnectivityFiberTrajectoryFile(i));
-        }
-        const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
-        
-        std::vector<ChartableInterface*> chartableFiles;
-        brain->getAllChartableDataFiles(chartableFiles);
-        const bool haveChartableFiles = (chartableFiles.empty() == false);
-        ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
-    
-        Model* model = this->browserTabContent->getModelControllerForDisplay();
-        if (model != NULL) {
-            std::vector<CaretMappableDataFile*> allMappableLabelFiles;
-            
-            std::vector<CiftiBrainordinateLabelFile*> ciftiLabelFiles;
-            brain->getConnectivityDenseLabelFiles(ciftiLabelFiles);
-            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
-                                 ciftiLabelFiles.begin(),
-                                 ciftiLabelFiles.end());
-            
-                std::vector<LabelFile*> brainStructureLabelFiles;
-                surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
-            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
-                                 brainStructureLabelFiles.begin(),
-                                 brainStructureLabelFiles.end());
-            
-            const int32_t numberOfLabelFiles = static_cast<int32_t>(allMappableLabelFiles.size());
-            for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
-                CaretMappableDataFile* mappableLabelFile = allMappableLabelFiles[ilf];
-                const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
-                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
-                    
-                    int32_t labelKey = -1;
-                    AString labelName;
-                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
-                    LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
-                    
-                    if (ciftiLabelFile != NULL) {
-                        float nodeValue;
-                        bool nodeValueValid = false;
-                        AString stringValue;
-                        if (ciftiLabelFile->getMapSurfaceNodeValue(mapIndex,
-                                                                   surface->getStructure(),
-                                                                   nodeNumber,
-                                                                   surface->getNumberOfNodes(),
-                                                                   nodeValue,
-                                                                   nodeValueValid,
-                                                                   stringValue)) {
-                            if (nodeValueValid) {
-                                labelKey = static_cast<int32_t>(nodeValue);
-                                const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
-                                labelName =  labelTable->getLabelName(labelKey);
-                            }
-                        }
-                    }
-                    else if (labelFile != NULL) {
-                        labelKey = labelFile->getLabelKey(nodeNumber,
-                                                          mapIndex);
-                        labelName = labelFile->getLabelName(nodeNumber,
-                                                            mapIndex);
-                    }
-                    else {
-                        CaretAssertMessage(0,
-                                           "Should never get here, new or invalid label file type");
-                    }
-                    
-                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
-                    if (labelName.isEmpty() == false) {
-                        ParcelConnectivity* pc = new ParcelConnectivity(mappableLabelFile,
-                                                                        mapIndex,
-                                                                        labelKey,
-                                                                        labelName,
-                                                                        surface,
-                                                                        nodeNumber,
-                                                                        chartingDataManager,
-                                                                        connMatrixMan,
-                                                                        ciftiFiberTrajectoryManager);
-                        this->parcelConnectivities.push_back(pc);
-                        
-                        if (hasCiftiConnectivity) {
-                            const AString actionName("Show Cifti Connectivity For Parcel "
-                                                     + labelName
-                                                     + " in map "
-                                                     + mapName);
-                            QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
-                            action->setData(qVariantFromValue((void*)pc));
-                            ciftiConnectivityActions.push_back(action);
-                        }
-                        
-                        if (haveCiftiFiberTrajectoryFiles) {
-                            const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
-                                                              + labelName
-                                                              + " in map "
-                                                              + mapName);
-                            QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
-                            fiberTrajAction->setData(qVariantFromValue((void*)pc));
-                            ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
-                        }
-                        
-                        if (haveChartableFiles) {
-                            const AString tsActionName("Show Data Series Graph For Parcel "
-                                                       + labelName
-                                                       + " in map "
-                                                       + mapName);
-                            QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
-                            tsAction->setData(qVariantFromValue((void*)pc));
-                            dataSeriesActions.push_back(tsAction);
-                        }
-                    }
-                }
-            }
-        }
-    }
+//        const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
+//        
+//        std::vector<ChartableInterface*> chartableFiles;
+//        brain->getAllChartableDataFiles(chartableFiles);
+//        const bool haveChartableFiles = (chartableFiles.empty() == false);
+//        ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
+//    
+//        Model* model = this->browserTabContent->getModelControllerForDisplay();
+//        if (model != NULL) {
+//            std::vector<CaretMappableDataFile*> allMappableLabelFiles;
+//            
+//            std::vector<CiftiBrainordinateLabelFile*> ciftiLabelFiles;
+//            brain->getConnectivityDenseLabelFiles(ciftiLabelFiles);
+//            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
+//                                 ciftiLabelFiles.begin(),
+//                                 ciftiLabelFiles.end());
+//            
+//                std::vector<LabelFile*> brainStructureLabelFiles;
+//                surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
+//            allMappableLabelFiles.insert(allMappableLabelFiles.end(),
+//                                 brainStructureLabelFiles.begin(),
+//                                 brainStructureLabelFiles.end());
+//            
+//            const int32_t numberOfLabelFiles = static_cast<int32_t>(allMappableLabelFiles.size());
+//            for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
+//                CaretMappableDataFile* mappableLabelFile = allMappableLabelFiles[ilf];
+//                const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
+//                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+//                    
+//                    int32_t labelKey = -1;
+//                    AString labelName;
+//                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+//                    LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
+//                    
+//                    if (ciftiLabelFile != NULL) {
+//                        float nodeValue;
+//                        bool nodeValueValid = false;
+//                        AString stringValue;
+//                        if (ciftiLabelFile->getMapSurfaceNodeValue(mapIndex,
+//                                                                   surface->getStructure(),
+//                                                                   nodeNumber,
+//                                                                   surface->getNumberOfNodes(),
+//                                                                   nodeValue,
+//                                                                   nodeValueValid,
+//                                                                   stringValue)) {
+//                            if (nodeValueValid) {
+//                                labelKey = static_cast<int32_t>(nodeValue);
+//                                const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
+//                                labelName =  labelTable->getLabelName(labelKey);
+//                            }
+//                        }
+//                    }
+//                    else if (labelFile != NULL) {
+//                        labelKey = labelFile->getLabelKey(nodeNumber,
+//                                                          mapIndex);
+//                        labelName = labelFile->getLabelName(nodeNumber,
+//                                                            mapIndex);
+//                    }
+//                    else {
+//                        CaretAssertMessage(0,
+//                                           "Should never get here, new or invalid label file type");
+//                    }
+//                    
+//                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
+//                    if (labelName.isEmpty() == false) {
+//                        ParcelConnectivity* pc = new ParcelConnectivity(mappableLabelFile,
+//                                                                        mapIndex,
+//                                                                        labelKey,
+//                                                                        labelName,
+//                                                                        surface,
+//                                                                        nodeNumber,
+//                                                                        chartingDataManager,
+//                                                                        connMatrixMan,
+//                                                                        ciftiFiberTrajectoryManager);
+//                        this->parcelConnectivities.push_back(pc);
+//                        
+//                        if (hasCiftiConnectivity) {
+//                            const AString actionName("Show Cifti Connectivity For Parcel "
+//                                                     + labelName
+//                                                     + " in map "
+//                                                     + mapName);
+//                            QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
+//                            action->setData(qVariantFromValue((void*)pc));
+//                            ciftiConnectivityActions.push_back(action);
+//                        }
+//                        
+//                        if (haveCiftiFiberTrajectoryFiles) {
+//                            const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
+//                                                              + labelName
+//                                                              + " in map "
+//                                                              + mapName);
+//                            QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
+//                            fiberTrajAction->setData(qVariantFromValue((void*)pc));
+//                            ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
+//                        }
+//                        
+//                        if (haveChartableFiles) {
+//                            const AString tsActionName("Show Data Series Graph For Parcel "
+//                                                       + labelName
+//                                                       + " in map "
+//                                                       + mapName);
+//                            QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
+//                            tsAction->setData(qVariantFromValue((void*)pc));
+//                            dataSeriesActions.push_back(tsAction);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
     
 //    if (idVoxel->isValid()) {
 //        Brain* brain = idVoxel->getBrain();
@@ -521,158 +382,149 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
 //        }
 //    }
     
-    if (borderConnectivityActions.empty() == false) {
-        this->addSeparator();
-        for (std::vector<QAction*>::iterator borderIter = borderConnectivityActions.begin();
-             borderIter != borderConnectivityActions.end();
-             borderIter++) {
-            this->addAction(*borderIter);
-        }
-    }
+//    if (ciftiConnectivityActions.empty() == false) {
+//        this->addSeparator();
+//        for (std::vector<QAction*>::iterator ciftiConnIter = ciftiConnectivityActions.begin();
+//             ciftiConnIter != ciftiConnectivityActions.end();
+//             ciftiConnIter++) {
+//            this->addAction(*ciftiConnIter);
+//        }
+//    }
+//    
+//    if (ciftiFiberTrajectoryActions.empty() == false) {
+//        this->addSeparator();
+//        for (std::vector<QAction*>::iterator ciftiFiberIter = ciftiFiberTrajectoryActions.begin();
+//             ciftiFiberIter != ciftiFiberTrajectoryActions.end();
+//             ciftiFiberIter++) {
+//            this->addAction(*ciftiFiberIter);
+//        }
+//    }
+//    if(dataSeriesActions.empty() == false) {
+//        this->addSeparator();            
+//        for (std::vector<QAction*>::iterator tsIter = dataSeriesActions.begin();
+//             tsIter != dataSeriesActions.end();
+//             tsIter++) {
+//            this->addAction(*tsIter);
+//        }
+//    }
     
-    if (ciftiConnectivityActions.empty() == false) {
-        this->addSeparator();
-        for (std::vector<QAction*>::iterator ciftiConnIter = ciftiConnectivityActions.begin();
-             ciftiConnIter != ciftiConnectivityActions.end();
-             ciftiConnIter++) {
-            this->addAction(*ciftiConnIter);
-        }
-    }
-    
-    if (ciftiFiberTrajectoryActions.empty() == false) {
-        this->addSeparator();
-        for (std::vector<QAction*>::iterator ciftiFiberIter = ciftiFiberTrajectoryActions.begin();
-             ciftiFiberIter != ciftiFiberTrajectoryActions.end();
-             ciftiFiberIter++) {
-            this->addAction(*ciftiFiberIter);
-        }
-    }
-    if(dataSeriesActions.empty() == false) {
-        this->addSeparator();            
-        for (std::vector<QAction*>::iterator tsIter = dataSeriesActions.begin();
-             tsIter != dataSeriesActions.end();
-             tsIter++) {
-            this->addAction(*tsIter);
-        }
-    }
-    
-    std::vector<QAction*> createActions;
-    
+//    std::vector<QAction*> createActions;
+//    
     const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
-
-    /*
-     * Create focus at surface node or at ID symbol
-     */
-    if (surfaceID->isValid()
-        && (focusID->isValid() == false)) {
-        const int32_t nodeIndex = surfaceID->getNodeNumber();
-        const Surface* surface = surfaceID->getSurface();
-        const QString text = ("Create Focus at Vertex "
-                              + QString::number(nodeIndex)
-                              + " ("
-                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-                              + ")...");
-        
-        createActions.push_back(WuQtUtilities::createAction(text,
-                                                            "",
-                                                            this,
-                                                            this,
-                                                            SLOT(createSurfaceFocusSelected())));
-    }
-    else if (idSymbol->isValid()
-             && (focusID->isValid() == false)) {
-        const int32_t nodeIndex = idSymbol->getNodeNumber();
-        const Surface* surface = idSymbol->getSurface();
-        const QString text = ("Create Focus at Selected Vertex "
-                              + QString::number(nodeIndex)
-                              + " ("
-                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
-                              + ")...");
-        
-        createActions.push_back(WuQtUtilities::createAction(text,
-                                                            "",
-                                                            this,
-                                                            this,
-                                                            SLOT(createSurfaceIDSymbolFocusSelected())));
-    }
-
-    /*
-     * Create focus at voxel as long as there is no volume focus ID
-     */
-    if (idVoxel->isValid()
-        && (focusVolID->isValid() == false)) {
-        int64_t ijk[3];
-        idVoxel->getVoxelIJK(ijk);
-        float xyz[3];
-        const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
-        vf->indexToSpace(ijk, xyz);
-        
-        const AString text = ("Create Focus at Voxel IJK ("
-                              + AString::fromNumbers(ijk, 3, ",")
-                              + ") XYZ ("
-                              + AString::fromNumbers(xyz, 3, ",")
-                              + ")...");
-        createActions.push_back(WuQtUtilities::createAction(text,
-                                                            "",
-                                                            this,
-                                                            this,
-                                                            SLOT(createVolumeFocusSelected())));
-    }
-    
-    if (createActions.empty() == false) {
-        if (this->actions().count() > 0) {
-            this->addSeparator();
-        }
-        for (std::vector<QAction*>::iterator iter = createActions.begin();
-             iter != createActions.end();
-             iter++) {
-            this->addAction(*iter);
-        }
-    }
-    
-    /*
-     * Actions for editing
-     */
-    std::vector<QAction*> editActions;
-    
-    /*
-     * Edit Surface Focus
-     */
-    if (focusID->isValid()) {
-        const QString text = ("Edit Surface Focus ("
-                              + focusID->getFocus()->getName()
-                              + ")");
-        editActions.push_back(WuQtUtilities::createAction(text,
-                                                          "",
-                                                          this,
-                                                          this,
-                                                          SLOT(editSurfaceFocusSelected())));
-    }
-    
-    /*
-     * Edit volume focus
-     */
-    if (focusVolID->isValid()) {
-        const QString text = ("Edit Volume Focus ("
-                              + focusVolID->getFocus()->getName()
-                              + ")");
-        editActions.push_back(WuQtUtilities::createAction(text,
-                                                          "",
-                                                          this,
-                                                          this,
-                                                          SLOT(editVolumeFocusSelected())));
-    }
-    
-    if (editActions.empty() == false) {
-        if (this->actions().count() > 0) {
-            this->addSeparator();
-        }
-        for (std::vector<QAction*>::iterator iter = editActions.begin();
-             iter != editActions.end();
-             iter++) {
-            this->addAction(*iter);
-        }
-    }
+//
+//    /*
+//     * Create focus at surface node or at ID symbol
+//     */
+//    if (surfaceID->isValid()
+//        && (focusID->isValid() == false)) {
+//        const int32_t nodeIndex = surfaceID->getNodeNumber();
+//        const Surface* surface = surfaceID->getSurface();
+//        const QString text = ("Create Focus at Vertex "
+//                              + QString::number(nodeIndex)
+//                              + " ("
+//                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+//                              + ")...");
+//        
+//        createActions.push_back(WuQtUtilities::createAction(text,
+//                                                            "",
+//                                                            this,
+//                                                            this,
+//                                                            SLOT(createSurfaceFocusSelected())));
+//    }
+//    else if (idSymbol->isValid()
+//             && (focusID->isValid() == false)) {
+//        const int32_t nodeIndex = idSymbol->getNodeNumber();
+//        const Surface* surface = idSymbol->getSurface();
+//        const QString text = ("Create Focus at Selected Vertex "
+//                              + QString::number(nodeIndex)
+//                              + " ("
+//                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+//                              + ")...");
+//        
+//        createActions.push_back(WuQtUtilities::createAction(text,
+//                                                            "",
+//                                                            this,
+//                                                            this,
+//                                                            SLOT(createSurfaceIDSymbolFocusSelected())));
+//    }
+//
+//    /*
+//     * Create focus at voxel as long as there is no volume focus ID
+//     */
+//    if (idVoxel->isValid()
+//        && (focusVolID->isValid() == false)) {
+//        int64_t ijk[3];
+//        idVoxel->getVoxelIJK(ijk);
+//        float xyz[3];
+//        const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
+//        vf->indexToSpace(ijk, xyz);
+//        
+//        const AString text = ("Create Focus at Voxel IJK ("
+//                              + AString::fromNumbers(ijk, 3, ",")
+//                              + ") XYZ ("
+//                              + AString::fromNumbers(xyz, 3, ",")
+//                              + ")...");
+//        createActions.push_back(WuQtUtilities::createAction(text,
+//                                                            "",
+//                                                            this,
+//                                                            this,
+//                                                            SLOT(createVolumeFocusSelected())));
+//    }
+//    
+//    if (createActions.empty() == false) {
+//        if (this->actions().count() > 0) {
+//            this->addSeparator();
+//        }
+//        for (std::vector<QAction*>::iterator iter = createActions.begin();
+//             iter != createActions.end();
+//             iter++) {
+//            this->addAction(*iter);
+//        }
+//    }
+//    
+//    /*
+//     * Actions for editing
+//     */
+//    std::vector<QAction*> editActions;
+//    
+//    /*
+//     * Edit Surface Focus
+//     */
+//    if (focusID->isValid()) {
+//        const QString text = ("Edit Surface Focus ("
+//                              + focusID->getFocus()->getName()
+//                              + ")");
+//        editActions.push_back(WuQtUtilities::createAction(text,
+//                                                          "",
+//                                                          this,
+//                                                          this,
+//                                                          SLOT(editSurfaceFocusSelected())));
+//    }
+//    
+//    /*
+//     * Edit volume focus
+//     */
+//    if (focusVolID->isValid()) {
+//        const QString text = ("Edit Volume Focus ("
+//                              + focusVolID->getFocus()->getName()
+//                              + ")");
+//        editActions.push_back(WuQtUtilities::createAction(text,
+//                                                          "",
+//                                                          this,
+//                                                          this,
+//                                                          SLOT(editVolumeFocusSelected())));
+//    }
+//    
+//    if (editActions.empty() == false) {
+//        if (this->actions().count() > 0) {
+//            this->addSeparator();
+//        }
+//        for (std::vector<QAction*>::iterator iter = editActions.begin();
+//             iter != editActions.end();
+//             iter++) {
+//            this->addAction(*iter);
+//        }
+//    }
     
     if (this->actions().count() > 0) {
         this->addSeparator();
@@ -701,21 +553,555 @@ BrainOpenGLWidgetContextMenu::~BrainOpenGLWidgetContextMenu()
     for (std::vector<ParcelConnectivity*>::iterator parcelIter = this->parcelConnectivities.begin();
          parcelIter != this->parcelConnectivities.end();
          parcelIter++) {
-        ParcelConnectivity* pc = *parcelIter;
-        delete pc;
+        delete *parcelIter;
     }
 }
 
 /**
- * Add the identification actions to the menu.
+ * Add the actions to this context menu.
  *
- * @param identificationManager
- *    The identification manager that is queried for identified items.
+ * @param actionsToAdd
+ *     Actions to add to the menum.
+ * @param addSeparatorBeforeActions
+ *     If true and there are actions presently in the menu, a separator
+ *     (horizontal bar) is added prior to adding the given actions.
  */
 void
-BrainOpenGLWidgetContextMenu::addIdentificationAction(const SelectionManager* identificationManager)
+BrainOpenGLWidgetContextMenu::addActionsToMenu(QList<QAction*>& actionsToAdd,
+                                               const bool addSeparatorBeforeActions)
 {
+    if (actionsToAdd.empty() == false) {
+        if (addSeparatorBeforeActions) {
+            if (actions().isEmpty() == false) {
+                addSeparator();
+            }
+        }
+
+        addActions(actionsToAdd);
+    }
+}
+
+
+/**
+ * Add the identification actions to the menu.
+ */
+void
+BrainOpenGLWidgetContextMenu::addIdentificationActions()
+{
+    /*
+     * Accumlate identification actions
+     */
+    QList<QAction*> identificationActions;
     
+    /*
+     * Identify Border
+     */
+    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    if (borderID->isValid()) {
+        const QString text = ("Identify Border ("
+                              + borderID->getBorder()->getName()
+                              + ") Under Mouse");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifySurfaceBorderSelected())));
+    }
+    
+    /*
+     * Identify Surface Focus
+     */
+    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    if (focusID->isValid()) {
+        const QString text = ("Identify Surface Focus ("
+                              + focusID->getFocus()->getName()
+                              + ") Under Mouse");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifySurfaceFocusSelected())));
+    }
+    
+    /*
+     * Identify Node
+     */
+    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+    if (surfaceID->isValid()) {
+        const int32_t nodeIndex = surfaceID->getNodeNumber();
+        const Surface* surface = surfaceID->getSurface();
+        const QString text = ("Identify Vertex "
+                              + QString::number(nodeIndex)
+                              + " ("
+                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+                              + ") Under Mouse");
+        
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifySurfaceNodeSelected())));
+    }
+    
+    /*
+     * Identify Voxel
+     */
+    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
+    if (idVoxel->isValid()) {
+        int64_t ijk[3];
+        idVoxel->getVoxelIJK(ijk);
+        const AString text = ("Identify Voxel ("
+                              + AString::fromNumbers(ijk, 3, ",")
+                              + ")");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifyVoxelSelected())));
+    }
+    
+    /*
+     * Identify Volume Focus
+     */
+    SelectionItemFocusVolume* focusVolID = this->identificationManager->getVolumeFocusIdentification();
+    if (focusVolID->isValid()) {
+        const QString text = ("Identify Volume Focus ("
+                              + focusVolID->getFocus()->getName()
+                              + ") Under Mouse");
+        identificationActions.push_back(WuQtUtilities::createAction(text,
+                                                                    "",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(identifyVolumeFocusSelected())));
+    }
+    
+    addActionsToMenu(identificationActions,
+                     true);
+}
+
+/**
+ * Add the border region of interest actions to the menu.
+ */
+void
+BrainOpenGLWidgetContextMenu::addBorderRegionOfInterestActions()
+{
+    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    
+    QList<QAction*> borderActions;
+    
+    if (borderID->isValid()) {
+        Brain* brain = borderID->getBrain();
+        std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+        brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+        bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
+        
+        /*
+         * Connectivity actions for borders
+         */
+        if (hasCiftiConnectivity) {
+            const QString text = ("Show CIFTI Connectivity for Nodes Inside Border "
+                                  + borderID->getBorder()->getName());
+            QAction* action = WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(borderCiftiConnectivitySelected()));
+            borderActions.push_back(action);
+        }
+        
+        std::vector<ChartableInterface*> chartableFiles;
+        brain->getAllChartableDataFiles(chartableFiles);
+        
+        if (chartableFiles.empty() == false) {
+            const QString text = ("Show Charts for Nodes Inside Border "
+                                  + borderID->getBorder()->getName());
+            QAction* action = WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(borderDataSeriesSelected()));
+            borderActions.push_back(action);
+        }
+    }
+
+    addActionsToMenu(borderActions,
+                     true);
+}
+
+/**
+ * Add all label region of interest options to the menu
+ */
+void
+BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
+{
+    Brain* brain = NULL;
+    
+    float voxelXYZ[3] = { 0.0, 0.0, 0.0 };
+    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
+    if (idVoxel->isValid()) {
+        double voxelXYZDouble[3];
+        idVoxel->getModelXYZ(voxelXYZDouble);
+        
+        voxelXYZ[0] = voxelXYZDouble[0];
+        voxelXYZ[1] = voxelXYZDouble[1];
+        voxelXYZ[2] = voxelXYZDouble[2];
+        brain = idVoxel->getBrain();
+    }
+    
+    Surface* surface = NULL;
+    int32_t surfaceNodeIndex = -1;
+    int32_t surfaceNumberOfNodes = -1;
+    StructureEnum::Enum surfaceStructure = StructureEnum::INVALID;
+    SelectionItemSurfaceNode* idNode = this->identificationManager->getSurfaceNodeIdentification();
+    if (idNode->isValid()) {
+        surface = idNode->getSurface();
+        surfaceNodeIndex = idNode->getNodeNumber();
+        surfaceNumberOfNodes = surface->getNumberOfNodes();
+        surfaceStructure = surface->getStructure();
+        brain = idNode->getBrain();
+    }
+    
+    /*
+     * If Brain is invalid, then there is no identified node or voxel
+     */
+    if (brain == NULL) {
+        return;
+    }
+    
+    /*
+     * Manager for connectivity matrix files
+     */
+    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityMatrixManager = brain->getCiftiConnectivityMatrixDataFileManager();
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
+    
+    /*
+     * Manager for fiber trajectory
+     */
+    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
+    std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
+    const int32_t numFiberFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    for (int32_t i = 0; i < numFiberFiles; i++) {
+        ciftiFiberTrajectoryFiles.push_back(brain->getConnectivityFiberTrajectoryFile(i));
+    }
+    const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
+    
+    /*
+     * Manager for Chartable files
+     */
+    std::vector<ChartableInterface*> chartableFiles;
+    brain->getAllChartableDataFiles(chartableFiles);
+    const bool haveChartableFiles = (chartableFiles.empty() == false);
+    ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
+
+    /*
+     * Actions for each file type
+     */
+    QList<QAction*> ciftiConnectivityActions;
+    QActionGroup* ciftiConnectivityActionGroup = new QActionGroup(this);
+    QObject::connect(ciftiConnectivityActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelCiftiConnectivityActionSelected(QAction*)));
+    
+    QList<QAction*> ciftiFiberTrajectoryActions;
+    QActionGroup* ciftiFiberTrajectoryActionGroup = new QActionGroup(this);
+    QObject::connect(ciftiFiberTrajectoryActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelCiftiFiberTrajectoryActionSelected(QAction*)));
+    
+    QList<QAction*> chartableDataActions;
+    QActionGroup* chartableDataActionGroup = new QActionGroup(this);
+    QObject::connect(chartableDataActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelChartableDataActionSelected(QAction*)));
+
+    /*
+     * Get all mappable files and find files mapped with using labels
+     */
+    std::vector<CaretMappableDataFile*> mappableFiles;
+    brain->getAllMappableDataFiles(mappableFiles);
+
+    /*
+     * Process each map file
+     */
+    for (std::vector<CaretMappableDataFile*>::iterator mapFileIterator = mappableFiles.begin();
+         mapFileIterator != mappableFiles.end();
+         mapFileIterator++) {
+        CaretMappableDataFile* mappableLabelFile = *mapFileIterator;
+        
+        if (mappableLabelFile->isMappedWithLabelTable()) {
+            const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
+            for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+                
+                Surface* labelSurface = NULL;
+                int32_t labelNodeNumber = -1;
+                int32_t labelKey = -1;
+                AString labelName;
+                
+                ParcelConnectivity::ParcelType parcelType = ParcelConnectivity::PARCEL_TYPE_INVALID;
+                
+                if (mappableLabelFile->isVolumeMappable()) {
+                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+                    VolumeFile* volumeLabelFile = dynamic_cast<VolumeFile*>(mappableLabelFile);
+                    VolumeMappableInterface* volumeInterface = dynamic_cast<VolumeMappableInterface*>(mappableLabelFile);
+                    if (volumeInterface != NULL) {
+                        int64_t voxelIJK[3];
+                        float voxelValue;
+                        bool voxelValueValid;
+                        AString textValue;
+                        if (ciftiLabelFile != NULL) {
+                            if (ciftiLabelFile->getMapVolumeVoxelValue(mapIndex,
+                                                                       voxelXYZ,
+                                                                       voxelIJK,
+                                                                       voxelValue,
+                                                                       voxelValueValid,
+                                                                       textValue)) {
+                                if (voxelValueValid) {
+                                    labelKey = static_cast<int32_t>(voxelValue);
+                                    const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
+                                    labelName =  labelTable->getLabelName(labelKey);
+                                    
+                                    if (labelName.isEmpty() == false) {
+                                        parcelType = ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS;
+                                    }
+                                }
+                            }
+                        }
+                        else if (volumeLabelFile != NULL) {
+                            int64_t voxelIJK[3];
+                            volumeLabelFile->enclosingVoxel(voxelXYZ, voxelIJK);
+                            if (volumeLabelFile->indexValid(voxelIJK)) {
+                                const float voxelValue = volumeLabelFile->getValue(voxelIJK[0],
+                                                                                   voxelIJK[1],
+                                                                                   voxelIJK[2],
+                                                                                   mapIndex);
+                                const GiftiLabelTable* labelTable = volumeLabelFile->getMapLabelTable(mapIndex);
+                                labelKey = static_cast<int32_t>(voxelValue);
+                                labelName = labelTable->getLabelName(voxelValue);
+
+                                if (labelName.isEmpty() == false) {
+                                    parcelType = ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS;
+                                }
+                            }
+                        }
+                        else {
+                            CaretAssertMessage(0,
+                                               "Should never get here, new or invalid label file type");
+                        }
+                    }
+                }
+                
+                if (mappableLabelFile->isSurfaceMappable()) {
+                    if (labelName.isEmpty()) {
+                        if (idNode->isValid()) {
+                            labelSurface = idNode->getSurface();
+                            labelNodeNumber = idNode->getNodeNumber();
+                            
+                            LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
+                            CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+                            
+                            if (labelFile != NULL) {
+                                labelKey = labelFile->getLabelKey(labelNodeNumber, mapIndex);
+                                const GiftiLabelTable* labelTable = labelFile->getMapLabelTable(mapIndex);
+                                labelName = labelTable->getLabelName(labelKey);
+                                
+                                if (labelName.isEmpty() == false) {
+                                    parcelType = ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES;
+                                }
+                            }
+                            else if (ciftiLabelFile != NULL) {
+                                float nodeValue = 0.0;
+                                bool nodeValueValid = false;
+                                AString stringValue;
+                                if (ciftiLabelFile->getMapSurfaceNodeValue(mapIndex,
+                                                                           surfaceStructure,
+                                                                           surfaceNodeIndex,
+                                                                           surfaceNumberOfNodes,
+                                                                           nodeValue,
+                                                                           nodeValueValid,
+                                                                           stringValue)) {
+                                    if (nodeValueValid) {
+                                        labelKey = nodeValue;
+                                        const GiftiLabelTable* labelTable = labelFile->getMapLabelTable(mapIndex);
+                                        labelName = labelTable->getLabelName(labelKey);
+
+                                        if (labelName.isEmpty() == false) {
+                                            parcelType = ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (parcelType != ParcelConnectivity::PARCEL_TYPE_INVALID) {
+                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
+                    
+                    ParcelConnectivity* parcelConnectivity = new ParcelConnectivity(parcelType,
+                                                                                    mappableLabelFile,
+                                                                                  mapIndex,
+                                                                                  labelKey,
+                                                                                  labelName,
+                                                                                  labelSurface,
+                                                                                  labelNodeNumber,
+                                                                                  chartingDataManager,
+                                                                                  ciftiConnectivityMatrixManager,
+                                                                                  ciftiFiberTrajectoryManager);
+                        this->parcelConnectivities.push_back(parcelConnectivity);
+
+                    if (hasCiftiConnectivity) {
+                        const AString actionName("Show Cifti Connectivity For Parcel "
+                                                 + labelName
+                                                 + " in map "
+                                                 + mapName);
+                        QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
+                        action->setData(qVariantFromValue((void*)parcelConnectivity));
+                        ciftiConnectivityActions.push_back(action);
+                    }
+                    
+                    if (haveCiftiFiberTrajectoryFiles) {
+                        const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
+                                                          + labelName
+                                                          + " in map "
+                                                          + mapName);
+                        QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
+                        fiberTrajAction->setData(qVariantFromValue((void*)parcelConnectivity));
+                        ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
+                    }
+                    
+                    if (haveChartableFiles) {
+                        const AString tsActionName("Show Data Series Graph For Parcel "
+                                                   + labelName
+                                                   + " in map "
+                                                   + mapName);
+                        QAction* tsAction = chartableDataActionGroup->addAction(tsActionName);
+                        tsAction->setData(qVariantFromValue((void*)parcelConnectivity));
+                        chartableDataActions.push_back(tsAction);
+                    }
+                }
+            }
+        }
+    }
+
+    addActionsToMenu(ciftiConnectivityActions,
+                     true);
+    addActionsToMenu(ciftiFiberTrajectoryActions,
+                     true);
+    addActionsToMenu(chartableDataActions,
+                     true);
+}
+
+/**
+ * Add the foci options to the menu.
+ */
+void
+BrainOpenGLWidgetContextMenu::addFociActions()
+{
+    QList<QAction*> fociCreateActions;
+    
+    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
+    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
+    SelectionItemFocusVolume* focusVolID = this->identificationManager->getVolumeFocusIdentification();
+    
+    
+    /*
+     * Create focus at surface node or at ID symbol
+     */
+    if (surfaceID->isValid()
+        && (focusID->isValid() == false)) {
+        const int32_t nodeIndex = surfaceID->getNodeNumber();
+        const Surface* surface = surfaceID->getSurface();
+        const QString text = ("Create Focus at Vertex "
+                              + QString::number(nodeIndex)
+                              + " ("
+                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+                              + ")...");
+        
+        fociCreateActions.push_back(WuQtUtilities::createAction(text,
+                                                            "",
+                                                            this,
+                                                            this,
+                                                            SLOT(createSurfaceFocusSelected())));
+    }
+    else if (idSymbol->isValid()
+             && (focusID->isValid() == false)) {
+        const int32_t nodeIndex = idSymbol->getNodeNumber();
+        const Surface* surface = idSymbol->getSurface();
+        const QString text = ("Create Focus at Selected Vertex "
+                              + QString::number(nodeIndex)
+                              + " ("
+                              + AString::fromNumbers(surface->getCoordinate(nodeIndex), 3, ",")
+                              + ")...");
+        
+        fociCreateActions.push_back(WuQtUtilities::createAction(text,
+                                                            "",
+                                                            this,
+                                                            this,
+                                                            SLOT(createSurfaceIDSymbolFocusSelected())));
+    }
+    
+    /*
+     * Create focus at voxel as long as there is no volume focus ID
+     */
+    if (idVoxel->isValid()
+        && (focusVolID->isValid() == false)) {
+        int64_t ijk[3];
+        idVoxel->getVoxelIJK(ijk);
+        float xyz[3];
+        const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
+        vf->indexToSpace(ijk, xyz);
+        
+        const AString text = ("Create Focus at Voxel IJK ("
+                              + AString::fromNumbers(ijk, 3, ",")
+                              + ") XYZ ("
+                              + AString::fromNumbers(xyz, 3, ",")
+                              + ")...");
+        fociCreateActions.push_back(WuQtUtilities::createAction(text,
+                                                            "",
+                                                            this,
+                                                            this,
+                                                            SLOT(createVolumeFocusSelected())));
+    }
+    
+    addActionsToMenu(fociCreateActions,
+                     true);
+    
+    /*
+     * Actions for editing
+     */
+    QList<QAction*> fociEditActions;
+    
+    /*
+     * Edit Surface Focus
+     */
+    if (focusID->isValid()) {
+        const QString text = ("Edit Surface Focus ("
+                              + focusID->getFocus()->getName()
+                              + ")");
+        fociEditActions.push_back(WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(editSurfaceFocusSelected())));
+    }
+    
+    /*
+     * Edit volume focus
+     */
+    if (focusVolID->isValid()) {
+        const QString text = ("Edit Volume Focus ("
+                              + focusVolID->getFocus()->getName()
+                              + ")");
+        fociEditActions.push_back(WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(editVolumeFocusSelected())));
+    }
+    
+    addActionsToMenu(fociEditActions,
+                     true);
 }
 
 /**
@@ -730,17 +1116,26 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
-    pc->getNodeIndices(nodeIndices);
-    if (nodeIndices.empty()) {
-        WuQMessageBox::errorOk(this,
-                               "No vertices match label " + pc->labelName);
-        return;
+    switch (pc->parcelType) {
+        case ParcelConnectivity::PARCEL_TYPE_INVALID:
+            break;
+        case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
+            pc->getNodeIndices(nodeIndices);
+            if (nodeIndices.empty()) {
+                WuQMessageBox::errorOk(this,
+                                       "No vertices match label " + pc->labelName);
+                return;
+            }
+            
+            if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
+                                                    nodeIndices) == false) {
+                return;
+            }
+            break;
+        case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+            break;
     }
     
-    if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
-                                            nodeIndices) == false) {
-        return;
-    }
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -750,8 +1145,17 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                                                "",
                                                this);
         progressDialog.setValue(0);
-        pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->surface,
-                                                                      nodeIndices);
+        
+        switch (pc->parcelType) {
+            case ParcelConnectivity::PARCEL_TYPE_INVALID:
+                break;
+            case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
+                pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->surface,
+                                                                             nodeIndices);
+                break;
+            case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+                break;
+        }
     }
     catch (const DataFileException& e) {
         cursor.restoreCursor();
@@ -775,17 +1179,27 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
-    pc->getNodeIndices(nodeIndices);
-    if (nodeIndices.empty()) {
-        WuQMessageBox::errorOk(this,
-                               "No vertices match label " + pc->labelName);
-        return;
+    
+    switch (pc->parcelType) {
+        case ParcelConnectivity::PARCEL_TYPE_INVALID:
+            break;
+        case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
+            pc->getNodeIndices(nodeIndices);
+            if (nodeIndices.empty()) {
+                WuQMessageBox::errorOk(this,
+                                       "No vertices match label " + pc->labelName);
+                return;
+            }
+            
+            if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
+                                                    nodeIndices) == false) {
+                return;
+            }
+            break;
+        case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+            break;
     }
     
-    if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
-                                            nodeIndices) == false) {
-        return;
-    }
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -795,8 +1209,17 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
                                                "",
                                                this);
         progressDialog.setValue(0);
-        pc->ciftiFiberTrajectoryManager->loadDataAverageForSurfaceNodes(pc->surface,
-                                                                        nodeIndices);
+        
+        switch (pc->parcelType) {
+            case ParcelConnectivity::PARCEL_TYPE_INVALID:
+                break;
+            case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
+                pc->ciftiFiberTrajectoryManager->loadDataAverageForSurfaceNodes(pc->surface,
+                                                                                nodeIndices);
+                break;
+            case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+                break;
+        }
     }
     catch (const DataFileException& e) {
         cursor.restoreCursor();
@@ -961,23 +1384,33 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
  *    Action that was selected.
  */
 void 
-BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
+BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
 {
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
-    pc->getNodeIndices(nodeIndices);
-    if (nodeIndices.empty()) {
-        WuQMessageBox::errorOk(this,
-                               "No vertices match label " + pc->labelName);
-        return;
+    
+    switch (pc->parcelType) {
+        case ParcelConnectivity::PARCEL_TYPE_INVALID:
+            break;
+        case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
+            pc->getNodeIndices(nodeIndices);
+            if (nodeIndices.empty()) {
+                WuQMessageBox::errorOk(this,
+                                       "No vertices match label " + pc->labelName);
+                return;
+            }
+            
+            if (this->warnIfNetworkNodeCountIsLarge(pc->chartingDataManager,
+                                                    nodeIndices) == false) {
+                return;
+            }
+            break;
+        case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+            break;
     }
     
-    if (this->warnIfNetworkNodeCountIsLarge(pc->chartingDataManager,
-                                            nodeIndices) == false) {
-        return;
-    }
     
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
@@ -989,11 +1422,21 @@ BrainOpenGLWidgetContextMenu::parcelDataSeriesActionSelected(QAction* action)
         progressDialog.setValue(0);
         
         const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
+        
         QList<TimeLine> timeLines;
-        pc->chartingDataManager->loadAverageChartForSurfaceNodes(pc->surface,
-                                                            nodeIndices,
-                                                                 true,  // only files with charting enabled
-                                                            timeLines);
+        switch (pc->parcelType) {
+            case ParcelConnectivity::PARCEL_TYPE_INVALID:
+                break;
+            case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
+                pc->chartingDataManager->loadAverageChartForSurfaceNodes(pc->surface,
+                                                                         nodeIndices,
+                                                                         true,  // only files with charting enabled
+                                                                         timeLines);
+                break;
+            case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+                break;
+        }
+
         if(timeLines.size()!=0)
         {
             for (int i = 0; i < timeLines.size(); i++) {
@@ -1503,7 +1946,8 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ChartingDataMa
 /**
  * Constructor.
  */
-BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
+BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(const ParcelType parcelType,
+                                                                     CaretMappableDataFile* mappableLabelFile,
                    const int32_t labelFileMapIndex,
                    const int32_t labelKey,
                    const QString& labelName,
@@ -1512,6 +1956,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(CaretMappab
                    ChartingDataManager* chartingDataManager,
                    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
                    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager) {
+    this->parcelType = parcelType;
     this->mappableLabelFile = mappableLabelFile;
     this->labelFileMapIndex = labelFileMapIndex;
     this->labelKey = labelKey;
@@ -1542,8 +1987,13 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int
 {
     nodeIndicesOut.clear();
     
+    if (this->parcelType != PARCEL_TYPE_SURFACE_NODES) {
+        return;
+    }
+    
     CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
     LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
+    VolumeFile* volumeLabelFile = dynamic_cast<VolumeFile*>(mappableLabelFile);
     if (ciftiLabelFile != NULL) {
         ciftiLabelFile->getNodeIndicesWithLabelKey(surface->getStructure(),
                                                    surface->getNumberOfNodes(),
@@ -1556,41 +2006,13 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int
                                               labelKey,
                                               nodeIndicesOut);
     }
+    else if (volumeLabelFile != NULL) {
+        /* nothing */
+    }
     else {
         CaretAssertMessage(0,
                            "Should never get here, new or invalid label file type");
     }
     
 }
-
-/* ------------------------------------------------------------------------- */
-/**
- * Constructor.
- */
-BrainOpenGLWidgetContextMenu::VolumeParcelConnectivity::VolumeParcelConnectivity(CaretMappableDataFile* mappableLabelFile,
-                                                                                 const int32_t labelFileMapIndex,
-                                                                                 const int32_t labelKey,
-                                                                                 const QString& labelName,
-                                                                                 const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                                                                 const float sliceCoordinate,
-                                                                                 ChartingDataManager* chartingDataManager,
-                                                                                 CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager) {
-    this->mappableLabelFile = mappableLabelFile;
-    this->labelFileMapIndex = labelFileMapIndex;
-    this->labelKey = labelKey;
-    this->labelName = labelName;
-    this->slicePlane = slicePlane;
-    this->sliceCoordinate = sliceCoordinate;
-    this->chartingDataManager = chartingDataManager;
-    this->ciftiConnectivityManager = ciftiConnectivityManager;
-}
-
-/**
- * Destructor.
- */
-BrainOpenGLWidgetContextMenu::VolumeParcelConnectivity::~VolumeParcelConnectivity()
-{
-    
-}
-
 
