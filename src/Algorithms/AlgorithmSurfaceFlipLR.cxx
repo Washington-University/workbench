@@ -66,6 +66,8 @@ AlgorithmSurfaceFlipLR::AlgorithmSurfaceFlipLR(ProgressObject* myProgObj, const 
 {
     LevelProgress myProgress(myProgObj);
     mySurfOut->setNumberOfNodesAndTriangles(mySurf->getNumberOfNodes(), mySurf->getNumberOfTriangles());
+    mySurfOut->setSurfaceType(mySurf->getSurfaceType());
+    mySurfOut->setSecondaryType(mySurf->getSecondaryType());
     int numNodes = mySurf->getNumberOfNodes();
     float tempcoord[3];
     for (int i = 0; i < numNodes; ++i)
