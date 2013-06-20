@@ -168,6 +168,8 @@ namespace caret {
         
         void displayAllDataSeriesGraphs();
         
+        void addIdentificationAction(const SelectionManager* identificationManager);
+        
         std::vector<ParcelConnectivity*> parcelConnectivities;
         
         SelectionManager* identificationManager;

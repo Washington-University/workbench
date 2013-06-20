@@ -417,6 +417,110 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
         }
     }
     
+//    if (idVoxel->isValid()) {
+//        Brain* brain = idVoxel->getBrain();
+//        std::vector<CaretMappableDataFile*> mappableFiles;
+//        brain->getAllMappableDataFiles(mappableFiles);
+//        
+//        double voxelXYZDouble[3];
+//        idVoxel->getModelXYZ(voxelXYZDouble);
+//        const float voxelXYZ[3] = {
+//            voxelXYZDouble[0],
+//            voxelXYZDouble[1],
+//            voxelXYZDouble[2]
+//        };
+//        const int32_t numberOfFiles = static_cast<int32_t>(mappableFiles.size());
+//        for (int32_t ilf = 0; ilf < numberOfFiles; ilf++) {
+//            CaretMappableDataFile* mappableLabelFile = mappableFiles[ilf];
+//            if (mappableLabelFile->isMappedWithLabelTable()
+//                && mappableLabelFile->isVolumeMappable()) {
+//                const int32_t numMaps = mappableLabelFile->getNumberOfMaps();
+//                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+//                    
+//                    int32_t labelKey = -1;
+//                    AString labelName;
+//                    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+//                    VolumeFile* volumeLabelFile = dynamic_cast<VolumeFile*>(mappableLabelFile);
+//                    VolumeMappableInterface* volumeInterface = dynamic_cast<VolumeMappableInterface*>(mappableLabelFile);
+//                    if (volumeInterface != NULL) {
+//                        float nodeValue;
+//                        bool nodeValueValid = false;
+//                        AString stringValue;
+//                        
+//                        int64_t voxelIJK[3];
+//                        float voxelValue;
+//                        bool voxelValueValid;
+//                        AString textValue;
+//                        if (ciftiLabelFile->getMapVolumeVoxelValue(mapIndex,
+//                                                                   voxelXYZ,
+//                                                                   voxelIJK,
+//                                                                   voxelValue,
+//                                                                   voxelValueValid,
+//                                                                   textValue)) {
+//                            if (voxelValueValid) {
+//                                labelKey = static_cast<int32_t>(voxelValue);
+//                                const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
+//                                labelName =  labelTable->getLabelName(labelKey);
+//                            }
+//                        }
+//                    }
+//                    else {
+//                        CaretAssertMessage(0,
+//                                           "Should never get here, new or invalid label file type");
+//                    }
+//                    
+//                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
+//                    
+//                    
+////                if (labelName.isEmpty() == false) {
+////                    ParcelConnectivity* pc = new ParcelConnectivity(mappableLabelFile,
+////                                                                    mapIndex,
+////                                                                    labelKey,
+////                                                                    labelName,
+////                                                                    surface,
+////                                                                    nodeNumber,
+////                                                                    chartingDataManager,
+////                                                                    connMatrixMan,
+////                                                                    ciftiFiberTrajectoryManager);
+////                    this->parcelConnectivities.push_back(pc);
+////                    
+////                    if (hasCiftiConnectivity) {
+////                        const AString actionName("Show Cifti Connectivity For Parcel "
+////                                                 + labelName
+////                                                 + " in map "
+////                                                 + mapName);
+////                        QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
+////                        action->setData(qVariantFromValue((void*)pc));
+////                        ciftiConnectivityActions.push_back(action);
+////                    }
+////                    
+////                    if (haveCiftiFiberTrajectoryFiles) {
+////                        const AString fiberTrajActionName("Show Average Fiber Trajectory for Parcel "
+////                                                          + labelName
+////                                                          + " in map "
+////                                                          + mapName);
+////                        QAction* fiberTrajAction = ciftiFiberTrajectoryActionGroup->addAction(fiberTrajActionName);
+////                        fiberTrajAction->setData(qVariantFromValue((void*)pc));
+////                        ciftiFiberTrajectoryActions.push_back(fiberTrajAction);
+////                    }
+////                    
+////                    if (haveChartableFiles) {
+////                        const AString tsActionName("Show Data Series Graph For Parcel "
+////                                                   + labelName
+////                                                   + " in map "
+////                                                   + mapName);
+////                        QAction* tsAction = dataSeriesActionGroup->addAction(tsActionName);
+////                        tsAction->setData(qVariantFromValue((void*)pc));
+////                        dataSeriesActions.push_back(tsAction);
+////                    }
+////                }
+//                    
+//                    
+//                }
+//            }
+//        }
+//    }
+    
     if (borderConnectivityActions.empty() == false) {
         this->addSeparator();
         for (std::vector<QAction*>::iterator borderIter = borderConnectivityActions.begin();
@@ -600,6 +704,18 @@ BrainOpenGLWidgetContextMenu::~BrainOpenGLWidgetContextMenu()
         ParcelConnectivity* pc = *parcelIter;
         delete pc;
     }
+}
+
+/**
+ * Add the identification actions to the menu.
+ *
+ * @param identificationManager
+ *    The identification manager that is queried for identified items.
+ */
+void
+BrainOpenGLWidgetContextMenu::addIdentificationAction(const SelectionManager* identificationManager)
+{
+    
 }
 
 /**
