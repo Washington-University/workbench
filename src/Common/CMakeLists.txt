@@ -96,6 +96,7 @@ StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
 Vector3D.h
+VoxelIJK.h
 
 ${MOC_SOURCE_FILES}
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx

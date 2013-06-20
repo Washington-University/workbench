@@ -27,6 +27,7 @@
 
 #include "AbstractAlgorithm.h"
 #include "Vector3D.h"
+#include "VoxelIJK.h"
 #include <vector>
 
 namespace caret {
@@ -35,12 +36,6 @@ namespace caret {
     
     class AlgorithmVolumeExtrema : public AbstractAlgorithm
     {
-        struct VoxelIJK
-        {
-            int64_t m_ijk[3];//so i can put this in a vector
-            VoxelIJK() { }
-            VoxelIJK(int64_t i, int64_t j, int64_t k) { m_ijk[0] = i; m_ijk[1] = j; m_ijk[2] = k; }
-        };
         std::vector<VoxelIJK> m_stencil;
         int64_t m_irange, m_jrange, m_krange;
         AlgorithmVolumeExtrema();
