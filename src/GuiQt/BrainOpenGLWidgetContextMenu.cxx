@@ -1116,6 +1116,8 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
+    std::vector<VoxelIJK> voxelIndices;
+    
     switch (pc->parcelType) {
         case ParcelConnectivity::PARCEL_TYPE_INVALID:
             break;
@@ -1127,12 +1129,24 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                 return;
             }
             
-            if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
-                                                    nodeIndices) == false) {
-                return;
+            if (pc->ciftiConnectivityManager->hasNetworkFiles()) {
+                if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+                    return;
+                }
             }
             break;
         case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+            pc->getVoxelIndices(voxelIndices);
+            if (voxelIndices.empty()) {
+                WuQMessageBox::errorOk(this,
+                                       "No voxels match label " + pc->labelName);
+                return;
+            }
+            if (pc->ciftiConnectivityManager->hasNetworkFiles()) {
+                if (warnIfNetworkBrainordinateCountIsLarge(voxelIndices.size())) {
+                    return;
+                }
+            }
             break;
     }
     
@@ -1191,10 +1205,11 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
                 return;
             }
             
-            if (this->warnIfNetworkNodeCountIsLarge(pc->ciftiConnectivityManager,
-                                                    nodeIndices) == false) {
-                return;
-            }
+//            if (pc->ciftiFiberTrajectoryManager->hasNetworkFiles()) {
+//                if (warnIfBrainordinateCountIsLarge(nodeIndices.size())) {
+//                    return;
+//                }
+//            }
             break;
         case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
             break;
@@ -1269,9 +1284,10 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
             return;
         }
         
-        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getChartingDataManager(),
-                                                nodeIndices) == false) {
-            return;
+        if (borderID->getBrain()->getChartingDataManager()->hasNetworkFiles()) {
+            if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+                return;
+            }
         }
         
         CursorDisplayScoped cursor;
@@ -1402,9 +1418,10 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
                 return;
             }
             
-            if (this->warnIfNetworkNodeCountIsLarge(pc->chartingDataManager,
-                                                    nodeIndices) == false) {
-                return;
+            if (pc->chartingDataManager->hasNetworkFiles()) {
+                if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+                    return;
+                }
             }
             break;
         case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
@@ -1502,9 +1519,10 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
             return;
         }
         
-        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getChartingDataManager(),
-                                                nodeIndices) == false) {
-            return;
+        if (borderID->getBrain()->getChartingDataManager()->hasNetworkFiles()) {
+            if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+                return;
+            }
         }
         
         CursorDisplayScoped cursor;
@@ -1871,76 +1889,31 @@ BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
+
 /**
- * If any enabled connectivity files retrieve data from the network
- * and the number of nodes is large, warn the user since this will
- * be a very slow operation.
+ * This is called when the data file is on the network to warn users if the
+ * query is very large and may take a long time.
  *
- * @param clm
- *    The connectivity manager.
- * @param nodeIndices
- *    Indices of nodes that will have connectivity data retrieved.
- * @return
- *    true if process should continue, false if user cancels.
+ * @param numberOfBrainordinatesInROI
+ *    Number of brainordinates in the ROI.
  */
 bool
-BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,
-                                                            const std::vector<int32_t>& nodeIndices)
+BrainOpenGLWidgetContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64_t numberOfBrainordinatesInROI)
 {
-    const int32_t numNodes = static_cast<int32_t>(nodeIndices.size());
-    if (numNodes < 200) {
-        return true;
-    }
-    
-    if (cmdf->hasNetworkFiles() == false) {
+    if (numberOfBrainordinatesInROI < 200) {
         return true;
     }
     
     const QString msg = ("There are "
-                         + QString::number(numNodes)
-                         + " vertices in the selected region.  Loading data from the network for "
-                         + "this quantity of vertices may take a very long time.");
+                         + QString::number(numberOfBrainordinatesInROI)
+                         + " brainordinates in the selected region.  Loading data from the network for "
+                         + "this quantity of brainordinates may take a very long time.");
     const bool result = WuQMessageBox::warningYesNo(this,
                                                     "Do you want to continue?",
                                                     msg);
     return result;
 }
 
-
-/**
- * If any enabled connectivity files retrieve data from the network
- * and the number of nodes is large, warn the user since this will
- * be a very slow operation.
- *
- * @param chartingDataManager
- *    The charting data manager.
- * @param nodeIndices
- *    Indices of nodes that will have connectivity data retrieved.
- * @return 
- *    true if process should continue, false if user cancels.
- */
-bool 
-BrainOpenGLWidgetContextMenu::warnIfNetworkNodeCountIsLarge(const ChartingDataManager* chartingDataManager,
-                                                            const std::vector<int32_t>& nodeIndices)
-{
-    const int32_t numNodes = static_cast<int32_t>(nodeIndices.size());
-    if (numNodes < 200) {
-        return true;
-    }
-    
-    if (chartingDataManager->hasNetworkFiles() == false) {
-        return true;
-    }
-    
-    const QString msg = ("There are "
-                         + QString::number(numNodes)
-                         + " vertices in the selected region.  Loading data for "
-                         + "this quantity of vertices may take a very long time.");
-    const bool result = WuQMessageBox::warningYesNo(this,
-                                                    "Do you want to continue?",
-                                                    msg);
-    return result;
-}
 
 /* ------------------------------------------------------------------------- */
 /**
@@ -1977,7 +1950,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::~ParcelConnectivity()
 }
 
 /**
- * Get the indices inside the parcel.
+ * Get the node indices comprising the parcel.
  *
  * @param nodeIndicesOut
  *    Contains node indices upon exit.
@@ -1993,7 +1966,6 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int
     
     CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
     LabelFile* labelFile = dynamic_cast<LabelFile*>(mappableLabelFile);
-    VolumeFile* volumeLabelFile = dynamic_cast<VolumeFile*>(mappableLabelFile);
     if (ciftiLabelFile != NULL) {
         ciftiLabelFile->getNodeIndicesWithLabelKey(surface->getStructure(),
                                                    surface->getNumberOfNodes(),
@@ -2006,13 +1978,43 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::getNodeIndices(std::vector<int
                                               labelKey,
                                               nodeIndicesOut);
     }
+    else {
+        CaretAssertMessage(0,
+                           "Should never get here, new or invalid label file type for surface nodes");
+    }
+}
+
+/**
+ * Get the voxel indices comprising the parcel
+ *
+ * @param voxelIndicesOut
+ *    Contains voxel indices upon exit.
+ */
+void
+BrainOpenGLWidgetContextMenu::ParcelConnectivity::getVoxelIndices(std::vector<VoxelIJK>& voxelIndicesOut) const
+{
+    voxelIndicesOut.clear();
+
+    if (this->parcelType != PARCEL_TYPE_VOLUME_VOXELS) {
+        return;
+    }
+
+    CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mappableLabelFile);
+    VolumeFile* volumeLabelFile = dynamic_cast<VolumeFile*>(mappableLabelFile);
+    if (ciftiLabelFile != NULL) {
+        ciftiLabelFile->getVoxelIndicesWithLabelKey(labelFileMapIndex,
+                                                    labelKey,
+                                                    voxelIndicesOut);
+    }
     else if (volumeLabelFile != NULL) {
-        /* nothing */
+        volumeLabelFile->getVoxelIndicesWithLabelKey(labelFileMapIndex,
+                                                    labelKey,
+                                                    voxelIndicesOut);
     }
     else {
         CaretAssertMessage(0,
-                           "Should never get here, new or invalid label file type");
+                           "Should never get here, new or invalid label file type for volume voxels");
     }
-    
 }
+
 

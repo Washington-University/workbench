@@ -1293,5 +1293,41 @@ VolumeFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     return true;
 }
 
+/**
+ * Get the voxel indices of all voxels in the given map with the given label key.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param labelKey
+ *    Key of the label.
+ * @param voxelIndicesOut
+ *    Output containing indices of voxels with the given label key.
+ */
+void
+VolumeFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
+                                        const int32_t labelKey,
+                                        std::vector<VoxelIJK>& voxelIndicesOut) const
+{
+    voxelIndicesOut.clear();
+    
+    std::vector<int64_t> dims;
+    getDimensions(dims);
+    
+    const int64_t dimI = dims[0];
+    const int64_t dimJ = dims[1];
+    const int64_t dimK = dims[2];
+    
+    for (int64_t i = 0; i < dimI; i++) {
+        for (int64_t j = 0; j < dimJ; j++) {
+            for (int64_t k = 0; k < dimK; k++) {
+                const float keyValue = static_cast<int32_t>(getValue(i, j, k, mapIndex));
+                if (keyValue == labelKey) {
+                    voxelIndicesOut.push_back(VoxelIJK(i, j, k));
+                }
+            }
+        }
+    }
+}
+
 
 

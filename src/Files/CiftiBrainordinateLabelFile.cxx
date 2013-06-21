@@ -110,3 +110,47 @@ CiftiBrainordinateLabelFile::getNodeIndicesWithLabelKey(const StructureEnum::Enu
         }
     }
 }
+
+/**
+ * Get the voxel indices of all voxels in the given map with the given label key.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param labelKey
+ *    Key of the label.
+ * @param voxelIndicesOut
+ *    Output containing indices of voxels with the given label key.
+ */
+void
+CiftiBrainordinateLabelFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
+                                                         const int32_t labelKey,
+                                                         std::vector<VoxelIJK>& voxelIndicesOut) const
+{
+    voxelIndicesOut.clear();
+    
+    const std::vector<CiftiVolumeMap>* volumeMapsPointer = m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates();
+    if (volumeMapsPointer == NULL) {
+        return;
+    }
+    const std::vector<CiftiVolumeMap>& volumeMaps = *volumeMapsPointer;
+    
+    std::vector<float> mapData;
+    getMapData(mapIndex,
+               mapData);
+    
+    for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
+         iter != volumeMaps.end();
+         iter++) {
+        const CiftiVolumeMap& vm = *iter;
+        const int64_t dataOffset = vm.m_ciftiIndex;
+        
+        CaretAssertVectorIndex(mapData, dataOffset);
+        const int32_t key = static_cast<int32_t>(mapData[dataOffset]);
+        
+        if (key == labelKey) {
+            voxelIndicesOut.push_back(VoxelIJK(vm.m_ijk));
+        }
+    }
+}
+
+

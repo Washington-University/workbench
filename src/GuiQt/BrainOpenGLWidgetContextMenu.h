@@ -40,6 +40,7 @@
 #include <QMenu>
 
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VoxelIJK.h"
 
 class QAction;
 
@@ -127,6 +128,8 @@ namespace caret {
             
             void getNodeIndices(std::vector<int32_t>& nodeIndicesOut) const;
             
+            void getVoxelIndices(std::vector<VoxelIJK>& voxelIndicesOut) const;
+            
             ParcelType parcelType;
             CaretMappableDataFile* mappableLabelFile;
             int32_t labelFileMapIndex;
@@ -142,11 +145,8 @@ namespace caret {
         BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);
 
         BrainOpenGLWidgetContextMenu& operator=(const BrainOpenGLWidgetContextMenu&);
-                
-        bool warnIfNetworkNodeCountIsLarge(const ChartingDataManager* chartingDataManager,
-                                           const std::vector<int32_t>& nodeIndices);
-        bool warnIfNetworkNodeCountIsLarge(const CiftiConnectivityMatrixDataFileManager* cmdf,
-                                           const std::vector<int32_t>& nodeIndices);
+        
+        bool warnIfNetworkBrainordinateCountIsLarge(const int64_t numberOfBrainordinatesInROI);
         
         bool enableDataSeriesGraphsIfNoneEnabled();
         

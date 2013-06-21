@@ -36,6 +36,7 @@
 #include "DescriptiveStatistics.h"
 #include "PaletteFile.h"
 #include "VolumeFileVoxelColorizer.h"
+#include "VoxelIJK.h"
 
 namespace caret {
     
@@ -212,6 +213,10 @@ namespace caret {
         
         const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
 
+        void getVoxelIndicesWithLabelKey(const int32_t mapIndex,
+                                         const int32_t labelKey,
+                                         std::vector<VoxelIJK>& voxelIndicesOut) const;
+        
         AString getMapUniqueID(const int32_t mapIndex) const;
         
         void updateScalarColoringForMap(const int32_t mapIndex,

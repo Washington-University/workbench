@@ -36,6 +36,7 @@
 
 
 #include "CiftiMappableDataFile.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
@@ -51,6 +52,10 @@ namespace caret {
                                         const int32_t mapIndex,
                                         const int32_t labelKey,
                                         std::vector<int32_t>& nodeIndicesOut) const;
+        
+        void getVoxelIndicesWithLabelKey(const int32_t mapIndex,
+                                         const int32_t labelKey,
+                                         std::vector<VoxelIJK>& voxelIndicesOut) const;
         
     private:
         CiftiBrainordinateLabelFile(const CiftiBrainordinateLabelFile&);
