@@ -34,6 +34,12 @@ namespace caret {
         int64_t m_ijk[3];//so it can be put in a vector
         VoxelIJK() { }
         VoxelIJK(int64_t i, int64_t j, int64_t k) { m_ijk[0] = i; m_ijk[1] = j; m_ijk[2] = k; }
+
+        VoxelIJK(const int64_t ijk[3]) { 
+            m_ijk[0] = ijk[0]; 
+            m_ijk[1] = ijk[1]; 
+            m_ijk[2] = ijk[2]; 
+        }
     };
     
 }
