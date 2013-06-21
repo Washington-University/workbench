@@ -206,7 +206,7 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
         if (this->encoding == GiftiEncodingEnum::EXTERNAL_FILE_BINARY) {
             if (this->externalFileOutputStream == NULL) {
                 char* name = this->getExternalFileNameForWriting().toCharArray();
-                this->externalFileOutputStream = new std::ofstream(name);
+                this->externalFileOutputStream = new std::ofstream(name,std::fstream::binary);
                 delete[] name;
                 if (! *this->externalFileOutputStream) {
                     this->closeFiles();
