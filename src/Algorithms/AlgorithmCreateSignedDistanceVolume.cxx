@@ -56,6 +56,9 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     
     ret->addVolumeOutputParameter(3, "outvol", "the output volume");
     
+    OptionalParameter* roiOutOpt = ret->createOptionalParameter(9, "-roi-out", "output an roi volume of where the output has a computed value");
+    roiOutOpt->addVolumeOutputParameter(1, "roi-vol", "the output roi volume");
+    
     OptionalParameter* fillValOpt = ret->createOptionalParameter(4, "-fill-value", "specify a value to put in all voxels that don't get assigned a distance");
     fillValOpt->addDoubleParameter(1, "value", "value to fill with (default 0)");
     
@@ -139,11 +142,17 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
             throw AlgorithmException("unrecognized winding method");
         }
     }
-    AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, fillValue, exactLim, approxLim, approxNeighborhood, myWinding);//executes the algorithm
+    VolumeFile* myRoiOut = NULL;
+    OptionalParameter* roiOutOpt = myParams->getOptionalParameter(9);
+    if (roiOutOpt->m_present)
+    {
+        myRoiOut = roiOutOpt->getOutputVolume(1);
+    }
+    AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, myRoiOut, fillValue, exactLim, approxLim, approxNeighborhood, myWinding);
 }
 
-AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, const float& fillValue, const float& exactLim,
-                                                                         const float& approxLim, const int& approxNeighborhood, const SignedDistanceHelper::WindingLogic& myWinding) : AbstractAlgorithm(myProgObj)
+AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, const SurfaceFile* mySurf, VolumeFile* myVolOut, VolumeFile* myRoiOut, const float& fillValue,
+                                                                         const float& exactLim, const float& approxLim, const int& approxNeighborhood, const SignedDistanceHelper::WindingLogic& myWinding) : AbstractAlgorithm(myProgObj)
 {
     if (exactLim <= 0.0f)
     {
@@ -498,7 +507,27 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 }
             }
         }
-    }//done!
+    }//now make the roi volume
+    if (myRoiOut != NULL)
+    {
+        myDims.resize(3);
+        myRoiOut->reinitialize(myDims, myVolOut->getSform());
+        for (ijk[2] = 0; ijk[2] < myDims[2]; ++ijk[2])
+        {
+            for (ijk[1] = 0; ijk[1] < myDims[1]; ++ijk[1])
+            {
+                for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
+                {
+                    if ((volMarked[myVolOut->getIndex(ijk)] & 4) == 0)//only mark "frozen" (4) as valid, though "have value" (2) should now be the same
+                    {
+                        myRoiOut->setValue(0.0f, ijk);
+                    } else {
+                        myRoiOut->setValue(1.0f, ijk);
+                    }
+                }
+            }
+        }
+    }
 }
 
 float AlgorithmCreateSignedDistanceVolume::getAlgorithmInternalWeight()
