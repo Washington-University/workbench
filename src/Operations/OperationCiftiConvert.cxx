@@ -63,7 +63,10 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fromGiftiExt = ret->createOptionalParameter(2, "-from-gifti-ext", "convert a GIFTI made with this command back into a CIFTI");
     fromGiftiExt->addStringParameter(1, "gifti-in", "the input gifti file");
     fromGiftiExt->addCiftiOutputParameter(2, "cifti-out", "the output cifti file");
-    OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(1, "-replace-binary", "replace data with a binary file");
+    OptionalParameter* fgresetTimeOpt = fromGiftiExt->createOptionalParameter(3, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the gifti file");
+    fgresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
+    fgresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
+    OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(4, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     fromGiftiReplace->createOptionalParameter(3, "-transpose", "transpose the binary file");
@@ -148,32 +151,26 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             throw OperationException("input gifti has the wrong data type");
         }
         CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
-        CiftiHeader myHeader;
-        switch (dataArrayRef->getIntent())
-        {
-            case NIFTI_INTENT_CONNECTIVITY_DENSE:
-                myHeader.initDenseConnectivity();
-                break;
-            case NIFTI_INTENT_CONNECTIVITY_DENSE_TIME:
-                myHeader.initDenseTimeSeries();
-                break;
-            default:
-                throw OperationException("incorrect intent code in input gifti");
-        };
         CiftiXML myXML(dataArrayRef->getMetaData()->get("CiftiXML"));
         int64_t numCols = dataArrayRef->getNumberOfComponents();
         int64_t numRows = dataArrayRef->getNumberOfRows();
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        OptionalParameter* fgresetTimeOpt = fromGiftiExt->getOptionalParameter(3);
+        if (fgresetTimeOpt->m_present)
         {
-            myXML.setRowNumberOfTimepoints(numCols);
-        }
-        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
-        {
-            myXML.setColumnNumberOfTimepoints(numRows);
+            myXML.resetRowsToTimepoints(fgresetTimeOpt->getDouble(1), numCols, fgresetTimeOpt->getDouble(2));
+        } else {
+            if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+            {
+                myXML.setRowNumberOfTimepoints(numCols);
+            }
+            if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+            {
+                myXML.setColumnNumberOfTimepoints(numRows);
+            }
         }
         if (myXML.getNumberOfColumns() != numCols || myXML.getNumberOfRows() != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
         myOutFile->setCiftiXML(myXML);
-        OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
+        OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(4);
         if (fromGiftiReplace->m_present)
         {
             AString replaceFileName = fromGiftiReplace->getString(1);
