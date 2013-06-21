@@ -352,8 +352,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
 
 /**
  * Get the index of a row when loading data for a voxel at a coordinate.
- * @param mapIndex
- *    Index of the map.
  * @param xyz
  *    Coordinate of the voxel.
  * @return
@@ -361,8 +359,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
  *    matrix corresponds to the voxel.
  */
 int64_t
-CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const int32_t /*mapIndex*/,
-                                                                const float xyz[3])
+CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelAtCoordinateWhenLoading(const float xyz[3])
 {
     if (isCiftiInterfaceValid() == false) {
         return -1;
@@ -403,31 +400,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
         if (rowIndex < 0) {
             std::vector<CiftiParcelElement> parcels;
             ciftiXML.getParcelsForColumns(parcels);
-            
-//            for (std::vector<CiftiParcelElement>::iterator parcelIter = parcels.begin();
-//                 parcelIter != parcels.end();
-//                 parcelIter++) {
-//                const CiftiParcelElement& parcelElement = *parcelIter;
-//                
-//                const int64_t numVoxels = static_cast<int64_t>(parcelElement.m_voxelIndicesIJK.size() / 3);
-//                for (int64_t iVoxel = 0; iVoxel < numVoxels; iVoxel++) {
-//                    const int64_t i3 = iVoxel * 3;
-//                    if (
-//                }
-//                for (std::vector<voxelIndexType>::const_iterator voxelIter = parcelElement.m_voxelIndicesIJK.begin();
-//                     voxelIter != parcelElement.m_voxelIndicesIJK.end();
-//                     voxelIter++) {
-//                    const voxelIndexType& voxelIndex = *voxelIter;
-//                    if (voxelIndex.)
-//                }
-//                
-//                if (parcelElement.m_voxelIndicesIJK.size() > 0) {
-//                    parcelElement.m_vo
-//                    std::cout << "Parcel "
-//                    << qPrintable(parcelElement.m_parcelName)
-//                    << " contains voxels" << std::endl;
-//                }
-//            }
         }
     }
     else if (isParcels) {
@@ -446,13 +418,73 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
     return (m_currentRowLoadedIndex = rowIndex);
     
 }
+
+/**
+ * Get the index of a row when loading data for a voxel index.
+ *
+ * @param ijk
+ *    Indices of the voxel.
+ * @return
+ *    Index of row corresponding to voxel or negative if no row in the
+ *    matrix corresponds to the voxel.
+ */
+int64_t
+CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(const int64_t ijk[3])
+{  
+    if (isCiftiInterfaceValid() == false) {
+        return -1;
+    }
+    
+    int64_t rowIndex = -1;
+    
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+    
+    /*
+     * Get the mapping type
+     */
+    bool isBrainModels = false;
+    bool isParcels     = false;
+    switch (rowMappingType) {
+        case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+            isBrainModels = true;
+            break;
+        case CIFTI_INDEX_TYPE_FIBERS:
+            break;
+        case CIFTI_INDEX_TYPE_INVALID:
+            break;
+        case CIFTI_INDEX_TYPE_LABELS:
+            break;
+        case CIFTI_INDEX_TYPE_PARCELS:
+            isParcels = true;
+            break;
+        case CIFTI_INDEX_TYPE_SCALARS:
+            break;
+        case CIFTI_INDEX_TYPE_TIME_POINTS:
+            break;
+    }
+    
+    if (indexValid(ijk[0], ijk[1], ijk[2])) {
+        if (isBrainModels) {
+            rowIndex = ciftiXML.getRowIndexForVoxel(ijk);
+        }
+        else if (isParcels) {
+            rowIndex = ciftiXML.getColumnParcelForVoxel(ijk);
+        }
+        else {
+            CaretAssert(0);
+            CaretLogSevere("Invalid row mapping type for connectivity file "
+                           + DataFileTypeEnum::toName(getDataFileType()));
+        }
+    }
+    
+    m_currentRowLoadedIndex = rowIndex;
+    return rowIndex;
+}
+
+
 /**
  * Load connectivity data for the surface's node.
- *
- * For a dense connectivity file, the data loaded is
- * the connectivity from the node to other brainordinates.
- * For a dense time series file, the data loaded is the
- * time-series for this node.
  *
  * @param mapIndex
  *    Index of map.
@@ -464,6 +496,8 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelWhenLoading(const in
  *    Index of node number.
  * @return
  *    Index of row that was loaded or -1 if no data was loaded.
+ * @throw
+ *    DataFileException if there is an error.
  */
 int64_t
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
@@ -546,6 +580,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
  *    Index of node number.
  * @return
  *    Index of row that was loaded or -1 if no data was loaded.
+ * @throw
+ *    DataFileException if there is an error.
  */
 bool 
 CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) throw (DataFileException)
@@ -605,11 +641,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) thr
 /**
  * Load connectivity data for the surface's nodes and then average the data.
  *
- * For a dense connectivity file, the data loaded is
- * the connectivity from the node to other brainordinates.
- * For a dense time series file, the data loaded is the
- * time-series for this node.
- *
  * @param mapIndex
  *    Index of map.
  * @param surfaceFile
@@ -620,6 +651,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) thr
  *    Surface's structure.
  * @param nodeIndices
  *    Indices of nodes.
+ * @throw
+ *    DataFileException if there is an error.
  */
 void
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
@@ -759,17 +792,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
 /**
  * Load data for a voxel at the given coordinate.
  *
- * For a dense connectivity file, the data loaded is
- * the connectivity from the voxel to other brainordinates.
- * For a dense time series file, the data loaded is the
- * time-series for this voxel.
- *
  * @param mapIndex
  *    Index of map.
  * @param xyz
  *    Coordinate of voxel.
  * @return 
  *    Index of row that was loaded or -1 if no data was loaded.
+ * @throw
+ *    DataFileException if there is an error.
  */
 int64_t
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
@@ -806,8 +836,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     try {
         bool dataWasLoaded = false;
         
-        rowIndex = getRowIndexForVoxelWhenLoading(mapIndex,
-                                                          xyz);
+        rowIndex = getRowIndexForVoxelAtCoordinateWhenLoading(xyz);
         
         if (rowIndex >= 0) {
             const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
@@ -848,7 +877,97 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
 }
 
 /**
- * @return Text describing row loaded that uses 
+ * Load connectivity data for the voxel indices and then average the data.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param volumeDimensionIJK
+ *    Dimensions of the volume.
+ * @param voxelIndices
+ *    Indices of voxels.
+ * @throw
+ *    DataFileException if there is an error.
+ */
+bool
+CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                                           const int64_t volumeDimensionIJK[3],
+                                                                           const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+{
+    CaretAssert(mapIndex == 0);
+    
+    if (isCiftiInterfaceValid() == false) {
+        return false;
+    }
+    
+    /*
+     * Loading of data disabled?
+     */
+    if (m_dataLoadingEnabled == false) {
+        return false;
+    }
+    
+    /*
+     * Match dimensions
+     */
+    std::vector<int64_t> volumeDimensions;
+    getDimensions(volumeDimensions);
+    if (volumeDimensions.size() < 3) {
+        return false;
+    }
+    if ((volumeDimensions[0] != volumeDimensionIJK[0])
+        || (volumeDimensions[1] != volumeDimensionIJK[1])
+        || (volumeDimensions[2] != volumeDimensionIJK[2])) {
+        return false;
+    }
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+    if (dataCount <= 0) {
+        return false;
+    }
+    
+    std::vector<float> rowData(dataCount);
+    std::vector<double> rowSum(dataCount, 0.0);
+    
+    /*
+     * Load and sum the data for all rows
+     */
+    const int64_t numberOfVoxelIndices = static_cast<int64_t>(voxelIndices.size());
+    int64_t numberOfRowsLoaded = 0;
+    for (int64_t i = 0; i < numberOfVoxelIndices; i++) {
+        const VoxelIJK& voxelIJK = voxelIndices[i];
+        
+        const int64_t rowIndex = getRowIndexForVoxelIndexWhenLoading(voxelIJK.m_ijk);
+        if (rowIndex >= 0) {
+            CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+            m_ciftiInterface->getRow(&rowData[0],
+                                     rowIndex);
+            
+            for (int64_t j = 0; j < dataCount; j++) {
+                rowSum[j] += rowData[j];
+            }
+            
+            numberOfRowsLoaded++;
+        }
+    }
+    
+    if (numberOfRowsLoaded > 0) {
+        for (int64_t j = 0; j < dataCount; j++) {
+            m_loadedRowData[j] = rowSum[j] / numberOfRowsLoaded;
+        }
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * @return Text describing row loaded that uses
  * underscores as separators.
  */
 AString

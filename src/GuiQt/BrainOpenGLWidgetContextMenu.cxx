@@ -835,7 +835,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                 int32_t labelNodeNumber = -1;
                 int32_t labelKey = -1;
                 AString labelName;
-                
+                int64_t volumeDimensions[3] = { -1, -1, -1 };
                 ParcelConnectivity::ParcelType parcelType = ParcelConnectivity::PARCEL_TYPE_INVALID;
                 
                 if (mappableLabelFile->isVolumeMappable()) {
@@ -886,6 +886,14 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                             CaretAssertMessage(0,
                                                "Should never get here, new or invalid label file type");
                         }
+                        
+                        std::vector<int64_t> dims;
+                        volumeInterface->getDimensions(dims);
+                        if (dims.size() >= 3) {
+                            volumeDimensions[0] = dims[0];
+                            volumeDimensions[1] = dims[1];
+                            volumeDimensions[2] = dims[2];
+                        }
                     }
                 }
                 
@@ -920,7 +928,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                                                                            stringValue)) {
                                     if (nodeValueValid) {
                                         labelKey = nodeValue;
-                                        const GiftiLabelTable* labelTable = labelFile->getMapLabelTable(mapIndex);
+                                        const GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
                                         labelName = labelTable->getLabelName(labelKey);
 
                                         if (labelName.isEmpty() == false) {
@@ -943,6 +951,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                                                                                   labelName,
                                                                                   labelSurface,
                                                                                   labelNodeNumber,
+                                                                                    volumeDimensions,
                                                                                   chartingDataManager,
                                                                                   ciftiConnectivityMatrixManager,
                                                                                   ciftiFiberTrajectoryManager);
@@ -1130,7 +1139,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
             }
             
             if (pc->ciftiConnectivityManager->hasNetworkFiles()) {
-                if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+                if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size()) == false) {
                     return;
                 }
             }
@@ -1143,7 +1152,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                 return;
             }
             if (pc->ciftiConnectivityManager->hasNetworkFiles()) {
-                if (warnIfNetworkBrainordinateCountIsLarge(voxelIndices.size())) {
+                if (warnIfNetworkBrainordinateCountIsLarge(voxelIndices.size()) == false) {
                     return;
                 }
             }
@@ -1168,6 +1177,8 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                                                                              nodeIndices);
                 break;
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+                pc->ciftiConnectivityManager->loadAverageDataForVoxelIndices(pc->volumeDimensions,
+                                                                             voxelIndices);
                 break;
         }
     }
@@ -1285,7 +1296,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
         }
         
         if (borderID->getBrain()->getChartingDataManager()->hasNetworkFiles()) {
-            if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+            if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size()) == false) {
                 return;
             }
         }
@@ -1419,7 +1430,7 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
             }
             
             if (pc->chartingDataManager->hasNetworkFiles()) {
-                if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+                if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size()) == false) {
                     return;
                 }
             }
@@ -1520,7 +1531,7 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
         }
         
         if (borderID->getBrain()->getChartingDataManager()->hasNetworkFiles()) {
-            if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size())) {
+            if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size()) == false) {
                 return;
             }
         }
@@ -1921,14 +1932,15 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64
  */
 BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(const ParcelType parcelType,
                                                                      CaretMappableDataFile* mappableLabelFile,
-                   const int32_t labelFileMapIndex,
-                   const int32_t labelKey,
-                   const QString& labelName,
-                   Surface* surface,
-                   const int32_t nodeNumber,
-                   ChartingDataManager* chartingDataManager,
-                   CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
-                   CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager) {
+                                                                     const int32_t labelFileMapIndex,
+                                                                     const int32_t labelKey,
+                                                                     const QString& labelName,
+                                                                     Surface* surface,
+                                                                     const int32_t nodeNumber,
+                                                                     const int64_t volumeDimensions[3],
+                                                                     ChartingDataManager* chartingDataManager,
+                                                                     CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
+                                                                     CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager) {
     this->parcelType = parcelType;
     this->mappableLabelFile = mappableLabelFile;
     this->labelFileMapIndex = labelFileMapIndex;
@@ -1936,6 +1948,9 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(const Parce
     this->labelName = labelName;
     this->surface = surface;
     this->nodeNumber = nodeNumber;
+    this->volumeDimensions[0] = volumeDimensions[0];
+    this->volumeDimensions[1] = volumeDimensions[1];
+    this->volumeDimensions[2] = volumeDimensions[2];
     this->chartingDataManager = chartingDataManager;
     this->ciftiConnectivityManager = ciftiConnectivityManager;
     this->ciftiFiberTrajectoryManager = ciftiFiberTrajectoryManager;

@@ -81,6 +81,7 @@ BrainordinateDataSelection::reset()
     m_voxelXYZ[0] = 0.0;
     m_voxelXYZ[1] = 0.0;
     m_voxelXYZ[2] = 0.0;
+    m_volumeAverageVoxelIndices.clear();
 }
 
 /**
@@ -173,6 +174,26 @@ BrainordinateDataSelection::setVolumeLoading(const float xyz[3])
     m_voxelXYZ[2] = xyz[2];
 }
 
+/**
+ * Set the voxel indices for voxel averaging.
+ */
+void
+BrainordinateDataSelection::setVolumeAverageLoading(const std::vector<VoxelIJK>& voxelIndices)
+{
+    reset();
+    m_mode = MODE_VOXEL_AVERAGE;
+    m_volumeAverageVoxelIndices = voxelIndices;
+}
+
+/**
+ * @return The indices for volume voxel averaging.
+ */
+const std::vector<VoxelIJK>&
+BrainordinateDataSelection::getVolumeAverageVoxelIndices() const
+{
+    return m_volumeAverageVoxelIndices;
+}
+
 
 /**
  * Restore the state of an instance of a class.
@@ -232,6 +253,19 @@ BrainordinateDataSelection::restoreFromScene(const SceneAttributes* sceneAttribu
                                    3,
                                    0.0);
     
+    const ScenePrimitiveArray* voxelIndicesArray = sceneClass->getPrimitiveArray("m_volumeAverageVoxelIndices");
+    if (voxelIndicesArray != NULL) {
+        const int64_t numIndices = voxelIndicesArray->getNumberOfArrayElements();
+        const int64_t numVoxelIndices = numIndices / 3;
+        
+        for (int64_t i = 0; i < numVoxelIndices; i++) {
+            const int64_t i3 = i * 3;
+            VoxelIJK voxelIJK(voxelIndicesArray->integerValue(i3),
+                              voxelIndicesArray->integerValue(i3 + 1),
+                              voxelIndicesArray->integerValue(i3 + 2));
+            m_volumeAverageVoxelIndices.push_back(voxelIJK);
+        }
+    }
 }
 
 /**
@@ -268,6 +302,8 @@ BrainordinateDataSelection::saveToScene(const SceneAttributes* /*sceneAttributes
         case MODE_VOXEL_XYZ:
             modeName = "MODE_VOXEL_XYZ";
             break;
+        case MODE_VOXEL_AVERAGE:
+            break;
     }
     
     sceneClass->addString("m_mode",
@@ -285,6 +321,24 @@ BrainordinateDataSelection::saveToScene(const SceneAttributes* /*sceneAttributes
     sceneClass->addFloatArray("m_voxelXYZ",
                               m_voxelXYZ,
                               3);
+    
+    const int64_t numberOfVoxels = static_cast<int64_t>(m_volumeAverageVoxelIndices.size());
+    if (numberOfVoxels > 0) {
+        std::vector<int32_t> voxelIndicesVector;
+        voxelIndicesVector.reserve(numberOfVoxels * 3);
+        
+        for (int64_t i = 0; i < numberOfVoxels; i++) {
+            voxelIndicesVector.push_back(m_volumeAverageVoxelIndices[i].m_ijk[0]);
+            voxelIndicesVector.push_back(m_volumeAverageVoxelIndices[i].m_ijk[1]);
+            voxelIndicesVector.push_back(m_volumeAverageVoxelIndices[i].m_ijk[2]);
+        }
+        
+        if (voxelIndicesVector.empty() == false) {
+            sceneClass->addIntegerArray("m_volumeAverageVoxelIndices",
+                                        &voxelIndicesVector[0],
+                                        voxelIndicesVector.size());
+        }
+    }
     
     return sceneClass;
 }

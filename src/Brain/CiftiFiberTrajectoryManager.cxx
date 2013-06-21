@@ -285,6 +285,8 @@ CiftiFiberTrajectoryManager::restoreFromScene(const SceneAttributes* sceneAttrib
                 break;
             case BrainordinateDataSelection::MODE_VOXEL_XYZ:
                 break;
+            case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
+                break;
         }
     }
     catch (const DataFileException& dfe) {

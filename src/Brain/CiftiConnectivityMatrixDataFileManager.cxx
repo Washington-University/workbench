@@ -245,6 +245,51 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
 }
 
 /**
+ * Load average data for the given voxel indices.
+ * 
+ * @param volumeDimensionIJK
+ *    Dimensions of the volume.
+ * @param voxelIndices
+ *    Indices for averaging of data.
+ * @return
+ *    true if any data was loaded, else false.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+bool
+CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                                                       const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+{
+    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    
+    bool haveData = false;
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+         iter != ciftiMatrixFiles.end();
+         iter++) {
+        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
+        
+        const int32_t mapIndex = 0;
+        if (cmf->loadMapAverageDataForVoxelIndices(mapIndex,
+                                                   volumeDimensionIJK,
+                                                   voxelIndices)) {
+            cmf->updateScalarColoringForMap(mapIndex,
+                                            paletteFile);
+            haveData = true;
+        }
+    }
+    
+    if (haveData) {
+        m_brainordinateDataSelection->setVolumeAverageLoading(voxelIndices);
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
+    
+    return haveData;    
+}
+
+/**
  * Reset all connectivity loaders.
  */
 void
@@ -362,6 +407,8 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
                 loadDataForVoxelAtCoordinate(voxelXYZ,
                                                                            rowsColumnsLoaded);
             }
+                break;
+            case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
                 break;
         }
     }

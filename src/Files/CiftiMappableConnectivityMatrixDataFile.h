@@ -36,7 +36,7 @@
 
 
 #include "CiftiMappableDataFile.h"
-
+#include "VoxelIJK.h"
 
 namespace caret {
 
@@ -70,6 +70,10 @@ namespace caret {
         
         virtual int64_t loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                         const float xyz[3]) throw (DataFileException);
+
+        virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
+                                                       const int64_t volumeDimensionIJK[3],
+                                                       const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
         
         bool getStructureAndNodeIndexFromRowIndex(const int64_t rowIndex,
                                                   StructureEnum::Enum& structureOut,
@@ -120,8 +124,9 @@ namespace caret {
                                               const int64_t surfaceNumberOfNodes,
                                               const int64_t nodeIndex);
         
-        int64_t getRowIndexForVoxelWhenLoading(const int32_t mapIndex,
-                                               const float xyz[3]);
+        int64_t getRowIndexForVoxelAtCoordinateWhenLoading(const float xyz[3]);
+        
+        int64_t getRowIndexForVoxelIndexWhenLoading(const int64_t ijk[3]);
         
         
         // ADD_NEW_MEMBERS_HERE

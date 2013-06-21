@@ -120,6 +120,7 @@ namespace caret {
                                const QString& labelName,
                                Surface* surface,
                                const int32_t nodeNumber,
+                               const int64_t volumeDimensions[3],
                                ChartingDataManager* chartingDataManager,
                                CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
                                CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager);
@@ -137,6 +138,7 @@ namespace caret {
             QString labelName;
             Surface* surface;
             int32_t nodeNumber;
+            int64_t volumeDimensions[3];
             CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager;
             ChartingDataManager* chartingDataManager;
             CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager;

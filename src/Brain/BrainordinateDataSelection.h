@@ -37,6 +37,7 @@
 
 #include "CaretObject.h"
 #include "SceneableInterface.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
@@ -61,6 +62,7 @@ namespace caret {
             MODE_NONE,
             MODE_SURFACE_AVERAGE,
             MODE_SURFACE_NODE,
+            MODE_VOXEL_AVERAGE,
             MODE_VOXEL_XYZ
         };
         
@@ -82,6 +84,10 @@ namespace caret {
         
         void setVolumeLoading(const float xyz[3]);
         
+        void setVolumeAverageLoading(const std::vector<VoxelIJK>& voxelIndices);
+        
+        const std::vector<VoxelIJK>& getVolumeAverageVoxelIndices() const;
+        
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
@@ -98,6 +104,8 @@ namespace caret {
         std::vector<int32_t> m_surfaceFileNodeIndices;
         
         float m_voxelXYZ[3];
+        
+        std::vector<VoxelIJK> m_volumeAverageVoxelIndices;
     };
     
 #ifdef __BRAINORDINATE_DATA_SELECTION_DECLARE__
