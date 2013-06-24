@@ -84,9 +84,11 @@ namespace caret {
         
         void setVolumeLoading(const float xyz[3]);
         
-        void setVolumeAverageLoading(const std::vector<VoxelIJK>& voxelIndices);
+        void setVolumeAverageLoading(const int64_t volumeDimensionIJK[3],
+                                     const std::vector<VoxelIJK>& voxelIndices);
         
-        const std::vector<VoxelIJK>& getVolumeAverageVoxelIndices() const;
+        void getVolumeAverageVoxelIndices(int64_t volumeDimensionIJK[3],
+                                          std::vector<VoxelIJK>& voxelIndices) const;
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
@@ -104,6 +106,8 @@ namespace caret {
         std::vector<int32_t> m_surfaceFileNodeIndices;
         
         float m_voxelXYZ[3];
+        
+        int32_t m_volumeAverageDimensionsIJK[3];
         
         std::vector<VoxelIJK> m_volumeAverageVoxelIndices;
     };

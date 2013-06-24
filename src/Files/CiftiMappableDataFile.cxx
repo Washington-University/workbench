@@ -2673,7 +2673,7 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
  *     Numerical value out.
  * @param numericalValueOutValid
  *     Output that indicates the numerical value output is valid.
- *     For label data, this value will be the lable key.
+ *     For label data, this value will be the label key.
  * @param textValueOut
  *     Text containing node' value will always be valid if the method
  *     returns true.  For parcel data, this will contain the name of the
@@ -2772,6 +2772,7 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                         textValueOut += ("InvalidLabelKey="
                                          + AString::number(labelKey));
                     }
+                    numericalValueOutValid = true;
                 }
                 else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
                     numericalValueOutValid = true;
@@ -2780,9 +2781,9 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                 else {
                     CaretAssert(0);
                 }
+                
+                return true;
             }
-            
-            return true;
         }
     }
     

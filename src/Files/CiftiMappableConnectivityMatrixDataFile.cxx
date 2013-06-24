@@ -709,7 +709,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
             EventProgressUpdate progressEvent(0,
                                               numberOfNodeIndices,
                                               0,
-                                              "Starting");
+                                              ("Loading data for "
+                                               + QString::number(numberOfNodeIndices)
+                                               + " vertices"));
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+            
             /*
              * Read rows for each node
              */
@@ -719,7 +723,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                 if (isDenseMatrix) {
                     if ((i % progressUpdateInterval) == 0) {
                         progressEvent.setProgress(i,
-                                                  "Loading data");
+                                                  "");
                         EventManager::get()->sendEvent(progressEvent.getPointer());
                         if (progressEvent.isCancelled()) {
                             userCancelled = true;
@@ -931,16 +935,37 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         return false;
     }
     
+    const int64_t numberOfVoxelIndices = static_cast<int64_t>(voxelIndices.size());
+    
+    bool userCancelled = false;
+    const int32_t progressUpdateInterval = 1;
+    EventProgressUpdate progressEvent(0,
+                                      numberOfVoxelIndices,
+                                      0,
+                                      ("Loading data for "
+                                       + QString::number(numberOfVoxelIndices)
+                                       + " voxels"));
+    EventManager::get()->sendEvent(progressEvent.getPointer());
+    
     std::vector<float> rowData(dataCount);
     std::vector<double> rowSum(dataCount, 0.0);
     
     /*
      * Load and sum the data for all rows
      */
-    const int64_t numberOfVoxelIndices = static_cast<int64_t>(voxelIndices.size());
     int64_t numberOfRowsLoaded = 0;
     for (int64_t i = 0; i < numberOfVoxelIndices; i++) {
-        const VoxelIJK& voxelIJK = voxelIndices[i];
+        if ((i % progressUpdateInterval) == 0) {
+            progressEvent.setProgress(i,
+                                      "");
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+            if (progressEvent.isCancelled()) {
+                userCancelled = true;
+                break;
+            }
+        }
+        
+       const VoxelIJK& voxelIJK = voxelIndices[i];
         
         const int64_t rowIndex = getRowIndexForVoxelIndexWhenLoading(voxelIJK.m_ijk);
         if (rowIndex >= 0) {
@@ -956,10 +981,23 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         }
     }
     
-    if (numberOfRowsLoaded > 0) {
+    if (userCancelled) {
+        m_loadedRowData.clear();
+        m_loadedRowData.resize(dataCount, 0.0);
+    }
+    else if (numberOfRowsLoaded > 0) {
+        progressEvent.setProgress(numberOfVoxelIndices - 1,
+                                  "Averaging voxel data");
+        EventManager::get()->sendEvent(progressEvent.getPointer());
+        
+        m_loadedRowData.resize(dataCount, 0.0);
         for (int64_t j = 0; j < dataCount; j++) {
             m_loadedRowData[j] = rowSum[j] / numberOfRowsLoaded;
         }
+        
+        m_rowLoadedTextForMapName = ("Averaged Voxel Count: "
+                                     + AString::number(numberOfVoxelIndices));
+        
         return true;
     }
     

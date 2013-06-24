@@ -176,22 +176,43 @@ BrainordinateDataSelection::setVolumeLoading(const float xyz[3])
 
 /**
  * Set the voxel indices for voxel averaging.
+ *
+ * @param volumeDimensionIJK
+ *    Dimension of the volume.
+ * @param voxelIndices
+ *    Indices of voxel in the average.
  */
 void
-BrainordinateDataSelection::setVolumeAverageLoading(const std::vector<VoxelIJK>& voxelIndices)
+BrainordinateDataSelection::setVolumeAverageLoading(const  int64_t volumeDimensionIJK[3],
+                                                    const std::vector<VoxelIJK>& voxelIndices)
 {
     reset();
+    
     m_mode = MODE_VOXEL_AVERAGE;
+    
+    m_volumeAverageDimensionsIJK[0] = volumeDimensionIJK[0];
+    m_volumeAverageDimensionsIJK[1] = volumeDimensionIJK[1];
+    m_volumeAverageDimensionsIJK[2] = volumeDimensionIJK[2];
+    
     m_volumeAverageVoxelIndices = voxelIndices;
 }
 
 /**
- * @return The indices for volume voxel averaging.
+ * Get the indices for volume voxel averaging.
+ *
+ * @param volumeDimensionIJK
+ *    Dimension of the volume.
+ * @param voxelIndices
+ *    Indices of voxel in the average.
  */
-const std::vector<VoxelIJK>&
-BrainordinateDataSelection::getVolumeAverageVoxelIndices() const
+void
+BrainordinateDataSelection::getVolumeAverageVoxelIndices(int64_t volumeDimensionIJK[3],
+                                                         std::vector<VoxelIJK>& voxelIndices) const
 {
-    return m_volumeAverageVoxelIndices;
+    volumeDimensionIJK[0] = m_volumeAverageDimensionsIJK[0];
+    volumeDimensionIJK[1] = m_volumeAverageDimensionsIJK[1];
+    volumeDimensionIJK[2] = m_volumeAverageDimensionsIJK[2];
+    voxelIndices = m_volumeAverageVoxelIndices;
 }
 
 
@@ -231,6 +252,9 @@ BrainordinateDataSelection::restoreFromScene(const SceneAttributes* sceneAttribu
     else if (modeName == "MODE_VOXEL_XYZ") {
         m_mode = MODE_VOXEL_XYZ;
     }
+    else if (modeName == "MODE_VOXEL_AVERAGE") {
+        m_mode = MODE_VOXEL_AVERAGE;
+    }
     else {
         sceneAttributes->addToErrorMessage("Unrecognized mode=" + modeName);
         return;
@@ -252,6 +276,11 @@ BrainordinateDataSelection::restoreFromScene(const SceneAttributes* sceneAttribu
                                    m_voxelXYZ,
                                    3,
                                    0.0);
+    
+    sceneClass->getIntegerArrayValue("m_volumeAverageDimensionsIJK",
+                                     m_volumeAverageDimensionsIJK,
+                                     3,
+                                     0);
     
     const ScenePrimitiveArray* voxelIndicesArray = sceneClass->getPrimitiveArray("m_volumeAverageVoxelIndices");
     if (voxelIndicesArray != NULL) {
@@ -303,6 +332,7 @@ BrainordinateDataSelection::saveToScene(const SceneAttributes* /*sceneAttributes
             modeName = "MODE_VOXEL_XYZ";
             break;
         case MODE_VOXEL_AVERAGE:
+            modeName = "MODE_VOXEL_AVERAGE";
             break;
     }
     
@@ -321,6 +351,10 @@ BrainordinateDataSelection::saveToScene(const SceneAttributes* /*sceneAttributes
     sceneClass->addFloatArray("m_voxelXYZ",
                               m_voxelXYZ,
                               3);
+    
+    sceneClass->addIntegerArray("m_volumeAverageDimensionsIJK",
+                                m_volumeAverageDimensionsIJK,
+                                3);
     
     const int64_t numberOfVoxels = static_cast<int64_t>(m_volumeAverageVoxelIndices.size());
     if (numberOfVoxels > 0) {

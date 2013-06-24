@@ -275,14 +275,16 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int
         if (cmf->loadMapAverageDataForVoxelIndices(mapIndex,
                                                    volumeDimensionIJK,
                                                    voxelIndices)) {
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            paletteFile);
             haveData = true;
         }
+        
+        cmf->updateScalarColoringForMap(mapIndex,
+                                        paletteFile);
     }
     
     if (haveData) {
-        m_brainordinateDataSelection->setVolumeAverageLoading(voxelIndices);
+        m_brainordinateDataSelection->setVolumeAverageLoading(volumeDimensionIJK,
+                                                              voxelIndices);
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
@@ -405,10 +407,18 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
                 float voxelXYZ[3];
                 m_brainordinateDataSelection->getVoxelXYZ(voxelXYZ);
                 loadDataForVoxelAtCoordinate(voxelXYZ,
-                                                                           rowsColumnsLoaded);
+                                             rowsColumnsLoaded);
             }
                 break;
             case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
+            {
+                int64_t volumeDimensions[3];
+                std::vector<VoxelIJK> voxelIndices;
+                m_brainordinateDataSelection->getVolumeAverageVoxelIndices(volumeDimensions,
+                                                                           voxelIndices);
+                loadAverageDataForVoxelIndices(volumeDimensions,
+                                               voxelIndices);
+            }
                 break;
         }
     }
