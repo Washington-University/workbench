@@ -241,7 +241,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                         bool found = false;
                         for (int ind = 0; ind < numOutside; ++ind)
                         {
-                            if (outsideLookup[ind].first == value)
+                            if (outsideLookup[ind].first == labelval)
                             {
                                 found = true;
                                 whichIndex = ind;
@@ -313,7 +313,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                     bool found = false;
                     for (int ind = 0; ind < numOutside; ++ind)
                     {
-                        if (outsideLookup[ind].first == value)
+                        if (outsideLookup[ind].first == labelval)
                         {
                             found = true;
                             whichIndex = ind;
