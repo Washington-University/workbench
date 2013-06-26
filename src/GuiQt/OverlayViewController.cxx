@@ -51,6 +51,7 @@
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventOverlayYokingGroupGet.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventMapSettingsEditorDialogRequest.h"
@@ -721,11 +722,12 @@ OverlayViewController::updateUserInterfaceAndGraphicsWindow()
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
     else {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
     }
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
