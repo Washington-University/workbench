@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include "CaretLogger.h"
 #include "GiftiLabel.h"
 #include "GiftiMetaData.h"
 #include "Palette.h"
@@ -344,6 +345,11 @@ PaletteFile::assignColorsToPalette(Palette& p)
             gl->getColor(rgba);
             psac->setColor(rgba);
         }
+        CaretLogSevere(("Missing color \""
+                        + colorName
+                        + "\" in palette \""
+                        + p.getName()
+                        + "\""));
     }
 }
 
@@ -1067,6 +1073,49 @@ PaletteFile::addDefaultPalettes()
         addPalette(palFSLView);
     }
 
+    if (this->getPaletteByName("power_surf") == NULL) {
+        this->addColor("_ps_0",    1.0 *255.0,   0.0 * 255.0,  0.0 * 255.0 );
+        this->addColor("_ps_059",  0.0 * 255.0,  0.0 * 255.0,  0.6 * 255.0 );
+        this->addColor("_ps_118",  1.0 * 255.0,  1.0 * 255.0,  0.0 * 255.0 );
+        this->addColor("_ps_176",  1.0 * 255.0,  0.7 * 255.0,  0.4 * 255.0);
+        this->addColor("_ps_235",  0.0 * 255.0,  0.8 * 255.0,  0.0 * 255.0 );
+        this->addColor("_ps_294",  1.0 * 255.0,  0.6 * 255.0,  1.0 * 255.0 );
+        this->addColor("_ps_353",  0.0 * 255.0,  0.6 * 255.0,  0.6 * 255.0 );
+        this->addColor("_ps_412",  0.0 * 255.0,  0.0 * 255.0,  0.0 * 255.0 );
+        this->addColor("_ps_471",  0.3 * 255.0,  0.0 * 255.0,  0.6 * 255.0 );
+        this->addColor("_ps_529",  0.2 * 255.0,  1.0 * 255.0,  1.0 * 255.0 );
+        this->addColor("_ps_588",  1.0 * 255.0,  0.5 * 255.0,  0.0 * 255.0 );
+        this->addColor("_ps_647",  0.6 * 255.0,  0.2 * 255.0,  1.0 * 255.0 );
+        this->addColor("_ps_706",  0.0 * 255.0,  0.2 * 255.0,  0.4 * 255.0 );
+        this->addColor("_ps_765",  0.2 * 255.0,  1.0 * 255.0,  0.2 * 255.0 );
+        this->addColor("_ps_824",  0.0 * 255.0,  0.0 * 255.0,  1.0 * 255.0 );
+        this->addColor("_ps_882",  1.0 * 255.0,  1.0 * 255.0,  0.8 * 255.0 );
+        this->addColor("_ps_941",  0.0 * 255.0,  0.4 * 255.0,  0.0 * 255.0 );
+        this->addColor("_ps_1000", 0.25 * 255.0, 0.25 * 255.0, 0.25 * 255.0 );
+        
+        Palette powerSurf;
+        powerSurf.setName("power_surf");
+        powerSurf.addScalarAndColor( 1.0, "_ps_1000");
+        powerSurf.addScalarAndColor( 0.941, "_ps_941");
+        powerSurf.addScalarAndColor( 0.882, "_ps_882");
+        powerSurf.addScalarAndColor( 0.824, "_ps_824");
+        powerSurf.addScalarAndColor( 0.765, "_ps_765");
+        powerSurf.addScalarAndColor( 0.706, "_ps_706");
+        powerSurf.addScalarAndColor( 0.647, "_ps_647");
+        powerSurf.addScalarAndColor( 0.588, "_ps_588");
+        powerSurf.addScalarAndColor( 0.529, "_ps_529");
+        powerSurf.addScalarAndColor( 0.471, "_ps_471");
+        powerSurf.addScalarAndColor( 0.412, "_ps_412");
+        powerSurf.addScalarAndColor( 0.353, "_ps_353");
+        powerSurf.addScalarAndColor( 0.294, "_ps_294");
+        powerSurf.addScalarAndColor( 0.235, "_ps_235");
+        powerSurf.addScalarAndColor( 0.176, "_ps_176");
+        powerSurf.addScalarAndColor( 0.118, "_ps_118");
+        powerSurf.addScalarAndColor( 0.059, "_ps_059");
+        powerSurf.addScalarAndColor( 0.0, "_ps_0");
+        addPalette(powerSurf);
+    }
+    
     if (modifiedStatus == false) {
         this->clearModified();
     }
