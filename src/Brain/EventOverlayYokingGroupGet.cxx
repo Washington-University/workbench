@@ -304,9 +304,9 @@ EventOverlayYokingGroupGet::validateCompatibility(CaretMappableDataFile* overlay
      * Generate message about incompatible number of maps.
      */
     messageOut = "Incompatible number of maps for yoking:\n";
-    messageOut.appendWithNewLine(QString::number(overlayFile->getNumberOfMaps())
-                                 + " maps in "
-                                 + overlayFile->getFileNameNoPath());
+//    messageOut.appendWithNewLine(QString::number(overlayFile->getNumberOfMaps())
+//                                 + " maps in "
+//                                 + overlayFile->getFileNameNoPath());
     for (int32_t itemIndex = 0; itemIndex < numItems; itemIndex++) {
         const YokedOverlayInfo& yoi = m_yokedOverlays[itemIndex];
         messageOut.appendWithNewLine(AString::number(yoi.m_overlayFileNumberOfMaps)
