@@ -345,11 +345,11 @@ PaletteFile::assignColorsToPalette(Palette& p)
             gl->getColor(rgba);
             psac->setColor(rgba);
         }
-        CaretLogSevere(("Missing color \""
+        /*CaretLogSevere(("Missing color \""
                         + colorName
                         + "\" in palette \""
                         + p.getName()
-                        + "\""));
+                        + "\""));//*/
     }
 }
 
