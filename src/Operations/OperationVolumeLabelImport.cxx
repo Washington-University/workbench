@@ -25,6 +25,7 @@
 #include "OperationVolumeLabelImport.h"
 #include "OperationException.h"
 
+#include "CaretLogger.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"
 #include "VolumeFile.h"
@@ -34,8 +35,7 @@
 #include <ctime>
 #include <cctype>
 #include <fstream>
-#include <iostream>
-#include <limits>
+#include <map>
 #include <set>
 #include <string>
 
@@ -131,16 +131,8 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
     string labelName;
     int32_t value, red, green, blue, alpha;
     GiftiLabelTable myTable;
-    const int LOOKUP_SIZE = 10000;
-    vector<bool> labelUsed(LOOKUP_SIZE, false);
-    CaretArray<int32_t> labelTranslate(LOOKUP_SIZE, -1);//quickly lookup labels in the expected range of values
-    vector<pair<int32_t, int32_t> > outsideLookup;//but be able to handle labels with unusually large values
-    if (unlabeledValue >= 0 && unlabeledValue < LOOKUP_SIZE)
-    {
-        labelUsed[unlabeledValue] = true;//to ensure that the label list file doesn't try to specify the unused label
-    } else {
-        outsideLookup.push_back(make_pair(unlabeledValue, 0));//placeholder, we don't know the correct translated value yet
-    }
+    map<int32_t, int32_t> translate;
+    translate[unlabeledValue] = 0;//placeholder, we don't know the correct translated value yet
     while (labelListFile.good())
     {
         getline(labelListFile, labelName);
@@ -157,51 +149,53 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
             labelListFile.ignore();//drop the newline, possible carriage return or other whitespace so that getline doesn't get nothing, and cause int extraction to fail
         }
         temp = AString(labelName.c_str()).trimmed();//drop errant CR or other whitespace from beginning and end of lines
-        GiftiLabel myLabel(value, temp, red, green, blue, alpha);
-        myTable.insertLabel(&myLabel);
-        int32_t newValue = myLabel.getKey();
-        if (value >= 0 && value < LOOKUP_SIZE)
+        if (translate.find(value) != translate.end())
         {
-            if (labelUsed[value])
+            if (value == unlabeledValue)
             {
-                throw OperationException(AString("label ") + AString::number(value) + " specified more than once");
+                throw OperationException("the unlabeled value must not be specified in label list file");
+            } else {
+                throw OperationException(AString("label key ") + AString::number(value) + " specified more than once");
             }
-            labelUsed[value] = true;//this isn't really necessary with the current implementation of GiftiLabelTable, only negative keys get remapped, but it is cleaner
-            labelTranslate[value] = newValue;
-        } else {
-            int numOutside = (int)outsideLookup.size();
-            for (int i = 0; i < numOutside; ++i)
+        }
+        GiftiLabel myLabel(value, temp, red, green, blue, alpha);
+        if (myTable.getLabelKeyFromName(temp) != GiftiLabel::getInvalidLabelKey())
+        {
+            AString nameBase = temp, newName;//resolve collision by generating a name with an additional number on it
+            bool success = false;
+            for (int extra = 1; extra < 100; ++extra)//but stop at 100, because really...
             {
-                if (outsideLookup[i].first == value)
+                newName = nameBase + "_" + AString::number(extra);
+                if (myTable.getLabelKeyFromName(newName) == GiftiLabel::getInvalidLabelKey())
                 {
-                    throw OperationException(AString("label ") + AString::number(value) + " specified more than once");
+                    success = true;
+                    break;
                 }
             }
-            outsideLookup.push_back(make_pair(value, newValue));
+            if (success)
+            {
+                CaretLogWarning("name collision in input name '" + nameBase + "', changing one to '" + newName + "'");
+            } else {
+                throw OperationException("giving up on resolving name collision for input name '" + nameBase + "'");
+            }
+            myLabel.setName(newName);
         }
+        int32_t newValue;
+        if (value == 0)//because label 0 exists in the default constructed table
+        {
+            myTable.insertLabel(&myLabel);//but we do want to be able to overwrite the default 0 label
+            newValue = 0;//if value 0 is specified twice, or once without specifying a different unlabeled value, the check versus the translate map will catch it
+        } else {
+            newValue = myTable.addLabel(&myLabel);//we don't want to overwrite relocated labels
+        }
+        translate[value] = newValue;
     }
     vector<int64_t> myDims;
     myVol->getDimensions(myDims);
     const int64_t FRAMESIZE = myDims[0] * myDims[1] * myDims[2];
     CaretArray<float> frameOut(FRAMESIZE);
     int32_t unusedLabel = myTable.getUnassignedLabelKey();
-    if (unlabeledValue >= 0 && unlabeledValue < LOOKUP_SIZE)
-    {
-        labelTranslate[unlabeledValue] = unusedLabel;
-    } else {
-        int numOutside = (int)outsideLookup.size();
-        bool found = false;
-        for (int i = 0; i < numOutside; ++i)
-        {
-            if (outsideLookup[i].first == unlabeledValue)
-            {
-                outsideLookup[i].second = unusedLabel;
-                found = true;
-                break;
-            }
-        }
-        if (!found) throw OperationException("internal failure constructing label table");
-    }
+    translate[unlabeledValue] = unusedLabel;
     if (subvol == -1)
     {
         outVol->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), myDims[4], SubvolumeAttributes::LABEL);
@@ -218,50 +212,41 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                     {
                         usedValues.insert(labelval);
                     }
-                    if (labelval >= 0 && labelval < LOOKUP_SIZE)
+                    map<int32_t, int32_t>::iterator myiter = translate.find(labelval);
+                    if (myiter == translate.end())
                     {
-                        if (labelUsed[labelval])
+                        if (discardOthers)
                         {
-                            frameOut[i] = labelTranslate[labelval];
-                        } else {
-                            if (discardOthers)
+                            frameOut[i] = unusedLabel;
+                        } else {//use a random color, but fully opaque for the label
+                            GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
+                            if (myTable.getLabelKeyFromName(myLabel.getName()) != GiftiLabel::getInvalidLabelKey())
                             {
-                                frameOut[i] = unusedLabel;
-                            } else {//use a random color, but fully opaque for the label
-                                GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
-                                myTable.insertLabel(&myLabel);
-                                int32_t newValue = myLabel.getKey();
-                                labelUsed[labelval] = true;
-                                labelTranslate[labelval] = newValue;
-                                frameOut[i] = newValue;
+                                AString nameBase = myLabel.getName(), newName;//resolve collision by generating a name with an additional number on it
+                                bool success = false;
+                                for (int extra = 1; extra < 100; ++extra)//but stop at 100, because really...
+                                {
+                                    newName = nameBase + "_" + AString::number(extra);
+                                    if (myTable.getLabelKeyFromName(newName) == GiftiLabel::getInvalidLabelKey())
+                                    {
+                                        success = true;
+                                        break;
+                                    }
+                                }
+                                if (success)
+                                {
+                                    CaretLogWarning("name collision in auto-generated name '" + nameBase + "', changed to '" + newName + "'");
+                                } else {
+                                    throw OperationException("giving up on resolving name collision for auto-generated name '" + nameBase + "'");
+                                }
+                                myLabel.setName(newName);
                             }
+                            int32_t newValue = myTable.addLabel(&myLabel);//don't overwrite any values in the table
+                            translate[labelval] = newValue;
+                            frameOut[i] = newValue;
                         }
                     } else {
-                        int numOutside = (int)outsideLookup.size(), whichIndex = -1;
-                        bool found = false;
-                        for (int ind = 0; ind < numOutside; ++ind)
-                        {
-                            if (outsideLookup[ind].first == labelval)
-                            {
-                                found = true;
-                                whichIndex = ind;
-                                break;
-                            }
-                        }
-                        if (found)
-                        {
-                            frameOut[i] = outsideLookup[whichIndex].second;
-                        } else {
-                            if (discardOthers)
-                            {
-                                frameOut[i] = unusedLabel;
-                            } else {
-                                GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
-                                myTable.insertLabel(&myLabel);
-                                int32_t newValue = myLabel.getKey();
-                                outsideLookup.push_back(make_pair(labelval, newValue));
-                            }
-                        }
+                        frameOut[i] = myiter->second;
                     }
                 }
                 outVol->setFrame(frameOut, s, c);
@@ -290,50 +275,41 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                 {
                     usedValues.insert(labelval);
                 }
-                if (labelval >= 0 && labelval < LOOKUP_SIZE)
+                map<int32_t, int32_t>::iterator myiter = translate.find(labelval);
+                if (myiter == translate.end())
                 {
-                    if (labelUsed[labelval])
+                    if (discardOthers)
                     {
-                        frameOut[i] = labelTranslate[labelval];
-                    } else {
-                        if (discardOthers)
+                        frameOut[i] = unusedLabel;
+                    } else {//use a random color, but fully opaque for the label
+                        GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
+                        if (myTable.getLabelKeyFromName(myLabel.getName()) != GiftiLabel::getInvalidLabelKey())
                         {
-                            frameOut[i] = unusedLabel;
-                        } else {//use a random color, but fully opaque for the label
-                            GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
-                            myTable.insertLabel(&myLabel);
-                            int32_t newValue = myLabel.getKey();
-                            labelUsed[labelval] = true;
-                            labelTranslate[labelval] = newValue;
-                            frameOut[i] = newValue;
+                            AString nameBase = myLabel.getName(), newName;//resolve collision by generating a name with an additional number on it
+                            bool success = false;
+                            for (int extra = 1; extra < 100; ++extra)//but stop at 100, because really...
+                            {
+                                newName = nameBase + "_" + AString::number(extra);
+                                if (myTable.getLabelKeyFromName(newName) == GiftiLabel::getInvalidLabelKey())
+                                {
+                                    success = true;
+                                    break;
+                                }
+                            }
+                            if (success)
+                            {
+                                CaretLogWarning("name collision in auto-generated name '" + nameBase + "', changed to '" + newName + "'");
+                            } else {
+                                throw OperationException("giving up on resolving name collision for auto-generated name '" + nameBase + "'");
+                            }
+                            myLabel.setName(newName);
                         }
+                        int32_t newValue = myTable.addLabel(&myLabel);//don't overwrite any values in the table
+                        translate[labelval] = newValue;
+                        frameOut[i] = newValue;
                     }
                 } else {
-                    int numOutside = (int)outsideLookup.size(), whichIndex = -1;
-                    bool found = false;
-                    for (int ind = 0; ind < numOutside; ++ind)
-                    {
-                        if (outsideLookup[ind].first == labelval)
-                        {
-                            found = true;
-                            whichIndex = ind;
-                            break;
-                        }
-                    }
-                    if (found)
-                    {
-                        frameOut[i] = outsideLookup[whichIndex].second;
-                    } else {
-                        if (discardOthers)
-                        {
-                            frameOut[i] = unusedLabel;
-                        } else {
-                            GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
-                            myTable.insertLabel(&myLabel);
-                            int32_t newValue = myLabel.getKey();
-                            outsideLookup.push_back(make_pair(labelval, newValue));
-                        }
-                    }
+                    frameOut[i] = myiter->second;
                 }
             }
             outVol->setFrame(frameOut, 0, c);
