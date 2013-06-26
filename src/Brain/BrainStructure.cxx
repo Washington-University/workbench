@@ -50,6 +50,7 @@
 #include "MetricFile.h"
 #include "ModelSurface.h"
 #include "OverlaySet.h"
+#include "OverlaySetArray.h"
 #include "RgbaFile.h"
 #include "SceneClass.h"
 #include "SessionManager.h"
@@ -71,9 +72,10 @@ BrainStructure::BrainStructure(Brain* brain,
     m_nodeAttributes = new BrainStructureNodeAttributes();
     m_volumeInteractionSurface = NULL;
     
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i] = new OverlaySet(this);
-    }
+    m_overlaySetArray = new OverlaySetArray(this);
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        m_overlaySet[i] = new OverlaySet(this);
+//    }
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
@@ -94,9 +96,10 @@ BrainStructure::~BrainStructure()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_overlaySet[i];
-    }
+    delete m_overlaySetArray;
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        delete m_overlaySet[i];
+//    }
     
     /*
      * Make a copy of all surface pointers since
@@ -1255,10 +1258,11 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
 OverlaySet* 
 BrainStructure::getOverlaySet(const int tabIndex)
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
+//    CaretAssertArrayIndex(m_overlaySet, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -1271,10 +1275,11 @@ BrainStructure::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 BrainStructure::getOverlaySet(const int tabIndex) const
 {
-    CaretAssertArrayIndex(m_overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_overlaySet[tabIndex];
+    return m_overlaySetArray->getOverlaySet(tabIndex);
+//    CaretAssertArrayIndex(m_overlaySet,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -1283,9 +1288,10 @@ BrainStructure::getOverlaySet(const int tabIndex) const
 void 
 BrainStructure::initializeOverlays()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySet[i]->initializeOverlays();
-    }
+    m_overlaySetArray->initializeOverlaySelections();
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        m_overlaySet[i]->initializeOverlays();
+//    }
 }
 
 /**

@@ -48,6 +48,7 @@ namespace caret {
     class MetricFile;
     class ModelSurface;
     class OverlaySet;
+    class OverlaySetArray;
     class RgbaFile;
     class Surface;
     
@@ -176,7 +177,8 @@ namespace caret {
         StructureEnum::Enum m_structure;
         
         /** Overlays sets for this model and for each tab */
-        OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        //OverlaySet* m_overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        OverlaySetArray* m_overlaySetArray;
         
         std::vector<Surface*> m_surfaces;
         
