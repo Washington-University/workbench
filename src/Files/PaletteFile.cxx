@@ -344,12 +344,13 @@ PaletteFile::assignColorsToPalette(Palette& p)
             float rgba[4];
             gl->getColor(rgba);
             psac->setColor(rgba);
+        } else {
+            CaretLogSevere(("Missing color \""
+                            + colorName
+                            + "\" in palette \""
+                            + p.getName()
+                            + "\""));
         }
-        /*CaretLogSevere(("Missing color \""
-                        + colorName
-                        + "\" in palette \""
-                        + p.getName()
-                        + "\""));//*/
     }
 }
 
