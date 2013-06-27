@@ -202,7 +202,10 @@ PreferencesDialog::backgroundColorPushButtonPressed()
     const QColor initialColor(backgroundColor[0],
                               backgroundColor[1],
                               backgroundColor[2]);
-    QColor newColor = QColorDialog::getColor(initialColor, this, "Background");
+    QColor newColor = QColorDialog::getColor(initialColor,
+                                             this,
+                                             "Background",
+                                             QColorDialog::DontUseNativeDialog);
     if (newColor.isValid()) {
         backgroundColor[0] = newColor.red();
         backgroundColor[1] = newColor.green();
@@ -226,7 +229,10 @@ PreferencesDialog::foregroundColorPushButtonPressed()
     const QColor initialColor(foregroundColor[0],
                               foregroundColor[1],
                               foregroundColor[2]);
-    QColor newColor = QColorDialog::getColor(initialColor, this, "Foreground");
+    QColor newColor = QColorDialog::getColor(initialColor,
+                                             this,
+                                             "Foreground",
+                                             QColorDialog::DontUseNativeDialog);
     if (newColor.isValid()) {
         foregroundColor[0] = newColor.red();
         foregroundColor[1] = newColor.green();
