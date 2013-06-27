@@ -1117,6 +1117,54 @@ PaletteFile::addDefaultPalettes()
         addPalette(powerSurf);
     }
     
+    /*
+     * FSL Red palette from WB-289
+     *
+     * float offset = 100.0;
+     * float step = (255.0 - offset) / 255.0;
+     * for(unsigned char i = 0; i < 255; ++i)
+     * { int red = int(((i + 1) * step) + offset); lut->pushValue(red, 0, 0, i); }
+     *
+     * lut->m_lutName = std::string("Red");
+     */
+    if (this->getPaletteByName("fsl_red") == false) {
+        Palette fslRed;
+        fslRed.setName("fsl_red");
+        
+        float offset = 100.0;
+        float step = (255 - offset) / 255.0;
+        for (int32_t i = 254; i >= 0; i--) {
+            const int32_t red = int(((i + 1) * step) + offset);
+            const AString colorName = ("fsl_red_"
+                                       + AString::number(i));
+            this->addColor(colorName, red, 0.0, 0.0);
+            
+            const float scalar = (red / 255.0);
+            fslRed.addScalarAndColor(scalar,
+                                     colorName);
+        }
+        addPalette(fslRed);
+    }
+    
+    if (this->getPaletteByName("fsl_yellow") == false) {
+        Palette fslYellow;
+        fslYellow.setName("fsl_yellow");
+        
+        float offset = 100.0;
+        float step = (255 - offset) / 255.0;
+        for (int32_t i = 254; i >= 0; i--) {
+            const int32_t yellow = int(((i + 1) * step) + offset);
+            const AString colorName = ("fsl_yellow_"
+                                       + AString::number(i));
+            this->addColor(colorName, yellow, yellow, 0.0);
+            
+            const float scalar = (yellow / 255.0);
+            fslYellow.addScalarAndColor(scalar,
+                                     colorName);
+        }
+        addPalette(fslYellow);
+    }
+    
     if (modifiedStatus == false) {
         this->clearModified();
     }
