@@ -731,7 +731,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                               0,
                                               ("Loading data for "
                                                + QString::number(numberOfNodeIndices)
-                                               + " vertices"));
+                                               + " vertices in file ")
+                                              + getFileNameNoPath());
             EventManager::get()->sendEvent(progressEvent.getPointer());
             
             /*
@@ -968,7 +969,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
                                       0,
                                       ("Loading data for "
                                        + QString::number(numberOfVoxelIndices)
-                                       + " voxels"));
+                                       + " voxels in file ")
+                                      + getFileNameNoPath());
     EventManager::get()->sendEvent(progressEvent.getPointer());
     
     std::vector<float> rowData(dataCount);
