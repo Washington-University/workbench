@@ -72,12 +72,20 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
     OptionalParameter* rowSurfaceOpt = ret->createOptionalParameter(4, "-row-surface", "the output mapping along a row will be surface vertices");
     rowSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
     
+    OptionalParameter* rowCiftiOpt = ret->createOptionalParameter(9, "-row-cifti", "take the mapping along a row from a cifti file");
+    rowCiftiOpt->addCiftiParameter(1, "cifti", "the cifti file to take the mapping from");
+    rowCiftiOpt->addStringParameter(2, "direction", "which dimension to take the mapping along, ROW or COLUMN");
+    
     OptionalParameter* colVoxelOpt = ret->createOptionalParameter(5, "-col-voxels", "the output mapping along a row will be voxels");
     colVoxelOpt->addStringParameter(1, "voxel-list-file", "a text file containing IJK indices for the voxels used");
     colVoxelOpt->addVolumeParameter(2, "label-vol", "a label volume with the dimensions and sform used, with structure labels");
     
     OptionalParameter* colSurfaceOpt = ret->createOptionalParameter(6, "-col-surface", "the output mapping along a row will be surface vertices");
     colSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
+    
+    OptionalParameter* colCiftiOpt = ret->createOptionalParameter(10, "-col-cifti", "take the mapping along a row from a cifti file");
+    colCiftiOpt->addCiftiParameter(1, "cifti", "the cifti file to take the mapping from");
+    colCiftiOpt->addStringParameter(2, "direction", "which dimension to take the mapping along, ROW or COLUMN");
     
     ret->createOptionalParameter(7, "-transpose", "transpose the input matrix");
     
@@ -106,17 +114,26 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     OptionalParameter* rowVoxelOpt = myParams->getOptionalParameter(3);
     OptionalParameter* rowSurfaceOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* rowCiftiOpt = myParams->getOptionalParameter(9);
     OptionalParameter* colVoxelOpt = myParams->getOptionalParameter(5);
     OptionalParameter* colSurfaceOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* colCiftiOpt = myParams->getOptionalParameter(10);
     bool transpose = myParams->getOptionalParameter(7)->m_present;
     bool halfMatrix = myParams->getOptionalParameter(8)->m_present;
-    if (rowVoxelOpt->m_present == rowSurfaceOpt->m_present)//if both false or both true, basically using equals as a quick hack for xnor
+    int numRowOpts = 0, numColOpts = 0;
+    if (rowVoxelOpt->m_present) ++numRowOpts;
+    if (rowSurfaceOpt->m_present) ++numRowOpts;
+    if (rowCiftiOpt->m_present) ++numRowOpts;
+    if (colVoxelOpt->m_present) ++numColOpts;
+    if (colSurfaceOpt->m_present) ++numColOpts;
+    if (colCiftiOpt->m_present) ++numColOpts;
+    if (numRowOpts != 1)//if both false or both true, basically using equals as a quick hack for xnor
     {
-        throw OperationException("you must specify exactly one of -row-voxels and -row-surface");
+        throw OperationException("you must specify exactly one of -row-voxels, -row-surface, and -row-cifti");
     }
-    if (colVoxelOpt->m_present == colSurfaceOpt->m_present)
+    if (numColOpts != 1)
     {
-        throw OperationException("you must specify exactly one of -col-voxels and -col-surface");
+        throw OperationException("you must specify exactly one of -col-voxels, -col-surface, and -col-cifti");
     }
     CiftiXML myXML;
     myXML.resetRowsToBrainModels();
@@ -125,16 +142,48 @@ void OperationProbtrackXDotConvert::useParameters(OperationParameters* myParams,
     if (rowVoxelOpt->m_present)
     {
         addVoxelMapping(rowVoxelOpt->getVolume(2), rowVoxelOpt->getString(1), myXML, rowReorderMap, CiftiXML::ALONG_ROW);
-    } else {
+    }
+    if (rowSurfaceOpt->m_present)
+    {
         MetricFile* myMetric = rowSurfaceOpt->getMetric(1);
         myXML.addSurfaceModelToRows(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
+    }
+    if (rowCiftiOpt->m_present)
+    {
+        AString directionName = rowCiftiOpt->getString(2);
+        int myDir;
+        if (directionName == "ROW")
+        {
+            myDir = CiftiXML::ALONG_ROW;
+        } else if (directionName == "COLUMN") {
+            myDir = CiftiXML::ALONG_COLUMN;
+        } else {
+            throw OperationException("incorrect string for direction, use ROW or COLUMN");
+        }
+        myXML.copyMapping(CiftiXML::ALONG_ROW, rowCiftiOpt->getCifti(1)->getCiftiXML(), myDir);
     }
     if (colVoxelOpt->m_present)
     {
         addVoxelMapping(colVoxelOpt->getVolume(2), colVoxelOpt->getString(1), myXML, colReorderMap, CiftiXML::ALONG_COLUMN);
-    } else {
+    }
+    if (colSurfaceOpt->m_present)
+    {
         MetricFile* myMetric = colSurfaceOpt->getMetric(1);
         myXML.addSurfaceModelToColumns(myMetric->getNumberOfNodes(), myMetric->getStructure(), myMetric->getValuePointerForColumn(0));
+    }
+    if (colCiftiOpt->m_present)
+    {
+        AString directionName = colCiftiOpt->getString(2);
+        int myDir;
+        if (directionName == "ROW")
+        {
+            myDir = CiftiXML::ALONG_ROW;
+        } else if (directionName == "COLUMN") {
+            myDir = CiftiXML::ALONG_COLUMN;
+        } else {
+            throw OperationException("incorrect string for direction, use ROW or COLUMN");
+        }
+        myXML.copyMapping(CiftiXML::ALONG_COLUMN, colCiftiOpt->getCifti(1)->getCiftiXML(), myDir);
     }
     fstream dotFile(dotFileName.toAscii().constData(), fstream::in);
     if (!dotFile.good())
