@@ -1146,6 +1146,44 @@ PaletteFile::addDefaultPalettes()
         addPalette(fslRed);
     }
     
+    if (this->getPaletteByName("fsl_green") == false) {
+        Palette fslYellow;
+        fslYellow.setName("fsl_green");
+        
+        float offset = 100.0;
+        float step = (255 - offset) / 255.0;
+        for (int32_t i = 254; i >= 0; i--) {
+            const int32_t green = int(((i + 1) * step) + offset);
+            const AString colorName = ("fsl_green_"
+                                       + AString::number(i));
+            this->addColor(colorName, 0.0, green, 0.0);
+            
+            const float scalar = (green / 255.0);
+            fslYellow.addScalarAndColor(scalar,
+                                        colorName);
+        }
+        addPalette(fslYellow);
+    }
+    
+    if (this->getPaletteByName("fsl_blue") == false) {
+        Palette fslYellow;
+        fslYellow.setName("fsl_blue");
+        
+        float offset = 100.0;
+        float step = (255 - offset) / 255.0;
+        for (int32_t i = 254; i >= 0; i--) {
+            const int32_t blue = int(((i + 1) * step) + offset);
+            const AString colorName = ("fsl_blue_"
+                                       + AString::number(i));
+            this->addColor(colorName, 0.0, 0.0, blue);
+            
+            const float scalar = (blue / 255.0);
+            fslYellow.addScalarAndColor(scalar,
+                                        colorName);
+        }
+        addPalette(fslYellow);
+    }
+    
     if (this->getPaletteByName("fsl_yellow") == false) {
         Palette fslYellow;
         fslYellow.setName("fsl_yellow");
@@ -1160,7 +1198,7 @@ PaletteFile::addDefaultPalettes()
             
             const float scalar = (yellow / 255.0);
             fslYellow.addScalarAndColor(scalar,
-                                     colorName);
+                                        colorName);
         }
         addPalette(fslYellow);
     }
