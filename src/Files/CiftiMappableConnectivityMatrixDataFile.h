@@ -120,6 +120,8 @@ namespace caret {
     private:
         void clearPrivate();
         
+        void setLoadedRowDataToAllZeros();
+        
         int64_t getRowIndexForNodeWhenLoading(const StructureEnum::Enum structure,
                                               const int64_t surfaceNumberOfNodes,
                                               const int64_t nodeIndex);
@@ -142,6 +144,7 @@ namespace caret {
 		int64_t m_currentRowLoadedIndex;
         
         friend class CiftiBrainordinateScalarFile;
+
     };
     
 #ifdef __CIFTI_MAPPABLE_CONNECTIVITY_MATRIX_DATA_FILE_DECLARE__

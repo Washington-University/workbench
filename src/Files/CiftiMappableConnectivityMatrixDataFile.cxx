@@ -482,6 +482,22 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(con
     return rowIndex;
 }
 
+/**
+ * Set the loaded row data to zeros.
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
+{
+    if (m_loadedRowData.empty() == false){
+        std::fill(m_loadedRowData.begin(),
+                  m_loadedRowData.end(),
+                  0.0);
+    }
+    if (m_mapContent.empty() == false) {
+        m_mapContent[0]->invalidateColoring();
+    }
+}
+
 
 /**
  * Load connectivity data for the surface's node.
@@ -505,6 +521,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                            const StructureEnum::Enum structure,
                                                            const int32_t nodeIndex) throw (DataFileException)
 {
+    setLoadedRowDataToAllZeros();
+    
     if (isCiftiInterfaceValid() == false) {
         return -1;
     }
@@ -660,6 +678,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                                                    const StructureEnum::Enum structure,
                                                                    const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
+    setLoadedRowDataToAllZeros();
+    
     if (isCiftiInterfaceValid() == false) {
         return;
     }
@@ -809,6 +829,8 @@ int64_t
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                                  const float xyz[3]) throw (DataFileException)
 {
+    setLoadedRowDataToAllZeros();
+    
     CaretAssert(mapIndex == 0);
     
     if (isCiftiInterfaceValid() == false) {
@@ -898,6 +920,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
                                                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
 {
     CaretAssert(mapIndex == 0);
+    
+    setLoadedRowDataToAllZeros();
     
     if (isCiftiInterfaceValid() == false) {
         return false;

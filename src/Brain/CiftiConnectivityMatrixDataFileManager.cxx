@@ -215,25 +215,26 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
          iter != ciftiMatrixFiles.end();
          iter++) {
         CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        
-        const int32_t mapIndex = 0;
-        const int64_t rowIndex = cmf->loadMapDataForVoxelAtCoordinate(mapIndex,
-                                                                      xyz);
-        cmf->updateScalarColoringForMap(mapIndex,
-                                        paletteFile);
-        haveData = true;
-        
-        m_brainordinateDataSelection->setVolumeLoading(xyz);
-        
-        if (rowIndex >= 0) {
-            /*
-             * Get row/column info for node
-             */
-            rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
-                                              + " Voxel XYZ="
-                                              + AString::fromNumbers(xyz, 3, ",")
-                                              + ", row index= "
-                                              + AString::number(rowIndex));
+        if (cmf->isEmpty() == false) {
+            const int32_t mapIndex = 0;
+            const int64_t rowIndex = cmf->loadMapDataForVoxelAtCoordinate(mapIndex,
+                                                                          xyz);
+            cmf->updateScalarColoringForMap(mapIndex,
+                                            paletteFile);
+            haveData = true;
+            
+            m_brainordinateDataSelection->setVolumeLoading(xyz);
+            
+            if (rowIndex >= 0) {
+                /*
+                 * Get row/column info for node
+                 */
+                rowColumnInformationOut.push_back(cmf->getFileNameNoPath()
+                                                  + " Voxel XYZ="
+                                                  + AString::fromNumbers(xyz, 3, ",")
+                                                  + ", row index= "
+                                                  + AString::number(rowIndex));
+            }
         }
     }
     
@@ -270,16 +271,17 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int
          iter != ciftiMatrixFiles.end();
          iter++) {
         CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        
-        const int32_t mapIndex = 0;
-        if (cmf->loadMapAverageDataForVoxelIndices(mapIndex,
-                                                   volumeDimensionIJK,
-                                                   voxelIndices)) {
+        if (cmf->isEmpty() == false) {
+            const int32_t mapIndex = 0;
+            if (cmf->loadMapAverageDataForVoxelIndices(mapIndex,
+                                                       volumeDimensionIJK,
+                                                       voxelIndices)) {
+            }
             haveData = true;
+            
+            cmf->updateScalarColoringForMap(mapIndex,
+                                            paletteFile);
         }
-        
-        cmf->updateScalarColoringForMap(mapIndex,
-                                        paletteFile);
     }
     
     if (haveData) {
