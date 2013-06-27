@@ -43,6 +43,10 @@ private slots:
     void currentChanged(const QModelIndex &row,const QModelIndex &col);
 	void updateMatrix();	
 	void currentRowChanged(const QModelIndex & current, const QModelIndex & previous );
+    void on_rowSizeSpinBox_valueChanged(int arg1);
+
+    void on_columnSizeSpinBox_valueChanged(int arg1);
+
 private:
     Table *table;
     Ui::ChartingDialog *ui;

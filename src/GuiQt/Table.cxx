@@ -82,6 +82,22 @@ Table::~Table()
     delete ui;
 }
 
+/*
+bool Table::viewportEvent(QEvent *event) {
+    if (event->type() == QEvent::ToolTip) {
+        /*QHelpEvent *helpEvent = static_cast<QHelpEvent*>(event);
+        QModelIndex index = indexAt(helpEvent->pos());
+        if (index.isValid()) {
+            QSize sizeHint = itemDelegate(index)->sizeHint(viewOptions(), index);
+            QRect rItem(0, 0, sizeHint.width(), sizeHint.height());
+            QRect rVisual = visualRect(index);
+            if (rItem.width() <= rVisual.width())
+                return false;
+        }
+    }
+    return this->getTableView()->QTableView::viewportEvent(event);
+}*/
+
 QTableView *Table::getTableView()
 {
     return ui->tableView;

@@ -23,6 +23,7 @@ public:
     const QRect adjustTableSize(
         QTableView* tv,
         const QVBoxLayout* lay);
+//    virtual bool viewportEvent(QEvent *event);
 private:    
     Ui::Table *ui;
     QStandardItemModel *model;

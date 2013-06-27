@@ -1,6 +1,8 @@
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFile.h"
+#include "ChartableInterface.h"
 #include "ChartingDialog.h"
 #include "EventManager.h"
 #include "EventCiftiMappableDataFileColoringUpdated.h"
@@ -16,6 +18,9 @@
 #include "Table.h"
 #include "QVBoxLayout"
 #include "QPoint"
+#include <QList>
+#include <QObjectList>
+
 using namespace caret;
 
 ChartingDialog::ChartingDialog(QWidget *parent) :
@@ -55,6 +60,8 @@ void ChartingDialog::currentChanged(const QModelIndex &current,const QModelIndex
 {
     this->ui->rowTextLabel->setText(this->cmf->getRowName(current.row()));
     this->ui->columnTextLabel->setText(this->cmf->getColumnName(current.column()));
+    this->ui->rowNumber->setText(AString::number(current.row()));
+    this->ui->columnNumber->setText(AString::number(current.column()));
 
 }
 
@@ -65,8 +72,7 @@ void ChartingDialog::receiveEvent(Event* event)
 		EventCiftiMappableDataFileColoringUpdated *up = dynamic_cast<EventCiftiMappableDataFileColoringUpdated*>(event);
 		if(cmf==(up->cmf)) 
 		{
-			updateMatrix(); 
-			//up->setEventProcessed();
+			updateMatrix();
 		}
 	}
 }
@@ -76,10 +82,7 @@ void ChartingDialog::on_closeButton_clicked()
 {
     this->hide();
 }
-#include "BrainBrowserWindow.h"
 
-#include <QList>
-#include <QObjectList>
 void ChartingDialog::setChartMode(QString type)
 {
     QVBoxLayout *layout = (QVBoxLayout *)this->layout();
@@ -116,8 +119,7 @@ void ChartingDialog::setChartMode(QString type)
 void ChartingDialog::showToolBar(bool show)
 {
     if(show)
-    //{
-        this->ui->toolBarWidget->show();//this->ui->toolBarWidget->adjustSize();}
+        this->ui->toolBarWidget->show();
     else
         this->ui->toolBarWidget->hide();
 }
@@ -148,7 +150,8 @@ void ChartingDialog::showDialog()
     }
     this->show();
 }
-#include <ChartableInterface.h>
+
+
 void ChartingDialog::currentRowChanged(const QModelIndex & current, const QModelIndex & previous )
 {
 	cmf->loadMapData(current.row());
@@ -206,17 +209,22 @@ void ChartingDialog::updateSelectedItem(int32_t &row, int32_t &col)
 	getMatrixTableView()->blockSignals(false);
 	this->ui->rowTextLabel->setText(this->cmf->getRowName(row));
 	this->ui->columnTextLabel->setText(this->cmf->getColumnName(col));
+    this->ui->rowNumber->setText(AString::number(row));
+    this->ui->columnNumber->setText(AString::number(col));
 	cmf->loadMapData(row);
 	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());	
 }
 
 void ChartingDialog::openPconnMatrix(CaretMappableDataFile *pconnFile)
 {
-    //pconnFile->getMapPaletteColorMapping(0)->getSelectedPaletteName();
     CiftiMappableConnectivityMatrixDataFile *matrix = static_cast<CiftiMappableConnectivityMatrixDataFile *>(pconnFile);
     if(matrix == NULL) return;
 	this->cmf = matrix;
-    updateMatrix();		
+    updateMatrix();
+    AString temp = pconnFile->getFileName();
+    if(temp.length() > 80) temp = "..." + temp.right(80);
+    this->setWindowTitle(temp);
+
 }
 
 QTableView * 
@@ -230,11 +238,11 @@ ChartingDialog::getMatrixTableView()
 void ChartingDialog::customContextMenuRequestedSlot(const QPoint &pos)
 {
     QMenu menu;
-    QAction *toggleToolBar = new QAction("Show Toolbar",&menu);
+    /*QAction *toggleToolBar = new QAction("Show Toolbar",&menu);
     toggleToolBar->setCheckable(1);
     toggleToolBar->setChecked(!(ui->toolBarWidget->isHidden()));
     connect(toggleToolBar,SIGNAL(toggled(bool)),this,SLOT(showToolBar(bool)));
-    menu.addAction(toggleToolBar);
+    menu.addAction(toggleToolBar);*/
 
     QAction *toggleToolBox = new QAction("Show Toolbox",&menu);
     toggleToolBox->setCheckable(1);
@@ -242,4 +250,20 @@ void ChartingDialog::customContextMenuRequestedSlot(const QPoint &pos)
     connect(toggleToolBox,SIGNAL(toggled(bool)),this,SLOT(showToolBox(bool)));
     menu.addAction(toggleToolBox);
     menu.exec(QCursor::pos());
+}
+
+void caret::ChartingDialog::on_rowSizeSpinBox_valueChanged(int arg1)
+{
+    this->getMatrixTableView()->verticalHeader()->setDefaultSectionSize(arg1);
+    this->getMatrixTableView()->verticalHeader()->hide();
+    this->getMatrixTableView()->verticalHeader()->show();
+    this->getMatrixTableView()->verticalHeader()->update();
+}
+
+void caret::ChartingDialog::on_columnSizeSpinBox_valueChanged(int arg1)
+{
+    this->getMatrixTableView()->horizontalHeader()->setDefaultSectionSize(arg1);
+    this->getMatrixTableView()->horizontalHeader()->hide();
+    this->getMatrixTableView()->horizontalHeader()->show();
+    this->getMatrixTableView()->horizontalHeader()->update();
 }
