@@ -55,14 +55,14 @@ namespace caret {
                                             float* rgbaOut,
                                             const bool ignoreThresholding = false);
         
-        static void colorScalarsWithPaletteParallel(const FastStatistics* statistics,
-                                            const PaletteColorMapping* paletteColorMapping,
-                                            const Palette* palette,
-                                            const float* scalars,
-                                            const float* scalarThresholds,
-                                            const int32_t numberOfScalars,
-                                            uint8_t* rgbaOut,
-                                            const bool ignoreThresholding = false);
+//        static void colorScalarsWithPaletteParallel(const FastStatistics* statistics,
+//                                            const PaletteColorMapping* paletteColorMapping,
+//                                            const Palette* palette,
+//                                            const float* scalars,
+//                                            const float* scalarThresholds,
+//                                            const int32_t numberOfScalars,
+//                                            uint8_t* rgbaOut,
+//                                            const bool ignoreThresholding = false);
         
         static void colorScalarsWithPalette(const FastStatistics* statistics,
                                             const PaletteColorMapping* paletteColorMapping,
