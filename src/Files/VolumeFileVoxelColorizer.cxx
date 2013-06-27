@@ -156,7 +156,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
         case SubvolumeAttributes::ANATOMY:
         case SubvolumeAttributes::FUNCTIONAL:
             CaretAssert(palette);
-            NodeAndVoxelColoring::colorScalarsWithPaletteParallel(m_volumeFile->getMapFastStatistics(mapIndex),
+            NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeFile->getMapFastStatistics(mapIndex),
                                                           m_volumeFile->getMapPaletteColorMapping(mapIndex),
                                                           palette,
                                                           mapDataPointer,
