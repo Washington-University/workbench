@@ -598,7 +598,6 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
     /*
      * Color all scalars.
      */
-#pragma omp CARET_FOR
 	for (int32_t i = 0; i < numberOfScalars; i++) {
         const int32_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
