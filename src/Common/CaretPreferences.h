@@ -117,6 +117,16 @@ namespace caret {
         
         void removeCustomView(const AString& customViewName);
         
+        bool isRemoteFilePasswordSaved();
+        
+        void setRemoteFilePasswordSaved(const bool saveRemotePasswordToPreferences);
+
+        void getRemoteFileUserNameAndPassword(AString& userNameOut,
+                                              AString& passwordOut) const;
+        
+        void setRemoteFileUserNameAndPassword(const AString& userName,
+                                              const AString& password);
+        
 //        std::vector<ModelTransform*> getAllModelTransforms();
 //        
 //        void setAllModelTransforms(std::vector<ModelTransform*>& allModelTransforms);
@@ -147,6 +157,12 @@ namespace caret {
         
         void setInteger(const AString& name,
                         const int value);
+        
+        AString getString(const AString& name,
+                          const AString& defaultValue = "");
+        
+        void setString(const AString& name,
+                       const AString& value);
         
         void addToPrevious(std::vector<AString>& previousVector,
                            const AString& newName);
@@ -185,6 +201,10 @@ namespace caret {
         
         int32_t toolBoxType;
         
+        AString remoteFileUserName;
+        AString remoteFilePassword;
+        bool remoteFileLoginSaved;
+        
         //bool contralateralIdentificationEnabled;
         
         static const AString NAME_ANIMATION_START_TIME;
@@ -200,6 +220,9 @@ namespace caret {
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
         static const AString NAME_CUSTOM_VIEWS;
+        static const AString NAME_REMOTE_FILE_USER_NAME;
+        static const AString NAME_REMOTE_FILE_PASSWORD;
+        static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
         
         static const AString NAME_TOOLBOX_TYPE;
     };
@@ -219,6 +242,9 @@ namespace caret {
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
     const AString CaretPreferences::NAME_TOOLBOX_TYPE = "toolBoxType";
     const AString CaretPreferences::NAME_CUSTOM_VIEWS     = "customViews";
+    const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
+    const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
+    const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

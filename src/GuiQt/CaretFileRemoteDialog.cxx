@@ -35,6 +35,7 @@
 #include <algorithm>
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -51,6 +52,7 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "DataFileTypeEnum.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventDataFileRead.h"
@@ -61,6 +63,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ProgressReportingDialog.h"
+#include "SessionManager.h"
 #include "SpecFile.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
@@ -99,6 +102,22 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
      */
     QRadioButton* defaultRadioButton = NULL;
     
+    if (s_previousSelections.m_firstTime) {
+        s_previousSelections.m_firstTime = false;
+        
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        AString userName;
+        AString password;
+        prefs->getRemoteFileUserNameAndPassword(userName,
+                                                password);
+        s_previousSelections.m_username = userName;
+        if (prefs->isRemoteFilePasswordSaved()) {
+            s_previousSelections.m_password = password;
+        }
+        else {
+            s_previousSelections.m_password = "";
+        }
+    }
     m_customUrlLineEdit->setText(s_previousSelections.m_customURL);
     m_customUrlFileTypeComboBox->setSelectedItem<DataFileTypeEnum, DataFileTypeEnum::Enum>(s_previousSelections.m_customDataFileType);
     m_standardFileComboBox->setCurrentIndex(s_previousSelections.m_standardFileComboBoxIndex);
@@ -257,7 +276,9 @@ CaretFileRemoteDialog::locationSourceRadioButtonClicked(QAbstractButton* button)
 QWidget*
 CaretFileRemoteDialog::createLoginWidget()
 {
-    QLabel* usernameLabel = new QLabel("Username: ");
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    
+    QLabel* usernameLabel = new QLabel("User Name: ");
     m_usernameLineEdit = new QLineEdit();
     m_usernameLineEdit->setFixedWidth(200);
     
@@ -266,17 +287,54 @@ CaretFileRemoteDialog::createLoginWidget()
     m_passwordLineEdit->setFixedWidth(200);
     m_passwordLineEdit->setEchoMode(QLineEdit::Password);
     
+    m_savePasswordToPreferencesCheckBox = new QCheckBox("Save Password to Preferences");
+    m_savePasswordToPreferencesCheckBox->setChecked(prefs->isRemoteFilePasswordSaved());
+    QObject::connect(m_savePasswordToPreferencesCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(savePasswordToPreferencesClicked(bool)));
+    
+    int row = 0;
     QGroupBox* logingroupBox = new QGroupBox("Login");
     QGridLayout* loginGridLayout = new QGridLayout(logingroupBox);
     loginGridLayout->setColumnStretch(0, 0);
     loginGridLayout->setColumnStretch(1, 100);
-    loginGridLayout->addWidget(usernameLabel, 0, 0);
-    loginGridLayout->addWidget(m_usernameLineEdit, 0, 1);
-    loginGridLayout->addWidget(passwordLabel, 1, 0);
-    loginGridLayout->addWidget(m_passwordLineEdit, 1, 1);
+    loginGridLayout->addWidget(usernameLabel, row, 0);
+    loginGridLayout->addWidget(m_usernameLineEdit, row, 1);
+    row++;
+    loginGridLayout->addWidget(passwordLabel, row, 0);
+    loginGridLayout->addWidget(m_passwordLineEdit, row, 1);
+    row++;
+    loginGridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                               row, 0, 1, 2);
+    row++;
+    loginGridLayout->addWidget(m_savePasswordToPreferencesCheckBox,
+                               row, 0, 1, 2, Qt::AlignLeft);
+    row++;
 
     return logingroupBox;
 }
+
+/**
+ * Called when save password to preferences checkbox value is changed
+ * by the user.
+ *
+ * @param status
+ *   New status of save password to preferences checkbox.
+ */
+void
+CaretFileRemoteDialog::savePasswordToPreferencesClicked(bool status)
+{
+    if (status) {
+        const QString msg = ("The Workbench preferences are stored in a file somewhere in your "
+                             "home directory and the location depends upon your operating "
+                             "system.  This is not a secure file and it may be possible "
+                             "other users to access this file and find your "
+                             "open location password.  Unchceck the box if you do not want "
+                             "your password saved within your preferences.");
+        WuQMessageBox::informationOk(m_savePasswordToPreferencesCheckBox,
+                                     WuQtUtilities::createWordWrappedToolTipText(msg));
+    }
+}
+
 
 /**
  * Create and load the standard data.
@@ -312,6 +370,23 @@ CaretFileRemoteDialog::createAndLoadStandardData()
 void
 CaretFileRemoteDialog::okButtonClicked()
 {
+    const AString username = m_usernameLineEdit->text().trimmed();
+    const AString password = m_passwordLineEdit->text().trimmed();
+    s_previousSelections.m_username = username;
+    s_previousSelections.m_password = password;
+    const bool savePassword = m_savePasswordToPreferencesCheckBox->isChecked();
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setRemoteFilePasswordSaved(savePassword);
+    if (savePassword) {
+        prefs->setRemoteFileUserNameAndPassword(username,
+                                                password);
+    }
+    else {
+        prefs->setRemoteFileUserNameAndPassword(username,
+                                                "");
+    }
+    
     bool customSelected = false;
     if (m_locationCustomRadioButton->isChecked()) {
         customSelected = true;
@@ -345,11 +420,7 @@ CaretFileRemoteDialog::okButtonClicked()
         s_previousSelections.m_radioButtonText = m_locationStandardRadioButton->text();
     }
 
-    const AString username = m_usernameLineEdit->text().trimmed();
-    const AString password = m_passwordLineEdit->text().trimmed();
     
-    s_previousSelections.m_username = username;
-    s_previousSelections.m_password = password;
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getActiveBrowserWindow();
     std::vector<AString> files;

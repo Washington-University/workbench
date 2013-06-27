@@ -75,6 +75,8 @@ CaretPreferences::~CaretPreferences()
  * Get the boolean value for the given preference name.
  * @param name
  *    Name of the preference.
+ * @param defaultValue
+ *    Value returned in the preference with the given name was not found.
  * @return
  *    Boolean value of preference or defaultValue if the
  *    named preference is not found.
@@ -103,6 +105,8 @@ void CaretPreferences::setBoolean(const AString& name,
  * Get the boolean value for the given preference name.
  * @param name
  *    Name of the preference.
+ * @param defaultValue
+ *    Value returned in the preference with the given name was not found.
  * @return
  *    Integer value of preference or defaultValue if the
  *    named preference is not found.
@@ -128,9 +132,43 @@ void CaretPreferences::setInteger(const AString& name,
 }
 
 /**
+ * Get the string value for the given preference name.
+ * @param name
+ *    Name of the preference.
+ * @param defaultValue
+ *    Value returned in the preference with the given name was not found.
+ * @return
+ *    String value of preference or defaultValue if the
+ *    named preference is not found.
+ */
+AString
+CaretPreferences::getString(const AString& name,
+                            const AString& defaultValue)
+{
+    AString s = this->qSettings->value(name,
+                                       defaultValue).toString();
+    return s;
+}
+
+/**
+ * Set the given preference name with the string value.
+ * @param
+ *    Name of the preference.
+ * @param
+ *    New value for preference.
+ */
+void
+CaretPreferences::setString(const AString& name,
+                            const AString& value)
+{
+    this->qSettings->setValue(name,
+                              value);
+}
+
+/**
  * Remove all custom views.
  */
-void 
+void
 CaretPreferences::removeAllCustomViews()
 {
     for (std::vector<ModelTransform*>::iterator iter = this->customViews.begin();
@@ -678,6 +716,69 @@ CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
 }
 
 /**
+ * @return Save remote login to preferences.
+ */
+bool
+CaretPreferences::isRemoteFilePasswordSaved()
+{
+    return this->remoteFileLoginSaved;
+}
+
+/**
+ * Set saving of remote login and password to preferences.
+ *
+ * @param saveRemoteLoginToPreferences
+ *    New status.
+ */
+void
+CaretPreferences::setRemoteFilePasswordSaved(const bool saveRemotePasswordToPreferences)
+{
+    this->remoteFileLoginSaved = saveRemotePasswordToPreferences;
+    this->setBoolean(NAME_REMOTE_FILE_LOGIN_SAVED,
+                     this->remoteFileLoginSaved);
+    this->qSettings->sync();
+}
+
+
+/**
+ * Get the remote file username and password
+ *
+ * @param userNameOut
+ *    Contains username upon exit
+ * @param passwordOut
+ *    Contains password upon exit.
+ */
+void
+CaretPreferences::getRemoteFileUserNameAndPassword(AString& userNameOut,
+                                                   AString& passwordOut) const
+{
+    userNameOut = this->remoteFileUserName;
+    passwordOut = this->remoteFilePassword;
+}
+
+/**
+ * Set the remote file username and password
+ *
+ * @param userName
+ *    New value for username.
+ * @param passwordOut
+ *    New value for password.
+ */
+void
+CaretPreferences::setRemoteFileUserNameAndPassword(const AString& userName,
+                                                   const AString& password)
+{
+    this->remoteFileUserName = userName;
+    this->remoteFilePassword = password;
+    
+    this->setString(NAME_REMOTE_FILE_USER_NAME,
+                    userName);
+    this->setString(NAME_REMOTE_FILE_PASSWORD,
+                    password);
+    this->qSettings->sync();
+}
+
+/**
  * @return  Are axes crosshairs displayed?
  */
 bool 
@@ -697,6 +798,7 @@ CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
     this->displayVolumeAxesCrosshairs = displayed;
     this->setBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS, 
                      this->displayVolumeAxesCrosshairs);
+    this->qSettings->sync();
 }
 
 /**
@@ -719,6 +821,7 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
     this->displayVolumeAxesLabels = displayed;
     this->setBoolean(CaretPreferences::NAME_AXES_LABELS, 
                      this->displayVolumeAxesLabels);
+    this->qSettings->sync();
 }
 
 
@@ -742,6 +845,7 @@ CaretPreferences::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed)
     this->displayVolumeAxesCoordinates = displayed;
     this->setBoolean(CaretPreferences::NAME_AXES_COORDINATE,
                      this->displayVolumeAxesCoordinates);
+    this->qSettings->sync();
 }
 
 /**
@@ -764,6 +868,7 @@ CaretPreferences::setToolBoxType(const int32_t toolBoxType)
     this->toolBoxType = toolBoxType;
     this->setInteger(CaretPreferences::NAME_TOOLBOX_TYPE, 
                      this->toolBoxType);
+    this->qSettings->sync();
 }
 
 
@@ -811,6 +916,7 @@ CaretPreferences::setSplashScreenEnabled(const bool enabled)
     this->splashScreenEnabled = enabled;
     this->setBoolean(CaretPreferences::NAME_SPLASH_SCREEN, 
                      this->splashScreenEnabled);
+    this->qSettings->sync();
 }
 
 /**
@@ -833,6 +939,7 @@ CaretPreferences::setDevelopMenuEnabled(const bool enabled)
     this->developMenuEnabled = enabled;
     this->setBoolean(CaretPreferences::NAME_DEVELOP_MENU,
                      this->developMenuEnabled);
+    this->qSettings->sync();
 }
 
 
@@ -906,6 +1013,11 @@ CaretPreferences::readPreferences()
     
     this->developMenuEnabled = this->getBoolean(CaretPreferences::NAME_DEVELOP_MENU,
                                                 false);
+    
+    this->remoteFileUserName = this->getString(NAME_REMOTE_FILE_USER_NAME);
+    this->remoteFilePassword = this->getString(NAME_REMOTE_FILE_PASSWORD);
+    this->remoteFileLoginSaved = this->getBoolean(NAME_REMOTE_FILE_LOGIN_SAVED,
+                                                  false);
     
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);
