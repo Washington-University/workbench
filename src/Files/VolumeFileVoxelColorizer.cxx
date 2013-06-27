@@ -156,14 +156,26 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
         case SubvolumeAttributes::ANATOMY:
         case SubvolumeAttributes::FUNCTIONAL:
             CaretAssert(palette);
-            NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeFile->getMapFastStatistics(mapIndex),
-                                                          m_volumeFile->getMapPaletteColorMapping(mapIndex),
-                                                          palette,
-                                                          mapDataPointer,
-                                                          mapDataPointer,
-                                                          m_voxelCountPerMap,
-                                                          m_mapRGBA[mapIndex],
-                                                          ignoreThresholding);
+            if (CaretLogger::getLogger()->isFiner()) {
+                NodeAndVoxelColoring::colorScalarsWithPaletteParallel(m_volumeFile->getMapFastStatistics(mapIndex),
+                                                              m_volumeFile->getMapPaletteColorMapping(mapIndex),
+                                                              palette,
+                                                              mapDataPointer,
+                                                              mapDataPointer,
+                                                              m_voxelCountPerMap,
+                                                              m_mapRGBA[mapIndex],
+                                                              ignoreThresholding);
+            }
+            else {
+                NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeFile->getMapFastStatistics(mapIndex),
+                                                              m_volumeFile->getMapPaletteColorMapping(mapIndex),
+                                                              palette,
+                                                              mapDataPointer,
+                                                              mapDataPointer,
+                                                              m_voxelCountPerMap,
+                                                              m_mapRGBA[mapIndex],
+                                                              ignoreThresholding);
+            }
             m_mapColoringValid[mapIndex] = true;
             break;
         case SubvolumeAttributes::LABEL:
