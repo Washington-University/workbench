@@ -317,7 +317,10 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
     t += (" *\n");
     t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
+    t += (" *\n");
+    t += (getEnumComboBoxTemplateHelpInfo(enumClassName));
     t += (" */\n");
+    t += ("\n");
     t += ("/**\n");
     t += (" * Constructor.\n");
     t += (" *\n");
@@ -671,4 +674,70 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
         throw CommandException(e);
     }
 }
+
+/**
+ * Get a string containing information on how to use this enumerated type
+ * with the EnumComboBoxTemplate in the GUI.
+ *
+ * @param enumClassName
+ *    Name of the enumerated type.
+ * @return 
+ *    String containing usage information.
+ */
+AString
+CommandClassCreateEnum::getEnumComboBoxTemplateHelpInfo(const AString& enumClassName) const
+{
+    const AString firstLetter = enumClassName.left(1).toLower();
+    const AString memberName = ("m_"
+                                  + firstLetter
+                                  + enumClassName.mid(1)
+                                  + "ComboBox");
+    const AString slotName = (memberName.mid(2)
+                              + "ItemActivated()");
+    
+    const AString templateParameter = ("<"
+                                       + enumClassName
+                                       + ","
+                                       + enumClassName
+                                       + "::Enum>");
+    const AString setupIndentString(memberName.length() + QString("->setup<").length(),
+                                    ' ');
+    
+    AString s(" * Using this enumerated type in the GUI with an EnumComboBoxTemplate\n"
+              " * \n"
+              " * Header File (.h)\n"
+              " *     Forward declare the data type:\n"
+              " *         class EnumComboBoxTemplate;\n"
+              " * \n"
+              " *     Declare the member:\n"
+              " *         EnumComboBoxTemplate* " + memberName + ";\n"
+              " * \n"
+              " *     Declare a slot that is called when user changes selection\n"
+              " *         private slots:\n"
+              " *             void " + slotName + ";\n"
+              " * \n"
+              " * Implementation File (.cxx)\n"
+              " *     Include the header files\n"
+              " *         #include \"EnumComboBoxTemplate.h\"\n"
+              " *         #include \"" + enumClassName + ".h\"\n"
+              " * \n"
+              " *     Instatiate:\n"
+              " *         " + memberName + " = new EnumComboBoxTemplate(this);\n"
+              " *         " + memberName + "->setup" + templateParameter + "();\n"
+              " * \n"
+              " *     Get notified when the user changes the selection: \n"
+              " *         QObject::connect(" + memberName + ", SIGNAL(itemActivated())\n"
+              " *                          this, SLOT(" + slotName + "));\n"
+              " * \n"
+              " *     Update the selection:\n"
+              " *         " + memberName + "->setSelectedItem" + templateParameter + "(NEW_VALUE);\n"
+              " * \n"
+              " *     Read the selection:\n"
+              " *         const " + enumClassName + "::Enum VARIABLE = " + memberName + "->getSelectedItem" + templateParameter + "();\n"
+              " * \n");
+    
+    return s;
+}
+
+
 

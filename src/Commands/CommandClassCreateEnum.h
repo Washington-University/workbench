@@ -62,6 +62,9 @@ namespace caret {
                                       const AString& ifdefNameStaticDeclaration,
                                       const int32_t numberOfEnumValues,
                                       const bool isAutoNumber);
+        
+        AString getEnumComboBoxTemplateHelpInfo(const AString& enumClassName) const;
+        
     };
     
 } // namespace
