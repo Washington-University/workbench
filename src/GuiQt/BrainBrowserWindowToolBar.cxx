@@ -52,7 +52,6 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
-#include "BrainBrowserWindowScreenModeEnum.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -1187,57 +1186,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
     if (browserWindow != NULL) {
-//        BrainBrowserWindowScreenModeEnum::Enum screenMode = browserWindow->getScreenMode();
-//        
-//        bool showToolBar = false;
-//        bool showToolBarWidget = false;
-//        switch (screenMode) {
-//            case BrainBrowserWindowScreenModeEnum::NORMAL:
-//                showToolBar = true;
-//                showToolBarWidget = this->toolBarToolButtonAction->isChecked(); // JWH FIX Toolbar turned after ID event
-//                break;
-//            case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
-//                /*
-//                 * Display all of tab bar (tabs and tool buttons) only if more than one tab
-//                 */
-//                if (this->tabBar->count() > 1) {
-//                    showToolBar = true;
-//                    showToolBarWidget = false;
-//                }
-//                break;
-//            case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
-//                break;
-//            case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
-//                break;
-//        }
-
-        
-//        bool showToolBar = true;
-//        bool showToolBarWidget = this->toolBarToolButtonAction->isChecked();
-//        if (browserWindow->isFullScreen()) {
-//            if (this->tabBar->count() > 1) {
-//                if (browserWindow->isTileTabsSelected()) {
-//                    showToolBar = false;
-//                }
-//                else {
-//                    showToolBar = true;
-//                }
-//                showToolBarWidget = false;
-//            }
-//        }
-//        
-//        this->setVisible(showToolBar);
-//        if (showToolBar) {
-//            /*
-//             * Gets disabled by main window when switching view modes
-//             */
-//            const bool enabledStatus = this->toolBarToolButtonAction->isEnabled();
-//            this->toolBarToolButtonAction->setEnabled(true);
-//            if (this->toolBarToolButtonAction->isChecked() != showToolBarWidget) {
-//                this->toolBarToolButtonAction->trigger();
-//            }
-//            this->toolBarToolButtonAction->setEnabled(enabledStatus);
-//        }
         if (browserWindow->isFullScreen()) {
             this->setVisible(false);
         }
@@ -4177,22 +4125,6 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
             BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
             if (browserWindow != NULL) {
-//                BrainBrowserWindowScreenModeEnum::Enum screenMode = browserWindow->getScreenMode();
-//                
-//                bool showMontage = false;
-//                switch (screenMode) {
-//                    case BrainBrowserWindowScreenModeEnum::NORMAL:
-//                        break;
-//                    case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
-//                        break;
-//                    case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
-//                        showMontage = true;
-//                        break;
-//                    case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
-//                        showMontage = true;
-//                        break;
-//                }
-                
                 if (browserWindow->isTileTabsSelected()) {
                     const int32_t numTabs = this->tabBar->count();
                     for (int32_t i = 0; i < numTabs; i++) {

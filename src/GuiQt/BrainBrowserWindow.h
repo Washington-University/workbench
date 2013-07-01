@@ -128,7 +128,7 @@ namespace caret {
         void processExitProgram();
         void processViewScreenActionGroupSelection(QAction*);
         void processMoveAllTabsToOneWindow();
-        void processViewFullScreen(bool);
+        void processViewFullScreenSelected(bool);
         void processViewTileTabs(bool);
         
         void processMoveOverlayToolBoxToLeft();
@@ -224,6 +224,9 @@ namespace caret {
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
         
         void openSpecFile(const AString& specFileName) throw (DataFileException);
+        
+        void processViewFullScreen(bool showFullScreenDisplay,
+                                   const bool saveRestoreWindowStatus);
         
         /** Index of this window */
         int32_t m_browserWindowIndex;
