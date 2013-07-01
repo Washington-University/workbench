@@ -32,7 +32,6 @@
 #include "FileInformation.h"
 
 #include <cmath>
-#include <fstream>
 
 using namespace caret;
 using namespace std;
