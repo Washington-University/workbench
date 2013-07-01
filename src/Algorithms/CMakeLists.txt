@@ -33,6 +33,7 @@ AlgorithmCiftiMerge.h
 AlgorithmCiftiPairwiseCorrelation.h
 AlgorithmCiftiParcellate.h
 AlgorithmCiftiReduce.h
+AlgorithmCiftiReorder.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiResample.h
 AlgorithmCiftiROIsFromExtrema.h
@@ -105,6 +106,7 @@ AlgorithmCiftiMerge.cxx
 AlgorithmCiftiPairwiseCorrelation.cxx
 AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiReduce.cxx
+AlgorithmCiftiReorder.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiResample.cxx
 AlgorithmCiftiROIsFromExtrema.cxx

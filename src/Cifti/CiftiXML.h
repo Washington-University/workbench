@@ -55,9 +55,9 @@ namespace caret {
     
     class CiftiXML {
     public:
-        const static int ALONG_ROW;
-        const static int ALONG_COLUMN;
-        const static int ALONG_STACK;//better name for this?
+        const static int ALONG_ROW = 0;
+        const static int ALONG_COLUMN = 1;
+        const static int ALONG_STACK = 2;//better name for this?
         /**
         * Default Constructor
         *
@@ -246,6 +246,12 @@ namespace caret {
         ///get the parcels for columns
         bool getParcelsForColumns(std::vector<CiftiParcelElement>& parcelsOut) const;
         
+        ///get the parcels for a dimension
+        bool getParcels(const int& direction, std::vector<CiftiParcelElement>& parcelsOut) const;
+        
+        ///get the parcel surface structures
+        bool getParcelSurfaceStructures(const int& direction, std::vector<StructureEnum::Enum>& structuresOut) const;
+        
         ///get the row parcel for a node
         int64_t getRowParcelForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         
@@ -345,12 +351,18 @@ namespace caret {
         ///set columns to be of type parcels
         void resetColumnsToParcels();
         
+        ///set dimension to be of type parcels
+        void resetDirectionToParcels(const int& direction);
+        
         ///get the map name for an index along a column
         AString getMapNameForColumnIndex(const int& index) const;
         
         ///get the map name for an index along a row
         AString getMapNameForRowIndex(const int& index) const;
         
+        ///get the map name for an index
+        AString getMapName(const int& direction, const int& index) const;
+
         //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index along a column
         GiftiLabelTable* getLabelTableForColumnIndex(const int& index) const;
@@ -359,6 +371,10 @@ namespace caret {
         ///get the label table for an index along a row
         GiftiLabelTable* getLabelTableForRowIndex(const int& index) const;
         
+        //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
+        ///get the label table for an index
+        GiftiLabelTable* getMapLabelTable(const int& index, const int& myMapIndex) const;
+
         ///set the map name for an index along a column
         bool setMapNameForColumnIndex(const int& index, const AString& name) const;
         
@@ -463,14 +479,11 @@ namespace caret {
         bool getTimestart(float& seconds, const int& myMapIndex) const;
         bool setTimestep(const float& seconds, const int& myMapIndex);
         bool setTimestart(const float& seconds, const int& myMapIndex);
-        AString getMapName(const int& index, const int& myMapIndex) const;
-        GiftiLabelTable* getLabelTable(const int& index, const int& myMapIndex) const;
         bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
         ///some boilerplate to retrieve mappings
         bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
         bool getVolumeModelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
-        //bool getStructureLists(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const;
         
         ///boilerplate for has data
         
