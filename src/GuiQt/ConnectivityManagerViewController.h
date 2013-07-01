@@ -76,8 +76,6 @@ namespace caret {
     private slots:
         void graphActionTriggered();
 
-        void matrixActionTriggered();
-        
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
 
@@ -105,14 +103,8 @@ namespace caret {
 
         QAction* graphAction;
 
-        QToolButton* matrixToolButton;
-
-        QAction* matrixAction;
-
         TimeCourseDialog *tcDialog;
 
-        ChartingDialog *chartingDialog;
-        
         static std::set<ConnectivityManagerViewController*> allManagerViewControllers;
         
         static AString previousNetworkUsername;

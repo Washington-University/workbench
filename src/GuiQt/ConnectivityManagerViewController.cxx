@@ -94,10 +94,6 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->graphToolButton = NULL;
     this->graphAction = NULL;
 
-    this->chartingDialog = NULL;
-    this->matrixToolButton = NULL;
-    this->matrixAction = NULL;
-	
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         {
@@ -117,24 +113,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
                 this->graphAction->setIcon(graphIcon);
             }            
             this->graphToolButton = new QToolButton();
-            this->graphToolButton->setDefaultAction(this->graphAction);
-
-
-            QIcon matrixIcon;
-            const bool matrixIconValid = WuQtUtilities::loadIcon(":/time_series_graph.png",
-                matrixIcon);
-
-            this->matrixAction = WuQtUtilities::createAction("Matrix...",
-                "Launch pconn Matrix Viewer...",
-                this,
-                this,
-                SLOT(matrixActionTriggered()));
-
-            if(matrixIconValid) {
-                this->matrixAction->setIcon(matrixIcon);
-            }
-            this->matrixToolButton = new QToolButton();
-            this->matrixToolButton->setDefaultAction(this->matrixAction);
+            this->graphToolButton->setDefaultAction(this->graphAction);            
 
             this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);           
         
@@ -151,7 +130,6 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     if(this->timeSeriesButtonLayout)
     {
         if(this->graphToolButton) this->timeSeriesButtonLayout->addWidget(this->graphToolButton,0,Qt::AlignLeft);
-        if(this->matrixToolButton) this->timeSeriesButtonLayout->addWidget(this->matrixToolButton,0,Qt::AlignLeft);
         this->timeSeriesButtonLayout->addSpacerItem(new QSpacerItem(40,20,QSizePolicy::Expanding, QSizePolicy::Minimum));
         
         layout->addLayout(this->timeSeriesButtonLayout);
@@ -183,21 +161,6 @@ ConnectivityManagerViewController::graphActionTriggered()
     tcDialog->updateDialog(true);
    
 }
-
-
-void
-ConnectivityManagerViewController::matrixActionTriggered()
-{
-  if(!this->chartingDialog)
-    {
-        this->chartingDialog = new ChartingDialog(this);
-    }
-    //this->chartingDialog->setTimeSeriesGraphEnabled(true);
-    chartingDialog->show();
-    //->updateDialog(true);
-
-}
-
 
 
 void 

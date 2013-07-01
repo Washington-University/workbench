@@ -53,6 +53,7 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
 
 ChartingDialog::~ChartingDialog()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
     delete ui;    
 }
 
@@ -60,8 +61,8 @@ void ChartingDialog::currentChanged(const QModelIndex &current,const QModelIndex
 {
     this->ui->rowTextLabel->setText(this->cmf->getRowName(current.row()));
     this->ui->columnTextLabel->setText(this->cmf->getColumnName(current.column()));
-    this->ui->rowNumber->setText(AString::number(current.row()));
-    this->ui->columnNumber->setText(AString::number(current.column()));
+    this->ui->rowNumber->setText(AString::number(current.row()+1));
+    this->ui->columnNumber->setText(AString::number(current.column()+1));
 
 }
 
@@ -209,8 +210,8 @@ void ChartingDialog::updateSelectedItem(int32_t &row, int32_t &col)
 	getMatrixTableView()->blockSignals(false);
 	this->ui->rowTextLabel->setText(this->cmf->getRowName(row));
 	this->ui->columnTextLabel->setText(this->cmf->getColumnName(col));
-    this->ui->rowNumber->setText(AString::number(row));
-    this->ui->columnNumber->setText(AString::number(col));
+    this->ui->rowNumber->setText(AString::number(row+1));
+    this->ui->columnNumber->setText(AString::number(col+1));
 	cmf->loadMapData(row);
 	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());	
 }
