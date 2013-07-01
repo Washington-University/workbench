@@ -55,9 +55,15 @@ namespace caret {
     
     class CiftiXML {
     public:
-        const static int ALONG_ROW = 0;
+        enum
+        {
+            ALONG_ROW = 0,
+            ALONG_COLUMN = 1,
+            ALONG_STACK = 2//better name for this?
+        };
+        /*const static int ALONG_ROW = 0;
         const static int ALONG_COLUMN = 1;
-        const static int ALONG_STACK = 2;//better name for this?
+        const static int ALONG_STACK = 2;//*/
         /**
         * Default Constructor
         *
