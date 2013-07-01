@@ -77,6 +77,8 @@ namespace caret {
         
         BrainBrowserWindowScreenModeEnum::Enum getScreenMode() const;
         
+        bool isTileTabsSelected() const;
+        
         /**
          * Mode for loading spec files
          */
@@ -126,6 +128,8 @@ namespace caret {
         void processExitProgram();
         void processViewScreenActionGroupSelection(QAction*);
         void processMoveAllTabsToOneWindow();
+        void processViewFullScreen(bool);
+        void processViewTileTabs(bool);
         
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();
@@ -260,7 +264,10 @@ namespace caret {
         QAction* m_viewScreenNormalAction;
         QAction* m_viewScreenFullAction;
         QAction* m_viewScreenMontageTabsAction;
-        QAction* m_viewScreenFullMontageTabsAction;        
+        QAction* m_viewScreenFullMontageTabsAction;
+        
+        QAction* m_viewFullScreenAction;
+        QAction* m_viewTileTabsAction;
         
         QAction* m_nextTabAction;
         
