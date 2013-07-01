@@ -910,6 +910,9 @@ BrainBrowserWindow::processViewMenuAboutToShow()
 //    m_viewFullScreenAction->blockSignals(true);
     m_viewFullScreenAction->setChecked(isFullScreen());
 //    m_viewFullScreenAction->blockSignals(false);
+    
+    m_viewMoveFeaturesToolBoxMenu->setEnabled(isFullScreen() == false);
+    m_viewMoveOverlayToolBoxMenu->setEnabled(isFullScreen()== false);
 }
 
 /**
@@ -923,9 +926,12 @@ BrainBrowserWindow::createMenuView()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processViewMenuAboutToShow()));
     
+    m_viewMoveFeaturesToolBoxMenu = createMenuViewMoveFeaturesToolBox();
+    m_viewMoveOverlayToolBoxMenu = createMenuViewMoveOverlayToolBox();
+    
     menu->addAction(m_showToolBarAction);
-    menu->addMenu(createMenuViewMoveFeaturesToolBox());
-    menu->addMenu(createMenuViewMoveOverlayToolBox());
+    menu->addMenu(m_viewMoveFeaturesToolBoxMenu);
+    menu->addMenu(m_viewMoveOverlayToolBoxMenu);
     menu->addSeparator();
 
     menu->addAction(m_viewFullScreenAction);

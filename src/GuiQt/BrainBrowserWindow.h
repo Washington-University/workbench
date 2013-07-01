@@ -269,6 +269,9 @@ namespace caret {
         QAction* m_viewScreenMontageTabsAction;
         QAction* m_viewScreenFullMontageTabsAction;
         
+        QMenu* m_viewMoveFeaturesToolBoxMenu;
+        QMenu* m_viewMoveOverlayToolBoxMenu;
+        
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
         
