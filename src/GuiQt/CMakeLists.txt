@@ -133,7 +133,6 @@ BorderSelectionViewController.h
 BrainBrowserWindow.h
 BrainBrowserWindowComboBox.h
 BrainBrowserWindowOrientedToolBox.h
-BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
@@ -254,7 +253,6 @@ BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowComboBox.cxx
-BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
 BrainOpenGLWidget.cxx

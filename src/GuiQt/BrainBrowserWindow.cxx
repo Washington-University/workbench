@@ -115,8 +115,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
         BrainBrowserWindow::s_firstWindowFlag = false;
     }
     
-    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
-    
     GuiManager* guiManager = GuiManager::get();
     
     setAttribute(Qt::WA_DeleteOnClose);
@@ -221,15 +219,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 BrainBrowserWindow::~BrainBrowserWindow()
 {
     delete m_sceneAssistant;
-}
-
-/**
- * @return The screen mode (normal, full screen, montage, etc)
- */
-BrainBrowserWindowScreenModeEnum::Enum 
-BrainBrowserWindow::getScreenMode() const
-{
-    return m_screenMode;
 }
 
 /**
@@ -470,42 +459,7 @@ BrainBrowserWindow::createActions()
     m_viewTileTabsAction->setCheckable(true);
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered(bool)),
                      this, SLOT(processViewTileTabs(bool)));
-
     
-    m_viewScreenNormalAction = WuQtUtilities::createAction("Normal",
-                                                               "Normal Viewing", 
-                                                               Qt::Key_Escape, 
-                                                               this);
-    m_viewScreenNormalAction->setCheckable(true);
-    
-    m_viewScreenFullAction = WuQtUtilities::createAction("Full Screen", 
-                                                             "View using all of screen", 
-                                                             this);
-    m_viewScreenFullAction->setCheckable(true);
-    
-    m_viewScreenMontageTabsAction = WuQtUtilities::createAction("Tile Tabs", 
-                                                                    "View all tabs in a tiled layout", 
-                                                                    this);
-    m_viewScreenMontageTabsAction->setCheckable(true);
-    
-    m_viewScreenFullMontageTabsAction = WuQtUtilities::createAction("Tile Tabs (Full Screen)", 
-                                                                        "View all tabs in a tiled layout using all of screen", 
-                                                                        this);
-    m_viewScreenFullMontageTabsAction->setCheckable(true);
-    
-    m_viewScreenActionGroup = new QActionGroup(this);
-    QObject::connect(m_viewScreenActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(processViewScreenActionGroupSelection(QAction*)));
-    m_viewScreenActionGroup->setExclusive(true);
-    m_viewScreenActionGroup->addAction(m_viewScreenNormalAction);
-    m_viewScreenActionGroup->addAction(m_viewScreenFullAction);
-    m_viewScreenActionGroup->addAction(m_viewScreenMontageTabsAction);
-    m_viewScreenActionGroup->addAction(m_viewScreenFullMontageTabsAction);
-    
-    m_viewScreenActionGroup->blockSignals(true);
-    m_viewScreenNormalAction->setChecked(true);
-    m_viewScreenActionGroup->blockSignals(false);
-        
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
                                 "Move to the next tab",
@@ -937,17 +891,6 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
-    
-    /*menu->addAction(m_recordMovieAction);
-    menu->addSeparator();*/
-    
-    QMenu* screenMenu = new QMenu("Screen");
-    screenMenu->addAction(m_viewScreenNormalAction);
-    screenMenu->addAction(m_viewScreenFullAction);
-    screenMenu->addAction(m_viewScreenMontageTabsAction);
-    screenMenu->addAction(m_viewScreenFullMontageTabsAction);
-
-    menu->addMenu(screenMenu);
     
     return menu;
 }
@@ -2033,76 +1976,6 @@ BrainBrowserWindow::processViewTileTabs(bool)
 }
 
 /**
- * Called when a view screen menu item is selected.
- */
-void
-BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
-{
-    bool showInFullScreen = false;
-    
-    BrainBrowserWindowScreenModeEnum::Enum previousScreenMode = m_screenMode;
-    
-    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
-    if (action == m_viewScreenNormalAction) {
-        m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
-    }
-    else if (action == m_viewScreenFullAction) {
-        m_screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
-        showInFullScreen = true;
-    }
-    else if (action == m_viewScreenMontageTabsAction) {
-        m_screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE;
-    }
-    else if (action == m_viewScreenFullMontageTabsAction) {
-        m_screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN;
-        showInFullScreen = true;
-    }
-    else {
-        CaretAssert(0);
-    }
-    
-    if (m_screenMode == previousScreenMode) {
-        return;
-    }
-    
-    if (previousScreenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
-        if (m_screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-        saveWindowComponentStatus(m_normalWindowComponentStatus);
-        }
-    }
-    
-    if (showInFullScreen) {
-        if (isFullScreen() == false) {
-            showFullScreen();
-        }
-    }
-    else {
-        if (isFullScreen()) {
-            showNormal();
-        }
-    }    
-    
-    if (m_screenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
-        restoreWindowComponentStatus(m_normalWindowComponentStatus);
-    }
-    
-    m_toolbar->updateToolBar();
-    if (m_screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-        m_overlayToolBoxAction->blockSignals(true);
-        m_overlayToolBoxAction->setChecked(true);
-        m_overlayToolBoxAction->blockSignals(false);
-        m_overlayToolBoxAction->trigger();
-
-        m_featuresToolBoxAction->blockSignals(true);
-        m_featuresToolBoxAction->setChecked(true);
-        m_featuresToolBoxAction->blockSignals(false);
-        m_featuresToolBoxAction->trigger();
-    }
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-}
-
-/**
  * Restore the status of window components.
  * @param wcs
  *    Window component status that is restored.
@@ -2645,12 +2518,6 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                                             "m_featuresToolBox"));
     }
     
-//    /*
-//     * Screen mode (normal, full, etc)
-//     */
-//    sceneClass->addEnumeratedType<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode",
-//                                                                                                            m_screenMode);
-    
     /*
      * Position and size
      */
@@ -2699,13 +2566,11 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     
     /*
-     * 3/20/2013 Note moved to AFTER toolbar (tab) restoration since
-     * adjusting the view screen will try to access tab content
-     * (which is invalid prior to restoring toolbar.
+     * Restoration status for full screen and tab tiles
      *
-     * Screen mode
-     * Note: m_screenMode must be set to a different value than
-     * the value passed to processViewScreenActionGroupSelection().
+     * If "m_screenMode" is found, the scene is an older scene that was
+     * created prior to splitting Full Screen and Tile Tabs into 
+     * separate functionality.
      */
     bool restoreToFullScreen = false;
     bool restoreToTabTiles   = false;
@@ -2742,25 +2607,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
-//    const BrainBrowserWindowScreenModeEnum::Enum newScreenMode =
-//    sceneClass->getEnumeratedTypeValue<BrainBrowserWindowScreenModeEnum, BrainBrowserWindowScreenModeEnum::Enum>("m_screenMode",
-//                                                                                                                 BrainBrowserWindowScreenModeEnum::NORMAL);
-//    m_screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
-//    switch (newScreenMode) {
-//        case BrainBrowserWindowScreenModeEnum::NORMAL:
-//            m_screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
-//            processViewScreenActionGroupSelection(m_viewScreenNormalAction);
-//            break;
-//        case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
-//            processViewScreenActionGroupSelection(m_viewScreenFullAction);
-//            break;
-//        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
-//            processViewScreenActionGroupSelection(m_viewScreenMontageTabsAction);
-//            break;
-//        case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
-//            processViewScreenActionGroupSelection(m_viewScreenFullMontageTabsAction);
-//            break;
-//    }
     m_viewFullScreenAction->blockSignals(true);
     m_viewFullScreenAction->setChecked(restoreToFullScreen);
     m_viewFullScreenAction->blockSignals(false);

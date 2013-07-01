@@ -32,7 +32,6 @@
 #include <QMainWindow>
 
 #include "AString.h"
-#include "BrainBrowserWindowScreenModeEnum.h"
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
@@ -74,8 +73,6 @@ namespace caret {
 
         QImage captureImageOfGraphicsArea(const int32_t imageSizeX,
                                           const int32_t imageSizeY);
-        
-        BrainBrowserWindowScreenModeEnum::Enum getScreenMode() const;
         
         bool isTileTabsSelected() const;
         
@@ -126,7 +123,6 @@ namespace caret {
         void processEditPreferences();
         void processCloseSpecFile();
         void processExitProgram();
-        void processViewScreenActionGroupSelection(QAction*);
         void processMoveAllTabsToOneWindow();
         void processViewFullScreenSelected(bool);
         void processViewTileTabs(bool);
@@ -263,12 +259,6 @@ namespace caret {
         
         QAction* m_showToolBarAction;
         
-        QActionGroup* m_viewScreenActionGroup;
-        QAction* m_viewScreenNormalAction;
-        QAction* m_viewScreenFullAction;
-        QAction* m_viewScreenMontageTabsAction;
-        QAction* m_viewScreenFullMontageTabsAction;
-        
         QMenu* m_viewMoveFeaturesToolBoxMenu;
         QMenu* m_viewMoveOverlayToolBoxMenu;
         
@@ -318,8 +308,6 @@ namespace caret {
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;
-        
-        BrainBrowserWindowScreenModeEnum::Enum m_screenMode;
         
         WindowComponentStatus m_defaultWindowComponentStatus;
         WindowComponentStatus m_normalWindowComponentStatus;
