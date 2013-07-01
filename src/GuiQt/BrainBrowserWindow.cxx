@@ -212,7 +212,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     m_sceneAssistant = new SceneClassAssistant();
     
     m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
-    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayActiveToolBox->isVisible();
+    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayToolBoxAction->isChecked();
     m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
 }
 /**
