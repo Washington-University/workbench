@@ -35,9 +35,9 @@
 using namespace caret;
 using namespace std;
 
-const int CiftiXML::ALONG_ROW;
-const int CiftiXML::ALONG_COLUMN;
-const int CiftiXML::ALONG_STACK;//even though these are initialized in the class, they need to be defined in some object code somewhere - so here they are
+//const int CiftiXML::ALONG_ROW;
+//const int CiftiXML::ALONG_COLUMN;
+//const int CiftiXML::ALONG_STACK;//even though these are initialized in the class, they need to be defined in some object code somewhere - so here they are
 
 CiftiXML::CiftiXML()
 {

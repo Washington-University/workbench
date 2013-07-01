@@ -55,8 +55,8 @@ void Table::createModel()
     model = new QStandardItemModel(0,0,this);
     model->setData(model->index(0,0,QModelIndex()), QColor(0,0,0), Qt::BackgroundColorRole);    
 
-    ui->tableView->verticalHeader()->setDefaultSectionSize(20);
-    ui->tableView->horizontalHeader()->setDefaultSectionSize(20);
+    ui->tableView->verticalHeader()->setDefaultSectionSize(5);
+    ui->tableView->horizontalHeader()->setDefaultSectionSize(5);
     ui->tableView->setModel(model);
     ui->tableView->setItemDelegate(new BackgroundDelegate(this));
     ui->tableView->setStyleSheet("selection-background-color: rgba(128, 128, 128, 40);");
