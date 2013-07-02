@@ -49,16 +49,24 @@ namespace caret {
         
         BrowserTabContent* getTabContentToDraw(const int32_t itemIndex);
         
+        void setTabIndexForTileTabsHighlighting(const int32_t tabIndex);
+        
+        int32_t getTabIndexForTileTabsHighlighting() const;
+        
     private:
         EventBrowserWindowContentGet(const EventBrowserWindowContentGet&);
         
         EventBrowserWindowContentGet& operator=(const EventBrowserWindowContentGet&);
         
         /** index of browswer window */
-        int32_t browserWindowIndex;
+        int32_t m_browserWindowIndex;
         
         /** Tab content that are to be drawn in the window */
         std::vector<BrowserTabContent*> browserTabContents;
+        
+        /** Index of tab that is highlighted in Tile Tabs mode */
+        int32_t m_tabIndexForTileTabsHighlighting;
+        
     };
 
 } // namespace

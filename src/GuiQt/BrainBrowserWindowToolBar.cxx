@@ -130,6 +130,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
 {
     this->browserWindowIndex = browserWindowIndex;
     this->updateCounter = 0;
+    m_tabIndexForTileTabsHighlighting = -1;
     
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
@@ -1029,10 +1030,38 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
     this->updateToolBar();
     this->updateToolBox();
     emit viewedModelChanged();
+    
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+    if (browserWindow != NULL) {
+        if (browserWindow->isTileTabsSelected()) {
+            const BrowserTabContent* btc = getTabContentFromSelectedTab();
+            if (btc != NULL) {
+                m_tabIndexForTileTabsHighlighting = btc->getTabNumber();
+                
+                /*
+                 * Short timer that will reset the tab highlighting
+                 */
+                const int timeInMilliseconds = 750;
+                QTimer::singleShot(timeInMilliseconds,
+                                   this, SLOT(resetTabIndexForTileTabsHighlighting()));
+            }
+        }
+    }
+    
     this->updateGraphicsWindow();
 }
 
-void 
+/**
+ * Reset the tab index for tab tile highlighting.
+ */
+void
+BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting()
+{
+    m_tabIndexForTileTabsHighlighting = -1;
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+}
+
+void
 BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 {
     CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
@@ -4131,6 +4160,12 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                         BrowserTabContent* btc = this->getTabContentFromTab(i);
                         getModelEvent->addTabContentToDraw(btc);
                     }
+                    
+                    /*
+                     * Tab that is highlighted so user knows which tab
+                     * any changes in toolbar/toolboxes apply to.
+                     */
+                    getModelEvent->setTabIndexForTileTabsHighlighting(m_tabIndexForTileTabsHighlighting);
                 }
                 else {
                     BrowserTabContent* btc = this->getTabContentFromSelectedTab();

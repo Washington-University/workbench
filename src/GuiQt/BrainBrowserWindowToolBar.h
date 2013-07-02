@@ -463,8 +463,19 @@ namespace caret {
     private:
         int32_t browserWindowIndex;
         
+    private slots:
+        void resetTabIndexForTileTabsHighlighting();
+        
     private:
         friend class BrainBrowserWindow;
+        
+        /**
+         * When a tab is selected in Tile Tabs viewing,
+         * the graphics window content of the tab is 
+         * highlighted for a short time by drawing a
+         * box around it.
+         */
+        int32_t m_tabIndexForTileTabsHighlighting;
         
         bool isContructorFinished;
         bool isDestructionInProgress;

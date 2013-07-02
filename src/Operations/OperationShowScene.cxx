@@ -290,6 +290,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                 
                 BrainOpenGLViewportContent content(viewport,
                                                    viewport,
+                                                   false,
                                                    brain,
                                                    tabContent);
                 std::vector<BrainOpenGLViewportContent*> viewportContents;

@@ -41,7 +41,8 @@ using namespace caret;
 EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browserWindowIndex)
 : Event(EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET)
 {
-    this->browserWindowIndex = browserWindowIndex;
+    m_browserWindowIndex = browserWindowIndex;
+    m_tabIndexForTileTabsHighlighting = -1;
 }
 
 /*
@@ -58,7 +59,7 @@ EventBrowserWindowContentGet::~EventBrowserWindowContentGet()
 int32_t 
 EventBrowserWindowContentGet::getBrowserWindowIndex() const 
 { 
-    return this->browserWindowIndex; 
+    return m_browserWindowIndex; 
 }
 
 /**
@@ -93,4 +94,26 @@ EventBrowserWindowContentGet::getTabContentToDraw(const int32_t itemIndex)
     CaretAssertVectorIndex(this->browserTabContents, itemIndex);
     return this->browserTabContents[itemIndex];
 }
+
+/**
+ * Set index of tab for highlighting in tile tabs mode.
+ * 
+ * @param tabIndex
+ *    Index of tab for highlighting.
+ */
+void
+EventBrowserWindowContentGet::setTabIndexForTileTabsHighlighting(const int32_t tabIndex)
+{
+    m_tabIndexForTileTabsHighlighting = tabIndex;
+}
+
+/**
+ * @return Index of tab for highlighting in Tile Tabs mode.
+ */
+int32_t
+EventBrowserWindowContentGet::getTabIndexForTileTabsHighlighting() const
+{
+    return m_tabIndexForTileTabsHighlighting;
+}
+
 

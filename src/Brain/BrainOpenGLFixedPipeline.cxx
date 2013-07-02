@@ -300,17 +300,87 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
         /*
          * Viewport of window.
          */
-        const int* windowVP = viewportContents[i]->getWindowViewport();
+        BrainOpenGLViewportContent* vpContent = viewportContents[i];
+        const int* windowVP = vpContent->getWindowViewport();
         glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
         
         CaretLogFinest("Drawing Model "
                        + AString::number(i)
                        + ": "
-                       + AString::fromNumbers(viewportContents[i]->getModelViewport(), 4, ", "));
-        m_brain = viewportContents[i]->getBrain();
+                       + AString::fromNumbers(vpContent->getModelViewport(), 4, ", "));
+        m_brain = vpContent->getBrain();
         CaretAssert(m_brain);
         this->drawModelInternal(MODE_DRAWING,
-                                viewportContents[i]);
+                                vpContent);
+        
+        /*
+         * Draw border in foreground color around tab that is highlighted
+         * in Tile Tabs when user selects a tab.
+         */
+        if (vpContent->isTabHighlighted()) {
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+            const float width = windowVP[2];
+            const float height = windowVP[3];
+            glOrtho(0.0, windowVP[2], 0.0, windowVP[3], -100.0, 100.0);
+            
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
+            
+            const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            float foregroundColor[4];
+            prefs->getColorForeground(foregroundColor);
+            glColor3fv(foregroundColor);
+            
+            const float thickness = 10;
+            
+            /*
+             * Left Side
+             */
+            glBegin(GL_QUADS);
+            glVertex3f(0.0, 0.0, 0.0);
+            glVertex3f(thickness, 0.0, 0.0);
+            glVertex3f(thickness, height, 0.0);
+            glVertex3f(0.0, height, 0.0);
+            glEnd();
+            
+            /*
+             * Right Side
+             */
+            glBegin(GL_QUADS);
+            glVertex3f(width - thickness, 0.0, 0.0);
+            glVertex3f(width, 0.0, 0.0);
+            glVertex3f(width, height, 0.0);
+            glVertex3f(width - thickness, height, 0.0);
+            glEnd();
+            
+            /*
+             * Bottom Side
+             */
+            glBegin(GL_QUADS);
+            glVertex3f(0.0, 0.0, 0.0);
+            glVertex3f(width, 0.0, 0.0);
+            glVertex3f(width, thickness, 0.0);
+            glVertex3f(0.0, thickness, 0.0);
+            glEnd();
+            
+            /*
+             * Top Side
+             */
+            glBegin(GL_QUADS);
+            glVertex3f(0.0, height - thickness, 0.0);
+            glVertex3f(width, height - thickness, 0.0);
+            glVertex3f(width, height, 0.0);
+            glVertex3f(0.0, height, 0.0);
+            glEnd();
+            
+            glPopMatrix();
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+        }
+        
         m_brain = NULL;
     }
     

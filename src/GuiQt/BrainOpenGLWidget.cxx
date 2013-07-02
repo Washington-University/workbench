@@ -260,6 +260,7 @@ BrainOpenGLWidget::paintGL()
     if (numToDraw == 1) {
         BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(windowViewport,
                                                                         windowViewport,
+                                                                        false,
                                                                         GuiManager::get()->getBrain(),
                                                                         getModelEvent.getTabContentToDraw(0));
         this->drawingViewportContents.push_back(vc);
@@ -300,11 +301,15 @@ BrainOpenGLWidget::paintGL()
                         vpWidth,
                         vpHeight
                     };
+                    
+                    BrowserTabContent* tabContent = getModelEvent.getTabContentToDraw(iModel);
+                    const bool highlightTab = (getModelEvent.getTabIndexForTileTabsHighlighting() == tabContent->getTabNumber());
                     BrainOpenGLViewportContent* vc =
                     new BrainOpenGLViewportContent(modelViewport,
                                                    modelViewport,
+                                                   highlightTab,
                                                    GuiManager::get()->getBrain(),
-                                                   getModelEvent.getTabContentToDraw(iModel));
+                                                   tabContent);
                     this->drawingViewportContents.push_back(vc);
                 }
                 iModel++;

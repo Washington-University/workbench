@@ -43,6 +43,10 @@ using namespace caret;
  *    Viewport of WINDOW in which drawing takes place.
  * @param modelViewport
  *    Viewport for MODEL in which drawing takes place.
+ * @param highlightTabFlag
+ *    True indicates that the tab is highlighted (used in 
+ *    Tile Tabs mode so user knows graphics region corresponding
+ *    to the tab that was recently selected).
  * @param brain
  *    Brain that is the source of the data.
  * @param browserTabContent
@@ -50,6 +54,7 @@ using namespace caret;
  */
 BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[4],
                                                        const int modelViewport[4],
+                                                       const bool highlightTabFlag,
                                                        Brain* brain,
                                                        BrowserTabContent* browserTabContent)
 : CaretObject()
@@ -67,6 +72,8 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
     m_brain = brain;
     
     m_browserTabContent = browserTabContent;
+    
+    m_highlightTab = highlightTabFlag;
 }
 
 /**
@@ -75,6 +82,17 @@ BrainOpenGLViewportContent::BrainOpenGLViewportContent(const int windowViewport[
 BrainOpenGLViewportContent::~BrainOpenGLViewportContent()
 {
     
+}
+
+/**
+ * @return  True indicates that the tab is highlighted (used in
+ *    Tile Tabs mode so user knows graphics region corresponding
+ *    to the tab that was recently selected).
+ */
+bool
+BrainOpenGLViewportContent::isTabHighlighted() const
+{
+    return m_highlightTab;
 }
 
 /**
