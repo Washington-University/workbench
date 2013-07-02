@@ -78,6 +78,15 @@ void ChartingDialog::receiveEvent(Event* event)
 	}
 }
 
+void ChartingDialog::resizeEvent ( QResizeEvent * event)
+{
+    QDialog::resizeEvent(event);
+    QSize size = event->size();
+    int rowCount = getMatrixTableView()->model()->rowCount();
+    int colCount = getMatrixTableView()->model()->columnCount();
+    
+}
+
 
 void ChartingDialog::on_closeButton_clicked()
 {
@@ -103,7 +112,7 @@ void ChartingDialog::setChartMode(QString type)
     { 
         layout->insertWidget(1,table,100);
         this->ui->toolBarWidget->hide();
-        this->ui->toolBoxWidget->hide();
+        //this->ui->toolBoxWidget->hide();
         //layout->removeWidget(this->ui->toolBarWidget);
         //layout->removeWidget(this->ui->toolBoxWidget);
         this->layout()->setSpacing(0);        
@@ -144,12 +153,18 @@ void ChartingDialog::showDialog()
     if(showDialogFirstTime)
     {
         showDialogFirstTime = false;
-
-        QVBoxLayout *layout = (QVBoxLayout *)this->layout();
-        QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
-        this->resize(rect.width(),rect.height()+6);
+        //this->showToolBox(true);
+        adjustWindowSizeToMatrixSize();
     }
     this->show();
+}
+
+void ChartingDialog::adjustWindowSizeToMatrixSize()
+{
+    QVBoxLayout *layout = (QVBoxLayout *)this->layout();
+    QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
+    //this->resize(rect.width(),rect.height()+6+(ui->toolBoxWidget->isHidden()?0:this->ui->toolBoxWidget->height()));
+    this->resize(rect.width(),rect.height()+95);
 }
 
 
@@ -259,6 +274,8 @@ void caret::ChartingDialog::on_rowSizeSpinBox_valueChanged(int arg1)
     this->getMatrixTableView()->verticalHeader()->hide();
     this->getMatrixTableView()->verticalHeader()->show();
     this->getMatrixTableView()->verticalHeader()->update();
+    //this->adjustWindowSizeToMatrixSize();
+
 }
 
 void caret::ChartingDialog::on_columnSizeSpinBox_valueChanged(int arg1)
@@ -267,4 +284,5 @@ void caret::ChartingDialog::on_columnSizeSpinBox_valueChanged(int arg1)
     this->getMatrixTableView()->horizontalHeader()->hide();
     this->getMatrixTableView()->horizontalHeader()->show();
     this->getMatrixTableView()->horizontalHeader()->update();
+    //this->adjustWindowSizeToMatrixSize();
 }

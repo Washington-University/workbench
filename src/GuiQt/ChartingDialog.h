@@ -29,6 +29,8 @@ public:
     void showDialog();
 	void updateSelectedItem(int32_t &row,int32_t &col);
 	void receiveEvent(Event* event);
+    void adjustWindowSizeToMatrixSize();
+    virtual void	resizeEvent ( QResizeEvent * event);
 public slots:
 	
 private slots:
