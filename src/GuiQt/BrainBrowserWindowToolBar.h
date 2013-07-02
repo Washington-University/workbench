@@ -215,8 +215,6 @@ namespace caret {
         void removeTabWithContent(BrowserTabContent* browserTabContent);
         
     public slots:
-//        void addNewTab();
-
         void closeSelectedTab();
 
         void moveTabsToNewWindows();
@@ -236,6 +234,12 @@ namespace caret {
         void tabClosed(int index);
         
     private:
+        void insertTabAtIndex(BrowserTabContent* browserTabContent,
+                              const int32_t insertAtIndex);
+        
+        void addOrInsertNewTab(BrowserTabContent* browserTabContent,
+                               const int32_t insertAtIndex);
+        
         void removeTab(int index);
         
         BrowserTabContent* createNewTab(AString& errorMessage);

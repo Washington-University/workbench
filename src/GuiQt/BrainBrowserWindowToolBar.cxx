@@ -490,38 +490,118 @@ BrainBrowserWindowToolBar::addNewTabCloneContent(BrowserTabContent* browserTabCo
 void 
 BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
 {
-    CaretAssert(tabContent);
+    addOrInsertNewTab(tabContent,
+                      -1);
+//    CaretAssert(tabContent);
+//    
+//    this->tabBar->blockSignals(true);
+//    
+//    const int32_t tabContentIndex = tabContent->getTabNumber();
+//    
+//    int32_t newTabIndex = -1;
+//    const int32_t numTabs = this->tabBar->count();
+//    if (numTabs <= 0) {
+//        newTabIndex = this->tabBar->addTab("NewTab");
+//    }
+//    else {
+//        int insertIndex = 0;
+//        for (int32_t i = 0; i < numTabs; i++) {
+//            if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
+//                insertIndex = i + 1;
+//            }
+//        }
+//        if (insertIndex >= numTabs) {
+//            newTabIndex = this->tabBar->addTab("NewTab");
+//        }
+//        else {
+//            this->tabBar->insertTab(insertIndex, "NewTab");
+//            newTabIndex = insertIndex;
+//        }
+//    }
+//    
+//    this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
+//    
+//    const int32_t numOpenTabs = this->tabBar->count();
+//    this->tabBar->setTabsClosable(numOpenTabs > 1);
+//    
+//    this->updateTabName(newTabIndex);
+//    
+//    this->tabBar->setCurrentIndex(newTabIndex);
+//    
+//    this->tabBar->blockSignals(false);
+}
+
+/**
+ * Insert the tab content at the given index.
+ *
+ * @param browserTabContent
+ *    Content of the tab.
+ * @param insertAtIndex
+ *    Insert the tab at the given index in the tab bar.  Must be greater than or
+ *    equal to zero.
+ */
+void
+BrainBrowserWindowToolBar::insertTabAtIndex(BrowserTabContent* browserTabContent,
+                      const int32_t insertAtIndex)
+{
+    CaretAssert(insertAtIndex >= 0);
     
+    addOrInsertNewTab(browserTabContent,
+                      insertAtIndex);
+}
+
+/**
+ * Add or Insert the tab content at the given index.
+ *
+ * @param browserTabContent
+ *    Content of the tab.
+ * @param insertAtIndex
+ *    If greater than or equal to zero, insert the tab at this index.  
+ *    Otherwise, use the index from the tab content or just append.
+ */
+void
+BrainBrowserWindowToolBar::addOrInsertNewTab(BrowserTabContent* browserTabContent,
+                       const int32_t insertAtIndex)
+{
+    CaretAssert(browserTabContent);
+
     this->tabBar->blockSignals(true);
-    
-    const int32_t tabContentIndex = tabContent->getTabNumber();
-    
+
     int32_t newTabIndex = -1;
-    const int32_t numTabs = this->tabBar->count();
-    if (numTabs <= 0) {
-        newTabIndex = this->tabBar->addTab("NewTab");
+    if (insertAtIndex >= 0) {
+        newTabIndex = this->tabBar->insertTab(insertAtIndex,
+                                              "NewTab");
     }
     else {
-        int insertIndex = 0;
-        for (int32_t i = 0; i < numTabs; i++) {
-            if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
-                insertIndex = i + 1;
-            }
-        }
-        if (insertIndex >= numTabs) {
+        const int32_t tabContentIndex = browserTabContent->getTabNumber();
+        
+        const int32_t numTabs = this->tabBar->count();
+        if (numTabs <= 0) {
             newTabIndex = this->tabBar->addTab("NewTab");
         }
         else {
-            this->tabBar->insertTab(insertIndex, "NewTab");
-            newTabIndex = insertIndex;
+            int insertIndex = 0;
+            for (int32_t i = 0; i < numTabs; i++) {
+                if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
+                    insertIndex = i + 1;
+                }
+            }
+            if (insertIndex >= numTabs) {
+                newTabIndex = this->tabBar->addTab("NewTab");
+            }
+            else {
+                this->tabBar->insertTab(insertIndex, "NewTab");
+                newTabIndex = insertIndex;
+            }
         }
     }
-    
-    this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
-    
+
+    this->tabBar->setTabData(newTabIndex,
+                             qVariantFromValue((void*)browserTabContent));
+
     const int32_t numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
-    
+
     this->updateTabName(newTabIndex);
     
     this->tabBar->setCurrentIndex(newTabIndex);
@@ -529,10 +609,11 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     this->tabBar->blockSignals(false);
 }
 
+
 /**
  * Shows/hides the toolbar.
  */
-void 
+void
 BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
 {
     if (this->isContructorFinished) {
@@ -4423,7 +4504,9 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
                 if (tabContent->getTabNumber() == selectedTabIndex) {
                     defaultTabBarIndex = iTab;
                 }
-                this->addNewTab(tabContent);
+                this->insertTabAtIndex(tabContent,
+                                       iTab);
+                //this->addNewTab(tabContent);
             }
             else {
                 sceneAttributes->addToErrorMessage("Toolbar in window "
