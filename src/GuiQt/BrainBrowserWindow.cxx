@@ -2527,8 +2527,8 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     
     sceneClass->addBoolean("isFullScreen",
                            isFullScreen());
-    sceneClass->addBoolean("m_tileWindowsAction",
-                           m_tileWindowsAction->isChecked());
+    sceneClass->addBoolean("m_viewTileTabsAction",
+                           m_viewTileTabsAction->isChecked());
     return sceneClass;
 }
 
@@ -2602,7 +2602,7 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     else {
         restoreToFullScreen = sceneClass->getBooleanValue("isFullScreen",
                                                           false);
-        restoreToTabTiles = sceneClass->getBooleanValue("m_tileWindowsAction",
+        restoreToTabTiles = sceneClass->getBooleanValue("m_viewTileTabsAction",
                                                           false);
     }
 
