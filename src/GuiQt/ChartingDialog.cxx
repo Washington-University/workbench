@@ -48,6 +48,7 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
 	
 	EventManager::get()->addEventListener(this,EventTypeEnum::EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED);
     showDialogFirstTime = true;
+    autoResizeMatrix = true;
 
 }
 
@@ -81,11 +82,30 @@ void ChartingDialog::receiveEvent(Event* event)
 void ChartingDialog::resizeEvent ( QResizeEvent * event)
 {
     QDialog::resizeEvent(event);
+    if(showDialogFirstTime||!autoResizeMatrix)return;
     QSize size = event->size();
     int rowCount = getMatrixTableView()->model()->rowCount();
     int colCount = getMatrixTableView()->model()->columnCount();
-    
+    int matrixWidth = this->getMatrixTableView()->width()-this->getMatrixTableView()->verticalHeader()->width()-2;//size.width();
+    int matrixHeight = this->getMatrixTableView()->height()-this->getMatrixTableView()->horizontalHeader()->height()-2;//size.height() - 25 - (ui->toolBoxWidget->isHidden()?0:this->ui->toolBoxWidget->height());
+    int cellHeight = matrixHeight/rowCount;
+    int cellWidth = matrixWidth/colCount;
+    this->ui->rowSizeSpinBox->setValue(cellHeight);
+    this->ui->columnSizeSpinBox->setValue(cellWidth);
 }
+
+/*void ChartingDialog::adjustMatrixToWindowSize()
+{
+QSize size = event->size();
+int rowCount = getMatrixTableView()->model()->rowCount();
+int colCount = getMatrixTableView()->model()->columnCount();
+int matrixWidth = size.width();
+int matrixHeight = size.height() - 25 - (ui->toolBoxWidget->isHidden()?0:this->ui->toolBoxWidget->height());
+int cellHeight = matrixHeight/rowCount;
+int cellWidth = matrixWidth/colCount;
+this->ui->rowSizeSpinBox->setValue(cellHeight);
+this->ui->columnSizeSpinBox->setValue(cellWidth);
+}*/
 
 
 void ChartingDialog::on_closeButton_clicked()
@@ -152,9 +172,11 @@ void ChartingDialog::showDialog()
 {
     if(showDialogFirstTime)
     {
-        showDialogFirstTime = false;
         //this->showToolBox(true);
         adjustWindowSizeToMatrixSize();
+        this->show();
+        showDialogFirstTime = false;
+        return;
     }
     this->show();
 }
@@ -163,8 +185,9 @@ void ChartingDialog::adjustWindowSizeToMatrixSize()
 {
     QVBoxLayout *layout = (QVBoxLayout *)this->layout();
     QRect rect = table->adjustTableSize(this->getMatrixTableView(),layout);
-    //this->resize(rect.width(),rect.height()+6+(ui->toolBoxWidget->isHidden()?0:this->ui->toolBoxWidget->height()));
-    this->resize(rect.width(),rect.height()+95);
+    if(showDialogFirstTime)this->resize(rect.width(),rect.height()+97);
+    else this->resize(rect.width(),rect.height()+6+(ui->toolBoxWidget->isHidden()?0:this->ui->toolBoxWidget->height()));
+
 }
 
 
@@ -285,4 +308,16 @@ void caret::ChartingDialog::on_columnSizeSpinBox_valueChanged(int arg1)
     this->getMatrixTableView()->horizontalHeader()->show();
     this->getMatrixTableView()->horizontalHeader()->update();
     //this->adjustWindowSizeToMatrixSize();
+}
+
+void caret::ChartingDialog::on_resizeWindowButton_clicked()
+{
+    this->blockSignals(true);
+    this->adjustWindowSizeToMatrixSize();
+    this->blockSignals(false);
+}
+
+void caret::ChartingDialog::on_autoResizeMatrixCB_toggled(bool checked)
+{
+    autoResizeMatrix = checked;
 }

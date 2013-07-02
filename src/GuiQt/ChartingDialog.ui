@@ -93,6 +93,29 @@
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="resizeWindowButton">
+          <property name="toolTip">
+           <string extracomment="This adjusts the Window Size to fit the current matrix size."/>
+          </property>
+          <property name="text">
+           <string>Resize Window...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="autoResizeMatrixCB">
+          <property name="toolTip">
+           <string extracomment="Automatically adjust the matrix size when the window size changes."/>
+          </property>
+          <property name="text">
+           <string>auto Resize...</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>

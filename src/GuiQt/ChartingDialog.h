@@ -49,6 +49,10 @@ private slots:
 
     void on_columnSizeSpinBox_valueChanged(int arg1);
 
+    void on_resizeWindowButton_clicked();
+
+    void on_autoResizeMatrixCB_toggled(bool checked);
+
 private:
     Table *table;
     Ui::ChartingDialog *ui;
@@ -56,6 +60,7 @@ private:
     Plot2D *plot2d;
     bool showDialogFirstTime;
     CiftiMappableConnectivityMatrixDataFile *cmf;
+    bool autoResizeMatrix;
 };
 }
 #endif // CHARTINGDIALOG_H
