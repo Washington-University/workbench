@@ -35,10 +35,6 @@
 using namespace caret;
 using namespace std;
 
-//const int CiftiXML::ALONG_ROW;
-//const int CiftiXML::ALONG_COLUMN;
-//const int CiftiXML::ALONG_STACK;//even though these are initialized in the class, they need to be defined in some object code somewhere - so here they are
-
 CiftiXML::CiftiXML()
 {
     m_dimToMapLookup.resize(2, -1);//assume matrix is 2D, for backwards compatibility with Row/Column functions
