@@ -49,7 +49,7 @@ using namespace caret;
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiMappableDataFile.h"
 #include "GuiManager.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
@@ -76,8 +76,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                  parent)
 {
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> matrixFiles;
-    brain->getAllCiftiConnectivityMatrixFiles(matrixFiles);
+    std::vector<CiftiMappableDataFile*> ciftiMappableFiles;
+    brain->getAllCiftiMappableDataFiles(ciftiMappableFiles);
     
     /*
      * Surface Vertex widgets
@@ -132,9 +132,9 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
      * have brainordinates mapped to the rows
      */
     int32_t defaultIndex = -1;
-    const int32_t numCiftiFiles = static_cast<int32_t>(matrixFiles.size());
+    const int32_t numCiftiFiles = static_cast<int32_t>(ciftiMappableFiles.size());
     for (int32_t i = 0; i < numCiftiFiles; i++) {
-        CiftiMappableConnectivityMatrixDataFile* cmf = matrixFiles[i];
+        CiftiMappableDataFile* cmf = ciftiMappableFiles[i];
         const DataFileTypeEnum::Enum dataFileType = cmf->getDataFileType();
         
         bool useIt = false;
@@ -154,8 +154,10 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                useIt = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                useIt = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
@@ -314,7 +316,7 @@ IdentifyBrainordinateDialog::okButtonClicked()
         const int indx = m_ciftiFileComboBox->currentIndex();
         if (indx >= 0) {
             void* ptr = m_ciftiFileComboBox->itemData(indx).value<void*>();
-            s_lastSelectedCiftiFile = (CiftiMappableConnectivityMatrixDataFile*)ptr;
+            s_lastSelectedCiftiFile = (CiftiMappableDataFile*)ptr;
             
             s_lastSelectedCiftiRowIndex = m_ciftiFileRowIndexSpinBox->value();
             
@@ -324,7 +326,7 @@ IdentifyBrainordinateDialog::okButtonClicked()
                                                                    structure,
                                                                    nodeIndex);
             if (valid) {
-                CaretLogSevere(s_lastSelectedCiftiFile->getFileNameNoPath()
+                CaretLogFine(s_lastSelectedCiftiFile->getFileNameNoPath()
                              + " Row index "
                              + AString::number(s_lastSelectedCiftiRowIndex)
                              + " corresponds to surface "
@@ -373,7 +375,7 @@ IdentifyBrainordinateDialog::okButtonClicked()
                                                                     ijk,
                                                                     fxyz);
                 if (valid) {
-                    CaretLogSevere(s_lastSelectedCiftiFile->getFileNameNoPath()
+                    CaretLogFine(s_lastSelectedCiftiFile->getFileNameNoPath()
                                  + " Row index "
                                  + AString::number(s_lastSelectedCiftiRowIndex)
                                  + " corresponds to voxel "
