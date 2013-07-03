@@ -114,6 +114,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     if (BrainBrowserWindow::s_firstWindowFlag) {
         BrainBrowserWindow::s_firstWindowFlag = false;
     }
+    m_viewTileTabsSelected = false;
     
     GuiManager* guiManager = GuiManager::get();
     
@@ -227,7 +228,7 @@ BrainBrowserWindow::~BrainBrowserWindow()
 bool
 BrainBrowserWindow::isTileTabsSelected() const
 {
-    return m_viewTileTabsAction->isChecked();
+    return m_viewTileTabsSelected;
 }
 
 /**
@@ -448,17 +449,15 @@ BrainBrowserWindow::createActions()
                                                          "View using all of screen",
                                                          Qt::CTRL+Qt::Key_F,
                                                          this);
-    m_viewFullScreenAction->setCheckable(true);
-    QObject::connect(m_viewFullScreenAction, SIGNAL(triggered(bool)),
-                     this, SLOT(processViewFullScreenSelected(bool)));
+    QObject::connect(m_viewFullScreenAction, SIGNAL(triggered()),
+                     this, SLOT(processViewFullScreenSelected()));
     
     m_viewTileTabsAction = WuQtUtilities::createAction("Tile Tabs",
                                                        "View all tabs in a tiled layout",
                                                        Qt::CTRL+Qt::Key_M,
                                                        this);
-    m_viewTileTabsAction->setCheckable(true);
-    QObject::connect(m_viewTileTabsAction, SIGNAL(triggered(bool)),
-                     this, SLOT(processViewTileTabs(bool)));
+    QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
+                     this, SLOT(processViewTileTabs()));
     
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
@@ -861,10 +860,6 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
 void 
 BrainBrowserWindow::processViewMenuAboutToShow()
 {
-//    m_viewFullScreenAction->blockSignals(true);
-    m_viewFullScreenAction->setChecked(isFullScreen());
-//    m_viewFullScreenAction->blockSignals(false);
-    
     m_viewMoveFeaturesToolBoxMenu->setEnabled(isFullScreen() == false);
     m_viewMoveOverlayToolBoxMenu->setEnabled(isFullScreen()== false);
     
@@ -1965,26 +1960,34 @@ BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
 
 
 /**
- * Called when view full screen is selected.
- *
- * @param status
- *   New status of full screen.
+ * Called when view full screen is selected and toggles the status of full screen.
  */
 void
-BrainBrowserWindow::processViewFullScreenSelected(bool status)
+BrainBrowserWindow::processViewFullScreenSelected()
 {
-    processViewFullScreen(status,
+    const bool toggledStatus = (! isFullScreen());
+    processViewFullScreen(toggledStatus,
                           true);
 }
 
 /**
- * Called when tile tabs is selected.
- * @param status
- *   New status of tile tabs.
+ * Called when tile tabs is selected and toggles the state of tile tabs.
  */
 void
-BrainBrowserWindow::processViewTileTabs(bool)
+BrainBrowserWindow::processViewTileTabs()
 {
+    const bool toggledStatus = (! m_viewTileTabsSelected);
+    
+    setViewTileTabs(toggledStatus);
+}
+
+/**
+ * Set the status of tile tabs.
+ */
+void
+BrainBrowserWindow::setViewTileTabs(const bool newStatus)
+{
+    m_viewTileTabsSelected = newStatus;
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
@@ -2561,7 +2564,7 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addBoolean("isFullScreen",
                            isFullScreen());
     sceneClass->addBoolean("m_viewTileTabsAction",
-                           m_viewTileTabsAction->isChecked());
+                           m_viewTileTabsSelected);
     return sceneClass;
 }
 
@@ -2640,16 +2643,10 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
-    m_viewFullScreenAction->blockSignals(true);
-    m_viewFullScreenAction->setChecked(restoreToFullScreen);
-    m_viewFullScreenAction->blockSignals(false);
     processViewFullScreen(restoreToFullScreen,
                           false);
     
-    m_viewTileTabsAction->blockSignals(true);
-    m_viewTileTabsAction->setChecked(restoreToTabTiles);
-    m_viewTileTabsAction->blockSignals(false);
-    processViewTileTabs(restoreToTabTiles);
+    setViewTileTabs(restoreToTabTiles);
     
     /*
      * Position and size

@@ -124,8 +124,8 @@ namespace caret {
         void processCloseSpecFile();
         void processExitProgram();
         void processMoveAllTabsToOneWindow();
-        void processViewFullScreenSelected(bool);
-        void processViewTileTabs(bool);
+        void processViewFullScreenSelected();
+        void processViewTileTabs();
         
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();
@@ -227,6 +227,8 @@ namespace caret {
         void processViewFullScreen(bool showFullScreenDisplay,
                                    const bool saveRestoreWindowStatus);
         
+        void setViewTileTabs(const bool newStatus);
+        
         /** Index of this window */
         int32_t m_browserWindowIndex;
         
@@ -267,7 +269,7 @@ namespace caret {
         
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
-        bool 
+        bool m_viewTileTabsSelected;
         
         QAction* m_nextTabAction;
         
