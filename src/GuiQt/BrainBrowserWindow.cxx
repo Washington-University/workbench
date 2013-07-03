@@ -1964,6 +1964,7 @@ BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
         if (saveRestoreWindowStatus) {
             restoreWindowComponentStatus(m_normalWindowComponentStatus);
         }
+        showNormal(); // try to fix Linux
     }
     else {
         if (saveRestoreWindowStatus) {
