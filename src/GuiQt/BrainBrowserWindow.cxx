@@ -1960,11 +1960,12 @@ BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
                                           const bool saveRestoreWindowStatus)
 {
     if (showFullScreenDisplay == false) {
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
         showNormal();
         if (saveRestoreWindowStatus) {
             restoreWindowComponentStatus(m_normalWindowComponentStatus);
         }
-        showNormal(); // try to fix Linux
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
     }
     else {
         if (saveRestoreWindowStatus) {
