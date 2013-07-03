@@ -1983,6 +1983,13 @@ BrainBrowserWindow::processViewTileTabs(bool)
 void 
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
+    if (wcs.windowGeometry.isEmpty() == false) {
+        restoreGeometry(wcs.windowGeometry);
+    }
+    if (wcs.windowState.isEmpty() == false) {
+        restoreState(wcs.windowState);
+    }
+    
     m_showToolBarAction->setEnabled(true);
     if (wcs.isToolBarDisplayed) {
         m_showToolBarAction->setChecked(false);
@@ -2032,6 +2039,8 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
 void 
 BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
+    wcs.windowState = saveState();
+    wcs.windowGeometry = saveGeometry();
     wcs.isToolBarDisplayed = m_showToolBarAction->isChecked();
     wcs.isOverlayToolBoxDisplayed = m_overlayToolBoxAction->isChecked();
     wcs.isFeaturesToolBoxDisplayed  = m_featuresToolBoxAction->isChecked();

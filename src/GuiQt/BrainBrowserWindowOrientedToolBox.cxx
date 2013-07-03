@@ -65,31 +65,46 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     bool isOverlayToolBox = false;
     bool isChartsToolBox = false;
     Qt::Orientation orientation = Qt::Horizontal;
+    AString toolboxTypeName = "";
     switch (toolBoxType) {
         case TOOL_BOX_FEATURES:
             orientation = Qt::Vertical;
             isFeaturesToolBox = true;
             toggleViewAction()->setText("Features Toolbox");
+            toolboxTypeName = "Features";
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
             isOverlayToolBox = true;
+            toolboxTypeName = "OverlayHorizontal";
             break;
         case TOOL_BOX_OVERLAYS_VERTICAL:
             orientation = Qt::Vertical;
             isOverlayToolBox = true;
+            toolboxTypeName = "OverlayVertical";
             break;
         case TOOL_BOX_CHARTS_HORIZONTAL:
             /*orientation = Qt::Horizontal;
             isChartsToolBox = true;
             toggleViewAction()->setText("Charts Toolbox");*/
+            toolboxTypeName = "ChartHorizontal";
             break;
         case TOOL_BOX_CHARTS_VERTICAL:
             /*orientation = Qt::Vertical;
             isChartsToolBox = true;
             toggleViewAction()->setText("Charts Toolbox");*/
+            toolboxTypeName = "ChartVertical";
             break;
     }
+    
+    /*
+     * Needed for saving and restoring window state in main window
+     */
+    CaretAssert(toolboxTypeName.length() > 0);
+    setObjectName("BrainBrowserWindowOrientedToolBox_"
+                  + toolboxTypeName
+                  + "_"
+                  + AString::number(browserWindowIndex));
     
     m_borderSelectionViewController = NULL;
     m_ChartSetViewController = NULL;

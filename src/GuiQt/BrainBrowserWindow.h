@@ -174,6 +174,8 @@ namespace caret {
             bool isFeaturesToolBoxDisplayed;
             bool isOverlayToolBoxDisplayed;
             bool isToolBarDisplayed;
+            QByteArray windowState;
+            QByteArray windowGeometry;
         };
         
         enum CreateDefaultTabsMode {

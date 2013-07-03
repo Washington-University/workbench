@@ -147,6 +147,12 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->viewOrientationRightMedialIcon = NULL;
 
     /*
+     * Needed for saving and restoring window state in main window
+     */
+    setObjectName("BrainBrowserWindowToolBar_"
+                  + AString::number(browserWindowIndex));
+    
+    /*
      * Create tab bar that displays models.
      */
     this->tabBar = new QTabBar();
