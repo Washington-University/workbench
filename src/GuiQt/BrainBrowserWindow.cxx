@@ -2027,6 +2027,11 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         m_featuresToolBoxAction->blockSignals(false);
         m_featuresToolBoxAction->trigger();
     }
+    if (m_featuresToolBox != NULL) {
+        if (wcs.featuresGeometry.isEmpty() == false) {
+            m_featuresToolBox->restoreGeometry(wcs.featuresGeometry);
+        }
+    }
 }
 
 /**
@@ -2041,6 +2046,11 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
     wcs.windowState = saveState();
     wcs.windowGeometry = saveGeometry();
+    if (m_featuresToolBoxAction->isChecked()) {
+        if (m_featuresToolBox != NULL) {
+            wcs.featuresGeometry = m_featuresToolBox->saveGeometry();
+        }
+    }
     wcs.isToolBarDisplayed = m_showToolBarAction->isChecked();
     wcs.isOverlayToolBoxDisplayed = m_overlayToolBoxAction->isChecked();
     wcs.isFeaturesToolBoxDisplayed  = m_featuresToolBoxAction->isChecked();
