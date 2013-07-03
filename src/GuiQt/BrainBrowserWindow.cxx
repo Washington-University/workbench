@@ -867,6 +867,20 @@ BrainBrowserWindow::processViewMenuAboutToShow()
     
     m_viewMoveFeaturesToolBoxMenu->setEnabled(isFullScreen() == false);
     m_viewMoveOverlayToolBoxMenu->setEnabled(isFullScreen()== false);
+    
+    if (isFullScreen()) {
+        m_viewFullScreenAction->setText("Exit Full Screen");
+    }
+    else {
+        m_viewFullScreenAction->setText("Enter Full Screen");
+    }
+    
+    if (isTileTabsSelected()) {
+        m_viewTileTabsAction->setText("Exit Tile Tabs");
+    }
+    else {
+        m_viewTileTabsAction->setText("Enter Tile Tabs");
+    }
 }
 
 /**

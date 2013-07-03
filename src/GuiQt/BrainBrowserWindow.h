@@ -267,6 +267,7 @@ namespace caret {
         
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
+        bool 
         
         QAction* m_nextTabAction;
         
