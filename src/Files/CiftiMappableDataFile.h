@@ -270,6 +270,14 @@ namespace caret {
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
         
+        bool getStructureAndNodeIndexFromRowIndex(const int64_t rowIndex,
+                                                  StructureEnum::Enum& structureOut,
+                                                  int64_t& nodeIndexOut) const;
+        
+        bool getVoxelIndexAndCoordinateFromRowIndex(const int64_t rowIndex,
+                                                    int64_t ijkOut[3],
+                                                    float xyzOut[3]) const;
+        
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
         

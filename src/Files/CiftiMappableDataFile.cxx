@@ -2839,6 +2839,114 @@ CiftiMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int
     return false;
 }
 
+/**
+ * For the given row index, find its corresponding surface structure and
+ * node index.
+ *
+ * @param rowIndex
+ *    The file's row index.
+ * @param structureOut
+ *    Output structure corresponding to row index.
+ * @param nodeIndexOut
+ *    Output node index corresponding to row index.
+ * @return true if the row corresponds to a surface structure and node index
+ *    else false.
+ */
+bool
+CiftiMappableDataFile::getStructureAndNodeIndexFromRowIndex(const int64_t rowIndex,
+                                                                              StructureEnum::Enum& structureOut,
+                                                                              int64_t& nodeIndexOut) const
+{
+    CaretAssert(m_ciftiFacade);
+    
+    const int64_t numberOfRows = m_ciftiFacade->getNumberOfRows();
+    if ((rowIndex >= 0)
+        && (rowIndex < numberOfRows)) {
+        std::vector<StructureEnum::Enum> surfaceStructures;
+        std::vector<StructureEnum::Enum> volumeStructures;
+        
+        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        ciftiXML.getStructureListsForColumns(surfaceStructures,
+                                             volumeStructures);
+        
+        /*
+         * Try to find the CIFTI row in the available surface structures.
+         */
+        for (std::vector<StructureEnum::Enum>::iterator structureIter = surfaceStructures.begin();
+             structureIter != surfaceStructures.end();
+             structureIter++) {
+            const StructureEnum::Enum structure = *structureIter;
+            std::vector<CiftiSurfaceMap> surfaceMaps;
+            ciftiXML.getSurfaceMapForColumns(surfaceMaps, structure);
+            
+            /*
+             * Search the surface maps for the structure.
+             */
+            for (std::vector<CiftiSurfaceMap>::iterator surfaceMapIter = surfaceMaps.begin();
+                 surfaceMapIter != surfaceMaps.end();
+                 surfaceMapIter++) {
+                CiftiSurfaceMap& csm = *surfaceMapIter;
+                if (csm.m_ciftiIndex == rowIndex) {
+                    structureOut = structure;
+                    nodeIndexOut = csm.m_surfaceNode;
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * For the given row index, find its corresponding voxel indices and
+ * coordinate.
+ *
+ * @param rowIndex
+ *    The file's row index.
+ * @param ijkOut
+ *    Output voxel indices corresponding to row index.
+ * @param xyzOut
+ *    Output voxel coordinates corresponding to row index.
+ * @return true if the row corresponds to a voxel else false.
+ */
+bool
+CiftiMappableDataFile::getVoxelIndexAndCoordinateFromRowIndex(const int64_t rowIndex,
+                                                                                int64_t ijkOut[3],
+                                                                                float xyzOut[3]) const
+{
+    CaretAssert(m_ciftiFacade);
+    
+    const int64_t numberOfRows = m_ciftiFacade->getNumberOfRows();
+    if ((rowIndex >= 0)
+        && (rowIndex < numberOfRows)) {
+        std::vector<CiftiVolumeMap> volumeMaps;
+        
+        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        ciftiXML.getVolumeMapForColumns(volumeMaps);
+        
+        /*
+         * Search the surface maps for the structure.
+         */
+        for (std::vector<CiftiVolumeMap>::iterator volumeMapIter = volumeMaps.begin();
+             volumeMapIter != volumeMaps.end();
+             volumeMapIter++) {
+            CiftiVolumeMap& cvm = *volumeMapIter;
+            if (cvm.m_ciftiIndex == rowIndex) {
+                ijkOut[0] = cvm.m_ijk[0];
+                ijkOut[1] = cvm.m_ijk[1];
+                ijkOut[2] = cvm.m_ijk[2];
+                
+                indexToSpace(ijkOut,
+                             xyzOut);
+                return true;
+            }
+        }
+        
+    }
+    return false;
+}
+
 
 /**
  * Set the status to unmodified.
