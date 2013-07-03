@@ -265,6 +265,38 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 }
 
 /**
+ * Called when a key is pressed.
+ *
+ * @param event
+ *     The key event.
+ */
+void
+BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
+{
+    bool keyEventWasProcessed = false;
+    
+    /*
+     * Pressing the Escape Key exits full screen mode.
+     */
+    if (event->key() == Qt::Key_Escape) {
+        if (event->modifiers() == Qt::NoModifier) {
+            if (isFullScreen()) {
+                processViewFullScreenSelected();
+                keyEventWasProcessed = true;
+            }
+        }
+    }
+    
+    /*
+     * According to the documentation, if the key event was not acted upon,
+     * pass it on the base class implementation.
+     */
+    if (keyEventWasProcessed == false) {
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
+/**
  * Create actions for this window.
  * NOTE: This is called BEFORE the toolbar is created.
  */
