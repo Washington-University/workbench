@@ -30,6 +30,7 @@ AlgorithmCiftiDilate.h
 AlgorithmCiftiExtrema.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiMerge.h
+AlgorithmCiftiMergeDense.h
 AlgorithmCiftiPairwiseCorrelation.h
 AlgorithmCiftiParcellate.h
 AlgorithmCiftiReduce.h
@@ -103,6 +104,7 @@ AlgorithmCiftiDilate.cxx
 AlgorithmCiftiExtrema.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiMerge.cxx
+AlgorithmCiftiMergeDense.cxx
 AlgorithmCiftiPairwiseCorrelation.cxx
 AlgorithmCiftiParcellate.cxx
 AlgorithmCiftiReduce.cxx
