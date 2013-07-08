@@ -249,6 +249,7 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
                         myCiftiOut->setRow(otherscratch.data(), outMap[k].m_ciftiIndex);
                     }
                 }
+                break;
             }
             default:
                 throw AlgorithmException("encountered unknown model type in cifti merge dense");
