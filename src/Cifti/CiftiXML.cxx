@@ -964,7 +964,7 @@ bool CiftiXML::getVolumeDimsAndSForm(int64_t dimsOut[3], vector<vector<float> >&
 
 void CiftiXML::setVolumeDimsAndSForm(const int64_t dims[3], const vector<vector<float> >& sform)
 {
-    CaretAssert(sform.size() == 3);
+    CaretAssert(sform.size() == 3 || sform.size() == 4);
     if (hasVolumeData(ALONG_COLUMN) || hasVolumeData(ALONG_ROW))
     {
         VolumeSpace tempSpace;
