@@ -87,6 +87,7 @@
 #include "SpecFileManagementDialog.h"
 #include "SurfacePropertiesEditorDialog.h"
 #include "Surface.h"
+#include "TileTabsConfigurationDialog.h"
 #include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -123,6 +124,7 @@ GuiManager::GuiManager(QObject* parent)
     this->connectomeDatabaseWebView = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
+    m_tileTabsConfigurationDialog = NULL;
     
     this->cursorManager = new CursorManager();
     
@@ -1307,6 +1309,25 @@ GuiManager::processShowCustomViewDialog(BrainBrowserWindow* browserWindow)
     m_customViewDialog->show();
     m_customViewDialog->activateWindow();
     
+}
+
+/**
+ * Show the tile tabs configuration dialog.
+ * @param browserWindow
+ *    Window on which dialog was requested.
+ */
+void
+GuiManager::processShowTileTabsConfigurationDialog(caret::BrainBrowserWindow *browserWindow)
+{
+    if (m_tileTabsConfigurationDialog == NULL) {
+        m_tileTabsConfigurationDialog = new TileTabsConfigurationDialog(browserWindow);
+        this->nonModalDialogs.push_back(m_tileTabsConfigurationDialog);
+    }
+    
+    m_tileTabsConfigurationDialog->updateDialog();
+    m_tileTabsConfigurationDialog->setVisible(true);
+    m_tileTabsConfigurationDialog->show();
+    m_tileTabsConfigurationDialog->activateWindow();
 }
 
 /**

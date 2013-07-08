@@ -89,6 +89,7 @@ StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 Table.h
+TileTabsConfigurationDialog.h
 TimeCourseDialog.h
 TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
@@ -211,6 +212,7 @@ StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 Table.h
+TileTabsConfigurationDialog.h
 TimeCourseDialog.h
 TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
@@ -331,6 +333,7 @@ StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 Table.cxx
+TileTabsConfigurationDialog.cxx
 TimeCourseDialog.cxx
 TimeCoursePlotter.cxx
 TimeSeriesManagerForViewController.cxx

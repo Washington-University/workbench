@@ -36,6 +36,7 @@ class QStringList;
 namespace caret {
 
     class ModelTransform;
+    class TileTabsConfiguration;
     
     class CaretPreferences : public CaretObject {
         
@@ -104,6 +105,19 @@ namespace caret {
         
         void setToolBoxType(const int32_t toolBoxType);
         
+        void readTileTabsConfigurations(const bool performSync = true);
+        
+        std::vector<AString> getTileTabsConfigurationNames() const;
+        
+        bool getTileTabsConfiguration(const AString& tileTabsConfigurationName,
+                           TileTabsConfiguration& tileTabsConfigurationOut) const;
+        
+        void addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
+        
+        void removeTileTabsConfiguration(const AString& tileTabsConfigurationName);
+        
+        void writeTileTabsConfigurations();
+        
         void readCustomViews(const bool performSync = true);
         
         std::vector<AString> getCustomViewNames() const;
@@ -169,6 +183,8 @@ namespace caret {
         
         void readPreferences();
         
+        void removeAllTileTabsConfigurations();
+        
         void removeAllCustomViews();
         
         void writeCustomViews();
@@ -187,6 +203,8 @@ namespace caret {
         
         std::vector<ModelTransform*> customViews;
 
+        std::vector<TileTabsConfiguration*> tileTabsConfigurations;
+        
         bool displayVolumeAxesCrosshairs;
         
         bool displayVolumeAxesLabels;
@@ -223,6 +241,7 @@ namespace caret {
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
         static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
+        static const AString NAME_TILE_TABS_CONFIGURATIONS;
         
         static const AString NAME_TOOLBOX_TYPE;
     };
@@ -245,6 +264,7 @@ namespace caret {
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
     const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";
+    const AString CaretPreferences::NAME_TILE_TABS_CONFIGURATIONS = "tileTabsConfigurations";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

@@ -36,6 +36,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ModelTransform.h"
+#include "TileTabsConfiguration.h"
 
 using namespace caret;
 
@@ -67,6 +68,8 @@ CaretPreferences::CaretPreferences()
 CaretPreferences::~CaretPreferences()
 {
     this->removeAllCustomViews();
+    
+    this->removeAllTileTabsConfigurations();
     
     delete this->qSettings;
 }
@@ -446,6 +449,179 @@ CaretPreferences::writeCustomViews()
     this->qSettings->sync();
 }
 
+
+/**
+ * Remove all of the tile tabs configurations.
+ */
+void
+CaretPreferences::removeAllTileTabsConfigurations()
+{
+    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        delete *iter;
+    }
+    this->tileTabsConfigurations.clear();
+}
+
+/**
+ * Write the tile tabs configurations.
+ */
+void
+CaretPreferences::writeTileTabsConfigurations()
+{
+    this->qSettings->beginWriteArray(NAME_TILE_TABS_CONFIGURATIONS);
+    const int32_t numViews = static_cast<int32_t>(this->tileTabsConfigurations.size());
+    for (int32_t i = 0; i < numViews; i++) {
+        this->qSettings->setArrayIndex(i);
+        this->qSettings->setValue(AString::number(i),
+                                  this->tileTabsConfigurations[i]->encodeInXML());
+    }
+    this->qSettings->endArray();
+    this->qSettings->sync();
+}
+
+/**
+ * Read the tile tabs configuration.  Since user's may want to use them
+ * in multiple instance of workbench that are running, this method allows
+ * the tile tab configurations to be read without affecting other preferences.
+ *
+ * @param performSync
+ *    Sync with preferences since preferences may have been changed
+ *    by a concurrently running workbench.
+ */
+void
+CaretPreferences::readTileTabsConfigurations(const bool performSync)
+{
+    if (performSync) {
+        this->qSettings->sync();
+    }
+    
+    this->removeAllTileTabsConfigurations();
+    
+    /*
+     * Read Configurations
+     */
+    const int numConfigurations = this->qSettings->beginReadArray(NAME_TILE_TABS_CONFIGURATIONS);
+    for (int i = 0; i < numConfigurations; i++) {
+        this->qSettings->setArrayIndex(i);
+        const AString configString = this->qSettings->value(AString::number(i)).toString();
+        TileTabsConfiguration* ttc = new TileTabsConfiguration();
+        if (ttc->decodeFromXML(configString)) {
+            this->tileTabsConfigurations.push_back(ttc);
+        }
+        else {
+            delete ttc;
+        }
+    }
+    this->qSettings->endArray();
+}
+
+/**
+ * @return Names of tile tabs configurations sorted by name.  May want to precede this
+ * method with a call to 'readTileTabsConfigurations(true)' so that the tile tabs
+ * are the latest from the settings.
+ */
+std::vector<AString>
+CaretPreferences::getTileTabsConfigurationNames() const
+{
+    std::vector<AString> names;
+    
+    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        const TileTabsConfiguration* ttc = *iter;
+        names.push_back(ttc->getName());
+    }
+    
+    std::sort(names.begin(),
+              names.end());
+    
+    return names;
+}
+
+/**
+ * Get a tile tabs configuration with the given name.
+ *
+ * @param tileTabsConfigurationName
+ *     Name of requested tile tabs configuration.
+ * @param modelTransformOut
+ *     Tile tabs configuration will be loaded into this tile tabs configuration.
+ * @return true if a tile tabs configuration with the name exists.  If no
+ *     tile tabs configuration exists with the name, false is returned and
+ *     the tile tabs configuration will be the default tile tabs configuration.
+ */
+bool
+CaretPreferences::getTileTabsConfiguration(const AString& tileTabsConfigurationName,
+                              TileTabsConfiguration& tileTabsConfigurationOut) const
+{
+    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        const TileTabsConfiguration* ttc = *iter;
+        
+        if (tileTabsConfigurationName == ttc->getName()) {
+            tileTabsConfigurationOut = *ttc;
+            return true;
+        }
+    }
+    
+    tileTabsConfigurationOut = TileTabsConfiguration();
+    
+    return false;
+}
+
+/**
+ * Add or update a tile tabs configuration.  If a tile tabs configuration exists with the name
+ * in the given tile tabs configuration it is replaced.
+ *
+ * @param modelTransform
+ *    Tile tabs configuration that is added or replaced.
+ */
+void
+CaretPreferences::addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration)
+{
+    bool addNewTileTabsConfiguration = true;
+    
+    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        TileTabsConfiguration* ttc = *iter;
+        if (ttc->getName() == tileTabsConfiguration.getName()) {
+            *ttc = tileTabsConfiguration;
+            addNewTileTabsConfiguration = false;
+            break;
+        }
+    }
+    
+    if (addNewTileTabsConfiguration) {
+        this->tileTabsConfigurations.push_back(new TileTabsConfiguration(tileTabsConfiguration));
+    }
+    this->writeTileTabsConfigurations();
+}
+
+/**
+ * Remove the tile tabs configuration with the given name.
+ *
+ * @param tileTabsConfigurationName
+ *     Name of tile tabs configuration that will be removed.
+ */
+void
+CaretPreferences::removeTileTabsConfiguration(const AString& tileTabsConfigurationName)
+{
+    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        TileTabsConfiguration* ttc = *iter;
+        if (ttc->getName() == tileTabsConfigurationName) {
+            this->tileTabsConfigurations.erase(iter);
+            delete ttc;
+            break;
+        }
+    }
+    
+    this->writeTileTabsConfigurations();
+}
 
 /**
  * Get the foreground color as integer rgb components ranging in value
@@ -986,6 +1162,8 @@ CaretPreferences::readPreferences()
     this->qSettings->endArray();
     
     this->readCustomViews(false);
+    
+    this->readTileTabsConfigurations();
 
     AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL,
                                           LogLevelEnum::toName(LogLevelEnum::INFO)).toString();
@@ -1025,9 +1203,13 @@ CaretPreferences::readPreferences()
 }
 
 /**
- * Read the custom views.  Since user's may created views and want to use them
- * in multiple instance of workbench that are running, this method allows 
- * the custom view's to be read without affecting other preferences.
+ * Read the custom views.  Since user's may want to use them
+ * in multiple instance of workbench that are running, this method allows
+ * the custom views to be read without affecting other preferences.
+ *
+ * @param performSync
+ *    Sync with preferences since preferences may have been changed
+ *    by a concurrently running workbench.
  */
 void
 CaretPreferences::readCustomViews(const bool performSync)

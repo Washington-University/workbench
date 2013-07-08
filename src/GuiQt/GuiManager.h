@@ -63,6 +63,7 @@ namespace caret {
     class SceneFile;
     class SelectionManager;
     class SurfacePropertiesEditorDialog;
+    class TileTabsConfigurationDialog;
     
     /**
      * Manages the graphical user-interface.
@@ -122,6 +123,7 @@ namespace caret {
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
+        void processShowTileTabsConfigurationDialog(BrainBrowserWindow* browserWindow);
                 
         void processShowSceneDialog(BrainBrowserWindow* browserWindow);
         
@@ -215,6 +217,8 @@ namespace caret {
         
         /* Editor for map settings. */
         std::set<MapSettingsEditorDialog*> m_mappingSettingsEditors;
+        
+        TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
         
         CustomViewDialog* m_customViewDialog;
         

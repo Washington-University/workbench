@@ -127,6 +127,7 @@ namespace caret {
         void processMoveAllTabsToOneWindow();
         void processViewFullScreenSelected();
         void processViewTileTabs();
+        void processViewTileTabsConfigurationDialog();
         
         void processMoveOverlayToolBoxToLeft();
         void processMoveOverlayToolBoxToBottom();
@@ -271,6 +272,8 @@ namespace caret {
         QAction* m_viewFullScreenAction;
         QAction* m_viewTileTabsAction;
         bool m_viewTileTabsSelected;
+        
+        QAction* m_viewTileTabsConfigurationDialogAction;
         
         QAction* m_nextTabAction;
         

@@ -8,6 +8,7 @@ PROJECT(Common)
 #
 # QT include files
 #
+SET(QT_USE_QTXML TRUE)
 SET(QT_DONT_USE_QTGUI TRUE)
 SET(QT_USE_QTNETWORK TRUE)
 
@@ -94,6 +95,7 @@ SpeciesEnum.h
 StereotaxicSpaceEnum.h
 StructureEnum.h
 SystemUtilities.h
+TileTabsConfiguration.h
 TracksModificationInterface.h
 Vector3D.h
 VoxelIJK.h
@@ -157,6 +159,7 @@ SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
+TileTabsConfiguration.cxx
 Vector3D.cxx
 )
 

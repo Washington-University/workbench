@@ -491,6 +491,12 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
     
+    m_viewTileTabsConfigurationDialogAction = WuQtUtilities::createAction("Create and Edit Tile Tabs Configurations...",
+                                                                          "Add/Delete/Edit Tile Tabs Configurations",
+                                                                          this,
+                                                                          this,
+                                                                          SLOT(processViewTileTabsConfigurationDialog()));
+    
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
                                 "Move to the next tab",
@@ -932,6 +938,7 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
+    menu->addAction(m_viewTileTabsConfigurationDialogAction);
     
     return menu;
 }
@@ -2024,6 +2031,15 @@ BrainBrowserWindow::setViewTileTabs(const bool newStatus)
     m_viewTileTabsSelected = newStatus;
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+}
+
+/**
+ * View the Tile Tabs Configuration Dialog.
+ */
+void
+BrainBrowserWindow::processViewTileTabsConfigurationDialog()
+{
+    GuiManager::get()->processShowTileTabsConfigurationDialog(this);
 }
 
 /**
