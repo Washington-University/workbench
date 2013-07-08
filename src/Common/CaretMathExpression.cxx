@@ -59,10 +59,12 @@ AString CaretMathExpression::getExpressionHelpInfo()
 {
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _.  " +
-        "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.\n\n" +
+        "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.  " +
+        "The <= and >= operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
         "Comparison operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
-        "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, ie '((0 < x) < 5)', which will always return 1, as both possible " +
-        "results of a comparison are less than 5, use '(x > 0) * (x < 5)' to get the desired behavior.  A warning is generated if an expression of this type is detected.\n\n" +
+        "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, ie '((0 < x) < 5)', " +
+        "which will always return 1, as both possible results of a comparison are less than 5.  A warning is generated if an expression of this type is detected.  " +
+        "Use '(x > 0) * (x < 5)' to get the desired behavior.\n\n" +
         "Whitespace between elements is ignored, 'sin(2*x)' is equivalent to ' sin ( 2 * x ) ', but 's in(2*x)' is an error.  " +
         "Implied multiplication is not allowed, the expression '2x' will be parsed as a variable, use '2 * x'.  " +
         "Parentheses are (), do not use [] or {}.  " +
@@ -513,7 +515,7 @@ bool CaretMathExpression::tryGreaterLess(CaretMathExpression::MathNode& node, co
         }
         if (node.m_arguments.size() != 2)
         {
-            CaretLogWarning("WARNING: expression '" + input.mid(start, end - start) + "' does a comparison on the result of a comparison, this is rarely useful.  " +
+            CaretLogWarning("WARNING: expression '" + input.mid(start, end - start) + "' does a comparison on the result of a comparison, this is not likely to be useful.  " +
                             "To test whether a value lies between two values, use ((x > low) * (x < high)).");
         }
         node.m_type = MathNode::GREATERLESS;
