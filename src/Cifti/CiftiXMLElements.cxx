@@ -27,6 +27,9 @@
 #include "GiftiLabelTable.h"
 #include "PaletteColorMapping.h"
 
+#include <algorithm>
+#include <set>
+
 using namespace caret;
 using namespace std;
 
@@ -157,9 +160,36 @@ void CiftiMatrixIndicesMapElement::setupLookup()
 {
     if (m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
+        stable_sort(m_brainModels.begin(), m_brainModels.end());//in order to make the overlapping range check easy, and so that iterating through maps goes linearly through the file
         int numModels = (int)m_brainModels.size();
+        set<StructureEnum::Enum> usedSurf, usedVol;
         for (int i = 0; i < numModels; ++i)
         {
+            if (i > 0 && m_brainModels[i - 1].m_indexOffset + m_brainModels[i - 1].m_indexCount > m_brainModels[i].m_indexOffset)
+            {
+                throw CiftiFileException("overlapping index ranges found in a brain models dimension");
+            }
+            switch (m_brainModels[i].m_modelType)
+            {
+                case CIFTI_MODEL_TYPE_SURFACE:
+                    if (usedSurf.find(m_brainModels[i].m_brainStructure) != usedSurf.end())
+                    {
+                        throw CiftiFileException("structure " + StructureEnum::toName(m_brainModels[i].m_brainStructure) + " used multiple times in surface models");
+                    }
+                    usedSurf.insert(m_brainModels[i].m_brainStructure);
+                    break;
+                case CIFTI_MODEL_TYPE_VOXELS:
+                    if (usedVol.find(m_brainModels[i].m_brainStructure) != usedVol.end())
+                    {
+                        throw CiftiFileException("structure " + StructureEnum::toName(m_brainModels[i].m_brainStructure) + " used multiple times in volume models");
+                    }
+                    usedVol.insert(m_brainModels[i].m_brainStructure);
+                    break;
+                case CIFTI_MODEL_TYPE_INVALID:
+                    CaretAssert(false);
+                    throw CiftiFileException("found 'invalid' brain model type, tell the developers");
+                    break;
+            }
             m_brainModels[i].setupLookup(*this);
         }
     }
@@ -330,7 +360,6 @@ bool CiftiMatrixIndicesMapElement::operator==(const CiftiMatrixIndicesMapElement
             {
                 size_t size = m_namedMaps.size();
                 if (rhs.m_namedMaps.size() != size) return false;
-                vector<bool> used(size, false);
                 for (size_t i = 0; i < size; ++i)
                 {
                     if (m_namedMaps[i] != rhs.m_namedMaps[i]) return false;
@@ -391,8 +420,17 @@ bool CiftiBrainModelElement::operator==(const CiftiBrainModelElement& rhs) const
                 }
             }
             break;
+        case CIFTI_MODEL_TYPE_INVALID:
+            CaretAssert(false);
+            throw CiftiFileException("found 'invalid' brain model type, tell the developers");
+            break;
     }
     return true;
+}
+
+bool CiftiBrainModelElement::operator<(const CiftiBrainModelElement& rhs) const
+{
+    return m_indexOffset < rhs.m_indexOffset;
 }
 
 bool CiftiNamedMapElement::operator==(const CiftiNamedMapElement& rhs) const

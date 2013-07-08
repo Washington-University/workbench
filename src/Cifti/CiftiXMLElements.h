@@ -59,6 +59,7 @@ public:
 class GiftiLabelTable;
 /*! ModelType */
 enum ModelType {
+    CIFTI_MODEL_TYPE_INVALID,
     CIFTI_MODEL_TYPE_SURFACE=1,/*!< CIFTI_MODEL_TYPE_SURFACE*/
     CIFTI_MODEL_TYPE_VOXELS=2/*!< CIFTI_MODEL_TYPE_VOXELS*/
 };
@@ -94,6 +95,7 @@ public:
     std::vector<int64_t> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
     void setupLookup(CiftiMatrixIndicesMapElement& myMap);//convenience function to populate lookup
     bool operator==(const CiftiBrainModelElement& rhs) const;
+    bool operator<(const CiftiBrainModelElement& rhs) const;//for sorting by starting index
 };
 
 struct CiftiNamedMapElement

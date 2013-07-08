@@ -53,6 +53,17 @@ namespace caret {
         StructureEnum::Enum m_structure;
     };
     
+    struct CiftiBrainModelInfo
+    {
+        ModelType m_type;
+        StructureEnum::Enum m_structure;
+        CiftiBrainModelInfo()
+        {
+            m_type = CIFTI_MODEL_TYPE_INVALID;
+            m_structure = StructureEnum::INVALID;
+        }
+    };
+    
     class CiftiXML {
     public:
         enum
@@ -195,12 +206,15 @@ namespace caret {
         ///get the mapping for a volume, returns false and empty vector if not found
         bool getVolumeMap(const int& direction, std::vector<CiftiVolumeMap>& mappingOut) const;
             
-        ///get the mapping for a volume in rows, returns false and empty vector if not found
+        ///get the mapping for a volume structure in rows, returns false and empty vector if not found
         bool getVolumeStructureMapForRows(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
         
-        ///get the mapping for a volume in columns, returns false and empty vector if not found
+        ///get the mapping for a volume structure in columns, returns false and empty vector if not found
         bool getVolumeStructureMapForColumns(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
         
+        ///get the mapping for a volume structure
+        bool getVolumeStructureMap(const int& direction, std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
+
         ///get the lists of what structures exist
         bool getStructureListsForRows(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
 
@@ -209,6 +223,12 @@ namespace caret {
 
         ///get the lists of what structures exist
         bool getStructureLists(const int& direction, std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
+        
+        ///get the number of structures for a brain model mapping
+        int getNumberOfBrainModels(const int& direction) const;
+        
+        ///get structure info by structure index
+        CiftiBrainModelInfo getBrainModelInfo(const int& direction, const int& whichModel) const;
 
         ///get the list of volume parcels and their maps in rows, returns false and empty vector if not found
         bool getVolumeModelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
@@ -308,6 +328,11 @@ namespace caret {
         
         ///add a volume brain model to the list of brain models for columns
         bool addVolumeModelToColumns(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        
+        ///add surface or volume model by direction
+        bool addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
+        bool addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
+        bool addVolumeModel(const int& direction, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         
         ///add a surface to the list of parcel surfaces for rows
         bool addParcelSurfaceToRows(const int& numberOfNodes, const StructureEnum::Enum& structure);
@@ -485,15 +510,7 @@ namespace caret {
         bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
         ///some boilerplate to retrieve mappings
-        bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
         bool getVolumeModelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
-        
-        ///boilerplate for has data
-        
-        ///boilerplate to create mappings
-        bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
-        bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
-        bool addVolumeModel(const int& myMapIndex, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         
         ///miscellaneous
         bool checkVolumeIndices(const std::vector<voxelIndexType>& ijkList) const;

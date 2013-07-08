@@ -193,9 +193,11 @@ bool CiftiXML::getVolumeMapForRows(vector<CiftiVolumeMap>& mappingOut) const
     return getVolumeMap(ALONG_ROW, mappingOut);
 }
 
-bool CiftiXML::getVolumeStructureMapping(vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const
+bool CiftiXML::getVolumeStructureMap(const int& direction, vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const
 {
     mappingOut.clear();
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
     const CiftiBrainModelElement* myModel = findVolumeModel(myMapIndex, structure);
     if (myModel == NULL)
     {
@@ -218,12 +220,12 @@ bool CiftiXML::getVolumeStructureMapping(vector<CiftiVolumeMap>& mappingOut, con
 
 bool CiftiXML::getVolumeStructureMapForColumns(vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const
 {
-    return getVolumeStructureMapping(mappingOut, structure, m_dimToMapLookup[1]);
+    return getVolumeStructureMap(ALONG_COLUMN, mappingOut, structure);
 }
 
 bool CiftiXML::getVolumeStructureMapForRows(vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const
 {
-    return getVolumeStructureMapping(mappingOut, structure, m_dimToMapLookup[0]);
+    return getVolumeStructureMap(ALONG_ROW, mappingOut, structure);
 }
 
 bool CiftiXML::getVolumeModelMappings(vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const
@@ -318,6 +320,44 @@ bool CiftiXML::getStructureListsForColumns(vector<StructureEnum::Enum>& surfaceL
 bool CiftiXML::getStructureListsForRows(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList) const
 {
     return getStructureLists(ALONG_ROW, surfaceList, volumeList);
+}
+
+int CiftiXML::getNumberOfBrainModels(const int& direction) const
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return -1;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return -1;
+    }
+    return (int)myMap->m_brainModels.size();//reuse of type and structure combinations not allowed, so this is limited to number of structure enum values times number of model types (2)
+}
+
+CiftiBrainModelInfo CiftiXML::getBrainModelInfo(const int& direction, const int& whichModel) const
+{
+    CiftiBrainModelInfo ret;
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return ret;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return ret;
+    }
+    CaretAssertVectorIndex(myMap->m_brainModels, whichModel);
+    ret.m_type = myMap->m_brainModels[whichModel].m_modelType;
+    ret.m_structure = myMap->m_brainModels[whichModel].m_brainStructure;
+    return ret;
 }
 
 void CiftiXML::rootChanged()
@@ -925,6 +965,18 @@ bool CiftiXML::getVolumeDimsAndSForm(int64_t dimsOut[3], vector<vector<float> >&
 void CiftiXML::setVolumeDimsAndSForm(const int64_t dims[3], const vector<vector<float> >& sform)
 {
     CaretAssert(sform.size() == 3);
+    if (hasVolumeData(ALONG_COLUMN) || hasVolumeData(ALONG_ROW))
+    {
+        VolumeSpace tempSpace;
+        if (getVolumeSpace(tempSpace))//if it fails to get a volume space when it has volume data...allow it to set it, I guess
+        {
+            if (!tempSpace.matchesVolumeSpace(VolumeSpace(dims, sform)))
+            {
+                throw CiftiFileException("cannot change the volume space of cifti xml that already has volume mapping(s)");
+            }
+            return;
+        }
+    }
     if (m_root.m_matrices.size() == 0)
     {
         m_root.m_matrices.resize(1);
@@ -1222,29 +1274,30 @@ bool CiftiXML::hasSurfaceData(const int& direction, const StructureEnum::Enum& s
 
 bool CiftiXML::addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
 {
-    separateMaps();
-    return addSurfaceModel(m_dimToMapLookup[1], numberOfNodes, structure, roi);
+    return addSurfaceModel(ALONG_COLUMN, numberOfNodes, structure, roi);
 }
 
 bool CiftiXML::addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
 {
-    separateMaps();
-    return addSurfaceModel(m_dimToMapLookup[0], numberOfNodes, structure, roi);
+    return addSurfaceModel(ALONG_ROW, numberOfNodes, structure, roi);
 }
 
-bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
+bool CiftiXML::addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
 {
-    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    separateMaps();
+    if (m_dimToMapLookup[direction] == -1 || m_root.m_matrices.size() == 0)
     {
         return false;
     }
-    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
-    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
+    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]]);
     if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
+    if (findSurfaceModel(m_dimToMapLookup[direction], structure) != NULL) return false;
     CiftiBrainModelElement tempModel;
     tempModel.m_brainStructure = structure;
     tempModel.m_modelType = CIFTI_MODEL_TYPE_SURFACE;
-    tempModel.m_indexOffset = getNewRangeStart(myMapIndex);
+    tempModel.m_indexOffset = getNewRangeStart(m_dimToMapLookup[direction]);
     tempModel.m_surfaceNumberOfNodes = numberOfNodes;
     if (roi == NULL)
     {
@@ -1277,30 +1330,31 @@ bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, 
 
 bool CiftiXML::addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
 {
-    separateMaps();
-    return addSurfaceModel(m_dimToMapLookup[1], numberOfNodes, structure, nodeList);
+    return addSurfaceModel(ALONG_COLUMN, numberOfNodes, structure, nodeList);
 }
 
 bool CiftiXML::addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
 {
-    separateMaps();
-    return addSurfaceModel(m_dimToMapLookup[0], numberOfNodes, structure, nodeList);
+    return addSurfaceModel(ALONG_ROW, numberOfNodes, structure, nodeList);
 }
 
-bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
+bool CiftiXML::addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
 {
-    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    separateMaps();
+    if (m_dimToMapLookup[direction] == -1 || m_root.m_matrices.size() == 0)
     {
         return false;
     }
-    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
     CaretAssertMessage(checkSurfaceNodes(nodeList, numberOfNodes), "node list has node numbers that don't exist in the surface");
-    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);//call the check function inside an assert so it never does the check in release builds
+    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]]);//call the check function inside an assert so it never does the check in release builds
     if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
+    if (findSurfaceModel(m_dimToMapLookup[direction], structure) != NULL) return false;
     CiftiBrainModelElement tempModel;
     tempModel.m_brainStructure = structure;
     tempModel.m_modelType = CIFTI_MODEL_TYPE_SURFACE;
-    tempModel.m_indexOffset = getNewRangeStart(myMapIndex);
+    tempModel.m_indexOffset = getNewRangeStart(m_dimToMapLookup[direction]);
     tempModel.m_surfaceNumberOfNodes = numberOfNodes;
     tempModel.m_indexCount = (int64_t)nodeList.size();
     if ((int)nodeList.size() == numberOfNodes)
@@ -1336,21 +1390,23 @@ bool CiftiXML::checkSurfaceNodes(const vector<int64_t>& nodeList, const int& num
     return true;
 }
 
-bool CiftiXML::addVolumeModel(const int& myMapIndex, const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
+bool CiftiXML::addVolumeModel(const int& direction, const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
 {
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
     separateMaps();
-    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    if (m_dimToMapLookup[direction] == -1 || m_root.m_matrices.size() == 0)
     {
         return false;
     }
-    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
-    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
+    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]]);
     if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
+    if (findVolumeModel(m_dimToMapLookup[direction], structure) != NULL) return false;
     CaretAssertMessage(checkVolumeIndices(ijkList), "volume voxel list doesn't match cifti volume space, do setVolumeDimsAndSForm first");
     CiftiBrainModelElement tempModel;//call the check function inside an assert so it never does the check in release builds
     tempModel.m_brainStructure = structure;
     tempModel.m_modelType = CIFTI_MODEL_TYPE_VOXELS;
-    tempModel.m_indexOffset = getNewRangeStart(myMapIndex);
+    tempModel.m_indexOffset = getNewRangeStart(m_dimToMapLookup[direction]);
     tempModel.m_indexCount = ijkList.size() / 3;
     tempModel.m_voxelIndicesIJK = ijkList;
     myMap->m_brainModels.push_back(tempModel);
@@ -1359,12 +1415,12 @@ bool CiftiXML::addVolumeModel(const int& myMapIndex, const vector<voxelIndexType
 
 bool CiftiXML::addVolumeModelToColumns(const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
 {
-    return addVolumeModel(m_dimToMapLookup[1], ijkList, structure);
+    return addVolumeModel(ALONG_COLUMN, ijkList, structure);
 }
 
 bool CiftiXML::addVolumeModelToRows(const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
 {
-    return addVolumeModel(m_dimToMapLookup[0], ijkList, structure);
+    return addVolumeModel(ALONG_ROW, ijkList, structure);
 }
 
 bool CiftiXML::addParcelSurfaceToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure)
@@ -1820,7 +1876,7 @@ const CiftiBrainModelElement* CiftiXML::findSurfaceModel(const int& myMapIndex, 
     int numModels = myModels.size();
     for (int i = 0; i < numModels; ++i)
     {
-        if (myModels[i].m_modelType == CIFTI_MODEL_TYPE_SURFACE && myModels[i].m_brainStructure == structure)
+        if (myModels[i].m_brainStructure == structure && myModels[i].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
         {
             return &(myModels[i]);
         }
@@ -1841,7 +1897,7 @@ const CiftiBrainModelElement* CiftiXML::findVolumeModel(const int& myMapIndex, c
     int numModels = myModels.size();
     for (int i = 0; i < numModels; ++i)
     {
-        if (myModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS && myModels[i].m_brainStructure == structure)
+        if (myModels[i].m_brainStructure == structure && myModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
         {
             return &(myModels[i]);
         }
