@@ -517,103 +517,237 @@ CaretPreferences::readTileTabsConfigurations(const bool performSync)
     this->qSettings->endArray();
 }
 
-/**
- * @return Names of tile tabs configurations sorted by name.  May want to precede this
- * method with a call to 'readTileTabsConfigurations(true)' so that the tile tabs
- * are the latest from the settings.
- */
-std::vector<AString>
-CaretPreferences::getTileTabsConfigurationNames() const
+std::vector<const TileTabsConfiguration*>
+CaretPreferences::getTileTabsConfigurationsSortedByName() const
 {
-    std::vector<AString> names;
+    /*
+     * Copy the configurations and sort them by name.
+     */
+    std::vector<const TileTabsConfiguration*> configurations;
+    configurations.insert(configurations.end(),
+                          this->tileTabsConfigurations.begin(),
+                          this->tileTabsConfigurations.end());    
+    std::sort(configurations.begin(),
+              configurations.end(),
+              TileTabsConfiguration::lessThanComparisonByName);
     
-    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
-         iter != this->tileTabsConfigurations.end();
-         iter++) {
-        const TileTabsConfiguration* ttc = *iter;
-        names.push_back(ttc->getName());
-    }
-    
-    std::sort(names.begin(),
-              names.end());
-    
-    return names;
+    return configurations;
 }
 
-/**
- * Get a tile tabs configuration with the given name.
- *
- * @param tileTabsConfigurationName
- *     Name of requested tile tabs configuration.
- * @param modelTransformOut
- *     Tile tabs configuration will be loaded into this tile tabs configuration.
- * @return true if a tile tabs configuration with the name exists.  If no
- *     tile tabs configuration exists with the name, false is returned and
- *     the tile tabs configuration will be the default tile tabs configuration.
- */
-bool
-CaretPreferences::getTileTabsConfiguration(const AString& tileTabsConfigurationName,
-                              TileTabsConfiguration& tileTabsConfigurationOut) const
-{
-    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
-         iter != this->tileTabsConfigurations.end();
-         iter++) {
-        const TileTabsConfiguration* ttc = *iter;
-        
-        if (tileTabsConfigurationName == ttc->getName()) {
-            tileTabsConfigurationOut = *ttc;
-            return true;
-        }
-    }
-    
-    tileTabsConfigurationOut = TileTabsConfiguration();
-    
-    return false;
-}
+///**
+// * @return Unique identifiers of tile tabs configurations that are sorted
+// * by the names of the tile tabs configurationsMay want to precede this
+// * method with a call to 'readTileTabsConfigurations(true)' so that the 
+// * tile tabs are the latest from the settings.
+// */
+//std::vector<AString>
+//CaretPreferences::getTileTabsConfigurationUniqueIdentifiers() const
+//{
+//    /*
+//     * Copy the pointers to the tile tabs configurations and then
+//     * sort them by name.
+//     */
+//    std::vector<TileTabsConfiguration*> configurations = this->tileTabsConfigurations;
+//    std::sort(configurations.begin(),
+//              configurations.end(),
+//              TileTabsConfiguration::lessThanComparisonByName);
+//    
+//    /*
+//     * Get unique IDs
+//     */
+//    std::vector<AString> uniqueIDs;
+//    for (std::vector<TileTabsConfiguration*>::iterator iter = configurations.begin();
+//         iter != configurations.end();
+//         iter++) {
+//        TileTabsConfiguration* ttc = *iter;
+//        uniqueIDs.push_back(ttc->getUniqueIdentifier());
+//    }
+//    
+//    return uniqueIDs;
+//}
 
 /**
- * Add or update a tile tabs configuration.  If a tile tabs configuration exists with the name
- * in the given tile tabs configuration it is replaced.
+ * Get the tile tabs configuration with the given unique identifier.
  *
- * @param modelTransform
- *    Tile tabs configuration that is added or replaced.
+ * @param uniqueIdentifier
+ *     Unique identifier of the requested tile tabs configuration.
+ * @return
+ *     Pointer to tile tabs configuration with the given unique identifier
+ *     or NULL is it does not exist.
  */
-void
-CaretPreferences::addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration)
+TileTabsConfiguration*
+CaretPreferences::getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier)
 {
-    bool addNewTileTabsConfiguration = true;
-    
-    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
          iter != this->tileTabsConfigurations.end();
          iter++) {
         TileTabsConfiguration* ttc = *iter;
-        if (ttc->getName() == tileTabsConfiguration.getName()) {
-            *ttc = tileTabsConfiguration;
-            addNewTileTabsConfiguration = false;
-            break;
+        if (ttc->getUniqueIdentifier() == uniqueIdentifier) {
+            return ttc;
         }
     }
     
-    if (addNewTileTabsConfiguration) {
-        this->tileTabsConfigurations.push_back(new TileTabsConfiguration(tileTabsConfiguration));
+    return NULL;
+}
+
+/**
+ * Get the tile tabs configuration with the given unique identifier.
+ * 
+ * @param uniqueIdentifier
+ *     Unique identifier of the requested tile tabs configuration.
+ * @return 
+ *     Pointer to tile tabs configuration with the given unique identifier
+ *     or NULL is it does not exist.
+ */
+const TileTabsConfiguration*
+CaretPreferences::getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const
+{
+    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        const TileTabsConfiguration* ttc = *iter;
+        if (ttc->getUniqueIdentifier() == uniqueIdentifier) {
+            return ttc;
+        }
     }
+    
+    return NULL;
+}
+
+
+///**
+// * @return Names of tile tabs configurations sorted by name.  May want to precede this
+// * method with a call to 'readTileTabsConfigurations(true)' so that the tile tabs
+// * are the latest from the settings.
+// */
+//std::vector<AString>
+//CaretPreferences::getTileTabsConfigurationNames() const
+//{
+//    std::vector<AString> names;
+//    
+//    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+//         iter != this->tileTabsConfigurations.end();
+//         iter++) {
+//        const TileTabsConfiguration* ttc = *iter;
+//        names.push_back(ttc->getName());
+//    }
+//    
+//    std::sort(names.begin(),
+//              names.end());
+//    
+//    return names;
+//}
+
+/**
+ * Get the tile tabs configuration with the given name.
+ *
+ * @param name
+ *     Name of the requested tile tabs configuration.
+ * @return
+ *     Pointer to tile tabs configuration with the given name
+ *     or NULL is it does not exist.
+ */
+TileTabsConfiguration*
+CaretPreferences::getTileTabsConfigurationByName(const AString& name) const
+{
+    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+         iter != this->tileTabsConfigurations.end();
+         iter++) {
+        TileTabsConfiguration* ttc = *iter;
+        
+        if (name == ttc->getName()) {
+            return ttc;
+        }
+    }
+    
+    return NULL;
+}
+
+///**
+// * Get a tile tabs configuration with the given unique identifier.
+// *
+// * @param tileTabsUniqueIdentifier
+// *     Unique identifier of the tile tabs configuration.
+// * @param tileTabsConfigurationOut
+// *     Tile tabs configuration will be loaded into this tile tabs configuration.
+// * @return true if a tile tabs configuration with the unique identifier exists.  If no
+// *     tile tabs configuration exists with the unique identifier, false is returned and
+// *     the output tile tabs configuration will not be modified.
+// */
+//bool
+//CaretPreferences::getTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier,
+//                                                TileTabsConfiguration& tileTabsConfigurationOut) const
+//{
+//    for (std::vector<TileTabsConfiguration*>::const_iterator iter = this->tileTabsConfigurations.begin();
+//         iter != this->tileTabsConfigurations.end();
+//         iter++) {
+//        const TileTabsConfiguration* ttc = *iter;
+//        
+//        if (tileTabsUniqueIdentifier == ttc->getUniqueIdentifier()) {
+//            tileTabsConfigurationOut = *ttc;
+//            return true;
+//        }
+//    }
+//    
+//    return false;
+//}
+
+/**
+ * Add a new tile tabs configuration.
+ * 
+ * @param tileTabsConfiguration
+ *    New tile tabs configuration that is added.
+ */
+void
+CaretPreferences::addTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration)
+{
+    this->tileTabsConfigurations.push_back(tileTabsConfiguration);
     this->writeTileTabsConfigurations();
 }
+
+///**
+// * Add or update a tile tabs configuration.  If a tile tabs configuration exists with the name
+// * in the given tile tabs configuration it is replaced.
+// *
+// * @param modelTransform
+// *    Tile tabs configuration that is added or replaced.
+// */
+//void
+//CaretPreferences::addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration)
+//{
+//    bool addNewTileTabsConfiguration = true;
+//    
+//    for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
+//         iter != this->tileTabsConfigurations.end();
+//         iter++) {
+//        TileTabsConfiguration* ttc = *iter;
+//        if (ttc->getUniqueIdentifier() == tileTabsConfiguration.getUniqueIdentifier()) {
+//            *ttc = tileTabsConfiguration;
+//            addNewTileTabsConfiguration = false;
+//            break;
+//        }
+//    }
+//    
+//    if (addNewTileTabsConfiguration) {
+//        this->tileTabsConfigurations.push_back(new TileTabsConfiguration(tileTabsConfiguration));
+//    }
+//    this->writeTileTabsConfigurations();
+//}
 
 /**
  * Remove the tile tabs configuration with the given name.
  *
- * @param tileTabsConfigurationName
- *     Name of tile tabs configuration that will be removed.
+ * @param tileTabsUniqueIdentifier
+ *     Unique identifier of configuration that will be removed.
  */
 void
-CaretPreferences::removeTileTabsConfiguration(const AString& tileTabsConfigurationName)
+CaretPreferences::removeTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier)
 {
     for (std::vector<TileTabsConfiguration*>::iterator iter = this->tileTabsConfigurations.begin();
          iter != this->tileTabsConfigurations.end();
          iter++) {
         TileTabsConfiguration* ttc = *iter;
-        if (ttc->getName() == tileTabsConfigurationName) {
+        if (ttc->getUniqueIdentifier() == tileTabsUniqueIdentifier) {
             this->tileTabsConfigurations.erase(iter);
             delete ttc;
             break;

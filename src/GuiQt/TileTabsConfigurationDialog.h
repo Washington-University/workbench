@@ -47,7 +47,8 @@ class QSpinBox;
 
 namespace caret {
     class CaretPreferences;
-
+    class TileTabsConfiguration;
+    
     class TileTabsConfigurationDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
@@ -90,7 +91,11 @@ namespace caret {
             GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS = 2
         };
         
-        void selectTileTabConfigurationByName(const AString& name);
+        void selectTileTabConfigurationByUniqueID(const AString& uniqueID);
+        
+        AString getSelectedTileTabsConfigurationUniqueID();
+        
+        TileTabsConfiguration* getSelectedTileTabsConfiguration();
         
         QWidget* createConfigurationSelectionWidget();
         

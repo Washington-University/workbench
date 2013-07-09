@@ -213,18 +213,26 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
 void
 TileTabsConfigurationDialog::updateDialog()
 {
+    m_caretPreferences->readTileTabsConfigurations();
+    
     const AString selectedTileTabsName = m_configurationSelectionComboBox->currentText();
+    int defaultIndex = m_configurationSelectionComboBox->currentIndex();
     
     m_configurationSelectionComboBox->blockSignals(true);
     m_configurationSelectionComboBox->clear();
     
-    int defaultIndex = m_configurationSelectionComboBox->currentIndex();
-    const std::vector<AString> tileTabsNames = m_caretPreferences->getTileTabsConfigurationNames();
-    const int32_t numNames = static_cast<int32_t>(tileTabsNames.size());
-    for (int32_t i = 0; i < numNames; i++) {
-        m_configurationSelectionComboBox->addItem(tileTabsNames[i]);
+    std::vector<const TileTabsConfiguration*> configurations = m_caretPreferences->getTileTabsConfigurationsSortedByName();
+    const int32_t numConfig = static_cast<int32_t>(configurations.size());
+    for (int32_t i = 0; i < numConfig; i++) {
+        const TileTabsConfiguration* ttc = configurations[i];
         
-        if (tileTabsNames[i] == selectedTileTabsName) {
+        /*
+         * Second element is user data which contains the Unique ID
+         */
+        m_configurationSelectionComboBox->addItem(ttc->getName(),
+                                                  QVariant(ttc->getUniqueIdentifier()));
+        
+        if (ttc->getName() == selectedTileTabsName) {
             defaultIndex = i;
         }
     }
@@ -248,11 +256,13 @@ TileTabsConfigurationDialog::updateDialog()
  * Select the tile tabs configuration with the given name.
  */
 void
-TileTabsConfigurationDialog::selectTileTabConfigurationByName(const AString& name)
+TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString& uniqueID)
 {
     const int32_t numItems = m_configurationSelectionComboBox->count();
     for (int32_t i = 0; i < numItems; i++) {
-        if (m_configurationSelectionComboBox->itemText(i) == name) {
+        const AString itemID = m_configurationSelectionComboBox->itemData(i,
+                                                                          Qt::UserRole).toString();
+        if (itemID == uniqueID) {
             m_configurationSelectionComboBox->setCurrentIndex(i);
             configurationComboBoxItemSelected(i);
             break;
@@ -262,21 +272,25 @@ TileTabsConfigurationDialog::selectTileTabConfigurationByName(const AString& nam
 
 /**
  * Called when a configuration is selected from the combo box.
+ *
+ * @param indx
+ *    Index of item selected.
  */
 void
-TileTabsConfigurationDialog::configurationComboBoxItemSelected(int)
+TileTabsConfigurationDialog::configurationComboBoxItemSelected(int indx)
 {
-    const AString configurationName = m_configurationSelectionComboBox->currentText();
-    
-    if (configurationName.isEmpty() == false) {
-        TileTabsConfiguration ttc;
-        if (m_caretPreferences->getTileTabsConfiguration(configurationName, ttc)) {
+    if ((indx >= 0)
+        && (indx < m_configurationSelectionComboBox->count())) {
+        const AString itemID = m_configurationSelectionComboBox->itemData(indx,
+                                                                          Qt::UserRole).toString();
+        TileTabsConfiguration* ttc = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
+        if (ttc != NULL) {
             m_numberOfRowsSpinBox->blockSignals(true);
-            m_numberOfRowsSpinBox->setValue(ttc.getNumberOfRows());
+            m_numberOfRowsSpinBox->setValue(ttc->getNumberOfRows());
             m_numberOfRowsSpinBox->blockSignals(false);
             
             m_numberOfColumnsSpinBox->blockSignals(true);
-            m_numberOfColumnsSpinBox->setValue(ttc.getNumberOfColumns());
+            m_numberOfColumnsSpinBox->setValue(ttc->getNumberOfColumns());
             m_numberOfColumnsSpinBox->blockSignals(false);
         }
     }
@@ -288,58 +302,69 @@ TileTabsConfigurationDialog::configurationComboBoxItemSelected(int)
 void
 TileTabsConfigurationDialog::newConfigurationButtonClicked()
 {
-    const std::vector<AString> existingTileTabsNames = m_caretPreferences->getTileTabsConfigurationNames();
-    
-    bool createViewFlag = false;
     AString newTileTabsName;
+    
+    AString configurationUniqueID;
     
     bool exitLoop = false;
     while (exitLoop == false) {
+        /*
+         * Popup dialog to get name for new configuration
+         */
         WuQDataEntryDialog ded("New Tile Tabs Configuration",
                                m_newConfigurationPushButton);
         
         QLineEdit* nameLineEdit = ded.addLineEditWidget("View Name");
-        
-        nameLineEdit->setFocus();
+        nameLineEdit->setText(newTileTabsName);
         if (ded.exec() == WuQDataEntryDialog::Accepted) {
+            /*
+             * Make sure name is not empty
+             */
             newTileTabsName = nameLineEdit->text().trimmed();
-            
-            
-            
-            if (newTileTabsName.isEmpty() == false) {                
+            if (newTileTabsName.isEmpty()) {
+                WuQMessageBox::errorOk(m_newConfigurationPushButton,
+                                       "Enter a name");
+            }
+            else {
                 /*
-                 * If custom view exists with name entered by user,
-                 * then warn the user.
+                 * See if a configuration with the user entered name already exists
                  */
-                if (std::find(existingTileTabsNames.begin(),
-                              existingTileTabsNames.end(),
-                              newTileTabsName) != existingTileTabsNames.end()) {
+                TileTabsConfiguration* ttc = m_caretPreferences->getTileTabsConfigurationByName(newTileTabsName);
+                if (ttc != NULL) {
                     const QString msg = ("Configuration named \""
                                          + newTileTabsName
-                                         + "\" already exits.  Replace?");
+                                         + "\" already exits.  Rename it?");
                     if (WuQMessageBox::warningYesNo(m_newConfigurationPushButton,
                                                     msg)) {
+                        ttc->setName(newTileTabsName);
+                        configurationUniqueID = ttc->getUniqueIdentifier();
                         exitLoop = true;
-                        createViewFlag = true;
                     }
                 }
                 else {
+                    /*
+                     * Create a new configuration with the name
+                     * entered by the user.
+                     */
+                    TileTabsConfiguration* configuration = new TileTabsConfiguration();
+                    configuration->setName(newTileTabsName);
+                    configurationUniqueID = configuration->getUniqueIdentifier();
+                    m_caretPreferences->addTileTabsConfiguration(configuration);
                     exitLoop = true;
-                    createViewFlag = true;
                 }
             }
-            
         }
         else {
+            /*
+             * User pressed cancel button.
+             */
             exitLoop = true;
         }
     }
-    if (createViewFlag && (newTileTabsName.isEmpty() == false)) {
-        TileTabsConfiguration tileTabsConfiguration;
-        tileTabsConfiguration.setName(newTileTabsName);
-        m_caretPreferences->addOrReplaceTileTabsConfiguration(tileTabsConfiguration);
+    
+    if (configurationUniqueID.isEmpty() == false) {
         updateDialog();
-        selectTileTabConfigurationByName(newTileTabsName);
+        selectTileTabConfigurationByUniqueID(configurationUniqueID);
     }
 }
 
@@ -349,18 +374,50 @@ TileTabsConfigurationDialog::newConfigurationButtonClicked()
 void
 TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
 {
-    const AString configurationName = m_configurationSelectionComboBox->currentText();
-    if (configurationName.isEmpty() == false) {
+    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    if (configuration != NULL) {
         const QString msg = ("Delete configuration named \""
-                             + configurationName
+                             + configuration->getName()
                              + "\" ?");
         if (WuQMessageBox::warningYesNo(m_newConfigurationPushButton,
                                         msg)) {
-            m_caretPreferences->removeTileTabsConfiguration(configurationName);
+            m_caretPreferences->removeTileTabsConfigurationByUniqueIdentifier(configuration->getUniqueIdentifier());
             updateDialog();
         }
     }
 }
+
+/**
+ * @return A pointer to the selected tile tabs configuration of NULL if 
+ * no configuration is available.
+ */
+TileTabsConfiguration*
+TileTabsConfigurationDialog::getSelectedTileTabsConfiguration()
+{
+    const AString uniqueID = getSelectedTileTabsConfigurationUniqueID();
+    TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(uniqueID);
+    return configuration;
+}
+
+/**
+ * @return The unique identifier of the selected tile tabs configuration an
+ * empty string if no configuration is available.
+ */
+AString
+TileTabsConfigurationDialog::getSelectedTileTabsConfigurationUniqueID()
+{
+    AString uniqueID;
+    
+    const int32_t indx = m_configurationSelectionComboBox->currentIndex();
+    if ((indx >= 0)
+        && (indx < m_configurationSelectionComboBox->count())) {
+        uniqueID = m_configurationSelectionComboBox->itemData(indx,
+                                                              Qt::UserRole).toString();
+    }
+    
+    return uniqueID;
+}
+
 
 /**
  * Called when the number of rows or columns changes.
@@ -368,15 +425,11 @@ TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
 void
 TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
 {
-    const AString configurationName = m_configurationSelectionComboBox->currentText();
-    if (configurationName.isEmpty() == false) {
-        TileTabsConfiguration ttc;
-        if (m_caretPreferences->getTileTabsConfiguration(configurationName, ttc)) {
-            ttc.setNumberOfRows(m_numberOfRowsSpinBox->value());
-            ttc.setNumberOfColumns(m_numberOfColumnsSpinBox->value());
-            m_caretPreferences->addOrReplaceTileTabsConfiguration(ttc);
-            m_caretPreferences->writeTileTabsConfigurations();
-        }
+    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    if (configuration != NULL) {
+        configuration->setNumberOfRows(m_numberOfRowsSpinBox->value());
+        configuration->setNumberOfColumns(m_numberOfColumnsSpinBox->value());
+        m_caretPreferences->writeTileTabsConfigurations();
     }
 }
 

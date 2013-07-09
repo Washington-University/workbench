@@ -84,6 +84,9 @@ namespace caret {
         
         bool decodeFromXML(const AString& xmlString);
         
+        static bool lessThanComparisonByName(const TileTabsConfiguration* ttc1,
+                                             const TileTabsConfiguration* ttc2);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -108,6 +111,7 @@ namespace caret {
         static const AString s_rootTagName;
         static const AString s_versionTagName;
         static const AString s_nameTagName;
+        static const AString s_uniqueIdentifierTagName;
         static const AString s_versionNumberAttributeName;
         static const AString s_columnStretchFactorsTagName;
         static const AString s_columnStretchFactorsNumberOfColumnsAttributeName;
@@ -121,6 +125,7 @@ namespace caret {
     const AString TileTabsConfiguration::s_versionTagName = "Version";
     const AString TileTabsConfiguration::s_versionNumberAttributeName = "Number";
     const AString TileTabsConfiguration::s_nameTagName = "Name";
+    const AString TileTabsConfiguration::s_uniqueIdentifierTagName = "UniqueIdentifier";
     const AString TileTabsConfiguration::s_columnStretchFactorsTagName = "ColumnStretchFactors";
     const AString TileTabsConfiguration::s_columnStretchFactorsNumberOfColumnsAttributeName = "NumberOfRows";
     const AString TileTabsConfiguration::s_rowStretchFactorsTagName = "RowStretchFactors";

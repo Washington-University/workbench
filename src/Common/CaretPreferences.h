@@ -107,14 +107,26 @@ namespace caret {
         
         void readTileTabsConfigurations(const bool performSync = true);
         
-        std::vector<AString> getTileTabsConfigurationNames() const;
+        std::vector<const TileTabsConfiguration*> getTileTabsConfigurationsSortedByName() const;
         
-        bool getTileTabsConfiguration(const AString& tileTabsConfigurationName,
-                           TileTabsConfiguration& tileTabsConfigurationOut) const;
+        TileTabsConfiguration* getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier);
         
-        void addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
+        const TileTabsConfiguration* getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const;
         
-        void removeTileTabsConfiguration(const AString& tileTabsConfigurationName);
+//        std::vector<AString> getTileTabsConfigurationUniqueIdentifiers() const;
+        
+//        std::vector<AString> getTileTabsConfigurationNames() const;
+        
+        TileTabsConfiguration* getTileTabsConfigurationByName(const AString& name) const;
+        
+//        bool getTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier,
+//                                            TileTabsConfiguration& tileTabsConfigurationOut) const;
+        
+        void addTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration);
+        
+//        void addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
+        
+        void removeTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier);
         
         void writeTileTabsConfigurations();
         

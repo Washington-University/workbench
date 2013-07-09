@@ -308,6 +308,10 @@ TileTabsConfiguration::encodeInXML() const
     nameTag.appendChild(doc.createTextNode(m_name));
     root.appendChild(nameTag);
     
+    QDomElement uniqueIdentifierTag = doc.createElement(s_uniqueIdentifierTagName);
+    uniqueIdentifierTag.appendChild(doc.createTextNode(m_uniqueIdentifier));
+    root.appendChild(uniqueIdentifierTag);
+    
     QDomElement rowStretchFactorsTag = doc.createElement(s_rowStretchFactorsTagName);
     rowStretchFactorsTag.setAttribute(s_rowStretchFactorsNumberOfRowsAttributeName,
                                       static_cast<int>(m_rowStretchFactors.size()));
@@ -398,6 +402,21 @@ TileTabsConfiguration::parseVersionOneXML(QDomDocument& doc) throw (CaretExcepti
     }
     m_name = nameElement.text();
     
+    QDomNodeList uniqueIdNodeList = doc.elementsByTagName(s_uniqueIdentifierTagName);
+    if (uniqueIdNodeList.isEmpty()) {
+        CaretLogWarning("Tile Tabs Configuration "
+                        + m_name
+                        + " is missing its unique identifier");
+        m_uniqueIdentifier = SystemUtilities::createUniqueID();
+    }
+    else {
+        QDomElement uniqueIdElement = uniqueIdNodeList.at(0).toElement();
+        if (uniqueIdElement.isNull()) {
+            throw CaretException("Error finding unique identifier element");
+        }
+        m_uniqueIdentifier = uniqueIdElement.text();
+    }
+    
     QDomNodeList rowNodeList = doc.elementsByTagName(s_rowStretchFactorsTagName);
     if (rowNodeList.isEmpty()) {
         throw CaretException("Error finding row stretch factors tag");
@@ -470,4 +489,23 @@ TileTabsConfiguration::parseVersionOneXML(QDomDocument& doc) throw (CaretExcepti
     }
 }
 
+/**
+ * Compare two tile tabs configurations by name.
+ *
+ * @param ttc1
+ *    First tile tab configuration.
+ * @param ttc2
+ *    Second tile tab configuration.
+ * @return
+ *    True if ttc1 is "less than" when compared by name, else false.
+ */
+bool
+TileTabsConfiguration::lessThanComparisonByName(const TileTabsConfiguration* ttc1,
+                                                const TileTabsConfiguration* ttc2)
+{
+    if (ttc1->getName() < ttc2->getName()) {
+        return true;
+    }
+    return false;
+}
 

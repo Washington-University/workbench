@@ -67,7 +67,6 @@
 #include "FileInformation.h"
 #include "FociProjectionDialog.h"
 #include "GuiManager.h"
-//#include "ManageLoadedFilesDialog.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
 #include "ProgressReportingDialog.h"
@@ -84,6 +83,7 @@
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
 #include "SurfaceSelectionViewController.h"
+#include "TileTabsConfiguration.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -490,12 +490,6 @@ BrainBrowserWindow::createActions()
                                                        this);
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
-    
-    m_viewTileTabsConfigurationDialogAction = WuQtUtilities::createAction("Create and Edit Tile Tabs Configurations...",
-                                                                          "Add/Delete/Edit Tile Tabs Configurations",
-                                                                          this,
-                                                                          this,
-                                                                          SLOT(processViewTileTabsConfigurationDialog()));
     
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
@@ -923,6 +917,12 @@ BrainBrowserWindow::processViewMenuAboutToShow()
 QMenu* 
 BrainBrowserWindow::createMenuView()
 {
+    m_tileTabsMenu = new QMenu("Tile Tabs Configuration");
+    QObject::connect(m_tileTabsMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(processTileTabsMenuAboutToBeDisplayed()));
+    QObject::connect(m_tileTabsMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processTileTabsMenuSelection(QAction*)));
+    
     QMenu* menu = new QMenu("View", this);
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processViewMenuAboutToShow()));
@@ -938,7 +938,7 @@ BrainBrowserWindow::createMenuView()
     menu->addAction(m_viewFullScreenAction);
     menu->addAction(m_viewTileTabsAction);
     menu->addSeparator();
-    menu->addAction(m_viewTileTabsConfigurationDialogAction);
+    menu->addMenu(m_tileTabsMenu);
     
     return menu;
 }
@@ -973,6 +973,55 @@ BrainBrowserWindow::createMenuViewMoveOverlayToolBox()
     
     return menu;
 }
+
+/**
+ * Update the Tile Tabs Configuration Menu just before it is displayed.
+ */
+void
+BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
+{
+    m_tileTabsMenu->clear();
+    
+    m_tileTabCreateAndEditAction = m_tileTabsMenu->addAction("Create and Edit...");
+    
+    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+    preferences->readTileTabsConfigurations();
+    std::vector<const TileTabsConfiguration*> configurations = preferences->getTileTabsConfigurationsSortedByName();
+    const int32_t numConfigurations = static_cast<int32_t>(configurations.size());
+    
+    if (numConfigurations > 0) {
+        m_tileTabsMenu->addSeparator();
+        
+        for (int32_t i = 0; i < numConfigurations; i++) {
+            QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
+            action->setData(QVariant(configurations[i]->getUniqueIdentifier()));
+        }
+    }
+}
+
+/**
+ * Process a selection from the Tile Tab Configuration Menu.
+ *
+ * @param action
+ *    Action that was selected.
+ */
+void
+BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
+{
+    if (action == m_tileTabCreateAndEditAction) {
+        processViewTileTabsConfigurationDialog();
+    }
+    else {
+        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        const AString uniqueID = action->data().toString();
+        TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(uniqueID);
+        if (configuration != NULL) {
+            const AString name = configuration->getName();
+            std::cout << "Selected Config: " << qPrintable(name) << std::endl;
+        }
+    }
+}
+
 
 /**
  * Create the connect menu.

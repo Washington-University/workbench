@@ -153,6 +153,9 @@ namespace caret {
         void processDataMenuAboutToShow();
         void processViewMenuAboutToShow();
         
+        void processTileTabsMenuAboutToBeDisplayed();
+        void processTileTabsMenuSelection(QAction*);
+        
         void processSurfaceMenuInformation();
         void processSurfaceMenuVolumeInteraction();
         
@@ -273,7 +276,8 @@ namespace caret {
         QAction* m_viewTileTabsAction;
         bool m_viewTileTabsSelected;
         
-        QAction* m_viewTileTabsConfigurationDialogAction;
+        QMenu* m_tileTabsMenu;
+        QAction* m_tileTabCreateAndEditAction;
         
         QAction* m_nextTabAction;
         
@@ -315,6 +319,8 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox* m_overlayVerticalToolBox;
         BrainBrowserWindowOrientedToolBox* m_overlayActiveToolBox;
         BrainBrowserWindowOrientedToolBox* m_featuresToolBox;
+        
+        AString m_selectedTileTabsConfigurationUniqueIdentifier;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;
