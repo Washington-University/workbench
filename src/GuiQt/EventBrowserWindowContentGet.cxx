@@ -43,6 +43,7 @@ EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browser
 {
     m_browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
+    m_tileTabsConfiguration = NULL;
 }
 
 /*
@@ -114,6 +115,28 @@ int32_t
 EventBrowserWindowContentGet::getTabIndexForTileTabsHighlighting() const
 {
     return m_tabIndexForTileTabsHighlighting;
+}
+
+/**
+ * @return The tile tabs configuration when more than one tab to draw.
+ *         May be NULL.
+ */
+TileTabsConfiguration*
+EventBrowserWindowContentGet::getTileTabsConfiguration() const
+{
+    return m_tileTabsConfiguration;
+}
+
+/**
+ * Set the tile tabs configuration.
+ *
+ * @param tileTabsConfiguration
+ *    New selected tile tabs configuration.
+ */
+void
+EventBrowserWindowContentGet::setTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration)
+{
+    m_tileTabsConfiguration = tileTabsConfiguration;
 }
 
 

@@ -59,6 +59,8 @@ TileTabsConfiguration::TileTabsConfiguration(const int32_t numberOfRows,
                                              const int32_t numberOfColumns)
 : CaretObject()
 {
+    m_defaultConfigurationFlag = false;
+    
     resizeStretchFactors(numberOfRows,
                          numberOfColumns);
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
@@ -70,6 +72,8 @@ TileTabsConfiguration::TileTabsConfiguration(const int32_t numberOfRows,
 TileTabsConfiguration::TileTabsConfiguration()
 : CaretObject()
 {
+    m_defaultConfigurationFlag = false;
+    
     resizeStretchFactors(2, 2);
     m_uniqueIdentifier = SystemUtilities::createUniqueID();
 }
@@ -210,7 +214,7 @@ TileTabsConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
  *    Stretch factor for the column.
  */
 float
-TileTabsConfiguration::getColumnStretchFactor(const int32_t columnIndex)
+TileTabsConfiguration::getColumnStretchFactor(const int32_t columnIndex) const
 {
     CaretAssertVectorIndex(m_columnStretchFactors, columnIndex);
     
@@ -243,7 +247,7 @@ TileTabsConfiguration::setColumnStretchFactor(const int32_t columnIndex,
  *    Stretch factor for the column.
  */
 float
-TileTabsConfiguration::getRowStretchFactor(const int32_t rowIndex)
+TileTabsConfiguration::getRowStretchFactor(const int32_t rowIndex) const
 {
     CaretAssertVectorIndex(m_rowStretchFactors, rowIndex);
     
@@ -287,6 +291,27 @@ TileTabsConfiguration::resizeStretchFactors(const int32_t numberOfRows,
                                1.0);
     m_columnStretchFactors.resize(numberOfColumns,
                                   1.0);
+}
+
+/**
+ * @return Is this the default configuration?  Each browser window
+ * always has ONE default configuration which displays all tabs.
+ */
+bool
+TileTabsConfiguration::isDefaultConfiguration() const
+{
+    return m_defaultConfigurationFlag;
+}
+
+/**
+ * Set the default configuration status.  This should only be called by
+ * the browser window which contains one tile tabs configuration that is
+ * used by the browser window for display of all tabs.
+ */
+void
+TileTabsConfiguration::setDefaultConfiguration(const bool defaultConfiguration)
+{
+    m_defaultConfigurationFlag = defaultConfiguration;
 }
 
 /**
@@ -341,6 +366,7 @@ TileTabsConfiguration::encodeInXML() const
 bool
 TileTabsConfiguration::decodeFromXML(const AString& xmlString)
 {
+    m_defaultConfigurationFlag = false;
     resizeStretchFactors(2, 2);
     
     try {

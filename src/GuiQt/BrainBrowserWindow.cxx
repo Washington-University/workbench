@@ -116,6 +116,11 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     m_viewTileTabsSelected = false;
     
+    m_defaultTileTabsConfiguration = new TileTabsConfiguration();
+    m_defaultTileTabsConfiguration->setDefaultConfiguration(true);
+    m_defaultTileTabsConfiguration->setName("All Tabs");
+    m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
+    
     GuiManager* guiManager = GuiManager::get();
     
     setAttribute(Qt::WA_DeleteOnClose);
@@ -989,13 +994,27 @@ BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
     std::vector<const TileTabsConfiguration*> configurations = preferences->getTileTabsConfigurationsSortedByName();
     const int32_t numConfigurations = static_cast<int32_t>(configurations.size());
     
-    if (numConfigurations > 0) {
-        m_tileTabsMenu->addSeparator();
+    m_tileTabsMenu->addSeparator();
+    
+    QAction* defaultAction = m_tileTabsMenu->addAction(m_defaultTileTabsConfiguration->getName());
+    defaultAction->setCheckable(true);
+    defaultAction->setData(QVariant(m_defaultTileTabsConfiguration->getUniqueIdentifier()));
+    
+    bool haveSelectedTileTabsConfiguration = false;
+    for (int32_t i = 0; i < numConfigurations; i++) {
+        QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
+        action->setCheckable(true);
         
-        for (int32_t i = 0; i < numConfigurations; i++) {
-            QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
-            action->setData(QVariant(configurations[i]->getUniqueIdentifier()));
+        if (m_selectedTileTabsConfigurationUniqueIdentifier == configurations[i]->getUniqueIdentifier()) {
+            action->setChecked(true);
+            haveSelectedTileTabsConfiguration = true;
         }
+        action->setData(QVariant(configurations[i]->getUniqueIdentifier()));
+    }
+    
+    if (haveSelectedTileTabsConfiguration == false) {
+        defaultAction->setChecked(true);
+        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
     }
 }
 
@@ -1013,15 +1032,49 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
     }
     else {
         CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-        const AString uniqueID = action->data().toString();
-        TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(uniqueID);
+        m_selectedTileTabsConfigurationUniqueIdentifier = action->data().toString();
+        TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
         if (configuration != NULL) {
             const AString name = configuration->getName();
             std::cout << "Selected Config: " << qPrintable(name) << std::endl;
         }
+        else {
+            std::cout << "Selected Config: " << qPrintable(m_defaultTileTabsConfiguration->getName()) << std::endl;
+        }
     }
 }
 
+/**
+ * @return The selected tile tabs configuration.
+ */
+TileTabsConfiguration*
+BrainBrowserWindow::getSelectedTileTabsConfiguration()
+{
+
+    CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+    TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
+    if (configuration != NULL) {
+        /*
+         * A user configuration is selected
+         */
+        return configuration;
+    }
+    else if (m_selectedTileTabsConfigurationUniqueIdentifier == m_defaultTileTabsConfiguration->getUniqueIdentifier()) {
+        /*
+         * Default configuration is selected
+         */
+        return m_defaultTileTabsConfiguration;
+    }
+    else {
+        /*
+         * The selected configuration has been deleted, likely in another browser window
+         * so selecte the default configuration
+         */
+        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
+    }
+    
+    return m_defaultTileTabsConfiguration;
+}
 
 /**
  * Create the connect menu.

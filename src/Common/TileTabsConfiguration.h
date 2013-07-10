@@ -70,15 +70,19 @@ namespace caret {
 
         void setNumberOfColumns(const int32_t numberOfColumns);
         
-        float getColumnStretchFactor(const int32_t columnIndex);
+        float getColumnStretchFactor(const int32_t columnIndex) const;
 
         void setColumnStretchFactor(const int32_t columnIndex,
                                     const float stretchFactor);
         
-        float getRowStretchFactor(const int32_t rowIndex);
+        float getRowStretchFactor(const int32_t rowIndex) const;
         
         void setRowStretchFactor(const int32_t rowIndex,
                                  const float stretchFactor);
+        
+        bool isDefaultConfiguration() const;
+        
+        void setDefaultConfiguration(const bool defaultConfiguration);
         
         AString encodeInXML() const;
         
@@ -100,6 +104,8 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         AString m_name;
+        
+        bool m_defaultConfigurationFlag = false;
         
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;

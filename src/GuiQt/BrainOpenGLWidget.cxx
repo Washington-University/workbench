@@ -61,6 +61,7 @@
 #include "Model.h"
 #include "MouseEvent.h"
 #include "Surface.h"
+#include "TileTabsConfiguration.h"
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeView.h"
@@ -266,20 +267,112 @@ BrainOpenGLWidget::paintGL()
         this->drawingViewportContents.push_back(vc);
     }
     else if (numToDraw > 1) {
-        /**
-         * Determine the number of rows and columns for the montage.
-         * Since screen width typically exceeds height, always have
-         * columns greater than or equal to rows.
+        int32_t numRows = 0;
+        int32_t numCols = 0;
+        
+        const int32_t windowWidth = this->windowWidth[this->windowIndex];
+        const int32_t windowHeight = this->windowHeight[this->windowIndex];
+        
+        std::vector<int32_t> rowHeights;
+        std::vector<int32_t> columnsWidths;
+        
+        bool defaultTabsLayout = true;
+        const TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
+        if (tileTabsConfiguration != NULL) {
+            if (tileTabsConfiguration->isDefaultConfiguration() == false) {
+                numRows = tileTabsConfiguration->getNumberOfRows();
+                numCols = tileTabsConfiguration->getNumberOfColumns();
+                defaultTabsLayout = false;
+                
+                /*
+                 * Determine height of each row
+                 */
+                float rowStretchTotal = 0.0;
+                for (int32_t i = 0; i < numRows; i++) {
+                    rowStretchTotal += tileTabsConfiguration->getRowStretchFactor(i);
+                }
+                CaretAssert(rowStretchTotal > 0.0);
+                for (int32_t i = 0; i < numRows; i++) {
+                    const int32_t h = static_cast<int32_t>(0.5 + ((tileTabsConfiguration->getRowStretchFactor(i) / rowStretchTotal)
+                                                                  * windowHeight));
+                    
+                    rowHeights.push_back(h);
+                }
+                
+                /*
+                 * Determine width of each column
+                 */
+                float columnStretchTotal = 0.0;
+                for (int32_t i = 0; i < numCols; i++) {
+                    columnStretchTotal += tileTabsConfiguration->getColumnStretchFactor(i);
+                }
+                CaretAssert(columnStretchTotal > 0.0);
+                for (int32_t i = 0; i < numCols; i++) {
+                    const int32_t w = static_cast<int32_t>(0.5 + ((tileTabsConfiguration->getColumnStretchFactor(i) / columnStretchTotal)
+                                                                  * windowWidth));
+                    columnsWidths.push_back(w);
+                }
+                
+            }
+        }
+        
+        if (defaultTabsLayout) {
+            /**
+             * Determine the number of rows and columns for the montage.
+             * Since screen width typically exceeds height, always have
+             * columns greater than or equal to rows.
+             */
+            numRows = (int)std::sqrt((double)numToDraw);
+            numCols = numRows;
+            int32_t row2 = numRows * numRows;
+            if (row2 < numToDraw) {
+                numCols++;
+            }
+            if ((numRows * numCols) < numToDraw) {
+                numRows++;
+            }
+            
+            for (int32_t i = 0; i < numRows; i++) {
+                rowHeights.push_back(windowHeight / numRows);
+            }
+            for (int32_t i = 0; i < numCols; i++) {
+                columnsWidths.push_back(windowWidth / numCols);
+            }
+        }
+        CaretAssert(numCols == static_cast<int32_t>(columnsWidths.size()));
+        CaretAssert(numRows == static_cast<int32_t>(rowHeights.size()));
+        
+        /*
+         * Adjust height of last row so that it does not extend beyond viewport
          */
-        int32_t numRows = (int)std::sqrt((double)numToDraw);
-        int32_t numCols = numRows;
-        int32_t row2 = numRows * numRows;
-        if (row2 < numToDraw) {
-            numCols++;
+        int32_t rowHeightsSum = 0;
+        for (int32_t i = 0; i < (numRows - 1); i++) {
+            rowHeightsSum += rowHeights[i];
         }
-        if ((numRows * numCols) < numToDraw) {
-            numRows++;
+        rowHeights[numRows - 1] = windowHeight - rowHeightsSum;
+        std::cout << "Window Height: "
+        << windowHeight
+        << "  Row Heights: ";
+        for (int32_t i = 0; i < numRows; i++) {
+            std::cout << rowHeights[i] << " ";
         }
+        std::cout << std::endl;
+        
+        /*
+         * Adjust width of last column so that it does not extend beyond viewport
+         */
+        int32_t columnWidthsSum = 0;
+        for (int32_t i = 0; i < (numCols - 1); i++) {
+            columnWidthsSum += columnsWidths[i];
+        }
+        columnsWidths[numCols - 1] = windowWidth - columnWidthsSum;
+        std::cout << "Window Width: "
+        << windowWidth
+        << "  Column Widths: ";
+        for (int32_t i = 0; i < numCols; i++) {
+            std::cout << columnsWidths[i] << " ";
+        }
+        std::cout << std::endl;
         
         /*
          * Arrange models left-to-right and top-to-bottom.
@@ -314,6 +407,15 @@ BrainOpenGLWidget::paintGL()
                 }
                 iModel++;
                 vpX += vpWidth;
+                
+                if (iModel >= numToDraw) {
+                    /*
+                     * More cells than models for drawing so set loop
+                     * indices so that loops terminate
+                     */
+                    j = numCols;
+                    i = numRows;
+                }
             }
         }
     }

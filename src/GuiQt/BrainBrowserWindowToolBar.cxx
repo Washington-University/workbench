@@ -4253,6 +4253,8 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                      * any changes in toolbar/toolboxes apply to.
                      */
                     getModelEvent->setTabIndexForTileTabsHighlighting(m_tabIndexForTileTabsHighlighting);
+                    
+                    getModelEvent->setTileTabsConfiguration(browserWindow->getSelectedTileTabsConfiguration());
                 }
                 else {
                     BrowserTabContent* btc = this->getTabContentFromSelectedTab();

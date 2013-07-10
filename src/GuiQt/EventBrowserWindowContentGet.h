@@ -32,6 +32,7 @@ namespace caret {
 
     class BrowserTabContent;
     class Model;
+    class TileTabsConfiguration;
     
     /// Get the content of a browser window
     class EventBrowserWindowContentGet : public Event {
@@ -53,6 +54,10 @@ namespace caret {
         
         int32_t getTabIndexForTileTabsHighlighting() const;
         
+        TileTabsConfiguration* getTileTabsConfiguration() const;
+        
+        void setTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration);
+        
     private:
         EventBrowserWindowContentGet(const EventBrowserWindowContentGet&);
         
@@ -67,6 +72,8 @@ namespace caret {
         /** Index of tab that is highlighted in Tile Tabs mode */
         int32_t m_tabIndexForTileTabsHighlighting;
         
+        /** Selected tile tabs configuration when more than one item to draw */
+        TileTabsConfiguration* m_tileTabsConfiguration;
     };
 
 } // namespace

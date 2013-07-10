@@ -35,6 +35,7 @@
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
+#include "TileTabsConfiguration.h"
 
 class QAction;
 class QActionGroup;
@@ -107,6 +108,9 @@ namespace caret {
                                       const SceneClass* sceneClass);
 
         void getViewportSize(int &w, int &h);
+        
+        TileTabsConfiguration* getSelectedTileTabsConfiguration();
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);
@@ -321,6 +325,7 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox* m_featuresToolBox;
         
         AString m_selectedTileTabsConfigurationUniqueIdentifier;
+        TileTabsConfiguration* m_defaultTileTabsConfiguration;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;

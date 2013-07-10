@@ -90,6 +90,7 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
     
     disableAutoDefaultForAllPushButtons();
 
+    setApplyButtonText("");
     //    EventManager::get()->addEventListener(this, EventTypeEnum::);
     
 }
