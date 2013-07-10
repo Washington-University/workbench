@@ -2655,6 +2655,13 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
 
+
+    /*
+     * Save Tile Tabs
+     */
+    sceneClass->addString("m_selectedTileTabsConfigurationUniqueIdentifier",
+                          m_selectedTileTabsConfigurationUniqueIdentifier);
+    
     /*
      * Save toolbar
      */
@@ -2757,6 +2764,18 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
+    
+    /*
+     * Restore Unique ID of selected tile tabs configuration.
+     * If not valid, use default configuration
+     */
+    m_selectedTileTabsConfigurationUniqueIdentifier = sceneClass->getStringValue("m_selectedTileTabsConfigurationUniqueIdentifier",
+                                                                                 "");
+    CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
+    TileTabsConfiguration* selectedConfiguration = caretPreferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
+    if (selectedConfiguration == NULL) {
+        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
+    }
     
     /*
      * Restoration status for full screen and tab tiles
