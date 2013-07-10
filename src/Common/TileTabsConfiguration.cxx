@@ -52,19 +52,19 @@ using namespace caret;
  * \ingroup Common
  */
 
-/**
- * Constructor that creates a 2 by 2 configuration.
- */
-TileTabsConfiguration::TileTabsConfiguration(const int32_t numberOfRows,
-                                             const int32_t numberOfColumns)
-: CaretObject()
-{
-    m_defaultConfigurationFlag = false;
-    
-    resizeStretchFactors(numberOfRows,
-                         numberOfColumns);
-    m_uniqueIdentifier = SystemUtilities::createUniqueID();
-}
+///**
+// * Constructor that creates a 2 by 2 configuration.
+// */
+//TileTabsConfiguration::TileTabsConfiguration(const int32_t numberOfRows,
+//                                             const int32_t numberOfColumns)
+//: CaretObject()
+//{
+//    m_defaultConfigurationFlag = false;
+//    
+//    resizeStretchFactors(numberOfRows,
+//                         numberOfColumns);
+//    m_uniqueIdentifier = SystemUtilities::createUniqueID();
+//}
 
 /**
  * Constructor that creates a 2 by 2 configuration.
@@ -72,10 +72,7 @@ TileTabsConfiguration::TileTabsConfiguration(const int32_t numberOfRows,
 TileTabsConfiguration::TileTabsConfiguration()
 : CaretObject()
 {
-    m_defaultConfigurationFlag = false;
-    
-    resizeStretchFactors(2, 2);
-    m_uniqueIdentifier = SystemUtilities::createUniqueID();
+    initialize();
 }
 
 /**
@@ -111,6 +108,25 @@ TileTabsConfiguration::operator=(const TileTabsConfiguration& obj)
         this->copyHelperTileTabsConfiguration(obj);
     }
     return *this;    
+}
+
+/**
+ * Initialize an instance of a tile tabs configuration.
+ */
+void
+TileTabsConfiguration::initialize()
+{
+    m_rowStretchFactors.resize(getMaximumNumberOfRows(),
+                               1.0);
+    m_columnStretchFactors.resize(getMaximumNumberOfColumns(),
+                                  1.0);
+
+    setNumberOfRows(2);
+    setNumberOfColumns(2);
+    
+    m_defaultConfigurationFlag = false;
+
+    m_uniqueIdentifier = SystemUtilities::createUniqueID();
 }
 
 /**
@@ -163,7 +179,7 @@ TileTabsConfiguration::setName(const AString& name)
 int32_t
 TileTabsConfiguration::getNumberOfRows() const
 {
-    return m_rowStretchFactors.size();
+    return m_numberOfRows;
 }
 
 /**
@@ -177,8 +193,14 @@ TileTabsConfiguration::setNumberOfRows(const int32_t numberOfRows)
 {
     CaretAssert(numberOfRows >= 1);
     
-    resizeStretchFactors(numberOfRows,
-                         getNumberOfColumns());
+    m_numberOfRows = numberOfRows;
+    if (m_numberOfRows > getMaximumNumberOfRows()) {
+        CaretLogSevere("Requested number of rows is "
+                       + AString::number(m_numberOfRows)
+                       + " but maximum is "
+                       + getMaximumNumberOfRows());
+        m_numberOfRows = getMaximumNumberOfRows();
+    }
 }
 
 /**
@@ -187,7 +209,7 @@ TileTabsConfiguration::setNumberOfRows(const int32_t numberOfRows)
 int32_t
 TileTabsConfiguration::getNumberOfColumns() const
 {
-    return m_columnStretchFactors.size();
+    return m_numberOfColumns;
 }
 
 /**
@@ -201,8 +223,14 @@ TileTabsConfiguration::setNumberOfColumns(const int32_t numberOfColumns)
 {
     CaretAssert(numberOfColumns >= 1);
     
-    resizeStretchFactors(getNumberOfRows(),
-                         numberOfColumns);
+    m_numberOfColumns = numberOfColumns;
+    if (m_numberOfColumns > getMaximumNumberOfColumns()) {
+        CaretLogSevere("Requested number of columns is "
+                       + AString::number(m_numberOfColumns)
+                       + " but maximum is "
+                       + getMaximumNumberOfColumns());
+        m_numberOfColumns = getMaximumNumberOfColumns();
+    }
 }
 
 /**
@@ -272,26 +300,26 @@ TileTabsConfiguration::setRowStretchFactor(const int32_t rowIndex,
     
 }
 
-/**
- * Resize the stretch factors.
- *
- * @param numberOfRows
- *     New number of rows.
- * @param numberOfColumns
- *     New number of columns.
- */
-void
-TileTabsConfiguration::resizeStretchFactors(const int32_t numberOfRows,
-                                            const int32_t numberOfColumns)
-{
-    CaretAssert(numberOfRows > 0);
-    CaretAssert(numberOfColumns > 0);
-    
-    m_rowStretchFactors.resize(numberOfRows,
-                               1.0);
-    m_columnStretchFactors.resize(numberOfColumns,
-                                  1.0);
-}
+///**
+// * Resize the stretch factors.
+// *
+// * @param numberOfRows
+// *     New number of rows.
+// * @param numberOfColumns
+// *     New number of columns.
+// */
+//void
+//TileTabsConfiguration::resizeStretchFactors(const int32_t numberOfRows,
+//                                            const int32_t numberOfColumns)
+//{
+//    CaretAssert(numberOfRows > 0);
+//    CaretAssert(numberOfColumns > 0);
+//    
+//    m_rowStretchFactors.resize(numberOfRows,
+//                               1.0);
+//    m_columnStretchFactors.resize(numberOfColumns,
+//                                  1.0);
+//}
 
 /**
  * @return Is this the default configuration?  Each browser window
@@ -338,15 +366,19 @@ TileTabsConfiguration::encodeInXML() const
     root.appendChild(uniqueIdentifierTag);
     
     QDomElement rowStretchFactorsTag = doc.createElement(s_rowStretchFactorsTagName);
-    rowStretchFactorsTag.setAttribute(s_rowStretchFactorsNumberOfRowsAttributeName,
+    rowStretchFactorsTag.setAttribute(s_rowStretchFactorsTotalCountAttributeName,
                                       static_cast<int>(m_rowStretchFactors.size()));
+    rowStretchFactorsTag.setAttribute(s_rowStretchFactorsSelectedCountAttributeName,
+                                      static_cast<int>(m_numberOfRows));
     rowStretchFactorsTag.appendChild(doc.createTextNode(AString::fromNumbers(m_rowStretchFactors,
                                                                              " ")));
     root.appendChild(rowStretchFactorsTag);
 
     QDomElement columnStretchFactorsTag = doc.createElement(s_columnStretchFactorsTagName);
-    columnStretchFactorsTag.setAttribute(s_columnStretchFactorsNumberOfColumnsAttributeName,
+    columnStretchFactorsTag.setAttribute(s_columnStretchFactorsTotalCountAttributeName,
                                          static_cast<int>(m_columnStretchFactors.size()));
+    columnStretchFactorsTag.setAttribute(s_columnStretchFactorsSelectedCountAttributeName,
+                                         static_cast<int>(m_numberOfColumns));
     columnStretchFactorsTag.appendChild(doc.createTextNode(AString::fromNumbers(m_columnStretchFactors,
                                                                                 " ")));
     root.appendChild(columnStretchFactorsTag);
@@ -367,7 +399,8 @@ bool
 TileTabsConfiguration::decodeFromXML(const AString& xmlString)
 {
     m_defaultConfigurationFlag = false;
-    resizeStretchFactors(2, 2);
+    setNumberOfRows(2);
+    setNumberOfColumns(2);
     
     try {
         QDomDocument doc(s_rootTagName);
@@ -452,23 +485,34 @@ TileTabsConfiguration::parseVersionOneXML(QDomDocument& doc) throw (CaretExcepti
         throw CaretException("Error finding row element");
     }
     
-    const AString numberOfRowsString = rowElement.attribute(s_rowStretchFactorsNumberOfRowsAttributeName,
-                                                            "0");
+    const AString numberOfRowsString = rowElement.attribute(s_rowStretchFactorsSelectedCountAttributeName,
+                                                            "");
     if (numberOfRowsString.isEmpty()) {
         throw CaretException("Error finding number of rows attribute");
     }
-    const int32_t numberOfRows = numberOfRowsString.toInt();
-    if (numberOfRows <= 0) {
+    const int32_t selectedNumberOfRows = numberOfRowsString.toInt();
+    if (selectedNumberOfRows <= 0) {
         throw CaretException("Invalid number of rows attribute "
                              + numberOfRowsString);
     }
+    
+    const AString totalNumberOfRowsString = rowElement.attribute(s_rowStretchFactorsTotalCountAttributeName,
+                                                                     "");
+    int32_t totalNumberOfRows = 0;
+    if (totalNumberOfRowsString.isEmpty()) {
+        CaretLogWarning("Total number of rows attribute is missing.");
+    }
+    else {
+        totalNumberOfRows = totalNumberOfRowsString.toInt();
+    }
+    
     const AString rowStretchFactorsText = rowElement.text();
     std::vector<float> rowStretchFactors;
     AString::toNumbers(rowStretchFactorsText,
                        rowStretchFactors);
-    if (static_cast<int32_t>(rowStretchFactors.size()) != numberOfRows) {
+    if (static_cast<int32_t>(rowStretchFactors.size()) != totalNumberOfRows) {
         throw CaretException("Stretch factor number of rows is "
-                             + AString::number(numberOfRows)
+                             + AString::number(totalNumberOfRows)
                              + " but have "
                              + AString::number(static_cast<int32_t>(rowStretchFactors.size()))
                              + " stretch factors.");
@@ -483,34 +527,52 @@ TileTabsConfiguration::parseVersionOneXML(QDomDocument& doc) throw (CaretExcepti
     if (columnElement.isNull()) {
         throw CaretException("Error finding column element");
     }
-    const AString numberOfColumnsString = columnElement.attribute(s_columnStretchFactorsNumberOfColumnsAttributeName,
-                                                               "0");
+    
+    const AString numberOfColumnsString = columnElement.attribute(s_columnStretchFactorsSelectedCountAttributeName,
+                                                                  "");
     if (numberOfColumnsString.isEmpty()) {
         throw CaretException("Error finding number of columns attribute");
     }
-    const int32_t numberOfColumns = numberOfColumnsString.toInt();
-    if (numberOfColumns <= 0) {
+    const int32_t selectedNumberOfColumns = numberOfColumnsString.toInt();
+    if (selectedNumberOfColumns <= 0) {
         throw CaretException("Invalid number of columns attribute "
                              + numberOfColumnsString);
     }
+    
+    
+    const AString totalNumberOfColumnsString = columnElement.attribute(s_columnStretchFactorsTotalCountAttributeName,
+                                                               "");
+    int32_t totalNumberOfColumns = 0;
+    if (totalNumberOfColumnsString.isEmpty()) {
+        CaretLogWarning("Total number of columns attribute is missing.");
+    }
+    else {
+        totalNumberOfColumns = totalNumberOfColumnsString.toInt();
+    }
+
     const AString columnStretchFactorsText = columnElement.text();
     std::vector<float> columnStretchFactors;
     AString::toNumbers(columnStretchFactorsText,
                        columnStretchFactors);
-    if (static_cast<int32_t>(columnStretchFactors.size()) != numberOfColumns) {
+    if (static_cast<int32_t>(columnStretchFactors.size()) != totalNumberOfColumns) {
         throw CaretException("Stretch factor number of columns is "
-                             + AString::number(numberOfColumns)
+                             + AString::number(totalNumberOfColumns)
                              + " but have "
                              + AString::number(static_cast<int32_t>(columnStretchFactors.size()))
                              + " stretch factors.");
     }
     
-    resizeStretchFactors(numberOfRows,
-                         numberOfColumns);
-    for (int32_t i = 0; i < numberOfRows; i++) {
+    setNumberOfRows(selectedNumberOfRows);
+    setNumberOfColumns(selectedNumberOfColumns);
+
+    const int32_t maxRowStretchFactors = std::min(totalNumberOfRows,
+                                                  static_cast<int32_t>(m_rowStretchFactors.size()));
+    for (int32_t i = 0; i < maxRowStretchFactors; i++) {
         m_rowStretchFactors[i] = rowStretchFactors[i];
     }
-    for (int32_t i = 0; i < numberOfColumns; i++) {
+    const int32_t maxColumnStretchFactors = std::min(totalNumberOfColumns,
+                                                  static_cast<int32_t>(m_columnStretchFactors.size()));
+    for (int32_t i = 0; i < maxColumnStretchFactors; i++) {
         m_columnStretchFactors[i] = columnStretchFactors[i];
     }
 }

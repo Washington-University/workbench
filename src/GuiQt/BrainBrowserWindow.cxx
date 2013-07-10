@@ -224,6 +224,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
+    delete m_defaultTileTabsConfiguration;
     delete m_sceneAssistant;
 }
 
@@ -1040,6 +1041,10 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
         }
         else {
             std::cout << "Selected Config: " << qPrintable(m_defaultTileTabsConfiguration->getName()) << std::endl;
+        }
+        
+        if (isTileTabsSelected()) {
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
         }
     }
 }

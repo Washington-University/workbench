@@ -47,8 +47,8 @@ namespace caret {
     public:
         TileTabsConfiguration();
         
-        TileTabsConfiguration(const int32_t numberOfRows,
-                              const int32_t numberOfColumns);
+//        TileTabsConfiguration(const int32_t numberOfRows,
+//                              const int32_t numberOfColumns);
         
         virtual ~TileTabsConfiguration();
         
@@ -91,15 +91,28 @@ namespace caret {
         static bool lessThanComparisonByName(const TileTabsConfiguration* ttc1,
                                              const TileTabsConfiguration* ttc2);
         
+        /**
+         * @return Maximum number of rows in a tile tabs configuration
+         */
+        static inline int32_t getMaximumNumberOfRows() { return 20; }
+        
+        /**
+         * @return Maximum number of columns in a tile tabs configuration
+         */
+        static inline int32_t getMaximumNumberOfColumns() { return 20; }
+        
         // ADD_NEW_METHODS_HERE
+        
         
     private:
         void copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj);
 
-        void resizeStretchFactors(const int32_t numberOfRows,
-                                  const int32_t numberOfColumns);
+//        void resizeStretchFactors(const int32_t numberOfRows,
+//                                  const int32_t numberOfColumns);
         
         void parseVersionOneXML(QDomDocument& doc) throw (CaretException);
+        
+        void initialize();
         
         // ADD_NEW_MEMBERS_HERE
         
@@ -109,6 +122,10 @@ namespace caret {
         
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;
+        
+        int32_t m_numberOfRows;
+        
+        int32_t m_numberOfColumns;
         
         std::vector<float> m_rowStretchFactors;
         
@@ -120,9 +137,11 @@ namespace caret {
         static const AString s_uniqueIdentifierTagName;
         static const AString s_versionNumberAttributeName;
         static const AString s_columnStretchFactorsTagName;
-        static const AString s_columnStretchFactorsNumberOfColumnsAttributeName;
+        static const AString s_columnStretchFactorsSelectedCountAttributeName;
+        static const AString s_columnStretchFactorsTotalCountAttributeName;
         static const AString s_rowStretchFactorsTagName;
-        static const AString s_rowStretchFactorsNumberOfRowsAttributeName;
+        static const AString s_rowStretchFactorsSelectedCountAttributeName;
+        static const AString s_rowStretchFactorsTotalCountAttributeName;
         
     };
     
@@ -133,9 +152,11 @@ namespace caret {
     const AString TileTabsConfiguration::s_nameTagName = "Name";
     const AString TileTabsConfiguration::s_uniqueIdentifierTagName = "UniqueIdentifier";
     const AString TileTabsConfiguration::s_columnStretchFactorsTagName = "ColumnStretchFactors";
-    const AString TileTabsConfiguration::s_columnStretchFactorsNumberOfColumnsAttributeName = "NumberOfRows";
+    const AString TileTabsConfiguration::s_columnStretchFactorsSelectedCountAttributeName = "SelectedRowCount";
+    const AString TileTabsConfiguration::s_columnStretchFactorsTotalCountAttributeName = "TotalRowCount";
     const AString TileTabsConfiguration::s_rowStretchFactorsTagName = "RowStretchFactors";
-    const AString TileTabsConfiguration::s_rowStretchFactorsNumberOfRowsAttributeName = "NumberOfColumns";
+    const AString TileTabsConfiguration::s_rowStretchFactorsSelectedCountAttributeName = "SelectedColumnCount";
+    const AString TileTabsConfiguration::s_rowStretchFactorsTotalCountAttributeName = "TotalColumnCount";
 #endif // __TILE_TABS_CONFIGURATION_DECLARE__
 
 } // namespace

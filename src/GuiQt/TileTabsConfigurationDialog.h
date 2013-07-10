@@ -41,6 +41,7 @@
 
 class QComboBox;
 class QDoubleSpinBox;
+class QLabel;
 class QLineEdit;
 class QPushButton;
 class QSpinBox;
@@ -101,6 +102,8 @@ namespace caret {
         
         QWidget* createEditConfigurationWidget();
         
+        void updateStretchFactors();
+        
         QPushButton* m_newConfigurationPushButton;
         
         QPushButton* m_deleteConfigurationPushButton;
@@ -112,6 +115,8 @@ namespace caret {
         QSpinBox* m_numberOfRowsSpinBox;
         
         QSpinBox* m_numberOfColumnsSpinBox;
+        
+        std::vector<QLabel*> m_stretchFactorIndexLabels;
         
         std::vector<QDoubleSpinBox*> m_rowStretchFactorSpinBoxes;
         

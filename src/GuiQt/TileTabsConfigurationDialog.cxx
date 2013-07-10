@@ -39,6 +39,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -147,17 +148,20 @@ TileTabsConfigurationDialog::createConfigurationSelectionWidget()
 QWidget*
 TileTabsConfigurationDialog::createEditConfigurationWidget()
 {
+    const int32_t maximuNumberOfRows = TileTabsConfiguration::getMaximumNumberOfRows();
+    const int32_t maximumNumberOfColumns = TileTabsConfiguration::getMaximumNumberOfColumns();
+    
     QLabel* rowsLabel = new QLabel("Number of Rows");
     QLabel* columnsLabel = new QLabel("Number of Columns");
     
     m_numberOfRowsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                          100,
+                                                                          maximuNumberOfRows,
                                                                           1,
                                                                           this,
                                                                           SLOT(numberOfRowsOrColumnsChanged()));
 
     m_numberOfColumnsSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(1,
-                                                                          100,
+                                                                          maximumNumberOfColumns,
                                                                           1,
                                                                           this,
                                                                           SLOT(numberOfRowsOrColumnsChanged()));
@@ -182,27 +186,77 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     
     QWidget* stretchFactorWidget = new QWidget();
     QGridLayout* stretchFactorGridLayout = new QGridLayout(stretchFactorWidget);
+    stretchFactorGridLayout->setRowStretch(10000, 100); // pushes items so space at bottom
+    stretchFactorGridLayout->setColumnStretch(1000, 100);  // pushes items so space on right
     int row = 0;
-    stretchFactorGridLayout->addWidget(stretchFactorLabel,
-                                       row, 0,
-                                       1, 3,
+//    stretchFactorGridLayout->addWidget(stretchFactorLabel,
+//                                       row, 0,
+//                                       1, 3,
+//                                       Qt::AlignHCenter);
+//    row++;
+    stretchFactorGridLayout->addWidget(indexLabel,
+                                       row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS,
+                                       Qt::AlignHCenter);
+    stretchFactorGridLayout->addWidget(rowLabel,
+                          row, GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS,
+                                       Qt::AlignHCenter);
+    stretchFactorGridLayout->addWidget(columnLabel,
+                          row, GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS,
                                        Qt::AlignHCenter);
     row++;
-    stretchFactorGridLayout->addWidget(indexLabel,
-                                       row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS);
-    stretchFactorGridLayout->addWidget(rowLabel,
-                          row, GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS);
-    stretchFactorGridLayout->addWidget(columnLabel,
-                          row, GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS);
-    row++;
     
+    const float stretchMinimumValue = 1.0;
+    const float stretchMaximumValue = 10000000.0;
+    const float stretchStep = 1.0;
+    const float stretchDigitsRightOfDecimal = 0;
+    
+    const int32_t maxItems = std::max(maximuNumberOfRows,
+                                      maximumNumberOfColumns);
+    for (int i = 0; i < maxItems; i++) {
+        QLabel* indexLabel = new QLabel(AString::number(i));
+        m_stretchFactorIndexLabels.push_back(indexLabel);
+        stretchFactorGridLayout->addWidget(indexLabel,
+                                           row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS,
+                                           Qt::AlignHCenter);
+        
+        if (i < maximuNumberOfRows) {
+            QDoubleSpinBox* rowSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchMinimumValue,
+                                                                                                        stretchMaximumValue,
+                                                                                                        stretchStep,
+                                                                                                        stretchDigitsRightOfDecimal,
+                                                                                                        this,
+                                                                                                        SLOT(configurationStretchFactorWasChanged()));
+            m_rowStretchFactorSpinBoxes.push_back(rowSpinBox);
+            stretchFactorGridLayout->addWidget(rowSpinBox,
+                                               row, GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS);
+        }
+        
+        if (i < maximumNumberOfColumns) {
+            QDoubleSpinBox* colSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(stretchMinimumValue,
+                                                                                                        stretchMaximumValue,
+                                                                                                        stretchStep,
+                                                                                                        stretchDigitsRightOfDecimal,
+                                                                                                        this,
+                                                                                                        SLOT(configurationStretchFactorWasChanged()));
+            m_columnStretchFactorSpinBoxes.push_back(colSpinBox);
+            stretchFactorGridLayout->addWidget(colSpinBox,
+                                               row, GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS);
+        }
+        
+        row++;
+    }
+    
+    QScrollArea* stretchFactorScrollArea = new QScrollArea();
+    stretchFactorScrollArea->setWidget(stretchFactorWidget);
+    stretchFactorScrollArea->setWidgetResizable(true);
     
     QGroupBox* widget = new QGroupBox("Edit Configuration");
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->setMargin(0);
     widgetLayout->addWidget(numberOfWidget);
     widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    widgetLayout->addWidget(stretchFactorWidget);
+    widgetLayout->addWidget(stretchFactorLabel, 0, Qt::AlignHCenter);
+    widgetLayout->addWidget(stretchFactorScrollArea);
     widgetLayout->addStretch();
     
     return widget;
@@ -216,7 +270,7 @@ TileTabsConfigurationDialog::updateDialog()
 {
     m_caretPreferences->readTileTabsConfigurations();
     
-    const AString selectedTileTabsName = m_configurationSelectionComboBox->currentText();
+    const AString selectedUniqueID = getSelectedTileTabsConfigurationUniqueID();
     int defaultIndex = m_configurationSelectionComboBox->currentIndex();
     
     m_configurationSelectionComboBox->blockSignals(true);
@@ -225,15 +279,15 @@ TileTabsConfigurationDialog::updateDialog()
     std::vector<const TileTabsConfiguration*> configurations = m_caretPreferences->getTileTabsConfigurationsSortedByName();
     const int32_t numConfig = static_cast<int32_t>(configurations.size());
     for (int32_t i = 0; i < numConfig; i++) {
-        const TileTabsConfiguration* ttc = configurations[i];
+        const TileTabsConfiguration* configuration = configurations[i];
         
         /*
          * Second element is user data which contains the Unique ID
          */
-        m_configurationSelectionComboBox->addItem(ttc->getName(),
-                                                  QVariant(ttc->getUniqueIdentifier()));
+        m_configurationSelectionComboBox->addItem(configuration->getName(),
+                                                  QVariant(configuration->getUniqueIdentifier()));
         
-        if (ttc->getName() == selectedTileTabsName) {
+        if (configuration->getUniqueIdentifier() == selectedUniqueID) {
             defaultIndex = i;
         }
     }
@@ -251,6 +305,63 @@ TileTabsConfigurationDialog::updateDialog()
     }
     
     m_configurationSelectionComboBox->blockSignals(false);
+    
+    updateStretchFactors();
+}
+
+/**
+ * Update the stretch factors.
+ */
+void
+TileTabsConfigurationDialog::updateStretchFactors()
+{
+    int32_t numValidRows = 0;
+    int32_t numValidColumns = 0;
+    
+    const TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    if (configuration != NULL) {
+        numValidRows = configuration->getNumberOfRows();
+        numValidColumns = configuration->getNumberOfColumns();
+    }
+    
+    const int32_t numColSpinBoxes = static_cast<int32_t>(m_columnStretchFactorSpinBoxes.size());
+    for (int32_t i = 0; i < numColSpinBoxes; i++) {
+        QDoubleSpinBox* sb = m_columnStretchFactorSpinBoxes[i];
+        if (i < numValidColumns) {
+            sb->setVisible(true);
+            sb->blockSignals(true);
+            sb->setValue(configuration->getColumnStretchFactor(i));
+            sb->blockSignals(false);
+        }
+        else {
+            sb->setVisible(false);
+        }
+    }
+
+    const int32_t numRowSpinBoxes = static_cast<int32_t>(m_rowStretchFactorSpinBoxes.size());
+    for (int32_t i = 0; i < numRowSpinBoxes; i++) {
+        QDoubleSpinBox* sb = m_rowStretchFactorSpinBoxes[i];
+        if (i < numValidRows) {
+            sb->setVisible(true);
+            sb->blockSignals(true);
+            sb->setValue(configuration->getRowStretchFactor(i));
+            sb->blockSignals(false);
+        }
+        else {
+            sb->setVisible(false);
+        }
+    }
+    
+    const int32_t numIndexLabels = static_cast<int32_t>(m_stretchFactorIndexLabels.size());
+    const int32_t numValidLabels = std::max(numValidRows, numValidColumns);
+    for (int32_t i = 0; i < numIndexLabels; i++) {
+        if (i < numValidLabels) {
+            m_stretchFactorIndexLabels[i]->setVisible(true);
+        }
+        else {
+            m_stretchFactorIndexLabels[i]->setVisible(false);
+        }
+    }
 }
 
 /**
@@ -284,17 +395,19 @@ TileTabsConfigurationDialog::configurationComboBoxItemSelected(int indx)
         && (indx < m_configurationSelectionComboBox->count())) {
         const AString itemID = m_configurationSelectionComboBox->itemData(indx,
                                                                           Qt::UserRole).toString();
-        TileTabsConfiguration* ttc = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
-        if (ttc != NULL) {
+        TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByUniqueIdentifier(itemID);
+        if (configuration != NULL) {
             m_numberOfRowsSpinBox->blockSignals(true);
-            m_numberOfRowsSpinBox->setValue(ttc->getNumberOfRows());
+            m_numberOfRowsSpinBox->setValue(configuration->getNumberOfRows());
             m_numberOfRowsSpinBox->blockSignals(false);
             
             m_numberOfColumnsSpinBox->blockSignals(true);
-            m_numberOfColumnsSpinBox->setValue(ttc->getNumberOfColumns());
+            m_numberOfColumnsSpinBox->setValue(configuration->getNumberOfColumns());
             m_numberOfColumnsSpinBox->blockSignals(false);
         }
     }
+    
+    updateStretchFactors();
 }
 
 /**
@@ -330,15 +443,15 @@ TileTabsConfigurationDialog::newConfigurationButtonClicked()
                 /*
                  * See if a configuration with the user entered name already exists
                  */
-                TileTabsConfiguration* ttc = m_caretPreferences->getTileTabsConfigurationByName(newTileTabsName);
-                if (ttc != NULL) {
+                TileTabsConfiguration* configuration = m_caretPreferences->getTileTabsConfigurationByName(newTileTabsName);
+                if (configuration != NULL) {
                     const QString msg = ("Configuration named \""
                                          + newTileTabsName
                                          + "\" already exits.  Rename it?");
                     if (WuQMessageBox::warningYesNo(m_newConfigurationPushButton,
                                                     msg)) {
-                        ttc->setName(newTileTabsName);
-                        configurationUniqueID = ttc->getUniqueIdentifier();
+                        configuration->setName(newTileTabsName);
+                        configurationUniqueID = configuration->getUniqueIdentifier();
                         exitLoop = true;
                     }
                 }
@@ -431,6 +544,8 @@ TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
         configuration->setNumberOfRows(m_numberOfRowsSpinBox->value());
         configuration->setNumberOfColumns(m_numberOfColumnsSpinBox->value());
         m_caretPreferences->writeTileTabsConfigurations();
+        
+        updateStretchFactors();
     }
 }
 
@@ -440,7 +555,28 @@ TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
 void
 TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
 {
+    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    if (configuration == NULL) {
+        return;
+    }
     
+    const int32_t numColSpinBoxes = static_cast<int32_t>(m_columnStretchFactorSpinBoxes.size());
+    for (int32_t i = 0; i < numColSpinBoxes; i++) {
+        if (m_columnStretchFactorSpinBoxes[i]->isEnabled()) {
+            configuration->setColumnStretchFactor(i,
+                                                  m_columnStretchFactorSpinBoxes[i]->value());
+        }
+    }
+    
+    const int32_t numRowSpinBoxes = static_cast<int32_t>(m_rowStretchFactorSpinBoxes.size());
+    for (int32_t i = 0; i < numRowSpinBoxes; i++) {
+        if (m_rowStretchFactorSpinBoxes[i]->isEnabled()) {
+            configuration->setRowStretchFactor(i,
+                                               m_rowStretchFactorSpinBoxes[i]->value());
+        }
+    }
+    
+    m_caretPreferences->writeTileTabsConfigurations();
 }
 
 /**
