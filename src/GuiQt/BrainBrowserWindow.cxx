@@ -501,6 +501,11 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_viewTileTabsAction, SIGNAL(triggered()),
                      this, SLOT(processViewTileTabs()));
     
+    m_createAndEditTileTabsAction = WuQtUtilities::createAction("Create and Edit...",
+                                                                "Create, Delete, and Edit Tile Tabs Configurations",
+                                                                Qt::CTRL + Qt::SHIFT + Qt::Key_M,
+                                                                this);
+    
     m_nextTabAction =
     WuQtUtilities::createAction("Next Tab",
                                 "Move to the next tab",
@@ -933,6 +938,9 @@ BrainBrowserWindow::createMenuView()
     QObject::connect(m_tileTabsMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processTileTabsMenuSelection(QAction*)));
     
+    m_tileTabsMenu->addAction(m_createAndEditTileTabsAction);
+    m_tileTabsMenu->addSeparator();
+    
     QMenu* menu = new QMenu("View", this);
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processViewMenuAboutToShow()));
@@ -990,22 +998,36 @@ BrainBrowserWindow::createMenuViewMoveOverlayToolBox()
 void
 BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
 {
-    m_tileTabsMenu->clear();
-    
-    m_tileTabCreateAndEditAction = m_tileTabsMenu->addAction("Create and Edit...");
-    m_tileTabCreateAndEditAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_M);
+    /*
+     * Remove all actions for user-defined tile tabs configurations
+     */
+    QList<QAction*> menuActions = m_tileTabsMenu->actions();
+    QListIterator<QAction*> actionIterator(menuActions);
+    while (actionIterator.hasNext()) {
+        QAction* action = actionIterator.next();
+        if (action != m_createAndEditTileTabsAction) {
+            if (action->isSeparator() == false) {
+                m_tileTabsMenu->removeAction(action);
+                delete action;
+            }
+        }
+    }
     
     CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
     preferences->readTileTabsConfigurations();
     std::vector<const TileTabsConfiguration*> configurations = preferences->getTileTabsConfigurationsSortedByName();
     const int32_t numConfigurations = static_cast<int32_t>(configurations.size());
     
-    m_tileTabsMenu->addSeparator();
-    
+    /*
+     * Add All Tabs (Default) tile tabs configuration
+     */
     QAction* defaultAction = m_tileTabsMenu->addAction(m_defaultTileTabsConfiguration->getName());
     defaultAction->setCheckable(true);
     defaultAction->setData(QVariant(m_defaultTileTabsConfiguration->getUniqueIdentifier()));
     
+    /*
+     * Add the user defined Tile Tabs configurations
+     */
     bool haveSelectedTileTabsConfiguration = false;
     for (int32_t i = 0; i < numConfigurations; i++) {
         QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
@@ -1033,13 +1055,12 @@ BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
 void
 BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
 {
-    if (action == m_tileTabCreateAndEditAction) {
+    if (action == m_createAndEditTileTabsAction) {
         processViewTileTabsConfigurationDialog();
     }
     else {
         CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
         m_selectedTileTabsConfigurationUniqueIdentifier = action->data().toString();
-        TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
         
         if (isTileTabsSelected()) {
             EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());

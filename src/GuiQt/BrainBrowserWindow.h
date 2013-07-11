@@ -281,7 +281,7 @@ namespace caret {
         bool m_viewTileTabsSelected;
         
         QMenu* m_tileTabsMenu;
-        QAction* m_tileTabCreateAndEditAction;
+        QAction* m_createAndEditTileTabsAction;
         
         QAction* m_nextTabAction;
         
