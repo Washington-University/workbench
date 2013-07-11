@@ -115,7 +115,7 @@ GiftiMetaData::getUniqueID() const
         uid = iter->second;
     }
     else {
-        CaretAssertMessage(0, "GiftMetaData does not have UniqueID!!!");
+        uid = SystemUtilities::createUniqueID();
     }
     
     return uid;
@@ -152,9 +152,13 @@ GiftiMetaData::removeUniqueID()
 void
 GiftiMetaData::clear()
 {
+    /*
+     * Preserve this instance's Unique ID.
+     */
+    const AString uid = this->getUniqueID();
     this->metadata.clear();
-    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID, 
-              SystemUtilities::createUniqueID());
+    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+              uid);
     this->clearModified();
 }
 

@@ -535,22 +535,23 @@ GiftiFile::addDataArray(GiftiDataArray* gda)
 {
     CaretAssert(gda);
     
-    const AString uuid = gda->getMetaData()->getUniqueID();
-    const int32_t numDataArrays = this->getNumberOfDataArrays();
-    for (int32_t i = 0; i < numDataArrays; i++) {
-        const AString daUuid = this->getDataArray(i)->getMetaData()->getUniqueID();
-        if (daUuid == uuid) {
-            CaretLogWarning("File "
-                            + this->getFileNameNoPath()
-                            + " contains multiple data arrays with the same unique identifier.  "
-                            "Unique ID has been modified to ensure uniqueness within file.");
-            const bool modStatus = gda->isModified();
-            gda->getMetaData()->resetUniqueIdentifier();
-            if (modStatus == false) {
-                gda->clearModified();
-            }
-        }
-    }
+//    const AString uuid = gda->getMetaData()->getUniqueID();
+//    const int32_t numDataArrays = this->getNumberOfDataArrays();
+//    for (int32_t i = 0; i < numDataArrays; i++) {
+//        const AString daUuid = this->getDataArray(i)->getMetaData()->getUniqueID();
+//        if (daUuid == uuid) {
+//            CaretLogWarning("File "
+//                            + this->getFileNameNoPath()
+//                            + " contains multiple data arrays with the same unique identifier.  "
+//                            "Unique ID has been modified to ensure uniqueness within file.");
+//            const bool modStatus = gda->isModified();
+//            gda->getMetaData()->resetUniqueIdentifier();
+//            if (modStatus == false) {
+//                gda->clearModified();
+//            }
+//        }
+//    }
+    
     dataArrays.push_back(gda);
    
     

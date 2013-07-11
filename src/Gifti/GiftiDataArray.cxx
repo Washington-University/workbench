@@ -79,11 +79,6 @@ GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn,
       Matrix4x4 gm;
       matrices.push_back(gm);
    }
-   
-   //getDataTypeAppropriateForIntent(intent, dataType);
-   metaData.set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID, 
-                SystemUtilities::createUniqueID());
-                
 }
 
 /**
