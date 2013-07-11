@@ -40,6 +40,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -48,10 +49,12 @@
 #include "TileTabsConfigurationDialog.h"
 #undef __TILE_TABS_CONFIGURATION_DIALOG_DECLARE__
 
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "SessionManager.h"
 #include "TileTabsConfiguration.h"
 #include "WuQDataEntryDialog.h"
@@ -82,7 +85,9 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->setSpacing(0);
-    dialogLayout->addWidget(createConfigurationSelectionWidget());
+    dialogLayout->addWidget(createConfigurationSelectionWidget(),
+                            0,
+                            Qt::AlignHCenter);
     dialogLayout->addWidget(createEditConfigurationWidget(),
                             100,
                             Qt::AlignHCenter);
@@ -94,6 +99,24 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
     setApplyButtonText("");
     //    EventManager::get()->addEventListener(this, EventTypeEnum::);
     
+    updateDialog();
+    
+    /*
+     * The content region of a scroll area is often too large vertically
+     * so adjust the size of the dialog which will cause the scroll area
+     * to approximately fit its content.
+     */
+    WuQDialog::adjustSizeOfDialogWithScrollArea(this,
+                                                m_stretchFactorScrollArea);
+//    int32_t contentHeight = m_stretchFactorWidget->sizeHint().height();
+//    int32_t scrollHeight = m_stretchFactorScrollArea->sizeHint().height();
+//    int32_t scrollBarHeight = m_stretchFactorScrollArea->horizontalScrollBar()->sizeHint().height();
+//    int32_t diff = (scrollHeight - (contentHeight + scrollBarHeight + 10));
+//    if (diff > 0) {
+//        int32_t dialogHeight = sizeHint().height() - diff;
+//        resize(sizeHint().width(),
+//               dialogHeight);
+//    }
 }
 
 /**
@@ -101,7 +124,15 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
  */
 TileTabsConfigurationDialog::~TileTabsConfigurationDialog()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Gets called when the dialog gains focus.
+ */
+void
+TileTabsConfigurationDialog::focusGained()
+{
+    updateDialog();
 }
 
 /**
@@ -184,10 +215,11 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     QLabel* rowLabel = new QLabel("Row");
     QLabel* columnLabel = new QLabel("Column");
     
-    QWidget* stretchFactorWidget = new QWidget();
-    QGridLayout* stretchFactorGridLayout = new QGridLayout(stretchFactorWidget);
-    stretchFactorGridLayout->setRowStretch(10000, 100); // pushes items so space at bottom
-    stretchFactorGridLayout->setColumnStretch(1000, 100);  // pushes items so space on right
+    m_stretchFactorWidget = new QWidget();
+    QGridLayout* stretchFactorGridLayout = new QGridLayout(m_stretchFactorWidget);
+    stretchFactorGridLayout->setSizeConstraint(QLayout::SetFixedSize);
+//    stretchFactorGridLayout->setRowStretch(10000, 100); // pushes items so space at bottom
+//    stretchFactorGridLayout->setColumnStretch(1000, 100);  // pushes items so space on right
     int row = 0;
 //    stretchFactorGridLayout->addWidget(stretchFactorLabel,
 //                                       row, 0,
@@ -207,13 +239,14 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     
     const float stretchMinimumValue = 1.0;
     const float stretchMaximumValue = 10000000.0;
-    const float stretchStep = 1.0;
-    const float stretchDigitsRightOfDecimal = 0;
+    const float stretchStep = 0.1;
+    const float stretchDigitsRightOfDecimal = 2;
     
+    const int32_t spinBoxWidth = 80;
     const int32_t maxItems = std::max(maximuNumberOfRows,
                                       maximumNumberOfColumns);
     for (int i = 0; i < maxItems; i++) {
-        QLabel* indexLabel = new QLabel(AString::number(i));
+        QLabel* indexLabel = new QLabel(AString::number(i + 1));
         m_stretchFactorIndexLabels.push_back(indexLabel);
         stretchFactorGridLayout->addWidget(indexLabel,
                                            row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS,
@@ -226,6 +259,7 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
                                                                                                         stretchDigitsRightOfDecimal,
                                                                                                         this,
                                                                                                         SLOT(configurationStretchFactorWasChanged()));
+            rowSpinBox->setFixedWidth(spinBoxWidth);
             m_rowStretchFactorSpinBoxes.push_back(rowSpinBox);
             stretchFactorGridLayout->addWidget(rowSpinBox,
                                                row, GRID_LAYOUT_COLUMN_INDEX_FOR_ROW_CONTROLS);
@@ -238,6 +272,7 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
                                                                                                         stretchDigitsRightOfDecimal,
                                                                                                         this,
                                                                                                         SLOT(configurationStretchFactorWasChanged()));
+            colSpinBox->setFixedWidth(spinBoxWidth);
             m_columnStretchFactorSpinBoxes.push_back(colSpinBox);
             stretchFactorGridLayout->addWidget(colSpinBox,
                                                row, GRID_LAYOUT_COLUMN_INDEX_FOR_COLUMN_CONTROLS);
@@ -246,20 +281,49 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
         row++;
     }
     
-    QScrollArea* stretchFactorScrollArea = new QScrollArea();
-    stretchFactorScrollArea->setWidget(stretchFactorWidget);
-    stretchFactorScrollArea->setWidgetResizable(true);
+    m_stretchFactorScrollArea = new QScrollArea();
+    m_stretchFactorScrollArea->setWidget(m_stretchFactorWidget);
+    m_stretchFactorScrollArea->setWidgetResizable(true);
     
     QGroupBox* widget = new QGroupBox("Edit Configuration");
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->setMargin(0);
-    widgetLayout->addWidget(numberOfWidget);
-    widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    widgetLayout->addWidget(stretchFactorLabel, 0, Qt::AlignHCenter);
-    widgetLayout->addWidget(stretchFactorScrollArea);
-    widgetLayout->addStretch();
+    widgetLayout->addWidget(numberOfWidget,
+                            0);
+    widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                            0);
+    widgetLayout->addWidget(stretchFactorLabel,
+                            0,
+                            Qt::AlignHCenter);
+    widgetLayout->addWidget(m_stretchFactorScrollArea,
+                            100);
     
     return widget;
+}
+
+/**
+ * Update the content of the dialog.  If tile tabs is selected in the given
+ * window, the dialog will be initialized with the tile tabs configuration
+ * selected in the window.
+ *
+ * @param brainBrowserWindow
+ *    Browser window from which dialog was selected.
+ */
+void
+TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBrowserWindow* brainBrowserWindow)
+{
+    m_caretPreferences->readTileTabsConfigurations();
+    
+    if (brainBrowserWindow != NULL) {
+        if (brainBrowserWindow->isTileTabsSelected()) {
+            TileTabsConfiguration* configuration = brainBrowserWindow->getSelectedTileTabsConfiguration();
+            if (configuration != NULL) {
+                selectTileTabConfigurationByUniqueID(configuration->getUniqueIdentifier());
+            }
+        }
+    }
+    
+    updateDialog();
 }
 
 /**
@@ -362,6 +426,8 @@ TileTabsConfigurationDialog::updateStretchFactors()
             m_stretchFactorIndexLabels[i]->setVisible(false);
         }
     }
+    
+    m_stretchFactorWidget->setFixedSize(m_stretchFactorWidget->sizeHint());
 }
 
 /**
@@ -546,6 +612,8 @@ TileTabsConfigurationDialog::numberOfRowsOrColumnsChanged()
         m_caretPreferences->writeTileTabsConfigurations();
         
         updateStretchFactors();
+
+        updateGraphicsWindows();
     }
 }
 
@@ -577,22 +645,29 @@ TileTabsConfigurationDialog::configurationStretchFactorWasChanged()
     }
     
     m_caretPreferences->writeTileTabsConfigurations();
+    
+    updateGraphicsWindows();
 }
 
+
 /**
- * Receive an event.
- *
- * @param event
- *    An event for which this instance is listening.
+ * Update the graphics in any windows that have tile tabs enabled to the
+ * selected tile tabs configuration in this dialog.
  */
 void
-TileTabsConfigurationDialog::receiveEvent(Event* event)
+TileTabsConfigurationDialog::updateGraphicsWindows()
 {
-//    if (event->getEventType() == EventTypeEnum::) {
-//        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
-//        CaretAssert(eventName);
-//
-//        event->setEventProcessed();
-//    }
+    std::vector<BrainBrowserWindow*> allBrowserWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
+    
+    for (std::vector<BrainBrowserWindow*>::iterator iter = allBrowserWindows.begin();
+         iter != allBrowserWindows.end();
+         iter++) {
+        BrainBrowserWindow* bbw = *iter;
+        if (bbw->isTileTabsSelected()) {
+            if (bbw->getSelectedTileTabsConfiguration() == getSelectedTileTabsConfiguration()) {
+                EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
+            }
+        }
+    }
 }
 

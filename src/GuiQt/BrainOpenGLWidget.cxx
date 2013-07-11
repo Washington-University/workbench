@@ -350,13 +350,6 @@ BrainOpenGLWidget::paintGL()
             rowHeightsSum += rowHeights[i];
         }
         rowHeights[numRows - 1] = windowHeight - rowHeightsSum;
-        std::cout << "Window Height: "
-        << windowHeight
-        << "  Row Heights: ";
-        for (int32_t i = 0; i < numRows; i++) {
-            std::cout << rowHeights[i] << " ";
-        }
-        std::cout << std::endl;
         
         /*
          * Adjust width of last column so that it does not extend beyond viewport
@@ -366,13 +359,6 @@ BrainOpenGLWidget::paintGL()
             columnWidthsSum += columnsWidths[i];
         }
         columnsWidths[numCols - 1] = windowWidth - columnWidthsSum;
-        std::cout << "Window Width: "
-        << windowWidth
-        << "  Column Widths: ";
-        for (int32_t i = 0; i < numCols; i++) {
-            std::cout << columnsWidths[i] << " ";
-        }
-        std::cout << std::endl;
         
         /*
          * Arrange models left-to-right and top-to-bottom.

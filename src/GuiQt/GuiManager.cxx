@@ -1324,7 +1324,7 @@ GuiManager::processShowTileTabsConfigurationDialog(caret::BrainBrowserWindow *br
         this->nonModalDialogs.push_back(m_tileTabsConfigurationDialog);
     }
     
-    m_tileTabsConfigurationDialog->updateDialog();
+    m_tileTabsConfigurationDialog->updateDialogWithSelectedTileTabsFromWindow(browserWindow);
     m_tileTabsConfigurationDialog->setVisible(true);
     m_tileTabsConfigurationDialog->show();
     m_tileTabsConfigurationDialog->activateWindow();

@@ -37,20 +37,20 @@
 
 #include "WuQDialogNonModal.h"
 
-#include "EventListenerInterface.h"
-
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QScrollArea;
 class QSpinBox;
 
 namespace caret {
+    class BrainBrowserWindow;
     class CaretPreferences;
     class TileTabsConfiguration;
     
-    class TileTabsConfigurationDialog : public WuQDialogNonModal, public EventListenerInterface {
+    class TileTabsConfigurationDialog : public WuQDialogNonModal {
         
         Q_OBJECT
 
@@ -58,6 +58,8 @@ namespace caret {
         TileTabsConfigurationDialog(QWidget* parent);
         
         virtual ~TileTabsConfigurationDialog();
+        
+        void updateDialogWithSelectedTileTabsFromWindow(BrainBrowserWindow* brainBrowserWindow);
         
         void updateDialog();
         
@@ -70,8 +72,6 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        virtual void receiveEvent(Event* event);
-
     private slots:
         void newConfigurationButtonClicked();
         
@@ -82,6 +82,9 @@ namespace caret {
         void numberOfRowsOrColumnsChanged();
         
         void configurationStretchFactorWasChanged();
+        
+    protected:
+        void focusGained();
         
     private:
         // ADD_NEW_MEMBERS_HERE
@@ -104,6 +107,8 @@ namespace caret {
         
         void updateStretchFactors();
         
+        void updateGraphicsWindows();
+        
         QPushButton* m_newConfigurationPushButton;
         
         QPushButton* m_deleteConfigurationPushButton;
@@ -115,6 +120,9 @@ namespace caret {
         QSpinBox* m_numberOfRowsSpinBox;
         
         QSpinBox* m_numberOfColumnsSpinBox;
+        
+        QScrollArea* m_stretchFactorScrollArea;
+        QWidget* m_stretchFactorWidget;
         
         std::vector<QLabel*> m_stretchFactorIndexLabels;
         

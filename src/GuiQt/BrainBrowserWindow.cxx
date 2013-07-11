@@ -490,6 +490,10 @@ BrainBrowserWindow::createActions()
     QObject::connect(m_viewFullScreenAction, SIGNAL(triggered()),
                      this, SLOT(processViewFullScreenSelected()));
     
+    /*
+     * Note: If shortcut key is changed, also change the shortcut key
+     * for the tile tabs configuration dialog menu item to match.
+     */
     m_viewTileTabsAction = WuQtUtilities::createAction("Tile Tabs",
                                                        "View all tabs in a tiled layout",
                                                        Qt::CTRL+Qt::Key_M,
@@ -989,6 +993,7 @@ BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
     m_tileTabsMenu->clear();
     
     m_tileTabCreateAndEditAction = m_tileTabsMenu->addAction("Create and Edit...");
+    m_tileTabCreateAndEditAction->setShortcut(Qt::CTRL + Qt::SHIFT + Qt::Key_M);
     
     CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
     preferences->readTileTabsConfigurations();
@@ -1035,13 +1040,6 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
         CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
         m_selectedTileTabsConfigurationUniqueIdentifier = action->data().toString();
         TileTabsConfiguration* configuration = preferences->getTileTabsConfigurationByUniqueIdentifier(m_selectedTileTabsConfigurationUniqueIdentifier);
-        if (configuration != NULL) {
-            const AString name = configuration->getName();
-            std::cout << "Selected Config: " << qPrintable(name) << std::endl;
-        }
-        else {
-            std::cout << "Selected Config: " << qPrintable(m_defaultTileTabsConfiguration->getName()) << std::endl;
-        }
         
         if (isTileTabsSelected()) {
             EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());

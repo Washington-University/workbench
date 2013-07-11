@@ -32,6 +32,7 @@
 #include <QPixmap>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QTimer>
 
 #include "CaretAssert.h"
@@ -583,4 +584,39 @@ WuQDialog::focusGained()
     /* nothing - intended to be overridden by users */
 }
 
+/**
+ * A scroll area's size hint is often larger than its content widget and in
+ * this case the dialog will be too large with blank space in the scroll area.
+ * This method will adjust the size of the dialog which in turn will shrink
+ * the size of the scroll area to better fit its content.  This should only
+ * be called once for a dialog so that the user can adjust the size of the 
+ * dialog, if desired.
+ *
+ * @param dialog
+ *    Dialog whose size is adjusted.
+ * @param scrollArea
+ *    The scroll area in the dialog.
+ */
+void
+WuQDialog::adjustSizeOfDialogWithScrollArea(QDialog* dialog,
+                                                QScrollArea* scrollArea)
+{
+    /*
+     * The content region of a scroll area is often too large vertically
+     * so adjust the size of the dialog which will cause the scroll area
+     * to approximately fit its content.
+     */
+    QWidget* scrollAreaContentWidget = scrollArea->widget();
+    if (scrollAreaContentWidget != NULL) {
+        int32_t contentHeight = scrollAreaContentWidget->sizeHint().height();
+        int32_t scrollHeight = scrollArea->sizeHint().height();
+        int32_t scrollBarHeight = scrollArea->horizontalScrollBar()->sizeHint().height();
+        int32_t diff = (scrollHeight - (contentHeight + scrollBarHeight + 10));
+        if (diff > 0) {
+            QSize dialogSizeHint = dialog->sizeHint();
+            dialogSizeHint.setHeight(dialogSizeHint.height() - diff);
+            dialog->resize(dialogSizeHint);
+        }
+    }
+}
 

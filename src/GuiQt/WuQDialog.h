@@ -35,6 +35,7 @@ class QFocusEvent;
 class QHBoxLayout;
 class QKeyEvent;
 class QMenu;
+class QScrollArea;
 class QVBoxLayout;
 
 namespace caret  {
@@ -77,6 +78,9 @@ namespace caret  {
         static void showWaitCursor();
         
         static void showNormalCursor();
+        
+        static void adjustSizeOfDialogWithScrollArea(QDialog* dialog,
+                                                     QScrollArea* scrollArea);
         
     public slots:
 
