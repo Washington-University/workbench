@@ -184,7 +184,7 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
      */
     this->widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(this->widget);
-    WuQtUtilities::setLayoutMargins(gridLayout, 
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 
                                     4, 
                                     2);
     gridLayout->setColumnStretch(0, 0);

@@ -151,7 +151,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->addAction(identifySurfaceAction);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(idToolBarLeft);
     layout->addWidget(m_informationTextBrowser);
     layout->addWidget(idToolBarRight);

@@ -104,7 +104,7 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    this->setLayoutMargins(layout);
+    this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(mapNameWidget);
     layout->addWidget(tabWidget);
     //layout->addWidget(windowOptionsWidget);
@@ -132,7 +132,7 @@ MapSettingsEditorDialog::createMapFileAndNameSection()
     
     QGroupBox* groupBox = new QGroupBox();
     QGridLayout* gridLayout = new QGridLayout(groupBox);
-    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
     gridLayout->addWidget(mapFileNameLabel, 0, 0);
@@ -256,9 +256,9 @@ MapSettingsEditorDialog::closeButtonPressed()
  *   Layout for which margins are set.
  */
 void 
-MapSettingsEditorDialog::setLayoutMargins(QLayout* layout)
+MapSettingsEditorDialog::setLayoutSpacingAndMargins(QLayout* layout)
 {
-    WuQtUtilities::setLayoutMargins(layout, 5, 3);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 5, 3);
 }
 
 /**
@@ -302,7 +302,7 @@ MapSettingsEditorDialog::createWindowOptionsSection()
                                            "   window.");
     QWidget* optionsWidget = new QWidget();
     QVBoxLayout* optionsLayout = new QVBoxLayout(optionsWidget);
-    this->setLayoutMargins(optionsLayout);
+    this->setLayoutSpacingAndMargins(optionsLayout);
     optionsLayout->addWidget(m_doNotReplaceCheckBox);
     optionsWidget->setSizePolicy(QSizePolicy::Fixed,
                                  QSizePolicy::Fixed);

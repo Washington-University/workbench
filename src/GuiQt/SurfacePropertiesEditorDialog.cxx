@@ -111,7 +111,7 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     
     QWidget* w = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(w);
-    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     int row = gridLayout->rowCount();
     gridLayout->addWidget(displayNormalVectorsLabel, row, 0);
     gridLayout->addWidget(m_displayNormalVectorsComboBox->getWidget(), row, 1);

@@ -72,7 +72,7 @@ namespace caret {
         
         QWidget* createMapFileAndNameSection();
         
-        void setLayoutMargins(QLayout* layout);
+        void setLayoutSpacingAndMargins(QLayout* layout);
         
         QCheckBox* m_doNotReplaceCheckBox;
         

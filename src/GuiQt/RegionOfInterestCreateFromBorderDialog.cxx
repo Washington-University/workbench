@@ -148,7 +148,7 @@ RegionOfInterestCreateFromBorderDialog::createDialog(const std::vector<Border*>&
     
     QWidget* widget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(dialogLayout, 
+    WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout, 
                                     2, 
                                     2);
     dialogLayout->addWidget(selectorWidget);

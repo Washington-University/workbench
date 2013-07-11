@@ -87,7 +87,7 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     
     QHBoxLayout* groupLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(groupLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(groupLayout, 2, 2);
     groupLayout->addWidget(groupLabel);
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
@@ -112,7 +112,7 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
     layout->addSpacing(10);
     layout->addWidget(m_displayFibersCheckBox);
@@ -227,7 +227,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
-    WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
     gridLayout->addWidget(coloringTypeLabel, row, 0);
     gridLayout->addWidget(m_coloringTypeComboBox->getWidget() , row, 1);
@@ -262,7 +262,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(gridWidget);
     layout->addStretch();
     
@@ -536,7 +536,7 @@ FiberOrientationSelectionViewController::createSamplesWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(m_displaySphereOrientationsCheckBox);
     layout->addWidget(m_samplesOpenGLWidget,
                       100); // stretch factor

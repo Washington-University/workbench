@@ -93,7 +93,7 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
     QVBoxLayout* controlsLayout = new QVBoxLayout(controlsWidget);
     controlsLayout->addWidget(locationWidget);
     controlsLayout->addWidget(loginWidget, 0, Qt::AlignCenter);
-    WuQtUtilities::setLayoutMargins(controlsLayout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(controlsLayout, 4, 2);
 
     setCentralWidget(controlsWidget);
    

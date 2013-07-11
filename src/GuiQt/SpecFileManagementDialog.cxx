@@ -350,7 +350,7 @@ m_specFile(specFile)
     
     QWidget* toolbarWidget = new QWidget();
     QVBoxLayout* toolbarLayout = new QVBoxLayout(toolbarWidget);
-    WuQtUtilities::setLayoutMargins(toolbarLayout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(toolbarLayout, 0, 0);
     
     QLabel* fileTypesToolBarLabel = NULL;
     toolbarLayout->addWidget(createFilesTypesToolBar(fileTypesToolBarLabel));

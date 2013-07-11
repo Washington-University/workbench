@@ -75,7 +75,7 @@ WuQCollapsibleWidget::WuQCollapsibleWidget(QWidget* parent)
     
     
     this->collapsibleLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutMargins(this->collapsibleLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(this->collapsibleLayout, 2, 2);
     QWidget* widget = new QWidget();
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
     widgetLayout->addLayout(this->collapsibleLayout);
@@ -139,7 +139,7 @@ WuQCollapsibleWidget::addItem(QWidget* widget,
     showHideToolButton->setDefaultAction(showHideAction);
     
     QHBoxLayout* controlLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(controlLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(controlLayout, 2, 2);
     controlLayout->addWidget(showHideToolButton);
     controlLayout->addSpacing(15);
     controlLayout->addWidget(label);

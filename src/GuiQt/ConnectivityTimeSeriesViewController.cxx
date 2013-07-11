@@ -168,7 +168,7 @@ QGridLayout*
 ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation orientation)
 {
     QGridLayout* gridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     if (orientation == Qt::Horizontal) {
 
         gridLayout->setColumnStretch(0, 0);

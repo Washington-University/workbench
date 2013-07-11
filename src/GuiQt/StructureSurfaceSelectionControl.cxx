@@ -73,7 +73,7 @@ StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool sh
     QGridLayout* layout = new QGridLayout(this);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
-    WuQtUtilities::setLayoutMargins(layout, 3, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 3, 2);
     if (showLabels) {
         QLabel* structureLabel = new QLabel("Structure");
         QLabel* surfaceLabel = new QLabel("Surface");

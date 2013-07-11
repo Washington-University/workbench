@@ -244,7 +244,7 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     WuQtUtilities::setToolTipAndStatusTip(m_labelNameLineEdit,
                                           "Edit the name");
     QHBoxLayout* nameLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(nameLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(nameLayout, 2, 2);
     nameLayout->addWidget(nameLabel, 0);
     nameLayout->addWidget(m_labelNameLineEdit, 100);
     
@@ -263,7 +263,7 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
      */
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
     layout->addWidget(m_labelSelectionListWidget);
     layout->addLayout(buttonsLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());

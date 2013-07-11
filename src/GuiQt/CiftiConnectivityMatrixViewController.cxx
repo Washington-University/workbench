@@ -70,7 +70,7 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
 : QWidget(parent)
 {
     m_gridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutMargins(m_gridLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_gridLayout, 2, 2);
     m_gridLayout->setColumnStretch(0, 0);
     m_gridLayout->setColumnStretch(1, 0);
     m_gridLayout->setColumnStretch(2, 100);

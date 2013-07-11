@@ -210,7 +210,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 4);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 4);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 0);
     gridLayout->setColumnStretch(2, 100);

@@ -85,7 +85,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
     if (orientation == Qt::Horizontal) {
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
@@ -143,30 +143,30 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
 
     if (orientation == Qt::Horizontal) {
         QVBoxLayout* verticalLayout = new QVBoxLayout(this);
-        WuQtUtilities::setLayoutMargins(verticalLayout, 2, 2);
+        WuQtUtilities::setLayoutSpacingAndMargins(verticalLayout, 2, 2);
         verticalLayout->addWidget(gridWidget);
         verticalLayout->addStretch();
     }
     else {
         QVBoxLayout* verticalLayout = new QVBoxLayout();
-        WuQtUtilities::setLayoutMargins(verticalLayout, 1, 1);
+        WuQtUtilities::setLayoutSpacingAndMargins(verticalLayout, 1, 1);
         verticalLayout->addWidget(gridWidget);
         verticalLayout->addStretch();
         
         QHBoxLayout* horizontalLayout = new QHBoxLayout(this);
-        WuQtUtilities::setLayoutMargins(horizontalLayout, 1, 1);
+        WuQtUtilities::setLayoutSpacingAndMargins(horizontalLayout, 1, 1);
         horizontalLayout->addLayout(verticalLayout);
         horizontalLayout->addStretch();
     }
     
 //    QWidget* widget = new QWidget();
 //    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-//    WuQtUtilities::setLayoutMargins(widgetLayout, 2, 2);
+//    WuQtUtilities::setLayoutSpacingAndMargins(widgetLayout, 2, 2);
 //    widgetLayout->addWidget(gridWidget);
 //    widgetLayout->addStretch();
 //    
 //    QVBoxLayout* layout = new QVBoxLayout(this);
-//    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
 //    layout->addWidget(widget);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);

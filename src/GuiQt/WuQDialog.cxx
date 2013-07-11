@@ -74,7 +74,7 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
     this->setFocusPolicy(Qt::ClickFocus);
     
     this->userWidgetLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutMargins(this->userWidgetLayout,
+    WuQtUtilities::setLayoutSpacingAndMargins(this->userWidgetLayout,
                                     0,
                                     0);
     
@@ -91,7 +91,7 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
                             1000);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(dialogLayout,
+    WuQtUtilities::setLayoutSpacingAndMargins(dialogLayout,
                                     0,
                                     0);
     dialogLayout->addLayout(this->userWidgetLayout);

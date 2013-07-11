@@ -851,7 +851,7 @@ WuQtUtilities::matchWidgetWidths(QWidget* w1,
  *     Margin around the layout.
  */
 void 
-WuQtUtilities::setLayoutMargins(QLayout* layout,
+WuQtUtilities::setLayoutSpacingAndMargins(QLayout* layout,
                                 const int spacing,
                                 const int contentsMargin)
 {

@@ -73,7 +73,7 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(QWidget* parent)
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 
                                     4, 
                                     2);
     

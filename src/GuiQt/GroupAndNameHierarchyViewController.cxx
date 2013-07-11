@@ -93,12 +93,12 @@ GroupAndNameHierarchyViewController::GroupAndNameHierarchyViewController(const i
     QWidget* allOnOffWidget = createAllOnOffControls();
 
     m_modelTreeWidgetLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutMargins(m_modelTreeWidgetLayout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_modelTreeWidgetLayout, 0, 0);
     m_modelTreeWidget = NULL;
     createTreeWidget();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(allOnOffWidget);
     layout->addSpacing(5);
     layout->addLayout(m_modelTreeWidgetLayout);

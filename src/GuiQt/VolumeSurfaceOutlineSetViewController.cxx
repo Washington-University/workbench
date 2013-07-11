@@ -78,7 +78,7 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 2);
     if (orientation == Qt::Horizontal) {
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
@@ -123,7 +123,7 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     overlayCountLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(gridWidget);
     layout->addLayout(overlayCountLayout);
     layout->addStretch();

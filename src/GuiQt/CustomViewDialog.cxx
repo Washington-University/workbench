@@ -164,7 +164,7 @@ CustomViewDialog::createCustomViewWidget()
     
     QGroupBox* groupBox = new QGroupBox("Custom Orientation");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
-    WuQtUtilities::setLayoutMargins(layout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
     layout->addWidget(m_customViewListWidget, 100, Qt::AlignHCenter);
     layout->addWidget(m_newCustomViewPushButton, 0, Qt::AlignHCenter);
     layout->addWidget(m_deleteCustomViewPushButton, 0, Qt::AlignHCenter);
@@ -494,7 +494,7 @@ CustomViewDialog::createTransformsWidget()
     
     QGroupBox* groupBox = new QGroupBox("Transform");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 4);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 4, 4);
     int row = 0;
     gridLayout->addWidget(windowLabel,
                           row,

@@ -91,7 +91,7 @@ FiberTrajectorySelectionViewController::FiberTrajectorySelectionViewController(c
                      this, SLOT(displayGroupSelected(const DisplayGroupEnum::Enum)));
     
     QHBoxLayout* groupLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(groupLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(groupLayout, 2, 2);
     groupLayout->addWidget(groupLabel);
     groupLayout->addWidget(m_displayGroupComboBox->getWidget());
     groupLayout->addStretch();
@@ -115,7 +115,7 @@ FiberTrajectorySelectionViewController::FiberTrajectorySelectionViewController(c
     m_tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addLayout(groupLayout);
     layout->addSpacing(10);
     layout->addWidget(m_displayTrajectoriesCheckBox);
@@ -271,7 +271,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     
     QGroupBox* dataMappingGroupBox = new QGroupBox("Data Mapping");
     QGridLayout* dataMappingLayout = new QGridLayout(dataMappingGroupBox);
-    WuQtUtilities::setLayoutMargins(dataMappingLayout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(dataMappingLayout, 4, 2);
     int row = dataMappingLayout->rowCount();
     
     int columnCounter = 0;

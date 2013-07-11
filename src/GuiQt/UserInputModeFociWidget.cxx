@@ -117,7 +117,7 @@ UserInputModeFociWidget::UserInputModeFociWidget(UserInputModeFoci* inputModeFoc
     //m_operationStackedWidget->addWidget(m_taskOperationWidget);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(nameLabel);
     layout->addWidget(modeWidget);
     layout->addSpacing(10);
@@ -207,7 +207,7 @@ UserInputModeFociWidget::createModeWidget()
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(m_modeComboBox);
     
     widget->setFixedWidth(widget->sizeHint().width());
@@ -262,7 +262,7 @@ UserInputModeFociWidget::createCreateOperationWidget()
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(newFocusToolButton);
     layout->addSpacing(5);
     layout->addWidget(lastIdFocusToolButton);
@@ -425,7 +425,7 @@ UserInputModeFociWidget::createEditOperationWidget()
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(deleteToolButton);
     layout->addWidget(propertiesToolButton);
     
@@ -441,7 +441,7 @@ UserInputModeFociWidget::createTaskOperationWidget()
 {
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;

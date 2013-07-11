@@ -122,7 +122,7 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     
     QWidget* leftWidget = new QWidget();
     QVBoxLayout* leftLayout = new QVBoxLayout(leftWidget);
-    this->setLayoutMargins(leftLayout);
+    this->setLayoutSpacingAndMargins(leftLayout);
     leftLayout->addWidget(thresholdWidget);
     leftLayout->addWidget(paletteWidget);
     leftLayout->addStretch();
@@ -133,20 +133,20 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
-    this->setLayoutMargins(bottomRightLayout);
+    this->setLayoutSpacingAndMargins(bottomRightLayout);
     bottomRightLayout->addWidget(histogramControlWidget);   
     bottomRightLayout->addLayout(optionsLayout);
     bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
     QWidget* rightWidget = new QWidget();
     QVBoxLayout* rightLayout = new QVBoxLayout(rightWidget);
-    this->setLayoutMargins(rightLayout);
+    this->setLayoutSpacingAndMargins(rightLayout);
     rightLayout->addWidget(histogramWidget, 100);
     rightLayout->addWidget(bottomRightWidget, 0);
     rightLayout->addStretch();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
-    this->setLayoutMargins(layout);
+    this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(leftWidget, 0);
     layout->addWidget(rightWidget, 100);
     
@@ -485,7 +485,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     
     QWidget* thresholdAdjustmentWidget = new QWidget();
     QGridLayout* thresholdAdjustmentLayout = new QGridLayout(thresholdAdjustmentWidget);
-    this->setLayoutMargins(thresholdAdjustmentLayout);
+    this->setLayoutSpacingAndMargins(thresholdAdjustmentLayout);
     thresholdAdjustmentLayout->setColumnStretch(0, 0);
     thresholdAdjustmentLayout->setColumnStretch(1, 100);
     thresholdAdjustmentLayout->setColumnStretch(2, 0);
@@ -501,7 +501,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     
     QWidget* topWidget = new QWidget();
     QHBoxLayout* topLayout = new QHBoxLayout(topWidget);
-    this->setLayoutMargins(topLayout);
+    this->setLayoutSpacingAndMargins(topLayout);
     topLayout->addWidget(thresholdTypeLabel);
     topLayout->addWidget(this->thresholdTypeComboBox);
     topLayout->addWidget(thresholdRangeLabel);
@@ -510,7 +510,7 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     
     QGroupBox* thresholdGroupBox = new QGroupBox("Threshold");
     QVBoxLayout* layout = new QVBoxLayout(thresholdGroupBox);
-    this->setLayoutMargins(layout);
+    this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(topWidget, 0, Qt::AlignLeft);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(thresholdAdjustmentWidget);
@@ -586,7 +586,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     
     QWidget* controlWidget = new QWidget();
     QGridLayout* controlLayout = new QGridLayout(controlWidget);
-    this->setLayoutMargins(controlLayout);
+    this->setLayoutSpacingAndMargins(controlLayout);
     controlLayout->addWidget(this->histogramAllRadioButton);
     controlLayout->addWidget(this->histogramMatchPaletteRadioButton);
     controlLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
@@ -604,7 +604,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     
     QWidget* statisticsWidget = new QWidget();
     QGridLayout* statisticsLayout = new QGridLayout(statisticsWidget);
-    this->setLayoutMargins(statisticsLayout);
+    this->setLayoutSpacingAndMargins(statisticsLayout);
     statisticsLayout->addWidget(new QLabel("Mean"), 0, 0);
     statisticsLayout->addWidget(this->statisticsMeanValueLabel, 0, 1);
     statisticsLayout->addWidget(new QLabel("Std Dev"), 1, 0);
@@ -618,7 +618,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramControlSection()
     
     QGroupBox* groupBox = new QGroupBox("Histogram");
     QHBoxLayout* layout = new QHBoxLayout(groupBox);
-    this->setLayoutMargins(layout);
+    this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(controlWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addWidget(statisticsWidget);
@@ -672,7 +672,7 @@ MapSettingsPaletteColorMappingWidget::createHistogramSection()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(this->thresholdPlot);
     layout->addWidget(resetViewToolButton, 0, Qt::AlignHCenter);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     return  widget;
 }
 
@@ -718,7 +718,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
         
     QWidget* paletteSelectionWidget = new QWidget();
     QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionWidget);
-    this->setLayoutMargins(paletteSelectionLayout);
+    this->setLayoutSpacingAndMargins(paletteSelectionLayout);
     paletteSelectionLayout->addWidget(this->paletteNameComboBox);
     paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox);
     paletteSelectionWidget->setFixedHeight(paletteSelectionWidget->sizeHint().height());
@@ -862,7 +862,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     QWidget* colorMappingWidget = new QWidget();
     QGridLayout* colorMappingLayout = new QGridLayout(colorMappingWidget);
-    this->setLayoutMargins(colorMappingLayout);
+    this->setLayoutSpacingAndMargins(colorMappingLayout);
     colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0);
     colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1);
     colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2);
@@ -912,7 +912,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
     
     QWidget* displayModeWidget = new QWidget();
     QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeWidget);
-    WuQtUtilities::setLayoutMargins(displayModeLayout, 10, 3);
+    WuQtUtilities::setLayoutSpacingAndMargins(displayModeLayout, 10, 3);
     displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
     displayModeLayout->addStretch();
     displayModeLayout->addWidget(this->displayModeZeroCheckBox);
@@ -926,7 +926,7 @@ MapSettingsPaletteColorMappingWidget::createPaletteSection()
      */
     QGroupBox* paletteGroupBox = new QGroupBox("Palette");
     QVBoxLayout* paletteLayout = new QVBoxLayout(paletteGroupBox);
-    this->setLayoutMargins(paletteLayout);
+    this->setLayoutSpacingAndMargins(paletteLayout);
     paletteLayout->addWidget(paletteSelectionWidget);
     paletteLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     paletteLayout->addWidget(colorMappingWidget);
@@ -1655,9 +1655,9 @@ void MapSettingsPaletteColorMappingWidget::applySelections()
  *   Layout for which margins are set.
  */
 void 
-MapSettingsPaletteColorMappingWidget::setLayoutMargins(QLayout* layout)
+MapSettingsPaletteColorMappingWidget::setLayoutSpacingAndMargins(QLayout* layout)
 {
-    WuQtUtilities::setLayoutMargins(layout, 5, 3);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 5, 3);
 }
 
 /**
@@ -1693,7 +1693,7 @@ MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
     
     QGroupBox* optionsGroupBox = new QGroupBox("Data Options");
     QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
-    this->setLayoutMargins(optionsLayout);
+    this->setLayoutSpacingAndMargins(optionsLayout);
     optionsLayout->addWidget(this->applyAllMapsCheckBox);
     optionsLayout->addWidget(this->applyToMultipleFilesPushButton);
     optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,

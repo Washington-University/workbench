@@ -150,7 +150,7 @@ LabelSelectionViewController::createAttributesWidget()
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
     gridLayout->addWidget(drawAsLabel, row, 0);
     gridLayout->addWidget(m_labelDrawingTypeComboBox->getWidget(), row, 1);
