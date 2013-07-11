@@ -462,7 +462,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
                 float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
                 invertResampleROI.setValue(j, 0, tempf);
             }
-            AlgorithmMetricDilate(NULL, &newMetric, newSphere, surfdilatemm, &newDilate, &invertResampleROI, -1, true);
+            AlgorithmMetricDilate(NULL, &newMetric, newSphere, surfdilatemm, &newDilate, &invertResampleROI, NULL, -1, true);//we could get the data roi from the template cifti and use it here
             newUse = &newDilate;
         }
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, newUse);

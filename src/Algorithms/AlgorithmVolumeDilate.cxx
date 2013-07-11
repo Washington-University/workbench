@@ -31,6 +31,7 @@
 #include "FloatMatrix.h"
 #include "Vector3D.h"
 #include "VolumeFile.h"
+#include "VoxelIJK.h"
 
 #include <cmath>
 
@@ -58,17 +59,21 @@ OperationParameters* AlgorithmVolumeDilate::getParameters()
     
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-voxel-roi", "specify an roi of voxels to overwrite, rather than voxels with value zero");
-    roiOpt->addMetricParameter(1, "roi-volume", "volume file, positive values denote voxels to have their values replaced");
+    OptionalParameter* badRoiOpt = ret->createOptionalParameter(5, "-bad-voxel-roi", "specify an roi of voxels to overwrite, rather than voxels with value zero");
+    badRoiOpt->addVolumeParameter(1, "roi-volume", "volume file, positive values denote voxels to have their values replaced");
+    
+    OptionalParameter* dataRoiOpt = ret->createOptionalParameter(7, "-data-roi", "specify an roi of where there is data");
+    dataRoiOpt->addVolumeParameter(1, "roi-volume", "volume file, positive values denote voxels that have data");
     
     OptionalParameter* subvolSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume to dilate");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("For all voxels that are designated as bad, if they neighbor a good voxel or are within the specified distance of a good voxel, ") +
-        "replace the value in the bad voxel with a new value calculated from nearby voxels.  " +
-        "No matter how small <distance> is, dilation will always use at least the face neighbor voxels.  " +
-        "By default, voxels with the value 0 are bad, specify -bad-voxel-roi to only count voxels as bad if they are selected by the roi.\n\n" +
+        AString("For all voxels that are designated as bad, if they neighbor a non-bad voxel with data or are within the specified distance of such a voxel, ") +
+        "replace the value in the bad voxel with a value calculated from nearby non-bad voxels that have data, otherwise set the value to zero.  " +
+        "No matter how small <distance> is, dilation will always use at least the face neighbor voxels.\n\n" +
+        "By default, voxels that have data with the value 0 are bad, specify -bad-voxel-roi to only count voxels as bad if they are selected by the roi.  " +
+        "If -data-roi is not specified, all voxels are assumed to have data.\n\n" +
         "Valid values for <method> are:\n\n" +
         "NEAREST - use the value from the nearest good voxel\n" +
         "WEIGHTED - use a weighted average based on distance"
@@ -91,11 +96,17 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
         throw AlgorithmException("invalid method specified, use NEAREST or WEIGHTED");
     }
     VolumeFile* volOut = myParams->getOutputVolume(4);
-    OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* badRoiOpt = myParams->getOptionalParameter(5);
     VolumeFile* badRoi = NULL;
-    if (roiOpt->m_present)
+    if (badRoiOpt->m_present)
     {
-        badRoi = roiOpt->getVolume(1);
+        badRoi = badRoiOpt->getVolume(1);
+    }
+    OptionalParameter* dataRoiOpt = myParams->getOptionalParameter(7);
+    VolumeFile* dataRoi = NULL;
+    if (dataRoiOpt->m_present)
+    {
+        dataRoi = dataRoiOpt->getVolume(1);
     }
     OptionalParameter* subvolSelect = myParams->getOptionalParameter(6);
     int subvol = -1;
@@ -104,19 +115,15 @@ void AlgorithmVolumeDilate::useParameters(OperationParameters* myParams, Progres
         subvol = volIn->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
         if (subvol < 0) throw AlgorithmException("invalid subvolume specified");
     }
-    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, subvol);
+    AlgorithmVolumeDilate(myProgObj, volIn, distance, myMethod, volOut, badRoi, dataRoi, subvol);
 }
 
 AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod,
-                                             VolumeFile* volOut, const VolumeFile* badRoi, const int& subvol) : AbstractAlgorithm(myProgObj)
+                                             VolumeFile* volOut, const VolumeFile* badRoi, const VolumeFile* dataRoi, const int& subvol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myDims;
     volIn->getDimensions(myDims);
-    if (volIn->getType() == SubvolumeAttributes::LABEL && myMethod == WEIGHTED)
-    {
-        CaretLogWarning("dilating a volume label file with weighted method, expect strangeness");
-    }
     if (subvol < -1 || subvol >= myDims[3])
     {
         throw AlgorithmException("invalid subvolume specified");
@@ -127,7 +134,15 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     }
     if (badRoi != NULL && !volIn->matchesVolumeSpace(badRoi))
     {
-        throw AlgorithmException("volume roi space does not match input volume");
+        throw AlgorithmException("volume bad voxel roi space does not match input volume");
+    }
+    if (dataRoi != NULL && !volIn->matchesVolumeSpace(dataRoi))
+    {
+        throw AlgorithmException("volume data roi space does not match input volume");
+    }
+    if (volIn->getType() == SubvolumeAttributes::LABEL && myMethod == WEIGHTED)
+    {
+        CaretLogWarning("dilating a volume label file with weighted method, expect strangeness");
     }
     vector<vector<float> > volSpace = volIn->getSform();
     Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
@@ -176,19 +191,19 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
     }
     if (myMethod == NEAREST)
     {//sort the stencil by distance, so we can stop early
-        CaretSimpleMinHeap<VoxTriple, float> myHeap;
+        CaretSimpleMinHeap<VoxelIJK, float> myHeap;
         int stencilSize = (int)stenWeights.size();
         myHeap.reserve(stencilSize);
         for (int i = 0; i < stencilSize; ++i)
         {
-            myHeap.push(VoxTriple(stencil.data() + i * 3), stenWeights[i]);
+            myHeap.push(VoxelIJK(stencil.data() + i * 3), stenWeights[i]);
         }
         stencil.clear();
         stenWeights.clear();
         while (!myHeap.isEmpty())
         {
             float tempf;
-            VoxTriple myTriple = myHeap.pop(&tempf);
+            VoxelIJK myTriple = myHeap.pop(&tempf);
             stenWeights.push_back(tempf);
             stencil.push_back(myTriple.m_ijk[0]);
             stencil.push_back(myTriple.m_ijk[1]);
@@ -226,19 +241,19 @@ AlgorithmVolumeDilate::AlgorithmVolumeDilate(ProgressObject* myProgObj, const Vo
         {
             for (int c = 0; c < myDims[4]; ++c)
             {
-                dilateFrame(volIn, s, c, volOut, s, badRoi, myMethod, stencil, stenWeights);
+                dilateFrame(volIn, s, c, volOut, s, badRoi, dataRoi, myMethod, stencil, stenWeights);
             }
         }
     } else {
         for (int c = 0; c < myDims[4]; ++c)
         {
-            dilateFrame(volIn, subvol, c, volOut, 0, badRoi, myMethod, stencil, stenWeights);
+            dilateFrame(volIn, subvol, c, volOut, 0, badRoi, dataRoi, myMethod, stencil, stenWeights);
         }
     }
 }
 
 void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol,
-                                        const VolumeFile* badRoi, const Method& myMethod, const vector<int>& stencil, const vector<float>& stenWeights)
+                                        const VolumeFile* badRoi, const VolumeFile* dataRoi, const Method& myMethod, const vector<int>& stencil, const vector<float>& stenWeights)
 {
     vector<int64_t> myDims;
     volIn->getDimensions(myDims);
@@ -250,14 +265,14 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
         {
             for (int i = 0; i < myDims[0]; ++i)
             {
-                bool good = true;
+                bool copy = true;
                 if (badRoi == NULL)
                 {
-                    good = volIn->getValue(i, j, k, insubvol, component) != 0.0f;
+                    copy = volIn->getValue(i, j, k, insubvol, component) != 0.0f || (dataRoi != NULL && !(dataRoi->getValue(i, j, k) > 0.0f));
                 } else {
-                    good = badRoi->getValue(i, j, k) <= 0.0f;
+                    copy = !(badRoi->getValue(i, j, k) > 0.0f);//in case some clown uses NaNs as bad in an roi
                 }
-                if (good)
+                if (copy)
                 {
                     volOut->setValue(volIn->getValue(i, j, k, insubvol, component), i, j, k, outsubvol, component);
                 } else {
@@ -279,7 +294,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     tempindex[2] = stencil[base + 2] + k;
                                     if (volIn->indexValid(tempindex))
                                     {
-                                        if (volIn->getValue(tempindex, insubvol, component) != 0.0f)
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && volIn->getValue(tempindex, insubvol, component) != 0.0f)
                                         {
                                             best = stenind;
                                             break;
@@ -287,7 +302,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     }
                                 }
                             } else {
-                                for (int stenind = 0; stenind < stensize; stenind += 3)
+                                for (int stenind = 0; stenind < stensize; ++stenind)
                                 {
                                     int base = stenind * 3;
                                     int64_t tempindex[3];
@@ -296,7 +311,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     tempindex[2] = stencil[base + 2] + k;
                                     if (volIn->indexValid(tempindex))
                                     {
-                                        if (badRoi->getValue(tempindex) <= 0.0f)
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
                                         {
                                             best = stenind;
                                             break;
@@ -332,7 +347,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     if (volIn->indexValid(tempindex))
                                     {
                                         float tempf = volIn->getValue(tempindex, insubvol, component);
-                                        if (tempf != 0.0f)
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && tempf != 0.0f)
                                         {
                                             float weight = stenWeights[stenind];
                                             sum += weight * tempf;
@@ -350,7 +365,7 @@ void AlgorithmVolumeDilate::dilateFrame(const VolumeFile* volIn, const int& insu
                                     tempindex[2] = stencil[base + 2] + k;
                                     if (volIn->indexValid(tempindex))
                                     {
-                                        if (badRoi->getValue(tempindex) <= 0.0f)
+                                        if ((dataRoi == NULL || dataRoi->getValue(tempindex) > 0.0f) && !(badRoi->getValue(tempindex) > 0.0f))
                                         {
                                             float tempf = volIn->getValue(tempindex, insubvol, component);
                                             float weight = stenWeights[stenind];

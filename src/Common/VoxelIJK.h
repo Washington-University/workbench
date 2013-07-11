@@ -31,14 +31,22 @@ namespace caret {
     
     struct VoxelIJK
     {
-        int64_t m_ijk[3];//so it can be put in a vector
+        int64_t m_ijk[3];
         VoxelIJK() { }
         VoxelIJK(int64_t i, int64_t j, int64_t k) { m_ijk[0] = i; m_ijk[1] = j; m_ijk[2] = k; }
-
-        VoxelIJK(const int64_t ijk[3]) { 
-            m_ijk[0] = ijk[0]; 
-            m_ijk[1] = ijk[1]; 
-            m_ijk[2] = ijk[2]; 
+        template<typename T>
+        VoxelIJK(const T ijk[3]) {
+            m_ijk[0] = ijk[0];
+            m_ijk[1] = ijk[1];
+            m_ijk[2] = ijk[2];
+        }
+        bool operator<(const VoxelIJK& rhs) const//so it kan be the key of a map
+        {
+            if (m_ijk[2] < rhs.m_ijk[2]) return true;//compare such that when sorted, m_ijk[0] moves fastest
+            if (m_ijk[2] > rhs.m_ijk[2]) return false;
+            if (m_ijk[1] < rhs.m_ijk[1]) return true;
+            if (m_ijk[1] > rhs.m_ijk[1]) return false;
+            return (m_ijk[0] < rhs.m_ijk[0]);
         }
     };
     

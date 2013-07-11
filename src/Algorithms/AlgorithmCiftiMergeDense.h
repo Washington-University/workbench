@@ -27,6 +27,7 @@
 
 #include "AbstractAlgorithm.h"
 
+#include <utility>
 #include <vector>
 
 namespace caret {

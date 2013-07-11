@@ -32,16 +32,6 @@ namespace caret {
     class AlgorithmVolumeDilate : public AbstractAlgorithm
     {
         AlgorithmVolumeDilate();
-        struct VoxTriple
-        {
-            int m_ijk[3];
-            VoxTriple(int ijk[3])
-            {
-                m_ijk[0] = ijk[0];
-                m_ijk[1] = ijk[1];
-                m_ijk[2] = ijk[2];
-            }
-        };
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
@@ -52,14 +42,14 @@ namespace caret {
             WEIGHTED
         };
         AlgorithmVolumeDilate(ProgressObject* myProgObj, const VolumeFile* volIn, const float& distance, const Method& myMethod,
-                              VolumeFile* volOut, const VolumeFile* badRoi, const int& subvol = -1);
+                              VolumeFile* volOut, const VolumeFile* badRoi = NULL, const VolumeFile* dataRoi = NULL, const int& subvol = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     private:
         void dilateFrame(const VolumeFile* volIn, const int& insubvol, const int& component, VolumeFile* volOut, const int& outsubvol, const VolumeFile* badRoi,
-                         const Method& myMethod, const std::vector<int>& stencil, const std::vector<float>& stenWeights);
+                         const VolumeFile* dataRoi, const Method& myMethod, const std::vector<int>& stencil, const std::vector<float>& stenWeights);
     };
 
     typedef TemplateAutoOperation<AlgorithmVolumeDilate> AutoAlgorithmVolumeDilate;

@@ -95,6 +95,7 @@ namespace caret {
         void dijkstra(const int32_t root, bool smooth);//full surface
         void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
         void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
+        int32_t closest(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smooth);//just closest node
         CaretPointer<GeodesicHelperBase> m_myBase;//mostly just for automatic memory management
         CaretMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
     public:
@@ -133,6 +134,9 @@ namespace caret {
         
         ///get the distances and nodes along the path to a node - NOTE: default is not smooth distances, so that all nodes in the path are connected in the surface
         void getPathToNode(const int32_t root, const int32_t endpoint, std::vector<int32_t>& pathNodesOut, std::vector<float>& pathDistsOut, bool smoothflag = false);
+        
+        ///get just the closest node in the region and max distance given, returns -1 if no such node found - roi value of 0 means not in region, anything else is in region
+        int32_t getClosestNodeInRoi(const int32_t& root, const char* roi, const float& maxdist, float& distOut, bool smoothflag = true);
     };
 
     inline void GeodesicHelperBase::crossProd(const float in1[3], const float in2[3], float out[3])

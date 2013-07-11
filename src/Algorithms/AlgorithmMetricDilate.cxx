@@ -58,8 +58,11 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with value zero");
-    roiOpt->addMetricParameter(1, "roi-metric", "metric file, positive values denote vertices to have their values replaced");
+    OptionalParameter* badRoiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with value zero");
+    badRoiOpt->addMetricParameter(1, "roi-metric", "metric file, positive values denote vertices to have their values replaced");
+    
+    OptionalParameter* dataRoiOpt = ret->createOptionalParameter(9, "-data-roi", "specify an roi of where there is data");
+    dataRoiOpt->addMetricParameter(1, "roi-metric", "metric file, positive values denote vertices that have data");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
     columnSelect->addStringParameter(1, "column", "the column number or name");
@@ -70,11 +73,13 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     exponentOpt->addDoubleParameter(1, "exponent", "exponent 'n' to use in (area / (distance ^ n)) as the weighting function (default 2)");
     
     ret->setHelpText(
-        AString("For all metric vertices that are designated as bad, if they neighbor a good vertex or are within the specified distance of a good vertex, ") +
-        "replace the value with a distance weighted average of nearby good vertices, otherwise set the value to zero.  " +
-        "If -nearest is specified, it will use the value from the closest good vertex within range instead of a weighted average.\n\n" +
-        "If -bad-vertex-roi is specified, all vertices, including those with value zero, are good, except for vertices with a positive value in the ROI.  " +
-        "If it is not specified, only vertices with a value of zero are bad."
+        AString("For all metric vertices that are designated as bad, if they neighbor a non-bad vertex with data or are within the specified distance of such a vertex, ") +
+        "replace the value with a distance weighted average of nearby non-bad vertices that have data, otherwise set the value to zero.  " +
+        "No matter how small <distance> is, dilation will always use at least the immediate neighbor vertices.  " +
+        "If -nearest is specified, it will use the value from the closest non-bad vertex with data within range instead of a weighted average.\n\n" +
+        "If -bad-vertex-roi is specified, only vertices with a positive value in the ROI are bad.  " +
+        "If it is not specified, only vertices that have data, with a value of zero, are bad.  " +
+        "If -data-roi is not specified, all vertices are assumed to have data."
     );
     return ret;
 }
@@ -85,11 +90,17 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
     SurfaceFile* mySurf = myParams->getSurface(2);
     float distance = (float)myParams->getDouble(3);
     MetricFile* myMetricOut = myParams->getOutputMetric(4);
-    OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* badRoiOpt = myParams->getOptionalParameter(5);
     MetricFile* badNodeRoi = NULL;
-    if (roiOpt->m_present)
+    if (badRoiOpt->m_present)
     {
-        badNodeRoi = roiOpt->getMetric(1);
+        badNodeRoi = badRoiOpt->getMetric(1);
+    }
+    OptionalParameter* dataRoiOpt = myParams->getOptionalParameter(9);
+    MetricFile* dataRoi = NULL;
+    if (dataRoiOpt->m_present)
+    {
+        dataRoi = dataRoiOpt->getMetric(1);
     }
     OptionalParameter* columnSelect = myParams->getOptionalParameter(6);
     int columnNum = -1;
@@ -108,11 +119,11 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
     {
         exponent = (float)exponentOpt->getDouble(1);
     }
-    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, columnNum, nearest, exponent);
+    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, dataRoi, columnNum, nearest, exponent);
 }
 
 AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance, MetricFile* myMetricOut,
-                                             const MetricFile* badNodeRoi, const int& columnNum, const bool& nearest, const float& exponent) : AbstractAlgorithm(myProgObj)
+                                             const MetricFile* badNodeRoi, const MetricFile* dataRoi, const int& columnNum, const bool& nearest, const float& exponent) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
@@ -123,6 +134,10 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
     if (badNodeRoi != NULL && badNodeRoi->getNumberOfNodes() != numNodes)
     {
         throw AlgorithmException("bad vertex roi number of vertices does not match");
+    }
+    if (dataRoi != NULL && dataRoi->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("data roi number of vertices does not match");
     }
     if (columnNum < -1 || columnNum >= myMetric->getNumberOfColumns())
     {
@@ -142,22 +157,19 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
             cutoffRatio = 1.1f;
         }
     }
-    CaretArray<float> colScratch(numNodes);
-    vector<float> myAreas;
-    CaretArray<int> markArray(numNodes);
-    mySurf->computeNodeAreas(myAreas);
     myMetricOut->setStructure(mySurf->getStructure());
+    vector<pair<int, StencilElem> > myStencils;//because we need to iterate over it in parallel
+    vector<pair<int, int> > myNearest;
+    vector<float> colScratch(numNodes);
+    vector<float> myAreas;
+    mySurf->computeNodeAreas(myAreas);
     if (badNodeRoi != NULL)
     {
-        const float* myRoiData = badNodeRoi->getValuePointerForColumn(0);
-        for (int i = 0; i < numNodes; ++i)
+        if (nearest)
         {
-            if (myRoiData[i] > 0.0f)
-            {
-                markArray[i] = 0;
-            } else {
-                markArray[i] = 1;
-            }
+            precomputeNearest(myNearest, mySurf, badNodeRoi, dataRoi, distance);
+        } else {
+            precomputeStencils(myStencils, mySurf, myAreas.data(), badNodeRoi, dataRoi, distance, exponent);
         }
     }
     if (columnNum == -1)
@@ -170,98 +182,16 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
             myMetricOut->setColumnName(thisCol, myMetric->getColumnName(thisCol));
             if (badNodeRoi == NULL)
             {
-                for (int i = 0; i < numNodes; ++i)
+                processColumn(colScratch.data(), myInputData, mySurf, myAreas.data(), dataRoi, distance, nearest, exponent);
+            } else {
+                if (nearest)
                 {
-                    if (myInputData[i] == 0.0f)
-                    {
-                        markArray[i] = 0;
-                    } else {
-                        markArray[i] = 1;
-                    }
+                    processColumn(colScratch.data(), numNodes, myInputData, myNearest);
+                } else {
+                    processColumn(colScratch.data(), numNodes, myInputData, myStencils);
                 }
             }
-#pragma omp CARET_PAR
-            {
-                CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-                CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-#pragma omp CARET_FOR schedule(dynamic)
-                for (int i = 0; i < numNodes; ++i)
-                {
-                    if (markArray[i] == 0)
-                    {
-                        vector<int32_t> nodeList;
-                        vector<float> distList;
-                        myGeoHelp->getNodesToGeoDist(i, distance, nodeList, distList);//TODO: replace this with a "find closest in ROI within distance" function
-                        int numInRange = (int)nodeList.size();
-                        float tempDist = -1.0f;
-                        int closestNode = -1;
-                        for (int j = 0; j < numInRange; ++j)
-                        {
-                            if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
-                            {
-                                closestNode = nodeList[j];
-                                tempDist = distList[j];
-                            }
-                        }
-                        if (closestNode == -1)//check if any neighbors are in-roi, to make sure we dilate by at least 1 node everywhere
-                        {
-                            nodeList = myTopoHelp->getNodeNeighbors(i);
-                            nodeList.push_back(i);
-                            myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
-                            numInRange = (int)nodeList.size();
-                            for (int j = 0; j < numInRange; ++j)
-                            {
-                                if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
-                                {
-                                    closestNode = nodeList[j];
-                                    tempDist = distList[j];
-                                }
-                            }
-                        }
-                        if (nearest)
-                        {
-                            if (closestNode != -1)
-                            {
-                                colScratch[i] = myInputData[closestNode];
-                            } else {
-                                colScratch[i] = 0.0f;
-                            }
-                        } else {
-                            if (tempDist * cutoffRatio > distance)
-                            {
-                                myGeoHelp->getNodesToGeoDist(i, tempDist * cutoffRatio, nodeList, distList);
-                            }
-                            float totalWeight = 0.0f, weightedSum = 0.0f;
-                            for (int j = 0; j < numInRange; ++j)
-                            {
-                                if (markArray[nodeList[j]] == 1)
-                                {
-                                    float weight;
-                                    const float tolerance = 0.00001f;
-                                    float divdist = distList[j] / tempDist;
-                                    if (divdist > tolerance)
-                                    {
-                                        weight = myAreas[nodeList[j]] / pow(divdist, exponent);
-                                    } else {
-                                        weight = myAreas[nodeList[j]] / pow(tolerance, exponent);
-                                    }
-                                    totalWeight += weight;
-                                    weightedSum += myInputData[nodeList[j]] * weight;
-                                }
-                            }
-                            if (totalWeight != 0.0f)
-                            {
-                                colScratch[i] = weightedSum / totalWeight;
-                            } else {
-                                colScratch[i] = 0.0f;
-                            }
-                        }
-                    } else {
-                        colScratch[i] = myInputData[i];
-                    }
-                }
-            }
-            myMetricOut->setValuesForColumn(thisCol, colScratch.getArray());
+            myMetricOut->setValuesForColumn(thisCol, colScratch.data());
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
@@ -270,76 +200,153 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
         myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum));
         if (badNodeRoi == NULL)
         {
-            for (int i = 0; i < numNodes; ++i)
+            processColumn(colScratch.data(), myInputData, mySurf, myAreas.data(), dataRoi, distance, nearest, exponent);
+        } else {
+            if (nearest)
             {
-                if (myInputData[i] == 0.0f)
-                {
-                    markArray[i] = 0;
-                } else {
-                    markArray[i] = 1;
-                }
+                processColumn(colScratch.data(), numNodes, myInputData, myNearest);
+            } else {
+                processColumn(colScratch.data(), numNodes, myInputData, myStencils);
             }
         }
-#pragma omp CARET_PAR
+        myMetricOut->setValuesForColumn(0, colScratch.data());
+    }
+}
+
+void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes, const float* myInputData, vector<pair<int, int> > myNearest)
+{
+    for (int i = 0; i < numNodes; ++i)
+    {
+        colScratch[i] = myInputData[i];//precopy so that the parallel part doesn't have to worry about vertices that don't get dilated to
+    }
+    int numStencils = (int)myNearest.size();
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int i = 0; i < numStencils; ++i)//no idea if parallel actually helps here
+    {
+        const int& node = myNearest[i].first;
+        const int& nearest = myNearest[i].second;
+        if (nearest != -1)
         {
-            CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-#pragma omp CARET_FOR schedule(dynamic)
-            for (int i = 0; i < numNodes; ++i)
+            colScratch[node] = myInputData[nearest];
+        } else {
+            colScratch[node] = 0.0f;
+        }
+    }
+}
+
+void AlgorithmMetricDilate::processColumn(float* colScratch, const int& numNodes, const float* myInputData, vector<pair<int, StencilElem> > myStencils)
+{
+    for (int i = 0; i < numNodes; ++i)
+    {
+        colScratch[i] = myInputData[i];//precopy so that the parallel part doesn't have to worry about vertices that don't get dilated to
+    }
+    int numStencils = (int)myStencils.size();
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int i = 0; i < numStencils; ++i)//does parallel help here?
+    {
+        const int& node = myStencils[i].first;
+        const StencilElem& stencil = myStencils[i].second;
+        int numWeights = (int)stencil.m_weightlist.size();
+        if (numWeights > 0)
+        {
+            double accum = 0.0;
+            for (int j = 0; j < numWeights; ++j)
             {
-                if (markArray[i] == 0)
+                accum += myInputData[stencil.m_weightlist[j].first] * stencil.m_weightlist[j].second;
+            }
+            colScratch[node] = accum / stencil.m_weightsum;
+        } else {
+            colScratch[node] = 0.0f;
+        }
+    }
+}
+
+void AlgorithmMetricDilate::processColumn(float* colScratch, const float* myInputData, const SurfaceFile* mySurf, const float* myAreas, const MetricFile* dataRoi,
+                                          const float& distance, const bool& nearest, const float& exponent)
+{
+    float cutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
+    if (test > 1.0f && test < cutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
+    {
+        if (test > 1.1f)
+        {
+            cutoffRatio = test;
+        } else {
+            cutoffRatio = 1.1f;
+        }
+    }
+    int numNodes = mySurf->getNumberOfNodes();
+    vector<char> charRoi(numNodes);
+    const float* dataRoiVals = NULL;
+    if (dataRoi != NULL)
+    {
+        dataRoiVals = dataRoi->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (dataRoiVals[i] > 0.0f && myInputData[i] != 0.0f)
+            {
+                charRoi[i] = 1;
+            } else {
+                charRoi[i] = 0;
+            }
+        }
+    } else {
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (myInputData[i] != 0.0f)
+            {
+                charRoi[i] = 1;
+            } else {
+                charRoi[i] = 0;
+            }
+        }
+    }
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if ((dataRoiVals == NULL || dataRoiVals[i] > 0.0f) && myInputData[i] == 0.0f)
+            {
+                float closestDist;
+                int closestNode = myGeoHelp->getClosestNodeInRoi(i, charRoi.data(), distance, closestDist);
+                if (closestNode == -1)//check neighbors, to ensure we dilate by at least one node everywhere
                 {
-                    vector<int32_t> nodeList;
+                    const vector<int32_t>& nodeList = myTopoHelp->getNodeNeighbors(i);
                     vector<float> distList;
-                    myGeoHelp->getNodesToGeoDist(i, distance, nodeList, distList);//TODO: replace this with a "find closest in ROI within distance" function
-                    int numInRange = (int)nodeList.size();
-                    float tempDist = -1.0f;
-                    int closestNode = -1;
+                    myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                    const int numInRange = (int)nodeList.size();
                     for (int j = 0; j < numInRange; ++j)
                     {
-                        if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
+                        if (charRoi[nodeList[j]] != 0 && (closestNode == -1 || distList[j] < closestDist))
                         {
                             closestNode = nodeList[j];
-                            tempDist = distList[j];
+                            closestDist = distList[j];
                         }
                     }
-                    if (closestNode == -1)//check if any neighbors are in-roi, to make sure we dilate by at least 1 node everywhere
-                    {
-                        nodeList = myTopoHelp->getNodeNeighbors(i);
-                        nodeList.push_back(i);
-                        myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
-                        numInRange = (int)nodeList.size();
-                        for (int j = 0; j < numInRange; ++j)
-                        {
-                            if (markArray[nodeList[j]] == 1 && (closestNode == -1 || distList[j] < tempDist))
-                            {
-                                closestNode = nodeList[j];
-                                tempDist = distList[j];
-                            }
-                        }
-                    }
+                }
+                if (closestNode == -1)
+                {
+                    colScratch[i] = 0.0f;
+                } else {
                     if (nearest)
                     {
-                        if (closestNode != -1)
-                        {
-                            colScratch[i] = myInputData[closestNode];
-                        } else {
-                            colScratch[i] = 0.0f;
-                        }
+                        colScratch[i] = myInputData[closestNode];
                     } else {
-                        if (tempDist * cutoffRatio > distance)
-                        {
-                            myGeoHelp->getNodesToGeoDist(i, tempDist * cutoffRatio, nodeList, distList);
-                        }
+                        vector<int32_t> nodeList;
+                        vector<float> distList;
+                        myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);
+                        int numInRange = (int)nodeList.size();
                         float totalWeight = 0.0f, weightedSum = 0.0f;
                         for (int j = 0; j < numInRange; ++j)
                         {
-                            if (markArray[nodeList[j]] == 1)
+                            if (charRoi[nodeList[j]] != 0)
                             {
                                 float weight;
-                                const float tolerance = 0.00001f;
-                                float divdist = distList[j] / tempDist;
-                                if (divdist > tolerance)
+                                const float tolerance = 0.9f;//distances should NEVER be less than closestDist, for obvious reasons
+                                float divdist = distList[j] / closestDist;
+                                if (divdist > tolerance)//tricky: if closestDist is zero, this filters between NaN and inf, resulting in a straight average between nodes with 0 distance
                                 {
                                     weight = myAreas[nodeList[j]] / pow(divdist, exponent);
                                 } else {
@@ -356,12 +363,210 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                             colScratch[i] = 0.0f;
                         }
                     }
+                }
+            } else {
+                colScratch[i] = myInputData[i];
+            }
+        }
+    }
+}
+
+void AlgorithmMetricDilate::precomputeStencils(vector<pair<int, StencilElem> >& myStencils, const SurfaceFile* mySurf, const float* myAreas,
+                                               const MetricFile* badNodeRoi, const MetricFile* dataRoi,
+                                               const float& distance, const float& exponent)
+{
+    CaretAssert(badNodeRoi != NULL);//because it should never be called if we don't know exactly what nodes we are replacing
+    const float* badNodeData = badNodeRoi->getValuePointerForColumn(0);
+    float cutoffRatio = 1.5f, test = pow(10.0f, 1.0f / exponent);//find what cutoff ratio corresponds to a tenth of weight, but don't use more than a 1.5 * nearest cutoff
+    if (test > 1.0f && test < cutoffRatio)//if it is less than 1, the exponent is weird, so simply ignore it and use default
+    {
+        if (test > 1.1f)
+        {
+            cutoffRatio = test;
+        } else {
+            cutoffRatio = 1.1f;
+        }
+    }
+    int numNodes = mySurf->getNumberOfNodes();
+    vector<char> charRoi(numNodes);
+    const float* dataRoiVals = NULL;
+    int badCount = 0;
+    if (dataRoi != NULL)
+    {
+        dataRoiVals = dataRoi->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (!(badNodeData[i] > 0.0f))//in case some clown uses NaN as "bad" in the ROI
+            {
+                if (dataRoiVals[i] > 0.0f)
+                {
+                    charRoi[i] = 1;
                 } else {
-                    colScratch[i] = myInputData[i];
+                    charRoi[i] = 0;
+                }
+            } else {
+                ++badCount;
+                charRoi[i] = 0;
+            }
+        }
+    } else {
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (!(badNodeData[i] > 0.0f))
+            {
+                charRoi[i] = 1;
+            } else {
+                ++badCount;
+                charRoi[i] = 0;
+            }
+        }
+    }
+    myStencils.resize(badCount);//initializes all stencils to have empty lists
+    badCount = 0;
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (badNodeData[i] > 0.0f)
+            {
+                int myIndex;
+#pragma omp critical
+                {
+                    myIndex = badCount;
+                    ++badCount;
+                }
+                myStencils[myIndex].first = i;
+                StencilElem& myElem = myStencils[myIndex].second;
+                float closestDist;
+                int closestNode = myGeoHelp->getClosestNodeInRoi(i, charRoi.data(), distance, closestDist);
+                if (closestNode == -1)//check neighbors, to ensure we dilate by at least one node everywhere
+                {
+                    const vector<int32_t>& nodeList = myTopoHelp->getNodeNeighbors(i);
+                    vector<float> distList;
+                    myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                    const int numInRange = (int)nodeList.size();
+                    for (int j = 0; j < numInRange; ++j)
+                    {
+                        if (charRoi[nodeList[j]] != 0 && (closestNode == -1 || distList[j] < closestDist))
+                        {
+                            closestNode = nodeList[j];
+                            closestDist = distList[j];
+                        }
+                    }
+                }
+                if (closestNode != -1)
+                {
+                    vector<int32_t> nodeList;
+                    vector<float> distList;
+                    myGeoHelp->getNodesToGeoDist(i, closestDist * cutoffRatio, nodeList, distList);
+                    int numInRange = (int)nodeList.size();
+                    myElem.m_weightsum = 0.0f;
+                    for (int j = 0; j < numInRange; ++j)
+                    {
+                        if (charRoi[nodeList[j]] != 0)
+                        {
+                            float weight;
+                            const float tolerance = 0.9f;//distances should NEVER be less than closestDist, for obvious reasons
+                            float divdist = distList[j] / closestDist;
+                            if (divdist > tolerance)//tricky: if closestDist is zero, this filters between NaN and inf, resulting in a straight average between nodes with 0 distance
+                            {
+                                weight = myAreas[nodeList[j]] / pow(divdist, exponent);
+                            } else {
+                                weight = myAreas[nodeList[j]] / pow(tolerance, exponent);
+                            }
+                            myElem.m_weightsum += weight;
+                            myElem.m_weightlist.push_back(pair<int, float>(nodeList[j], weight));
+                        }
+                    }
+                    if (myElem.m_weightsum == 0.0f)//set list to empty instead of making NaNs
+                    {
+                        myElem.m_weightlist.clear();
+                    }
                 }
             }
         }
-        myMetricOut->setValuesForColumn(0, colScratch.getArray());
+    }
+}
+
+void AlgorithmMetricDilate::precomputeNearest(vector<pair<int, int> >& myNearest, const SurfaceFile* mySurf, const MetricFile* badNodeRoi, const MetricFile* dataRoi, const float& distance)
+{
+    CaretAssert(badNodeRoi != NULL);//because it should never be called if we don't know exactly what nodes we are replacing
+    const float* badNodeData = badNodeRoi->getValuePointerForColumn(0);
+    int numNodes = mySurf->getNumberOfNodes();
+    vector<char> charRoi(numNodes);
+    const float* dataRoiVals = NULL;
+    int badCount = 0;
+    if (dataRoi != NULL)
+    {
+        dataRoiVals = dataRoi->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (!(badNodeData[i] > 0.0f))//in case some clown uses NaN as "bad" in the ROI
+            {
+                if (dataRoiVals[i] > 0.0f)
+                {
+                    charRoi[i] = 1;
+                } else {
+                    charRoi[i] = 0;
+                }
+            } else {
+                ++badCount;
+                charRoi[i] = 0;
+            }
+        }
+    } else {
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (!(badNodeData[i] > 0.0f))
+            {
+                charRoi[i] = 1;
+            } else {
+                ++badCount;
+                charRoi[i] = 0;
+            }
+        }
+    }
+    myNearest.resize(badCount);
+    badCount = 0;
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (badNodeData[i] > 0.0f)
+            {
+                int myIndex;
+#pragma omp critical
+                {
+                    myIndex = badCount;
+                    ++badCount;
+                }
+                myNearest[myIndex].first = i;
+                float closestDist;
+                int closestNode = myGeoHelp->getClosestNodeInRoi(i, charRoi.data(), distance, closestDist);
+                if (closestNode == -1)//check neighbors, to ensure we dilate by at least one node everywhere
+                {
+                    const vector<int32_t>& nodeList = myTopoHelp->getNodeNeighbors(i);
+                    vector<float> distList;
+                    myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
+                    const int numInRange = (int)nodeList.size();
+                    for (int j = 0; j < numInRange; ++j)
+                    {
+                        if (charRoi[nodeList[j]] != 0 && (closestNode == -1 || distList[j] < closestDist))
+                        {
+                            closestNode = nodeList[j];
+                            closestDist = distList[j];
+                        }
+                    }
+                }
+                myNearest[myIndex].second = closestNode;
+            }
+        }
     }
 }
 
