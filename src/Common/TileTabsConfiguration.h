@@ -47,9 +47,6 @@ namespace caret {
     public:
         TileTabsConfiguration();
         
-//        TileTabsConfiguration(const int32_t numberOfRows,
-//                              const int32_t numberOfColumns);
-        
         virtual ~TileTabsConfiguration();
         
         TileTabsConfiguration(const TileTabsConfiguration& obj);
@@ -107,9 +104,6 @@ namespace caret {
     private:
         void copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj);
 
-//        void resizeStretchFactors(const int32_t numberOfRows,
-//                                  const int32_t numberOfColumns);
-        
         void parseVersionOneXML(QDomDocument& doc) throw (CaretException);
         
         void initialize();
@@ -118,7 +112,7 @@ namespace caret {
         
         AString m_name;
         
-        bool m_defaultConfigurationFlag = false;
+        bool m_defaultConfigurationFlag;
         
         /** Unique identifier does not get copied */
         AString m_uniqueIdentifier;

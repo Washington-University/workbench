@@ -52,20 +52,6 @@ using namespace caret;
  * \ingroup Common
  */
 
-///**
-// * Constructor that creates a 2 by 2 configuration.
-// */
-//TileTabsConfiguration::TileTabsConfiguration(const int32_t numberOfRows,
-//                                             const int32_t numberOfColumns)
-//: CaretObject()
-//{
-//    m_defaultConfigurationFlag = false;
-//    
-//    resizeStretchFactors(numberOfRows,
-//                         numberOfColumns);
-//    m_uniqueIdentifier = SystemUtilities::createUniqueID();
-//}
-
 /**
  * Constructor that creates a 2 by 2 configuration.
  */
@@ -299,27 +285,6 @@ TileTabsConfiguration::setRowStretchFactor(const int32_t rowIndex,
     m_rowStretchFactors[rowIndex] = stretchFactor;
     
 }
-
-///**
-// * Resize the stretch factors.
-// *
-// * @param numberOfRows
-// *     New number of rows.
-// * @param numberOfColumns
-// *     New number of columns.
-// */
-//void
-//TileTabsConfiguration::resizeStretchFactors(const int32_t numberOfRows,
-//                                            const int32_t numberOfColumns)
-//{
-//    CaretAssert(numberOfRows > 0);
-//    CaretAssert(numberOfColumns > 0);
-//    
-//    m_rowStretchFactors.resize(numberOfRows,
-//                               1.0);
-//    m_columnStretchFactors.resize(numberOfColumns,
-//                                  1.0);
-//}
 
 /**
  * @return Is this the default configuration?  Each browser window

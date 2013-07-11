@@ -108,15 +108,6 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
      */
     WuQDialog::adjustSizeOfDialogWithScrollArea(this,
                                                 m_stretchFactorScrollArea);
-//    int32_t contentHeight = m_stretchFactorWidget->sizeHint().height();
-//    int32_t scrollHeight = m_stretchFactorScrollArea->sizeHint().height();
-//    int32_t scrollBarHeight = m_stretchFactorScrollArea->horizontalScrollBar()->sizeHint().height();
-//    int32_t diff = (scrollHeight - (contentHeight + scrollBarHeight + 10));
-//    if (diff > 0) {
-//        int32_t dialogHeight = sizeHint().height() - diff;
-//        resize(sizeHint().width(),
-//               dialogHeight);
-//    }
 }
 
 /**
@@ -167,8 +158,6 @@ TileTabsConfigurationDialog::createConfigurationSelectionWidget()
     configurationLayout->setMargin(0);
     configurationLayout->addLayout(selectionLayout);
     configurationLayout->addLayout(buttonsLayout);
-//    configurationWidget->setSizePolicy(QSizePolicy::Fixed,
-//                                       QSizePolicy::Fixed);
     
     return configurationWidget;
 }
@@ -218,14 +207,7 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     m_stretchFactorWidget = new QWidget();
     QGridLayout* stretchFactorGridLayout = new QGridLayout(m_stretchFactorWidget);
     stretchFactorGridLayout->setSizeConstraint(QLayout::SetFixedSize);
-//    stretchFactorGridLayout->setRowStretch(10000, 100); // pushes items so space at bottom
-//    stretchFactorGridLayout->setColumnStretch(1000, 100);  // pushes items so space on right
     int row = 0;
-//    stretchFactorGridLayout->addWidget(stretchFactorLabel,
-//                                       row, 0,
-//                                       1, 3,
-//                                       Qt::AlignHCenter);
-//    row++;
     stretchFactorGridLayout->addWidget(indexLabel,
                                        row, GRID_LAYOUT_COLUMN_INDEX_FOR_LABELS,
                                        Qt::AlignHCenter);
