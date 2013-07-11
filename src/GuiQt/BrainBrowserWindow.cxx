@@ -118,7 +118,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     m_defaultTileTabsConfiguration = new TileTabsConfiguration();
     m_defaultTileTabsConfiguration->setDefaultConfiguration(true);
-    m_defaultTileTabsConfiguration->setName("All Tabs");
+    m_defaultTileTabsConfiguration->setName("All Tabs (Default)");
     m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
     
     GuiManager* guiManager = GuiManager::get();
