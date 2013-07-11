@@ -57,7 +57,19 @@ public:
         /** Group 3*/
         OVERLAY_YOKING_GROUP_3,
         /** Group 4 */
-        OVERLAY_YOKING_GROUP_4
+        OVERLAY_YOKING_GROUP_4,
+        /** Group 5 */
+        OVERLAY_YOKING_GROUP_5,
+        /** Group 6 */
+        OVERLAY_YOKING_GROUP_6,
+        /** Group 7 */
+        OVERLAY_YOKING_GROUP_7,
+        /** Group 8 */
+        OVERLAY_YOKING_GROUP_8,
+        /** Group 9 */
+        OVERLAY_YOKING_GROUP_9,
+        /** Group 10 */
+        OVERLAY_YOKING_GROUP_10
     };
 
 

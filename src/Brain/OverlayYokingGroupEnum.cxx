@@ -108,6 +108,30 @@ OverlayYokingGroupEnum::initialize()
                                     "OVERLAY_YOKING_GROUP_4", 
                                     "IV"));
     
+    enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_5,
+                                              "OVERLAY_YOKING_GROUP_5",
+                                              "V"));
+    
+    enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_6,
+                                              "OVERLAY_YOKING_GROUP_6",
+                                              "VI"));
+    
+    enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_7,
+                                              "OVERLAY_YOKING_GROUP_7",
+                                              "VII"));
+    
+    enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_8,
+                                              "OVERLAY_YOKING_GROUP_8",
+                                              "VIII"));
+    
+    enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_9,
+                                              "OVERLAY_YOKING_GROUP_9",
+                                              "IX"));
+    
+    enumData.push_back(OverlayYokingGroupEnum(OVERLAY_YOKING_GROUP_10,
+                                              "OVERLAY_YOKING_GROUP_10",
+                                              "X"));
+    
 }
 
 /**
