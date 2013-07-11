@@ -137,6 +137,8 @@ TileTabsConfigurationDialog::createConfigurationSelectionWidget()
                                                                         SLOT(configurationComboBoxItemSelected(int)));
     
     QHBoxLayout* selectionLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutMargins(selectionLayout,
+                                    0);
     selectionLayout->addWidget(configurationLabel, 0);
     selectionLayout->addWidget(m_configurationSelectionComboBox, 100);
     
@@ -155,7 +157,6 @@ TileTabsConfigurationDialog::createConfigurationSelectionWidget()
     
     QGroupBox* configurationWidget = new QGroupBox("Configuration Selection");
     QVBoxLayout* configurationLayout = new QVBoxLayout(configurationWidget);
-    configurationLayout->setMargin(0);
     configurationLayout->addLayout(selectionLayout);
     configurationLayout->addLayout(buttonsLayout);
     
@@ -187,6 +188,8 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
                                                                           SLOT(numberOfRowsOrColumnsChanged()));
     QWidget* numberOfWidget = new QWidget();
     QGridLayout* numberOfGridLayout = new QGridLayout(numberOfWidget);
+    WuQtUtilities::setLayoutMargins(numberOfGridLayout,
+                                    0);
     numberOfGridLayout->addWidget(rowsLabel,
                                   0, 0);
     numberOfGridLayout->addWidget(m_numberOfRowsSpinBox,
@@ -206,6 +209,8 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     
     m_stretchFactorWidget = new QWidget();
     QGridLayout* stretchFactorGridLayout = new QGridLayout(m_stretchFactorWidget);
+    WuQtUtilities::setLayoutMargins(stretchFactorGridLayout,
+                                    0);
     stretchFactorGridLayout->setSizeConstraint(QLayout::SetFixedSize);
     int row = 0;
     stretchFactorGridLayout->addWidget(indexLabel,
@@ -269,7 +274,6 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     
     QGroupBox* widget = new QGroupBox("Edit Configuration");
     QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
-    widgetLayout->setMargin(0);
     widgetLayout->addWidget(numberOfWidget,
                             0);
     widgetLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),

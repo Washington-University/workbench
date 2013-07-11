@@ -143,6 +143,9 @@ namespace caret {
                                      const int spacing,
                                      const int contentsMargin);
         
+        static void setLayoutMargins(QLayout* layout,
+                                     const int contentsMargin);
+        
         static QSize estimateTableWidgetSize(QTableWidget* tableWidget);
         
         static QSize getMinimumScreenSize();

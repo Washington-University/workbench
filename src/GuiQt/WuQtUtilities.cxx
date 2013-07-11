@@ -846,8 +846,8 @@ WuQtUtilities::matchWidgetWidths(QWidget* w1,
  * @param layout
  *     Layout that has margins and spacings set.
  * @param spacing
- *     Spacing between widgets in layout.
- * @param margin
+ *     Spacing between widgets within layout.
+ * @param contentsMargin
  *     Margin around the layout.
  */
 void 
@@ -861,6 +861,23 @@ WuQtUtilities::setLayoutSpacingAndMargins(QLayout* layout,
                                contentsMargin,
                                contentsMargin);
 }
+
+/**
+ * Set the content margins around a layout.
+ *
+ * @param contentsMargin
+ *    Margin around the layout.
+ */
+void
+WuQtUtilities::setLayoutMargins(QLayout* layout,
+                             const int contentsMargin)
+{
+    layout->setContentsMargins(contentsMargin,
+                               contentsMargin,
+                               contentsMargin,
+                               contentsMargin);
+}
+
 
 /**
  * @return The minimum size (width/height) of all screens.
