@@ -1029,8 +1029,16 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
         for (int32_t i = 0; i < numNonModalDialogs; i++) {
             QWidget* d = this->nonModalDialogs[i];
             if (d->parent() == closingBrainBrowserWindow) {
+                const bool wasVisible = d->isVisible();
+                const QPoint globalPos = d->pos();
                 d->setParent(firstBrainBrowserWindow, d->windowFlags());
-                d->hide();
+                d->move(globalPos);
+                if (wasVisible) {
+                    d->show();
+                }
+                else {
+                    d->hide();
+                }
             }
         }
     }
