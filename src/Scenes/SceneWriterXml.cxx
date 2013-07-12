@@ -49,6 +49,7 @@
 #include "ScenePrimitiveArray.h"
 #include "SceneXmlElements.h"
 #include "XmlAttributes.h"
+#include "XmlUtilities.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -149,7 +150,7 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
     attributes.addAttribute(SceneXmlElements::OBJECT_CLASS_ATTRIBUTE, 
                             sceneClass.getClassName());
     attributes.addAttribute(SceneXmlElements::OBJECT_NAME_ATTRIBUTE, 
-                            sceneClass.getName());
+                            XmlUtilities::encodeXmlSpecialCharacters(sceneClass.getName()));
     attributes.addAttribute(SceneXmlElements::OBJECT_VERSION_ATTRIBUTE, 
                             sceneClass.getVersionNumber());
     m_xmlWriter.writeStartElement(SceneXmlElements::OBJECT_TAG,
