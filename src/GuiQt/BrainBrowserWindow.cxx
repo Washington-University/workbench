@@ -242,11 +242,21 @@ BrainBrowserWindow::resetGraphicsWidgetMinimumSize()
 }
 
 void
-BrainBrowserWindow::setGraphicsWidgetFixedSize(const int x,
-                                               const int y)
+BrainBrowserWindow::setGraphicsWidgetFixedSize(const int32_t width,
+                                               const int32_t height)
 {
-    m_openGLWidget->setFixedSize(x, y);
+    m_openGLWidget->setFixedSize(width,
+                                 height);
 }
+
+void
+BrainBrowserWindow::getGraphicsWidgetSize(int32_t& widthOut,
+                                          int32_t& heightOut) const
+{
+    widthOut  = m_openGLWidget->width();
+    heightOut = m_openGLWidget->height();
+}
+
 
 
 /**

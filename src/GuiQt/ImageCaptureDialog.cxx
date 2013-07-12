@@ -47,6 +47,8 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventManager.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
@@ -95,6 +97,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     this->windowSelectionSpinBox->setSingleStep(1);
     this->windowSelectionSpinBox->setValue(parent->getBrowserWindowIndex() + 1);
     this->windowSelectionSpinBox->setFixedWidth(60);
+    QObject::connect(this->windowSelectionSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
     
     QGroupBox* imageSourceGroupBox = new QGroupBox("Image Source");
     QGridLayout* imageSourceLayout = new QGridLayout(imageSourceGroupBox);
@@ -106,6 +110,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     
     /*
      * Image Size
+     * Note: Label is updated when window size is updated
      */
     this->imageSizeWindowRadioButton = new QRadioButton("Size of Window");
     this->imageSizeCustomRadioButton = new QRadioButton("Custom");
@@ -125,7 +130,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     this->imageSizeCustomYSpinBox->setValue(2048);
     QGroupBox* imageSizeGroupBox = new QGroupBox("Image Size");
     QGridLayout* imageSizeLayout = new QGridLayout(imageSizeGroupBox);
-    imageSizeLayout->addWidget(this->imageSizeWindowRadioButton, 0, 0, 1, 3);
+    imageSizeLayout->addWidget(this->imageSizeWindowRadioButton, 0, 0, 1, 4);
     imageSizeLayout->addWidget(this->imageSizeCustomRadioButton, 1, 0);
     imageSizeLayout->addWidget(this->imageSizeCustomXSpinBox, 1, 1);
     imageSizeLayout->addWidget(this->imageSizeCustomYSpinBox, 1, 2);
@@ -191,6 +196,9 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     CaretAssert(applyButton);
     applyButton->setAutoDefault(true);
     applyButton->setDefault(true);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
+    updateBrowserWindowWidthAndHeightLabel();
 }
 
 /**
@@ -198,7 +206,56 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
  */
 ImageCaptureDialog::~ImageCaptureDialog()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+ImageCaptureDialog::receiveEvent(Event* event)
+{
+    AString windowSizeText = "";
     
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN) {
+        EventBrowserWindowGraphicsRedrawn* graphicsRedrawnEvent =
+        dynamic_cast<EventBrowserWindowGraphicsRedrawn*>(event);
+        CaretAssert(graphicsRedrawnEvent);
+        graphicsRedrawnEvent->setEventProcessed();
+        
+        updateBrowserWindowWidthAndHeightLabel();
+    }
+}
+
+/**
+ * Update the radio containing the size of the window.
+ */
+void
+ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
+{
+    AString windowSizeText = "Size of Window";
+    
+    const int selectedBrowserWindowIndex = this->windowSelectionSpinBox->value() - 1;
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
+    
+    if (browserWindow != NULL) {
+        int32_t width, height;
+        browserWindow->getGraphicsWidgetSize(width,
+                                             height);
+        windowSizeText += (" ("
+                           + AString::number(width)
+                           + ", "
+                           + AString::number(height)
+                           + ")");
+    }
+    else {
+        windowSizeText += (" (Invalid Window Number)");
+    }
+    
+    imageSizeWindowRadioButton->setText(windowSizeText);
 }
 
 /**
@@ -207,7 +264,7 @@ ImageCaptureDialog::~ImageCaptureDialog()
 void 
 ImageCaptureDialog::updateDialog()
 {
-    
+    updateBrowserWindowWidthAndHeightLabel();
 }
 
 /**

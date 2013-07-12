@@ -115,8 +115,11 @@ namespace caret {
         
         void resetGraphicsWidgetMinimumSize();
         
-        void setGraphicsWidgetFixedSize(const int x,
-                                        const int y);
+        void setGraphicsWidgetFixedSize(const int32_t width,
+                                        const int32_t height);
+        
+        void getGraphicsWidgetSize(int32_t& widthOut,
+                                   int32_t& heightOut) const;
         
     protected:
         void closeEvent(QCloseEvent* event);

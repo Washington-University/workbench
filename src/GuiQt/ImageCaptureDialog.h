@@ -25,10 +25,11 @@
  * 
  */ 
 
-
+#include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
+class QLabel;
 class QLineEdit;
 class QRadioButton;
 class QSpinBox;
@@ -39,7 +40,7 @@ namespace caret {
     class BrainBrowserWindow;
     class WuQWidgetObjectGroup;
     
-    class ImageCaptureDialog : public WuQDialogNonModal {
+    class ImageCaptureDialog : public WuQDialogNonModal, public EventListenerInterface {
         Q_OBJECT
         
     public:
@@ -51,18 +52,21 @@ namespace caret {
         
         void updateDialog();
         
+        void receiveEvent(Event* event);
+        
     protected:
         virtual void applyButtonPressed();
         
     private slots:
         void selectImagePushButtonPressed();
         
+        void updateBrowserWindowWidthAndHeightLabel();
+        
     private:
         ImageCaptureDialog(const ImageCaptureDialog&);
 
         ImageCaptureDialog& operator=(const ImageCaptureDialog&);
         
-
         QCheckBox* saveImageToFileCheckBox;
         QCheckBox* copyImageToClipboardCheckBox;
         QLineEdit* imageFileNameLineEdit;
