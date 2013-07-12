@@ -276,46 +276,24 @@ BrainOpenGLWidget::paintGL()
         std::vector<int32_t> rowHeights;
         std::vector<int32_t> columnsWidths;
         
+        /*
+         * Determine if default configuration for tiles
+         */
         bool defaultTabsLayout = true;
         const TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
         if (tileTabsConfiguration != NULL) {
             if (tileTabsConfiguration->isDefaultConfiguration() == false) {
-                numRows = tileTabsConfiguration->getNumberOfRows();
-                numCols = tileTabsConfiguration->getNumberOfColumns();
                 defaultTabsLayout = false;
-                
-                /*
-                 * Determine height of each row
-                 */
-                float rowStretchTotal = 0.0;
-                for (int32_t i = 0; i < numRows; i++) {
-                    rowStretchTotal += tileTabsConfiguration->getRowStretchFactor(i);
-                }
-                CaretAssert(rowStretchTotal > 0.0);
-                for (int32_t i = 0; i < numRows; i++) {
-                    const int32_t h = static_cast<int32_t>(0.5 + ((tileTabsConfiguration->getRowStretchFactor(i) / rowStretchTotal)
-                                                                  * windowHeight));
-                    
-                    rowHeights.push_back(h);
-                }
-                
-                /*
-                 * Determine width of each column
-                 */
-                float columnStretchTotal = 0.0;
-                for (int32_t i = 0; i < numCols; i++) {
-                    columnStretchTotal += tileTabsConfiguration->getColumnStretchFactor(i);
-                }
-                CaretAssert(columnStretchTotal > 0.0);
-                for (int32_t i = 0; i < numCols; i++) {
-                    const int32_t w = static_cast<int32_t>(0.5 + ((tileTabsConfiguration->getColumnStretchFactor(i) / columnStretchTotal)
-                                                                  * windowWidth));
-                    columnsWidths.push_back(w);
-                }
-                
             }
         }
         
+        /*
+         * NOTE: When computing widths and heights, do not round.
+         * Rounding may cause the bottom most row or column to extend
+         * outside the graphics region.  Shrinking the last row or 
+         * column is not desired since it might cause the last model
+         * to be drawn slightly smaller than the others.
+         */
         if (defaultTabsLayout) {
             /**
              * Determine the number of rows and columns for the montage.
@@ -339,34 +317,80 @@ BrainOpenGLWidget::paintGL()
                 columnsWidths.push_back(windowWidth / numCols);
             }
         }
+        else {
+            /*
+             * Rows/columns from user configuration
+             */
+            numRows = tileTabsConfiguration->getNumberOfRows();
+            numCols = tileTabsConfiguration->getNumberOfColumns();
+            
+            /*
+             * Determine height of each row
+             */
+            float rowStretchTotal = 0.0;
+            for (int32_t i = 0; i < numRows; i++) {
+                rowStretchTotal += tileTabsConfiguration->getRowStretchFactor(i);
+            }
+            CaretAssert(rowStretchTotal > 0.0);
+            for (int32_t i = 0; i < numRows; i++) {
+                const int32_t h = static_cast<int32_t>((tileTabsConfiguration->getRowStretchFactor(i) / rowStretchTotal)
+                                                              * windowHeight);
+                
+                rowHeights.push_back(h);
+            }
+            
+            /*
+             * Determine width of each column
+             */
+            float columnStretchTotal = 0.0;
+            for (int32_t i = 0; i < numCols; i++) {
+                columnStretchTotal += tileTabsConfiguration->getColumnStretchFactor(i);
+            }
+            CaretAssert(columnStretchTotal > 0.0);
+            for (int32_t i = 0; i < numCols; i++) {
+                const int32_t w = static_cast<int32_t>((tileTabsConfiguration->getColumnStretchFactor(i) / columnStretchTotal)
+                                                              * windowWidth);
+                columnsWidths.push_back(w);
+            }
+        }
+        
         CaretAssert(numCols == static_cast<int32_t>(columnsWidths.size()));
         CaretAssert(numRows == static_cast<int32_t>(rowHeights.size()));
-        
+
         /*
-         * Adjust height of last row so that it does not extend beyond viewport
+         * Verify all rows fit within the window
          */
         int32_t rowHeightsSum = 0;
-        for (int32_t i = 0; i < (numRows - 1); i++) {
+        for (int32_t i = 0; i < numRows; i++) {
             rowHeightsSum += rowHeights[i];
         }
-        rowHeights[numRows - 1] = windowHeight - rowHeightsSum;
+        if (rowHeightsSum > windowHeight) {
+            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+            rowHeights[numRows - 1] -= (rowHeightsSum - windowHeight);
+        }
         
         /*
          * Adjust width of last column so that it does not extend beyond viewport
          */
         int32_t columnWidthsSum = 0;
-        for (int32_t i = 0; i < (numCols - 1); i++) {
+        for (int32_t i = 0; i < numCols; i++) {
             columnWidthsSum += columnsWidths[i];
         }
-        columnsWidths[numCols - 1] = windowWidth - columnWidthsSum;
+        if (columnWidthsSum > windowWidth) {
+            CaretLogSevere("PROGRAM ERROR: Tile Tabs total row heights exceed window height");
+            columnsWidths[numCols - 1] = columnWidthsSum - windowWidth;
+        }
+        
+        CaretLogFiner("Tile Tabs Row Heights: "
+                       + AString::fromNumbers(rowHeights, ", "));
+        CaretLogFiner("Tile Tabs Column Widths: "
+                       + AString::fromNumbers(columnsWidths, ", "));
         
         /*
          * Arrange models left-to-right and top-to-bottom.
          */
         int32_t vpX = 0;
         int32_t vpY = this->windowHeight[this->windowIndex];
-//        const int32_t vpWidth = this->windowWidth[this->windowIndex] / numCols;
-//        const int32_t vpHeight = this->windowHeight[this->windowIndex] / numRows;
         
         int32_t iModel = 0;
         for (int32_t i = 0; i < numRows; i++) {
