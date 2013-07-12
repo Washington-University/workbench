@@ -73,6 +73,7 @@ int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const int& myMapIndex) cons
     {
         return -1;
     }
+    if (m_root.m_matrices[0].m_volume.size() == 0) return -1;
     const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
     if (ijk[0] < 0 || ijk[0] >= (int64_t)myVol.m_volumeDimensions[0]) return -1;//some shortcuts to not search all the voxels on invalid coords
     if (ijk[1] < 0 || ijk[1] >= (int64_t)myVol.m_volumeDimensions[1]) return -1;
