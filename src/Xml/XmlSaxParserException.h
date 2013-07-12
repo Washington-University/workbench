@@ -52,27 +52,29 @@ namespace caret {
         
         XmlSaxParserException& operator=(const XmlSaxParserException& e);
         
+        virtual AString whatString() const throw();
+        
         virtual ~XmlSaxParserException() throw();
         
         /**
          * Get the line number of the parsing exception.
          * @return Line Number of parsing exception.
          */
-        int32_t getLineNumber() const { return lineNumber; }
+        int32_t getLineNumber() const { return m_lineNumber; }
         
         /**
          * Get the column number of the parsing exception.
          * @return Column Number of parsing exception.
          */
-        int32_t getColumnNumber() const { return columnNumber; }
+        int32_t getColumnNumber() const { return m_columnNumber; }
         
     private:
         
         void initializeMembersXmlSaxParserException();
         
-        int32_t lineNumber;
+        int32_t m_lineNumber;
         
-        int32_t columnNumber;
+        int32_t m_columnNumber;
     };
     
 } // namespace

@@ -66,8 +66,8 @@ XmlSaxParserException::XmlSaxParserException(const AString& s,
 : CaretException(s)
 {
     this->initializeMembersXmlSaxParserException();
-    this->lineNumber = lineNumber;
-    this->columnNumber = columnNumber;
+    m_lineNumber = lineNumber;
+    m_columnNumber = columnNumber;
 }
 
 /**
@@ -95,6 +95,8 @@ XmlSaxParserException::XmlSaxParserException(const AString& s)
 XmlSaxParserException::XmlSaxParserException(const XmlSaxParserException& e)
 : CaretException(e)
 {
+    m_lineNumber = e.m_lineNumber;
+    m_columnNumber = e.m_columnNumber;
 }
 
 /**
@@ -110,6 +112,8 @@ XmlSaxParserException::operator=(const XmlSaxParserException& e)
     if (this != &e) {
         CaretException::operator=(e);
     }
+    m_lineNumber = e.m_lineNumber;
+    m_columnNumber = e.m_columnNumber;
     
     return *this;
 }
@@ -124,7 +128,27 @@ XmlSaxParserException::~XmlSaxParserException() throw()
 void
 XmlSaxParserException::initializeMembersXmlSaxParserException()
 {
-    this->lineNumber = -1;
-    this->columnNumber = -1;
+    m_lineNumber = -1;
+    m_columnNumber = -1;
 }
+
+/**
+ * Get a message describing the exception.
+ * @return A message describing the exception.
+ */
+AString
+XmlSaxParserException::whatString() const throw()
+{
+    AString s = CaretException::whatString();
+    if (m_lineNumber >= 0) {
+        s += (" line number: "
+              + AString::number(m_lineNumber));
+    }
+    if (m_columnNumber >= 0) {
+        s += (" column number: "
+              + AString::number(m_columnNumber));
+    }
+    return s;
+}
+
 
