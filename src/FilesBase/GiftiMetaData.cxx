@@ -116,6 +116,8 @@ GiftiMetaData::getUniqueID() const
     }
     else {
         uid = SystemUtilities::createUniqueID();
+        this->metadata.insert(std::make_pair(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+                                             uid));
     }
     
     return uid;
