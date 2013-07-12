@@ -190,6 +190,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(selectedTabChanged(int)));
     QObject::connect(this->tabBar, SIGNAL(tabCloseRequested(int)),
                      this, SLOT(tabClosed(int)));
+    QObject::connect(this->tabBar, SIGNAL(tabMoved(int,int)),
+                     this, SLOT(tabMoved(int,int)));
     
     /*
      * Actions at right side of toolbar
@@ -1148,6 +1150,12 @@ BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting()
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
+/**
+ * Called when a tab has been closed.
+ *
+ * @param tabIndex
+ *    Index of tab that was moved.
+ */
 void
 BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 {
@@ -1159,6 +1167,20 @@ BrainBrowserWindowToolBar::tabClosed(int tabIndex)
         this->updateToolBox();
         emit viewedModelChanged();
     }
+}
+
+/**
+ * Called when a tab has been moved.
+ *
+ * @param from
+ *    Previous location of tab.
+ * @param to
+ *    New location of tab.
+ */
+void
+BrainBrowserWindowToolBar::tabMoved(int /*from*/, int /*to*/)
+{
+    this->updateGraphicsWindow();
 }
 
 /**

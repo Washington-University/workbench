@@ -232,6 +232,7 @@ namespace caret {
     private slots:
         void selectedTabChanged(int indx);
         void tabClosed(int index);
+        void tabMoved(int, int);
         
     private:
         void insertTabAtIndex(BrowserTabContent* browserTabContent,
