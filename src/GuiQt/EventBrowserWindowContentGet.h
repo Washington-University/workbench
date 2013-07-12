@@ -58,10 +58,16 @@ namespace caret {
         
         void setTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration);
         
+        BrowserTabContent* getSelectedBrowserTabContent();
+        
+        void setSelectedBrowserTabContent(BrowserTabContent* browserTabContent);
+        
     private:
         EventBrowserWindowContentGet(const EventBrowserWindowContentGet&);
         
         EventBrowserWindowContentGet& operator=(const EventBrowserWindowContentGet&);
+        
+        BrowserTabContent* m_selectedBrowserTabContent;
         
         /** index of browswer window */
         int32_t m_browserWindowIndex;

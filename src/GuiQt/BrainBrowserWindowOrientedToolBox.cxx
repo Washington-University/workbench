@@ -568,9 +568,14 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool enableVolumeSurfaceOutline = false;
         EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
-        const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
-        if (numItemsInWindow == 1) {
-            BrowserTabContent* windowContent = browserContentEvent.getTabContentToDraw(0);
+        //const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
+        BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
+//        if (numItemsInWindow =
+//            windowContent = browserContentEvent.getTabContentToDraw(0);
+//        }
+//        else if (numItemsInWindow > 1) {
+////            const int tabIndex =browserContentEvent.get
+//        }
             if (windowContent != NULL) {
                 switch (windowContent->getSelectedModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
@@ -591,7 +596,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         break;
                 }
             }
-        }
         
         /*
          * Enable/disable Tabs based upon data that is loaded

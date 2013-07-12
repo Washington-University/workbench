@@ -44,6 +44,7 @@ EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browser
     m_browserWindowIndex = browserWindowIndex;
     m_tabIndexForTileTabsHighlighting = -1;
     m_tileTabsConfiguration = NULL;
+    m_selectedBrowserTabContent = NULL;
 }
 
 /*
@@ -138,5 +139,27 @@ EventBrowserWindowContentGet::setTileTabsConfiguration(TileTabsConfiguration* ti
 {
     m_tileTabsConfiguration = tileTabsConfiguration;
 }
+
+/**
+ * @return The selected browser tab content.  May be NULL.
+ */
+BrowserTabContent*
+EventBrowserWindowContentGet::getSelectedBrowserTabContent()
+{
+    return m_selectedBrowserTabContent;
+}
+
+/**
+ * Set the selected browser tab content.
+ *
+ * @param browserTabContent
+ *     The selected browser tab content.
+ */
+void
+EventBrowserWindowContentGet::setSelectedBrowserTabContent(BrowserTabContent* browserTabContent)
+{
+    m_selectedBrowserTabContent = browserTabContent;
+}
+
 
 

@@ -4282,6 +4282,8 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
                     getModelEvent->addTabContentToDraw(btc);
                 }
+                
+                getModelEvent->setSelectedBrowserTabContent(this->getTabContentFromSelectedTab());
             }
             getModelEvent->setEventProcessed();
         }
