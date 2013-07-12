@@ -111,6 +111,8 @@ namespace caret {
         
         TileTabsConfiguration* getSelectedTileTabsConfiguration();
         
+        void setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);

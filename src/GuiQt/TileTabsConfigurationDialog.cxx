@@ -210,7 +210,7 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
     m_stretchFactorWidget = new QWidget();
     QGridLayout* stretchFactorGridLayout = new QGridLayout(m_stretchFactorWidget);
     WuQtUtilities::setLayoutMargins(stretchFactorGridLayout,
-                                    0);
+                                    2);
     stretchFactorGridLayout->setSizeConstraint(QLayout::SetFixedSize);
     int row = 0;
     stretchFactorGridLayout->addWidget(indexLabel,
@@ -298,18 +298,34 @@ TileTabsConfigurationDialog::createEditConfigurationWidget()
 void
 TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBrowserWindow* brainBrowserWindow)
 {
+    CaretAssert(brainBrowserWindow);
+    m_brainBrowserWindow = brainBrowserWindow;
+    
     m_caretPreferences->readTileTabsConfigurations();
     
-    if (brainBrowserWindow != NULL) {
-        if (brainBrowserWindow->isTileTabsSelected()) {
-            TileTabsConfiguration* configuration = brainBrowserWindow->getSelectedTileTabsConfiguration();
-            if (configuration != NULL) {
-                selectTileTabConfigurationByUniqueID(configuration->getUniqueIdentifier());
-            }
+    if (m_brainBrowserWindow->isTileTabsSelected()) {
+        TileTabsConfiguration* configuration = m_brainBrowserWindow->getSelectedTileTabsConfiguration();
+        if (configuration != NULL) {
+            selectTileTabConfigurationByUniqueID(configuration->getUniqueIdentifier());
         }
     }
     
     updateDialog();
+}
+
+/**
+ * Update the tile tabs configuration in the brain browser window if
+ * the browser window has tile tabs enabled.
+ */
+void
+TileTabsConfigurationDialog::updateBrowserWindowsTileTabsConfigurationSelection()
+{
+    if (m_brainBrowserWindow != NULL) {
+        if (m_brainBrowserWindow->isTileTabsSelected()) {
+            m_brainBrowserWindow->setSelectedTileTabsConfiguration(getSelectedTileTabsConfiguration());
+            updateGraphicsWindows();
+        }
+    }
 }
 
 /**
@@ -351,7 +367,7 @@ TileTabsConfigurationDialog::updateDialog()
     }
     if (defaultIndex < m_configurationSelectionComboBox->count()) {
         m_configurationSelectionComboBox->setCurrentIndex(defaultIndex);
-        configurationComboBoxItemSelected(defaultIndex);
+        selectConfigurationFromComboBoxIndex(defaultIndex);
     }
     
     m_configurationSelectionComboBox->blockSignals(false);
@@ -428,7 +444,7 @@ TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString&
                                                                           Qt::UserRole).toString();
         if (itemID == uniqueID) {
             m_configurationSelectionComboBox->setCurrentIndex(i);
-            configurationComboBoxItemSelected(i);
+            selectConfigurationFromComboBoxIndex(i);
             break;
         }
     }
@@ -442,6 +458,19 @@ TileTabsConfigurationDialog::selectTileTabConfigurationByUniqueID(const AString&
  */
 void
 TileTabsConfigurationDialog::configurationComboBoxItemSelected(int indx)
+{
+    selectConfigurationFromComboBoxIndex(indx);
+    updateBrowserWindowsTileTabsConfigurationSelection();
+}
+
+/**
+ * Select the configuration at the given index from the configuration combo box.
+ *
+ * @param indx
+ *    Index of item for selection.
+ */
+void
+TileTabsConfigurationDialog::selectConfigurationFromComboBoxIndex(int indx)
 {
     if ((indx >= 0)
         && (indx < m_configurationSelectionComboBox->count())) {
@@ -531,6 +560,7 @@ TileTabsConfigurationDialog::newConfigurationButtonClicked()
     if (configurationUniqueID.isEmpty() == false) {
         updateDialog();
         selectTileTabConfigurationByUniqueID(configurationUniqueID);
+        updateBrowserWindowsTileTabsConfigurationSelection();
     }
 }
 
@@ -549,6 +579,7 @@ TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
                                         msg)) {
             m_caretPreferences->removeTileTabsConfigurationByUniqueIdentifier(configuration->getUniqueIdentifier());
             updateDialog();
+            updateBrowserWindowsTileTabsConfigurationSelection();
         }
     }
 }

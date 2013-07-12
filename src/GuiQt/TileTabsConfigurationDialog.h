@@ -105,9 +105,13 @@ namespace caret {
         
         QWidget* createEditConfigurationWidget();
         
+        void updateBrowserWindowsTileTabsConfigurationSelection();
+        
         void updateStretchFactors();
         
         void updateGraphicsWindows();
+        
+        void selectConfigurationFromComboBoxIndex(int indx);
         
         QPushButton* m_newConfigurationPushButton;
         
@@ -129,6 +133,9 @@ namespace caret {
         std::vector<QDoubleSpinBox*> m_rowStretchFactorSpinBoxes;
         
         std::vector<QDoubleSpinBox*> m_columnStretchFactorSpinBoxes;
+        
+        /** browser window from which this dialog was last displayed */
+        BrainBrowserWindow* m_brainBrowserWindow;
         
         /** 
          * Keep a pointer to preferences but DO NOT delete it

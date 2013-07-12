@@ -1059,13 +1059,26 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
         processViewTileTabsConfigurationDialog();
     }
     else {
-        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        //CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
         m_selectedTileTabsConfigurationUniqueIdentifier = action->data().toString();
         
         if (isTileTabsSelected()) {
             EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
         }
     }
+}
+
+/*
+ * Set the selected tile tabs configuration.
+ *
+ * @param configuration
+ *    New selection for tile tabs configuration.
+ */
+void
+BrainBrowserWindow::setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration)
+{
+    CaretAssert(configuration);
+    m_selectedTileTabsConfigurationUniqueIdentifier = configuration->getUniqueIdentifier();
 }
 
 /**
