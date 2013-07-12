@@ -113,6 +113,11 @@ namespace caret {
         
         void setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration);
         
+        void resetGraphicsWidgetMinimumSize();
+        
+        void setGraphicsWidgetFixedSize(const int x,
+                                        const int y);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         void keyPressEvent(QKeyEvent* event);

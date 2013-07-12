@@ -146,6 +146,7 @@ struct ProgramState
     int specLoadType;
     int windowSizeXY[2];
     int windowPosXY[2];
+    int graphicsSizeXY[2];
     bool showSplash;
     
     AString sceneFileName;
@@ -475,6 +476,10 @@ main(int argc, char* argv[])
             }
         }
         
+        if (myState.graphicsSizeXY[0] > 0 && myState.graphicsSizeXY[1] > 0) {
+            myWindow->setGraphicsWidgetFixedSize(myState.graphicsSizeXY[0], myState.graphicsSizeXY[1]);
+        }
+        
         //use command line
         if (haveFiles)
         {
@@ -609,6 +614,13 @@ void printHelp(const AString& progName)
     << "    -help" << endl
     << "        display this usage text" << endl
     << endl
+    << "    -graphics-size  <X Y>" << endl
+    << "        Set the size of the graphics region." << endl
+    << "        If this option is used you WILL NOT be able" << endl
+    << "        to change the size of the graphic region. It" << endl
+    << "        may be useful when image captures of a particular" << endl
+    << "        size are desired." << endl
+    << endl
     << "    -logging <level>" << endl
     << "       Set the logging level." << endl
     << "       Valid Levels are:" << endl;
@@ -717,6 +729,21 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                     }
                 } else if (thisParam == "-spec-load-all") {
                     myState.specLoadType = 1;
+                } else if (thisParam == "-graphics-size") {
+                    if (myParams->hasNext()) {
+                        myState.graphicsSizeXY[0] = myParams->nextInt("Graphics Size X");
+                    }
+                    else {
+                        cerr << "Missing X & Y sizes for graphics" << endl;
+                        hasFatalError = true;
+                    }
+                    if (myParams->hasNext()) {
+                        myState.graphicsSizeXY[1] = myParams->nextInt("Graphics Size Y");
+                    }
+                    else {
+                        cerr << "Missing Y sizes for graphics" << endl;
+                        hasFatalError = true;
+                    }
                 } else if (thisParam == "-window-size") {
                     if (myParams->hasNext()) {
                         myState.windowSizeXY[0] = myParams->nextInt("Window Size X");
@@ -776,5 +803,7 @@ ProgramState::ProgramState()
     windowSizeXY[1] = -1;
     windowPosXY[0] = -1;
     windowPosXY[1] = -1;
+    graphicsSizeXY[0] = -1;
+    graphicsSizeXY[1] = -1;
     showSplash = true;
 }

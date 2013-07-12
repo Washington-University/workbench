@@ -229,6 +229,27 @@ BrainBrowserWindow::~BrainBrowserWindow()
 }
 
 /**
+ * Reset the graphics window size.
+ * When the window is created, the graphics is set to a reasonable size
+ * by setting the minimum size of the graphics region.  If the minimum
+ * size is small,
+ */
+void
+BrainBrowserWindow::resetGraphicsWidgetMinimumSize()
+{
+    m_openGLWidget->setMinimumSize(100,
+                                   100);
+}
+
+void
+BrainBrowserWindow::setGraphicsWidgetFixedSize(const int x,
+                                               const int y)
+{
+    m_openGLWidget->setFixedSize(x, y);
+}
+
+
+/**
  * @return True if tile tabs is selected, else false.
  */
 bool

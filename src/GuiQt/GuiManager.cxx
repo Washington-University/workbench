@@ -487,6 +487,8 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     
     bbw->show();
     
+    bbw->resetGraphicsWidgetMinimumSize();
+    
     return bbw;
 }
 
