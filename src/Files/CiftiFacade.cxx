@@ -498,6 +498,32 @@ CiftiFacade::isMappingDataToBrainordinateParcels() const
     return m_useParcelsForBrainordinateMapping;
 }
 
+CiftiParcelElement *
+CiftiFacade::getParcelElementForSelectedParcel(const StructureEnum::Enum &structure, AString &parcelName) const
+{    
+    std::vector<CiftiParcelElement> parcelsOut;
+    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcelsOut);
+
+	 
+	for(std::vector<CiftiParcelElement>::iterator iter = parcelsOut.begin();iter != parcelsOut.end();iter++)
+	{
+		CiftiParcelElement &cpe = *iter;
+		if(cpe.m_parcelName == parcelName)
+		{
+			for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = cpe.m_nodeElements.begin();
+				iterNodes != cpe.m_nodeElements.end();iterNodes++)
+			{
+				CiftiParcelNodesElement &cpne = *iterNodes;
+				if(cpne.m_structure = structure)
+					return new CiftiParcelElement(cpe);
+			}
+		}			
+	}
+
+	return NULL;
+}
+                                              
+
 /**
  * Get the indices into the data for the surface nodes of the given structure.
  * Works for brainordinates mapped a surfaces or parcels.

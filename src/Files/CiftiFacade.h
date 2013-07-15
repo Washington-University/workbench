@@ -82,8 +82,9 @@ namespace caret {
         
         const std::vector<int64_t>* getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                                                     const int64_t surfaceNumberOfNodes) const;
+
+        CiftiParcelElement * getParcelElementForSelectedParcel(const StructureEnum::Enum &structure, AString &parcelName) const;
         
-        const std::vector<CiftiVolumeMap>* getVolumeMapForMappingDataToBrainordinates() const;
         
 //        bool getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const;
         
@@ -170,6 +171,8 @@ namespace caret {
          * saves time.
          */
         mutable std::map<StructureEnum::Enum, std::vector<int64_t> > m_mapsOfDataIndicesForSurfaceNodes;
+
+        mutable std::map<StructureEnum::Enum, std::vector<int64_t> > m_mapsOfParcelIndicesForDataIndices;
         
         /**
          * Cache volume mapping since CIFTI mappings do not change
