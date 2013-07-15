@@ -123,10 +123,12 @@ TileTabsConfiguration::initialize()
 void 
 TileTabsConfiguration::copyHelperTileTabsConfiguration(const TileTabsConfiguration& obj)
 {
+    m_numberOfColumns = obj.m_numberOfColumns;
+    m_numberOfRows    = obj.m_numberOfRows;
     m_rowStretchFactors = obj.m_rowStretchFactors;
     m_columnStretchFactors = obj.m_columnStretchFactors;
     m_name = obj.m_name;
-    m_uniqueIdentifier = SystemUtilities::createUniqueID();
+    //DO NOT CHANGE THE UNIQUE IDENTIFIER:  m_uniqueIdentifier
 }
 
 /**
