@@ -36,6 +36,7 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -79,7 +80,7 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
 : WuQDialogNonModal("Tile Tabs Configuration",
                     parent)
 {
-    
+    m_blockReadConfigurationsFromPreferences = false;
     m_caretPreferences = SessionManager::get()->getCaretPreferences();
     
     QWidget* dialogWidget = new QWidget();
@@ -146,12 +147,18 @@ TileTabsConfigurationDialog::createConfigurationSelectionWidget()
     QObject::connect(m_newConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(newConfigurationButtonClicked()));
     
+    m_renameConfigurationPushButton = new QPushButton("Rename...");
+    QObject::connect(m_renameConfigurationPushButton, SIGNAL(clicked()),
+                     this, SLOT(renameConfigurationButtonClicked()));
+    
     m_deleteConfigurationPushButton = new QPushButton("Delete...");
     QObject::connect(m_deleteConfigurationPushButton, SIGNAL(clicked()),
                      this, SLOT(deleteConfigurationButtonClicked()));
     
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     buttonsLayout->addWidget(m_newConfigurationPushButton);
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(m_renameConfigurationPushButton);
     buttonsLayout->addStretch();
     buttonsLayout->addWidget(m_deleteConfigurationPushButton);
     
@@ -301,7 +308,7 @@ TileTabsConfigurationDialog::updateDialogWithSelectedTileTabsFromWindow(BrainBro
     CaretAssert(brainBrowserWindow);
     m_brainBrowserWindow = brainBrowserWindow;
     
-    m_caretPreferences->readTileTabsConfigurations();
+    readConfigurationsFromPreferences();
     
     if (m_brainBrowserWindow->isTileTabsSelected()) {
         TileTabsConfiguration* configuration = m_brainBrowserWindow->getSelectedTileTabsConfiguration();
@@ -329,12 +336,25 @@ TileTabsConfigurationDialog::updateBrowserWindowsTileTabsConfigurationSelection(
 }
 
 /**
+ * Read the configurations from the preferences.
+ */
+void
+TileTabsConfigurationDialog::readConfigurationsFromPreferences()
+{
+    if (m_blockReadConfigurationsFromPreferences) {
+        return;
+    }
+    
+    m_caretPreferences->readTileTabsConfigurations();
+}
+
+/**
  * Update the content of the dialog.
  */
 void
 TileTabsConfigurationDialog::updateDialog()
 {
-    m_caretPreferences->readTileTabsConfigurations();
+    readConfigurationsFromPreferences();
     
     const AString selectedUniqueID = getSelectedTileTabsConfigurationUniqueID();
     int defaultIndex = m_configurationSelectionComboBox->currentIndex();
@@ -572,12 +592,13 @@ TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
 {
     TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
     if (configuration != NULL) {
+        const AString uniqueID = configuration->getUniqueIdentifier();
         const QString msg = ("Delete configuration named \""
                              + configuration->getName()
                              + "\" ?");
         if (WuQMessageBox::warningYesNo(m_newConfigurationPushButton,
                                         msg)) {
-            m_caretPreferences->removeTileTabsConfigurationByUniqueIdentifier(configuration->getUniqueIdentifier());
+            m_caretPreferences->removeTileTabsConfigurationByUniqueIdentifier(uniqueID);
             updateDialog();
             updateBrowserWindowsTileTabsConfigurationSelection();
         }
@@ -585,7 +606,38 @@ TileTabsConfigurationDialog::deleteConfigurationButtonClicked()
 }
 
 /**
- * @return A pointer to the selected tile tabs configuration of NULL if 
+ * Called when rename configuration button is clicked.
+ */
+void
+TileTabsConfigurationDialog::renameConfigurationButtonClicked()
+{
+    TileTabsConfiguration* configuration = getSelectedTileTabsConfiguration();
+    if (configuration != NULL) {
+        m_blockReadConfigurationsFromPreferences = true;
+        
+        bool ok = false;
+        const AString oldName = configuration->getName();
+        const AString newName = QInputDialog::getText(m_deleteConfigurationPushButton,
+                                                      "New Configuration",
+                                                      "Rename Configuration",
+                                                      QLineEdit::Normal,
+                                                      oldName,
+                                                      &ok);
+        if (ok
+            && (newName.isEmpty() == false)) {
+            configuration->setName(newName);
+            m_caretPreferences->writeTileTabsConfigurations();
+            m_blockReadConfigurationsFromPreferences = false;
+            updateDialog();
+        }
+        else {
+            m_blockReadConfigurationsFromPreferences = false;
+        }
+    }
+}
+
+/**
+ * @return A pointer to the selected tile tabs configuration of NULL if
  * no configuration is available.
  */
 TileTabsConfiguration*

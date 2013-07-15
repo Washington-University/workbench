@@ -77,6 +77,8 @@ namespace caret {
         
         void deleteConfigurationButtonClicked();
         
+        void renameConfigurationButtonClicked();
+        
         void configurationComboBoxItemSelected(int);
         
         void numberOfRowsOrColumnsChanged();
@@ -113,9 +115,13 @@ namespace caret {
         
         void selectConfigurationFromComboBoxIndex(int indx);
         
+        void readConfigurationsFromPreferences();
+        
         QPushButton* m_newConfigurationPushButton;
         
         QPushButton* m_deleteConfigurationPushButton;
+        
+        QPushButton* m_renameConfigurationPushButton;
         
         QComboBox* m_configurationSelectionComboBox;
         
@@ -133,6 +139,9 @@ namespace caret {
         std::vector<QDoubleSpinBox*> m_rowStretchFactorSpinBoxes;
         
         std::vector<QDoubleSpinBox*> m_columnStretchFactorSpinBoxes;
+        
+        /** Blocks reading of preferences since that may invalidate data pointers */
+        bool m_blockReadConfigurationsFromPreferences;
         
         /** browser window from which this dialog was last displayed */
         BrainBrowserWindow* m_brainBrowserWindow;
