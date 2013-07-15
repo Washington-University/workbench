@@ -2509,8 +2509,12 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 CaretAssert(numRows > 0);
                 const int numCols = browserTabContent->getMontageNumberOfColumns();
                 CaretAssert(numCols > 0);
-                const int vpSizeX = (viewport[2] - montageMargin) / numCols;
-                const int vpSizeY = (viewport[3] - montageMargin) / numRows;
+//                const int vpSizeX = (viewport[2] - montageMargin) / numCols;
+//                const int vpSizeY = (viewport[3] - montageMargin) / numRows;
+                const int totalGapX = montageMargin * (numCols - 1);
+                const int vpSizeX = (viewport[2] - totalGapX) / numCols;
+                const int totalGapY = montageMargin * (numRows - 1);
+                const int vpSizeY = (viewport[3] - totalGapY) / numRows;
                 
                 /*
                  * Voxel sizes for underlay volume
@@ -2579,13 +2583,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         for (int j = 0; j < numCols; j++) {
                             if ((sliceIndex >= 0)
                                 && (sliceIndex < maximumSliceIndex)) {
-                                const int vpX = (j * vpSizeX) + montageMargin;
-                                const int vpY = (i * vpSizeY) + montageMargin;
+                                const int vpX = (j * (vpSizeX + montageMargin));
+                                const int vpY = (i * (vpSizeY + montageMargin));
                                 int vp[4] = { 
                                     viewport[0] + vpX, 
                                     viewport[1] + vpY, 
-                                    vpSizeX - montageMargin,
-                                    vpSizeY - montageMargin
+                                    vpSizeX,
+                                    vpSizeY
                                 };
                                 
                                 if ((vp[2] <= 0)
