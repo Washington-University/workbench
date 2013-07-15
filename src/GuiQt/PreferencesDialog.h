@@ -60,6 +60,7 @@ namespace caret {
         void volumeAxesCrosshairsComboBoxToggled(bool value);
         void volumeAxesLabelsComboBoxToggled(bool value);
         void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
+        void volumeMontageGapValueChanged(int value);
         
         void splashScreenShowAtStartupComboBoxChanged(bool value);
         
@@ -93,6 +94,7 @@ namespace caret {
         WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
         WuQTrueFalseComboBox* volumeAxesMontageCoordinatesComboBox;
+        QSpinBox* volumeMontageGapSpinBox;
         
         WuQTrueFalseComboBox* splashScreenShowAtStartupComboBox;
         

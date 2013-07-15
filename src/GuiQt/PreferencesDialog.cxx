@@ -184,6 +184,7 @@ PreferencesDialog::updateDialog()
     this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
+    this->volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
     this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
     this->developMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
     
@@ -363,9 +364,15 @@ PreferencesDialog::addVolumeItems()
     QObject::connect(this->volumeAxesMontageCoordinatesComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(volumeAxesMontageCoordinatesComboBoxToggled(bool)));
     
+    this->volumeMontageGapSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
+                                                                                  100000,
+                                                                                  1,
+                                                                                  this,
+                                                                                  SLOT(volumeMontageGapValueChanged(int)));
     this->allWidgets->add(this->volumeAxesCrosshairsComboBox);
     this->allWidgets->add(this->volumeAxesLabelsComboBox);
     this->allWidgets->add(this->volumeAxesMontageCoordinatesComboBox);
+    this->allWidgets->add(this->volumeMontageGapSpinBox);
     
     this->addWidgetToLayout("Volume Axes Crosshairs: ", 
                             this->volumeAxesCrosshairsComboBox->getWidget());
@@ -373,6 +380,8 @@ PreferencesDialog::addVolumeItems()
                             this->volumeAxesLabelsComboBox->getWidget());
     this->addWidgetToLayout("Volume Montage Slice Coord: ",
                             this->volumeAxesMontageCoordinatesComboBox->getWidget());
+    this->addWidgetToLayout("Volume Montage Gap: ",
+                             this->volumeMontageGapSpinBox);
 }
 
 /**
@@ -415,6 +424,17 @@ PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
 }
 
 /**
+ * Called when volume montage gap value is changed.
+ */
+void
+PreferencesDialog::volumeMontageGapValueChanged(int value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeMontageGap(value);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
  * Add splash screen items.
  */
 void PreferencesDialog::addSplashItems()
@@ -450,7 +470,7 @@ PreferencesDialog::addDevelopItems()
                                                                 this);
     QObject::connect(this->developMenuEnabledComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(developMenuEnabledComboBoxChanged(bool)));
-    this->addWidgetToLayout("Show Develop Menu in Menu Bar",
+    this->addWidgetToLayout("Show Develop Menu in Menu Bar: ",
                             this->developMenuEnabledComboBox->getWidget());
 }
 

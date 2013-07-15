@@ -2500,7 +2500,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
             browserTabContent->getSliceCoordinateAxial()
         };
 
-        const int montageMargin = 2;
+        const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
+        const int montageMargin = caretPreferences->getVolumeMontageGap();
         
         switch (browserTabContent->getSliceViewMode()) {
             case VolumeSliceViewModeEnum::MONTAGE:

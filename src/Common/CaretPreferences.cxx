@@ -517,6 +517,9 @@ CaretPreferences::readTileTabsConfigurations(const bool performSync)
     this->qSettings->endArray();
 }
 
+/**
+ * @return The Tile tabs configurations sorted by name.
+ */
 std::vector<const TileTabsConfiguration*>
 CaretPreferences::getTileTabsConfigurationsSortedByName() const
 {
@@ -1106,7 +1109,7 @@ void
 CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
 {
     this->displayVolumeAxesCrosshairs = displayed;
-    this->setBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS, 
+    this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS, 
                      this->displayVolumeAxesCrosshairs);
     this->qSettings->sync();
 }
@@ -1129,7 +1132,7 @@ void
 CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
 {
     this->displayVolumeAxesLabels = displayed;
-    this->setBoolean(CaretPreferences::NAME_AXES_LABELS, 
+    this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS, 
                      this->displayVolumeAxesLabels);
     this->qSettings->sync();
 }
@@ -1153,8 +1156,32 @@ void
 CaretPreferences::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed)
 {
     this->displayVolumeAxesCoordinates = displayed;
-    this->setBoolean(CaretPreferences::NAME_AXES_COORDINATE,
+    this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_COORDINATE,
                      this->displayVolumeAxesCoordinates);
+    this->qSettings->sync();
+}
+
+/**
+ * @return The volume montage gap.
+ */
+int32_t
+CaretPreferences::getVolumeMontageGap() const
+{
+    return this->volumeMontageGap;
+}
+
+/**
+ * Set the volume montage gap.
+ *
+ * @param volumeMontageGap
+ *     New value for montage gap.
+ */
+void
+CaretPreferences::setVolumeMontageGap(const int32_t volumeMontageGap)
+{
+    this->volumeMontageGap = volumeMontageGap;
+    this->setInteger(CaretPreferences::NAME_VOLUME_MONTAGE_GAP,
+                     this->volumeMontageGap);
     this->qSettings->sync();
 }
 
@@ -1308,12 +1335,15 @@ CaretPreferences::readPreferences()
     }
     this->setLoggingLevel(logLevel);
     
-    this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_AXES_LABELS,
+    this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS,
                                                      true);
-    this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
+    this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS,
                                                          true);    
-    this->displayVolumeAxesCoordinates = this->getBoolean(CaretPreferences::NAME_AXES_COORDINATE,
+    this->displayVolumeAxesCoordinates = this->getBoolean(CaretPreferences::NAME_VOLUME_AXES_COORDINATE,
                                                           true);
+    
+    this->volumeMontageGap = this->getInteger(CaretPreferences::NAME_VOLUME_MONTAGE_GAP,
+                                              3);
     
     this->animationStartTime = 0.0;//this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 

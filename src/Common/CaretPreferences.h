@@ -85,6 +85,10 @@ namespace caret {
         
         void setVolumeMontageAxesCoordinatesDisplayed(const bool displayed);
         
+        int32_t getVolumeMontageGap() const;
+        
+        void setVolumeMontageGap(const int32_t volumeMontageGap);
+        
         void setAnimationStartTime(const double &time);
         
         void getAnimationStartTime(double &time);
@@ -223,6 +227,8 @@ namespace caret {
         
         bool displayVolumeAxesCoordinates;
         
+        int32_t volumeMontageGap;
+        
         bool splashScreenEnabled;
         
         bool developMenuEnabled;
@@ -238,9 +244,10 @@ namespace caret {
         //bool contralateralIdentificationEnabled;
         
         static const AString NAME_ANIMATION_START_TIME;
-        static const AString NAME_AXES_CROSSHAIRS;
-        static const AString NAME_AXES_LABELS;
-        static const AString NAME_AXES_COORDINATE;
+        static const AString NAME_VOLUME_AXES_CROSSHAIRS;
+        static const AString NAME_VOLUME_AXES_LABELS;
+        static const AString NAME_VOLUME_AXES_COORDINATE;
+        static const AString NAME_VOLUME_MONTAGE_GAP;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
         static const AString NAME_DEVELOP_MENU;
@@ -260,9 +267,10 @@ namespace caret {
     
 #ifdef __CARET_PREFERENCES_DECLARE__
     const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
-    const AString CaretPreferences::NAME_AXES_CROSSHAIRS = "volumeAxesCrosshairs";
-    const AString CaretPreferences::NAME_AXES_LABELS     = "volumeAxesLabels";
-    const AString CaretPreferences::NAME_AXES_COORDINATE     = "volumeAxesCoordinates";
+    const AString CaretPreferences::NAME_VOLUME_AXES_CROSSHAIRS = "volumeAxesCrosshairs";
+    const AString CaretPreferences::NAME_VOLUME_AXES_LABELS     = "volumeAxesLabels";
+    const AString CaretPreferences::NAME_VOLUME_AXES_COORDINATE     = "volumeAxesCoordinates";
+    const AString CaretPreferences::NAME_VOLUME_MONTAGE_GAP     = "volumeMontageGap";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
