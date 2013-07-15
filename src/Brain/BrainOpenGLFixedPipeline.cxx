@@ -2500,6 +2500,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
             browserTabContent->getSliceCoordinateAxial()
         };
 
+        const int montageMargin = 2;
+        
         switch (browserTabContent->getSliceViewMode()) {
             case VolumeSliceViewModeEnum::MONTAGE:
             {
@@ -2507,8 +2509,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 CaretAssert(numRows > 0);
                 const int numCols = browserTabContent->getMontageNumberOfColumns();
                 CaretAssert(numCols > 0);
-                const int vpSizeX = viewport[2] / numCols;
-                const int vpSizeY = viewport[3] / numRows;
+                const int vpSizeX = (viewport[2] - montageMargin) / numCols;
+                const int vpSizeY = (viewport[3] - montageMargin) / numRows;
                 
                 /*
                  * Voxel sizes for underlay volume
@@ -2577,13 +2579,19 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         for (int j = 0; j < numCols; j++) {
                             if ((sliceIndex >= 0)
                                 && (sliceIndex < maximumSliceIndex)) {
-                                const int vpX = j * vpSizeX;
-                                const int vpY = i * vpSizeY;
-                                const int vp[4] = { 
+                                const int vpX = (j * vpSizeX) + montageMargin;
+                                const int vpY = (i * vpSizeY) + montageMargin;
+                                int vp[4] = { 
                                     viewport[0] + vpX, 
                                     viewport[1] + vpY, 
-                                    vpSizeX, 
-                                    vpSizeY };
+                                    vpSizeX - montageMargin,
+                                    vpSizeY - montageMargin
+                                };
+                                
+                                if ((vp[2] <= 0)
+                                    || (vp[3] <= 0)) {
+                                    continue;
+                                }
                                 
                                 this->setViewportAndOrthographicProjection(vp,
                                                                            ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
