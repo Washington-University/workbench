@@ -2032,6 +2032,14 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                     if (loadFileEventStructure.isError()) {
                         errorMessages.appendWithNewLine(loadFileEventStructure.getErrorMessage());
                     }
+                    else {
+                        if (loadFileEventStructure.getNumberOfDataFilesToRead() == 1) {
+                            CaretDataFile* cdf = loadFileEventStructure.getDataFileRead(0);
+                            if (cdf != NULL) {
+                                cdf->setModified();
+                            }
+                        }
+                    }
                 }
                 else {
                     errorMessages.appendWithNewLine("File \""
