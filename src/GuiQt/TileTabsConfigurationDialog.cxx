@@ -618,8 +618,8 @@ TileTabsConfigurationDialog::renameConfigurationButtonClicked()
         bool ok = false;
         const AString oldName = configuration->getName();
         const AString newName = QInputDialog::getText(m_deleteConfigurationPushButton,
-                                                      "New Configuration",
                                                       "Rename Configuration",
+                                                      "Name",
                                                       QLineEdit::Normal,
                                                       oldName,
                                                       &ok);
