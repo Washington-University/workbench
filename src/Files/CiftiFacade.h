@@ -84,6 +84,8 @@ namespace caret {
                                                                                     const int64_t surfaceNumberOfNodes) const;
 
         CiftiParcelElement * getParcelElementForSelectedParcel(const StructureEnum::Enum &structure, AString &parcelName) const;
+
+        const std::vector<CiftiVolumeMap>* getVolumeMapForMappingDataToBrainordinates() const;
         
         
 //        bool getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const;
