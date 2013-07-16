@@ -774,42 +774,61 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 	
 	if(selectedParcelValid)
 	{
-		for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
-		{
-			int64_t nodeIndex = selectedParcelNodes[pNode];
-			if(nodeIndex >= 0 && nodeIndex < numberOfNodes) {
-				int64_t node4 = nodeIndex*4;           
-				switch(ciftiConnectivityMatrixFile->getSelectionMode()) {
-					case CiftiMappableDataFile::SELECTION_MODE_FILL:
-					{
-						rgbv[node4]   =  1.0;
-						rgbv[node4+1] =  1.0;
-						rgbv[node4+2] =  1.0;
-						rgbv[node4+3] =  1.0; 
-						break;
-					}
-					case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
-					{
-						/*
-						 * Check for any neighbors with different label key.
-						 */
-						int32_t numNeighbors = 0;
-						const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
-						for (int32_t n = 0; n < numNeighbors; n++) {
-							const int32_t neighbor = allNeighbors[n];
-							if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
-								colorIt = true;
-								break;
-							}
-						}
-					}
-            
-				}			
-			}
-		}
+        switch(ciftiConnectivityMatrixFile->getSelectionMode()) {
+            case CiftiMappableDataFile::SELECTION_MODE_FILL:
+            {
+		        for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+		        {
+			        int64_t nodeIndex = selectedParcelNodes[pNode];
+			        if(nodeIndex >= 0 && nodeIndex < numberOfNodes) {
+				        int64_t node4 = nodeIndex*4;           
+				        rgbv[node4]   =  1.0;
+				        rgbv[node4+1] =  1.0;
+				        rgbv[node4+2] =  1.0;
+				        rgbv[node4+3] =  1.0; 
+				        break;
+                    } 
+                }
+            }
+		    case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
+		    {
+			    /*
+			     * Check for any neighbors with different label key.
+				 */
+
+                //make a quick lookup table
+                std::vector<int64_t> selectedNodesLookup(numberOfNodes,0);
+                
+                for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+                {
+                    int64_t nodeIndex = selectedParcelNodes[pNode];
+                    if(nodeIndex >= 0 && nodeIndex < selectedNodesLookup.size()) {
+                            selectedNodesLookup[nodeIndex] = 1;
+                    }
+                }
+
+                for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+                {
+                    int32_t numNeighbors = 0;
+                        
+                    const int64_t nodeIndex = selectedParcelNodes[pNode];
+                    const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(nodeIndex, numNeighbors);
+                    for (int32_t n = 0; n < numNeighbors; n++) {
+                        const int32_t neighbor = allNeighbors[n];
+                        if (!selectedNodesLookup[neighbor]) {
+                            int64_t node4 = nodeIndex*4;
+                            rgbv[node4] = 1.0;
+                            rgbv[node4+1] = 1.0;
+                            rgbv[node4+2] = 1.0;
+                            rgbv[node4+3] = 1.0;
+                            break;
+                        }
+                    }
+                }
+		    }
+        }
 	}
-	
-        
+	        
     return true;
     
 }
