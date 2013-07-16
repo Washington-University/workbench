@@ -753,6 +753,63 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                                                            rgbv,
                                                            &dataValues[0],
                                                            numberOfNodes);
+	//Color Selection Area
+
+	const Surface* surface = ((brainStructure->getNumberOfSurfaces() > 0)
+		? brainStructure->getSurface(0)
+		: NULL);
+	CaretPointer<TopologyHelper> topologyHelper;
+	if (surface != NULL) {
+		topologyHelper = surface->getTopologyHelper();
+	}
+
+
+	CiftiParcelNodesElement selectedParcelNodesElement;
+	bool selectedParcelValid = false;
+	selectedParcelValid = ciftiConnectivityMatrixFile->getParcelNodesElementForSelectedParcel(selectedParcelNodesElement,structure); 
+
+	std::vector<int64_t> selectedParcelNodes = selectedParcelNodesElement.m_nodes;
+
+	
+	
+	if(selectedParcelValid)
+	{
+		for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+		{
+			int64_t nodeIndex = selectedParcelNodes[pNode];
+			if(nodeIndex >= 0 && nodeIndex < numberOfNodes) {
+				int64_t node4 = nodeIndex*4;           
+				switch(ciftiConnectivityMatrixFile->getSelectionMode()) {
+					case CiftiMappableDataFile::SELECTION_MODE_FILL:
+					{
+						rgbv[node4]   =  1.0;
+						rgbv[node4+1] =  1.0;
+						rgbv[node4+2] =  1.0;
+						rgbv[node4+3] =  1.0; 
+						break;
+					}
+					case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
+					{
+						/*
+						 * Check for any neighbors with different label key.
+						 */
+						int32_t numNeighbors = 0;
+						const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
+						for (int32_t n = 0; n < numNeighbors; n++) {
+							const int32_t neighbor = allNeighbors[n];
+							if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
+								colorIt = true;
+								break;
+							}
+						}
+					}
+            
+				}			
+			}
+		}
+	}
+	
+        
     return true;
     
 }

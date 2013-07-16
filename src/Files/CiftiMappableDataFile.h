@@ -286,6 +286,8 @@ namespace caret {
 
         virtual SelectionMode getSelectionMode() const;
         virtual void setSelectionMode(SelectionMode &mode);
+
+		bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const;
         
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);

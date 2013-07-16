@@ -2552,6 +2552,12 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
     return valid;
 }
 
+bool
+CiftiMappableDataFile::getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const
+{
+	return m_ciftiFacade->getParcelNodesElementForSelectedParcel(parcelNodesOut, structure, m_selectionIndex);
+}
+
 
 /**
  * Get the node coloring for the surface.
@@ -2623,25 +2629,7 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
 
     bool validColorsFlag = false;
 
-    CiftiParcelNodesElement selectedParcelNodesElement;
-    bool selectedParcelValid = false;
-    selectedParcelValid = m_ciftiFacade->getParcelNodesElementForSelectedParcel(selectedParcelNodesElement,structure, m_selectionIndex); 
-        
-    std::vector<int64_t> selectedParcelNodes = selectedParcelNodesElement.m_nodes;
-
-    //make a quick lookup table
-    std::vector<int64_t> selectedNodesLookup(surfaceNumberOfNodes,0);
-    if(selectedParcelValid)
-    {
-        for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
-        {
-            int64_t nodeIndex = selectedParcelNodes[pNode];
-            if(nodeIndex >= 0 && nodeIndex < selectedNodesLookup.size()) {
-                selectedNodesLookup[nodeIndex] = 1;
-            }
-        }
-    }
-    
+   
     
     for (int64_t iNode = 0; iNode < surfaceNumberOfNodes; iNode++) {
         CaretAssertVectorIndex((*dataIndicesForNodes),
@@ -2676,37 +2664,7 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
             dataValuesOut[iNode] = 0.0;
         }
 
-        if(selectedParcelValid)
-        {           
-            switch(m_selectionMode) {
-                case CiftiMappableDataFile::SELECTION_MODE_FILL:
-                {
-                    if(selectedNodesLookup[iNode])
-                    {
-                        surfaceRGBAOut[node4]   =  1.0;
-                        surfaceRGBAOut[node4+1] =  1.0;
-                        surfaceRGBAOut[node4+2] =  1.0;
-                        surfaceRGBAOut[node4+3] =  1.0; 
-                    }
-                    break;
-                }
-                case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
-                {
-                    /*
-                     * Check for any neighbors with different label key.
-                     */
-                    int32_t numNeighbors = 0;
-                    const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
-                    for (int32_t n = 0; n < numNeighbors; n++) {
-                        const int32_t neighbor = allNeighbors[n];
-                        if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
-                            colorIt = true;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+
     }
     
     return validColorsFlag;
