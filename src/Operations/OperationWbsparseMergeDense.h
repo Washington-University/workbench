@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-if the operation takes no mandatory parameters, uncomment the line below for takesParameters(), otherwise delete it
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-OperationWbsparseMergeDense     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_WBSPARSE_MERGE_DENSE    : uppercase of operation name, with underscore between words, used in #ifdef guards
--wbsparse-merge-dense   : switch for the command line to use, often hyphenated version of operation name, lowercase, minus "operation"
-MERGE WBSPARSE FILES ALONG DENSE DIMENSION : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-next, make OperationWbsparseMergeDense.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationWbsparseMergeDense/g' | sed 's/-[c]ommand-switch/-wbsparse-merge-dense/g' | sed 's/[S]HORT DESCRIPTION/MERGE WBSPARSE FILES ALONG DENSE DIMENSION/g' > OperationWbsparseMergeDense.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationWbsparseMergeDense/g' | sed 's/-[c]ommand-switch/-wbsparse-merge-dense/g' | sed 's/[S]HORT DESCRIPTION/MERGE WBSPARSE FILES ALONG DENSE DIMENSION/g' > Operations/OperationWbsparseMergeDense.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationWbsparseMergeDense/g' | sed 's/-[c]ommand-switch/-wbsparse-merge-dense/g' | sed 's/[S]HORT DESCRIPTION/MERGE WBSPARSE FILES ALONG DENSE DIMENSION/g' > src/Operations/OperationWbsparseMergeDense.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationWbsparseMergeDense.h
-OperationWbsparseMergeDense.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationWbsparseMergeDense.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationWbsparseMergeDense()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
@@ -74,7 +36,6 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
-        //static bool takesParameters() { return false; };
     };
 
     typedef TemplateAutoOperation<OperationWbsparseMergeDense> AutoOperationWbsparseMergeDense;
