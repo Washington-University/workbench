@@ -45,7 +45,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QRadioButton>
-#include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "Brain.h"
@@ -160,7 +159,7 @@ QWidget*
 FiberTrajectorySelectionViewController::createAttributesWidget()
 {
     m_updateInProgress = true;
-    const int spinBoxWidth = 65;
+    const int spinBoxWidth = 85;
     
     m_displayModeButtonGroup = new QButtonGroup(this);
     QObject::connect(m_displayModeButtonGroup, SIGNAL(buttonClicked(int)),
@@ -183,18 +182,19 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
         modeGroupLayout->addWidget(m_displayModeRadioButtons[i]);
     }
     
-    m_proportionStreamlineSpinBox = WuQFactory::newSpinBox();
-    m_proportionStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_proportionStreamlineSpinBox = WuQFactory::newDoubleSpinBox();
+    m_proportionStreamlineSpinBox->setRange(0, std::numeric_limits<float>::max());
     m_proportionStreamlineSpinBox->setSingleStep(5);
     m_proportionStreamlineSpinBox->setFixedWidth(spinBoxWidth);
+    m_proportionStreamlineSpinBox->setDecimals(3);
     m_proportionStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
                                              "streamlines is greater than or equal to this value");
-    QObject::connect(m_proportionStreamlineSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_proportionStreamlineSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
     m_proportionMinimumSpinBox = WuQFactory::newDoubleSpinBox();
     m_proportionMinimumSpinBox->setRange(0.0, 1.0);
-    m_proportionMinimumSpinBox->setDecimals(2);
+    m_proportionMinimumSpinBox->setDecimals(3);
     m_proportionMinimumSpinBox->setSingleStep(0.05);
     m_proportionMinimumSpinBox->setFixedWidth(spinBoxWidth);
     m_proportionMinimumSpinBox->setToolTip("If the proportion for an axis is less than or equal\n"
@@ -204,7 +204,7 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
     
     m_proportionMaximumSpinBox = WuQFactory::newDoubleSpinBox();
     m_proportionMaximumSpinBox->setRange(0.0, 1.0);
-    m_proportionMaximumSpinBox->setDecimals(2);
+    m_proportionMaximumSpinBox->setDecimals(3);
     m_proportionMaximumSpinBox->setSingleStep(0.05);
     m_proportionMaximumSpinBox->setFixedWidth(spinBoxWidth);
     m_proportionMaximumSpinBox->setToolTip("If the proportion for an axis is greater than or equal\n"
@@ -213,60 +213,66 @@ FiberTrajectorySelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     
     
-    m_countStreamlineSpinBox = WuQFactory::newSpinBox();
-    m_countStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_countStreamlineSpinBox = WuQFactory::newDoubleSpinBox();
+    m_countStreamlineSpinBox->setRange(0, std::numeric_limits<float>::max());
+    m_countStreamlineSpinBox->setDecimals(3);
     m_countStreamlineSpinBox->setSingleStep(5);
     m_countStreamlineSpinBox->setFixedWidth(spinBoxWidth);
     m_countStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
                                               "streamlines is greater than or equal to this value");
-    QObject::connect(m_countStreamlineSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_countStreamlineSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    m_countMinimumSpinBox = WuQFactory::newSpinBox();
-    m_countMinimumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_countMinimumSpinBox = WuQFactory::newDoubleSpinBox();
+    m_countMinimumSpinBox->setRange(0, std::numeric_limits<float>::max());
+    m_countMinimumSpinBox->setDecimals(3);
     m_countMinimumSpinBox->setSingleStep(5);
     m_countMinimumSpinBox->setFixedWidth(spinBoxWidth);
     m_countMinimumSpinBox->setToolTip("If the number of fibers for an axis is less than or equal\n"
                                            "to this value, the opacity will be zero (clear)");
-    QObject::connect(m_countMinimumSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_countMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    m_countMaximumSpinBox = WuQFactory::newSpinBox();
-    m_countMaximumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_countMaximumSpinBox = WuQFactory::newDoubleSpinBox();
+    m_countMaximumSpinBox->setRange(0, std::numeric_limits<float>::max());
+    m_countMaximumSpinBox->setDecimals(3);
     m_countMaximumSpinBox->setSingleStep(5);
     m_countMaximumSpinBox->setFixedWidth(spinBoxWidth);
     m_countMaximumSpinBox->setToolTip("If the number of fibers for an axis is greater than or equal\n"
                                            "to this value, the opacity will be one (opaque)");
-    QObject::connect(m_countMaximumSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_countMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
     
     
-    m_distanceStreamlineSpinBox = WuQFactory::newSpinBox();
-    m_distanceStreamlineSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_distanceStreamlineSpinBox = WuQFactory::newDoubleSpinBox();
+    m_distanceStreamlineSpinBox->setRange(0, std::numeric_limits<float>::max());
+    m_distanceStreamlineSpinBox->setDecimals(3);
     m_distanceStreamlineSpinBox->setSingleStep(5);
     m_distanceStreamlineSpinBox->setFixedWidth(spinBoxWidth);
     m_distanceStreamlineSpinBox->setToolTip("A fiber is displayed only if the total number of its\n"
                                          "streamlines is greater than or equal to this value");
-    QObject::connect(m_distanceStreamlineSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_distanceStreamlineSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    m_distanceMinimumSpinBox = WuQFactory::newSpinBox();
-    m_distanceMinimumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_distanceMinimumSpinBox = WuQFactory::newDoubleSpinBox();
+    m_distanceMinimumSpinBox->setRange(0, std::numeric_limits<float>::max());
+    m_distanceMinimumSpinBox->setDecimals(3);
     m_distanceMinimumSpinBox->setSingleStep(5);
     m_distanceMinimumSpinBox->setFixedWidth(spinBoxWidth);
     m_distanceMinimumSpinBox->setToolTip("If count times distance for an axis is less than or equal\n"
                                       "to this value, the opacity will be zero (clear)");
-    QObject::connect(m_distanceMinimumSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_distanceMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    m_distanceMaximumSpinBox = WuQFactory::newSpinBox();
-    m_distanceMaximumSpinBox->setRange(0, std::numeric_limits<int32_t>::max());
+    m_distanceMaximumSpinBox = WuQFactory::newDoubleSpinBox();
+    m_distanceMaximumSpinBox->setRange(0, std::numeric_limits<float>::max());
+    m_distanceMaximumSpinBox->setDecimals(3);
     m_distanceMaximumSpinBox->setSingleStep(5);
     m_distanceMaximumSpinBox->setFixedWidth(spinBoxWidth);
     m_distanceMaximumSpinBox->setToolTip("If the count times distance for an axis is greater than or equal\n"
                                       "to this value, the opacity will be one (opaque)");
-    QObject::connect(m_distanceMaximumSpinBox, SIGNAL(valueChanged(int)),
+    QObject::connect(m_distanceMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
     QGroupBox* dataMappingGroupBox = new QGroupBox("Data Mapping");

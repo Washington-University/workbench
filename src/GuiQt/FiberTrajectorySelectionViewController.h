@@ -107,23 +107,23 @@ namespace caret {
         
         std::vector<QCheckBox*> m_fileSelectionCheckBoxes;
         
-        QSpinBox* m_proportionStreamlineSpinBox;
+        QDoubleSpinBox* m_proportionStreamlineSpinBox;
         
         QDoubleSpinBox* m_proportionMinimumSpinBox;
         
         QDoubleSpinBox* m_proportionMaximumSpinBox;
         
-        QSpinBox* m_countStreamlineSpinBox;
+        QDoubleSpinBox* m_countStreamlineSpinBox;
         
-        QSpinBox* m_countMinimumSpinBox;
+        QDoubleSpinBox* m_countMinimumSpinBox;
         
-        QSpinBox* m_countMaximumSpinBox;
+        QDoubleSpinBox* m_countMaximumSpinBox;
         
-        QSpinBox* m_distanceStreamlineSpinBox;
+        QDoubleSpinBox* m_distanceStreamlineSpinBox;
         
-        QSpinBox* m_distanceMinimumSpinBox;
+        QDoubleSpinBox* m_distanceMinimumSpinBox;
         
-        QSpinBox* m_distanceMaximumSpinBox;
+        QDoubleSpinBox* m_distanceMaximumSpinBox;
         
         QVBoxLayout* m_selectionWidgetLayout;
         

@@ -76,12 +76,12 @@ namespace caret {
                             const int32_t tabIndex,
                             const FiberTrajectoryDisplayModeEnum::Enum displayMode);
         
-        int32_t getProportionStreamline(const DisplayGroupEnum::Enum displayGroup,
+        float getProportionStreamline(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex) const;
         
         void setProportionStreamline(const DisplayGroupEnum::Enum displayGroup,
                                     const int32_t tabIndex,
-                                    const int32_t thresholdStreamline);
+                                    const float thresholdStreamline);
         
         float getProportionMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t tabIndex) const;
@@ -98,48 +98,48 @@ namespace caret {
                                          const float minimumProportionOpacity);
         
         
-        int32_t getCountStreamline(const DisplayGroupEnum::Enum displayGroup,
+        float getCountStreamline(const DisplayGroupEnum::Enum displayGroup,
                                         const int32_t tabIndex) const;
         
         void setCountStreamline(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t tabIndex,
-                                     const int32_t countStreamline);
+                                     const float countStreamline);
         
-        int32_t getCountMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
+        float getCountMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const;
         
         void setCountMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                          const int32_t tabIndex,
-                                         const int32_t countMaximumOpacity);
+                                         const float countMaximumOpacity);
         
-        int32_t getCountMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
+        float getCountMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const;
         
         void setCountMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                          const int32_t tabIndex,
-                                         const int32_t countMinimumOpacity);
+                                         const float countMinimumOpacity);
         
 
-        int32_t getDistanceStreamline(const DisplayGroupEnum::Enum displayGroup,
+        float getDistanceStreamline(const DisplayGroupEnum::Enum displayGroup,
                                       const int32_t tabIndex) const;
         
         void setDistanceStreamline(const DisplayGroupEnum::Enum displayGroup,
                                    const int32_t tabIndex,
-                                   const int32_t distanceStreamline);
+                                   const float distanceStreamline);
         
-        int32_t getDistanceMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
+        float getDistanceMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const;
         
         void setDistanceMaximumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex,
-                                       const int32_t distanceMaximumOpacity);
+                                       const float distanceMaximumOpacity);
         
-        int32_t getDistanceMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
+        float getDistanceMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                           const int32_t tabIndex) const;
         
         void setDistanceMinimumOpacity(const DisplayGroupEnum::Enum displayGroup,
                                        const int32_t tabIndex,
-                                       const int32_t distanceMinimumOpacity);
+                                       const float distanceMinimumOpacity);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -161,9 +161,9 @@ namespace caret {
         
         bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        int32_t m_proportionStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_proportionStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_proportionStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_proportionStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         float m_maximimProportionOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
@@ -175,31 +175,31 @@ namespace caret {
 
         
         
-        int32_t m_countStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_countStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_countStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_countStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        int32_t m_countMaximumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_countMaximumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_countMaximumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_countMaximumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        int32_t m_countMinimumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_countMinimumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_countMinimumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_countMinimumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         
         
-        int32_t m_distanceStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_distanceStreamlineInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_distanceStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_distanceStreamlineInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        int32_t m_distanceMaximumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_distanceMaximumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_distanceMaximumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_distanceMaximumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        int32_t m_distanceMinimumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        float m_distanceMinimumOpacityInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
-        int32_t m_distanceMinimumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        float m_distanceMinimumOpacityInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 };
     
 #ifdef __DISPLAY_PROPERTIES_FIBER_TRAJECTORY_DECLARE__
