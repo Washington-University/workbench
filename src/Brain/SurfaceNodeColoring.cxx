@@ -775,6 +775,8 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 	if(selectedParcelValid)
 	{
         switch(ciftiConnectivityMatrixFile->getSelectionMode()) {
+            case CiftiMappableDataFile::SELECTION_MODE_NONE:
+                break;
             case CiftiMappableDataFile::SELECTION_MODE_FILL:
             {
 		        for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
