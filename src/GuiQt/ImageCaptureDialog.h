@@ -29,6 +29,7 @@
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
+class QDoubleSpinBox;
 class QLabel;
 class QLineEdit;
 class QRadioButton;
@@ -38,6 +39,7 @@ class QSpinBox;
 namespace caret {
     
     class BrainBrowserWindow;
+    class EnumComboBoxTemplate;
     class WuQWidgetObjectGroup;
     
     class ImageCaptureDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -62,24 +64,39 @@ namespace caret {
         
         void updateBrowserWindowWidthAndHeightLabel();
         
+        void imageResolutionUnitsEnumComboBoxItemActivated();
+        
+        void imageSizeUnitsEnumComboBoxItemActivated();
+        
     private:
         ImageCaptureDialog(const ImageCaptureDialog&);
 
         ImageCaptureDialog& operator=(const ImageCaptureDialog&);
         
-        QCheckBox* saveImageToFileCheckBox;
-        QCheckBox* copyImageToClipboardCheckBox;
-        QLineEdit* imageFileNameLineEdit;
+        QWidget* createImageSourceSection();
+        QWidget* createImageOptionsSection();
+        QWidget* createImageDimensionsSection();
+        QWidget* createImageDestinationSection();
         
-        QRadioButton* imageSizeWindowRadioButton;
-        QRadioButton* imageSizeCustomRadioButton;
-        QSpinBox* imageSizeCustomXSpinBox;
-        QSpinBox* imageSizeCustomYSpinBox;
+        QCheckBox* m_saveImageToFileCheckBox;
+        QCheckBox* m_copyImageToClipboardCheckBox;
+        QLineEdit* m_imageFileNameLineEdit;
         
-        QCheckBox* imageAutoCropCheckBox;
-        QSpinBox*  imageAutoCropMarginSpinBox;
+        QRadioButton* m_imageSizeWindowRadioButton;
+        QRadioButton* m_imageSizeCustomRadioButton;
+        QSpinBox* m_customPixelsWidthSpinBox;
+        QSpinBox* m_customPixelsHeightSpinBox;
+        QDoubleSpinBox* m_customImageUnitsWidthSpinBox;
+        QDoubleSpinBox* m_customImageUnitsHeightSpinBox;
+        QDoubleSpinBox* m_customResolutionSpinBox;
+        QCheckBox* m_customScaleProportionallyCheckBox;
         
-        QSpinBox* windowSelectionSpinBox;
+        EnumComboBoxTemplate* m_customResolutionUnitsEnumComboBox;
+        EnumComboBoxTemplate* m_customSizeUnitsEnumComboBox;
+        QCheckBox* m_imageAutoCropCheckBox;
+        QSpinBox*  m_imageAutoCropMarginSpinBox;
+        
+        QSpinBox* m_windowSelectionSpinBox;
     };
     
 #ifdef __IMAGE_CAPTURE_DIALOG__H__DECLARE__

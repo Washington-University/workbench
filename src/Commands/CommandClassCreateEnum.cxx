@@ -449,7 +449,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum enumValue = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
+    t += ("    Enum enumValue = " + enumClassName + "::enumData[0].enumValue;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
@@ -506,7 +506,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum enumValue = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
+    t += ("    Enum enumValue = " + enumClassName + "::enumData[0].enumValue;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
@@ -563,7 +563,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum enumValue = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
+    t += ("    Enum enumValue = " + enumClassName + "::enumData[0].enumValue;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
@@ -726,7 +726,7 @@ CommandClassCreateEnum::getEnumComboBoxTemplateHelpInfo(const AString& enumClass
               " *         " + memberName + "->setup" + templateParameter + "();\n"
               " * \n"
               " *     Get notified when the user changes the selection: \n"
-              " *         QObject::connect(" + memberName + ", SIGNAL(itemActivated())\n"
+              " *         QObject::connect(" + memberName + ", SIGNAL(itemActivated()),\n"
               " *                          this, SLOT(" + slotName + "));\n"
               " * \n"
               " *     Update the selection:\n"

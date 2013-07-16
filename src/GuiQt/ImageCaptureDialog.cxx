@@ -30,6 +30,7 @@
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QClipboard>
+#include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QImageWriter>
@@ -47,11 +48,14 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "ImageResolutionUnitsEnum.h"
+#include "ImageSizeUnitsEnum.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
 #include "WuQFactory.h"
@@ -80,119 +84,47 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 : WuQDialogNonModal("Image Capture",
                     parent)
 {
-    this->setDeleteWhenClosed(false);
+    setDeleteWhenClosed(false);
 
     /*
      * Use Apply button for image capture
      */
-    this->setApplyButtonText("Capture");
+    setApplyButtonText("Capture");
 
     /*
      * Image Source
      */
-    QLabel* windowLabel = new QLabel("Workbench Window: ");
-    this->windowSelectionSpinBox = WuQFactory::newSpinBox();
-    this->windowSelectionSpinBox->setRange(1,
-                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
-    this->windowSelectionSpinBox->setSingleStep(1);
-    this->windowSelectionSpinBox->setValue(parent->getBrowserWindowIndex() + 1);
-    this->windowSelectionSpinBox->setFixedWidth(60);
-    QObject::connect(this->windowSelectionSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
-    
-    QGroupBox* imageSourceGroupBox = new QGroupBox("Image Source");
-    QGridLayout* imageSourceLayout = new QGridLayout(imageSourceGroupBox);
-    imageSourceLayout->addWidget(windowLabel, 0, 0);
-    imageSourceLayout->addWidget(this->windowSelectionSpinBox, 0, 1);
-    imageSourceLayout->setColumnStretch(0, 0);
-    imageSourceLayout->setColumnStretch(1, 0);
-    imageSourceLayout->setColumnStretch(1000, 100);
+    QWidget* imageSourceWidget = createImageSourceSection();
     
     /*
      * Image Size
      * Note: Label is updated when window size is updated
      */
-    this->imageSizeWindowRadioButton = new QRadioButton("Size of Window");
-    this->imageSizeCustomRadioButton = new QRadioButton("Custom");
-    QButtonGroup* sizeButtonGroup = new QButtonGroup(this);
-    sizeButtonGroup->addButton(this->imageSizeWindowRadioButton);
-    sizeButtonGroup->addButton(this->imageSizeCustomRadioButton);
-    this->imageSizeWindowRadioButton->setChecked(true);
-    this->imageSizeCustomXSpinBox = WuQFactory::newSpinBox();
-    this->imageSizeCustomXSpinBox->setFixedWidth(80);
-    this->imageSizeCustomXSpinBox->setRange(1, 1000000);
-    this->imageSizeCustomXSpinBox->setSingleStep(1);
-    this->imageSizeCustomXSpinBox->setValue(2560);
-    this->imageSizeCustomYSpinBox = WuQFactory::newSpinBox();
-    this->imageSizeCustomYSpinBox->setFixedWidth(80);
-    this->imageSizeCustomYSpinBox->setRange(1, 1000000);
-    this->imageSizeCustomYSpinBox->setSingleStep(1);
-    this->imageSizeCustomYSpinBox->setValue(2048);
-    QGroupBox* imageSizeGroupBox = new QGroupBox("Image Size");
-    QGridLayout* imageSizeLayout = new QGridLayout(imageSizeGroupBox);
-    imageSizeLayout->addWidget(this->imageSizeWindowRadioButton, 0, 0, 1, 4);
-    imageSizeLayout->addWidget(this->imageSizeCustomRadioButton, 1, 0);
-    imageSizeLayout->addWidget(this->imageSizeCustomXSpinBox, 1, 1);
-    imageSizeLayout->addWidget(this->imageSizeCustomYSpinBox, 1, 2);
-    imageSizeLayout->setColumnStretch(0, 0);
-    imageSizeLayout->setColumnStretch(1, 0);
-    imageSizeLayout->setColumnStretch(2, 0);
-    imageSizeLayout->setColumnStretch(1000, 100);
+    QWidget* imageDimensionsWidget = createImageDimensionsSection();
     
     /*
      * Image Options
      */
-    this->imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
-    QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
-    this->imageAutoCropMarginSpinBox = WuQFactory::newSpinBox();
-    this->imageAutoCropMarginSpinBox->setMinimum(0);
-    this->imageAutoCropMarginSpinBox->setMaximum(100000);
-    this->imageAutoCropMarginSpinBox->setSingleStep(1);
-    this->imageAutoCropMarginSpinBox->setValue(10);
-    this->imageAutoCropMarginSpinBox->setMaximumWidth(100);
-    
-    QHBoxLayout* cropMarginLayout = new QHBoxLayout();
-    cropMarginLayout->addWidget(imageAutoCropMarginLabel);
-    cropMarginLayout->addWidget(this->imageAutoCropMarginSpinBox);
-    cropMarginLayout->addStretch();
-    
-    QGroupBox* imageOptionsGroupBox = new QGroupBox("Image Options");
-    QVBoxLayout* imageOptionsLayout = new QVBoxLayout(imageOptionsGroupBox);
-    imageOptionsLayout->addWidget(this->imageAutoCropCheckBox);
-    imageOptionsLayout->addLayout(cropMarginLayout);
+    QWidget* imageOptionsWidget = createImageOptionsSection();
     
     /*
      * Image Destination
      */
-    this->copyImageToClipboardCheckBox = new QCheckBox("Copy to Clipboard");
-    this->copyImageToClipboardCheckBox->setChecked(true);
-    this->saveImageToFileCheckBox = new QCheckBox("Save to File: " );
-    this->imageFileNameLineEdit = new QLineEdit();
-    this->imageFileNameLineEdit->setText("untitled.png");
-    QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
-    QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
-                     this, SLOT(selectImagePushButtonPressed()));
-    
-    QGroupBox* imageDestinationGroupBox = new QGroupBox("Image Destination");
-    QGridLayout* imageDestinationLayout = new QGridLayout(imageDestinationGroupBox);
-    imageDestinationLayout->addWidget(this->copyImageToClipboardCheckBox, 0, 0, 1, 3);
-    imageDestinationLayout->addWidget(this->saveImageToFileCheckBox, 1, 0);
-    imageDestinationLayout->addWidget(this->imageFileNameLineEdit, 1, 1);
-    imageDestinationLayout->addWidget(fileNameSelectionPushButton, 1, 2);
+    QWidget* imageDestinationWidget = createImageDestinationSection();
         
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(imageSourceGroupBox);
-    layout->addWidget(imageSizeGroupBox);
-    layout->addWidget(imageOptionsGroupBox);
-    layout->addWidget(imageDestinationGroupBox);
+    layout->addWidget(imageSourceWidget);
+    layout->addWidget(imageOptionsWidget);
+    layout->addWidget(imageDimensionsWidget);
+    layout->addWidget(imageDestinationWidget);
     
-    this->setCentralWidget(w);
+    setCentralWidget(w);
     
     /*
      * Make apply button the default button.
      */
-    QPushButton* applyButton = this->getDialogButtonBox()->button(QDialogButtonBox::Apply);
+    QPushButton* applyButton = getDialogButtonBox()->button(QDialogButtonBox::Apply);
     CaretAssert(applyButton);
     applyButton->setAutoDefault(true);
     applyButton->setDefault(true);
@@ -207,6 +139,244 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 ImageCaptureDialog::~ImageCaptureDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * @return Create and return the image source section.
+ */
+QWidget*
+ImageCaptureDialog::createImageSourceSection()
+{
+    QLabel* windowLabel = new QLabel("Workbench Window: ");
+    m_windowSelectionSpinBox = WuQFactory::newSpinBox();
+    m_windowSelectionSpinBox->setRange(1,
+                                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
+    m_windowSelectionSpinBox->setSingleStep(1);
+    m_windowSelectionSpinBox->setFixedWidth(60);
+    QObject::connect(m_windowSelectionSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
+    
+    QGroupBox* groupBox = new QGroupBox("Image Source");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    gridLayout->addWidget(windowLabel, 0, 0);
+    gridLayout->addWidget(m_windowSelectionSpinBox, 0, 1);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(1000, 100);
+    
+    return groupBox;
+}
+
+/**
+ * @return Create and return the image options section.
+ */
+QWidget*
+ImageCaptureDialog::createImageOptionsSection()
+{
+    m_imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
+    QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
+    m_imageAutoCropMarginSpinBox = WuQFactory::newSpinBox();
+    m_imageAutoCropMarginSpinBox->setMinimum(0);
+    m_imageAutoCropMarginSpinBox->setMaximum(100000);
+    m_imageAutoCropMarginSpinBox->setSingleStep(1);
+    m_imageAutoCropMarginSpinBox->setValue(10);
+    m_imageAutoCropMarginSpinBox->setMaximumWidth(100);
+    
+    QHBoxLayout* cropMarginLayout = new QHBoxLayout();
+    cropMarginLayout->addWidget(imageAutoCropMarginLabel);
+    cropMarginLayout->addWidget(m_imageAutoCropMarginSpinBox);
+    cropMarginLayout->addStretch();
+    
+    QGroupBox* groupBox = new QGroupBox("Image Options");
+    QVBoxLayout* gridLayout = new QVBoxLayout(groupBox);
+    gridLayout->addWidget(m_imageAutoCropCheckBox);
+    gridLayout->addLayout(cropMarginLayout);
+    
+    return groupBox;
+}
+
+/**
+ * @return Create and return the image dimensions section.
+ */
+QWidget*
+ImageCaptureDialog::createImageDimensionsSection()
+{
+    m_imageSizeWindowRadioButton = new QRadioButton("Size of Window");
+    
+    m_imageSizeCustomRadioButton = new QRadioButton("Custom");
+    
+    QButtonGroup* sizeButtonGroup = new QButtonGroup(this);
+    sizeButtonGroup->addButton(m_imageSizeWindowRadioButton);
+    sizeButtonGroup->addButton(m_imageSizeCustomRadioButton);
+    m_imageSizeWindowRadioButton->setChecked(true);
+    
+    QLabel* customPixelsWidthLabel = new QLabel("Width:");
+    QLabel* customPixelsHeightLabel = new QLabel("Height:");
+    QLabel* customUnitsWidthLabel = new QLabel("Width:");
+    QLabel* customUnitsHeightLabel = new QLabel("Height:");
+    QLabel* customResolutionLabel = new QLabel("Resolution:");
+    
+    QLabel* pixelDimensionsLabel = new QLabel("Pixel Dimensions");
+    m_customPixelsWidthSpinBox = WuQFactory::newSpinBox();
+    m_customPixelsWidthSpinBox->setFixedWidth(80);
+    m_customPixelsWidthSpinBox->setRange(1, 10000000);
+    m_customPixelsWidthSpinBox->setSingleStep(1);
+    m_customPixelsWidthSpinBox->setValue(2560);
+    
+    m_customPixelsHeightSpinBox = WuQFactory::newSpinBox();
+    m_customPixelsHeightSpinBox->setFixedWidth(80);
+    m_customPixelsHeightSpinBox->setRange(1, 10000000);
+    m_customPixelsHeightSpinBox->setSingleStep(1);
+    m_customPixelsHeightSpinBox->setValue(2048);
+    
+    QLabel* imageDimensionsLabel = new QLabel("Image Dimensions");
+    m_customImageUnitsWidthSpinBox = WuQFactory::newDoubleSpinBox();
+    m_customImageUnitsWidthSpinBox->setFixedWidth(80);
+    m_customImageUnitsWidthSpinBox->setRange(0.0, 100000000.0);
+    m_customImageUnitsWidthSpinBox->setSingleStep(0.1);
+    m_customImageUnitsWidthSpinBox->setValue(2048);
+    
+    m_customImageUnitsHeightSpinBox = WuQFactory::newDoubleSpinBox();
+    m_customImageUnitsHeightSpinBox->setFixedWidth(80);
+    m_customImageUnitsHeightSpinBox->setRange(0.0, 100000000.0);
+    m_customImageUnitsHeightSpinBox->setSingleStep(0.1);
+    m_customImageUnitsHeightSpinBox->setValue(2048);
+    
+    m_customResolutionSpinBox = WuQFactory::newDoubleSpinBox();
+    m_customResolutionSpinBox->setFixedWidth(80);
+    m_customResolutionSpinBox->setRange(1, 1000000);
+    m_customResolutionSpinBox->setSingleStep(1);
+    m_customResolutionSpinBox->setValue(72);
+    
+    m_customSizeUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+    m_customSizeUnitsEnumComboBox->setup<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
+    QObject::connect(m_customSizeUnitsEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(imageSizeUnitsEnumComboBoxItemActivated()));
+    
+    m_customResolutionUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+    m_customResolutionUnitsEnumComboBox->setup<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
+    QObject::connect(m_customResolutionUnitsEnumComboBox, SIGNAL(itemActivated()),
+                    this, SLOT(imageResolutionUnitsEnumComboBoxItemActivated()));
+    
+    m_customScaleProportionallyCheckBox = new QCheckBox("Scale Proportionally");
+
+    
+    QWidget* pixelsSizeWidget = new QWidget();
+    QGridLayout* pixelsSizeLayout = new QGridLayout(pixelsSizeWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(pixelsSizeLayout, 4, 0);
+    int pixelsRow = 0;
+    pixelsSizeLayout->addWidget(pixelDimensionsLabel,
+                                pixelsRow, 0, 1, 2, Qt::AlignHCenter);
+    pixelsRow++;
+    pixelsSizeLayout->addWidget(customPixelsWidthLabel,
+                                pixelsRow, 0);
+    pixelsSizeLayout->addWidget(m_customPixelsWidthSpinBox,
+                                pixelsRow, 1);
+    pixelsRow++;
+    pixelsSizeLayout->addWidget(customPixelsHeightLabel,
+                                pixelsRow, 0);
+    pixelsSizeLayout->addWidget(m_customPixelsHeightSpinBox,
+                                pixelsRow, 1);
+    pixelsRow++;
+    pixelsSizeLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                                pixelsRow, 0, 1, 2);
+    pixelsRow++;
+    pixelsSizeLayout->addWidget(m_customScaleProportionallyCheckBox,
+                                pixelsRow, 0, 1, 2, Qt::AlignLeft);
+    pixelsRow++;
+    pixelsSizeWidget->setSizePolicy(QSizePolicy::Fixed,
+                                    QSizePolicy::Fixed);
+    
+    
+    QWidget* imageUnitsWidget = new QWidget();
+    QGridLayout* imageUnitsLayout = new QGridLayout(imageUnitsWidget);
+    WuQtUtilities::setLayoutSpacingAndMargins(imageUnitsLayout, 4, 0);
+    int unitsRow = 0;
+    imageUnitsLayout->addWidget(imageDimensionsLabel,
+                                unitsRow, 0, 1, 3, Qt::AlignHCenter);
+    unitsRow++;
+    imageUnitsLayout->addWidget(customUnitsWidthLabel,
+                                unitsRow, 0);
+    imageUnitsLayout->addWidget(m_customImageUnitsWidthSpinBox,
+                                unitsRow, 1);
+    imageUnitsLayout->addWidget(m_customSizeUnitsEnumComboBox->getWidget(),
+                                unitsRow, 2, 2, 1);
+    unitsRow++;
+    imageUnitsLayout->addWidget(customUnitsHeightLabel,
+                                unitsRow, 0);
+    imageUnitsLayout->addWidget(m_customImageUnitsHeightSpinBox,
+                                unitsRow, 1);
+    unitsRow++;
+    imageUnitsLayout->addWidget(customResolutionLabel,
+                                unitsRow, 0);
+    imageUnitsLayout->addWidget(m_customResolutionSpinBox,
+                                unitsRow, 1);
+    imageUnitsLayout->addWidget(m_customResolutionUnitsEnumComboBox->getWidget(),
+                                unitsRow, 2);
+    unitsRow++;
+    imageUnitsWidget->setSizePolicy(QSizePolicy::Fixed,
+                                    QSizePolicy::Fixed);
+    
+    QHBoxLayout* pixelsAndImageLayout = new QHBoxLayout();
+    pixelsAndImageLayout->addSpacing(20);
+    pixelsAndImageLayout->addWidget(pixelsSizeWidget,
+                                    0,
+                                    Qt::AlignTop);
+    pixelsAndImageLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    pixelsAndImageLayout->addWidget(imageUnitsWidget,
+                                    0,
+                                    Qt::AlignTop);
+    
+    QGroupBox* groupBox = new QGroupBox("Image Dimensions");
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    layout->addWidget(m_imageSizeWindowRadioButton, 0, Qt::AlignLeft);
+    layout->addWidget(m_imageSizeCustomRadioButton, 0, Qt::AlignLeft);
+    layout->addLayout(pixelsAndImageLayout, 0);
+    
+    return groupBox;
+}
+
+/**
+ * Gets called when the image resolution units are changed.
+ */
+void
+ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
+{
+    
+}
+
+/**
+ * Gets called when the image size units are changed.
+ */
+void
+ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
+{
+    
+}
+
+/**
+ * @return Create and return the image destination section.
+ */
+QWidget*
+ImageCaptureDialog::createImageDestinationSection()
+{
+    m_copyImageToClipboardCheckBox = new QCheckBox("Copy to Clipboard");
+    m_copyImageToClipboardCheckBox->setChecked(true);
+    m_saveImageToFileCheckBox = new QCheckBox("Save to File: " );
+    m_imageFileNameLineEdit = new QLineEdit();
+    m_imageFileNameLineEdit->setText("untitled.png");
+    QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
+    QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
+                     this, SLOT(selectImagePushButtonPressed()));
+    
+    QGroupBox* groupBox = new QGroupBox("Image Destination");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    gridLayout->addWidget(m_copyImageToClipboardCheckBox, 0, 0, 1, 3);
+    gridLayout->addWidget(m_saveImageToFileCheckBox, 1, 0);
+    gridLayout->addWidget(m_imageFileNameLineEdit, 1, 1);
+    gridLayout->addWidget(fileNameSelectionPushButton, 1, 2);
+    
+    return groupBox;
 }
 
 /**
@@ -238,7 +408,7 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
 {
     AString windowSizeText = "Size of Window";
     
-    const int selectedBrowserWindowIndex = this->windowSelectionSpinBox->value() - 1;
+    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
     
     if (browserWindow != NULL) {
@@ -255,7 +425,7 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
         windowSizeText += (" (Invalid Window Number)");
     }
     
-    imageSizeWindowRadioButton->setText(windowSizeText);
+    m_imageSizeWindowRadioButton->setText(windowSizeText);
 }
 
 /**
@@ -276,7 +446,7 @@ ImageCaptureDialog::updateDialog()
 void
 ImageCaptureDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
 {
-    this->windowSelectionSpinBox->setValue(browserWindowIndex + 1);
+    m_windowSelectionSpinBox->setValue(browserWindowIndex + 1);
 }
 
 
@@ -286,14 +456,14 @@ ImageCaptureDialog::setBrowserWindowIndex(const int32_t browserWindowIndex)
 void 
 ImageCaptureDialog::selectImagePushButtonPressed()
 {
-    QString defaultFileName = this->imageFileNameLineEdit->text().trimmed();
+    QString defaultFileName = m_imageFileNameLineEdit->text().trimmed();
     if (defaultFileName.isEmpty()) {
         defaultFileName = "untitled.png";
     }
-    FileInformation fileInfo(this->imageFileNameLineEdit->text().trimmed());
+    FileInformation fileInfo(m_imageFileNameLineEdit->text().trimmed());
     if (fileInfo.isRelative()) {
         FileInformation absFileInfo(GuiManager::get()->getBrain()->getCurrentDirectory(),
-                                    this->imageFileNameLineEdit->text().trimmed());
+                                    m_imageFileNameLineEdit->text().trimmed());
         defaultFileName = absFileInfo.getFilePath();
     }
     
@@ -318,7 +488,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
                                                   filters,
                                                   &defaultFileFilter);
     if (name.isEmpty() == false) {
-        this->imageFileNameLineEdit->setText(name.trimmed());
+        m_imageFileNameLineEdit->setText(name.trimmed());
     }
 }
 
@@ -328,13 +498,13 @@ ImageCaptureDialog::selectImagePushButtonPressed()
 void
 ImageCaptureDialog::applyButtonPressed()
 {
-    const int browserWindowIndex = this->windowSelectionSpinBox->value() - 1;
+    const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
     int32_t imageX = 0;
     int32_t imageY = 0;
-    if (this->imageSizeCustomRadioButton->isChecked()) {
-        imageX = this->imageSizeCustomXSpinBox->value();
-        imageY = this->imageSizeCustomYSpinBox->value();
+    if (m_imageSizeCustomRadioButton->isChecked()) {
+        imageX = m_customPixelsWidthSpinBox->value();
+        imageY = m_customPixelsHeightSpinBox->value();
     }
     ImageFile imageFile;
     bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
@@ -348,8 +518,11 @@ ImageCaptureDialog::applyButtonPressed()
         return;
     }
     
-    if (this->imageAutoCropCheckBox->isChecked()) {
-        const int marginSize = this->imageAutoCropMarginSpinBox->value();
+    const ImageSizeUnitsEnum::Enum sizeUnits = m_customSizeUnitsEnumComboBox->getSelectedItem<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
+    const ImageResolutionUnitsEnum::Enum resolutionUnits = m_customResolutionUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
+    
+    if (m_imageAutoCropCheckBox->isChecked()) {
+        const int marginSize = m_imageAutoCropMarginSpinBox->value();
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         uint8_t backgroundColor[3];
         prefs->getColorBackground(backgroundColor);
@@ -358,17 +531,17 @@ ImageCaptureDialog::applyButtonPressed()
     
     bool errorFlag = false;
     
-    if (this->copyImageToClipboardCheckBox->isChecked()) {
+    if (m_copyImageToClipboardCheckBox->isChecked()) {
         QApplication::clipboard()->setImage(*imageFile.getAsQImage(), QClipboard::Clipboard);
     }
 
-    if (this->saveImageToFileCheckBox->isChecked()) {
+    if (m_saveImageToFileCheckBox->isChecked()) {
         std::vector<AString> imageFileExtensions;
         AString defaultFileExtension;
         ImageFile::getImageFileExtensions(imageFileExtensions, 
                                           defaultFileExtension);
         
-        AString filename = this->imageFileNameLineEdit->text().trimmed();
+        AString filename = m_imageFileNameLineEdit->text().trimmed();
         
         bool validExtension = false;
         for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
@@ -399,7 +572,7 @@ ImageCaptureDialog::applyButtonPressed()
         /*
          * Display over "Capture" (the renamed Apply) button.
          */
-        QWidget* parent = this->getDialogButtonBox()->button(QDialogButtonBox::Apply);
+        QWidget* parent = getDialogButtonBox()->button(QDialogButtonBox::Apply);
         CaretAssert(parent);
         
         WuQtUtilities::playSound("sound_camera_shutter.wav");

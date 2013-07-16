@@ -59,6 +59,8 @@ GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
 ImageFile.h
+ImageResolutionUnitsEnum.h
+ImageSizeUnitsEnum.h
 LabelFile.h
 MetricFile.h
 MetricSmoothingObject.h
@@ -138,6 +140,8 @@ GroupAndNameHierarchyItem.cxx
 GroupAndNameHierarchyModel.cxx
 GroupAndNameHierarchyName.cxx
 ImageFile.cxx
+ImageResolutionUnitsEnum.cxx
+ImageSizeUnitsEnum.cxx
 LabelFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
