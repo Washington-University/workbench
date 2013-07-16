@@ -58,6 +58,7 @@ OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
 OperationVolumeReorient.h
+OperationWbsparseMergeDense.h
 OperationZipSceneFile.h
 OperationZipSpecFile.h
 
@@ -102,6 +103,7 @@ OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx
 OperationVolumeReorient.cxx
+OperationWbsparseMergeDense.cxx
 OperationZipSceneFile.cxx
 OperationZipSpecFile.cxx
 )

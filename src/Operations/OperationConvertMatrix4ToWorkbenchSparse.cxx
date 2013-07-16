@@ -143,8 +143,7 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
             rowReorder[i / 3] = tempInd;
         }
     }
-    int64_t outDims[2] = { myXML.getNumberOfColumns(), myXML.getNumberOfRows() };
-    CaretSparseFileWriter mywriter(outFileName, outDims, myXML);//NOTE: CaretSparseFile has a different encoding of fibers, ALWAYS use getFibersRow, etc
+    CaretSparseFileWriter mywriter(outFileName, myXML);//NOTE: CaretSparseFile has a different encoding of fibers, ALWAYS use getFibersRow, etc
     vector<int64_t> indicesIn, indicesOut;//this method knows about sparseness, does sorting of indexes in order to avoid scanning full rows
     vector<FiberFractions> fibersIn, fibersOut;//can be slower if matrix isn't very sparse, but that is a problem for other reasons anyway
     CaretMinHeap<FiberFractions, int64_t> myHeap;//use our heap to do heapsort, rather than coding a struct for stl sort

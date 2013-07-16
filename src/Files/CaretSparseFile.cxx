@@ -205,10 +205,11 @@ void FiberFractions::zero()
     distance = 0.0f;
 }
 
-CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const int64_t dimensions[2], const CiftiXML& xml)
+CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml)
 {
     m_file = NULL;
     m_finished = false;
+    int64_t dimensions[2] = { xml.getNumberOfColumns(), xml.getNumberOfRows() };
     if (dimensions[0] < 1 || dimensions[1] < 1) throw DataFileException("both dimensions must be positive");
     m_xml = xml;
     m_dims[0] = dimensions[0];//CiftiXML doesn't support 3 dimensions yet, so we do this

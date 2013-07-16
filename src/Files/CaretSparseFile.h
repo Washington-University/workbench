@@ -89,7 +89,7 @@ namespace caret {
         CaretSparseFileWriter(const CaretSparseFileWriter& rhs);
         CiftiXML m_xml;
     public:
-        CaretSparseFileWriter(const AString& fileName, const int64_t dimensions[2], const CiftiXML& xml);
+        CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml);
         
         ~CaretSparseFileWriter();
         

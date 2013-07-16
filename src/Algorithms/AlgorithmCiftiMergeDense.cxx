@@ -144,7 +144,7 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
                     }
                     if (!outXML.addSurfaceModel(myDir, otherXML.getSurfaceNumberOfNodes(myDir, myInfo.m_structure), myInfo.m_structure, nodeList))
                     {
-                        throw AlgorithmException("duplicate surface structure " + StructureEnum::toName(myInfo.m_structure) + " found in input  to cifti merge dense");
+                        throw AlgorithmException("duplicate surface structure " + StructureEnum::toName(myInfo.m_structure) + " found in input to cifti merge dense");
                     }
                     break;
                 }
