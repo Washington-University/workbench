@@ -68,6 +68,18 @@ namespace caret {
         
         void imageSizeUnitsEnumComboBoxItemActivated();
         
+        void pixelWidthValueChanged(int);
+        
+        void pixelHeightValueChanged(int);
+        
+        void imageWidthValueChanged(double);
+        
+        void imageHeightValueChanged(double);
+        
+        void imageResolutionValueChanged(double);
+        
+        void scaleProportionallyCheckBoxClicked(bool);
+        
     private:
         ImageCaptureDialog(const ImageCaptureDialog&);
 
@@ -78,21 +90,26 @@ namespace caret {
         QWidget* createImageDimensionsSection();
         QWidget* createImageDestinationSection();
         
+        bool getSelectedWindowWidthAndHeight(int32_t& widthOut,
+                                             int32_t& heightOut,
+                                             float& aspectRatioOut) const;
+        
         QCheckBox* m_saveImageToFileCheckBox;
         QCheckBox* m_copyImageToClipboardCheckBox;
         QLineEdit* m_imageFileNameLineEdit;
         
         QRadioButton* m_imageSizeWindowRadioButton;
         QRadioButton* m_imageSizeCustomRadioButton;
-        QSpinBox* m_customPixelsWidthSpinBox;
-        QSpinBox* m_customPixelsHeightSpinBox;
-        QDoubleSpinBox* m_customImageUnitsWidthSpinBox;
-        QDoubleSpinBox* m_customImageUnitsHeightSpinBox;
-        QDoubleSpinBox* m_customResolutionSpinBox;
-        QCheckBox* m_customScaleProportionallyCheckBox;
+        QSpinBox* m_pixelWidthSpinBox;
+        QSpinBox* m_pixelHeightSpinBox;
+        QDoubleSpinBox* m_imageWidthSpinBox;
+        QDoubleSpinBox* m_imageHeightSpinBox;
+        QDoubleSpinBox* m_imageResolutionSpinBox;
+        QCheckBox* m_scaleProportionallyCheckBox;
         
-        EnumComboBoxTemplate* m_customResolutionUnitsEnumComboBox;
-        EnumComboBoxTemplate* m_customSizeUnitsEnumComboBox;
+        EnumComboBoxTemplate* m_imageResolutionUnitsEnumComboBox;
+        EnumComboBoxTemplate* m_imageSizeUnitsEnumComboBox;
+        
         QCheckBox* m_imageAutoCropCheckBox;
         QSpinBox*  m_imageAutoCropMarginSpinBox;
         

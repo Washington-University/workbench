@@ -156,7 +156,7 @@ ImageCaptureDialog::createImageSourceSection()
     QObject::connect(m_windowSelectionSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(updateBrowserWindowWidthAndHeightLabel()));
     
-    QGroupBox* groupBox = new QGroupBox("Image Source");
+    QGroupBox* groupBox = new QGroupBox("Source");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     gridLayout->addWidget(windowLabel, 0, 0);
     gridLayout->addWidget(m_windowSelectionSpinBox, 0, 1);
@@ -217,49 +217,60 @@ ImageCaptureDialog::createImageDimensionsSection()
     QLabel* customResolutionLabel = new QLabel("Resolution:");
     
     QLabel* pixelDimensionsLabel = new QLabel("Pixel Dimensions");
-    m_customPixelsWidthSpinBox = WuQFactory::newSpinBox();
-    m_customPixelsWidthSpinBox->setFixedWidth(80);
-    m_customPixelsWidthSpinBox->setRange(1, 10000000);
-    m_customPixelsWidthSpinBox->setSingleStep(1);
-    m_customPixelsWidthSpinBox->setValue(2560);
+    m_pixelWidthSpinBox = WuQFactory::newSpinBox();
+    m_pixelWidthSpinBox->setFixedWidth(80);
+    m_pixelWidthSpinBox->setRange(1, 10000000);
+    m_pixelWidthSpinBox->setSingleStep(1);
+    m_pixelWidthSpinBox->setValue(2560);
+    QObject::connect(m_pixelWidthSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(pixelWidthValueChanged(int)));
     
-    m_customPixelsHeightSpinBox = WuQFactory::newSpinBox();
-    m_customPixelsHeightSpinBox->setFixedWidth(80);
-    m_customPixelsHeightSpinBox->setRange(1, 10000000);
-    m_customPixelsHeightSpinBox->setSingleStep(1);
-    m_customPixelsHeightSpinBox->setValue(2048);
+    m_pixelHeightSpinBox = WuQFactory::newSpinBox();
+    m_pixelHeightSpinBox->setFixedWidth(80);
+    m_pixelHeightSpinBox->setRange(1, 10000000);
+    m_pixelHeightSpinBox->setSingleStep(1);
+    m_pixelHeightSpinBox->setValue(2048);
+    QObject::connect(m_pixelHeightSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(pixelHeightValueChanged(int)));
     
     QLabel* imageDimensionsLabel = new QLabel("Image Dimensions");
-    m_customImageUnitsWidthSpinBox = WuQFactory::newDoubleSpinBox();
-    m_customImageUnitsWidthSpinBox->setFixedWidth(80);
-    m_customImageUnitsWidthSpinBox->setRange(0.0, 100000000.0);
-    m_customImageUnitsWidthSpinBox->setSingleStep(0.1);
-    m_customImageUnitsWidthSpinBox->setValue(2048);
+    m_imageWidthSpinBox = WuQFactory::newDoubleSpinBox();
+    m_imageWidthSpinBox->setFixedWidth(80);
+    m_imageWidthSpinBox->setRange(0.0, 100000000.0);
+    m_imageWidthSpinBox->setSingleStep(0.1);
+    m_imageWidthSpinBox->setValue(2048);
+    QObject::connect(m_imageWidthSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(imageWidthValueChanged(double)));
     
-    m_customImageUnitsHeightSpinBox = WuQFactory::newDoubleSpinBox();
-    m_customImageUnitsHeightSpinBox->setFixedWidth(80);
-    m_customImageUnitsHeightSpinBox->setRange(0.0, 100000000.0);
-    m_customImageUnitsHeightSpinBox->setSingleStep(0.1);
-    m_customImageUnitsHeightSpinBox->setValue(2048);
+    m_imageHeightSpinBox = WuQFactory::newDoubleSpinBox();
+    m_imageHeightSpinBox->setFixedWidth(80);
+    m_imageHeightSpinBox->setRange(0.0, 100000000.0);
+    m_imageHeightSpinBox->setSingleStep(0.1);
+    m_imageHeightSpinBox->setValue(2048);
+    QObject::connect(m_imageHeightSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(imageHeightValueChanged(double)));
     
-    m_customResolutionSpinBox = WuQFactory::newDoubleSpinBox();
-    m_customResolutionSpinBox->setFixedWidth(80);
-    m_customResolutionSpinBox->setRange(1, 1000000);
-    m_customResolutionSpinBox->setSingleStep(1);
-    m_customResolutionSpinBox->setValue(72);
-    
-    m_customSizeUnitsEnumComboBox = new EnumComboBoxTemplate(this);
-    m_customSizeUnitsEnumComboBox->setup<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
-    QObject::connect(m_customSizeUnitsEnumComboBox, SIGNAL(itemActivated()),
+    m_imageResolutionSpinBox = WuQFactory::newDoubleSpinBox();
+    m_imageResolutionSpinBox->setFixedWidth(80);
+    m_imageResolutionSpinBox->setRange(1, 1000000);
+    m_imageResolutionSpinBox->setSingleStep(1);
+    m_imageResolutionSpinBox->setValue(72);
+    QObject::connect(m_imageResolutionSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(imageResolutionValueChanged(double)));
+
+    m_imageSizeUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+    m_imageSizeUnitsEnumComboBox->setup<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
+    QObject::connect(m_imageSizeUnitsEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(imageSizeUnitsEnumComboBoxItemActivated()));
     
-    m_customResolutionUnitsEnumComboBox = new EnumComboBoxTemplate(this);
-    m_customResolutionUnitsEnumComboBox->setup<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
-    QObject::connect(m_customResolutionUnitsEnumComboBox, SIGNAL(itemActivated()),
+    m_imageResolutionUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+    m_imageResolutionUnitsEnumComboBox->setup<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
+    QObject::connect(m_imageResolutionUnitsEnumComboBox, SIGNAL(itemActivated()),
                     this, SLOT(imageResolutionUnitsEnumComboBoxItemActivated()));
     
-    m_customScaleProportionallyCheckBox = new QCheckBox("Scale Proportionally");
-
+    m_scaleProportionallyCheckBox = new QCheckBox("Scale Proportionally");
+    QObject::connect(m_scaleProportionallyCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(scaleProportionallyCheckBoxClicked(bool)));
     
     QWidget* pixelsSizeWidget = new QWidget();
     QGridLayout* pixelsSizeLayout = new QGridLayout(pixelsSizeWidget);
@@ -270,18 +281,18 @@ ImageCaptureDialog::createImageDimensionsSection()
     pixelsRow++;
     pixelsSizeLayout->addWidget(customPixelsWidthLabel,
                                 pixelsRow, 0);
-    pixelsSizeLayout->addWidget(m_customPixelsWidthSpinBox,
+    pixelsSizeLayout->addWidget(m_pixelWidthSpinBox,
                                 pixelsRow, 1);
     pixelsRow++;
     pixelsSizeLayout->addWidget(customPixelsHeightLabel,
                                 pixelsRow, 0);
-    pixelsSizeLayout->addWidget(m_customPixelsHeightSpinBox,
+    pixelsSizeLayout->addWidget(m_pixelHeightSpinBox,
                                 pixelsRow, 1);
     pixelsRow++;
     pixelsSizeLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
                                 pixelsRow, 0, 1, 2);
     pixelsRow++;
-    pixelsSizeLayout->addWidget(m_customScaleProportionallyCheckBox,
+    pixelsSizeLayout->addWidget(m_scaleProportionallyCheckBox,
                                 pixelsRow, 0, 1, 2, Qt::AlignLeft);
     pixelsRow++;
     pixelsSizeWidget->setSizePolicy(QSizePolicy::Fixed,
@@ -297,21 +308,21 @@ ImageCaptureDialog::createImageDimensionsSection()
     unitsRow++;
     imageUnitsLayout->addWidget(customUnitsWidthLabel,
                                 unitsRow, 0);
-    imageUnitsLayout->addWidget(m_customImageUnitsWidthSpinBox,
+    imageUnitsLayout->addWidget(m_imageWidthSpinBox,
                                 unitsRow, 1);
-    imageUnitsLayout->addWidget(m_customSizeUnitsEnumComboBox->getWidget(),
+    imageUnitsLayout->addWidget(m_imageSizeUnitsEnumComboBox->getWidget(),
                                 unitsRow, 2, 2, 1);
     unitsRow++;
     imageUnitsLayout->addWidget(customUnitsHeightLabel,
                                 unitsRow, 0);
-    imageUnitsLayout->addWidget(m_customImageUnitsHeightSpinBox,
+    imageUnitsLayout->addWidget(m_imageHeightSpinBox,
                                 unitsRow, 1);
     unitsRow++;
     imageUnitsLayout->addWidget(customResolutionLabel,
                                 unitsRow, 0);
-    imageUnitsLayout->addWidget(m_customResolutionSpinBox,
+    imageUnitsLayout->addWidget(m_imageResolutionSpinBox,
                                 unitsRow, 1);
-    imageUnitsLayout->addWidget(m_customResolutionUnitsEnumComboBox->getWidget(),
+    imageUnitsLayout->addWidget(m_imageResolutionUnitsEnumComboBox->getWidget(),
                                 unitsRow, 2);
     unitsRow++;
     imageUnitsWidget->setSizePolicy(QSizePolicy::Fixed,
@@ -327,7 +338,17 @@ ImageCaptureDialog::createImageDimensionsSection()
                                     0,
                                     Qt::AlignTop);
     
-    QGroupBox* groupBox = new QGroupBox("Image Dimensions");
+    
+    
+    
+    
+    imageUnitsWidget->setEnabled(false);
+    
+   
+    
+    
+    
+    QGroupBox* groupBox = new QGroupBox("Dimensions");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_imageSizeWindowRadioButton, 0, Qt::AlignLeft);
     layout->addWidget(m_imageSizeCustomRadioButton, 0, Qt::AlignLeft);
@@ -355,6 +376,109 @@ ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 }
 
 /**
+ * Called when pixel width value is changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+ImageCaptureDialog::pixelWidthValueChanged(int value)
+{
+    if (m_scaleProportionallyCheckBox->isChecked()) {
+        int32_t windowWidth;
+        int32_t windowHeight;
+        float aspectRatio;
+        if (getSelectedWindowWidthAndHeight(windowWidth,
+                                            windowHeight,
+                                            aspectRatio)) {
+            const int32_t newHeight = static_cast<int32_t>(value
+                                                           * aspectRatio);
+            m_pixelHeightSpinBox->blockSignals(true);
+            m_pixelHeightSpinBox->setValue(newHeight);
+            m_pixelHeightSpinBox->blockSignals(false);
+        }
+    }
+}
+
+/**
+ * Called when pixel height value is changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+ImageCaptureDialog::pixelHeightValueChanged(int value)
+{
+    if (m_scaleProportionallyCheckBox->isChecked()) {
+        int32_t windowWidth;
+        int32_t windowHeight;
+        float aspectRatio;
+        if (getSelectedWindowWidthAndHeight(windowWidth,
+                                            windowHeight,
+                                            aspectRatio)) {
+            const int32_t newWidth = static_cast<int32_t>(value
+                                                           / aspectRatio);
+            m_pixelWidthSpinBox->blockSignals(true);
+            m_pixelWidthSpinBox->setValue(newWidth);
+            m_pixelWidthSpinBox->blockSignals(false);
+        }
+    }
+}
+
+/**
+ * Called when image width value is changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+ImageCaptureDialog::imageWidthValueChanged(double value)
+{
+    
+}
+
+/**
+ * Called when image height value is changed.
+ *
+ * @param value
+ *    New value.
+ */
+void
+ImageCaptureDialog::imageHeightValueChanged(double value)
+{
+    
+}
+
+/**
+ * Called when image resolution value changed.
+ * 
+ * @param value
+ *    New value.
+ */
+void
+ImageCaptureDialog::imageResolutionValueChanged(double value)
+{
+    
+}
+
+/**
+ * Called when scale proportionately check box clicked.
+ *
+ * @parm checked
+ *     New checked status.
+ */
+void
+ImageCaptureDialog::scaleProportionallyCheckBoxClicked(bool checked)
+{
+    if (checked) {
+        /*
+         * Will cause pixel height to change appropriately
+         */
+        pixelWidthValueChanged(m_pixelWidthSpinBox->value());
+    }
+}
+
+/**
  * @return Create and return the image destination section.
  */
 QWidget*
@@ -369,7 +493,7 @@ ImageCaptureDialog::createImageDestinationSection()
     QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
                      this, SLOT(selectImagePushButtonPressed()));
     
-    QGroupBox* groupBox = new QGroupBox("Image Destination");
+    QGroupBox* groupBox = new QGroupBox("Destination");
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     gridLayout->addWidget(m_copyImageToClipboardCheckBox, 0, 0, 1, 3);
     gridLayout->addWidget(m_saveImageToFileCheckBox, 1, 0);
@@ -408,13 +532,12 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
 {
     AString windowSizeText = "Size of Window";
     
-    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
-    
-    if (browserWindow != NULL) {
-        int32_t width, height;
-        browserWindow->getGraphicsWidgetSize(width,
-                                             height);
+    int32_t width;
+    int32_t height;
+    float aspectRatio;
+    if (getSelectedWindowWidthAndHeight(width,
+                                        height,
+                                        aspectRatio)) {
         windowSizeText += (" ("
                            + AString::number(width)
                            + ", "
@@ -426,7 +549,50 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
     }
     
     m_imageSizeWindowRadioButton->setText(windowSizeText);
+    
+    if (m_scaleProportionallyCheckBox->isChecked()) {
+        /*
+         * Will cause pixel height to change appropriately
+         */
+        pixelWidthValueChanged(m_pixelWidthSpinBox->value());
+    }
 }
+
+/**
+ * Get the width and height of the selected window.
+ *
+ * @param widthOut
+ *    Width of window.
+ * @param heightOut
+ *    Height of window.
+ * @param aspectRatioOut
+ *    Aspect ratio of window (height / width)
+ * @return 
+ *    True if selected window is valid and both height and width
+ *    are greater than zero, else false.
+ */
+bool
+ImageCaptureDialog::getSelectedWindowWidthAndHeight(int32_t& widthOut,
+                                                    int32_t& heightOut,
+                                                    float& aspectRatioOut) const
+{
+    
+    const int selectedBrowserWindowIndex = m_windowSelectionSpinBox->value() - 1;
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(selectedBrowserWindowIndex);
+    
+    if (browserWindow != NULL) {
+        browserWindow->getGraphicsWidgetSize(widthOut,
+                                             heightOut);
+        if ((widthOut > 0)
+            && (heightOut > 0)) {
+            aspectRatioOut = (static_cast<float>(heightOut)
+                              / static_cast<float>(widthOut));
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /**
  * May be called to update the dialog's content.
@@ -503,8 +669,8 @@ ImageCaptureDialog::applyButtonPressed()
     int32_t imageX = 0;
     int32_t imageY = 0;
     if (m_imageSizeCustomRadioButton->isChecked()) {
-        imageX = m_customPixelsWidthSpinBox->value();
-        imageY = m_customPixelsHeightSpinBox->value();
+        imageX = m_pixelWidthSpinBox->value();
+        imageY = m_pixelHeightSpinBox->value();
     }
     ImageFile imageFile;
     bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
@@ -518,8 +684,8 @@ ImageCaptureDialog::applyButtonPressed()
         return;
     }
     
-    const ImageSizeUnitsEnum::Enum sizeUnits = m_customSizeUnitsEnumComboBox->getSelectedItem<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
-    const ImageResolutionUnitsEnum::Enum resolutionUnits = m_customResolutionUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
+    const ImageSizeUnitsEnum::Enum sizeUnits = m_imageSizeUnitsEnumComboBox->getSelectedItem<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
+    const ImageResolutionUnitsEnum::Enum resolutionUnits = m_imageResolutionUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
     
     if (m_imageAutoCropCheckBox->isChecked()) {
         const int marginSize = m_imageAutoCropMarginSpinBox->value();
