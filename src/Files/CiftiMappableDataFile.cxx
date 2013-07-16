@@ -3270,7 +3270,7 @@ CiftiMappableDataFile::getSelectionMode() const
 }
 
 void
-CiftiMappableDataFile::setSelectionMode(CiftiMappableDataFile::SelectionMode &mode)
+CiftiMappableDataFile::setSelectionMode(const CiftiMappableDataFile::SelectionMode &mode)
 {
     m_selectionMode = mode;
 }

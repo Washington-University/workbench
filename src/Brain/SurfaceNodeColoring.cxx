@@ -786,9 +786,10 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 				        rgbv[node4+1] =  1.0;
 				        rgbv[node4+2] =  1.0;
 				        rgbv[node4+3] =  1.0; 
-				        break;
+				        continue;
                     } 
                 }
+                break;
             }
 		    case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
 		    {
@@ -821,10 +822,11 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                             rgbv[node4+1] = 1.0;
                             rgbv[node4+2] = 1.0;
                             rgbv[node4+3] = 1.0;
-                            break;
+                            continue;
                         }
                     }
                 }
+                break;
 		    }
         }
 	}

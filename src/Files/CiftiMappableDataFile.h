@@ -279,13 +279,13 @@ namespace caret {
                                                     float xyzOut[3]) const;
 
         enum SelectionMode {
-            SELECTION_MODE_NONE,
-            SELECTION_MODE_FILL,
-            SELECTION_MODE_OUTLINE
+            SELECTION_MODE_NONE = 0,
+            SELECTION_MODE_FILL = 1,
+            SELECTION_MODE_OUTLINE = 2
         };
 
         virtual SelectionMode getSelectionMode() const;
-        virtual void setSelectionMode(SelectionMode &mode);
+        virtual void setSelectionMode(const SelectionMode &mode);
 
 		bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const;
         

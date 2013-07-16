@@ -321,3 +321,31 @@ void caret::ChartingDialog::on_autoResizeMatrixCB_toggled(bool checked)
 {
     autoResizeMatrix = checked;
 }
+
+void caret::ChartingDialog::on_comboBox_2_currentIndexChanged(int index)
+{
+    CiftiMappableDataFile::SelectionMode mode = this->cmf->getSelectionMode();
+
+    switch(index) {
+    case CiftiMappableDataFile::SELECTION_MODE_NONE:
+        {
+            cmf->setSelectionMode(CiftiMappableDataFile::SELECTION_MODE_NONE);
+            break;
+        }
+    case CiftiMappableDataFile::SELECTION_MODE_FILL:
+        {
+            cmf->setSelectionMode(CiftiMappableDataFile::SELECTION_MODE_FILL);
+            break;
+        }
+    case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
+        {
+            cmf->setSelectionMode(CiftiMappableDataFile::SELECTION_MODE_OUTLINE);
+            break;
+        }
+    }
+    cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());
+    //EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+}

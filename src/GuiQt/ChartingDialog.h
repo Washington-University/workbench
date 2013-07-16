@@ -53,6 +53,8 @@ private slots:
 
     void on_autoResizeMatrixCB_toggled(bool checked);
 
+    void on_comboBox_2_currentIndexChanged(int index);
+
 private:
     Table *table;
     Ui::ChartingDialog *ui;
