@@ -52,7 +52,7 @@ OperationParameters* AlgorithmCiftiExtrema::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "cifti", "the input cifti");
     ret->addDoubleParameter(2, "surface-distance", "the minimum distance between extrema of the same type, for surface components");
-    ret->addDoubleParameter(3, "volume-distance", "the minimum distance between extrema of the same type, for surface components");
+    ret->addDoubleParameter(3, "volume-distance", "the minimum distance between extrema of the same type, for volume components");
     ret->addStringParameter(4, "direction", "which dimension to find extrema along, ROW or COLUMN");
     ret->addCiftiOutputParameter(5, "cifti-out", "the output cifti");
     
@@ -68,7 +68,7 @@ OperationParameters* AlgorithmCiftiExtrema::getParameters()
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(9, "-surface-presmooth", "smooth on the surface before finding extrema");
     presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
     
-    OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(10, "-volume-presmooth", "smooth on the surface before finding extrema");
+    OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(10, "-volume-presmooth", "smooth volume components before finding extrema");
     presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
     
     OptionalParameter* thresholdOpt = ret->createOptionalParameter(11, "-threshold", "ignore small extrema");
