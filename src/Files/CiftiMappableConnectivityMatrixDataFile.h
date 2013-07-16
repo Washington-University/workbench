@@ -140,8 +140,6 @@ namespace caret {
         AString m_rowLoadedTextForMapName;
 
         AString m_rowLoadedText;
-
-		int64_t m_currentRowLoadedIndex;
         
         friend class CiftiBrainordinateScalarFile;
 

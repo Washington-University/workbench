@@ -83,7 +83,11 @@ namespace caret {
         const std::vector<int64_t>* getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                                                     const int64_t surfaceNumberOfNodes) const;
 
-        CiftiParcelElement * getParcelElementForSelectedParcel(const StructureEnum::Enum &structure, AString &parcelName) const;
+        bool getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const AString &parcelName) const;
+
+        bool getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const;
+
+        bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const;
 
         const std::vector<CiftiVolumeMap>* getVolumeMapForMappingDataToBrainordinates() const;
         

@@ -155,7 +155,8 @@ CiftiMappableDataFile::clearPrivate()
     
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
-    
+
+    m_selectionMode = SELECTION_MODE_NONE;    
 }
 
 /**
@@ -2621,6 +2622,26 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     }
 
     bool validColorsFlag = false;
+
+    CiftiParcelNodesElement selectedParcelNodesElement;
+    bool selectedParcelValid = false;
+    selectedParcelValid = m_ciftiFacade->getParcelNodesElementForSelectedParcel(selectedParcelNodesElement,structure, m_selectionIndex); 
+        
+    std::vector<int64_t> selectedParcelNodes = selectedParcelNodesElement.m_nodes;
+
+    //make a quick lookup table
+    std::vector<int64_t> selectedNodesLookup(surfaceNumberOfNodes,0);
+    if(selectedParcelValid)
+    {
+        for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+        {
+            int64_t nodeIndex = selectedParcelNodes[pNode];
+            if(nodeIndex >= 0 && nodeIndex < selectedNodesLookup.size()) {
+                selectedNodesLookup[nodeIndex] = 1;
+            }
+        }
+    }
+    
     
     for (int64_t iNode = 0; iNode < surfaceNumberOfNodes; iNode++) {
         CaretAssertVectorIndex((*dataIndicesForNodes),
@@ -2640,7 +2661,7 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
             surfaceRGBAOut[node4]   = mc->m_rgba[data4];
             surfaceRGBAOut[node4+1] = mc->m_rgba[data4+1];
             surfaceRGBAOut[node4+2] = mc->m_rgba[data4+2];
-            surfaceRGBAOut[node4+3] = mc->m_rgba[data4+3];
+            surfaceRGBAOut[node4+3] = mc->m_rgba[data4+3];           
             
             dataValuesOut[iNode] = mapData[dataIndex];
          
@@ -2653,6 +2674,38 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
             surfaceRGBAOut[node4+3] = -1.0;
             
             dataValuesOut[iNode] = 0.0;
+        }
+
+        if(selectedParcelValid)
+        {           
+            switch(m_selectionMode) {
+                case CiftiMappableDataFile::SELECTION_MODE_FILL:
+                {
+                    if(selectedNodesLookup[iNode])
+                    {
+                        surfaceRGBAOut[node4]   =  1.0;
+                        surfaceRGBAOut[node4+1] =  1.0;
+                        surfaceRGBAOut[node4+2] =  1.0;
+                        surfaceRGBAOut[node4+3] =  1.0; 
+                    }
+                    break;
+                }
+                case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
+                {
+                    /*
+                     * Check for any neighbors with different label key.
+                     */
+                    int32_t numNeighbors = 0;
+                    const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
+                    for (int32_t n = 0; n < numNeighbors; n++) {
+                        const int32_t neighbor = allNeighbors[n];
+                        if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
+                            colorIt = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -3251,6 +3304,19 @@ CiftiMappableDataFile::getSurfaceNumberOfNodes(const StructureEnum::Enum structu
     
     return numNodes;
 }
+
+CiftiMappableDataFile::SelectionMode 
+CiftiMappableDataFile::getSelectionMode() const
+{
+    return this->m_selectionMode;
+}
+
+void
+CiftiMappableDataFile::setSelectionMode(CiftiMappableDataFile::SelectionMode &mode)
+{
+    m_selectionMode = mode;
+}
+
 
 
 

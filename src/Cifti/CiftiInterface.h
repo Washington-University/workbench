@@ -37,11 +37,12 @@ namespace caret
         mutable bool m_dataRangeValid;
         mutable float m_dataRangeMin, m_dataRangeMax;
     protected:
-        CiftiXML m_xml;
-        bool checkRowIndex(int64_t index) const;
-        bool checkColumnIndex(int64_t index) const;
+        CiftiXML m_xml;        
         CiftiInterface();
     public:
+        bool checkRowIndex(int64_t index) const;
+        bool checkColumnIndex(int64_t index) const;
+
         ///get a row
         virtual void getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException) = 0;
         

@@ -277,6 +277,15 @@ namespace caret {
         bool getVoxelIndexAndCoordinateFromRowIndex(const int64_t rowIndex,
                                                     int64_t ijkOut[3],
                                                     float xyzOut[3]) const;
+
+        enum SelectionMode {
+            SELECTION_MODE_NONE,
+            SELECTION_MODE_FILL,
+            SELECTION_MODE_OUTLINE
+        };
+
+        virtual SelectionMode getSelectionMode() const;
+        virtual void setSelectionMode(SelectionMode &mode);
         
     private:
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -399,6 +408,10 @@ namespace caret {
         
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
+
+        SelectionMode m_selectionMode; 
+
+        int64_t m_selectionIndex; //index into row or column with selection data
         
         // ADD_NEW_MEMBERS_HERE
         

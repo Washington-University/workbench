@@ -107,8 +107,10 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
 int64_t
 CiftiMappableConnectivityMatrixDataFile::getRowLoadedIndex() const
 {
-	return m_currentRowLoadedIndex;
+	return m_selectionIndex;
 }
+
+
 
 /**
  * @return Is this file empty?
@@ -346,7 +348,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
         }
     }
     
-    return (m_currentRowLoadedIndex = rowIndex);
+    return (m_selectionIndex = rowIndex);
 }
 
 
@@ -415,7 +417,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelAtCoordinateWhenLoad
                        + DataFileTypeEnum::toName(getDataFileType()));
     }
     
-    return (m_currentRowLoadedIndex = rowIndex);
+    return (m_selectionIndex = rowIndex);
     
 }
 
@@ -478,7 +480,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(con
         }
     }
     
-    m_currentRowLoadedIndex = rowIndex;
+    m_selectionIndex = rowIndex;
     return rowIndex;
 }
 
@@ -581,7 +583,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
     
-    return (m_currentRowLoadedIndex = rowIndex);
+    return (m_selectionIndex = rowIndex);
 }
 
 
@@ -602,7 +604,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
  *    DataFileException if there is an error.
  */
 bool 
-CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) throw (DataFileException)
+CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex) throw (DataFileException)
 {
     if (isCiftiInterfaceValid() == false) {
         return false;
@@ -620,29 +622,29 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) thr
     try {
         bool dataWasLoaded = false;
         
-        if (rowIndex >= 0) {
+        if (selectionIndex >= 0) {
             const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
             if (dataCount > 0) {
                 m_rowLoadedTextForMapName = ("Row: "
-                                         + AString::number(rowIndex+1)                                         
+                                         + AString::number(selectionIndex+1)                                         
                                          );
 
                 m_rowLoadedText = ("Row_"
-                                   + AString::number(rowIndex+1)
+                                   + AString::number(selectionIndex+1)
                                    );
-                CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+                CaretAssert((selectionIndex >= 0) && (selectionIndex < m_ciftiInterface->getNumberOfRows()));
                 m_loadedRowData.resize(dataCount);
                 m_ciftiInterface->getRow(&m_loadedRowData[0],
-                                         rowIndex);
+                                         selectionIndex);
                 
-                CaretLogFine("Read row " + AString::number(rowIndex+1));
+                CaretLogFine("Read row " + AString::number(selectionIndex+1));
                 
                 dataWasLoaded = true;
             }
         }
         
         if (dataWasLoaded == false) {
-            CaretLogFine("FAILED to read row " + AString::number(rowIndex+1));
+            CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
         }
     }
     catch (CiftiFileException& e) {
@@ -652,7 +654,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t rowIndex) thr
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
     
-    m_currentRowLoadedIndex = rowIndex;
+    m_selectionIndex = selectionIndex;
     return true;
 }
 
@@ -900,7 +902,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
         throw DataFileException(e.whatString());
     }
     
-    return (m_currentRowLoadedIndex = rowIndex);
+    return (m_selectionIndex = rowIndex);
 }
 
 /**
@@ -1095,7 +1097,7 @@ CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttribut
     sceneClass->addBoolean("m_dataLoadingEnabled",
                            m_dataLoadingEnabled);
     sceneClass->addInteger("m_currentRowLoadedIndex",
-                           m_currentRowLoadedIndex);
+                           m_selectionIndex);
 }
 
 /**
@@ -1118,7 +1120,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
 {
     m_dataLoadingEnabled = sceneClass->getBooleanValue("m_dataLoadingEnabled",
                                                        true);
-    m_currentRowLoadedIndex = sceneClass->getIntegerValue("m_currentRowLoadedIndex",-1);
+    m_selectionIndex = sceneClass->getIntegerValue("m_currentRowLoadedIndex",-1);
 }
 
 

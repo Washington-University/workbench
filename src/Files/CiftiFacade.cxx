@@ -498,14 +498,14 @@ CiftiFacade::isMappingDataToBrainordinateParcels() const
     return m_useParcelsForBrainordinateMapping;
 }
 
-CiftiParcelElement *
-CiftiFacade::getParcelElementForSelectedParcel(const StructureEnum::Enum &structure, AString &parcelName) const
+bool
+CiftiFacade::getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const AString &parcelName) const
 {    
-    std::vector<CiftiParcelElement> parcelsOut;
-    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcelsOut);
+    std::vector<CiftiParcelElement> parcels;
+    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcels);
 
 	 
-	for(std::vector<CiftiParcelElement>::iterator iter = parcelsOut.begin();iter != parcelsOut.end();iter++)
+	for(std::vector<CiftiParcelElement>::iterator iter = parcels.begin();iter != parcels.end();iter++)
 	{
 		CiftiParcelElement &cpe = *iter;
 		if(cpe.m_parcelName == parcelName)
@@ -514,13 +514,58 @@ CiftiFacade::getParcelElementForSelectedParcel(const StructureEnum::Enum &struct
 				iterNodes != cpe.m_nodeElements.end();iterNodes++)
 			{
 				CiftiParcelNodesElement &cpne = *iterNodes;
-				if(cpne.m_structure = structure)
-					return new CiftiParcelElement(cpe);
+				if(cpne.m_structure == structure)
+                {
+					parcelOut = cpe;
+                    return true;
+                }
 			}
 		}			
 	}
+	return false;
+}
 
-	return NULL;
+bool CiftiFacade::getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const
+{    
+    std::vector<CiftiParcelElement> parcels;
+    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcels);
+
+    if(m_ciftiInterface->checkColumnIndex(selectionIndex))
+    {
+            parcelOut = parcels[selectionIndex];
+
+            for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = parcelOut.m_nodeElements.begin();
+                iterNodes != parcelOut.m_nodeElements.end();iterNodes++)
+            {
+                CiftiParcelNodesElement &cpne = *iterNodes;
+                if(cpne.m_structure == structure) return true;                    
+            }            
+    }
+    return false;   
+}
+
+
+bool CiftiFacade::getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const
+{
+    std::vector<CiftiParcelElement> parcels;
+    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcels);
+
+    if(m_ciftiInterface->checkColumnIndex(selectionIndex))
+    {
+        CiftiParcelElement parcelOut = parcels[selectionIndex];
+
+        for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = parcelOut.m_nodeElements.begin();
+            iterNodes != parcelOut.m_nodeElements.end();iterNodes++)
+        {
+            CiftiParcelNodesElement &cpne = *iterNodes;
+            if(cpne.m_structure == structure) 
+            {
+                parcelNodesOut = cpne;
+                return true;                    
+            }
+        }            
+    }
+    return false;   
 }
                                               
 
