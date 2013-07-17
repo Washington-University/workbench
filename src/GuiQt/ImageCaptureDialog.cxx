@@ -338,16 +338,6 @@ ImageCaptureDialog::createImageDimensionsSection()
                                     0,
                                     Qt::AlignTop);
     
-    
-    
-    
-    
-    imageUnitsWidget->setEnabled(false);
-    
-   
-    
-    
-    
     QGroupBox* groupBox = new QGroupBox("Dimensions");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_imageSizeWindowRadioButton, 0, Qt::AlignLeft);
@@ -434,7 +424,20 @@ ImageCaptureDialog::pixelHeightValueChanged(int value)
 void
 ImageCaptureDialog::imageWidthValueChanged(double value)
 {
-    
+    if (m_scaleProportionallyCheckBox->isChecked()) {
+        int32_t windowWidth;
+        int32_t windowHeight;
+        float aspectRatio;
+        if (getSelectedWindowWidthAndHeight(windowWidth,
+                                            windowHeight,
+                                            aspectRatio)) {
+            const int32_t newHeight = static_cast<int32_t>(value
+                                                           * aspectRatio);
+            m_imageHeightSpinBox->blockSignals(true);
+            m_imageHeightSpinBox->setValue(newHeight);
+            m_imageHeightSpinBox->blockSignals(false);
+        }
+    }
 }
 
 /**
@@ -446,7 +449,20 @@ ImageCaptureDialog::imageWidthValueChanged(double value)
 void
 ImageCaptureDialog::imageHeightValueChanged(double value)
 {
-    
+    if (m_scaleProportionallyCheckBox->isChecked()) {
+        int32_t windowWidth;
+        int32_t windowHeight;
+        float aspectRatio;
+        if (getSelectedWindowWidthAndHeight(windowWidth,
+                                            windowHeight,
+                                            aspectRatio)) {
+            const int32_t newWidth = static_cast<int32_t>(value
+                                                          / aspectRatio);
+            m_imageWidthSpinBox->blockSignals(true);
+            m_imageWidthSpinBox->setValue(newWidth);
+            m_imageWidthSpinBox->blockSignals(false);
+        }
+    }
 }
 
 /**
