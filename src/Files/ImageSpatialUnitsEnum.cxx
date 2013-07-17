@@ -33,9 +33,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __IMAGE_SIZE_UNITS_ENUM_DECLARE__
-#include "ImageSizeUnitsEnum.h"
-#undef __IMAGE_SIZE_UNITS_ENUM_DECLARE__
+#define __IMAGE_SPATIAL_UNITS_ENUM_DECLARE__
+#include "ImageSpatialUnitsEnum.h"
+#undef __IMAGE_SPATIAL_UNITS_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -43,8 +43,10 @@ using namespace caret;
 
     
 /**
- * \class caret::ImageSizeUnitsEnum 
- * \brief Image size units
+ * \class caret::ImageSpatialUnitsEnum 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -53,30 +55,30 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_imageSizeUnitsEnumComboBox;
+ *         EnumComboBoxTemplate* m_imageSpatialUnitsEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void imageSizeUnitsEnumComboBoxItemActivated();
+ *             void imageSpatialUnitsEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ImageSizeUnitsEnum.h"
+ *         #include "ImageSpatialUnitsEnum.h"
  * 
  *     Instatiate:
- *         m_imageSizeUnitsEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_imageSizeUnitsEnumComboBox->setup<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
+ *         m_imageSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_imageSpatialUnitsEnumComboBox->setup<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_imageSizeUnitsEnumComboBox, SIGNAL(itemActivated())
- *                          this, SLOT(imageSizeUnitsEnumComboBoxItemActivated()));
+ *         QObject::connect(m_imageSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(imageSpatialUnitsEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_imageSizeUnitsEnumComboBox->setSelectedItem<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>(NEW_VALUE);
+ *         m_imageSpatialUnitsEnumComboBox->setSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ImageSizeUnitsEnum::Enum VARIABLE = m_imageSizeUnitsEnumComboBox->getSelectedItem<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
+ *         const ImageSpatialUnitsEnum::Enum VARIABLE = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
  * 
  */
 
@@ -91,7 +93,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ImageSizeUnitsEnum::ImageSizeUnitsEnum(const Enum enumValue,
+ImageSpatialUnitsEnum::ImageSpatialUnitsEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -104,7 +106,7 @@ ImageSizeUnitsEnum::ImageSizeUnitsEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-ImageSizeUnitsEnum::~ImageSizeUnitsEnum()
+ImageSpatialUnitsEnum::~ImageSpatialUnitsEnum()
 {
 }
 
@@ -112,25 +114,24 @@ ImageSizeUnitsEnum::~ImageSizeUnitsEnum()
  * Initialize the enumerated metadata.
  */
 void
-ImageSizeUnitsEnum::initialize()
+ImageSpatialUnitsEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ImageSizeUnitsEnum(INCHES, 
-                                    "INCHES", 
-                                    "inches"));
+    enumData.push_back(ImageSpatialUnitsEnum(INCHES,
+                                             "INCHES",
+                                             "inches"));
     
-    enumData.push_back(ImageSizeUnitsEnum(CENTIMETERS, 
-                                    "CENTIMETERS", 
-                                    "cm"));
+    enumData.push_back(ImageSpatialUnitsEnum(CENTIMETERS,
+                                             "CENTIMETERS",
+                                             "cm"));
     
-    enumData.push_back(ImageSizeUnitsEnum(MILLIMETERS, 
-                                    "MILLIMETERS", 
-                                    "mm"));
-    
+    enumData.push_back(ImageSpatialUnitsEnum(MILLIMETERS,
+                                             "MILLIMETERS",
+                                             "mm"));
 }
 
 /**
@@ -140,14 +141,14 @@ ImageSizeUnitsEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ImageSizeUnitsEnum*
-ImageSizeUnitsEnum::findData(const Enum enumValue)
+const ImageSpatialUnitsEnum*
+ImageSpatialUnitsEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ImageSizeUnitsEnum* d = &enumData[i];
+        const ImageSpatialUnitsEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -164,10 +165,10 @@ ImageSizeUnitsEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ImageSizeUnitsEnum::toName(Enum enumValue) {
+ImageSpatialUnitsEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ImageSizeUnitsEnum* enumInstance = findData(enumValue);
+    const ImageSpatialUnitsEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -181,18 +182,18 @@ ImageSizeUnitsEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ImageSizeUnitsEnum::Enum 
-ImageSizeUnitsEnum::fromName(const AString& name, bool* isValidOut)
+ImageSpatialUnitsEnum::Enum 
+ImageSpatialUnitsEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = INCHES;
+    Enum enumValue = ImageSpatialUnitsEnum::enumData[0].enumValue;
     
-    for (std::vector<ImageSizeUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImageSizeUnitsEnum& d = *iter;
+        const ImageSpatialUnitsEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -204,7 +205,7 @@ ImageSizeUnitsEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ImageSizeUnitsEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ImageSpatialUnitsEnum"));
     }
     return enumValue;
 }
@@ -217,10 +218,10 @@ ImageSizeUnitsEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ImageSizeUnitsEnum::toGuiName(Enum enumValue) {
+ImageSpatialUnitsEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ImageSizeUnitsEnum* enumInstance = findData(enumValue);
+    const ImageSpatialUnitsEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -234,18 +235,18 @@ ImageSizeUnitsEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ImageSizeUnitsEnum::Enum 
-ImageSizeUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ImageSpatialUnitsEnum::Enum 
+ImageSpatialUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = INCHES;
+    Enum enumValue = ImageSpatialUnitsEnum::enumData[0].enumValue;
     
-    for (std::vector<ImageSizeUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImageSizeUnitsEnum& d = *iter;
+        const ImageSpatialUnitsEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -257,7 +258,7 @@ ImageSizeUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ImageSizeUnitsEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ImageSpatialUnitsEnum"));
     }
     return enumValue;
 }
@@ -269,10 +270,10 @@ ImageSizeUnitsEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-ImageSizeUnitsEnum::toIntegerCode(Enum enumValue)
+ImageSpatialUnitsEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ImageSizeUnitsEnum* enumInstance = findData(enumValue);
+    const ImageSpatialUnitsEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -287,18 +288,18 @@ ImageSizeUnitsEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ImageSizeUnitsEnum::Enum
-ImageSizeUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ImageSpatialUnitsEnum::Enum
+ImageSpatialUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ImageSizeUnitsEnum::enumData[0].enumValue;
+    Enum enumValue = ImageSpatialUnitsEnum::enumData[0].enumValue;
     
-    for (std::vector<ImageSizeUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ImageSizeUnitsEnum& enumInstance = *iter;
+        const ImageSpatialUnitsEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -310,7 +311,7 @@ ImageSizeUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ImageSizeUnitsEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ImageSpatialUnitsEnum"));
     }
     return enumValue;
 }
@@ -323,13 +324,13 @@ ImageSizeUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ImageSizeUnitsEnum::getAllEnums(std::vector<ImageSizeUnitsEnum::Enum>& allEnums)
+ImageSpatialUnitsEnum::getAllEnums(std::vector<ImageSpatialUnitsEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ImageSizeUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -345,16 +346,16 @@ ImageSizeUnitsEnum::getAllEnums(std::vector<ImageSizeUnitsEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ImageSizeUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ImageSpatialUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ImageSizeUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ImageSizeUnitsEnum::toName(iter->enumValue));
+        allNames.push_back(ImageSpatialUnitsEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -371,16 +372,16 @@ ImageSizeUnitsEnum::getAllNames(std::vector<AString>& allNames, const bool isSor
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ImageSizeUnitsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ImageSpatialUnitsEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ImageSizeUnitsEnum>::iterator iter = enumData.begin();
+    for (std::vector<ImageSpatialUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ImageSizeUnitsEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ImageSpatialUnitsEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

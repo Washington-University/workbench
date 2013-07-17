@@ -1,5 +1,5 @@
-#ifndef __IMAGE_SIZE_UNITS_ENUM_H__
-#define __IMAGE_SIZE_UNITS_ENUM_H__
+#ifndef __IMAGE_SPATIAL_UNITS_ENUM_H__
+#define __IMAGE_SPATIAL_UNITS_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -41,7 +41,7 @@
 
 namespace caret {
 
-class ImageSizeUnitsEnum {
+class ImageSpatialUnitsEnum {
 
 public:
     /**
@@ -57,7 +57,7 @@ public:
     };
 
 
-    ~ImageSizeUnitsEnum();
+    ~ImageSpatialUnitsEnum();
 
     static AString toName(Enum enumValue);
     
@@ -78,14 +78,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    ImageSizeUnitsEnum(const Enum enumValue, 
+    ImageSpatialUnitsEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const ImageSizeUnitsEnum* findData(const Enum enumValue);
+    static const ImageSpatialUnitsEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ImageSizeUnitsEnum> enumData;
+    static std::vector<ImageSpatialUnitsEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -109,11 +109,11 @@ private:
     AString guiName;
 };
 
-#ifdef __IMAGE_SIZE_UNITS_ENUM_DECLARE__
-std::vector<ImageSizeUnitsEnum> ImageSizeUnitsEnum::enumData;
-bool ImageSizeUnitsEnum::initializedFlag = false;
-int32_t ImageSizeUnitsEnum::integerCodeCounter = 0; 
-#endif // __IMAGE_SIZE_UNITS_ENUM_DECLARE__
+#ifdef __IMAGE_SPATIAL_UNITS_ENUM_DECLARE__
+std::vector<ImageSpatialUnitsEnum> ImageSpatialUnitsEnum::enumData;
+bool ImageSpatialUnitsEnum::initializedFlag = false;
+int32_t ImageSpatialUnitsEnum::integerCodeCounter = 0; 
+#endif // __IMAGE_SPATIAL_UNITS_ENUM_DECLARE__
 
 } // namespace
-#endif  //__IMAGE_SIZE_UNITS_ENUM_H__
+#endif  //__IMAGE_SPATIAL_UNITS_ENUM_H__

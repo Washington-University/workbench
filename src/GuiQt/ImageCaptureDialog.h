@@ -40,6 +40,7 @@ namespace caret {
     
     class BrainBrowserWindow;
     class EnumComboBoxTemplate;
+    class ImageDimensionsModel;
     class WuQWidgetObjectGroup;
     
     class ImageCaptureDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -94,6 +95,8 @@ namespace caret {
                                              int32_t& heightOut,
                                              float& aspectRatioOut) const;
         
+        void updateDialogWithImageDimensionsModel();
+        
         QCheckBox* m_saveImageToFileCheckBox;
         QCheckBox* m_copyImageToClipboardCheckBox;
         QLineEdit* m_imageFileNameLineEdit;
@@ -107,13 +110,15 @@ namespace caret {
         QDoubleSpinBox* m_imageResolutionSpinBox;
         QCheckBox* m_scaleProportionallyCheckBox;
         
-        EnumComboBoxTemplate* m_imageResolutionUnitsEnumComboBox;
-        EnumComboBoxTemplate* m_imageSizeUnitsEnumComboBox;
+        EnumComboBoxTemplate* m_imagePixelsPerSpatialUnitsEnumComboBox;
+        EnumComboBoxTemplate* m_imageSpatialUnitsEnumComboBox;
         
         QCheckBox* m_imageAutoCropCheckBox;
         QSpinBox*  m_imageAutoCropMarginSpinBox;
         
         QSpinBox* m_windowSelectionSpinBox;
+        
+        ImageDimensionsModel* m_imageDimensionsModel;
     };
     
 #ifdef __IMAGE_CAPTURE_DIALOG__H__DECLARE__

@@ -54,8 +54,7 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "ImageResolutionUnitsEnum.h"
-#include "ImageSizeUnitsEnum.h"
+#include "ImageDimensionsModel.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
 #include "WuQFactory.h"
@@ -84,6 +83,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 : WuQDialogNonModal("Image Capture",
                     parent)
 {
+    m_imageDimensionsModel = new ImageDimensionsModel();
+    
     setDeleteWhenClosed(false);
 
     /*
@@ -115,8 +116,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(imageSourceWidget);
-    layout->addWidget(imageOptionsWidget);
     layout->addWidget(imageDimensionsWidget);
+    layout->addWidget(imageOptionsWidget);
     layout->addWidget(imageDestinationWidget);
     
     setCentralWidget(w);
@@ -131,6 +132,18 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
     updateBrowserWindowWidthAndHeightLabel();
+    
+    /*
+     * Initialize the custom image size
+     */
+    m_imageDimensionsModel->setPixelWidthAndHeight(512,
+                                                   512);
+    updateDialogWithImageDimensionsModel();
+    m_scaleProportionallyCheckBox->setChecked(false);
+    scaleProportionallyCheckBoxClicked(m_scaleProportionallyCheckBox->isChecked());
+    
+    setSizePolicy(QSizePolicy::Fixed,
+                  QSizePolicy::Fixed);
 }
 
 /**
@@ -139,6 +152,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 ImageCaptureDialog::~ImageCaptureDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete m_imageDimensionsModel;
 }
 
 /**
@@ -216,9 +231,11 @@ ImageCaptureDialog::createImageDimensionsSection()
     QLabel* customUnitsHeightLabel = new QLabel("Height:");
     QLabel* customResolutionLabel = new QLabel("Resolution:");
     
+    const int pixelSpinBoxWidth = 80;
+    
     QLabel* pixelDimensionsLabel = new QLabel("Pixel Dimensions");
     m_pixelWidthSpinBox = WuQFactory::newSpinBox();
-    m_pixelWidthSpinBox->setFixedWidth(80);
+    m_pixelWidthSpinBox->setFixedWidth(pixelSpinBoxWidth);
     m_pixelWidthSpinBox->setRange(1, 10000000);
     m_pixelWidthSpinBox->setSingleStep(1);
     m_pixelWidthSpinBox->setValue(2560);
@@ -226,16 +243,18 @@ ImageCaptureDialog::createImageDimensionsSection()
                      this, SLOT(pixelWidthValueChanged(int)));
     
     m_pixelHeightSpinBox = WuQFactory::newSpinBox();
-    m_pixelHeightSpinBox->setFixedWidth(80);
+    m_pixelHeightSpinBox->setFixedWidth(pixelSpinBoxWidth);
     m_pixelHeightSpinBox->setRange(1, 10000000);
     m_pixelHeightSpinBox->setSingleStep(1);
     m_pixelHeightSpinBox->setValue(2048);
     QObject::connect(m_pixelHeightSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(pixelHeightValueChanged(int)));
     
+    const int imageSpinBoxWidth = 100;
+    
     QLabel* imageDimensionsLabel = new QLabel("Image Dimensions");
     m_imageWidthSpinBox = WuQFactory::newDoubleSpinBox();
-    m_imageWidthSpinBox->setFixedWidth(80);
+    m_imageWidthSpinBox->setFixedWidth(imageSpinBoxWidth);
     m_imageWidthSpinBox->setRange(0.0, 100000000.0);
     m_imageWidthSpinBox->setSingleStep(0.1);
     m_imageWidthSpinBox->setValue(2048);
@@ -243,7 +262,7 @@ ImageCaptureDialog::createImageDimensionsSection()
                      this, SLOT(imageWidthValueChanged(double)));
     
     m_imageHeightSpinBox = WuQFactory::newDoubleSpinBox();
-    m_imageHeightSpinBox->setFixedWidth(80);
+    m_imageHeightSpinBox->setFixedWidth(imageSpinBoxWidth);
     m_imageHeightSpinBox->setRange(0.0, 100000000.0);
     m_imageHeightSpinBox->setSingleStep(0.1);
     m_imageHeightSpinBox->setValue(2048);
@@ -251,21 +270,21 @@ ImageCaptureDialog::createImageDimensionsSection()
                      this, SLOT(imageHeightValueChanged(double)));
     
     m_imageResolutionSpinBox = WuQFactory::newDoubleSpinBox();
-    m_imageResolutionSpinBox->setFixedWidth(80);
+    m_imageResolutionSpinBox->setFixedWidth(imageSpinBoxWidth);
     m_imageResolutionSpinBox->setRange(1, 1000000);
     m_imageResolutionSpinBox->setSingleStep(1);
     m_imageResolutionSpinBox->setValue(72);
     QObject::connect(m_imageResolutionSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageResolutionValueChanged(double)));
 
-    m_imageSizeUnitsEnumComboBox = new EnumComboBoxTemplate(this);
-    m_imageSizeUnitsEnumComboBox->setup<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
-    QObject::connect(m_imageSizeUnitsEnumComboBox, SIGNAL(itemActivated()),
+    m_imageSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+    m_imageSpatialUnitsEnumComboBox->setup<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+    QObject::connect(m_imageSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(imageSizeUnitsEnumComboBoxItemActivated()));
     
-    m_imageResolutionUnitsEnumComboBox = new EnumComboBoxTemplate(this);
-    m_imageResolutionUnitsEnumComboBox->setup<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
-    QObject::connect(m_imageResolutionUnitsEnumComboBox, SIGNAL(itemActivated()),
+    m_imagePixelsPerSpatialUnitsEnumComboBox = new EnumComboBoxTemplate(this);
+    m_imagePixelsPerSpatialUnitsEnumComboBox->setup<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    QObject::connect(m_imagePixelsPerSpatialUnitsEnumComboBox, SIGNAL(itemActivated()),
                     this, SLOT(imageResolutionUnitsEnumComboBoxItemActivated()));
     
     m_scaleProportionallyCheckBox = new QCheckBox("Scale Proportionally");
@@ -310,7 +329,7 @@ ImageCaptureDialog::createImageDimensionsSection()
                                 unitsRow, 0);
     imageUnitsLayout->addWidget(m_imageWidthSpinBox,
                                 unitsRow, 1);
-    imageUnitsLayout->addWidget(m_imageSizeUnitsEnumComboBox->getWidget(),
+    imageUnitsLayout->addWidget(m_imageSpatialUnitsEnumComboBox->getWidget(),
                                 unitsRow, 2, 2, 1);
     unitsRow++;
     imageUnitsLayout->addWidget(customUnitsHeightLabel,
@@ -322,7 +341,7 @@ ImageCaptureDialog::createImageDimensionsSection()
                                 unitsRow, 0);
     imageUnitsLayout->addWidget(m_imageResolutionSpinBox,
                                 unitsRow, 1);
-    imageUnitsLayout->addWidget(m_imageResolutionUnitsEnumComboBox->getWidget(),
+    imageUnitsLayout->addWidget(m_imagePixelsPerSpatialUnitsEnumComboBox->getWidget(),
                                 unitsRow, 2);
     unitsRow++;
     imageUnitsWidget->setSizePolicy(QSizePolicy::Fixed,
@@ -353,7 +372,7 @@ ImageCaptureDialog::createImageDimensionsSection()
 void
 ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
 {
-    
+    updateDialogWithImageDimensionsModel();
 }
 
 /**
@@ -362,6 +381,37 @@ ImageCaptureDialog::imageResolutionUnitsEnumComboBoxItemActivated()
 void
 ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 {
+    updateDialogWithImageDimensionsModel();
+}
+
+/**
+ * Update the dialog with data from the image dimensions model.
+ */
+void
+ImageCaptureDialog::updateDialogWithImageDimensionsModel()
+{
+    m_pixelWidthSpinBox->blockSignals(true);
+    m_pixelWidthSpinBox->setValue(m_imageDimensionsModel->getPixelWidth());
+    m_pixelWidthSpinBox->blockSignals(false);
+
+    m_pixelHeightSpinBox->blockSignals(true);
+    m_pixelHeightSpinBox->setValue(m_imageDimensionsModel->getPixelHeight());
+    m_pixelHeightSpinBox->blockSignals(false);
+    
+    const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    
+    m_imageWidthSpinBox->blockSignals(true);
+    m_imageWidthSpinBox->setValue(m_imageDimensionsModel->getSpatialWidth(spatialUnits));
+    m_imageWidthSpinBox->blockSignals(false);
+    
+    m_imageHeightSpinBox->blockSignals(true);
+    m_imageHeightSpinBox->setValue(m_imageDimensionsModel->getSpatialHeight(spatialUnits));
+    m_imageHeightSpinBox->blockSignals(false);
+    
+    m_imageResolutionSpinBox->blockSignals(true);
+    m_imageResolutionSpinBox->setValue(m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(pixelsPerSpatialUnit));
+    m_imageResolutionSpinBox->blockSignals(false);
     
 }
 
@@ -374,20 +424,9 @@ ImageCaptureDialog::imageSizeUnitsEnumComboBoxItemActivated()
 void
 ImageCaptureDialog::pixelWidthValueChanged(int value)
 {
-    if (m_scaleProportionallyCheckBox->isChecked()) {
-        int32_t windowWidth;
-        int32_t windowHeight;
-        float aspectRatio;
-        if (getSelectedWindowWidthAndHeight(windowWidth,
-                                            windowHeight,
-                                            aspectRatio)) {
-            const int32_t newHeight = static_cast<int32_t>(value
-                                                           * aspectRatio);
-            m_pixelHeightSpinBox->blockSignals(true);
-            m_pixelHeightSpinBox->setValue(newHeight);
-            m_pixelHeightSpinBox->blockSignals(false);
-        }
-    }
+    m_imageDimensionsModel->setPixelWidth(value,
+                                          m_scaleProportionallyCheckBox->isChecked());
+    updateDialogWithImageDimensionsModel();
 }
 
 /**
@@ -399,20 +438,9 @@ ImageCaptureDialog::pixelWidthValueChanged(int value)
 void
 ImageCaptureDialog::pixelHeightValueChanged(int value)
 {
-    if (m_scaleProportionallyCheckBox->isChecked()) {
-        int32_t windowWidth;
-        int32_t windowHeight;
-        float aspectRatio;
-        if (getSelectedWindowWidthAndHeight(windowWidth,
-                                            windowHeight,
-                                            aspectRatio)) {
-            const int32_t newWidth = static_cast<int32_t>(value
-                                                           / aspectRatio);
-            m_pixelWidthSpinBox->blockSignals(true);
-            m_pixelWidthSpinBox->setValue(newWidth);
-            m_pixelWidthSpinBox->blockSignals(false);
-        }
-    }
+    m_imageDimensionsModel->setPixelHeight(value,
+                                          m_scaleProportionallyCheckBox->isChecked());
+    updateDialogWithImageDimensionsModel();
 }
 
 /**
@@ -424,20 +452,14 @@ ImageCaptureDialog::pixelHeightValueChanged(int value)
 void
 ImageCaptureDialog::imageWidthValueChanged(double value)
 {
-    if (m_scaleProportionallyCheckBox->isChecked()) {
-        int32_t windowWidth;
-        int32_t windowHeight;
-        float aspectRatio;
-        if (getSelectedWindowWidthAndHeight(windowWidth,
-                                            windowHeight,
-                                            aspectRatio)) {
-            const int32_t newHeight = static_cast<int32_t>(value
-                                                           * aspectRatio);
-            m_imageHeightSpinBox->blockSignals(true);
-            m_imageHeightSpinBox->setValue(newHeight);
-            m_imageHeightSpinBox->blockSignals(false);
-        }
-    }
+    const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+
+    m_imageDimensionsModel->setSpatialWidth(value,
+                                            spatialUnits,
+                                            m_scaleProportionallyCheckBox->isChecked());
+
+    updateDialogWithImageDimensionsModel();
 }
 
 /**
@@ -449,20 +471,14 @@ ImageCaptureDialog::imageWidthValueChanged(double value)
 void
 ImageCaptureDialog::imageHeightValueChanged(double value)
 {
-    if (m_scaleProportionallyCheckBox->isChecked()) {
-        int32_t windowWidth;
-        int32_t windowHeight;
-        float aspectRatio;
-        if (getSelectedWindowWidthAndHeight(windowWidth,
-                                            windowHeight,
-                                            aspectRatio)) {
-            const int32_t newWidth = static_cast<int32_t>(value
-                                                          / aspectRatio);
-            m_imageWidthSpinBox->blockSignals(true);
-            m_imageWidthSpinBox->setValue(newWidth);
-            m_imageWidthSpinBox->blockSignals(false);
-        }
-    }
+    const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
+    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    
+    m_imageDimensionsModel->setSpatialHeight(value,
+                                            spatialUnits,
+                                            m_scaleProportionallyCheckBox->isChecked());
+    
+    updateDialogWithImageDimensionsModel();
 }
 
 /**
@@ -474,6 +490,12 @@ ImageCaptureDialog::imageHeightValueChanged(double value)
 void
 ImageCaptureDialog::imageResolutionValueChanged(double value)
 {
+    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
+    
+    m_imageDimensionsModel->setNumberOfPixelsPerSpatialUnit(value,
+                                                            pixelsPerSpatialUnit);
+    
+    updateDialogWithImageDimensionsModel();
     
 }
 
@@ -556,9 +578,9 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
                                         aspectRatio)) {
         windowSizeText += (" ("
                            + AString::number(width)
-                           + ", "
+                           + " x "
                            + AString::number(height)
-                           + ")");
+                           + " pixels)");
     }
     else {
         windowSizeText += (" (Invalid Window Number)");
@@ -566,12 +588,12 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
     
     m_imageSizeWindowRadioButton->setText(windowSizeText);
     
-    if (m_scaleProportionallyCheckBox->isChecked()) {
-        /*
-         * Will cause pixel height to change appropriately
-         */
-        pixelWidthValueChanged(m_pixelWidthSpinBox->value());
-    }
+    /*
+     * Will cause custom data to update if scale proportionally is checked
+     */
+    pixelWidthValueChanged(m_pixelWidthSpinBox->value());
+    
+    updateDialogWithImageDimensionsModel();
 }
 
 /**
@@ -682,6 +704,9 @@ ImageCaptureDialog::applyButtonPressed()
 {
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
+    /*
+     * Zero for width/height means capture image in size of window
+     */
     int32_t imageX = 0;
     int32_t imageY = 0;
     if (m_imageSizeCustomRadioButton->isChecked()) {
@@ -700,8 +725,12 @@ ImageCaptureDialog::applyButtonPressed()
         return;
     }
     
-    const ImageSizeUnitsEnum::Enum sizeUnits = m_imageSizeUnitsEnumComboBox->getSelectedItem<ImageSizeUnitsEnum,ImageSizeUnitsEnum::Enum>();
-    const ImageResolutionUnitsEnum::Enum resolutionUnits = m_imageResolutionUnitsEnumComboBox->getSelectedItem<ImageResolutionUnitsEnum,ImageResolutionUnitsEnum::Enum>();
+    const float pixelsPerCentimeter = m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(ImagePixelsPerSpatialUnitsEnum::PIXEL_PER_CENTIMETER);
+    const float pixelsPerMeter = pixelsPerCentimeter * 100;
+    
+    QImage* qImage = imageFile.getAsQImage();
+    qImage->setDotsPerMeterX(pixelsPerMeter);
+    qImage->setDotsPerMeterY(pixelsPerMeter);
     
     if (m_imageAutoCropCheckBox->isChecked()) {
         const int marginSize = m_imageAutoCropMarginSpinBox->value();
@@ -714,7 +743,8 @@ ImageCaptureDialog::applyButtonPressed()
     bool errorFlag = false;
     
     if (m_copyImageToClipboardCheckBox->isChecked()) {
-        QApplication::clipboard()->setImage(*imageFile.getAsQImage(), QClipboard::Clipboard);
+        QApplication::clipboard()->setImage(*qImage,
+                                            QClipboard::Clipboard);
     }
 
     if (m_saveImageToFileCheckBox->isChecked()) {
@@ -757,7 +787,7 @@ ImageCaptureDialog::applyButtonPressed()
         QWidget* parent = getDialogButtonBox()->button(QDialogButtonBox::Apply);
         CaretAssert(parent);
         
-        WuQtUtilities::playSound("sound_camera_shutter.wav");
+        //WuQtUtilities::playSound("sound_camera_shutter.wav");
         WuQTimedMessageDisplay::show(parent,
                                      2.0,
                                      "Image captured");
