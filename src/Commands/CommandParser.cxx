@@ -139,9 +139,9 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::CIFTI:
             {
                 FileInformation myInfo(nextArg);
-                m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track all input cifti names - don't need to worry about "doesn't exist" case, because openFile below will error
                 CaretPointer<CiftiFile> myFile(new CiftiFile());
                 myFile->openFile(nextArg, ON_DISK);
+                m_inputCiftiNames.insert(pair<AString, CiftiFile*>(myInfo.getCanonicalFilePath(), myFile));//track all input cifti names and respective files, so that we can convert inputs to in-memory on collision
                 const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
                 if (md != NULL)
                 {
@@ -513,9 +513,11 @@ void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::CIFTI:
             {
                 FileInformation myInfo(outAssociation[i].m_fileName);
-                if (m_inputCiftiNames.find(myInfo.getCanonicalFilePath()) != m_inputCiftiNames.end())
+                map<AString, CiftiFile*>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
+                if (iter != m_inputCiftiNames.end())
                 {
-                    throw CommandException("output cifti file '" + outAssociation[i].m_fileName + "' is also an input file, aborting to avoid corrupting files");
+                    CaretLogInfo("Converting file '" + iter->first + "' to in-memory due to collision with output file");
+                    iter->second->convertToInMemory();
                 }
                 break;
             }
