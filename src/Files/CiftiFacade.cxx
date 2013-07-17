@@ -741,9 +741,14 @@ CiftiFacade::getMetadataForMapOrSeriesIndex(const int32_t mapIndex,
         return true;
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
-        metadataOut->replaceWithMap(*m_ciftiInterface->getCiftiXML().getMapMetadata(CiftiXML::ALONG_ROW,
-                                                                                    mapIndex));
-        return true;
+        std::map<AString, AString>* mapMetaData = m_ciftiInterface->getCiftiXML().getMapMetadata(CiftiXML::ALONG_ROW,
+            mapIndex);
+        if(mapMetaData) {
+            metadataOut->replaceWithMap(*m_ciftiInterface->getCiftiXML().getMapMetadata(CiftiXML::ALONG_ROW,
+                                                                                        mapIndex));
+            return true;
+        }        
+        
     }
     else {
         CaretAssert(0);
