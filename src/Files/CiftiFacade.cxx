@@ -552,8 +552,9 @@ bool CiftiFacade::getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement
 
     if(m_ciftiInterface->checkColumnIndex(selectionIndex))
     {
+        if(parcels.empty()) return false;
         CiftiParcelElement parcelOut = parcels[selectionIndex];
-
+        if(parcelOut.m_nodeElements.empty()) return false;
         for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = parcelOut.m_nodeElements.begin();
             iterNodes != parcelOut.m_nodeElements.end();iterNodes++)
         {
