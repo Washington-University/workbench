@@ -26,6 +26,7 @@
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
+#include "CaretOMP.h"
 #include "Vector3D.h"
 #include "WarpfieldFile.h"
 

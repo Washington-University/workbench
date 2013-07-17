@@ -30,6 +30,7 @@
 // later it will be heavily based on a generalized version of Nifti Matrix,
 // but I'd rather not hold up Cifti's release for it.  The interface will
 // stay largely the same regardless of the underlying code.
+#include "CaretMutex.h"
 #include "CaretPointer.h"
 #include "NiftiEnums.h"
 #include "CiftiFileException.h"
@@ -78,9 +79,9 @@ public:
     void writeToNewFile(const AString &fileNameIn, const int64_t &offsetIn) throw (CiftiFileException);
     //Gets the file handle to the cache so that CiftiFile and write the header and xml
     QFile *getCacheFile();
+protected:
     void copyMatrix(QFile *output, QFile *input, const bool& needsSwapping);
     void updateCache();
-protected:
     void copyHelper(const CiftiMatrix& rhs);
     CacheEnum m_caching;
     CaretArray<float> m_matrix;
@@ -91,6 +92,7 @@ protected:
     mutable CaretPointer<QFile> m_file;
     mutable CaretPointer<QFile> m_readFile;
     mutable CaretPointer<QFile> m_cacheFile;
+    mutable CaretMutex m_fileMutex;//mutex to lock to avoid concurrent calls to file access functions
     bool m_needsSwapping;
     bool m_beenInitialized;
     AString m_cacheFileName;

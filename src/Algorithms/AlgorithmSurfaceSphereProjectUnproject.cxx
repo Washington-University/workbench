@@ -25,6 +25,7 @@
 #include "AlgorithmSurfaceSphereProjectUnproject.h"
 #include "AlgorithmException.h"
 
+#include "CaretOMP.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
 #include "Vector3D.h"

@@ -27,6 +27,7 @@
 #include "CaretPointer.h"
 #include "CaretMutex.h"
 #include "CaretOMP.h"
+#include <QMutex>
 
 using namespace caret;
 using namespace std;

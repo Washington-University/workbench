@@ -139,23 +139,33 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::CIFTI:
             {
                 FileInformation myInfo(nextArg);
-                CaretPointer<CiftiFile> myFile(new CiftiFile());
-                myFile->openFile(nextArg, ON_DISK);
-                m_inputCiftiNames.insert(pair<AString, CiftiFile*>(myInfo.getCanonicalFilePath(), myFile));//track all input cifti names and respective files, so that we can convert inputs to in-memory on collision
-                const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
-                if (md != NULL)
+                map<AString, CaretPointer<CiftiFile> >::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
+                if (iter == m_inputCiftiNames.end())
                 {
-                    map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
-                    if (iter != md->end() && iter->second != "")
+                    CaretPointer<CiftiFile> myFile(new CiftiFile());
+                    myFile->openFile(nextArg, ON_DISK);
+                    m_inputCiftiNames.insert(pair<AString, CaretPointer<CiftiFile> >(myInfo.getCanonicalFilePath(), myFile));//track all input cifti names and respective files, so that we can convert inputs to in-memory on collision
+                    const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
+                    if (md != NULL)
                     {
-                        m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
+                        map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
+                        if (iter != md->end() && iter->second != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
+                        }
                     }
-                }
-                ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                if (debug)
-                {
-                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                    cout << nextArg << endl;
+                    ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                        cout << nextArg << endl;
+                    }
+                } else {//NOTE: if duplicate input cifti names are found, we actually reuse the same object - if we ever read multiple cifti files in parallel, this could be a problem
+                    ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = iter->second;
+                    if (debug)
+                    {
+                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> found to have same name as another cifti input, reusing object";
+                    }
                 }
                 break;
             }
@@ -513,7 +523,7 @@ void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::CIFTI:
             {
                 FileInformation myInfo(outAssociation[i].m_fileName);
-                map<AString, CiftiFile*>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
+                map<AString, CaretPointer<CiftiFile> >::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
                 if (iter != m_inputCiftiNames.end())
                 {
                     CaretLogInfo("Converting file '" + iter->first + "' to in-memory due to collision with output file");

@@ -27,18 +27,17 @@
 
 #include "CaretOMP.h"
 
-#include <QMutex>
-
-namespace caret {
-
 //omp mutexes are faster than QMutex, especially without contention
 #ifdef CARET_OMP
+
+namespace caret {
+    
     class CaretMutex
     {
         omp_lock_t m_lock;
-        CaretMutex(const CaretMutex& rhs);//disallow copy, assign
-        CaretMutex& operator=(const CaretMutex& rhs);
     public:
+        CaretMutex(const CaretMutex&) { omp_init_lock(&m_lock); };//allow copy, assign, but make them do nothing other than default construct
+        CaretMutex& operator=(const CaretMutex&) { return *this; };
         CaretMutex() { omp_init_lock(&m_lock); }
         ~CaretMutex() { omp_destroy_lock(&m_lock); }
         friend class CaretMutexLocker;
@@ -49,16 +48,25 @@ namespace caret {
         CaretMutex* m_mutex;
         CaretMutexLocker();//disallow default construction, assign
         CaretMutexLocker& operator=(const CaretMutexLocker& rhs);
-        public:
+    public:
         CaretMutexLocker(CaretMutex* mutex) { m_mutex = mutex; omp_set_lock(&(m_mutex->m_lock)); }
         ~CaretMutexLocker() { omp_unset_lock(&(m_mutex->m_lock)); }
     };
+    
+}
+
 #else
-//if we don't have openmp, fall back to CaretMutex
+//if we don't have openmp, fall back to QMutex
+#include <QMutex>
+
+namespace caret {
+    
    class CaretMutex : public QMutex
    {
    public:
-       CaretMutex(RecursionMode mode = NonRecursive);
+        CaretMutex(RecursionMode mode = NonRecursive);
+        CaretMutex(const CaretMutex&) : QMutex() { };//allow copy, assign, but make them do nothing other than default construct
+        CaretMutex& operator=(const CaretMutex&) { return *this; };
    };
    
    class CaretMutexLocker : public QMutexLocker
@@ -67,8 +75,8 @@ namespace caret {
       CaretMutexLocker(CaretMutex* theMutex);
    };
    
-#endif
-
 }
+
+#endif
 
 #endif //__CARET_MUTEX_H__
