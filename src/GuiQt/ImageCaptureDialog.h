@@ -81,6 +81,8 @@ namespace caret {
         
         void scaleProportionallyCheckBoxClicked(bool);
         
+        void sizeRadioButtonClicked(QAbstractButton* button);
+        
     private:
         ImageCaptureDialog(const ImageCaptureDialog&);
 
@@ -117,6 +119,8 @@ namespace caret {
         QSpinBox*  m_imageAutoCropMarginSpinBox;
         
         QSpinBox* m_windowSelectionSpinBox;
+        
+        QWidget* m_customDimensionsWidget;
         
         ImageDimensionsModel* m_imageDimensionsModel;
     };

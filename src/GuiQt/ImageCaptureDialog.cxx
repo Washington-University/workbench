@@ -163,7 +163,7 @@ QWidget*
 ImageCaptureDialog::createImageSourceSection()
 {
     QLabel* windowLabel = new QLabel("Workbench Window: ");
-    m_windowSelectionSpinBox = WuQFactory::newSpinBox();
+    m_windowSelectionSpinBox = new QSpinBox();
     m_windowSelectionSpinBox->setRange(1,
                                            BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
     m_windowSelectionSpinBox->setSingleStep(1);
@@ -190,7 +190,7 @@ ImageCaptureDialog::createImageOptionsSection()
 {
     m_imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
     QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
-    m_imageAutoCropMarginSpinBox = WuQFactory::newSpinBox();
+    m_imageAutoCropMarginSpinBox = new QSpinBox();
     m_imageAutoCropMarginSpinBox->setMinimum(0);
     m_imageAutoCropMarginSpinBox->setMaximum(100000);
     m_imageAutoCropMarginSpinBox->setSingleStep(1);
@@ -223,7 +223,8 @@ ImageCaptureDialog::createImageDimensionsSection()
     QButtonGroup* sizeButtonGroup = new QButtonGroup(this);
     sizeButtonGroup->addButton(m_imageSizeWindowRadioButton);
     sizeButtonGroup->addButton(m_imageSizeCustomRadioButton);
-    m_imageSizeWindowRadioButton->setChecked(true);
+    QObject::connect(sizeButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
+                     this, SLOT(sizeRadioButtonClicked(QAbstractButton*)));
     
     QLabel* customPixelsWidthLabel = new QLabel("Width:");
     QLabel* customPixelsHeightLabel = new QLabel("Height:");
@@ -234,7 +235,7 @@ ImageCaptureDialog::createImageDimensionsSection()
     const int pixelSpinBoxWidth = 80;
     
     QLabel* pixelDimensionsLabel = new QLabel("Pixel Dimensions");
-    m_pixelWidthSpinBox = WuQFactory::newSpinBox();
+    m_pixelWidthSpinBox = new QSpinBox();
     m_pixelWidthSpinBox->setFixedWidth(pixelSpinBoxWidth);
     m_pixelWidthSpinBox->setRange(1, 10000000);
     m_pixelWidthSpinBox->setSingleStep(1);
@@ -242,7 +243,7 @@ ImageCaptureDialog::createImageDimensionsSection()
     QObject::connect(m_pixelWidthSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(pixelWidthValueChanged(int)));
     
-    m_pixelHeightSpinBox = WuQFactory::newSpinBox();
+    m_pixelHeightSpinBox = new QSpinBox();
     m_pixelHeightSpinBox->setFixedWidth(pixelSpinBoxWidth);
     m_pixelHeightSpinBox->setRange(1, 10000000);
     m_pixelHeightSpinBox->setSingleStep(1);
@@ -253,25 +254,25 @@ ImageCaptureDialog::createImageDimensionsSection()
     const int imageSpinBoxWidth = 100;
     
     QLabel* imageDimensionsLabel = new QLabel("Image Dimensions");
-    m_imageWidthSpinBox = WuQFactory::newDoubleSpinBox();
+    m_imageWidthSpinBox = new QDoubleSpinBox();
     m_imageWidthSpinBox->setFixedWidth(imageSpinBoxWidth);
-    m_imageWidthSpinBox->setRange(0.0, 100000000.0);
+    m_imageWidthSpinBox->setRange(0.01, 100000000.0);
     m_imageWidthSpinBox->setSingleStep(0.1);
     m_imageWidthSpinBox->setValue(2048);
     QObject::connect(m_imageWidthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageWidthValueChanged(double)));
     
-    m_imageHeightSpinBox = WuQFactory::newDoubleSpinBox();
+    m_imageHeightSpinBox = new QDoubleSpinBox();
     m_imageHeightSpinBox->setFixedWidth(imageSpinBoxWidth);
-    m_imageHeightSpinBox->setRange(0.0, 100000000.0);
+    m_imageHeightSpinBox->setRange(0.01, 100000000.0);
     m_imageHeightSpinBox->setSingleStep(0.1);
     m_imageHeightSpinBox->setValue(2048);
     QObject::connect(m_imageHeightSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(imageHeightValueChanged(double)));
     
-    m_imageResolutionSpinBox = WuQFactory::newDoubleSpinBox();
+    m_imageResolutionSpinBox = new QDoubleSpinBox();
     m_imageResolutionSpinBox->setFixedWidth(imageSpinBoxWidth);
-    m_imageResolutionSpinBox->setRange(1, 1000000);
+    m_imageResolutionSpinBox->setRange(0.01, 1000000);
     m_imageResolutionSpinBox->setSingleStep(1);
     m_imageResolutionSpinBox->setValue(72);
     QObject::connect(m_imageResolutionSpinBox, SIGNAL(valueChanged(double)),
@@ -347,13 +348,14 @@ ImageCaptureDialog::createImageDimensionsSection()
     imageUnitsWidget->setSizePolicy(QSizePolicy::Fixed,
                                     QSizePolicy::Fixed);
     
-    QHBoxLayout* pixelsAndImageLayout = new QHBoxLayout();
-    pixelsAndImageLayout->addSpacing(20);
-    pixelsAndImageLayout->addWidget(pixelsSizeWidget,
+    m_customDimensionsWidget = new QWidget();
+    QHBoxLayout* customDimensionsLayout = new QHBoxLayout(m_customDimensionsWidget);
+    customDimensionsLayout->addSpacing(20);
+    customDimensionsLayout->addWidget(pixelsSizeWidget,
                                     0,
                                     Qt::AlignTop);
-    pixelsAndImageLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    pixelsAndImageLayout->addWidget(imageUnitsWidget,
+    customDimensionsLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    customDimensionsLayout->addWidget(imageUnitsWidget,
                                     0,
                                     Qt::AlignTop);
     
@@ -361,9 +363,29 @@ ImageCaptureDialog::createImageDimensionsSection()
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_imageSizeWindowRadioButton, 0, Qt::AlignLeft);
     layout->addWidget(m_imageSizeCustomRadioButton, 0, Qt::AlignLeft);
-    layout->addLayout(pixelsAndImageLayout, 0);
+    layout->addWidget(m_customDimensionsWidget, 0, Qt::AlignLeft);
     
+    m_imageSizeWindowRadioButton->setChecked(true);
+    sizeRadioButtonClicked(sizeButtonGroup->checkedButton());
+
     return groupBox;
+}
+
+/**
+ * Gets called when the Window Size or Custom radio button is clicked.
+ *
+ * @param button
+ *    Button that was clicked.
+ */
+void
+ImageCaptureDialog::sizeRadioButtonClicked(QAbstractButton* button)
+{
+    if (button == m_imageSizeWindowRadioButton) {
+        m_customDimensionsWidget->setEnabled(false);
+    }
+    else if (button == m_imageSizeCustomRadioButton) {
+        m_customDimensionsWidget->setEnabled(true);
+    }
 }
 
 /**
