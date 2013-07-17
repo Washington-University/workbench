@@ -84,6 +84,9 @@ namespace caret {
         void setNumberOfPixelsPerSpatialUnit(const float numberOfPixelsPerSpatialUnit,
                                      const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit);
         
+        void updateForAspectRatio(const float width,
+                                  const float height);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -113,11 +116,15 @@ namespace caret {
         
         float m_pixelsPerCentimeter;
         
+        float m_aspectRatio;
+        
         static const float CENTIMETERS_PER_INCH;
+        static const float MILLIMETERS_PER_CENTIMETER;
     };
     
 #ifdef __IMAGE_DIMENSIONS_MODEL_DECLARE__
     const float ImageDimensionsModel::CENTIMETERS_PER_INCH = 2.54;
+    const float ImageDimensionsModel::MILLIMETERS_PER_CENTIMETER = 10.0;
 #endif // __IMAGE_DIMENSIONS_MODEL_DECLARE__
 
 } // namespace

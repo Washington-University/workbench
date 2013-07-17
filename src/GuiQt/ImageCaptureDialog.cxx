@@ -101,7 +101,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
      * Image Size
      * Note: Label is updated when window size is updated
      */
-    QWidget* imageDimensionsWidget = createImageDimensionsSection();
+    m_imageDimensionsWidget = createImageDimensionsSection();
     
     /*
      * Image Options
@@ -116,7 +116,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(imageSourceWidget);
-    layout->addWidget(imageDimensionsWidget);
+    layout->addWidget(m_imageDimensionsWidget);
     layout->addWidget(imageOptionsWidget);
     layout->addWidget(imageDestinationWidget);
     
@@ -141,6 +141,11 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     updateDialogWithImageDimensionsModel();
     m_scaleProportionallyCheckBox->setChecked(false);
     scaleProportionallyCheckBoxClicked(m_scaleProportionallyCheckBox->isChecked());
+    WuQtUtilities::setWordWrappedToolTip(m_scaleProportionallyCheckBox,
+                                         ("If checked, the heights of the pixel and image dimensions "
+                                          "are automatically adjusted so that their proportions "
+                                          "match the proportion of the selected window's "
+                                          "graphics region."));
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -534,7 +539,16 @@ ImageCaptureDialog::scaleProportionallyCheckBoxClicked(bool checked)
         /*
          * Will cause pixel height to change appropriately
          */
-        pixelWidthValueChanged(m_pixelWidthSpinBox->value());
+        int32_t windowWidth;
+        int32_t windowHeight;
+        float aspectRatio;
+        if (getSelectedWindowWidthAndHeight(windowWidth,
+                                            windowHeight,
+                                            aspectRatio)) {
+            m_imageDimensionsModel->updateForAspectRatio(windowWidth,
+                                                         windowHeight);
+            updateDialogWithImageDimensionsModel();
+        }
     }
 }
 
@@ -603,19 +617,24 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
                            + " x "
                            + AString::number(height)
                            + " pixels)");
+        
+        if (m_scaleProportionallyCheckBox->isChecked()) {
+            m_imageDimensionsModel->updateForAspectRatio(width,
+                                                         height);
+        }
+        
+        updateDialogWithImageDimensionsModel();
+        
+        m_imageDimensionsWidget->setEnabled(true);
     }
     else {
         windowSizeText += (" (Invalid Window Number)");
+
+        m_imageDimensionsWidget->setEnabled(false);
     }
     
     m_imageSizeWindowRadioButton->setText(windowSizeText);
     
-    /*
-     * Will cause custom data to update if scale proportionally is checked
-     */
-    pixelWidthValueChanged(m_pixelWidthSpinBox->value());
-    
-    updateDialogWithImageDimensionsModel();
 }
 
 /**

@@ -122,6 +122,8 @@ namespace caret {
         
         QWidget* m_customDimensionsWidget;
         
+        QWidget* m_imageDimensionsWidget;
+        
         ImageDimensionsModel* m_imageDimensionsModel;
     };
     

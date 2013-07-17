@@ -56,6 +56,7 @@ using namespace caret;
 ImageDimensionsModel::ImageDimensionsModel()
 : CaretObject()
 {
+    m_aspectRatio = 1.0;
     m_pixelsPerCentimeter = 72.0 / CENTIMETERS_PER_INCH;
     setPixelWidthAndHeight(512, 512);
 }
@@ -167,7 +168,7 @@ ImageDimensionsModel::getSpatialWidth(const ImageSpatialUnitsEnum::Enum spatialU
             width = m_centimetersWidth / CENTIMETERS_PER_INCH;
             break;
         case ImageSpatialUnitsEnum::MILLIMETERS:
-            width = m_centimetersWidth * 100.0;
+            width = m_centimetersWidth * MILLIMETERS_PER_CENTIMETER;
             break;
     }
     
@@ -195,7 +196,7 @@ ImageDimensionsModel::getSpatialHeight(const ImageSpatialUnitsEnum::Enum spatial
             height = m_centimetersHeight / CENTIMETERS_PER_INCH;
             break;
         case ImageSpatialUnitsEnum::MILLIMETERS:
-            height = m_centimetersHeight * 100.0;
+            height = m_centimetersHeight * MILLIMETERS_PER_CENTIMETER;
             break;
     }
     
@@ -318,7 +319,7 @@ ImageDimensionsModel::setSpatialWidth(const float spatialWidth,
     
     switch (spatialUnit) {
         case ImageSpatialUnitsEnum::MILLIMETERS:
-            m_centimetersWidth = spatialWidth / 100.0;
+            m_centimetersWidth = spatialWidth / MILLIMETERS_PER_CENTIMETER;
             break;
         case ImageSpatialUnitsEnum::INCHES:
             m_centimetersWidth = spatialWidth * CENTIMETERS_PER_INCH;
@@ -356,10 +357,10 @@ ImageDimensionsModel::setSpatialHeight(const float spatialHeight,
     
     switch (spatialUnit) {
         case ImageSpatialUnitsEnum::MILLIMETERS:
-            m_centimetersHeight = spatialHeight / 100.0;
+            m_centimetersHeight = spatialHeight / MILLIMETERS_PER_CENTIMETER;
             break;
         case ImageSpatialUnitsEnum::INCHES:
-            m_centimetersHeight = spatialHeight / CENTIMETERS_PER_INCH;
+            m_centimetersHeight = spatialHeight * CENTIMETERS_PER_INCH;
             break;
         case ImageSpatialUnitsEnum::CENTIMETERS:
             m_centimetersHeight = spatialHeight;
@@ -367,7 +368,7 @@ ImageDimensionsModel::setSpatialHeight(const float spatialHeight,
     }
     
     if (preserveAspectRatio) {
-        m_centimetersHeight = m_centimetersWidth * aspectRatio;
+        m_centimetersWidth = m_centimetersHeight / aspectRatio;
     }
     
     updatePixelWidthAndHeightFromSpatialWidthAndHeight();
@@ -427,11 +428,31 @@ ImageDimensionsModel::updateSpatialWidthAndHeightFromPixelWidthAndHeight()
 float
 ImageDimensionsModel::getAspectRatio() const
 {
-    if (m_pixelWidth == 0.0) {
-        return 1;
-    }
-    
-    return (static_cast<float>(m_pixelHeight)
-            / static_cast<float>(m_pixelWidth));
+    return m_aspectRatio;
 }
+
+/**
+ * Update the pixel and image dimensions for the aspect ratio
+ * determined by the given width and height.  Aspect ratio
+ * is (height / width) and the height will be changed using
+ * the aspect ratio.
+ *
+ * @param width
+ *    Width used in denominator of aspect ratio.
+ * @param height
+ *    Height used in numerator of aspect ratio.
+ */
+void
+ImageDimensionsModel::updateForAspectRatio(const float width,
+                                           const float height)
+{
+    if ((width > 0.0)
+        && (height > 0.0)) {
+        m_aspectRatio = height / width;
+        m_pixelHeight = m_aspectRatio * m_pixelWidth;
+        
+        updateSpatialWidthAndHeightFromPixelWidthAndHeight();
+    }
+}
+
 
