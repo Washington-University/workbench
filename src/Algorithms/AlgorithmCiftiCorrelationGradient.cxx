@@ -87,7 +87,7 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     
     ret->setHelpText(
         AString("For each structure, compute the correlation of the rows in the structure, and take the gradients of ") +
-        "the resulting rows, then average them." +
+        "the resulting rows, then average them.  " +
         "Memory limit does not need to be an integer, you may also specify 0 to use as little memory as possible (this may be very slow)."
     );
     return ret;
@@ -345,7 +345,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                 AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &myRoi);
                 myCol = outputMetric2.getValuePointerForColumn(0);
             } else {
-                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi, j);
+                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi, false, j);
                 myCol = outputMetric.getValuePointerForColumn(0);
             }
             for (int i = 0; i < mapSize; ++i)
@@ -504,7 +504,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                 AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &excludeRoi);
                 myCol = outputMetric2.getValuePointerForColumn(0);
             } else {
-                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &excludeRoi, j);
+                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &excludeRoi, false, j);
                 myCol = outputMetric.getValuePointerForColumn(0);
             }
             for (int i = 0; i < mapSize; ++i)
