@@ -523,9 +523,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                            const StructureEnum::Enum structure,
                                                            const int32_t nodeIndex) throw (DataFileException)
 {
-    setLoadedRowDataToAllZeros();
-    
     if (isCiftiInterfaceValid() == false) {
+        setLoadedRowDataToAllZeros();
         return -1;
     }
     
@@ -535,6 +534,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     if (m_dataLoadingEnabled == false) {
         return -1;
     }
+    
+    setLoadedRowDataToAllZeros();
     
     int64_t rowIndex = -1;
     
@@ -680,9 +681,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                                                    const StructureEnum::Enum structure,
                                                                    const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    setLoadedRowDataToAllZeros();
-    
     if (isCiftiInterfaceValid() == false) {
+        setLoadedRowDataToAllZeros();
         return;
     }
     
@@ -693,12 +693,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         return;
     }
     
-    /*
-     * Loading of data disabled?
-     */
-    if (m_dataLoadingEnabled == false) {
-        return;
-    }
+    setLoadedRowDataToAllZeros();
     
     const int32_t numberOfNodeIndices = static_cast<int32_t>(nodeIndices.size());
     if (numberOfNodeIndices <= 0) {
@@ -832,11 +827,10 @@ int64_t
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const int32_t mapIndex,
                                                                  const float xyz[3]) throw (DataFileException)
 {
-    setLoadedRowDataToAllZeros();
-    
     CaretAssert(mapIndex == 0);
     
     if (isCiftiInterfaceValid() == false) {
+        setLoadedRowDataToAllZeros();
         return -1;
     }
     
@@ -846,6 +840,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     if (m_dataLoadingEnabled == false) {
         return -1;
     }
+    
+    setLoadedRowDataToAllZeros();
+    
     /*
      * Get content for map.
      */
@@ -924,9 +921,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
 {
     CaretAssert(mapIndex == 0);
     
-    setLoadedRowDataToAllZeros();
-    
     if (isCiftiInterfaceValid() == false) {
+        setLoadedRowDataToAllZeros();
         return false;
     }
     
@@ -936,6 +932,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
     if (m_dataLoadingEnabled == false) {
         return false;
     }
+    
+    setLoadedRowDataToAllZeros();
     
     /*
      * Match dimensions
