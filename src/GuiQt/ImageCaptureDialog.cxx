@@ -480,8 +480,6 @@ void
 ImageCaptureDialog::imageWidthValueChanged(double value)
 {
     const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
-    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
-
     m_imageDimensionsModel->setSpatialWidth(value,
                                             spatialUnits,
                                             m_scaleProportionallyCheckBox->isChecked());
@@ -499,8 +497,6 @@ void
 ImageCaptureDialog::imageHeightValueChanged(double value)
 {
     const ImageSpatialUnitsEnum::Enum spatialUnits = m_imageSpatialUnitsEnumComboBox->getSelectedItem<ImageSpatialUnitsEnum,ImageSpatialUnitsEnum::Enum>();
-    const ImagePixelsPerSpatialUnitsEnum::Enum pixelsPerSpatialUnit = m_imagePixelsPerSpatialUnitsEnumComboBox->getSelectedItem<ImagePixelsPerSpatialUnitsEnum,ImagePixelsPerSpatialUnitsEnum::Enum>();
-    
     m_imageDimensionsModel->setSpatialHeight(value,
                                             spatialUnits,
                                             m_scaleProportionallyCheckBox->isChecked());
