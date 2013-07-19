@@ -139,7 +139,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     m_imageDimensionsModel->setPixelWidthAndHeight(512,
                                                    512);
     updateDialogWithImageDimensionsModel();
-    m_scaleProportionallyCheckBox->setChecked(false);
+    m_scaleProportionallyCheckBox->setChecked(true);
     scaleProportionallyCheckBoxClicked(m_scaleProportionallyCheckBox->isChecked());
     WuQtUtilities::setWordWrappedToolTip(m_scaleProportionallyCheckBox,
                                          ("If checked, the heights of the pixel and image dimensions "

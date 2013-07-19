@@ -390,7 +390,7 @@ ImageDimensionsModel::setNumberOfPixelsPerSpatialUnit(const float numberOfPixels
     
     switch (pixelsPerSpatialUnit) {
         case ImagePixelsPerSpatialUnitsEnum::PIXELS_PER_INCH:
-            m_pixelsPerCentimeter = numberOfPixelsPerSpatialUnit * CENTIMETERS_PER_INCH;
+            m_pixelsPerCentimeter = numberOfPixelsPerSpatialUnit / CENTIMETERS_PER_INCH;
             break;
         case ImagePixelsPerSpatialUnitsEnum::PIXEL_PER_CENTIMETER:
             m_pixelsPerCentimeter = numberOfPixelsPerSpatialUnit;
