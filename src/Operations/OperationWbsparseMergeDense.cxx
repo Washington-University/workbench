@@ -288,4 +288,5 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
             CaretAssert(false);
             break;
     }
+    myWriter.finish();
 }

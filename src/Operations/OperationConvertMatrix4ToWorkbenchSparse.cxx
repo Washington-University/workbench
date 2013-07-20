@@ -58,11 +58,19 @@ OperationParameters* OperationConvertMatrix4ToWorkbenchSparse::getParameters()
     ret->addStringParameter(2, "matrix4_2", "the second matrix4 file");
     ret->addStringParameter(3, "matrix4_3", "the third matrix4 file");
     ret->addCiftiParameter(4, "orientation-file", "the .fiberTEMP.nii file this trajectory file applies to");
-    ret->addStringParameter(5, "voxel-list", "list of voxel index triplets as used in the trajectory matrix");
-    ret->addMetricParameter(6, "seed-roi", "metric roi file of all nodes used in the seed space");
-    ret->addStringParameter(7, "wb-sparse-out", "output - the output workbench sparse file");
+    ret->addStringParameter(5, "voxel-list", "list of white matter voxel index triplets as used in the trajectory matrix");
+    ret->addStringParameter(6, "wb-sparse-out", "output - the output workbench sparse file");
+    
+    OptionalParameter* surfaceOpt = ret->createOptionalParameter(7, "-surface-seeds", "specify the surface seed space");
+    surfaceOpt->addMetricParameter(1, "seed-roi", "metric roi file of all nodes used in the seed space");
+    
+    OptionalParameter* volumeOpt = ret->createOptionalParameter(8, "-volume-seeds", "specify the volume seed space");
+    volumeOpt->addCiftiParameter(1, "cifti-template", "cifti file to use the volume mappings from");
+    volumeOpt->addStringParameter(2, "direction", "dimension along the cifti file to take the mapping from, ROW or COLUMN");
+    
     ret->setHelpText(
-        AString("Converts the matrix 4 output of probtrackx to workbench sparse file format.")
+        AString("Converts the matrix 4 output of probtrackx to workbench sparse file format.  ") +
+        "Exactly one of -surface-seeds and -volume-seeds must be specified."
     );
     return ret;
 }
@@ -74,22 +82,69 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     AString inFile2 = myParams->getString(2);
     AString inFile3 = myParams->getString(3);
     AString voxelFileName = myParams->getString(5);
-    MetricFile* myROI = myParams->getMetric(6);
     CiftiFile* orientationFile = myParams->getCifti(4);
-    AString outFileName = myParams->getString(7);
+    AString outFileName = myParams->getString(6);
     OxfordSparseThreeFile inFile(inFile1, inFile2, inFile3);
     const int64_t* sparseDims = inFile.getDimensions();
-    int numNodes = myROI->getNumberOfNodes();
-    int nodeCount = 0;
-    const float* roiData = myROI->getValuePointerForColumn(0);
-    for (int i = 0; i < numNodes; ++i)
+    OptionalParameter* surfaceOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* volumeOpt = myParams->getOptionalParameter(8);
+    if (surfaceOpt->m_present == volumeOpt->m_present) throw OperationException("you must specify exactly one of -surface-seeds and -volume-seeds");//use == on booleans as xnor
+    CiftiXML myXML = orientationFile->getCiftiXML();
+    if (surfaceOpt->m_present)
     {
-        if (roiData[i] > 0.0f) ++nodeCount;
+        MetricFile* myROI = myParams->getMetric(1);
+        int numNodes = myROI->getNumberOfNodes();
+        int nodeCount = 0;
+        const float* roiData = myROI->getValuePointerForColumn(0);
+        for (int i = 0; i < numNodes; ++i)
+        {
+            if (roiData[i] > 0.0f) ++nodeCount;
+        }
+        if (nodeCount != sparseDims[1])
+        {
+            throw OperationException("roi has a different number of selected vertices than the input matrix");
+        }
+        myXML.applyColumnMapToRows();
+        myXML.resetColumnsToBrainModels();
+        myXML.addSurfaceModelToColumns(numNodes, myROI->getStructure(), roiData);
     }
-    if (nodeCount != sparseDims[1])
+    if (volumeOpt->m_present)
     {
-        throw OperationException("roi has a different number of selected vertices than the input matrix");
+        CiftiFile* myTemplate = volumeOpt->getCifti(1);
+        AString directionName = volumeOpt->getString(2);
+        int myDir = -1;
+        if (directionName == "ROW")
+        {
+            myDir = CiftiXML::ALONG_ROW;
+        } else if (directionName == "COLUMN")
+        {
+            myDir = CiftiXML::ALONG_COLUMN;
+        } else {
+            throw OperationException("direction must be ROW or COLUMN");
+        }
+        const CiftiXML& templateXML = myTemplate->getCiftiXML();
+        if (templateXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw OperationException("template cifti file must have brain models along specified direction");
+        vector<StructureEnum::Enum> surfList, volList;//since we only need the volume models, we don't need to loop through all models
+        templateXML.getStructureLists(myDir, surfList, volList);
+        myXML.applyColumnMapToRows();
+        myXML.resetColumnsToBrainModels();
+        for (int i = 0; i < (int)volList.size(); ++i)
+        {
+            vector<CiftiVolumeMap> myMap;
+            templateXML.getVolumeStructureMap(myDir, myMap, volList[i]);
+            int64_t mapSize = (int64_t)myMap.size();
+            vector<voxelIndexType> ijkList;
+            for (int64_t j = 0; j < mapSize; ++j)
+            {
+                ijkList.push_back(myMap[j].m_ijk[0]);
+                ijkList.push_back(myMap[j].m_ijk[1]);
+                ijkList.push_back(myMap[j].m_ijk[2]);
+            }
+            myXML.addVolumeModel(CiftiXML::ALONG_COLUMN, ijkList, volList[i]);
+        }
+        if (myXML.getNumberOfRows() != sparseDims[1]) throw OperationException("volume models in template cifti file do not match the dimension of the input file");
     }
+    CaretAssert(myXML.getNumberOfRows() == sparseDims[1]);
     fstream voxelFile(voxelFileName.toLocal8Bit().constData(), fstream::in);
     if (!voxelFile.good())
     {
@@ -97,7 +152,6 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     }
     int64_t volDims[3];
     vector<vector<float> > sform;
-    CiftiXML myXML = orientationFile->getCiftiXML();
     myXML.getVolumeDimsAndSForm(volDims, sform);
     vector<int64_t> voxelIndices;
     int64_t ind1, ind2, ind3;
@@ -123,10 +177,6 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     }
     if ((int64_t)voxelIndices.size() != sparseDims[0] * 3) throw OperationException("voxel list file contains the wrong number of voxels, expected " +
                                                                                     AString::number(sparseDims[0] * 3) + " integers, read " + AString::number(voxelIndices.size()));
-    myXML.applyColumnMapToRows();
-    myXML.resetColumnsToBrainModels();
-    myXML.addSurfaceModelToColumns(numNodes, myROI->getStructure(), roiData);
-    CaretAssert(myXML.getNumberOfRows() == sparseDims[1]);
     vector<vector<vector<int64_t> > > voxToOutSpace(volDims[0], vector<vector<int64_t> >(volDims[1], vector<int64_t>(volDims[2], -1)));//basically, a volume file of integers initialized to -1
     vector<CiftiVolumeMap> myMap;
     myXML.getVolumeMapForRows(myMap);
