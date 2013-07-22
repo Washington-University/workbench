@@ -3840,53 +3840,13 @@ Brain::receiveEvent(Event* event)
         dynamic_cast<EventCaretMappableDataFilesGet*>(event);
         CaretAssert(dataFilesEvent);
         
-
-        for (std::vector<CiftiConnectivityMatrixDenseFile*>::iterator icf = m_connectivityMatrixDenseFiles.begin();
-             icf != m_connectivityMatrixDenseFiles.end();
-             icf++) {
-            dataFilesEvent->addFile(*icf);
-        }
+        std::vector<CaretMappableDataFile*> allCaretMappableFiles;
+        getAllMappableDataFiles(allCaretMappableFiles);
         
-        for (std::vector<CiftiBrainordinateLabelFile*>::iterator icf = m_connectivityDenseLabelFiles.begin();
-             icf != m_connectivityDenseLabelFiles.end();
-             icf++) {
-            dataFilesEvent->addFile(*icf);
-        }
-        
-        for (std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator icf = m_connectivityMatrixDenseParcelFiles.begin();
-             icf != m_connectivityMatrixDenseParcelFiles.end();
-             icf++) {
-            dataFilesEvent->addFile(*icf);
-        }
-        
-        for (std::vector<CiftiBrainordinateScalarFile*>::iterator icf = m_connectivityDenseScalarFiles.begin();
-             icf != m_connectivityDenseScalarFiles.end();
-             icf++) {
-            dataFilesEvent->addFile(*icf);
-        }
-        
-        for (std::vector<CiftiConnectivityMatrixParcelFile*>::iterator icf = m_connectivityMatrixParcelFiles.begin();
-             icf != m_connectivityMatrixParcelFiles.end();
-             icf++) {
-            dataFilesEvent->addFile(*icf);
-        }
-        
-        for (std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator icf = m_connectivityMatrixParcelDenseFiles.begin();
-             icf != m_connectivityMatrixParcelDenseFiles.end();
-             icf++) {
-            dataFilesEvent->addFile(*icf);
-        }
-        
-        for (std::vector<CiftiBrainordinateDataSeriesFile*>::iterator ictsf = m_connectivityDataSeriesFiles.begin();
-             ictsf != m_connectivityDataSeriesFiles.end();
-             ictsf++) {
-            dataFilesEvent->addFile(*ictsf);
-        }
-        
-        for (std::vector<VolumeFile*>::iterator volumeIter = m_volumeFiles.begin();
-             volumeIter != m_volumeFiles.end();
-             volumeIter++) {
-            dataFilesEvent->addFile(*volumeIter);
+        for (std::vector<CaretMappableDataFile*>::iterator iter = allCaretMappableFiles.begin();
+             iter != allCaretMappableFiles.end();
+             iter++) {
+            dataFilesEvent->addFile(*iter);
         }
         
         dataFilesEvent->setEventProcessed();

@@ -36,7 +36,6 @@
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
 #include "ElapsedTimer.h"
-#include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
 #include "EventModelAdd.h"
@@ -77,8 +76,6 @@ BrainStructure::BrainStructure(Brain* brain,
 //        m_overlaySet[i] = new OverlaySet(this);
 //    }
     
-    EventManager::get()->addEventListener(this, 
-                                          EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
     EventManager::get()->addEventListener(this, 
@@ -953,38 +950,6 @@ BrainStructure::receiveEvent(Event* event)
     if (event->getEventType() == EventTypeEnum::EVENT_GET_NODE_DATA_FILES) {
         EventNodeDataFilesGet* dataFilesEvent =
             dynamic_cast<EventNodeDataFilesGet*>(event);
-        CaretAssert(dataFilesEvent);
-        
-        const Surface* associatedSurface = dataFilesEvent->getSurface();
-        if (associatedSurface != NULL) {
-            if (containsSurface(associatedSurface) == false) {
-                return;
-            }
-        }
-        
-        for (std::vector<LabelFile*>::iterator labelIter = m_labelFiles.begin();
-             labelIter != m_labelFiles.end();
-             labelIter++) {
-            dataFilesEvent->addFile(*labelIter);
-        }
-        
-        for (std::vector<MetricFile*>::iterator metricIter = m_metricFiles.begin();
-             metricIter != m_metricFiles.end();
-             metricIter++) {
-            dataFilesEvent->addFile(*metricIter);
-        }
-        
-        for (std::vector<RgbaFile*>::iterator rgbaIter = m_rgbaFiles.begin();
-             rgbaIter != m_rgbaFiles.end();
-             rgbaIter++) {
-            dataFilesEvent->addFile(*rgbaIter);
-        }
-        
-        dataFilesEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
-        EventCaretMappableDataFilesGet* dataFilesEvent =
-            dynamic_cast<EventCaretMappableDataFilesGet*>(event);
         CaretAssert(dataFilesEvent);
         
         const Surface* associatedSurface = dataFilesEvent->getSurface();

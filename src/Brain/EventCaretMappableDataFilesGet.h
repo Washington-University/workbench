@@ -34,11 +34,11 @@ namespace caret {
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
+    class CiftiFiberTrajectoryFile;
     class LabelFile;
     class MetricFile;
     class Model;
     class RgbaFile;
-    class Surface;
     class VolumeFile;
     
     /// Event that gets all caret mappable data files.
@@ -47,42 +47,9 @@ namespace caret {
     public:
         EventCaretMappableDataFilesGet();
         
-        EventCaretMappableDataFilesGet(const Surface* surface);
-        
         virtual ~EventCaretMappableDataFilesGet();
         
         void addFile(CaretMappableDataFile* mapDataFile);        
-        
-        /**
-         * @return Returns the surface for which associated map data
-         * files are requested.  If NULL, then map data files
-         * from all brain structures are requested. 
-         */
-        const Surface* getSurface() const { return m_surface; }
-        
-        /** @return Returns the cifti connectivity matrix data files */
-        std::vector<CiftiMappableConnectivityMatrixDataFile*> getCiftiConnectivityMatrixDataFiles() const { return m_ciftiConnectivityMatrixDataFiles; }
-        
-        /** @return the cifti data series files */
-        std::vector<CiftiBrainordinateDataSeriesFile*> getCiftiBrainordinateDataSeriesFiles() const { return m_ciftiDataSeriesFiles; }
-        
-        /** @return the cifti scalar files */
-        std::vector<CiftiBrainordinateScalarFile*> getCiftiBrainordinateScalarFiles() const { return m_ciftiScalarFiles; }
-        
-        /** @return the cifti label files */
-        std::vector<CiftiBrainordinateLabelFile*> getCiftiBrainordinateLabelFiles() const { return m_ciftiLabelFiles; }
-        
-        /** @return Returns the label files. */
-        std::vector<LabelFile*> getLabelFiles() const { return m_labelFiles; }
-        
-        /** @return Returns the metric files. */
-        std::vector<MetricFile*> getMetricFiles() const { return m_metricFiles; }
-        
-        /** @return Returns the rgba files. */
-        std::vector<RgbaFile*> getRgbaFiles() const { return m_rgbaFiles; }
-        
-        /** @return Returns the volume files. */
-        std::vector<VolumeFile*> getVolumeFiles() const { return m_volumeFiles; }
         
         void getAllFiles(std::vector<CaretMappableDataFile*>& allFilesOut) const;
         
@@ -91,23 +58,7 @@ namespace caret {
         
         EventCaretMappableDataFilesGet& operator=(const EventCaretMappableDataFilesGet&);
         
-        const Surface* m_surface;
-        
-        std::vector<CiftiMappableConnectivityMatrixDataFile*> m_ciftiConnectivityMatrixDataFiles;
-        
-        std::vector<CiftiBrainordinateScalarFile*> m_ciftiScalarFiles;
-            
-        std::vector<CiftiBrainordinateLabelFile*> m_ciftiLabelFiles;
-        
-        std::vector<CiftiBrainordinateDataSeriesFile*> m_ciftiDataSeriesFiles;
-        
-        std::vector<LabelFile*> m_labelFiles;
-        
-        std::vector<MetricFile*> m_metricFiles;
-        
-        std::vector<RgbaFile*> m_rgbaFiles;
-        
-        std::vector<VolumeFile*> m_volumeFiles;
+        std::vector<CaretMappableDataFile*> m_allCaretMappableDataFiles;
         
     };
 
