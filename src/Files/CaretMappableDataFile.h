@@ -209,8 +209,27 @@ namespace caret {
          */         
         virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex) = 0;
         
+        /**
+         * Get statistics describing the distribution of data
+         * mapped with a color palette at the given index.
+         *
+         * @param mapIndex
+         *    Index of the map.
+         * @return
+         *    Fast statistics for data (will be NULL for data
+         *    not mapped using a palette).
+         */
         virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex) = 0;
         
+        /**
+         * Get a histogram for the map at the given index.
+         *
+         * @param mapIndex
+         *    Index of the map.
+         * @return
+         *    Histogram for data (will be NULL for data
+         *    not mapped using a palette).
+         */
         virtual const Histogram* getMapHistogram(const int32_t mapIndex) = 0;
         
         /**
@@ -241,6 +260,27 @@ namespace caret {
                                                               const float mostNegativeValueInclusive,
                                                               const bool includeZeroValues) = 0;
         
+        /**
+         * Get a histogram for the map at the given index of data
+         * mapped with a color palette at the given index for
+         * data within the given ranges.
+         *
+         * @param mapIndex
+         *    Index of the map.
+         * @param mostPositiveValueInclusive
+         *    Values more positive than this value are excluded.
+         * @param leastPositiveValueInclusive
+         *    Values less positive than this value are excluded.
+         * @param leastNegativeValueInclusive
+         *    Values less negative than this value are excluded.
+         * @param mostNegativeValueInclusive
+         *    Values more negative than this value are excluded.
+         * @param includeZeroValues
+         *    If true zero values (very near zero) are included.
+         * @return
+         *    Histogram for data (will be NULL for data
+         *    not mapped using a palette).
+         */
         virtual const Histogram* getMapHistogram(const int32_t mapIndex,
                                                               const float mostPositiveValueInclusive,
                                                               const float leastPositiveValueInclusive,
@@ -336,7 +376,7 @@ namespace caret {
         virtual void getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
                                                 float& mapIntervalStepValueOut) const;
         
-
+        /* documented in cxx file */
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
         

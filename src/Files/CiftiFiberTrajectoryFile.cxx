@@ -60,7 +60,7 @@ using namespace caret;
  * Constructor.
  */
 CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
-: CaretDataFile(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY)
+: CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY)
 {
     m_metadata = new GiftiMetaData();
     m_sparseFile = NULL;
@@ -91,7 +91,7 @@ CiftiFiberTrajectoryFile::~CiftiFiberTrajectoryFile()
 void
 CiftiFiberTrajectoryFile::clear()
 {
-    CaretDataFile::clear();
+    CaretMappableDataFile::clear();
     
     clearPrivate();
 }
@@ -120,7 +120,10 @@ CiftiFiberTrajectoryFile::clearPrivate()
 bool
 CiftiFiberTrajectoryFile::isEmpty() const
 {
-    return true;
+    if (m_sparseFile != NULL) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -162,7 +165,344 @@ CiftiFiberTrajectoryFile::getFileMetaData() const
 }
 
 /**
- * @return  Display status of borders.
+ * @return Is the data mappable to a surface?
+ */
+bool
+CiftiFiberTrajectoryFile::isSurfaceMappable() const
+{
+    return false;
+}
+
+/**
+ * @return Is the data mappable to a volume?
+ */
+bool
+CiftiFiberTrajectoryFile::isVolumeMappable() const
+{
+    return true;
+}
+
+/**
+ * @return The number of maps in the file.
+ * Note: Caret5 used the term 'columns'.
+ */
+int32_t
+CiftiFiberTrajectoryFile::getNumberOfMaps() const
+{
+    /*
+     * Always return 1.
+     * If zero is returned, it will never appear in the overlays because
+     * zero is interpreted as "nothing available".
+     */
+    return 1;
+}
+
+/**
+ * @return True if the file has map attributes (name and metadata).
+ * For files that do not have map attributes, they should override
+ * this method and return false.  If not overriden, this method
+ * returns true.
+ *
+ * Some files (such as CIFTI Connectivity Matrix Files and CIFTI
+ * Data-Series Files) do not have Map Attributes and thus there
+ * is no map name nor map metadata and options to edit these
+ * attributes should not be presented to the user.
+ *
+ * These CIFTI files do contain palette color mapping but it is
+ * associated with the file.  To simplify palette color mapping editing
+ * these file will return the file's palette color mapping for any
+ * calls to getMapPaletteColorMapping().
+ */
+bool
+CiftiFiberTrajectoryFile::hasMapAttributes() const
+{
+    return false;
+}
+
+/**
+ * Get the name of the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Name of the map.
+ */
+AString
+CiftiFiberTrajectoryFile::getMapName(const int32_t /*mapIndex*/) const
+{
+    return "MapNameNoDefined";
+}
+
+/**
+ * Set the name of the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mapName
+ *    New name for the map.
+ */
+void
+CiftiFiberTrajectoryFile::setMapName(const int32_t /*mapIndex*/,
+                                  const AString& /*mapName*/)
+{
+}
+
+/**
+ * Get the metadata for the map at the given index
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Metadata for the map (const value).
+ */
+const GiftiMetaData*
+CiftiFiberTrajectoryFile::getMapMetaData(const int32_t /*mapIndex*/) const
+{
+    return getFileMetaData();
+}
+
+/**
+ * Get the metadata for the map at the given index
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Metadata for the map.
+ */
+GiftiMetaData*
+CiftiFiberTrajectoryFile::getMapMetaData(const int32_t /*mapIndex*/)
+{
+    return getFileMetaData();
+}
+
+/**
+ * Get the unique ID (UUID) for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    String containing UUID for the map.
+ */
+AString
+CiftiFiberTrajectoryFile::getMapUniqueID(const int32_t mapIndex) const
+{
+    const GiftiMetaData* md = getMapMetaData(mapIndex);
+    const AString uniqueID = md->getUniqueID();
+    return uniqueID;
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * a palette.
+ */
+bool
+CiftiFiberTrajectoryFile::isMappedWithPalette() const
+{
+    return false;
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const DescriptiveStatistics*
+CiftiFiberTrajectoryFile::getMapStatistics(const int32_t /*mapIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Fast statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const FastStatistics*
+CiftiFiberTrajectoryFile::getMapFastStatistics(const int32_t /*mapIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get histogram describing the distribution of data
+ * mapped with a color palette at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Histogram for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const Histogram*
+CiftiFiberTrajectoryFile::getMapHistogram(const int32_t /*mapIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index for
+ * data within the given ranges.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const DescriptiveStatistics*
+CiftiFiberTrajectoryFile::getMapStatistics(const int32_t /*mapIndex*/,
+                                        const float /*mostPositiveValueInclusive*/,
+                                        const float /*leastPositiveValueInclusive*/,
+                                        const float /*leastNegativeValueInclusive*/,
+                                        const float /*mostNegativeValueInclusive*/,
+                                        const bool /*includeZeroValues*/)
+{
+    return NULL;
+}
+
+/**
+ * Get histogram describing the distribution of data
+ * mapped with a color palette at the given index for
+ * data within the given ranges.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */
+const Histogram*
+CiftiFiberTrajectoryFile::getMapHistogram(const int32_t /*mapIndex*/,
+                                       const float /*mostPositiveValueInclusive*/,
+                                       const float /*leastPositiveValueInclusive*/,
+                                       const float /*leastNegativeValueInclusive*/,
+                                       const float /*mostNegativeValueInclusive*/,
+                                       const bool /*includeZeroValues*/)
+{
+    return NULL;
+}
+
+/**
+ * Get the palette color mapping for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Palette color mapping for the map (will be NULL for data
+ *    not mapped using a palette).
+ */
+PaletteColorMapping*
+CiftiFiberTrajectoryFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get the palette color mapping for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Palette color mapping for the map (constant) (will be NULL for data
+ *    not mapped using a palette).
+ */
+const PaletteColorMapping*
+CiftiFiberTrajectoryFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/) const
+{
+    return NULL;
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * a label table.
+ */
+bool
+CiftiFiberTrajectoryFile::isMappedWithLabelTable() const
+{
+    return false;
+}
+
+/**
+ * Get the label table for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Label table for the map (will be NULL for data
+ *    not mapped using a label table).
+ */
+GiftiLabelTable*
+CiftiFiberTrajectoryFile::getMapLabelTable(const int32_t /*mapIndex*/)
+{
+    return NULL;
+}
+
+/**
+ * Get the label table for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Label table for the map (constant) (will be NULL for data
+ *    not mapped using a label table).
+ */
+const GiftiLabelTable*
+CiftiFiberTrajectoryFile::getMapLabelTable(const int32_t /*mapIndex*/) const
+{
+    return NULL;
+}
+
+/**
+ * Update scalar coloring for a map.
+ *
+ * Note that some CIFTI files can be slow to color due to the need to
+ * retrieve data for the map.  Use isMapColoringValid() to avoid
+ * unnecessary calls to isMapColoringValid.
+ *
+ * @param mapIndex
+ *    Index of map.
+ * @param paletteFile
+ *    Palette file containing palettes.
+ */
+void
+CiftiFiberTrajectoryFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
+                                                  const PaletteFile* /*paletteFile*/)
+{
+}
+
+/**
+ * @return  Display status of fiber trajectories.
  * @param displayGroup
  *    The display group.
  * @param tabIndex
@@ -185,7 +525,7 @@ CiftiFiberTrajectoryFile::isDisplayed(const DisplayGroupEnum::Enum  displayGroup
 }
 
 /**
- * Set the display status for borders for the given display group.
+ * Set the display status for fiber trajectories for the given display group.
  * @param displayGroup
  *    The display group.
  * @param tabIndex

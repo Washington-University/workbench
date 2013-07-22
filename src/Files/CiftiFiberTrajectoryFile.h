@@ -35,7 +35,7 @@
 /*LICENSE_END*/
 
 #include "BrainConstants.h"
-#include "CaretDataFile.h"
+#include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
 #include "DisplayGroupEnum.h"
 
@@ -45,7 +45,7 @@ namespace caret {
     class FiberOrientationTrajectory;
     class GiftiMetaData;
     
-    class CiftiFiberTrajectoryFile : public CaretDataFile {
+    class CiftiFiberTrajectoryFile : public CaretMappableDataFile {
         
     public:
         CiftiFiberTrajectoryFile();
@@ -64,6 +64,59 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
         
+        virtual bool isSurfaceMappable() const;
+        
+        virtual bool isVolumeMappable() const;
+        
+        virtual int32_t getNumberOfMaps() const;
+        
+        virtual bool hasMapAttributes() const;
+        
+        virtual AString getMapName(const int32_t mapIndex) const;
+        
+        virtual void setMapName(const int32_t mapIndex,
+                                const AString& mapName);
+        
+        virtual const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const;
+        
+        virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex);
+        
+        virtual AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        virtual bool isMappedWithPalette() const;
+        
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
+        
+        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex);
+        
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues);
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex,
+                                                 const float mostPositiveValueInclusive,
+                                                 const float leastPositiveValueInclusive,
+                                                 const float leastNegativeValueInclusive,
+                                                 const float mostNegativeValueInclusive,
+                                                 const bool includeZeroValues);
+        
+        virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
+        
+        virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
+        
+        virtual bool isMappedWithLabelTable() const;
+        
+        virtual GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
+        
+        virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
+        
+        virtual void updateScalarColoringForMap(const int32_t mapIndex,
+                                                const PaletteFile* paletteFile);
         virtual void readFile(const AString& filename) throw (DataFileException);
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
