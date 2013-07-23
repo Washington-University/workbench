@@ -35,8 +35,10 @@
 #undef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
 
 #include "CaretMappableDataFile.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
+#include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLayerWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
 #include "Overlay.h"
@@ -80,33 +82,39 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     QWidget* mapNameWidget = createMapFileAndNameSection();
     
+    m_fiberTrajectoryWidget = new MapSettingsFiberTrajectoryWidget();
+    
     m_layerWidget = new MapSettingsLayerWidget();
     
     m_paletteColorMappingWidget = new MapSettingsPaletteColorMappingWidget();
     
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
-    QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(new QWidget(),
+    m_tabWidget = new QTabWidget();
+    m_labelsWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
                       "Labels");
-    tabWidget->setTabEnabled(tabWidget->count() - 1, false);
+    m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
 
-    tabWidget->addTab(m_layerWidget,
+    m_layersWidgetTabIndex = m_tabWidget->addTab(m_layerWidget,
                       "Layer");
     
-    tabWidget->addTab(new QWidget(),
+    m_metadataWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
                       "Metadata");
-    tabWidget->setTabEnabled(tabWidget->count() - 1, false);
+    m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
     
-    tabWidget->addTab(m_paletteColorMappingWidget,
+    m_paletteWidgetTabIndex = m_tabWidget->addTab(m_paletteColorMappingWidget,
                       "Palette");
-    tabWidget->setCurrentIndex(tabWidget->count() - 1);
+    
+    m_trajectoryWidgetTabIndex = m_tabWidget->addTab(m_fiberTrajectoryWidget,
+                      "Trajectory");
+    
+    m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     this->setLayoutSpacingAndMargins(layout);
     layout->addWidget(mapNameWidget);
-    layout->addWidget(tabWidget);
+    layout->addWidget(m_tabWidget);
     //layout->addWidget(windowOptionsWidget);
 
     this->setCentralWidget(w);
@@ -168,6 +176,7 @@ MapSettingsEditorDialog::focusInEvent(QFocusEvent* /*event*/)
 void 
 MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
 {
+    const int32_t selectedTabIndex = m_tabWidget->currentIndex();
     m_overlay = overlay;
 //    m_caretMappableDataFile = caretMappableDataFile;
 //    m_mapFileIndex = mapFileIndex;
@@ -175,39 +184,136 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
     m_caretMappableDataFile = NULL;
     m_mapIndex = -1;
     if (m_overlay != NULL) {
-        overlay->getSelectionData(m_caretMappableDataFile, m_mapIndex);
+        overlay->getSelectionData(m_caretMappableDataFile,
+                                  m_mapIndex);
     }
     
+    bool isFileValid = false;
+    bool isLabelsValid = false;
+    bool isMetadataValid = false;
+    GiftiMetaData* metadata = NULL;
     bool isPaletteValid = false;
+    bool isFiberTrajectoryValid = false;
+    bool isVolumeLayer = false;
     
-    if (m_caretMappableDataFile != NULL) {
-        if (m_caretMappableDataFile->isMappedWithPalette()) {
-            if (m_caretMappableDataFile->getMapPaletteColorMapping(m_mapIndex) != NULL) {
-                isPaletteValid = true;
-                m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
-                                                          m_mapIndex);
-            }
-        }
-    }
-  
     QString mapFileName = "";
     QString mapName = "";
     
-    bool isOverlayValid = false;
-    if (m_overlay != NULL) {
-        m_layerWidget->updateContent(m_overlay);
-        isOverlayValid = true;
-        
-        if (m_caretMappableDataFile != NULL) {
+    if (m_caretMappableDataFile != NULL) {
+        if ((m_mapIndex >= 0)
+            && (m_mapIndex < m_caretMappableDataFile->getNumberOfMaps())) {
+            isFileValid = true;
+            
+            /*
+             * Get name of file and map
+             */
             mapFileName = m_caretMappableDataFile->getFileNameNoPath();
             if (m_mapIndex >= 0) {
                 mapName = m_caretMappableDataFile->getMapName(m_mapIndex);
             }
+            
+            /*
+             * Update layer widget
+             */
+            m_layerWidget->updateContent(m_overlay);
+            
+            if (m_caretMappableDataFile->isMappedWithLabelTable()) {
+                if (m_caretMappableDataFile->getMapLabelTable(m_mapIndex) != NULL) {
+                    isLabelsValid = true;
+                    
+                    /* TODO: update label widget */
+                }
+            }
+            
+            metadata = m_caretMappableDataFile->getMapMetaData(m_mapIndex);
+            if (metadata != NULL) {
+                /*
+                 * TODO: Update metadata widget
+                 */
+                //isMetadataValid = true;
+            }
+            
+            if (m_caretMappableDataFile->isMappedWithPalette()) {
+                if (m_caretMappableDataFile->getMapPaletteColorMapping(m_mapIndex) != NULL) {
+                    /*
+                     * Update palette settings
+                     */
+                    isPaletteValid = true;
+                    m_paletteColorMappingWidget->updateEditor(m_caretMappableDataFile,
+                                                              m_mapIndex);
+                }
+            }
+            
+            CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(m_caretMappableDataFile);
+            if (trajFile != NULL) {
+                /*
+                 * Update trajectory
+                 */
+                isFiberTrajectoryValid = true;
+                m_fiberTrajectoryWidget->updateEditor(trajFile);
+            }
+
+            /*
+             * Is volume mappable
+             */
+            if (m_caretMappableDataFile->isVolumeMappable()) {
+                if (isFiberTrajectoryValid) {
+                    /* nothing */
+                }
+                else {
+                    isVolumeLayer = true;
+                }
+            }
+            
         }
     }
+  
+  
+    /*
+     * Set enabled status of tabs
+     */
+    m_tabWidget->setTabEnabled(m_labelsWidgetTabIndex,
+                               isLabelsValid);
+    m_tabWidget->setTabEnabled(m_layersWidgetTabIndex,
+                               isVolumeLayer);
+    m_tabWidget->setTabEnabled(m_metadataWidgetTabIndex,
+                               isMetadataValid);
+    m_tabWidget->setTabEnabled(m_paletteWidgetTabIndex,
+                               isPaletteValid);
+    m_tabWidget->setTabEnabled(m_trajectoryWidgetTabIndex,
+                               isFiberTrajectoryValid);
+
+    /*
+     * When the selected tab is invalid, we want to select the
+     * "best" tab that is enabled.  The order in this vector
+     * is the priority of the tabs.
+     */
+    std::vector<int32_t> priorityTabIndices;
+    priorityTabIndices.push_back(m_paletteWidgetTabIndex);
+    priorityTabIndices.push_back(m_labelsWidgetTabIndex);
+    priorityTabIndices.push_back(m_trajectoryWidgetTabIndex);
+    priorityTabIndices.push_back(m_metadataWidgetTabIndex);
+    priorityTabIndices.push_back(m_layersWidgetTabIndex);
+    CaretAssertMessage((static_cast<int>(priorityTabIndices.size()) == m_tabWidget->count()),
+                       "Number of elements in priorityTabIndices is different "
+                       "than number of tab indices.  Was a new tab added?");
     
-    m_layerWidget->setEnabled(isOverlayValid);
-    m_paletteColorMappingWidget->setEnabled(isPaletteValid);
+    /*
+     * Make sure an enabled tab is selected using the tabs
+     * in the priority order
+     */
+    if (selectedTabIndex >= 0) {
+        if (m_tabWidget->isTabEnabled(selectedTabIndex) == false) {
+            const int32_t numPriorityTabs = static_cast<int32_t>(priorityTabIndices.size());
+            for (int32_t i = 0; i < numPriorityTabs; i++) {
+                const int32_t tabIndex = priorityTabIndices[i];
+                if (m_tabWidget->isTabEnabled(tabIndex)) {
+                    m_tabWidget->setCurrentIndex(tabIndex);
+                    break;
+                }
+            }
+        }
+    }
     
     m_selectedMapFileNameLabel->setText(mapFileName);
     m_selectedMapNameLabel->setText(mapName);

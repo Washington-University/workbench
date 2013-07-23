@@ -31,11 +31,12 @@
 class QCheckBox;
 class QLabel;
 class QLayout;
-
+class QTabWidget;
 
 namespace caret {
     
     class CaretMappableDataFile;
+    class MapSettingsFiberTrajectoryWidget;
     class MapSettingsLayerWidget;
     class MapSettingsPaletteColorMappingWidget;
     class Overlay;
@@ -74,6 +75,8 @@ namespace caret {
         
         void setLayoutSpacingAndMargins(QLayout* layout);
         
+        QTabWidget* m_tabWidget;
+        
         QCheckBox* m_doNotReplaceCheckBox;
         
         CaretMappableDataFile* m_caretMappableDataFile;
@@ -84,12 +87,24 @@ namespace caret {
         
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingWidget;
         
+        MapSettingsFiberTrajectoryWidget* m_fiberTrajectoryWidget;
+        
         MapSettingsLayerWidget* m_layerWidget;
         
         QLabel* m_selectedMapFileNameLabel;
         
         QLabel* m_selectedMapNameLabel;
-
+        
+        int32_t m_labelsWidgetTabIndex;
+        
+        int32_t m_layersWidgetTabIndex;
+        
+        int32_t m_metadataWidgetTabIndex;
+        
+        int32_t m_paletteWidgetTabIndex;
+        
+        int32_t m_trajectoryWidgetTabIndex;
+        
     };
     
 #ifdef __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__

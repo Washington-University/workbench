@@ -68,6 +68,7 @@ InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
 MapSettingsEditorDialog.h
+MapSettingsFiberTrajectoryWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MetaDataEditorDialog.h
@@ -189,6 +190,7 @@ InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
 MapSettingsEditorDialog.h
+MapSettingsFiberTrajectoryWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MetaDataEditorDialog.h
@@ -310,6 +312,7 @@ InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
 MapSettingsEditorDialog.cxx
+MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MetaDataEditorDialog.cxx
