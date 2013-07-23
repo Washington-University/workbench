@@ -44,7 +44,7 @@ using namespace caret;
     
 /**
  * \class caret::FiberTrajectoryDisplayModeEnum 
- * \brief Enumerated type for fiber trajectory display mode>
+ * \brief Enumerated type for fiber trajectory display mode
  */
 /**
  * Constructor.

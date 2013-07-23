@@ -80,6 +80,7 @@
 #include "Fiber.h"
 #include "FiberOrientation.h"
 #include "FiberOrientationTrajectory.h"
+#include "FiberTrajectoryMapProperties.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
@@ -6173,7 +6174,8 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
     const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
         const CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
-        if (trajFile->isDisplayed(displayGroup, this->windowTabIndex) == false) {
+        const FiberTrajectoryMapProperties* ftmp = trajFile->getFiberTrajectoryMapProperties();
+        if (ftmp->isDisplayed() == false) {
             continue;
         }
         

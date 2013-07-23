@@ -43,6 +43,7 @@ namespace caret {
 
     class CiftiFiberOrientationFile;
     class FiberOrientationTrajectory;
+    class FiberTrajectoryMapProperties;
     class GiftiMetaData;
     
     class CiftiFiberTrajectoryFile : public CaretMappableDataFile {
@@ -121,18 +122,6 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
-        bool isDisplayed(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex) const;
-        
-        void setDisplayed(const DisplayGroupEnum::Enum displayGroup,
-                          const int32_t tabIndex,
-                          const bool displayStatus);
-        
-        DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
-        
-        void setDisplayGroupForTab(const int32_t browserTabIndex,
-                                   const DisplayGroupEnum::Enum displayGroup);
-        
         void loadDataForSurfaceNode(CiftiFiberOrientationFile* fiberOrientFile,
                                     const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
@@ -147,14 +136,24 @@ namespace caret {
         
         void clearLoadedFiberOrientations();
         
+        FiberTrajectoryMapProperties* getFiberTrajectoryMapProperties();
+        
+        const FiberTrajectoryMapProperties* getFiberTrajectoryMapProperties() const;
+        
+        // ADD_NEW_METHODS_HERE
+        
     private:
         CiftiFiberTrajectoryFile(const CiftiFiberTrajectoryFile&);
 
         CiftiFiberTrajectoryFile& operator=(const CiftiFiberTrajectoryFile&);
         
-    public:
-
-        // ADD_NEW_METHODS_HERE
+    protected:
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
+        
 
     private:
 
@@ -166,12 +165,7 @@ namespace caret {
         
         std::vector<FiberOrientationTrajectory*> m_fiberOrientationTrajectories;
 
-        DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
-        
-        bool m_displayStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
+        FiberTrajectoryMapProperties* m_fiberTrajectoryMapProperties;
         // ADD_NEW_MEMBERS_HERE
 
     };

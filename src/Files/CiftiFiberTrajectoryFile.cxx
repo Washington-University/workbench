@@ -45,7 +45,9 @@
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiInterface.h"
 #include "FiberOrientationTrajectory.h"
+#include "FiberTrajectoryMapProperties.h"
 #include "GiftiMetaData.h"
+#include "SceneClass.h"
 
 using namespace caret;
 
@@ -62,16 +64,9 @@ using namespace caret;
 CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY)
 {
+    m_fiberTrajectoryMapProperties = new FiberTrajectoryMapProperties();
     m_metadata = new GiftiMetaData();
     m_sparseFile = NULL;
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
-        m_displayStatusInTab[i] = true;
-    }
-    
-    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
-        m_displayStatusInDisplayGroup[i] = true;
-    }
 }
 
 /**
@@ -80,7 +75,7 @@ CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
 CiftiFiberTrajectoryFile::~CiftiFiberTrajectoryFile()
 {
     clearPrivate();
-    
+    delete m_fiberTrajectoryMapProperties;
     delete m_metadata;
     
 }
@@ -502,87 +497,22 @@ CiftiFiberTrajectoryFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
 }
 
 /**
- * @return  Display status of fiber trajectories.
- * @param displayGroup
- *    The display group.
- * @param tabIndex
- *    Index of browser tab.
+ * @return The fiber trajectory map properties (const method).
  */
-bool
-CiftiFiberTrajectoryFile::isDisplayed(const DisplayGroupEnum::Enum  displayGroup,
-                                              const int32_t tabIndex) const
+FiberTrajectoryMapProperties*
+CiftiFiberTrajectoryFile::getFiberTrajectoryMapProperties()
 {
-    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          static_cast<int32_t>(displayGroup));
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_displayStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        return m_displayStatusInTab[tabIndex];
-    }
-    return m_displayStatusInDisplayGroup[displayGroup];
+    return m_fiberTrajectoryMapProperties;
 }
 
 /**
- * Set the display status for fiber trajectories for the given display group.
- * @param displayGroup
- *    The display group.
- * @param tabIndex
- *    Index of browser tab.
- * @param displayStatus
- *    New status.
+ * @return The fiber trajectory map properties.
  */
-void
-CiftiFiberTrajectoryFile::setDisplayed(const DisplayGroupEnum::Enum  displayGroup,
-                                               const int32_t tabIndex,
-                                               const bool displayStatus)
+const FiberTrajectoryMapProperties*
+CiftiFiberTrajectoryFile::getFiberTrajectoryMapProperties() const
 {
-    CaretAssertArrayIndex(m_displayStatusInDisplayGroup,
-                          DisplayGroupEnum::NUMBER_OF_GROUPS,
-                          static_cast<int32_t>(displayGroup));
-    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        CaretAssertArrayIndex(m_displayStatusInTab,
-                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                              tabIndex);
-        m_displayStatusInTab[tabIndex] = displayStatus;
-    }
-    else {
-        m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
-    }
+    return m_fiberTrajectoryMapProperties;
 }
-
-/**
- * Get the display group for a given browser tab.
- * @param browserTabIndex
- *    Index of browser tab.
- */
-DisplayGroupEnum::Enum
-CiftiFiberTrajectoryFile::getDisplayGroupForTab(const int32_t browserTabIndex) const
-{
-    CaretAssertArrayIndex(this->displayGroup,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          browserTabIndex);
-    return m_displayGroup[browserTabIndex];
-}
-
-/**
- * Set the display group for a given browser tab.
- * @param browserTabIndex
- *    Index of browser tab.
- * @param displayGroup
- *    New value for display group.
- */
-void
-CiftiFiberTrajectoryFile::setDisplayGroupForTab(const int32_t browserTabIndex,
-                                                        const DisplayGroupEnum::Enum  displayGroup)
-{
-    CaretAssertArrayIndex(this->displayGroup,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          browserTabIndex);
-    m_displayGroup[browserTabIndex] = displayGroup;
-}
-
 
 /**
  * Read the data file.
@@ -861,4 +791,55 @@ CiftiFiberTrajectoryFile::getLoadedFiberOrientationTrajectories() const
 {
     return m_fiberOrientationTrajectories;
 }
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CiftiFiberTrajectoryFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                                  SceneClass* sceneClass)
+{
+    CaretMappableDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+
+    sceneClass->addClass(m_fiberTrajectoryMapProperties->saveToScene(sceneAttributes,
+                                                                     "m_fiberTrajectoryMapProperties"));
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CiftiFiberTrajectoryFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                       const SceneClass* sceneClass)
+{
+    CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
+    m_fiberTrajectoryMapProperties->restoreFromScene(sceneAttributes,
+                                                     sceneClass->getClass("m_fiberTrajectoryMapProperties"));
+}
+
+
 

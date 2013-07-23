@@ -56,6 +56,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberTrajectorySelectionViewController.h"
+#include "FiberTrajectoryMapProperties.h"
 #include "GuiManager.h"
 #include "SceneClass.h"
 #include "WuQFactory.h"
@@ -458,6 +459,8 @@ FiberTrajectorySelectionViewController::updateViewController()
     const int32_t numberOfFiberTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iff = 0; iff < numberOfFiberTrajFiles; iff++) {
         CiftiFiberTrajectoryFile* cftf = brain->getConnectivityFiberTrajectoryFile(iff);
+        const FiberTrajectoryMapProperties* ftmp = cftf->getFiberTrajectoryMapProperties();
+
         QCheckBox* cb = NULL;
         if (iff < numberOfFileCheckBoxes) {
             cb = m_fileSelectionCheckBoxes[iff];
@@ -470,8 +473,7 @@ FiberTrajectorySelectionViewController::updateViewController()
             m_selectionWidgetLayout->addWidget(cb);
         }
         cb->setText(cftf->getFileNameNoPath());
-        cb->setChecked(cftf->isDisplayed(displayGroup,
-                                         browserTabIndex));
+        cb->setChecked(ftmp->isDisplayed());
         cb->setVisible(true);
     }
     
@@ -542,9 +544,8 @@ FiberTrajectorySelectionViewController::processSelectionChanges()
     CaretAssert(numberOfFiberTrajFiles <= static_cast<int32_t>(m_fileSelectionCheckBoxes.size()));
     for (int32_t iff = 0; iff < numberOfFiberTrajFiles; iff++) {
         CiftiFiberTrajectoryFile* cftf = brain->getConnectivityFiberTrajectoryFile(iff);
-            cftf->setDisplayed(displayGroup,
-                               browserTabIndex,
-                               m_fileSelectionCheckBoxes[iff]->isChecked());
+        FiberTrajectoryMapProperties* ftmp = cftf->getFiberTrajectoryMapProperties();
+        ftmp->setDisplayed(m_fileSelectionCheckBoxes[iff]->isChecked());
     }
     
     updateOtherViewControllers();

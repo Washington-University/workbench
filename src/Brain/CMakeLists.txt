@@ -92,7 +92,6 @@ EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FeatureColoringTypeEnum.h
 FiberOrientationColoringTypeEnum.h
-FiberTrajectoryDisplayModeEnum.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
 IdentificationManager.h
@@ -184,7 +183,6 @@ EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FeatureColoringTypeEnum.cxx
 FiberOrientationColoringTypeEnum.cxx
-FiberTrajectoryDisplayModeEnum.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 IdentificationManager.cxx

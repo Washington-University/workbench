@@ -48,6 +48,8 @@ EventSurfaceColoringInvalidate.h
 Fiber.h
 FiberOrientation.h
 FiberOrientationTrajectory.h
+FiberTrajectoryMapProperties.h
+FiberTrajectoryDisplayModeEnum.h
 FociFile.h
 FociFileSaxReader.h
 Focus.h
@@ -130,6 +132,8 @@ EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
 FiberOrientation.cxx
 FiberOrientationTrajectory.cxx
+FiberTrajectoryDisplayModeEnum.cxx
+FiberTrajectoryMapProperties.cxx
 FociFile.cxx
 FociFileSaxReader.cxx
 Focus.cxx
