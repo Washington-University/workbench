@@ -67,6 +67,7 @@ CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
     m_fiberTrajectoryMapProperties = new FiberTrajectoryMapProperties();
     m_metadata = new GiftiMetaData();
     m_sparseFile = NULL;
+    m_dataLoadingEnabled = true;
 }
 
 /**
@@ -120,6 +121,28 @@ CiftiFiberTrajectoryFile::isEmpty() const
     }
     return false;
 }
+
+/**
+ * @return Is data loading enabled?
+ */
+bool
+CiftiFiberTrajectoryFile::isDataLoadingEnabled() const
+{
+    return m_dataLoadingEnabled;
+}
+
+/**
+ * Set data loading enabled.
+ *
+ * @param loadingEnabled
+ *    New status of data loading.
+ */
+void
+CiftiFiberTrajectoryFile::setDataLoadingEnabled(const bool loadingEnabled)
+{
+    m_dataLoadingEnabled = loadingEnabled;
+}
+
 
 /**
  * @return The structure for this file.
@@ -586,6 +609,10 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
                                                  const int32_t surfaceNumberOfNodes,
                                                  const int32_t nodeIndex) throw (DataFileException)
 {
+    if (m_dataLoadingEnabled == false) {
+        return;
+    }
+    
     clearLoadedFiberOrientations();
     
     if (m_sparseFile == NULL) {
@@ -675,6 +702,10 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(CiftiFiberOrientationFi
                                                          const int32_t surfaceNumberOfNodes,
                                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
+    if (m_dataLoadingEnabled == false) {
+        return;
+    }
+    
     clearLoadedFiberOrientations();
     
     if (surfaceNumberOfNodes <= 0) {
@@ -812,6 +843,8 @@ CiftiFiberTrajectoryFile::saveFileDataToScene(const SceneAttributes* sceneAttrib
     CaretMappableDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
 
+    sceneClass->addBoolean("m_dataLoadingEnabled",
+                           m_dataLoadingEnabled);
     sceneClass->addClass(m_fiberTrajectoryMapProperties->saveToScene(sceneAttributes,
                                                                      "m_fiberTrajectoryMapProperties"));
 }
@@ -836,6 +869,9 @@ CiftiFiberTrajectoryFile::restoreFileDataFromScene(const SceneAttributes* sceneA
 {
     CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
+    
+    m_dataLoadingEnabled = sceneClass->getBooleanValue("m_dataLoadingEnabled",
+                                                       true);
     
     m_fiberTrajectoryMapProperties->restoreFromScene(sceneAttributes,
                                                      sceneClass->getClass("m_fiberTrajectoryMapProperties"));

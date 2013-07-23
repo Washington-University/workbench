@@ -482,7 +482,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * Determine types of data this is loaded
          */
         bool haveBorders    = false;
-        bool haveCiftiMatrix = false;
+        bool haveConnFiles  = false;
         bool haveChartFiles = false;
         bool haveFibers     = false;
         bool haveFoci       = false;
@@ -509,13 +509,13 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveBorders = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                    haveCiftiMatrix = true;
+                    haveConnFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
                     haveLabels = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                    haveCiftiMatrix = true;
+                    haveConnFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     break;
@@ -525,13 +525,14 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     haveFibers = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    haveConnFiles = true;
                     haveTraj = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                    haveCiftiMatrix = true;
+                    haveConnFiles = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                    haveCiftiMatrix = true;
+                    haveConnFiles = true;
                     break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
@@ -602,7 +603,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveCiftiMatrix);
+        if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveChartFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         

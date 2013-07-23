@@ -45,21 +45,25 @@
 #include <QSignalMapper>
 
 #include "Brain.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FiberTrajectoryMapProperties.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
-    
+
+static const char* FILE_POINTER_PROPERTY_NAME = "filePointer";
+
 /**
  * \class caret::CiftiConnectivityMatrixViewController 
- * \brief View-Controller for one connectivity loader
+ * \brief View-Controller connectivity files
  * \ingroup GuiQt
  */
 /**
@@ -116,8 +120,26 @@ void
 CiftiConnectivityMatrixViewController::updateViewController()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
-    brain->getAllCiftiConnectivityMatrixFiles(files);
+    
+    std::vector<CaretMappableDataFile*> files;
+    
+    std::vector<CiftiFiberTrajectoryFile*> trajFiles;
+    brain->getConnectivityFiberTrajectoryFiles(trajFiles);
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator trajIter = trajFiles.begin();
+         trajIter != trajFiles.end();
+         trajIter++) {
+        files.push_back(*trajIter);
+    }
+    
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> matrixFiles;
+    brain->getAllCiftiConnectivityMatrixFiles(matrixFiles);
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator matrixIter = matrixFiles.begin();
+         matrixIter != matrixFiles.end();
+         matrixIter++) {
+        files.push_back(*matrixIter);
+    }
+    
+    
     const int32_t numFiles = static_cast<int32_t>(files.size());
 
     for (int32_t i = 0; i < numFiles; i++) {
@@ -158,7 +180,23 @@ CiftiConnectivityMatrixViewController::updateViewController()
                                     row, COLUMN_NAME_LINE_EDIT);
         }
         
-        checkBox->setChecked(files[i]->isMapDataLoadingEnabled(0));
+        const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(files[i]);
+        const CiftiFiberTrajectoryFile* trajFile = dynamic_cast<const CiftiFiberTrajectoryFile*>(files[i]);
+        
+        bool checkStatus = false;
+        if (matrixFile != NULL) {
+            checkStatus = matrixFile->isMapDataLoadingEnabled(0);
+        }
+        else if (trajFile != NULL) {
+            checkStatus = trajFile->isDataLoadingEnabled();
+        }
+        else {
+            CaretAssertMessage(0, "Has a new file type been added?");
+        }
+        
+        checkBox->setChecked(checkStatus);
+        checkBox->setProperty(FILE_POINTER_PROPERTY_NAME,
+                              qVariantFromValue((void*)files[i]));
         lineEdit->setText(files[i]->getFileName());
     }
 
@@ -197,19 +235,24 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
     const bool newStatus = m_fileEnableCheckBoxes[indx]->isChecked();
     
-    Brain* brain = GuiManager::get()->getBrain();
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
-    brain->getAllCiftiConnectivityMatrixFiles(files);
-    CaretAssertVectorIndex(files, indx);
-    files[indx]->setMapDataLoadingEnabled(0, newStatus);
-    updateOtherCiftiConnectivityMatrixViewControllers();
+    void* ptr = m_fileEnableCheckBoxes[indx]->property(FILE_POINTER_PROPERTY_NAME).value<void*>();
+    CiftiMappableDataFile* mapFilePointer = (CiftiMappableDataFile*)ptr;
     
-//    const bool selected = (state == Qt::Checked);
-//    if (m_ciftiConnectivityMatrixDataFile != NULL) {
-//        m_ciftiConnectivityMatrixDataFile->setMapDataLoadingEnabled(0, selected);
-//        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileNameNoPath());
-//        updateOtherCiftiConnectivityMatrixViewControllers();
-//    }
+    CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
+    CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
+    
+    if (matrixFile != NULL) {
+        matrixFile->setMapDataLoadingEnabled(0,
+                                             newStatus);
+    }
+    else if (trajFile != NULL) {
+        trajFile->setDataLoadingEnabled(newStatus);
+    }
+    else {
+        CaretAssertMessage(0, "Has a new file type been added?");
+    }
+    
+    updateOtherCiftiConnectivityMatrixViewControllers();
 }
 
 

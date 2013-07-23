@@ -140,6 +140,10 @@ namespace caret {
         
         const FiberTrajectoryMapProperties* getFiberTrajectoryMapProperties() const;
         
+        bool isDataLoadingEnabled() const;
+        
+        void setDataLoadingEnabled(const bool loadingEnabled);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -166,6 +170,9 @@ namespace caret {
         std::vector<FiberOrientationTrajectory*> m_fiberOrientationTrajectories;
 
         FiberTrajectoryMapProperties* m_fiberTrajectoryMapProperties;
+        
+        bool m_dataLoadingEnabled;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
