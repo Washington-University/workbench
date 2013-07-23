@@ -251,8 +251,6 @@ namespace caret {
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
         
-    private:
-        friend class VolumeFileVoxelColorizer;
     };
 
 }

@@ -118,8 +118,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
     /*
      * Pointer to map's data 
      */
-    float* mapDataPointer = (m_volumeFile->m_data
-                             + (m_voxelCountPerMap * mapIndex));
+    const float* mapDataPointer = m_volumeFile->getFrame(mapIndex);
     
     /*
      * Get access to threshold data
