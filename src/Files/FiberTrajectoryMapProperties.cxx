@@ -71,13 +71,14 @@ FiberTrajectoryMapProperties::FiberTrajectoryMapProperties()
     m_maximumProportionOpacity = maximumProportionOpacity;
     m_minimumProportionOpacity = minimumProportionOpacity;
     
-    m_distanceStreamline = thresholdStreamline;
-    m_distanceMaximumOpacity = countMaximum;
-    m_distanceMinimumOpacity = countMinimum;
+    m_countStreamline = thresholdStreamline;
+    m_countMaximumOpacity = countMaximum;
+    m_countMinimumOpacity = countMinimum;
     
     m_distanceStreamline = thresholdStreamline;
     m_distanceMaximumOpacity = countMaximum;
     m_distanceMinimumOpacity = countMinimum;
+    
     m_sceneAssistant->add("m_displayStatus",
                           &m_displayStatus);
     

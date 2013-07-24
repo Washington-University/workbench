@@ -25,7 +25,6 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberOrientationSelectionViewController.h"
-#include "FiberTrajectorySelectionViewController.h"
 #include "FociSelectionViewController.h"
 #include "GuiManager.h"
 #include "LabelSelectionViewController.h"
@@ -63,7 +62,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     bool isFeaturesToolBox  = false;
     bool isOverlayToolBox = false;
-    bool isChartsToolBox = false;
+    //bool isChartsToolBox = false;
     Qt::Orientation orientation = Qt::Horizontal;
     AString toolboxTypeName = "";
     switch (toolBoxType) {
@@ -110,7 +109,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_ChartSetViewController = NULL;
     m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
-    m_fiberTrajectorySelectionViewController = NULL;
     m_fociSelectionViewController = NULL;
     m_labelSelectionViewController = NULL;
     m_overlaySetViewController = NULL;
@@ -123,7 +121,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_chartTabIndex = -1;
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
-    m_fiberTrajectoryTabIndex = -1;
     m_fociTabIndex = -1;
     m_labelTabIndex = -1;
     m_overlayTabIndex = -1;
@@ -168,13 +165,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                        this);
         m_fiberOrientationTabIndex = addToTabWidget(m_fiberOrientationViewController,
                        "Fibers");
-    }
-    
-    if (isFeaturesToolBox) {
-        m_fiberTrajectorySelectionViewController = new FiberTrajectorySelectionViewController(browserWindowIndex,
-                                                                                              this);
-        m_fiberTrajectoryTabIndex = addToTabWidget(m_fiberTrajectorySelectionViewController,
-                                                   "Trajectory");
     }
     
     if (isFeaturesToolBox) {
@@ -338,10 +328,6 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_labelSelectionViewController->saveToScene(sceneAttributes,
                                                      "m_labelSelectionViewController"));
     }
-    if (m_fiberTrajectorySelectionViewController != NULL) {
-        sceneClass->addClass(m_fiberTrajectorySelectionViewController->saveToScene(sceneAttributes,
-                                                     "m_fiberTrajectorySelectionViewController"));
-    }
     
     return sceneClass;
 }
@@ -393,10 +379,6 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
     if (m_labelSelectionViewController != NULL) {
         m_labelSelectionViewController->restoreFromScene(sceneAttributes,
                                                           sceneClass->getClass("m_labelSelectionViewController"));
-    }
-    if (m_fiberTrajectorySelectionViewController != NULL) {
-        m_fiberTrajectorySelectionViewController->restoreFromScene(sceneAttributes,
-                                                          sceneClass->getClass("m_fiberTrajectorySelectionViewController"));
     }
     
     /*
@@ -488,7 +470,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveFoci       = false;
         bool haveLabels     = false;
         bool haveSurfaces   = false;
-        bool haveTraj       = false;
         bool haveVolumes    = false;
         
         std::vector<CaretDataFile*> allDataFiles;
@@ -526,7 +507,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     haveConnFiles = true;
-                    haveTraj = true;
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                     haveConnFiles = true;
@@ -609,7 +589,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);
         if (m_fiberOrientationTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberOrientationTabIndex, haveFibers);
-        if (m_fiberTrajectoryTabIndex >= 0) m_tabWidget->setTabEnabled(m_fiberTrajectoryTabIndex, haveTraj);
         if (m_fociTabIndex >= 0) m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         

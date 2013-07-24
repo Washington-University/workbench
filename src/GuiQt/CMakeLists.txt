@@ -51,7 +51,6 @@ CustomViewDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
 FiberOrientationSelectionViewController.h
-FiberTrajectorySelectionViewController.h
 FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
@@ -172,7 +171,6 @@ EventUpdateTimeCourseDialog.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
-FiberTrajectorySelectionViewController.h
 FiberSamplesOpenGLWidget.h
 FociProjectionDialog.h
 FociPropertiesEditorDialog.h
@@ -294,7 +292,6 @@ EventUpdateTimeCourseDialog.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx
-FiberTrajectorySelectionViewController.cxx
 FiberSamplesOpenGLWidget.cxx
 FociProjectionDialog.cxx
 FociPropertiesEditorDialog.cxx

@@ -68,7 +68,6 @@
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
-#include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
@@ -6035,58 +6034,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFiberTrajectories()
 void
 BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
 {
-    const DisplayPropertiesFiberTrajectory* dpft = m_brain->getDisplayPropertiesFiberTrajectory();
-    const DisplayGroupEnum::Enum displayGroup = dpft->getDisplayGroupForTab(this->windowTabIndex);
-    if (dpft->isDisplayed(displayGroup, this->windowTabIndex) == false) {
-        return;
-    }
-    
-    const float proportionMinimumOpacity = dpft->getProportionMinimumOpacity(displayGroup,
-                                                                      this->windowTabIndex);
-    const float proportionMaximumOpacity = dpft->getProportionMaximumOpacity(displayGroup,
-                                                                      this->windowTabIndex);
-    const float proportionRangeOpacity = proportionMaximumOpacity - proportionMinimumOpacity;
-    
-    const float countMinimumOpacity = dpft->getCountMinimumOpacity(displayGroup,
-                                                                             this->windowTabIndex);
-    const float countMaximumOpacity = dpft->getCountMaximumOpacity(displayGroup,
-                                                                             this->windowTabIndex);
-    const float countRangeOpacity = countMaximumOpacity - countMinimumOpacity;
-    
-    const float distanceMinimumOpacity = dpft->getDistanceMinimumOpacity(displayGroup,
-                                                                   this->windowTabIndex);
-    const float distanceMaximumOpacity = dpft->getDistanceMaximumOpacity(displayGroup,
-                                                                   this->windowTabIndex);
-    const float distanceRangeOpacity = distanceMaximumOpacity - distanceMinimumOpacity;
-    
-    const FiberTrajectoryDisplayModeEnum::Enum displayMode = dpft->getDisplayMode(displayGroup,
-                                                                                  this->windowTabIndex);
-    uint32_t streamlineThreshold = std::numeric_limits<uint32_t>::max();
-    switch (displayMode) {
-        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
-            streamlineThreshold = dpft->getCountStreamline(displayGroup,
-                                                           this->windowTabIndex);
-            if (countRangeOpacity <= 0.0) {
-                return;
-            }
-            break;
-        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
-        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
-            streamlineThreshold = dpft->getDistanceStreamline(displayGroup,
-                                                           this->windowTabIndex);
-            if (distanceRangeOpacity <= 0.0) {
-                return;
-            }
-            break;
-        case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
-            streamlineThreshold = dpft->getProportionStreamline(displayGroup,
-                                                           this->windowTabIndex);
-            if (proportionRangeOpacity <= 0.0) {
-                return;
-            }
-            break;
-    }
-    
     /*
      * Clipping planes
      */
@@ -6147,37 +6094,92 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
-    const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
-    FiberOrientationDisplayInfo fiberOrientDispInfo;
-    setFiberOrientationDisplayInfo(dpfo,
-                                   displayGroup,
-                                   this->windowTabIndex,
-                                   &clippingBoundingBox,
-                                   const_cast<Plane*>(plane),
-                                   fiberOrientDispInfo);
-    
-    /*
-     * Fans use lighting but NOT on a volume slice
-     */
-    disableLighting();
-    switch (symbolType) {
-        case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
-            if (plane == NULL) {
-                enableLighting();
-            }
-            break;
-        case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
-            break;
-    }
-    
-    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
-    for (int32_t iFile = 0; iFile < numTrajFiles; iFile++) {
-        const CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iFile);
-        const FiberTrajectoryMapProperties* ftmp = trajFile->getFiberTrajectoryMapProperties();
-        if (ftmp->isDisplayed() == false) {
+    CaretAssert(this->browserTabContent);
+    OverlaySet* overlaySet = this->browserTabContent->getOverlaySet();
+    const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    for (int32_t iOver = 0; iOver < numberOfDisplayedOverlays; iOver++) {
+        Overlay* overlay = overlaySet->getOverlay(iOver);
+        if (overlay->isEnabled() == false) {
             continue;
         }
+        
+        CaretMappableDataFile* caretMappableDataFile = NULL;
+        int32_t mapIndex = -1;
+        overlay->getSelectionData(caretMappableDataFile,
+                                  mapIndex);
+        if (caretMappableDataFile == NULL) {
+            continue;
+        }
+        const CiftiFiberTrajectoryFile* trajFile = dynamic_cast<const CiftiFiberTrajectoryFile*>(caretMappableDataFile);
+        if (trajFile == NULL) {
+            continue;
+        }
+        
+        const FiberTrajectoryMapProperties* ftmp = trajFile->getFiberTrajectoryMapProperties();
+        
+        const float proportionMinimumOpacity = ftmp->getProportionMinimumOpacity();
+        const float proportionMaximumOpacity = ftmp->getProportionMaximumOpacity();
+        const float proportionRangeOpacity = proportionMaximumOpacity - proportionMinimumOpacity;
+        
+        const float countMinimumOpacity = ftmp->getCountMinimumOpacity();
+        const float countMaximumOpacity = ftmp->getCountMaximumOpacity();
+        const float countRangeOpacity = countMaximumOpacity - countMinimumOpacity;
+        
+        const float distanceMinimumOpacity = ftmp->getDistanceMinimumOpacity();
+        const float distanceMaximumOpacity = ftmp->getDistanceMaximumOpacity();
+        const float distanceRangeOpacity = distanceMaximumOpacity - distanceMinimumOpacity;
+        
+        const FiberTrajectoryDisplayModeEnum::Enum displayMode = ftmp->getDisplayMode();
+        uint32_t streamlineThreshold = std::numeric_limits<uint32_t>::max();
+        switch (displayMode) {
+            case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
+                streamlineThreshold = ftmp->getCountStreamline();
+                if (countRangeOpacity <= 0.0) {
+                    return;
+                }
+                break;
+            case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
+            case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
+                streamlineThreshold = ftmp->getDistanceStreamline();
+                if (distanceRangeOpacity <= 0.0) {
+                    return;
+                }
+                break;
+            case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
+                streamlineThreshold = ftmp->getProportionStreamline();
+                if (proportionRangeOpacity <= 0.0) {
+                    return;
+                }
+                break;
+        }
+        
+        DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
+        const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
+        const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup,
+                                                                                    this->windowTabIndex);
+        FiberOrientationDisplayInfo fiberOrientDispInfo;
+        setFiberOrientationDisplayInfo(dpfo,
+                                       displayGroup,
+                                       this->windowTabIndex,
+                                       &clippingBoundingBox,
+                                       const_cast<Plane*>(plane),
+                                       fiberOrientDispInfo);
+        
+        /*
+         * Fans use lighting but NOT on a volume slice
+         */
+        disableLighting();
+        switch (symbolType) {
+            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_FANS:
+                if (plane == NULL) {
+                    enableLighting();
+                }
+                break;
+            case FiberOrientationSymbolTypeEnum::FIBER_SYMBOL_LINES:
+                break;
+        }
+        
+        
         
         const std::vector<FiberOrientationTrajectory*>& trajectories = trajFile->getLoadedFiberOrientationTrajectories();
         const int64_t numTraj = static_cast<int64_t>(trajectories.size());
@@ -6283,10 +6285,10 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                                               orientation);
             }
         }
+        
+        drawAllFiberOrientations(&fiberOrientDispInfo,
+                                 true);
     }
-    
-    drawAllFiberOrientations(&fiberOrientDispInfo,
-                             true);
     
     glDisable(GL_BLEND);
     

@@ -68,7 +68,6 @@ CiftiFiberTrajectoryManager.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
-DisplayPropertiesFiberTrajectory.h
 DisplayPropertiesFoci.h
 DisplayPropertiesLabels.h
 DisplayPropertiesSurface.h
@@ -159,7 +158,6 @@ CiftiFiberTrajectoryManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx
-DisplayPropertiesFiberTrajectory.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesLabels.cxx
 DisplayPropertiesSurface.cxx

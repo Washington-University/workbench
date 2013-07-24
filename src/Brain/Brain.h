@@ -62,7 +62,6 @@ namespace caret {
     class DisplayProperties;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
-    class DisplayPropertiesFiberTrajectory;
     class DisplayPropertiesFoci;
     class DisplayPropertiesLabels;
     class DisplayPropertiesSurface;
@@ -323,10 +322,6 @@ namespace caret {
         
         const DisplayPropertiesFiberOrientation* getDisplayPropertiesFiberOrientation() const;
         
-        DisplayPropertiesFiberTrajectory* getDisplayPropertiesFiberTrajectory();
-        
-        const DisplayPropertiesFiberTrajectory* getDisplayPropertiesFiberTrajectory() const;
-        
         DisplayPropertiesFoci* getDisplayPropertiesFoci();
         
         const DisplayPropertiesFoci* getDisplayPropertiesFoci() const;
@@ -551,12 +546,6 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesFiberOrientation* m_displayPropertiesFiberOrientation;
-        
-        /**
-         * Display properties for fiber orientation - DO NOT delete since this
-         * is also in the displayProperties std::vector.
-         */
-        DisplayPropertiesFiberTrajectory* m_displayPropertiesFiberTrajectory;
 
         /**
          * Display properties for foci - DO NOT delete since this

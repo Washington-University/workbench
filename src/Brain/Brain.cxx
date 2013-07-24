@@ -49,7 +49,6 @@
 #include "CiftiFiberTrajectoryManager.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
-#include "DisplayPropertiesFiberTrajectory.h"
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
@@ -125,9 +124,6 @@ Brain::Brain()
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
-    m_displayPropertiesFiberTrajectory = new DisplayPropertiesFiberTrajectory(this);
-    m_displayProperties.push_back(m_displayPropertiesFiberTrajectory);
-    
     m_displayPropertiesFoci = new DisplayPropertiesFoci(this);
     m_displayProperties.push_back(m_displayPropertiesFoci);
     
@@ -161,11 +157,7 @@ Brain::Brain()
                           "DisplayPropertiesFiberOrientation",
                           m_displayPropertiesFiberOrientation);
     
-    m_sceneAssistant->add("displayPropertiesFiberTrajectory",
-                          "DisplayPropertiesFiberTrajectory",
-                          m_displayPropertiesFiberTrajectory);
-    
-    m_sceneAssistant->add("displayPropertiesFoci", 
+    m_sceneAssistant->add("displayPropertiesFoci",
                           "DisplayPropertiesFoci", 
                           m_displayPropertiesFoci);
     
@@ -4474,24 +4466,6 @@ const DisplayPropertiesFiberOrientation*
 Brain::getDisplayPropertiesFiberOrientation() const
 {
     return m_displayPropertiesFiberOrientation;
-}
-
-/**
- * @return The fiber trajectory display properties.
- */
-DisplayPropertiesFiberTrajectory*
-Brain::getDisplayPropertiesFiberTrajectory()
-{
-    return m_displayPropertiesFiberTrajectory;
-}
-
-/**
- * @return The fiber trajectory display properties.
- */
-const DisplayPropertiesFiberTrajectory*
-Brain::getDisplayPropertiesFiberTrajectory() const
-{
-    return m_displayPropertiesFiberTrajectory;
 }
 
 /**
