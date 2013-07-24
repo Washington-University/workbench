@@ -100,7 +100,7 @@ void
 CiftiFiberTrajectoryFile::clearPrivate()
 {
     m_metadata->clear();
-    
+        
     clearLoadedFiberOrientations();
     
     if (m_sparseFile != NULL) {
@@ -248,7 +248,7 @@ CiftiFiberTrajectoryFile::hasMapAttributes() const
 AString
 CiftiFiberTrajectoryFile::getMapName(const int32_t /*mapIndex*/) const
 {
-    return "MapNameNoDefined";
+    return m_loadedDataDescriptionForMapName;
 }
 
 /**
@@ -590,6 +590,8 @@ CiftiFiberTrajectoryFile::clearLoadedFiberOrientations()
         delete m_fiberOrientationTrajectories[i];
     }
     m_fiberOrientationTrajectories.clear();
+    
+    m_loadedDataDescriptionForMapName = "";
 }
 
 /**
@@ -684,6 +686,13 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
                                + " into fiber orientations");
             }
         }
+        
+        m_loadedDataDescriptionForMapName = ("Row: "
+                                             + AString::number(rowIndex)
+                                             + ", Node Index: "
+                                             + AString::number(nodeIndex)
+                                             + ", Structure: "
+                                             + StructureEnum::toName(structure));
     }
 }
 
@@ -811,6 +820,11 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(CiftiFiberOrientationFi
             }
         }
     }
+    
+    m_loadedDataDescriptionForMapName = ("Structure: "
+                                         + StructureEnum::toName(structure)
+                                         + ", Averaged Node Count: "
+                                         + AString::number(numberOfNodes));
 }
 
 

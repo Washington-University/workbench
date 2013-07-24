@@ -173,6 +173,8 @@ namespace caret {
         
         bool m_dataLoadingEnabled;
         
+        AString m_loadedDataDescriptionForMapName;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

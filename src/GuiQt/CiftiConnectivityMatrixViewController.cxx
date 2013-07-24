@@ -235,11 +235,12 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
     const bool newStatus = m_fileEnableCheckBoxes[indx]->isChecked();
     
-    void* ptr = m_fileEnableCheckBoxes[indx]->property(FILE_POINTER_PROPERTY_NAME).value<void*>();
-    CiftiMappableDataFile* mapFilePointer = (CiftiMappableDataFile*)ptr;
+    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
+    CiftiFiberTrajectoryFile* trajFile = NULL;
     
-    CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
-    CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
+    getFileAtIndex(indx,
+                   matrixFile,
+                   trajFile);
     
     if (matrixFile != NULL) {
         matrixFile->setMapDataLoadingEnabled(0,
@@ -255,6 +256,40 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     updateOtherCiftiConnectivityMatrixViewControllers();
 }
 
+/**
+ * Get the file associated with the given index.  One of the output files
+ * will be NULL and the other will be non-NULL.
+ *
+ * @param indx
+ *    The index.
+ * @param ciftiMatrixFileOut
+ *    If there is a CIFTI matrix file at the given index, this will be non-NULL.
+ * @param ciftiTrajFileOut
+ *    If there is a CIFTI trajectory file at the given index, this will be non-NULL.
+ */
+void
+CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
+                                                      CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
+                                                      CiftiFiberTrajectoryFile* &ciftiTrajFileOut)
+{
+    CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
+    void* ptr = m_fileEnableCheckBoxes[indx]->property(FILE_POINTER_PROPERTY_NAME).value<void*>();
+    CiftiMappableDataFile* mapFilePointer = (CiftiMappableDataFile*)ptr;
+    
+    ciftiMatrixFileOut = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
+    ciftiTrajFileOut   = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
+    
+    if (ciftiMatrixFileOut != NULL) {
+        /* OK */
+    }
+    else if (ciftiTrajFileOut != NULL) {
+        /* OK */
+    }
+    else {
+        CaretAssertMessage(0,
+                           "Has a new file type been added?");
+    }
+}
 
 /**
  * Called when copy tool button is clicked.
@@ -268,14 +303,28 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
     
-    Brain* brain = GuiManager::get()->getBrain();
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> files;
-    brain->getAllCiftiConnectivityMatrixFiles(files);
+    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
+    CiftiFiberTrajectoryFile* trajFile = NULL;
     
-    CaretAssertVectorIndex(files, indx);
+    getFileAtIndex(indx,
+                   matrixFile,
+                   trajFile);
+    
     
     try {
-        brain->convertCiftiMatrixFileToCiftiScalarFile(files[indx]);
+        Brain* brain = GuiManager::get()->getBrain();
+        
+        if (matrixFile != NULL) {
+            brain->convertCiftiMatrixFileToCiftiScalarFile(matrixFile);
+        }
+        else if (trajFile != NULL) {
+            throw DataFileException("Conversion to CIFTI Traj Parcel not implemented.");
+        }
+        else {
+            CaretAssertMessage(0,
+                               "Has a new file type been added?");
+        }
+        
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     catch (const DataFileException& dfe) {

@@ -49,6 +49,7 @@ class QToolButton;
 namespace caret {
 
     class CiftiMappableConnectivityMatrixDataFile;
+    class CiftiFiberTrajectoryFile;
     
     class CiftiConnectivityMatrixViewController : public QWidget, EventListenerInterface {
         
@@ -77,6 +78,10 @@ namespace caret {
         void updateViewController();
         
         void updateOtherCiftiConnectivityMatrixViewControllers();
+        
+        void getFileAtIndex(const int32_t indx,
+                            CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
+                            CiftiFiberTrajectoryFile* &ciftiTrajFileOut);
         
         std::vector<QCheckBox*> m_fileEnableCheckBoxes;
         
