@@ -34,7 +34,7 @@ ELSEIF(WIN32)
             SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
             ##SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -we4061")
             SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
-#            SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
+#           SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
             SET(ZLIB_LIBRARY optimized "C:\\dev64\\install\\zlib\\lib\\zlib.lib" debug "C:\\dev64\\install\\zlib\\lib\\zlibd.lib" CACHE STRING "zlib library (binary)")
             SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl" CACHE_STRING "open ssl root directory")
 
@@ -175,7 +175,7 @@ IF (OPENMP_FOUND)
     # add definitions will add the flag to the linker and resource compilers, which don't understand the openmp option
     SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
     #ADD_DEFINITIONS(${OpenMP_CXX_FLAGS})
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+    #SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
 
     #
     # Try to link static with Intel Compiler

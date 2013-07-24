@@ -779,11 +779,11 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                 break;
             case CiftiMappableDataFile::SELECTION_MODE_FILL:
             {
-		        for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+		        for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
 		        {
-			        int64_t nodeIndex = selectedParcelNodes[pNode];
+			        uint64_t nodeIndex = selectedParcelNodes[pNode];
 			        if(nodeIndex >= 0 && nodeIndex < numberOfNodes) {
-				        int64_t node4 = nodeIndex*4;           
+				        uint64_t node4 = nodeIndex*4;           
 				        rgbv[node4]   =  1.0;
 				        rgbv[node4+1] =  1.0;
 				        rgbv[node4+2] =  1.0;
@@ -802,15 +802,15 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                 //make a quick lookup table
                 std::vector<int64_t> selectedNodesLookup(numberOfNodes,0);
                 
-                for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+                for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
                 {
-                    int64_t nodeIndex = selectedParcelNodes[pNode];
+                    uint64_t nodeIndex = selectedParcelNodes[pNode];
                     if(nodeIndex >= 0 && nodeIndex < selectedNodesLookup.size()) {
                             selectedNodesLookup[nodeIndex] = 1;
                     }
                 }
 
-                for(int64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
+                for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
                 {
                     int32_t numNeighbors = 0;
                         
