@@ -30,7 +30,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "VolumeFile.h"
-#include <FileInformation.h>
+#include "FileInformation.h"
 
 using namespace caret;
 using namespace std;

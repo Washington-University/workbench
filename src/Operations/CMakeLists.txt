@@ -36,6 +36,7 @@ OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFociListCoords.h
 OperationLabelMask.h
+OperationMetadataRemoveProvenance.h
 OperationMetadataStringReplace.h
 OperationMetricConvert.h
 OperationMetricMask.h
@@ -82,6 +83,7 @@ OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFociListCoords.cxx
 OperationLabelMask.cxx
+OperationMetadataRemoveProvenance.cxx
 OperationMetadataStringReplace.cxx
 OperationMetricConvert.cxx
 OperationMetricMask.cxx

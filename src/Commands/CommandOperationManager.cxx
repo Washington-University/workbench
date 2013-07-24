@@ -116,6 +116,7 @@
 #include "OperationEstimateFiberBinghams.h"
 #include "OperationFociListCoords.h"
 #include "OperationLabelMask.h"
+#include "OperationMetadataRemoveProvenance.h"
 #include "OperationMetadataStringReplace.h"
 #include "OperationMetricConvert.h"
 #include "OperationMetricMask.h"
@@ -288,6 +289,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataRemoveProvenance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataStringReplace()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
