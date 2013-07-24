@@ -37,6 +37,7 @@
 #undef __FIBER_TRAJECTORY_MAP_PROPERTIES_DECLARE__
 
 #include "CaretAssert.h"
+#include "FiberTrajectoryColorModel.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -56,6 +57,8 @@ using namespace caret;
 FiberTrajectoryMapProperties::FiberTrajectoryMapProperties()
 {
     m_sceneAssistant = new SceneClassAssistant();
+    
+    m_fiberTrajectoryColoringModel = new FiberTrajectoryColorModel();
     
     const float thresholdStreamline = 5;
     const float maximumProportionOpacity = 0.80;
@@ -104,6 +107,9 @@ FiberTrajectoryMapProperties::FiberTrajectoryMapProperties()
                           &m_distanceMaximumOpacity);
     m_sceneAssistant->add("m_distanceMinimumOpacity",
                           &m_distanceMinimumOpacity);
+    m_sceneAssistant->add("m_fiberTrajectoryColoringModel",
+                          "FiberTrajectoryColorModel",
+                          m_fiberTrajectoryColoringModel);
     
 }
 
@@ -112,6 +118,7 @@ FiberTrajectoryMapProperties::FiberTrajectoryMapProperties()
  */
 FiberTrajectoryMapProperties::~FiberTrajectoryMapProperties()
 {
+    delete m_fiberTrajectoryColoringModel;
     delete m_sceneAssistant;
 }
 
@@ -338,7 +345,23 @@ FiberTrajectoryMapProperties::setDistanceMinimumOpacity(const float distanceMini
     m_distanceMinimumOpacity = distanceMinimumOpacity;
 }
 
+/**
+ * @return the fiber trajectory coloring model.
+ */
+FiberTrajectoryColorModel*
+FiberTrajectoryMapProperties::getFiberTrajectoryColorModel()
+{
+    return m_fiberTrajectoryColoringModel;
+}
 
+/**
+ * @return the fiber trajectory coloring model.
+ */
+const FiberTrajectoryColorModel*
+FiberTrajectoryMapProperties::getFiberTrajectoryColorModel() const
+{
+    return m_fiberTrajectoryColoringModel;
+}
 
 /**
  * Create a scene for an instance of a class.

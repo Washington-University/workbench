@@ -39,6 +39,7 @@
 #include <limits>
 
 #include <QButtonGroup>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -50,6 +51,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FiberTrajectoryColorModel.h"
 #include "FiberTrajectoryMapProperties.h"
 #include "GuiManager.h"
 #include "WuQFactory.h"
@@ -77,10 +79,14 @@ MapSettingsFiberTrajectoryWidget::MapSettingsFiberTrajectoryWidget(QWidget* pare
 {
     m_updateInProgress = true;
  
+    QWidget* attributesWidget  = createAttributesWidget();
     QWidget* displayModeWidget = createDisplayModeWidget();
     QWidget* dataMappingWidget = createDataMappingWidget();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(attributesWidget,
+                      0,
+                      Qt::AlignLeft);
     layout->addWidget(displayModeWidget,
                       0,
                       Qt::AlignLeft);
@@ -99,6 +105,23 @@ MapSettingsFiberTrajectoryWidget::MapSettingsFiberTrajectoryWidget(QWidget* pare
 MapSettingsFiberTrajectoryWidget::~MapSettingsFiberTrajectoryWidget()
 {
 }
+
+QWidget*
+MapSettingsFiberTrajectoryWidget::createAttributesWidget()
+{
+    QLabel* colorLabel = new QLabel("Coloring: ");
+    m_colorSelectionComboBox = WuQFactory::newComboBoxSignalInt(this,
+                                                                SLOT(processAttributesChanges()));
+    
+    QGroupBox* attributesGroupBox = new QGroupBox("Attribues");
+    QGridLayout* attributesGridLayout = new QGridLayout(attributesGroupBox);
+    int row = 0;
+    attributesGridLayout->addWidget(colorLabel, row, 0);
+    attributesGridLayout->addWidget(m_colorSelectionComboBox, row, 1);
+    
+    return attributesGroupBox;
+}
+
 
 /**
  * @return Create and return the display mode widget.
@@ -129,6 +152,7 @@ MapSettingsFiberTrajectoryWidget::createDisplayModeWidget()
     
     return modeGroupBox;
 }
+
 
 /**
  * @return Create and return the data mapping widget.
@@ -285,6 +309,14 @@ MapSettingsFiberTrajectoryWidget::processAttributesChanges()
     
     FiberTrajectoryMapProperties* ftmp = m_fiberTrajectoryFile->getFiberTrajectoryMapProperties();
     
+    const int32_t selectedColorIndex = m_colorSelectionComboBox->currentIndex();
+    if (selectedColorIndex >= 0) {
+        void* ptr = m_colorSelectionComboBox->itemData(selectedColorIndex,
+                                                       Qt::UserRole).value<void*>();
+        const FiberTrajectoryColorModel::Item* item = (FiberTrajectoryColorModel::Item*)ptr;
+        ftmp->getFiberTrajectoryColorModel()->setSelectedItem(item);
+    }
+    
     const int32_t selectedModeRadioButtonIndex = m_displayModeButtonGroup->checkedId();
     const FiberTrajectoryDisplayModeEnum::Enum displayMode = m_displayModeRadioButtonData[selectedModeRadioButtonIndex];
     ftmp->setDisplayMode(displayMode);
@@ -321,6 +353,28 @@ MapSettingsFiberTrajectoryWidget::updateEditor(CiftiFiberTrajectoryFile* fiberTr
     m_updateInProgress = true;
     
     FiberTrajectoryMapProperties* ftmp = m_fiberTrajectoryFile->getFiberTrajectoryMapProperties();
+    
+    FiberTrajectoryColorModel* colorModel = ftmp->getFiberTrajectoryColorModel();
+    std::vector<FiberTrajectoryColorModel::Item*> colorItems = colorModel->getValidItems();
+    const FiberTrajectoryColorModel::Item* selectedItem = colorModel->getSelectedItem();
+    const int32_t numColorItems = static_cast<int32_t>(colorItems.size());
+    
+    m_colorSelectionComboBox->blockSignals(true);
+    m_colorSelectionComboBox->clear();
+    int32_t defaultIndex = 0;
+    for (int32_t i = 0; i < numColorItems; i++) {
+        FiberTrajectoryColorModel::Item* item = colorItems[i];
+        if (item == selectedItem) {
+            defaultIndex = i;
+        }
+        m_colorSelectionComboBox->addItem(item->getName(),
+                                          qVariantFromValue((void*)item));
+    }
+    if ((defaultIndex >= 0)
+        && (defaultIndex < m_colorSelectionComboBox->count())) {
+        m_colorSelectionComboBox->setCurrentIndex(defaultIndex);
+    }
+    m_colorSelectionComboBox->blockSignals(false);
     
     const FiberTrajectoryDisplayModeEnum::Enum selectedDisplayMode = ftmp->getDisplayMode();
     const int32_t numDisplayModeRadioButtons = m_displayModeButtonGroup->buttons().size();

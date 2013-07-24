@@ -35,6 +35,7 @@
 #include "DisplayGroupEnum.h"
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
+#include "FiberTrajectoryColorModel.h"
 #include "Model.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SelectionItemDataTypeEnum.h"
@@ -131,12 +132,13 @@ namespace caret {
             int32_t mapIndex;
             float opacity;
         };
-        
+
         struct FiberOrientationDisplayInfo {
             float aboveLimit;
             float belowLimit;
             BoundingBox* boundingBox;
-            FiberOrientationColoringTypeEnum::Enum colorType;
+            FiberTrajectoryColorModel::Item* colorSource;
+            FiberOrientationColoringTypeEnum::Enum fiberOrientationColorType;
             float fanMultiplier;
             bool isDrawWithMagnitude;
             float minimumMagnitude;
@@ -150,6 +152,7 @@ namespace caret {
                                             const int32_t tabIndex,
                                             BoundingBox* boundingBox,
                                             Plane* plane,
+                                            FiberTrajectoryColorModel::Item* colorSource,
                                             FiberOrientationDisplayInfo& dispInfo);
         
 //        void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,

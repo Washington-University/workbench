@@ -41,6 +41,7 @@
 #include "FiberTrajectoryDisplayModeEnum.h"
 
 class QButtonGroup;
+class QComboBox;
 class QDoubleSpinBox;
 class QRadioButton;
 
@@ -70,11 +71,15 @@ namespace caret {
 
         MapSettingsFiberTrajectoryWidget& operator=(const MapSettingsFiberTrajectoryWidget&);
         
+        QWidget* createAttributesWidget();
+        
         QWidget* createDisplayModeWidget();
         
         QWidget* createDataMappingWidget();
         
         CiftiFiberTrajectoryFile* m_fiberTrajectoryFile;
+        
+        QComboBox* m_colorSelectionComboBox;
         
         std::vector<QRadioButton*> m_displayModeRadioButtons;
         std::vector<FiberTrajectoryDisplayModeEnum::Enum> m_displayModeRadioButtonData;

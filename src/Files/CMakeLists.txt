@@ -47,7 +47,10 @@ EventCiftiMappableDataFileColoringUpdated.h
 EventSurfaceColoringInvalidate.h
 Fiber.h
 FiberOrientation.h
+FiberOrientationColoringTypeEnum.h
 FiberOrientationTrajectory.h
+FiberTrajectoryColorEnum.h
+FiberTrajectoryColorModel.h
 FiberTrajectoryMapProperties.h
 FiberTrajectoryDisplayModeEnum.h
 FociFile.h
@@ -131,7 +134,10 @@ EventCiftiMappableDataFileColoringUpdated.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
 FiberOrientation.cxx
+FiberOrientationColoringTypeEnum.cxx
 FiberOrientationTrajectory.cxx
+FiberTrajectoryColorEnum.cxx
+FiberTrajectoryColorModel.cxx
 FiberTrajectoryDisplayModeEnum.cxx
 FiberTrajectoryMapProperties.cxx
 FociFile.cxx

@@ -5540,12 +5540,14 @@ BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayProperties
                                                          const int32_t tabIndex,
                                                          BoundingBox* boundingBox,
                                                          Plane* plane,
+                                                         FiberTrajectoryColorModel::Item* colorSource,
                                     FiberOrientationDisplayInfo& dispInfo)
 {
     dispInfo.aboveLimit = dpfo->getAboveLimit(displayGroup, tabIndex);
     dispInfo.belowLimit = dpfo->getBelowLimit(displayGroup, tabIndex);
     dispInfo.boundingBox = boundingBox;
-    dispInfo.colorType = dpfo->getColoringType(displayGroup, tabIndex);
+    dispInfo.colorSource = colorSource;
+    dispInfo.fiberOrientationColorType = dpfo->getColoringType(displayGroup, tabIndex);
     dispInfo.fanMultiplier = dpfo->getFanMultiplier(displayGroup, tabIndex);
     dispInfo.isDrawWithMagnitude = dpfo->isDrawWithMagnitude(displayGroup, tabIndex);
     dispInfo.minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, tabIndex);
@@ -5643,12 +5645,18 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
             break;
     }
 
+    
+    FiberTrajectoryColorModel::Item colorUseFiber;
+    FiberOrientationColoringTypeEnum::Enum fiberColorType = dpfo->getColoringType(displayGroup,
+                                                                                  this->windowTabIndex);
+    
     FiberOrientationDisplayInfo fiberOrientDispInfo;
     setFiberOrientationDisplayInfo(dpfo,
                                    displayGroup,
                                    this->windowTabIndex,
                                    &clippingBoundingBox,
                                    const_cast<Plane*>(plane),
+                                   &colorUseFiber,
                                    fiberOrientDispInfo);
     /*
      * Draw the vectors from each of the connectivity files
@@ -5909,41 +5917,55 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                 /*
                  * Color of fiber
                  */
-                switch (fodi->colorType) {
-                    case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                    {
-                        const int32_t indx = j % 3;
-                        switch (indx) {
-                            case 0: // use RED
-                                glColor4f(BrainOpenGLFixedPipeline::COLOR_RED[0],
-                                          BrainOpenGLFixedPipeline::COLOR_RED[1],
-                                          BrainOpenGLFixedPipeline::COLOR_RED[2],
-                                          alpha);
+                switch (fodi->colorSource->getItemType()) {
+                    case FiberTrajectoryColorModel::Item::ITEM_TYPE_FIBER_ORIENTATION_COLORING_TYPE:
+                        switch (fodi->fiberOrientationColorType) {
+                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
+                            {
+                                const int32_t indx = j % 3;
+                                switch (indx) {
+                                    case 0: // use RED
+                                        glColor4f(BrainOpenGLFixedPipeline::COLOR_RED[0],
+                                                  BrainOpenGLFixedPipeline::COLOR_RED[1],
+                                                  BrainOpenGLFixedPipeline::COLOR_RED[2],
+                                                  alpha);
+                                        break;
+                                    case 1: // use BLUE
+                                        glColor4f(BrainOpenGLFixedPipeline::COLOR_BLUE[0],
+                                                  BrainOpenGLFixedPipeline::COLOR_BLUE[1],
+                                                  BrainOpenGLFixedPipeline::COLOR_BLUE[2],
+                                                  alpha);
+                                        break;
+                                    case 2: // use GREEN
+                                        glColor4f(BrainOpenGLFixedPipeline::COLOR_GREEN[0],
+                                                  BrainOpenGLFixedPipeline::COLOR_GREEN[1],
+                                                  BrainOpenGLFixedPipeline::COLOR_GREEN[2],
+                                                  alpha);
+                                        break;
+                                }
+                            }
                                 break;
-                            case 1: // use BLUE
-                                glColor4f(BrainOpenGLFixedPipeline::COLOR_BLUE[0],
-                                          BrainOpenGLFixedPipeline::COLOR_BLUE[1],
-                                          BrainOpenGLFixedPipeline::COLOR_BLUE[2],
-                                          alpha);
-                                break;
-                            case 2: // use GREEN
-                                glColor4f(BrainOpenGLFixedPipeline::COLOR_GREEN[0],
-                                          BrainOpenGLFixedPipeline::COLOR_GREEN[1],
-                                          BrainOpenGLFixedPipeline::COLOR_GREEN[2],
+                            case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
+                                CaretAssert((fiber->m_directionUnitVectorRGB[0] >= 0.0) && (fiber->m_directionUnitVectorRGB[0] <= 1.0));
+                                CaretAssert((fiber->m_directionUnitVectorRGB[1] >= 0.0) && (fiber->m_directionUnitVectorRGB[1] <= 1.0));
+                                CaretAssert((fiber->m_directionUnitVectorRGB[2] >= 0.0) && (fiber->m_directionUnitVectorRGB[2] <= 1.0));
+                                CaretAssert((alpha >= 0.0) && (alpha <= 1.0));
+                                glColor4f(fiber->m_directionUnitVectorRGB[0],
+                                          fiber->m_directionUnitVectorRGB[1],
+                                          fiber->m_directionUnitVectorRGB[2],
                                           alpha);
                                 break;
                         }
-                    }
                         break;
-                    case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                        CaretAssert((fiber->m_directionUnitVectorRGB[0] >= 0.0) && (fiber->m_directionUnitVectorRGB[0] <= 1.0));
-                        CaretAssert((fiber->m_directionUnitVectorRGB[1] >= 0.0) && (fiber->m_directionUnitVectorRGB[1] <= 1.0));
-                        CaretAssert((fiber->m_directionUnitVectorRGB[2] >= 0.0) && (fiber->m_directionUnitVectorRGB[2] <= 1.0));
-                        CaretAssert((alpha >= 0.0) && (alpha <= 1.0));
-                        glColor4f(fiber->m_directionUnitVectorRGB[0],
-                                  fiber->m_directionUnitVectorRGB[1],
-                                  fiber->m_directionUnitVectorRGB[2],
+                    case FiberTrajectoryColorModel::Item::ITEM_TYPE_CARET_COLOR:
+                    {
+                        const CaretColorEnum::Enum caretColor = fodi->colorSource->getCaretColor();
+                        const float* rgb = CaretColorEnum::toRGB(caretColor);
+                        glColor4f(rgb[0],
+                                  rgb[1],
+                                  rgb[2],
                                   alpha);
+                    }
                         break;
                 }
                 
@@ -6110,12 +6132,13 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         if (caretMappableDataFile == NULL) {
             continue;
         }
-        const CiftiFiberTrajectoryFile* trajFile = dynamic_cast<const CiftiFiberTrajectoryFile*>(caretMappableDataFile);
+        CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(caretMappableDataFile);
         if (trajFile == NULL) {
             continue;
         }
         
-        const FiberTrajectoryMapProperties* ftmp = trajFile->getFiberTrajectoryMapProperties();
+        FiberTrajectoryMapProperties* ftmp = trajFile->getFiberTrajectoryMapProperties();
+        FiberTrajectoryColorModel* trajColorModel = ftmp->getFiberTrajectoryColorModel();
         
         const float proportionMinimumOpacity = ftmp->getProportionMinimumOpacity();
         const float proportionMaximumOpacity = ftmp->getProportionMaximumOpacity();
@@ -6163,6 +6186,7 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                                        this->windowTabIndex,
                                        &clippingBoundingBox,
                                        const_cast<Plane*>(plane),
+                                       ftmp->getFiberTrajectoryColorModel()->getSelectedItem(),
                                        fiberOrientDispInfo);
         
         /*

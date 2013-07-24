@@ -40,6 +40,7 @@
 
 namespace caret {
 
+    class FiberTrajectoryColorModel;
     class SceneClassAssistant;
     
     class FiberTrajectoryMapProperties : public SceneableInterface {
@@ -95,6 +96,10 @@ namespace caret {
         
         void setDistanceMinimumOpacity(const float distanceMinimumOpacity);
         
+        FiberTrajectoryColorModel* getFiberTrajectoryColorModel();
+        
+        const FiberTrajectoryColorModel* getFiberTrajectoryColorModel() const;
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -128,6 +133,8 @@ namespace caret {
         float m_distanceMaximumOpacity;
         
         float m_distanceMinimumOpacity;
+        
+        FiberTrajectoryColorModel* m_fiberTrajectoryColoringModel;
 };
     
 #ifdef __FIBER_TRAJECTORY_MAP_PROPERTIES_DECLARE__
