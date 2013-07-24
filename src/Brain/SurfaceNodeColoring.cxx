@@ -781,7 +781,7 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
             {
 		        for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
 		        {
-			        uint64_t nodeIndex = selectedParcelNodes[pNode];
+			        int64_t nodeIndex = selectedParcelNodes[pNode];
 			        if(nodeIndex >= 0 && nodeIndex < numberOfNodes) {
 				        uint64_t node4 = nodeIndex*4;           
 				        rgbv[node4]   =  1.0;
@@ -804,8 +804,8 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                 
                 for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
                 {
-                    uint64_t nodeIndex = selectedParcelNodes[pNode];
-                    if(nodeIndex >= 0 && nodeIndex < selectedNodesLookup.size()) {
+                    int64_t nodeIndex = selectedParcelNodes[pNode];
+                    if(nodeIndex >= 0 && nodeIndex < (int64_t)selectedNodesLookup.size()) {
                             selectedNodesLookup[nodeIndex] = 1;
                     }
                 }
