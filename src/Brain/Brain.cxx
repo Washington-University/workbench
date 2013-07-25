@@ -465,10 +465,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
     
-    updateVolumeSliceController();
-    updateWholeBrainController();
-    updateSurfaceMontageController();
-
+    updateAfterFilesAddedOrRemoved();
 }
 
 
@@ -3034,7 +3031,7 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
     catch (const DataFileException& dfe) {
         reloadDataFileEvent->setErrorMessage(dfe.whatString());
     }
-    postReadDataFileProcessing();
+    updateAfterFilesAddedOrRemoved();
 }
 
 
@@ -3338,20 +3335,22 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 //        }
 //    }
     
-    postReadDataFileProcessing();
+    updateAfterFilesAddedOrRemoved();
     
     return caretDataFileRead;
 }
 
 /**
- * Processing performed after reading a data file.
+ * Processing performed after adding or removing a data file.
  */
 void
-Brain::postReadDataFileProcessing()
+Brain::updateAfterFilesAddedOrRemoved()
 {
     updateVolumeSliceController();
     updateWholeBrainController();
     updateSurfaceMontageController();
+    
+    m_ciftiFiberTrajectoryManager->updateMatchingFiberOrientationFiles();
 }
 
 /**
@@ -4327,20 +4326,20 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         remvovedFiberOrientationFile = true;
     }
     
-    /*
-     * If any fiber orientation files are removed, need to unload
-     * any fiber trajectories that were loaded since the trajectories
-     * point to fiber orientations in the fiber orientation file
-     * that was deleted.
-     */
-    if (remvovedFiberOrientationFile) {
-        for (std::vector<CiftiFiberTrajectoryFile*>::iterator clfi = m_connectivityFiberTrajectoryFiles.begin();
-             clfi != m_connectivityFiberTrajectoryFiles.end();
-             clfi++) {
-            CiftiFiberTrajectoryFile* clf = *clfi;
-            clf->clearLoadedFiberOrientations();
-        }
-    }
+//    /*
+//     * If any fiber orientation files are removed, need to unload
+//     * any fiber trajectories that were loaded since the trajectories
+//     * point to fiber orientations in the fiber orientation file
+//     * that was deleted.
+//     */
+//    if (remvovedFiberOrientationFile) {
+//        for (std::vector<CiftiFiberTrajectoryFile*>::iterator clfi = m_connectivityFiberTrajectoryFiles.begin();
+//             clfi != m_connectivityFiberTrajectoryFiles.end();
+//             clfi++) {
+//            CiftiFiberTrajectoryFile* clf = *clfi;
+//            clf->clearLoadedFiberOrientations();
+//        }
+//    }
     
     std::vector<CiftiFiberTrajectoryFile*>::iterator connFiberTrajectoryIterator = std::find(m_connectivityFiberTrajectoryFiles.begin(),
                                                                                             m_connectivityFiberTrajectoryFiles.end(),
@@ -4418,9 +4417,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     if (wasRemoved) {
         m_specFile->removeCaretDataFile(caretDataFileForRemovalFromSpecFile);
         
-        updateVolumeSliceController();
-        updateWholeBrainController();
-        updateSurfaceMontageController();
+        updateAfterFilesAddedOrRemoved();
     }
     else {
         CaretLogSevere("Software bug: failed to remove file type="

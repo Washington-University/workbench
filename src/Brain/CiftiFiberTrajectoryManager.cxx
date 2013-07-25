@@ -97,26 +97,16 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFi
     /*
      * Load fiber trajectory data
      */
-    const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
-    if (numFiberFiles > 0) {
-        const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
-        for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-            int32_t fiberFileIndex = iTrajFileIndex;
-            if (fiberFileIndex >= numFiberFiles) {
-                fiberFileIndex = 0;
-            }
-            
-            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-            CiftiFiberOrientationFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
-            trajFile->loadDataForSurfaceNode(connFiberFile,
-                                             surfaceFile->getStructure(),
-                                             surfaceFile->getNumberOfNodes(),
-                                             nodeIndex);
-            dataWasLoaded = true;
-            
-            m_brainordinateDataSelection->setSurfaceLoading(surfaceFile,
-                                                            nodeIndex);
-        }
+    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
+        CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+        trajFile->loadDataForSurfaceNode(surfaceFile->getStructure(),
+                                         surfaceFile->getNumberOfNodes(),
+                                         nodeIndex);
+        dataWasLoaded = true;
+        
+        m_brainordinateDataSelection->setSurfaceLoading(surfaceFile,
+                                                        nodeIndex);
     }
     
     return dataWasLoaded;
@@ -144,34 +134,24 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
     /*
      * Load fiber trajectory data
      */
-    const int32_t numFiberFiles = m_brain->getNumberOfConnectivityFiberOrientationFiles();
-    if (numFiberFiles > 0) {
-        const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
-        for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-            int32_t fiberFileIndex = iTrajFileIndex;
-            if (fiberFileIndex >= numFiberFiles) {
-                fiberFileIndex = 0;
-            }
+    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
+        CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+        
+        try {
+            trajFile->loadDataAverageForSurfaceNodes(surfaceFile->getStructure(),
+                                                     surfaceFile->getNumberOfNodes(),
+                                                     nodeIndices);
+            dataWasLoaded = true;
             
-            CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-            CiftiFiberOrientationFile* connFiberFile = m_brain->getConnectivityFiberOrientationFile(fiberFileIndex);
-            
-            try {
-                trajFile->loadDataAverageForSurfaceNodes(connFiberFile,
-                                                         surfaceFile->getStructure(),
-                                                         surfaceFile->getNumberOfNodes(),
-                                                         nodeIndices);
-                dataWasLoaded = true;
-                
-                m_brainordinateDataSelection->setSurfaceAverageLoading(surfaceFile,
-                                                                       nodeIndices);
-            }
-            catch (const DataFileException& dfe) {
-                errorMessage.appendWithNewLine(dfe.whatString());
-            }
+            m_brainordinateDataSelection->setSurfaceAverageLoading(surfaceFile,
+                                                                   nodeIndices);
+        }
+        catch (const DataFileException& dfe) {
+            errorMessage.appendWithNewLine(dfe.whatString());
         }
     }
-    
+
     if (errorMessage.isEmpty() == false) {
         throw DataFileException(errorMessage);
     }
@@ -292,6 +272,27 @@ CiftiFiberTrajectoryManager::restoreFromScene(const SceneAttributes* sceneAttrib
     catch (const DataFileException& dfe) {
         sceneAttributes->addToErrorMessage("Restoring Trajectory Data: "
                                            + dfe.whatString());
+    }
+}
+
+/**
+ * Update the fiber orientation files assigned to matching
+ * fiber trajectory files.  This is typically called after
+ * files are added or removed.
+ */
+void
+CiftiFiberTrajectoryManager::updateMatchingFiberOrientationFiles()
+{
+    std::vector<CiftiFiberOrientationFile*> orientationFiles;
+    m_brain->getConnectivityFiberOrientationFiles(orientationFiles);
+    std::vector<CiftiFiberTrajectoryFile*> trajectoryFiles;
+    m_brain->getConnectivityFiberTrajectoryFiles(trajectoryFiles);
+    
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = trajectoryFiles.begin();
+         iter != trajectoryFiles.end();
+         iter++) {
+        CiftiFiberTrajectoryFile* trajFile = *iter;
+        trajFile->updateMatchingFiberOrientationFileFromList(orientationFiles);
     }
 }
 

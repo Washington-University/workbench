@@ -6138,7 +6138,6 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         }
         
         FiberTrajectoryMapProperties* ftmp = trajFile->getFiberTrajectoryMapProperties();
-        FiberTrajectoryColorModel* trajColorModel = ftmp->getFiberTrajectoryColorModel();
         
         const float proportionMinimumOpacity = ftmp->getProportionMinimumOpacity();
         const float proportionMaximumOpacity = ftmp->getProportionMaximumOpacity();

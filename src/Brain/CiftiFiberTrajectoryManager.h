@@ -66,6 +66,8 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
         
+        void updateMatchingFiberOrientationFiles();
+        
     private:
         CiftiFiberTrajectoryManager(const CiftiFiberTrajectoryManager&);
 

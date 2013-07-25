@@ -48,6 +48,7 @@
 #include "FiberTrajectoryMapProperties.h"
 #include "GiftiMetaData.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -67,7 +68,18 @@ CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
     m_fiberTrajectoryMapProperties = new FiberTrajectoryMapProperties();
     m_metadata = new GiftiMetaData();
     m_sparseFile = NULL;
+    m_matchingFiberOrientationFile = NULL;
+    m_matchingFiberOrientationFileName = "";
     m_dataLoadingEnabled = true;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_dataLoadingEnabled",
+                          &m_dataLoadingEnabled);
+    m_sceneAssistant->add("m_matchingFiberOrientationFileName",
+                          &m_matchingFiberOrientationFileName);
+    m_sceneAssistant->add("m_fiberTrajectoryMapProperties",
+                          "FiberTrajectoryMapProperties",
+                          m_fiberTrajectoryMapProperties);
 }
 
 /**
@@ -78,6 +90,9 @@ CiftiFiberTrajectoryFile::~CiftiFiberTrajectoryFile()
     clearPrivate();
     delete m_fiberTrajectoryMapProperties;
     delete m_metadata;
+    // DO NOT DELETE (owned by Brain):  m_matchingFiberOrientationFile.
+
+    delete m_sceneAssistant;
     
 }
 
@@ -107,6 +122,9 @@ CiftiFiberTrajectoryFile::clearPrivate()
         delete m_sparseFile;
         m_sparseFile = NULL;
     }
+    
+    m_matchingFiberOrientationFile = NULL;
+    m_matchingFiberOrientationFileName = "";
 }
 
 
@@ -143,6 +161,144 @@ CiftiFiberTrajectoryFile::setDataLoadingEnabled(const bool loadingEnabled)
     m_dataLoadingEnabled = loadingEnabled;
 }
 
+/**
+ * @return The selected matching fiber orientation file. May be NULL.
+ */
+const CiftiFiberOrientationFile*
+CiftiFiberTrajectoryFile::getMatchingFiberOrientationFile() const
+{
+    return m_matchingFiberOrientationFile;
+}
+
+/**
+ * @return The selected matching fiber orientation file. May be NULL.
+ */
+CiftiFiberOrientationFile*
+CiftiFiberTrajectoryFile::getMatchingFiberOrientationFile()
+{
+    return m_matchingFiberOrientationFile;
+}
+
+/**
+ * Is the given fiber orientation file compatible with this fiber trajectory file
+ *
+ * @param fiberOrientationFile
+ *    File tested for compatibilty
+ * @return
+ *    True if file is compatible, else false.
+ */
+bool
+CiftiFiberTrajectoryFile::isFiberOrientationFileCombatible(const CiftiFiberOrientationFile* fiberOrientationFile) const
+{
+    CaretAssert(fiberOrientationFile);
+    
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXML* orientXML = fiberOrientationFile->getCiftiXML();
+    if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
+                               *orientXML,
+                               CiftiXML::ALONG_COLUMN)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
+ * Set the selected matching fiber orientation file.  No test of compatibility
+ * is made.
+ *
+ * @param matchingFiberOrientationFile
+ *    New selection for matching fiber orientation file.
+ */
+void
+CiftiFiberTrajectoryFile::setMatchingFiberOrientationFile(CiftiFiberOrientationFile* matchingFiberOrientationFile)
+{
+    m_matchingFiberOrientationFile = matchingFiberOrientationFile;
+    if (m_matchingFiberOrientationFile != NULL) {
+        m_matchingFiberOrientationFileName = m_matchingFiberOrientationFile->getFileNameNoPath();
+    }
+    else {
+        m_matchingFiberOrientationFileName = "";
+    }
+}
+
+/**
+ * Update the matching fiber orientation file from the first compatible file in the list.
+ * If none are found, the matching file will become NULL.  If the current matching file
+ * is valid, no action is taken.
+ *
+ * @param matchingFiberOrientationFiles
+ *    The fiber orientation files.
+ */
+void
+CiftiFiberTrajectoryFile::updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles)
+{
+    /*
+     * See if selected orientation file is still valid
+     */
+    for (std::vector<CiftiFiberOrientationFile*>::iterator iter = matchingFiberOrientationFiles.begin();
+         iter != matchingFiberOrientationFiles.end();
+         iter++) {
+        if (*iter == m_matchingFiberOrientationFile) {
+            return;
+        }
+    }
+    
+    /*
+     * Invalidate matching file
+     */
+    m_matchingFiberOrientationFile = NULL;
+    m_matchingFiberOrientationFileName = "";
+    clearLoadedFiberOrientations();
+
+    /*
+     * If a scene has been restored, we want to match to the fiber orientation
+     * file name that was restored from the scene
+     */
+    if (m_matchingFiberOrientationFileNameFromRestoredScene.isEmpty() == false) {
+        bool matched = false;
+        
+        for (std::vector<CiftiFiberOrientationFile*>::iterator iter = matchingFiberOrientationFiles.begin();
+             iter != matchingFiberOrientationFiles.end();
+             iter++) {
+            /*
+             * Try and see if it matches for this file
+             */
+            CiftiFiberOrientationFile* orientationFile = *iter;
+            if (orientationFile->getFileNameNoPath() == m_matchingFiberOrientationFileNameFromRestoredScene) {
+                if (isFiberOrientationFileCombatible(orientationFile)) {
+                    setMatchingFiberOrientationFile(orientationFile);
+                    matched = true;
+                }
+            }
+        }
+        
+        /*
+         * Clear name so no attempt to use again
+         */
+        m_matchingFiberOrientationFileNameFromRestoredScene = "";
+        
+        if (matched) {
+            return;
+        }
+    }
+    
+    /*
+     * Try to find a matching file
+     */
+    for (std::vector<CiftiFiberOrientationFile*>::iterator iter = matchingFiberOrientationFiles.begin();
+         iter != matchingFiberOrientationFiles.end();
+         iter++) {
+        /*
+         * Try and see if it matches for this file
+         */
+        if (isFiberOrientationFileCombatible(*iter)) {
+            setMatchingFiberOrientationFile(*iter);
+            return;
+        }
+    }
+}
 
 /**
  * @return The structure for this file.
@@ -595,33 +751,24 @@ CiftiFiberTrajectoryFile::clearLoadedFiberOrientations()
 }
 
 /**
- * Load data for the given surface node.
- * @param fiberOrientFile
- *    Fiber orientations.
- * @param structure
- *    Structure in which surface node is located.
- * @param surfaceNumberOfNodes
- *    Number of nodes in the surface.
- * @param nodeIndex
- *    Index of the surface node.
+ * Validate that the assigned matching fiber orientation file is valid
+ * (not NULL and row/column is compatible).
+ *
+ * @throws DataFileException 
+ *    If fiber orientation file is NULL or incompatible.
  */
 void
-CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fiberOrientFile,
-                                                 const StructureEnum::Enum structure,
-                                                 const int32_t surfaceNumberOfNodes,
-                                                 const int32_t nodeIndex) throw (DataFileException)
+CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile() throw (DataFileException)
 {
-    if (m_dataLoadingEnabled == false) {
-        return;
-    }
-    
-    clearLoadedFiberOrientations();
-    
     if (m_sparseFile == NULL) {
         throw DataFileException("No data has been loaded.");
     }
+    if (m_matchingFiberOrientationFile == NULL) {
+        throw DataFileException("No fiber orientation file is assigned.");
+    }
+    
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXML* orientXML = fiberOrientFile->getCiftiXML();
+    const CiftiXML* orientXML = m_matchingFiberOrientationFile->getCiftiXML();
     if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
                                *orientXML,
                                CiftiXML::ALONG_COLUMN) == false) {
@@ -631,7 +778,7 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
                        + " cols="
                        + QString::number(trajXML.getNumberOfColumns())
                        + "   "
-                       + fiberOrientFile->getFileNameNoPath()
+                       + m_matchingFiberOrientationFile->getFileNameNoPath()
                        + " rows="
                        + QString::number(orientXML->getNumberOfRows())
                        + " cols="
@@ -639,7 +786,31 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
         throw DataFileException("Row to Columns do not match: "
                                 + msg);
     }
+}
+
+/**
+ * Load data for the given surface node.
+ * @param structure
+ *    Structure in which surface node is located.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in the surface.
+ * @param nodeIndex
+ *    Index of the surface node.
+ */
+void
+CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                 const int32_t surfaceNumberOfNodes,
+                                                 const int32_t nodeIndex) throw (DataFileException)
+{
+    if (m_dataLoadingEnabled == false) {
+        return;
+    }
     
+    clearLoadedFiberOrientations();
+    
+    validateAssignedMatchingFiberOrientationFile();
+    
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
     if (trajXML.hasColumnSurfaceData(structure) == false) {
         return;
     }
@@ -671,10 +842,10 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
         m_fiberOrientationTrajectories.reserve(numFibers);
         
         for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
-            const int64_t numFiberOrientations = fiberOrientFile->getNumberOfFiberOrientations();
+            const int64_t numFiberOrientations = m_matchingFiberOrientationFile->getNumberOfFiberOrientations();
             const int64_t fiberIndex = fiberIndices[iFiber];
             if (fiberIndex < numFiberOrientations) {
-                const FiberOrientation* fiberOrientation = fiberOrientFile->getFiberOrientations(fiberIndex);
+                const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
                                                                                  rowIndex);
                 fot->addFiberFractions(fiberFractions[iFiber]);
@@ -698,16 +869,15 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(CiftiFiberOrientationFile* fibe
 
 /**
  * Load average data for the given surface nodes.
- * @param fiberOrientFile
- *    Fiber orientations.
  * @param structure
  *    Structure in which surface node is located.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
  * @param nodeIndices
  *    Indices of the surface nodes.
  */
 void
-CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(CiftiFiberOrientationFile* fiberOrientFile,
-                                                         const StructureEnum::Enum structure,
+CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
                                                          const int32_t surfaceNumberOfNodes,
                                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
@@ -721,28 +891,9 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(CiftiFiberOrientationFi
         return;
     }
     
-    if (m_sparseFile == NULL) {
-        throw DataFileException("No data has been loaded.");
-    }
+    validateAssignedMatchingFiberOrientationFile();
+
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXML* orientXML = fiberOrientFile->getCiftiXML();
-    if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
-                               *orientXML,
-                               CiftiXML::ALONG_COLUMN) == false) {
-        QString msg = (getFileNameNoPath()
-                       + " rows="
-                       + QString::number(trajXML.getNumberOfRows())
-                       + " cols="
-                       + QString::number(trajXML.getNumberOfColumns())
-                       + "   "
-                       + fiberOrientFile->getFileNameNoPath()
-                       + " rows="
-                       + QString::number(orientXML->getNumberOfRows())
-                       + " cols="
-                       + QString::number(orientXML->getNumberOfColumns()));
-        throw DataFileException("Row to Columns do not match: "
-                                + msg);
-    }
     
     if (trajXML.hasColumnSurfaceData(structure) == false) {
         return;
@@ -800,7 +951,7 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(CiftiFiberOrientationFi
                         /*
                          * Create a new trajectory
                          */
-                        const FiberOrientation* fiberOrientation = fiberOrientFile->getFiberOrientations(fiberOrientationIndex);
+                        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberOrientationIndex);
                         FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
                                                                                          rowIndex);
                         m_fiberOrientationTrajectories.push_back(fot);
@@ -857,10 +1008,8 @@ CiftiFiberTrajectoryFile::saveFileDataToScene(const SceneAttributes* sceneAttrib
     CaretMappableDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
 
-    sceneClass->addBoolean("m_dataLoadingEnabled",
-                           m_dataLoadingEnabled);
-    sceneClass->addClass(m_fiberTrajectoryMapProperties->saveToScene(sceneAttributes,
-                                                                     "m_fiberTrajectoryMapProperties"));
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
 }
 
 /**
@@ -883,12 +1032,10 @@ CiftiFiberTrajectoryFile::restoreFileDataFromScene(const SceneAttributes* sceneA
 {
     CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
     
-    m_dataLoadingEnabled = sceneClass->getBooleanValue("m_dataLoadingEnabled",
-                                                       true);
-    
-    m_fiberTrajectoryMapProperties->restoreFromScene(sceneAttributes,
-                                                     sceneClass->getClass("m_fiberTrajectoryMapProperties"));
+    m_matchingFiberOrientationFileNameFromRestoredScene = m_matchingFiberOrientationFileName;
 }
 
 

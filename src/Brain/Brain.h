@@ -392,7 +392,7 @@ namespace caret {
                                    const AString& dataFileName,
                                    const bool markDataFileAsModified) throw (DataFileException);
         
-        void postReadDataFileProcessing();
+        void updateAfterFilesAddedOrRemoved();
         
         LabelFile* readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
                                  const AString& filename,

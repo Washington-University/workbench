@@ -49,7 +49,6 @@ Fiber.h
 FiberOrientation.h
 FiberOrientationColoringTypeEnum.h
 FiberOrientationTrajectory.h
-FiberTrajectoryColorEnum.h
 FiberTrajectoryColorModel.h
 FiberTrajectoryMapProperties.h
 FiberTrajectoryDisplayModeEnum.h
@@ -136,7 +135,6 @@ Fiber.cxx
 FiberOrientation.cxx
 FiberOrientationColoringTypeEnum.cxx
 FiberOrientationTrajectory.cxx
-FiberTrajectoryColorEnum.cxx
 FiberTrajectoryColorModel.cxx
 FiberTrajectoryDisplayModeEnum.cxx
 FiberTrajectoryMapProperties.cxx

@@ -38,6 +38,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
 #include "DisplayGroupEnum.h"
+#include "SceneClassAssistant.h"
 
 namespace caret {
 
@@ -122,13 +123,11 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
-        void loadDataForSurfaceNode(CiftiFiberOrientationFile* fiberOrientFile,
-                                    const StructureEnum::Enum structure,
+        void loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
                                     const int32_t nodeIndex) throw (DataFileException);
         
-        void loadDataAverageForSurfaceNodes(CiftiFiberOrientationFile* fiberOrientFile,
-                                            const StructureEnum::Enum structure,
+        void loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
                                             const int32_t surfaceNumberOfNodes,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
@@ -143,6 +142,16 @@ namespace caret {
         bool isDataLoadingEnabled() const;
         
         void setDataLoadingEnabled(const bool loadingEnabled);
+        
+        CiftiFiberOrientationFile* getMatchingFiberOrientationFile();
+        
+        const CiftiFiberOrientationFile* getMatchingFiberOrientationFile() const;
+        
+        bool isFiberOrientationFileCombatible(const CiftiFiberOrientationFile* fiberOrientationFile) const;
+        
+        void setMatchingFiberOrientationFile(CiftiFiberOrientationFile* matchingFiberOrientationFile);
+        
+        void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles);
         
         // ADD_NEW_METHODS_HERE
         
@@ -163,9 +172,15 @@ namespace caret {
 
         void clearPrivate();
         
+        void validateAssignedMatchingFiberOrientationFile() throw (DataFileException);
+        
         CaretSparseFile* m_sparseFile;
         
         GiftiMetaData* m_metadata;
+        
+        CiftiFiberOrientationFile* m_matchingFiberOrientationFile;
+        AString m_matchingFiberOrientationFileName;
+        AString m_matchingFiberOrientationFileNameFromRestoredScene;
         
         std::vector<FiberOrientationTrajectory*> m_fiberOrientationTrajectories;
 
@@ -175,6 +190,7 @@ namespace caret {
         
         AString m_loadedDataDescriptionForMapName;
         
+        SceneClassAssistant* m_sceneAssistant;
         // ADD_NEW_MEMBERS_HERE
 
     };
