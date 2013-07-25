@@ -188,12 +188,18 @@ namespace caret {
         
         void drawSurfaceBorders(Surface* surface);
         
-        void drawBorder(const Surface* surface,
-                        const Border* border,
-                        const int32_t borderFileIndex,
-                        const int32_t borderIndex,
-                        const bool isSelect,
-                        const bool isContralateralEnabled);
+        struct BorderDrawInfo {
+            Surface* surface;
+            Border* border;
+            int32_t borderFileIndex;
+            int32_t borderIndex;
+            float rgba[4];
+            bool isSelect;
+            bool isContralateralEnabled;
+            bool isHighlightEndPoints;
+        };
+        
+        void drawBorder(const BorderDrawInfo& borderDrawInfo);
         
         void drawSurfaceFoci(Surface* surface);
         

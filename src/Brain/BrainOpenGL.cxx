@@ -49,6 +49,7 @@ BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
 {
     this->textRenderer = textRenderer;
     this->borderBeingDrawn = NULL;
+    m_drawHighlightedEndPoints = false;
 }
 
 /**
@@ -98,6 +99,26 @@ BrainOpenGL::setBorderBeingDrawn(Border* borderBeingDrawn)
 {
     this->borderBeingDrawn = borderBeingDrawn;
 }
+
+/**
+ * @return Should border end points be highlighted?
+ */
+bool
+BrainOpenGL::isDrawHighlightedEndPoints() const
+{
+    return m_drawHighlightedEndPoints;
+}
+
+/**
+ * Set border end points should be highlighted.
+ */
+void
+BrainOpenGL::setDrawHighlightedEndPoints(const bool drawHighlightedEndPoints)
+{
+    m_drawHighlightedEndPoints = drawHighlightedEndPoints;
+}
+
+
 
 /**
  * @return The runtime version of OpenGL (e.g. 1.0, 2.1, etc.)

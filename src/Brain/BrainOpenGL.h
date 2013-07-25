@@ -157,6 +157,10 @@ namespace caret {
         
         void setBorderBeingDrawn(Border* borderBeingDrawn);
         
+        bool isDrawHighlightedEndPoints() const;
+        
+        void setDrawHighlightedEndPoints(const bool drawHighlightedEndPoints);
+        
         static void getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut);
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
@@ -208,6 +212,8 @@ namespace caret {
         BrainOpenGLTextRenderInterface* textRenderer;
         
         Border* borderBeingDrawn;
+        
+        bool m_drawHighlightedEndPoints;
         
         /** minimum point size */
         static float s_minPointSize;

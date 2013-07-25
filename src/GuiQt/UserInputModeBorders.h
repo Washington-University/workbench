@@ -65,6 +65,8 @@ namespace caret {
         
         virtual void finish();
 
+        Mode getMode() const;
+        
         virtual void mouseLeftClick(const MouseEvent& mouseEvent);
         
         virtual void mouseLeftClickWithShift(const MouseEvent& mouseEvent);
@@ -87,8 +89,6 @@ namespace caret {
         UserInputModeBorders(const UserInputModeBorders&);
 
         UserInputModeBorders& operator=(const UserInputModeBorders&);
-        
-        Mode getMode() const;
         
         void setMode(const Mode mode);
         

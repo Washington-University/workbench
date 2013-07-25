@@ -1784,8 +1784,8 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
  * Draw a border on a surface.  The color must be set prior
  * to calling this method.
  *
- * @param surface
- *   Surface on which borders are drawn.
+ * @param borderDrawInfo
+ *   Info about border being drawn.
  * @param border
  *   Border that is drawn on the surface.
  * @param borderFileIndex
@@ -1796,26 +1796,21 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
  *   Selection mode is active.
  */
 void 
-BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
-                                     const Border* border,
-                                     const int32_t borderFileIndex,
-                                     const int32_t borderIndex,
-                                     const bool isSelect,
-                                     const bool isContralateralEnabled)
+BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
 {
-    CaretAssert(surface);
-    CaretAssert(border);
+    CaretAssert(borderDrawInfo.surface);
+    CaretAssert(borderDrawInfo.border);
 
-    const StructureEnum::Enum surfaceStructure = surface->getStructure();
+    const StructureEnum::Enum surfaceStructure = borderDrawInfo.surface->getStructure();
     const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
-    
-    const int32_t numBorderPoints = border->getNumberOfPoints();
+    const int32_t numBorderPoints = borderDrawInfo.border->getNumberOfPoints();
+    const bool isHighlightEndPoints = borderDrawInfo.isHighlightEndPoints;
     
     float pointSize = 2.0;
     float lineWidth  = 2.0;
     BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
-    if (borderFileIndex >= 0) {
-        const BrainStructure* bs = surface->getBrainStructure();
+    if (borderDrawInfo.borderFileIndex >= 0) {
+        const BrainStructure* bs = borderDrawInfo.surface->getBrainStructure();
         const Brain* brain = bs->getBrain();
         const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
         const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
@@ -1855,7 +1850,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
      * Find points valid for this surface
      */
     for (int32_t i = 0; i < numBorderPoints; i++) {
-        const SurfaceProjectedItem* p = border->getPoint(i);
+        const SurfaceProjectedItem* p = borderDrawInfo.border->getPoint(i);
         
         /*
          * If surface structure does not match the point's structure,
@@ -1866,7 +1861,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         bool structureMatches = true;
         if (surfaceStructure != pointStructure) {
             structureMatches = false;
-            if (isContralateralEnabled) {
+            if (borderDrawInfo.isContralateralEnabled) {
                 if (contralateralSurfaceStructure == pointStructure) {
                     structureMatches = true;
                 }
@@ -1877,7 +1872,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         }
         
         float xyz[3];
-        const bool isXyzValid = p->getProjectedPositionAboveSurface(*surface, 
+        const bool isXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface, 
                                                                     xyz,
                                                                     drawAtDistanceAboveSurface);
         
@@ -1899,14 +1894,26 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         const float pointSymbolRadius = pointSize / 2.0;
         for (int32_t i = 0; i < numPointsToDraw; i++) {
             const int32_t i3 = i * 3;
-            if (isSelect) {
+            if (borderDrawInfo.isSelect) {
                 uint8_t idRGB[3];
                 this->colorIdentification->addItem(idRGB, 
                                                    SelectionItemDataTypeEnum::BORDER_SURFACE, 
-                                                   borderFileIndex,
-                                                   borderIndex,
+                                                   borderDrawInfo.borderFileIndex,
+                                                   borderDrawInfo.borderIndex,
                                                    pointIndex[i]);
                 glColor3ubv(idRGB);
+            }
+            else {
+                glColor3fv(borderDrawInfo.rgba);
+                
+                if (isHighlightEndPoints) {
+                    if (i == 0) {
+                        glColor3f(0.0, 1.0, 0.0);
+                    }
+                    else if (i == (numPointsToDraw - 1)) {
+                        glColor3f(0.0, 1.0, 0.0);
+                    }
+                }
             }
             
             const float* xyz = &pointXYZ[i3];
@@ -1932,7 +1939,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         
         this->disableLighting();
         
-        if (isSelect) {
+        if (borderDrawInfo.isSelect) {
             /*
              * Start at one, since need two points for each line
              */
@@ -1941,8 +1948,8 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                 uint8_t idRGB[3];
                 this->colorIdentification->addItem(idRGB, 
                                                    SelectionItemDataTypeEnum::BORDER_SURFACE, 
-                                                   borderFileIndex,
-                                                   borderIndex,
+                                                   borderDrawInfo.borderFileIndex,
+                                                   borderDrawInfo.borderIndex,
                                                    pointIndex[i]);
                 glColor3ubv(idRGB);
                 
@@ -2303,13 +2310,20 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                     break;
             }
             glColor3fv(rgba);
-                        
-            this->drawBorder(surface, 
-                             border,
-                             i,
-                             j,
-                             isSelect,
-                             isContralateralEnabled);
+            
+            BorderDrawInfo borderDrawInfo;
+            borderDrawInfo.surface = surface;
+            borderDrawInfo.border = border;
+            borderDrawInfo.rgba[0] = rgba[0];
+            borderDrawInfo.rgba[1] = rgba[1];
+            borderDrawInfo.rgba[2] = rgba[2];
+            borderDrawInfo.rgba[3] = rgba[3];
+            borderDrawInfo.borderFileIndex = i;
+            borderDrawInfo.borderIndex = j;
+            borderDrawInfo.isSelect = isSelect;
+            borderDrawInfo.isContralateralEnabled = isContralateralEnabled;
+            borderDrawInfo.isHighlightEndPoints = m_drawHighlightedEndPoints;
+            this->drawBorder(borderDrawInfo);
         }
     }
     
@@ -2357,12 +2371,19 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
     glColor3f(1.0, 0.0, 0.0);
     
     if (this->borderBeingDrawn != NULL) {
-        this->drawBorder(surface, 
-                         this->borderBeingDrawn,
-                         -1,
-                         -1,
-                         false,
-                         false);
+        BorderDrawInfo borderDrawInfo;
+        borderDrawInfo.surface = const_cast<Surface*>(surface);
+        borderDrawInfo.border = this->borderBeingDrawn;
+        borderDrawInfo.rgba[0] = 1.0;
+        borderDrawInfo.rgba[1] = 0.0;
+        borderDrawInfo.rgba[2] = 0.0;
+        borderDrawInfo.rgba[3] = 1.0;
+        borderDrawInfo.borderFileIndex = -1;
+        borderDrawInfo.borderIndex = -1;
+        borderDrawInfo.isSelect = false;
+        borderDrawInfo.isContralateralEnabled = false;
+        borderDrawInfo.isHighlightEndPoints = true;
+        this->drawBorder(borderDrawInfo);
     }
 }
 

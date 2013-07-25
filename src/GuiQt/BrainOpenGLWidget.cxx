@@ -256,6 +256,16 @@ BrainOpenGLWidget::paintGL()
     if (getModelEvent.isError()) {
         return;
     }
+
+    /*
+     * Highlight end points when border edit mode
+     */
+    if (this->userInputBordersModeProcessor->getMode() == UserInputModeBorders::MODE_EDIT) {
+        this->openGL->setDrawHighlightedEndPoints(true);
+    }
+    else {
+        this->openGL->setDrawHighlightedEndPoints(false);
+    }
     
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
