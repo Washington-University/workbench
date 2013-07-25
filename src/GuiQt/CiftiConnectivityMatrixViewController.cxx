@@ -38,6 +38,7 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -45,6 +46,7 @@
 #include <QSignalMapper>
 
 #include "Brain.h"
+#include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CursorDisplayScoped.h"
@@ -78,13 +80,16 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
     m_gridLayout->setColumnStretch(0, 0);
     m_gridLayout->setColumnStretch(1, 0);
     m_gridLayout->setColumnStretch(2, 100);
+    m_gridLayout->setColumnStretch(3, 100);
     const int titleRow = m_gridLayout->rowCount();
     m_gridLayout->addWidget(new QLabel("On"),
                             titleRow, COLUMN_ENABLE_CHECKBOX);
     m_gridLayout->addWidget(new QLabel("Copy"),
                             titleRow, COLUMN_COPY_BUTTON);
-    m_gridLayout->addWidget(new QLabel("File"),
+    m_gridLayout->addWidget(new QLabel("Connectivity File"),
                             titleRow, COLUMN_NAME_LINE_EDIT);
+    m_gridLayout->addWidget(new QLabel("Fiber Orientation File"),
+                            titleRow, COLUMN_ORIENTATION_FILE_COMBO_BOX);
     
     m_signalMapperFileEnableCheckBox = new QSignalMapper(this);
     QObject::connect(m_signalMapperFileEnableCheckBox, SIGNAL(mapped(int)),
@@ -93,6 +98,10 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
     m_signalMapperFileCopyToolButton = new QSignalMapper(this);
     QObject::connect(m_signalMapperFileCopyToolButton, SIGNAL(mapped(int)),
                      this, SLOT(copyToolButtonClicked(int)));
+    
+    m_signalMapperFiberOrientationFileComboBox = new QSignalMapper(this);
+    QObject::connect(m_signalMapperFiberOrientationFileComboBox, SIGNAL(mapped(int)),
+                     this, SLOT(fiberOrientationFileComboBoxActivated(int)));
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(m_gridLayout);
@@ -146,10 +155,13 @@ CiftiConnectivityMatrixViewController::updateViewController()
         QCheckBox* checkBox = NULL;
         QLineEdit* lineEdit = NULL;
         QToolButton* copyToolButton = NULL;
+        QComboBox* comboBox = NULL;
         
         if (i < static_cast<int32_t>(m_fileEnableCheckBoxes.size())) {
             checkBox = m_fileEnableCheckBoxes[i];
             lineEdit = m_fileNameLineEdits[i];
+            copyToolButton = m_fileCopyToolButtons[i];
+            comboBox = m_fiberOrientationFileComboBoxes[i];
         }
         else {
             checkBox = new QCheckBox("");
@@ -163,6 +175,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
             copyToolButton->setToolTip("Copy loaded row data to a new CIFTI Scalar File");
             m_fileCopyToolButtons.push_back(copyToolButton);
             
+            comboBox = new QComboBox();
+            m_fiberOrientationFileComboBoxes.push_back(comboBox);
+            
             QObject::connect(copyToolButton, SIGNAL(clicked()),
                              m_signalMapperFileCopyToolButton, SLOT(map()));
             m_signalMapperFileCopyToolButton->setMapping(copyToolButton, i);
@@ -171,6 +186,10 @@ CiftiConnectivityMatrixViewController::updateViewController()
                              m_signalMapperFileEnableCheckBox, SLOT(map()));
             m_signalMapperFileEnableCheckBox->setMapping(checkBox, i);
             
+            QObject::connect(comboBox, SIGNAL(activated(int)),
+                             m_signalMapperFiberOrientationFileComboBox, SLOT(map()));
+            m_signalMapperFiberOrientationFileComboBox->setMapping(comboBox, i);
+            
             const int row = m_gridLayout->rowCount();
             m_gridLayout->addWidget(checkBox,
                                     row, COLUMN_ENABLE_CHECKBOX);
@@ -178,6 +197,8 @@ CiftiConnectivityMatrixViewController::updateViewController()
                                     row, COLUMN_COPY_BUTTON);
             m_gridLayout->addWidget(lineEdit,
                                     row, COLUMN_NAME_LINE_EDIT);
+            m_gridLayout->addWidget(comboBox,
+                                    row, COLUMN_ORIENTATION_FILE_COMBO_BOX);
         }
         
         const CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<const CiftiMappableConnectivityMatrixDataFile*>(files[i]);
@@ -208,24 +229,70 @@ CiftiConnectivityMatrixViewController::updateViewController()
         m_fileEnableCheckBoxes[i]->setVisible(showIt);
         m_fileCopyToolButtons[i]->setVisible(showIt);
         m_fileNameLineEdits[i]->setVisible(showIt);
+        m_fiberOrientationFileComboBoxes[i]->setVisible(showIt);
+        m_fiberOrientationFileComboBoxes[i]->setEnabled(showIt);
     }
     
-//    m_ciftiConnectivityMatrixDataFile = ciftiConnectivityMatrixFile;
-//    if (m_ciftiConnectivityMatrixDataFile != NULL) {
-//        Qt::CheckState enabledState = Qt::Unchecked;
-//        if (m_ciftiConnectivityMatrixDataFile->isMapDataLoadingEnabled(0)) {
-//            enabledState = Qt::Checked;
-//        }
-//        m_enabledCheckBox->setCheckState(enabledState);
-//        
-//        m_fileNameLineEdit->setText(m_ciftiConnectivityMatrixDataFile->getFileName());
-//        
-//    }
+    updateFiberOrientationComboBoxes();
+}
+
+/**
+ * Update the fiber orientation combo boxes.
+ */
+void
+CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
+{
+    std::vector<CiftiFiberOrientationFile*> orientationFiles;
+    GuiManager::get()->getBrain()->getConnectivityFiberOrientationFiles(orientationFiles);
+    const int32_t numOrientationFiles = static_cast<int32_t>(orientationFiles.size());
+    
+    const int32_t numItems = static_cast<int32_t>(m_fiberOrientationFileComboBoxes.size());
+    for (int32_t i = 0; i < numItems; i++) {
+        QComboBox* comboBox = m_fiberOrientationFileComboBoxes[i];
+        CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
+        CiftiFiberTrajectoryFile* trajFile = NULL;
+        
+        if (comboBox->isEnabled()) {
+            getFileAtIndex(i,
+                           matrixFile,
+                           trajFile);
+        }
+        
+        if (trajFile != NULL) {
+            int32_t selectedIndex = 0;
+            CiftiFiberOrientationFile* selectedOrientationFile = trajFile->getMatchingFiberOrientationFile();
+            
+            comboBox->clear();
+            
+            for (int32_t iOrient = 0; iOrient < numOrientationFiles; iOrient++) {
+                CiftiFiberOrientationFile* orientFile = orientationFiles[iOrient];
+                if (trajFile->isFiberOrientationFileCombatible(orientFile)) {
+                    if (orientFile == selectedOrientationFile) {
+                        selectedIndex = iOrient;
+                    }
+                    
+                    comboBox->addItem(orientFile->getFileNameNoPath(),
+                                      qVariantFromValue((void*)orientFile));
+                }
+            }
+            
+            if ((selectedIndex >= 0)
+                && (selectedIndex < comboBox->count())) {
+                comboBox->setCurrentIndex(selectedIndex);
+            }
+        }
+        else {
+            comboBox->clear();
+        }
+        
+        m_fiberOrientationFileComboBoxes[i]->setVisible(trajFile != NULL);
+        m_fiberOrientationFileComboBoxes[i]->setEnabled(trajFile != NULL);
+    }
 }
 
 /**
  * Called when an enabled check box changes state.
- * 
+ *
  * @param indx
  *    Index of checkbox that was clicked.
  */
@@ -290,6 +357,50 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
                            "Has a new file type been added?");
     }
 }
+
+/**
+ * Called when fiber orientation file combo box changed.
+ *
+ * @param indx
+ *    Index of combo box that was changed.
+ */
+void
+CiftiConnectivityMatrixViewController::fiberOrientationFileComboBoxActivated(int indx)
+{
+    CaretAssertVectorIndex(m_fiberOrientationFileComboBoxes, indx);
+    
+    CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
+    CiftiFiberTrajectoryFile* trajFile = NULL;
+    
+    getFileAtIndex(indx,
+                   matrixFile,
+                   trajFile);
+    
+    CaretAssertMessage(trajFile,
+                       "Selected orientation file but trajectory file is invalid.");
+    
+    QComboBox* cb = m_fiberOrientationFileComboBoxes[indx];
+    void* ptr = cb->itemData(indx,
+                             Qt::UserRole).value<void*>();
+    CaretAssert(ptr);
+    CiftiFiberOrientationFile* orientFile = (CiftiFiberOrientationFile*)ptr;
+    
+    std::vector<CiftiFiberOrientationFile*> orientationFiles;
+    GuiManager::get()->getBrain()->getConnectivityFiberOrientationFiles(orientationFiles);
+    if (std::find(orientationFiles.begin(),
+                  orientationFiles.end(),
+                  orientFile) == orientationFiles.end()) {
+        CaretAssertMessage(0,
+                           "Selected fiber orientation file is no longer valid.");
+        return;
+    }
+    
+    trajFile->setMatchingFiberOrientationFile(orientFile);
+    
+    updateOtherCiftiConnectivityMatrixViewControllers();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 /**
  * Called when copy tool button is clicked.

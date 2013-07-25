@@ -41,6 +41,7 @@
 #include "EventListenerInterface.h"
 
 class QCheckBox;
+class QComboBox;
 class QGridLayout;
 class QLineEdit;
 class QSignalMapper;
@@ -68,16 +69,20 @@ namespace caret {
 
         void copyToolButtonClicked(int);
         
+        void fiberOrientationFileComboBoxActivated(int);
+        
     private:
         CiftiConnectivityMatrixViewController(const CiftiConnectivityMatrixViewController&);
 
         CiftiConnectivityMatrixViewController& operator=(const CiftiConnectivityMatrixViewController&);
         
-        //void updateUserInterfaceAndGraphicsWindow();
+//        void updateUserInterfaceAndGraphicsWindow();
         
         void updateViewController();
         
         void updateOtherCiftiConnectivityMatrixViewControllers();
+        
+        void updateFiberOrientationComboBoxes();
         
         void getFileAtIndex(const int32_t indx,
                             CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
@@ -89,17 +94,22 @@ namespace caret {
         
         std::vector<QToolButton*> m_fileCopyToolButtons;
         
+        std::vector<QComboBox*> m_fiberOrientationFileComboBoxes;
+        
         QGridLayout* m_gridLayout;
         
         QSignalMapper* m_signalMapperFileEnableCheckBox;
         
         QSignalMapper* m_signalMapperFileCopyToolButton;
         
+        QSignalMapper* m_signalMapperFiberOrientationFileComboBox;
+        
         static std::set<CiftiConnectivityMatrixViewController*> s_allCiftiConnectivityMatrixViewControllers;
         
         static int COLUMN_ENABLE_CHECKBOX;
         static int COLUMN_COPY_BUTTON;
         static int COLUMN_NAME_LINE_EDIT;
+        static int COLUMN_ORIENTATION_FILE_COMBO_BOX;
         
     };
     
@@ -108,6 +118,7 @@ namespace caret {
     int CiftiConnectivityMatrixViewController::COLUMN_ENABLE_CHECKBOX = 0;
     int CiftiConnectivityMatrixViewController::COLUMN_COPY_BUTTON     = 1;
     int CiftiConnectivityMatrixViewController::COLUMN_NAME_LINE_EDIT  = 2;
+    int CiftiConnectivityMatrixViewController::COLUMN_ORIENTATION_FILE_COMBO_BOX  = 3;
 #endif // __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
