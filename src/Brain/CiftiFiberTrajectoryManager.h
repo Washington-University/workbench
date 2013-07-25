@@ -42,7 +42,6 @@
 namespace caret {
 
     class Brain;
-    class BrainordinateDataSelection;
     class SurfaceFile;
     
     class CiftiFiberTrajectoryManager : public CaretObject, public SceneableInterface {
@@ -76,8 +75,6 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         Brain* m_brain;
-
-        BrainordinateDataSelection* m_brainordinateDataSelection;
     };
     
 #ifdef __CIFTI_FIBER_TRAJECTORY_MANAGER_DECLARE__

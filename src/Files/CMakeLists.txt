@@ -41,6 +41,7 @@ CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
 CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
+ConnectivityDataLoaded.h
 DataFileTypeEnum.h
 DisplayGroupEnum.h
 EventCiftiMappableDataFileColoringUpdated.h
@@ -127,6 +128,7 @@ CiftiFiberOrientationFile.cxx
 CiftiFiberTrajectoryFile.cxx
 CiftiMappableDataFile.cxx
 CiftiMappableConnectivityMatrixDataFile.cxx
+ConnectivityDataLoaded.cxx
 DataFileTypeEnum.cxx
 DisplayGroupEnum.cxx
 EventCiftiMappableDataFileColoringUpdated.cxx

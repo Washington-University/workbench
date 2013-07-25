@@ -44,6 +44,7 @@
 #include "CaretSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiInterface.h"
+#include "ConnectivityDataLoaded.h"
 #include "FiberOrientationTrajectory.h"
 #include "FiberTrajectoryMapProperties.h"
 #include "GiftiMetaData.h"
@@ -65,6 +66,7 @@ using namespace caret;
 CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY)
 {
+    m_connectivityDataLoaded = new ConnectivityDataLoaded();
     m_fiberTrajectoryMapProperties = new FiberTrajectoryMapProperties();
     m_metadata = new GiftiMetaData();
     m_sparseFile = NULL;
@@ -80,6 +82,9 @@ CiftiFiberTrajectoryFile::CiftiFiberTrajectoryFile()
     m_sceneAssistant->add("m_fiberTrajectoryMapProperties",
                           "FiberTrajectoryMapProperties",
                           m_fiberTrajectoryMapProperties);
+    m_sceneAssistant->add("m_connectivityDataLoaded",
+                          "ConnectivityDataLoaded",
+                          m_connectivityDataLoaded);
 }
 
 /**
@@ -93,6 +98,7 @@ CiftiFiberTrajectoryFile::~CiftiFiberTrajectoryFile()
     // DO NOT DELETE (owned by Brain):  m_matchingFiberOrientationFile.
 
     delete m_sceneAssistant;
+    delete m_connectivityDataLoaded;
     
 }
 
@@ -135,9 +141,9 @@ bool
 CiftiFiberTrajectoryFile::isEmpty() const
 {
     if (m_sparseFile != NULL) {
-        return true;
+        return false;
     }
-    return false;
+    return true;
 }
 
 /**
@@ -864,6 +870,10 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
                                              + AString::number(nodeIndex)
                                              + ", Structure: "
                                              + StructureEnum::toName(structure));
+        
+        m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
+                                                        surfaceNumberOfNodes,
+                                                        nodeIndex);
     }
 }
 
@@ -972,12 +982,82 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
         }
     }
     
+    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                           surfaceNumberOfNodes,
+                                                           nodeIndices);
+    
     m_loadedDataDescriptionForMapName = ("Structure: "
                                          + StructureEnum::toName(structure)
                                          + ", Averaged Node Count: "
                                          + AString::number(numberOfNodes));
 }
 
+/**
+ * Finish restoration of scene.
+ * In this file's circumstances, the fiber orientation files were not 
+ * available at the time the scene was restored. 
+ *
+ * @throws DataFileException 
+ *    If there was an error restoring the data.
+ */
+void
+CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
+{
+    /*
+     * Loading of data may be disabled in the scene
+     * so temporarily enabled loading and then 
+     * restore the status.
+     */
+    const bool loadingEnabledStatus = isDataLoadingEnabled();
+    setDataLoadingEnabled(true);
+    
+    switch (m_connectivityDataLoaded->getMode()) {
+        case ConnectivityDataLoaded::MODE_NONE:
+            break;
+        case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+        {
+            StructureEnum::Enum structure;
+            int32_t surfaceNumberOfNodes;
+            int32_t surfaceNodeIndex;
+            m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
+                                                            surfaceNumberOfNodes,
+                                                            surfaceNodeIndex);
+            loadDataForSurfaceNode(structure,
+                                   surfaceNumberOfNodes,
+                                   surfaceNodeIndex);
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+        {
+            StructureEnum::Enum structure;
+            int32_t surfaceNumberOfNodes;
+            std::vector<int32_t> surfaceNodeIndices;
+            m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
+                                                            surfaceNumberOfNodes,
+                                                            surfaceNodeIndices);
+            loadDataAverageForSurfaceNodes(structure,
+                                   surfaceNumberOfNodes,
+                                   surfaceNodeIndices);
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_VOXEL:
+        {
+            VoxelIJK voxelIndexIJK;
+            m_connectivityDataLoaded->getVolumeVoxelLoading(voxelIndexIJK);
+            CaretAssert(0); // NEED TO IMPLEMENT
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_VOXEL_AVERAGE:
+        {
+            std::vector<VoxelIJK> voxelIndicesIJK;
+            m_connectivityDataLoaded->getVolumeAverageVoxelLoading(voxelIndicesIJK);
+            CaretAssert(0); // NEED TO IMPLEMENT
+        }
+            break;
+    }
+    
+    setDataLoadingEnabled(loadingEnabledStatus);
+}
 
 /**
  * @return a REFERENCE to the fiber fractions that were loaded.

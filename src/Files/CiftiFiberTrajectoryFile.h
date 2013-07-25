@@ -37,6 +37,7 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
+#include "ConnectivityDataLoaded.h"
 #include "DisplayGroupEnum.h"
 #include "SceneClassAssistant.h"
 
@@ -153,6 +154,8 @@ namespace caret {
         
         void updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles);
         
+        void finishRestorationOfScene() throw (DataFileException);
+        
         // ADD_NEW_METHODS_HERE
         
     private:
@@ -189,6 +192,8 @@ namespace caret {
         bool m_dataLoadingEnabled;
         
         AString m_loadedDataDescriptionForMapName;
+        
+        ConnectivityDataLoaded* m_connectivityDataLoaded;
         
         SceneClassAssistant* m_sceneAssistant;
         // ADD_NEW_MEMBERS_HERE

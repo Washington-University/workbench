@@ -37,7 +37,6 @@
 #undef __CIFTI_FIBER_TRAJECTORY_MANAGER_DECLARE__
 
 #include "Brain.h"
-#include "BrainordinateDataSelection.h"
 #include "CaretAssert.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -65,7 +64,6 @@ CiftiFiberTrajectoryManager::CiftiFiberTrajectoryManager(Brain* brain)
 : CaretObject(),
 m_brain(brain)
 {
-    m_brainordinateDataSelection = new BrainordinateDataSelection();
 }
 
 /**
@@ -73,7 +71,6 @@ m_brain(brain)
  */
 CiftiFiberTrajectoryManager::~CiftiFiberTrajectoryManager()
 {
-    delete m_brainordinateDataSelection;
 }
 
 /**
@@ -90,8 +87,6 @@ bool
 CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                                     const int32_t nodeIndex) throw (DataFileException)
 {
-    m_brainordinateDataSelection->reset();
-    
     bool dataWasLoaded = false;
     
     /*
@@ -104,9 +99,6 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFi
                                          surfaceFile->getNumberOfNodes(),
                                          nodeIndex);
         dataWasLoaded = true;
-        
-        m_brainordinateDataSelection->setSurfaceLoading(surfaceFile,
-                                                        nodeIndex);
     }
     
     return dataWasLoaded;
@@ -126,8 +118,6 @@ bool
 CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
                                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    m_brainordinateDataSelection->reset();
-    
     bool dataWasLoaded = false;
     AString errorMessage;
     
@@ -143,9 +133,6 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
                                                      surfaceFile->getNumberOfNodes(),
                                                      nodeIndices);
             dataWasLoaded = true;
-            
-            m_brainordinateDataSelection->setSurfaceAverageLoading(surfaceFile,
-                                                                   nodeIndices);
         }
         catch (const DataFileException& dfe) {
             errorMessage.appendWithNewLine(dfe.whatString());
@@ -165,7 +152,6 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
 void
 CiftiFiberTrajectoryManager::reset()
 {
-    m_brainordinateDataSelection->reset();
 }
 
 /**
@@ -181,16 +167,12 @@ CiftiFiberTrajectoryManager::reset()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-CiftiFiberTrajectoryManager::saveToScene(const SceneAttributes* sceneAttributes,
+CiftiFiberTrajectoryManager::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                          const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "CiftiFiberTrajectoryManager",
                                             1);
-    
-    sceneClass->addClass(m_brainordinateDataSelection->saveToScene(sceneAttributes,
-                                                                   "m_brainordinateDataSelection"));
-    
     return sceneClass;
 }
 
@@ -210,63 +192,26 @@ void
 CiftiFiberTrajectoryManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                          const SceneClass* sceneClass)
 {
-    m_brainordinateDataSelection->reset();
-    
     if (sceneClass == NULL) {
         return;
     }
     
-    m_brainordinateDataSelection->restoreFromScene(sceneAttributes,
-                                                   sceneClass->getClass("m_brainordinateDataSelection"));
-    
     try {
-        switch (m_brainordinateDataSelection->getMode()) {
-            case BrainordinateDataSelection::MODE_NONE:
-                break;
-            case BrainordinateDataSelection::MODE_SURFACE_AVERAGE:
-            {
-                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
-                if (nodeIndices.empty() == false) {
-                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
-                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
-                                                                 false);
-                    if (surface != NULL) {
-                        loadDataAverageForSurfaceNodes(surface,
-                                                       nodeIndices);
-                    }
-                    else {
-                        sceneAttributes->addToErrorMessage("Surface named "
-                                                           + surfaceFileName
-                                                           + " is missing.");
-                    }
+        /*
+         * Need to update trajectory files with matching fiber orientation file
+         * and then finish with restoration of files scene data (loaded
+         * trajectory data).
+         */
+        updateMatchingFiberOrientationFiles();
 
-                }
-            }
-                break;
-            case BrainordinateDataSelection::MODE_SURFACE_NODE:
-            {
-                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
-                if (nodeIndices.empty() == false) {
-                    const int nodeIndex = nodeIndices[0];
-                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
-                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
-                                                                         false);
-                    if (surface != NULL) {
-                        loadDataForSurfaceNode(surface,
-                                               nodeIndex);
-                    }
-                    else {
-                        sceneAttributes->addToErrorMessage("Surface named "
-                                                           + surfaceFileName
-                                                           + " is missing.");
-                    }                    
-                }
-            }
-                break;
-            case BrainordinateDataSelection::MODE_VOXEL_XYZ:
-                break;
-            case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
-                break;
+        std::vector<CiftiFiberTrajectoryFile*> fiberTrajectoryFiles;
+        m_brain->getConnectivityFiberTrajectoryFiles(fiberTrajectoryFiles);
+        
+        for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = fiberTrajectoryFiles.begin();
+             iter != fiberTrajectoryFiles.end();
+             iter++) {
+            CiftiFiberTrajectoryFile* trajFile = *iter;
+            trajFile->finishRestorationOfScene();
         }
     }
     catch (const DataFileException& dfe) {
