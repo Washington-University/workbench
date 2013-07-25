@@ -17,4 +17,5 @@ IF NOT [%INITVS%]==[%MACHINE%] (
 	echo "Setting %MACHINE% bit compiler variables"
 	set INITVS=%MACHINE%
 	call "c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" %MACHINE%
+    CD %DIR%
 )
