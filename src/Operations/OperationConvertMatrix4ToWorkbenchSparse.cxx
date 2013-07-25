@@ -92,7 +92,7 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     CiftiXML myXML = orientationFile->getCiftiXML();
     if (surfaceOpt->m_present)
     {
-        MetricFile* myROI = myParams->getMetric(1);
+        MetricFile* myROI = surfaceOpt->getMetric(1);
         int numNodes = myROI->getNumberOfNodes();
         int nodeCount = 0;
         const float* roiData = myROI->getValuePointerForColumn(0);
