@@ -37,13 +37,14 @@
 #include "BrainConstants.h"
 #include "CaretMappableDataFile.h"
 #include "CaretSparseFile.h"
-#include "ConnectivityDataLoaded.h"
 #include "DisplayGroupEnum.h"
 #include "SceneClassAssistant.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
     class CiftiFiberOrientationFile;
+    class ConnectivityDataLoaded;
     class FiberOrientationTrajectory;
     class FiberTrajectoryMapProperties;
     class GiftiMetaData;

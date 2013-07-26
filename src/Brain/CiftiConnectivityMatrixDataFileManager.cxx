@@ -322,8 +322,8 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* scene
                                             "CiftiConnectivityMatrixDataFileManager",
                                             1);
     
-    sceneClass->addClass(m_brainordinateDataSelection->saveToScene(sceneAttributes,
-                                                                   "m_brainordinateDataSelection"));
+//    sceneClass->addClass(m_brainordinateDataSelection->saveToScene(sceneAttributes,
+//                                                                   "m_brainordinateDataSelection"));
     return sceneClass;
 }
 
@@ -345,89 +345,108 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
 {
     m_brainordinateDataSelection->reset();
     
+    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+
+    /*
+     * Need to update coloring in file.
+     */
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+         iter != ciftiMatrixFiles.end();
+         iter++) {
+        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
+        if (cmf->isEmpty() == false) {
+            const int32_t mapIndex = 0;
+            cmf->updateScalarColoringForMap(mapIndex,
+                                            paletteFile);
+        }
+    }
+    
     if (sceneClass == NULL) {
         return;
     }
     
-    /*
-     * In older scenes, the selected brainordinate data used a different name
-     */
-    AString loadedDataName = "m_brainordinateDataSelection";
-    if (sceneClass->getClass("m_brainordinateDataLoaded") != NULL) {
-        loadedDataName = "m_brainordinateDataLoaded";
-    }
-    m_brainordinateDataSelection->restoreFromScene(sceneAttributes,
-                                                   sceneClass->getClass(loadedDataName));
-    
-    try {
-        switch (m_brainordinateDataSelection->getMode()) {
-            case BrainordinateDataSelection::MODE_NONE:
-                break;
-            case BrainordinateDataSelection::MODE_SURFACE_AVERAGE:
-            {
-                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
-                if (nodeIndices.empty() == false) {
-                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
-                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
-                                                                         false);
-                    if (surface != NULL) {
-                        loadAverageDataForSurfaceNodes(surface,
-                                                       nodeIndices);
-                    }
-                    else {
-                        sceneAttributes->addToErrorMessage("Surface named "
-                                                           + surfaceFileName
-                                                           + " is missing.");
-                    }
-                    
-                }
-            }
-                break;
-            case BrainordinateDataSelection::MODE_SURFACE_NODE:
-            {
-                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
-                if (nodeIndices.empty() == false) {
-                    const int nodeIndex = nodeIndices[0];
-                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
-                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
-                                                                         false);
-                    if (surface != NULL) {
-                        std::vector<AString> rowInfo;
-                        loadDataForSurfaceNode(surface, nodeIndex, rowInfo);
-                    }
-                    else {
-                        sceneAttributes->addToErrorMessage("Surface named "
-                                                           + surfaceFileName
-                                                           + " is missing.");
-                    }
-                }
-            }
-                break;
-            case BrainordinateDataSelection::MODE_VOXEL_XYZ:
-            {
-                std::vector<AString> rowsColumnsLoaded;
-                float voxelXYZ[3];
-                m_brainordinateDataSelection->getVoxelXYZ(voxelXYZ);
-                loadDataForVoxelAtCoordinate(voxelXYZ,
-                                             rowsColumnsLoaded);
-            }
-                break;
-            case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
-            {
-                int64_t volumeDimensions[3];
-                std::vector<VoxelIJK> voxelIndices;
-                m_brainordinateDataSelection->getVolumeAverageVoxelIndices(volumeDimensions,
-                                                                           voxelIndices);
-                loadAverageDataForVoxelIndices(volumeDimensions,
-                                               voxelIndices);
-            }
-                break;
-        }
-    }
-    catch (const DataFileException& dfe) {
-        sceneAttributes->addToErrorMessage("Restoring Trajectory Data: "
-                                           + dfe.whatString());
-    }
+//    /*
+//     * In older scenes, the selected brainordinate data used a different name
+//     */
+//    AString loadedDataName = "m_brainordinateDataSelection";
+//    if (sceneClass->getClass("m_brainordinateDataLoaded") != NULL) {
+//        loadedDataName = "m_brainordinateDataLoaded";
+//    }
+//    m_brainordinateDataSelection->restoreFromScene(sceneAttributes,
+//                                                   sceneClass->getClass(loadedDataName));
+//    
+//    try {
+//        switch (m_brainordinateDataSelection->getMode()) {
+//            case BrainordinateDataSelection::MODE_NONE:
+//                break;
+//            case BrainordinateDataSelection::MODE_SURFACE_AVERAGE:
+//            {
+//                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
+//                if (nodeIndices.empty() == false) {
+//                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
+//                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
+//                                                                         false);
+//                    if (surface != NULL) {
+//                        loadAverageDataForSurfaceNodes(surface,
+//                                                       nodeIndices);
+//                    }
+//                    else {
+//                        sceneAttributes->addToErrorMessage("Surface named "
+//                                                           + surfaceFileName
+//                                                           + " is missing.");
+//                    }
+//                    
+//                }
+//            }
+//                break;
+//            case BrainordinateDataSelection::MODE_SURFACE_NODE:
+//            {
+//                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
+//                if (nodeIndices.empty() == false) {
+//                    const int nodeIndex = nodeIndices[0];
+//                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
+//                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
+//                                                                         false);
+//                    if (surface != NULL) {
+//                        std::vector<AString> rowInfo;
+//                        loadDataForSurfaceNode(surface, nodeIndex, rowInfo);
+//                    }
+//                    else {
+//                        sceneAttributes->addToErrorMessage("Surface named "
+//                                                           + surfaceFileName
+//                                                           + " is missing.");
+//                    }
+//                }
+//            }
+//                break;
+//            case BrainordinateDataSelection::MODE_VOXEL_XYZ:
+//            {
+//                std::vector<AString> rowsColumnsLoaded;
+//                float voxelXYZ[3];
+//                m_brainordinateDataSelection->getVoxelXYZ(voxelXYZ);
+//                loadDataForVoxelAtCoordinate(voxelXYZ,
+//                                             rowsColumnsLoaded);
+//            }
+//                break;
+//            case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
+//            {
+//                int64_t volumeDimensions[3];
+//                std::vector<VoxelIJK> voxelIndices;
+//                m_brainordinateDataSelection->getVolumeAverageVoxelIndices(volumeDimensions,
+//                                                                           voxelIndices);
+//                loadAverageDataForVoxelIndices(volumeDimensions,
+//                                               voxelIndices);
+//            }
+//                break;
+//        }
+//    }
+//    catch (const DataFileException& dfe) {
+//        sceneAttributes->addToErrorMessage("Restoring Connectivity Data: "
+//                                           + dfe.whatString());
+//    }
 }
 
 /**

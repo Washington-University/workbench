@@ -40,9 +40,11 @@
 #include "CiftiFacade.h"
 #include "CaretLogger.h"
 #include "CiftiInterface.h"
+#include "ConnectivityDataLoaded.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
 #include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -70,7 +72,15 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
                         brainordinateMappedDataAccess,
                         seriesDataAccess)
 {
+    m_connectivityDataLoaded = new ConnectivityDataLoaded();
     clearPrivate();
+
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_connectivityDataLoaded",
+                          "ConnectivityDataLoaded",
+                          m_connectivityDataLoaded);
+    m_sceneAssistant->add("m_dataLoadingEnabled",
+                           &m_dataLoadingEnabled);
 }
 
 /**
@@ -79,6 +89,8 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
 CiftiMappableConnectivityMatrixDataFile::~CiftiMappableConnectivityMatrixDataFile()
 {
     clearPrivate();
+    delete m_connectivityDataLoaded;
+    delete m_sceneAssistant;
 }
 
 /**
@@ -102,6 +114,7 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     m_rowLoadedTextForMapName = "";
     m_rowLoadedText = "";
     m_dataLoadingEnabled = true;
+    m_connectivityDataLoaded->reset();
 }
 
 int64_t
@@ -498,6 +511,7 @@ CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
     if (m_mapContent.empty() == false) {
         m_mapContent[0]->invalidateColoring();
     }
+    m_connectivityDataLoaded->reset();
 }
 
 
@@ -584,6 +598,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
     
+    m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
+                                                    surfaceNumberOfNodes,
+                                                    nodeIndex);
     return (m_selectionIndex = rowIndex);
 }
 
@@ -805,6 +822,10 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
 
         CaretAssertVectorIndex(m_mapContent, 0);
         m_mapContent[0]->invalidateColoring();
+
+        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                               surfaceNumberOfNodes,
+                                                               nodeIndices);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
@@ -894,6 +915,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
 
         CaretAssertVectorIndex(m_mapContent, 0);
         m_mapContent[0]->invalidateColoring();
+        
+        m_connectivityDataLoaded->setVolumeXYZLoading(xyz);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
@@ -1024,6 +1047,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         m_rowLoadedTextForMapName = ("Averaged Voxel Count: "
                                      + AString::number(numberOfVoxelIndices));
         
+        m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+                                                               voxelIndices);
+        
         return true;
     }
     
@@ -1089,13 +1115,10 @@ CiftiMappableConnectivityMatrixDataFile::getColumnName(const int32_t columnIndex
  *     sceneClass to which data members should be added.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttributes* /*sceneAttributes*/,
+CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                                              SceneClass* sceneClass)
 {
-    sceneClass->addBoolean("m_dataLoadingEnabled",
-                           m_dataLoadingEnabled);
-    sceneClass->addInteger("m_currentRowLoadedIndex",
-                           m_selectionIndex);
+    m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
 }
 
 /**
@@ -1113,12 +1136,75 @@ CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttribut
  *     this interface.  Will NEVER be NULL.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAttributes* /*sceneAttributes*/,
+CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                                   const SceneClass* sceneClass)
 {
-    m_dataLoadingEnabled = sceneClass->getBooleanValue("m_dataLoadingEnabled",
-                                                       true);
-    m_selectionIndex = sceneClass->getIntegerValue("m_currentRowLoadedIndex",-1);
+    m_connectivityDataLoaded->reset();
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    /*
+     * Loading of data may be disabled in the scene
+     * so temporarily enabled loading and then
+     * restore the status.
+     */
+    const int32_t mapIndex = 0;
+    const bool loadingEnabledStatus = isMapDataLoadingEnabled(mapIndex);
+    
+    setMapDataLoadingEnabled(mapIndex, true);
+    
+    switch (m_connectivityDataLoaded->getMode()) {
+        case ConnectivityDataLoaded::MODE_NONE:
+            break;
+        case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+        {
+            StructureEnum::Enum structure;
+            int32_t surfaceNumberOfNodes;
+            int32_t surfaceNodeIndex;
+            m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
+                                                            surfaceNumberOfNodes,
+                                                            surfaceNodeIndex);
+            loadMapDataForSurfaceNode(mapIndex,
+                                      surfaceNumberOfNodes,
+                                      structure,
+                                      surfaceNodeIndex);
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+        {
+            StructureEnum::Enum structure;
+            int32_t surfaceNumberOfNodes;
+            std::vector<int32_t> surfaceNodeIndices;
+            m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
+                                                                   surfaceNumberOfNodes,
+                                                                   surfaceNodeIndices);
+            loadMapAverageDataForSurfaceNodes(mapIndex,
+                                              surfaceNumberOfNodes,
+                                              structure,
+                                              surfaceNodeIndices);
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
+        {
+            float volumeXYZ[3];
+            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ);
+            loadMapDataForVoxelAtCoordinate(mapIndex, volumeXYZ);
+        }
+            break;
+        case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
+        {
+            int64_t volumeDimensionsIJK[3];
+            std::vector<VoxelIJK> voxelIndicesIJK;
+            m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
+                                                                   voxelIndicesIJK);
+            loadMapAverageDataForVoxelIndices(mapIndex,
+                                              volumeDimensionsIJK,
+                                              voxelIndicesIJK);
+        }
+            break;
+    }
+    
+    setMapDataLoadingEnabled(mapIndex,
+                             loadingEnabledStatus);
 }
 
 

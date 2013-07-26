@@ -67,6 +67,10 @@ ConnectivityDataLoaded::ConnectivityDataLoaded()
                           &m_surfaceNumberOfNodes);
     m_sceneAssistant->add<StructureEnum, StructureEnum::Enum>("m_surfaceStructure",
                                                               &m_surfaceStructure);
+    m_sceneAssistant->addArray("m_volumeDimensionsIJK",
+                               m_volumeDimensionsIJK,
+                               3,
+                               -1);
     reset();
 }
 
@@ -234,8 +238,12 @@ void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3])
  *    Indices of the voxels.
  */
 void
-ConnectivityDataLoaded::getVolumeAverageVoxelLoading(std::vector<VoxelIJK>& voxelIndicesIJK) const
+ConnectivityDataLoaded::getVolumeAverageVoxelLoading(int64_t volumeDimensionsIJK[3],
+                                                     std::vector<VoxelIJK>& voxelIndicesIJK) const
 {
+    volumeDimensionsIJK[0] = m_volumeDimensionsIJK[0];
+    volumeDimensionsIJK[1] = m_volumeDimensionsIJK[1];
+    volumeDimensionsIJK[2] = m_volumeDimensionsIJK[2];
     voxelIndicesIJK = m_voxelIndices;
 }
 
@@ -246,10 +254,14 @@ ConnectivityDataLoaded::getVolumeAverageVoxelLoading(std::vector<VoxelIJK>& voxe
  *    Indices of the voxels.
  */
 void
-ConnectivityDataLoaded::setVolumeAverageVoxelLoading(const std::vector<VoxelIJK>& voxelIndicesIJK)
+ConnectivityDataLoaded::setVolumeAverageVoxelLoading(const int64_t volumeDimensionsIJK[3],
+                                                     const std::vector<VoxelIJK>& voxelIndicesIJK)
 {
     reset();
     
+    m_volumeDimensionsIJK[0] = volumeDimensionsIJK[0];
+    m_volumeDimensionsIJK[1] = volumeDimensionsIJK[1];
+    m_volumeDimensionsIJK[2] = volumeDimensionsIJK[2];
     m_mode = MODE_VOXEL_IJK_AVERAGE;
     m_voxelIndices = voxelIndicesIJK;
 }

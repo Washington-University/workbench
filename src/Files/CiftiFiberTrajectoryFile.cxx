@@ -1163,7 +1163,8 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
         }
     }
     
-    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(voxelIndices);
+    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+                                                           voxelIndices);
     
     m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
                                  + AString::number(numberOfVoxels));
@@ -1227,8 +1228,10 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
             break;
         case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
         {
+            int64_t volumeDimensionsIJK[3];
             std::vector<VoxelIJK> voxelIndicesIJK;
-            m_connectivityDataLoaded->getVolumeAverageVoxelLoading(voxelIndicesIJK);
+            m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
+                                                                   voxelIndicesIJK);
             CaretAssert(0); // NEED TO IMPLEMENT
         }
             break;
@@ -1288,6 +1291,8 @@ void
 CiftiFiberTrajectoryFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                        const SceneClass* sceneClass)
 {
+    m_connectivityDataLoaded->reset();
+    
     CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,

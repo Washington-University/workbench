@@ -40,6 +40,9 @@
 
 namespace caret {
 
+    class ConnectivityDataLoaded;
+    class SceneClassAssistant;
+    
     class CiftiMappableConnectivityMatrixDataFile : public CiftiMappableDataFile {
         
     protected:
@@ -133,6 +136,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
         
+        SceneClassAssistant* m_sceneAssistant;
+        
         bool m_dataLoadingEnabled;
         
         std::vector<float> m_loadedRowData;
@@ -140,6 +145,8 @@ namespace caret {
         AString m_rowLoadedTextForMapName;
 
         AString m_rowLoadedText;
+        
+        ConnectivityDataLoaded* m_connectivityDataLoaded;
         
         friend class CiftiBrainordinateScalarFile;
 
