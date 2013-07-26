@@ -37,7 +37,6 @@
 #undef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__
 
 #include "Brain.h"
-#include "BrainordinateDataSelection.h"
 #include "CaretAssert.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
@@ -67,7 +66,6 @@ CiftiConnectivityMatrixDataFileManager::CiftiConnectivityMatrixDataFileManager(B
 : CaretObject()
 {
     m_brain = brain;
-    m_brainordinateDataSelection = new BrainordinateDataSelection();
 }
 
 /**
@@ -75,7 +73,6 @@ CiftiConnectivityMatrixDataFileManager::CiftiConnectivityMatrixDataFileManager(B
  */
 CiftiConnectivityMatrixDataFileManager::~CiftiConnectivityMatrixDataFileManager()
 {
-    delete m_brainordinateDataSelection;
 }
 
 /**
@@ -124,9 +121,6 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
                                             paletteFile);
             haveData = true;
 
-            m_brainordinateDataSelection->setSurfaceLoading(surfaceFile,
-                                                            nodeIndex);
-            
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node
@@ -178,10 +172,7 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const Sur
                                                    nodeIndices);
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
-                haveData = true;
-            
-            m_brainordinateDataSelection->setSurfaceAverageLoading(surfaceFile,
-                                                                   nodeIndices);
+            haveData = true;
         }
     }
     
@@ -222,8 +213,6 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
             haveData = true;
-            
-            m_brainordinateDataSelection->setVolumeLoading(xyz);
             
             if (rowIndex >= 0) {
                 /*
@@ -285,8 +274,6 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int
     }
     
     if (haveData) {
-        m_brainordinateDataSelection->setVolumeAverageLoading(volumeDimensionIJK,
-                                                              voxelIndices);
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
@@ -299,7 +286,6 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int
 void
 CiftiConnectivityMatrixDataFileManager::reset()
 {
-    m_brainordinateDataSelection->reset();
 }
 
 /**
@@ -315,15 +301,12 @@ CiftiConnectivityMatrixDataFileManager::reset()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* sceneAttributes,
+CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                        const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "CiftiConnectivityMatrixDataFileManager",
                                             1);
-    
-//    sceneClass->addClass(m_brainordinateDataSelection->saveToScene(sceneAttributes,
-//                                                                   "m_brainordinateDataSelection"));
     return sceneClass;
 }
 
@@ -343,8 +326,6 @@ void
 CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                             const SceneClass* sceneClass)
 {
-    m_brainordinateDataSelection->reset();
-    
     PaletteFile* paletteFile = m_brain->getPaletteFile();
     
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
@@ -367,86 +348,6 @@ CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* 
     if (sceneClass == NULL) {
         return;
     }
-    
-//    /*
-//     * In older scenes, the selected brainordinate data used a different name
-//     */
-//    AString loadedDataName = "m_brainordinateDataSelection";
-//    if (sceneClass->getClass("m_brainordinateDataLoaded") != NULL) {
-//        loadedDataName = "m_brainordinateDataLoaded";
-//    }
-//    m_brainordinateDataSelection->restoreFromScene(sceneAttributes,
-//                                                   sceneClass->getClass(loadedDataName));
-//    
-//    try {
-//        switch (m_brainordinateDataSelection->getMode()) {
-//            case BrainordinateDataSelection::MODE_NONE:
-//                break;
-//            case BrainordinateDataSelection::MODE_SURFACE_AVERAGE:
-//            {
-//                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
-//                if (nodeIndices.empty() == false) {
-//                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
-//                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
-//                                                                         false);
-//                    if (surface != NULL) {
-//                        loadAverageDataForSurfaceNodes(surface,
-//                                                       nodeIndices);
-//                    }
-//                    else {
-//                        sceneAttributes->addToErrorMessage("Surface named "
-//                                                           + surfaceFileName
-//                                                           + " is missing.");
-//                    }
-//                    
-//                }
-//            }
-//                break;
-//            case BrainordinateDataSelection::MODE_SURFACE_NODE:
-//            {
-//                std::vector<int32_t> nodeIndices = m_brainordinateDataSelection->getSurfaceNodeIndices();
-//                if (nodeIndices.empty() == false) {
-//                    const int nodeIndex = nodeIndices[0];
-//                    const AString surfaceFileName = m_brainordinateDataSelection->getSurfaceFileName();
-//                    const Surface* surface = m_brain->getSurfaceWithName(surfaceFileName,
-//                                                                         false);
-//                    if (surface != NULL) {
-//                        std::vector<AString> rowInfo;
-//                        loadDataForSurfaceNode(surface, nodeIndex, rowInfo);
-//                    }
-//                    else {
-//                        sceneAttributes->addToErrorMessage("Surface named "
-//                                                           + surfaceFileName
-//                                                           + " is missing.");
-//                    }
-//                }
-//            }
-//                break;
-//            case BrainordinateDataSelection::MODE_VOXEL_XYZ:
-//            {
-//                std::vector<AString> rowsColumnsLoaded;
-//                float voxelXYZ[3];
-//                m_brainordinateDataSelection->getVoxelXYZ(voxelXYZ);
-//                loadDataForVoxelAtCoordinate(voxelXYZ,
-//                                             rowsColumnsLoaded);
-//            }
-//                break;
-//            case BrainordinateDataSelection::MODE_VOXEL_AVERAGE:
-//            {
-//                int64_t volumeDimensions[3];
-//                std::vector<VoxelIJK> voxelIndices;
-//                m_brainordinateDataSelection->getVolumeAverageVoxelIndices(volumeDimensions,
-//                                                                           voxelIndices);
-//                loadAverageDataForVoxelIndices(volumeDimensions,
-//                                               voxelIndices);
-//            }
-//                break;
-//        }
-//    }
-//    catch (const DataFileException& dfe) {
-//        sceneAttributes->addToErrorMessage("Restoring Connectivity Data: "
-//                                           + dfe.whatString());
-//    }
 }
 
 /**

@@ -43,7 +43,6 @@
 namespace caret {
 
     class Brain;
-    class BrainordinateDataSelection;
     class SurfaceFile;
     
     class CiftiConnectivityMatrixDataFileManager
@@ -95,13 +94,6 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
         
         Brain* m_brain;
-
-        /**
-         * Holds information about last brainordinate for which
-         * cifti connectivity data was loaded.  This information is 
-         * then saved/restored during scene operations.
-         */
-        BrainordinateDataSelection* m_brainordinateDataSelection;
     };
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__
