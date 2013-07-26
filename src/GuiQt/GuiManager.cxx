@@ -2032,6 +2032,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 try {
                     ciftiConnectivityManager->loadDataForVoxelAtCoordinate(xyz,
                                                            ciftiLoadingInfo);
+                    ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(xyz);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();

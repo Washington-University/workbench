@@ -132,6 +132,11 @@ namespace caret {
                                             const int32_t surfaceNumberOfNodes,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
+        virtual void loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        
+        virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                                       const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
+        
         const std::vector<FiberOrientationTrajectory*>& getLoadedFiberOrientationTrajectories() const;
         
         void clearLoadedFiberOrientations();

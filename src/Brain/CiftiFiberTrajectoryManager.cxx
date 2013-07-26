@@ -42,7 +42,6 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
-#include "Surface.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -144,6 +143,69 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
     }
     
     return dataWasLoaded;
+}
+
+/**
+ * Load data for the voxel near the given coordinate.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool
+CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
+    m_brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
+    
+    bool haveData = false;
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = ciftiTrajFiles.begin();
+         iter != ciftiTrajFiles.end();
+         iter++) {
+        CiftiFiberTrajectoryFile* trajFile = *iter;
+        if (trajFile->isEmpty() == false) {
+            trajFile->loadMapDataForVoxelAtCoordinate(xyz);
+            haveData = true;
+        }
+    }
+    
+    return haveData;
+}
+
+/**
+ * Load average data for the given voxel indices.
+ *
+ * @param volumeDimensionIJK
+ *    Dimensions of the volume.
+ * @param voxelIndices
+ *    Indices for averaging of data.
+ * @return
+ *    true if any data was loaded, else false.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+bool
+CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+{
+    std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
+    m_brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
+    
+    bool haveData = false;
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = ciftiTrajFiles.begin();
+         iter != ciftiTrajFiles.end();
+         iter++) {
+        CiftiFiberTrajectoryFile* trajFile = *iter;
+        if (trajFile->isEmpty() == false) {
+            trajFile->loadMapAverageDataForVoxelIndices(volumeDimensionIJK,
+                                                        voxelIndices);
+            haveData = true;
+        }
+    }
+    
+    return haveData;
 }
 
 /**

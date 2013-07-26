@@ -38,6 +38,7 @@
 #include "CaretObject.h"
 #include "DataFileException.h"
 #include "SceneableInterface.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
@@ -56,6 +57,11 @@ namespace caret {
         
         bool loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);        void reset();
+        
+        bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        
+        bool loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);

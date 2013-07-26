@@ -196,40 +196,39 @@ ConnectivityDataLoaded::setSurfaceAverageNodeLoading(const StructureEnum::Enum s
 }
 
 /**
- * Get the voxel loading voxel IJK indices (MODE_VOXEL).
+ * Get the volume loading XYZ coordinate (MODE_VOXEL_XYZ).
  *
- * @param voxelIndexIJK
- *    Indices of the voxel.
+ * @param volumeXYZ
+ *    Coordinate of location.
  */
 void
-ConnectivityDataLoaded::getVolumeVoxelLoading(VoxelIJK& voxelIndexIJK) const
+ConnectivityDataLoaded::getVolumeXYZLoading(float volumeXYZ[3]) const
 {
-    if (m_voxelIndices.empty() == false) {
-        voxelIndexIJK = m_voxelIndices[0];
-    }
-    else {
-        voxelIndexIJK.m_ijk[0] = -1;
-        voxelIndexIJK.m_ijk[1] = -1;
-        voxelIndexIJK.m_ijk[2] = -1;
-    }
+    volumeXYZ[0] = m_volumeXYZ[0];
+    volumeXYZ[1] = m_volumeXYZ[1];
+    volumeXYZ[2] = m_volumeXYZ[2];
 }
 
+void setVolumeXYZLoading(const float volumeXYZ[3]);
+
 /**
- * Set the voxel loading voxel IJK indices (MODE_VOXEL)
+ * Set the volume loading XYZ coordinate (MODE_VOXEL_XYZ).
  *
- * @param voxelIndexIJK
- *    Indices of the voxel.
+ * @param volumeXYZ
+ *    Coordinate of location.
  */
-void ConnectivityDataLoaded::setVolumeVoxelLoading(const VoxelIJK& voxelIndexIJK)
+void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3])
 {
     reset();
     
-    m_mode = MODE_VOXEL;
-    m_voxelIndices.push_back(voxelIndexIJK);
+    m_mode = MODE_VOXEL_XYZ;
+    m_volumeXYZ[0] = volumeXYZ[0];
+    m_volumeXYZ[1] = volumeXYZ[1];
+    m_volumeXYZ[2] = volumeXYZ[2];
 }
 
 /**
- * Get the voxel average loading voxel IJK indices (MODE_VOXEL_AVERAGE)
+ * Get the voxel average loading voxel IJK indices (MODE_VOXEL_IJK_AVERAGE)
  *
  * @param voxelIndicesIJK
  *    Indices of the voxels.
@@ -241,7 +240,7 @@ ConnectivityDataLoaded::getVolumeAverageVoxelLoading(std::vector<VoxelIJK>& voxe
 }
 
 /**
- * Set the voxel average loading voxel IJK indices (MODE_VOXEL_AVERAGE)
+ * Set the voxel average loading voxel IJK indices (MODE_VOXEL_IJK_AVERAGE)
  *
  * @param voxelIndicesIJK
  *    Indices of the voxels.
@@ -251,7 +250,7 @@ ConnectivityDataLoaded::setVolumeAverageVoxelLoading(const std::vector<VoxelIJK>
 {
     reset();
     
-    m_mode = MODE_VOXEL_AVERAGE;
+    m_mode = MODE_VOXEL_IJK_AVERAGE;
     m_voxelIndices = voxelIndicesIJK;
 }
 
@@ -293,11 +292,11 @@ ConnectivityDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
     else if (modeName == "MODE_SURFACE_NODE") {
         m_mode = MODE_SURFACE_NODE;
     }
-    else if (modeName == "MODE_VOXEL") {
-        m_mode = MODE_VOXEL;
+    else if (modeName == "MODE_VOXEL_XYZ") {
+        m_mode = MODE_VOXEL_XYZ;
     }
-    else if (modeName == "MODE_VOXEL_AVERAGE") {
-        m_mode = MODE_VOXEL_AVERAGE;
+    else if (modeName == "MODE_VOXEL_IJK_AVERAGE") {
+        m_mode = MODE_VOXEL_IJK_AVERAGE;
     }
     else {
         sceneAttributes->addToErrorMessage("Unrecognized mode=" + modeName);
@@ -362,11 +361,11 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
         case MODE_SURFACE_NODE_AVERAGE:
             modeName = "MODE_SURFACE_NODE_AVERAGE";
             break;
-        case MODE_VOXEL:
-            modeName = "MODE_VOXEL";
+        case MODE_VOXEL_XYZ:
+            modeName = "MODE_VOXEL_XYZ";
             break;
-        case MODE_VOXEL_AVERAGE:
-            modeName = "MODE_VOXEL_AVERAGE";
+        case MODE_VOXEL_IJK_AVERAGE:
+            modeName = "MODE_VOXEL_IJK_AVERAGE";
             break;
     }
     sceneClass->addString("m_mode",

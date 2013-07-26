@@ -62,8 +62,8 @@ namespace caret {
             MODE_NONE,
             MODE_SURFACE_NODE,
             MODE_SURFACE_NODE_AVERAGE,
-            MODE_VOXEL,
-            MODE_VOXEL_AVERAGE
+            MODE_VOXEL_XYZ,
+            MODE_VOXEL_IJK_AVERAGE
         };
         
         void reset();
@@ -86,9 +86,9 @@ namespace caret {
                                           const int32_t surfaceNumberOfNodes,
                                           const std::vector<int32_t>& surfaceNodeIndices);
         
-        void getVolumeVoxelLoading(VoxelIJK& voxelIndexIJK) const;
+        void getVolumeXYZLoading(float volumeXYZ[3]) const;
         
-        void setVolumeVoxelLoading(const VoxelIJK& voxelIndexIJK);
+        void setVolumeXYZLoading(const float volumeXYZ[3]);
         
         void getVolumeAverageVoxelLoading(std::vector<VoxelIJK>& voxelIndicesIJK) const;
         
@@ -114,6 +114,8 @@ namespace caret {
         std::vector<int32_t> m_surfaceNodeIndices;
         
         std::vector<VoxelIJK> m_voxelIndices;
+        
+        float m_volumeXYZ[3];
     };
     
 #ifdef __CONNECTIVITY_DATA_LOADED_DECLARE__

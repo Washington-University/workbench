@@ -754,6 +754,8 @@ CiftiFiberTrajectoryFile::clearLoadedFiberOrientations()
     m_fiberOrientationTrajectories.clear();
     
     m_loadedDataDescriptionForMapName = "";
+    
+    m_connectivityDataLoaded->reset();
 }
 
 /**
@@ -879,6 +881,7 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
 
 /**
  * Load average data for the given surface nodes.
+ *
  * @param structure
  *    Structure in which surface node is located.
  * @param surfaceNumberOfNodes
@@ -993,6 +996,181 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
 }
 
 /**
+ * Load data for a voxel at the given coordinate.
+ *
+ * @param xyz
+ *    Coordinate of voxel.
+ * @throw
+ *    DataFileException if there is an error.
+ */
+void
+CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    if (m_dataLoadingEnabled == false) {
+        return;
+    }
+    
+    clearLoadedFiberOrientations();
+    
+    validateAssignedMatchingFiberOrientationFile();
+    
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+//    if (trajXML.hasColumnVolumeData() == false) {
+//        return;
+//    }
+
+    const int64_t rowIndex = trajXML.getRowIndexForVoxelCoordinate(xyz);
+    if (rowIndex < 0) {
+        return;
+    }
+    
+    std::vector<int64_t> fiberIndices;
+    std::vector<FiberFractions> fiberFractions;
+    m_sparseFile->getFibersRowSparse(rowIndex,
+                                     fiberIndices,
+                                     fiberFractions);
+    CaretAssert(fiberIndices.size() == fiberFractions.size());
+    
+    const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
+    
+    CaretLogFine("For voxel at coordinate "
+                 + AString::fromNumbers(xyz, 3, ",")
+                 + " number of rows loaded: "
+                 + AString::number(numFibers));
+    
+    if (numFibers > 0) {
+        m_fiberOrientationTrajectories.reserve(numFibers);
+        
+        for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
+            const int64_t numFiberOrientations = m_matchingFiberOrientationFile->getNumberOfFiberOrientations();
+            const int64_t fiberIndex = fiberIndices[iFiber];
+            if (fiberIndex < numFiberOrientations) {
+                const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
+                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
+                                                                                 rowIndex);
+                fot->addFiberFractions(fiberFractions[iFiber]);
+                m_fiberOrientationTrajectories.push_back(fot);
+            }
+            else{
+                CaretLogSevere("Invalid index="
+                               + QString::number(fiberIndex)
+                               + " into fiber orientations");
+            }
+        }
+        
+        m_loadedDataDescriptionForMapName = ("Row: "
+                                             + AString::number(rowIndex)
+                                             + ", Voxel XYZ: "
+                                             + AString::fromNumbers(xyz, 3, ",")
+                                             + ", Structure: ");
+        
+        m_connectivityDataLoaded->setVolumeXYZLoading(xyz);
+    }
+}
+
+/**
+ * Load connectivity data for the voxel indices and then average the data.
+ *
+ * @param volumeDimensionIJK
+ *    Dimensions of the volume.
+ * @param voxelIndices
+ *    Indices of voxels.
+ * @throw
+ *    DataFileException if there is an error.
+ */
+void
+CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+                                                                           const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+{
+    if (m_dataLoadingEnabled == false) {
+        return;
+    }
+    
+    clearLoadedFiberOrientations();
+    
+    validateAssignedMatchingFiberOrientationFile();
+    
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    
+    if (trajXML.hasColumnVolumeData() == false) {
+        return;
+    }
+    
+    /*
+     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
+     * to a FiberOrientationTrajectory instance.  For averaging, items that have
+     * a matching fiber orientation index are averaged.
+     */
+    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
+    
+    const int32_t numberOfVoxels = static_cast<int32_t>(voxelIndices.size());
+    for (int32_t i = 0; i < numberOfVoxels; i++) {
+        /*
+         * Get and load row for voxel
+         */
+        const int64_t rowIndex = trajXML.getRowIndexForVoxel(voxelIndices[i].m_ijk);
+        if (rowIndex >= 0) {
+            std::vector<int64_t> fiberOrientationIndicesForRow;
+            std::vector<FiberFractions> fiberFractions;
+            m_sparseFile->getFibersRowSparse(rowIndex,
+                                             fiberOrientationIndicesForRow,
+                                             fiberFractions);
+            
+            CaretAssert(fiberOrientationIndicesForRow.size() == fiberFractions.size());
+            
+            /*
+             * Process trajectory for node
+             */
+            const int64_t numItems = static_cast<int64_t>(fiberOrientationIndicesForRow.size());
+            if (numItems > 0) {
+                for (int64_t indx = 0; indx < numItems; indx++) {
+                    const int64_t fiberOrientationIndex = fiberOrientationIndicesForRow[indx];
+                    
+                    /*
+                     * See if the trajectory for the orientation has already been created
+                     */
+                    std::map<int64_t, FiberOrientationTrajectory*>::iterator trajIter = fiberOrientationIndexMapToFiberTrajectory.find(fiberOrientationIndex);
+                    if (trajIter != fiberOrientationIndexMapToFiberTrajectory.end()) {
+                        /*
+                         * Add additional fiber fractions
+                         */
+                        FiberOrientationTrajectory* fot = trajIter->second;
+                        CaretAssert(fot);
+                        fot->addFiberFractions(fiberFractions[indx]);
+                    }
+                    else {
+                        /*
+                         * Create a new trajectory
+                         */
+                        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberOrientationIndex);
+                        FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
+                                                                                         rowIndex);
+                        m_fiberOrientationTrajectories.push_back(fot);
+                        
+                        /*
+                         * Add fiber fractions to trajectory
+                         */
+                        fot->addFiberFractions(fiberFractions[indx]);
+                        
+                        /*
+                         * Add to map keyed by fiber orientation index for averaging
+                         */
+                        fiberOrientationIndexMapToFiberTrajectory.insert(std::make_pair(fiberOrientationIndex,
+                                                                                        fot));
+                    }
+                }
+            }
+        }
+    }
+    
+    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(voxelIndices);
+    
+    m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
+                                 + AString::number(numberOfVoxels));
+}
+
+
+/**
  * Finish restoration of scene.
  * In this file's circumstances, the fiber orientation files were not 
  * available at the time the scene was restored. 
@@ -1040,14 +1218,14 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
                                    surfaceNodeIndices);
         }
             break;
-        case ConnectivityDataLoaded::MODE_VOXEL:
+        case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
         {
-            VoxelIJK voxelIndexIJK;
-            m_connectivityDataLoaded->getVolumeVoxelLoading(voxelIndexIJK);
+            float volumeXYZ[3];
+            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ);
             CaretAssert(0); // NEED TO IMPLEMENT
         }
             break;
-        case ConnectivityDataLoaded::MODE_VOXEL_AVERAGE:
+        case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
         {
             std::vector<VoxelIJK> voxelIndicesIJK;
             m_connectivityDataLoaded->getVolumeAverageVoxelLoading(voxelIndicesIJK);

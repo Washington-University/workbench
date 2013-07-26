@@ -1244,6 +1244,10 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
                                                                                 nodeIndices);
                 break;
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+                std::vector<VoxelIJK> voxelIndices;
+                pc->getVoxelIndices(voxelIndices);
+                pc->ciftiFiberTrajectoryManager->loadAverageDataForVoxelIndices(pc->volumeDimensions,
+                                                                                voxelIndices);
                 break;
         }
     }
