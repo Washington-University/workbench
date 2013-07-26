@@ -5667,9 +5667,10 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
     }
 
     
+    /*
+     * Default constructor is color by fiber orientation settings XYZ/123 as RGB
+     */
     FiberTrajectoryColorModel::Item colorUseFiber;
-    FiberOrientationColoringTypeEnum::Enum fiberColorType = dpfo->getColoringType(displayGroup,
-                                                                                  this->windowTabIndex);
     
     FiberOrientationDisplayInfo fiberOrientDispInfo;
     setFiberOrientationDisplayInfo(dpfo,

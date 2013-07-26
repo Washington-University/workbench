@@ -35,7 +35,7 @@
 /*LICENSE_END*/
 
 #include <set>
-
+#include <stdint.h>
 #include <QWidget>
 
 #include "EventListenerInterface.h"
