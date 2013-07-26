@@ -1226,7 +1226,9 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 statusItem->setText("");
                 if (caretDataFile != NULL) {
                     if (caretDataFile->isModified()) {
-                        statusItem->setText("YES");
+                        if (isFileSavable) {
+                            statusItem->setText("YES");
+                        }
                     }
                 }
                 
@@ -1528,12 +1530,14 @@ SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
         if (specFileDataFile->isSavingSelected()) {
             CaretDataFile* caretDataFile = specFileDataFile->getCaretDataFile();
             if (caretDataFile != NULL) {
-                try {
-                    m_brain->writeDataFile(caretDataFile);
-                    specFileDataFile->setSavingSelected(false);
-                }
-                catch (const DataFileException& e) {
-                    errorMessages.appendWithNewLine(e.whatString());
+                if (caretDataFile->supportsWriting()) {
+                    try {
+                        m_brain->writeDataFile(caretDataFile);
+                        specFileDataFile->setSavingSelected(false);
+                    }
+                    catch (const DataFileException& e) {
+                        errorMessages.appendWithNewLine(e.whatString());
+                    }
                 }
             }
         }
