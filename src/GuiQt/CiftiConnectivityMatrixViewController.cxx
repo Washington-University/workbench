@@ -290,11 +290,11 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         const bool showComboBox = (trajFile != NULL);
         m_fiberOrientationFileComboBoxes[i]->setVisible(showComboBox);
         m_fiberOrientationFileComboBoxes[i]->setEnabled(showComboBox);
-        std::cout << "Show Orientation File Combo Box: "
-        << i
-        << ": "
-        << qPrintable(AString::fromBool(showComboBox))
-        << std::endl;
+//        std::cout << "Show Orientation File Combo Box: "
+//        << i
+//        << ": "
+//        << qPrintable(AString::fromBool(showComboBox))
+//        << std::endl;
     }
 }
 
@@ -358,15 +358,17 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
     if (mapFilePointer != NULL) {
         name = mapFilePointer->getFileNameNoPath();
     }
-    std::cout << "File at index: "
-    << indx
-    << " name: "
-    << qPrintable(name)
-    << " cifti-matrix-ptr: "
-    << (long)ciftiMatrixFileOut
-    << " cifti-traj-ptr: "
-    << (long)ciftiTrajFileOut
-    << std::endl;
+
+//    std::cout << "File at index: "
+//    << indx
+//    << " name: "
+//    << qPrintable(name)
+//    << " cifti-matrix-ptr: "
+//    << (long)ciftiMatrixFileOut
+//    << " cifti-traj-ptr: "
+//    << (long)ciftiTrajFileOut
+//    << std::endl;
+    
     if (ciftiMatrixFileOut != NULL) {
         /* OK */
     }
