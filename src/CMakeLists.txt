@@ -22,6 +22,9 @@ ADD_DEFINITIONS(-DVELAB_INTERNAL_RELEASE_ONLY)
 # statement or else an infinite loop will occur indicating
 # that the compiler has been redefined.
 #
+ 
+ 
+
 IF(APPLE)
     ADD_DEFINITIONS(-DCARET_OS_MACOSX)
 ELSEIF(UNIX)
@@ -30,6 +33,7 @@ ELSEIF(WIN32)
     IF(MSVC)
         ADD_DEFINITIONS(-DCARET_OS_WINDOWS_MSVC)
         IF(CMAKE_CL_64)
+## SET(CMAKE_GENERATOR_TOOLSET "v120_CTP_Nov2012" CACHE STRING "Platform Toolset" FORCE) 
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
             SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
             ##SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -we4061")
@@ -39,6 +43,7 @@ ELSEIF(WIN32)
             SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl" CACHE_STRING "open ssl root directory")
 
         ELSE()
+## SET(CMAKE_GENERATOR_TOOLSET "v120_CTP_Nov2012" CACHE STRING "Platform Toolset" FORCE)         
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -DNOMINMAX)
             SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MP -wd4290 -wd4244 -wd4267 -wd4305 -wd4100 -wd4005" )
             ##SET( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -we4061")
