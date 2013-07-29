@@ -354,6 +354,19 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
     ciftiMatrixFileOut = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
     ciftiTrajFileOut   = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
     
+    AString name = "";
+    if (mapFilePointer != NULL) {
+        name = mapFilePointer->getFileNameNoPath();
+    }
+    std::cout << "File at index: "
+    << indx
+    << " name: "
+    << qPrintable(name)
+    << " cifti-matrix-ptr: "
+    << (long)ciftiMatrixFileOut
+    << " cifti-traj-ptr: "
+    << (long)ciftiTrajFileOut
+    << std::endl;
     if (ciftiMatrixFileOut != NULL) {
         /* OK */
     }
