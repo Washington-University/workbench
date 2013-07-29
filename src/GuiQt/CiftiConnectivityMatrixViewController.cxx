@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #define __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 #include "CiftiConnectivityMatrixViewController.h"
 #undef __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
@@ -77,10 +79,10 @@ CiftiConnectivityMatrixViewController::CiftiConnectivityMatrixViewController(con
 {
     m_gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(m_gridLayout, 2, 2);
-    m_gridLayout->setColumnStretch(0, 0);
-    m_gridLayout->setColumnStretch(1, 0);
-    m_gridLayout->setColumnStretch(2, 100);
-    m_gridLayout->setColumnStretch(3, 100);
+    m_gridLayout->setColumnStretch(COLUMN_ENABLE_CHECKBOX, 0);
+    m_gridLayout->setColumnStretch(COLUMN_COPY_BUTTON, 0);
+    m_gridLayout->setColumnStretch(COLUMN_NAME_LINE_EDIT, 100);
+    m_gridLayout->setColumnStretch(COLUMN_ORIENTATION_FILE_COMBO_BOX, 100);
     const int titleRow = m_gridLayout->rowCount();
     m_gridLayout->addWidget(new QLabel("On"),
                             titleRow, COLUMN_ENABLE_CHECKBOX);
@@ -285,8 +287,14 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
             comboBox->clear();
         }
         
-        m_fiberOrientationFileComboBoxes[i]->setVisible(trajFile != NULL);
-        m_fiberOrientationFileComboBoxes[i]->setEnabled(trajFile != NULL);
+        const bool showComboBox = (trajFile != NULL);
+        m_fiberOrientationFileComboBoxes[i]->setVisible(showComboBox);
+        m_fiberOrientationFileComboBoxes[i]->setEnabled(showComboBox);
+        std::cout << "Show Orientation File Combo Box: "
+        << i
+        << ": "
+        << qPrintable(AString::fromBool(showComboBox))
+        << std::endl;
     }
 }
 
