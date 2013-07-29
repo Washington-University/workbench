@@ -241,24 +241,6 @@ void
 CiftiFiberTrajectoryFile::updateMatchingFiberOrientationFileFromList(std::vector<CiftiFiberOrientationFile*> matchingFiberOrientationFiles)
 {
     /*
-     * See if selected orientation file is still valid
-     */
-    for (std::vector<CiftiFiberOrientationFile*>::iterator iter = matchingFiberOrientationFiles.begin();
-         iter != matchingFiberOrientationFiles.end();
-         iter++) {
-        if (*iter == m_matchingFiberOrientationFile) {
-            return;
-        }
-    }
-    
-    /*
-     * Invalidate matching file
-     */
-    m_matchingFiberOrientationFile = NULL;
-    m_matchingFiberOrientationFileName = "";
-    clearLoadedFiberOrientations();
-
-    /*
      * If a scene has been restored, we want to match to the fiber orientation
      * file name that was restored from the scene
      */
@@ -290,6 +272,24 @@ CiftiFiberTrajectoryFile::updateMatchingFiberOrientationFileFromList(std::vector
         }
     }
     
+    /*
+     * See if selected orientation file is still valid
+     */
+    for (std::vector<CiftiFiberOrientationFile*>::iterator iter = matchingFiberOrientationFiles.begin();
+         iter != matchingFiberOrientationFiles.end();
+         iter++) {
+        if (*iter == m_matchingFiberOrientationFile) {
+            return;
+        }
+    }
+    
+    /*
+     * Invalidate matching file
+     */
+    m_matchingFiberOrientationFile = NULL;
+    m_matchingFiberOrientationFileName = "";
+    clearLoadedFiberOrientations();
+
     /*
      * Try to find a matching file
      */
@@ -1292,6 +1292,9 @@ CiftiFiberTrajectoryFile::restoreFileDataFromScene(const SceneAttributes* sceneA
                                                        const SceneClass* sceneClass)
 {
     m_connectivityDataLoaded->reset();
+
+    m_matchingFiberOrientationFile = NULL;
+    m_matchingFiberOrientationFileName = "";
     
     CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
