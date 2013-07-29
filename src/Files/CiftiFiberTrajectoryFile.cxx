@@ -721,7 +721,8 @@ CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileExcep
         
         clearModified();
     }
-    catch (const DataFileException& dfe) {
+    catch (const CiftiFileException& cfe) {
+        DataFileException dfe(cfe);
         clear();
         throw dfe;
     }
