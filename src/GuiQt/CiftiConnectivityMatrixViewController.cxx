@@ -254,11 +254,11 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
         CiftiFiberTrajectoryFile* trajFile = NULL;
         
-        if (comboBox->isEnabled()) {
+//        if (comboBox->isEnabled()) {
             getFileAtIndex(i,
                            matrixFile,
                            trajFile);
-        }
+//        }
         
         if (trajFile != NULL) {
             int32_t selectedIndex = 0;
