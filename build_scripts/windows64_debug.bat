@@ -11,7 +11,7 @@ REM Go into source directory
 REM
 cd caret7_source
 
-echo "Caret7 Windows64 Build Result"
+echo "Caret7 Windows64 DEBUG Build Result"
 
 REM
 REM Grab the latest Sources
