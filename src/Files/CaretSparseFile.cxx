@@ -47,7 +47,7 @@ CaretSparseFile::CaretSparseFile(const AString& fileName)
     readFile(fileName);
 }
 
-void CaretSparseFile::readFile(const AString& filename) throw (DataFileException)
+void CaretSparseFile::readFile(const AString& filename)
 {
     if (m_file != NULL)
     {

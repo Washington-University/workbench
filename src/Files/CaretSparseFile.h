@@ -57,9 +57,9 @@ namespace caret {
 
         CaretSparseFile();
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename);
         
-        virtual void writeFile(const AString&) throw (DataFileException) { throw DataFileException("writeFile not implemented for CaretSparseFile"); }
+        virtual void writeFile(const AString&) { throw DataFileException("writeFile not implemented for CaretSparseFile"); }
         
         CaretSparseFile(const AString& fileName);
         
