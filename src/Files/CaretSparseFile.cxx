@@ -23,6 +23,14 @@
  */
 /*LICENSE_END*/
 
+#ifdef CARET_OS_WINDOWS
+#define MYSEEK _fseeki64
+#define MYTELL _ftelli64
+#else
+#define MYSEEK fseek
+#define MYTELL ftell
+#endif
+
 #include "CaretSparseFile.h"
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
@@ -88,15 +96,8 @@ void CaretSparseFile::readFile(const AString& filename)
     if (xml_offset >= fileInfo.size()) throw DataFileException("file is truncated");
     int64_t xml_length = fileInfo.size() - xml_offset;
     if (xml_length < 1) throw DataFileException("file is truncated");
-    
-    /*
-     * Offset is one byte too short so adjust offset and length
-     */
-    xml_offset += 1;
-    xml_length -= 1;
-    
-    if (fseek(m_file, xml_offset, SEEK_SET) != 0) throw DataFileException("error seeking to XML");
-    const int64_t seekResult = ftell(m_file);
+    if (MYSEEK(m_file, xml_offset, SEEK_SET) != 0) throw DataFileException("error seeking to XML");
+    const int64_t seekResult = MYTELL(m_file);
     if (seekResult != xml_offset) {
         const AString msg = ("Tried to seek to "
                              + AString::number(xml_offset)
@@ -121,7 +122,7 @@ void CaretSparseFile::getRow(const int64_t& index, int64_t* rowOut)
     int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
     int64_t numToRead = (end - start) * 2;
     m_scratchArray.resize(numToRead);
-    if (fseek(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
+    if (MYSEEK(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
     if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_file) != (size_t)numToRead) throw DataFileException("error reading from file");
     if (ByteOrderEnum::isSystemBigEndian())
     {
@@ -153,7 +154,7 @@ void CaretSparseFile::getRowSparse(const int64_t& index, vector<int64_t>& indice
     int64_t start = m_indexArray[index], end = m_indexArray[index + 1];
     int64_t numToRead = (end - start) * 2, numNonzero = end - start;
     m_scratchArray.resize(numToRead);
-    if (fseek(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
+    if (MYSEEK(m_file, m_valuesOffset + start * sizeof(int64_t) * 2, SEEK_SET) != 0) throw DataFileException("failed to seek in file");
     if (fread(m_scratchArray.data(), sizeof(int64_t), numToRead, m_file) != (size_t)numToRead) throw DataFileException("error reading from file");
     if (ByteOrderEnum::isSystemBigEndian())
     {
@@ -343,7 +344,7 @@ void CaretSparseFileWriter::finish()
     QByteArray myXMLBytes;
     m_xml.writeXML(myXMLBytes);
     if (fwrite(myXMLBytes.constData(), 1, myXMLBytes.size(), m_file) != (size_t)myXMLBytes.size()) throw DataFileException("error writing to file");
-    if (fseek(m_file, 8 + 2 * sizeof(int64_t), SEEK_SET) != 0) throw DataFileException("error seeking in file");
+    if (MYSEEK(m_file, 8 + 2 * sizeof(int64_t), SEEK_SET) != 0) throw DataFileException("error seeking in file");
     if (ByteOrderEnum::isSystemBigEndian())
     {
         ByteSwapping::swapBytes(m_lengthArray.data(), m_lengthArray.size());
