@@ -96,6 +96,15 @@ void CaretSparseFile::readFile(const AString& filename)
     xml_length -= 1;
     
     if (fseek(m_file, xml_offset, SEEK_SET) != 0) throw DataFileException("error seeking to XML");
+    const int64_t seekResult = ftell(m_file);
+    if (seekResult != xml_offset) {
+        const AString msg = ("Tried to seek to "
+                             + AString::number(xml_offset)
+                             + " but got an offset of "
+                             + AString::number(seekResult));
+        throw DataFileException(msg);
+    }
+    
     QByteArray myXMLBytes(xml_length, '\0');
     if (fread(myXMLBytes.data(), 1, xml_length, m_file) != (size_t)xml_length) throw DataFileException("error reading from file");
     m_xml.readXML(myXMLBytes);
