@@ -257,9 +257,23 @@ UserInputModeBorders::setDrawOperation(const DrawOperation drawOperation)
 }
 
 /**
+ * @return True if the border endpoints should be highlighted, else false.
+ */
+bool
+UserInputModeBorders::isHighlightBorderEndPoints() const
+{
+    if (this->mode == MODE_DRAW) {
+        if (this->drawOperation != DRAW_OPERATION_CREATE) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Finish the border that the user was drawing.
  */
-void 
+void
 UserInputModeBorders::drawOperationFinish()
 {
     this->borderBeingDrawnByOpenGL->clear();

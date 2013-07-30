@@ -1962,6 +1962,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             }
         }
         else {
+            glColor3fv(borderDrawInfo.rgba);
             glBegin(GL_LINE_STRIP);
             for (int32_t i = 0; i < numPointsToDraw; i++) {
                 const int32_t i3 = i * 3;

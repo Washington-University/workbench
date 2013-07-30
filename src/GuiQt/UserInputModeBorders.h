@@ -79,7 +79,8 @@ namespace caret {
 
         virtual AString toString() const;
         
-
+        bool isHighlightBorderEndPoints() const;
+        
     private:
         /*
          * Some private methods are accessed by this friend class
