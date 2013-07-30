@@ -150,6 +150,14 @@ if (CMAKE_COMPILER_IS_GNUCC)
         ADD_DEFINITIONS(-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter)
         SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GNU_11X_FLAGS}")
     endif()
+
+    execute_process(COMMAND uname -n OUTPUT_VARIABLE MACHINE_NAME)
+    message("MACHINE_NAME: ${MACHINE_NAME}")
+    if (${MACHINE_NAME} MATCHES "linuxbuild")
+        message("is linuxbuild")
+        SET(CMAKE_EXE_LINKER_FLAGS "-Wl,E" ${CMAKE_EXE_LINKER_FLAGS})
+    endif()
+
 endif()
 ENDIF (NOT MSVC)
 
