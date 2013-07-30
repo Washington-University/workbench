@@ -155,7 +155,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
     message("MACHINE_NAME: ${MACHINE_NAME}")
     if (${MACHINE_NAME} MATCHES "linuxbuild")
         message("is linuxbuild")
-        SET(CMAKE_EXE_LINKER_FLAGS "-Wl,E" ${CMAKE_EXE_LINKER_FLAGS})
+        SET(CMAKE_EXE_LINKER_FLAGS "-Wl,-E" ${CMAKE_EXE_LINKER_FLAGS})
     endif()
 
 endif()
