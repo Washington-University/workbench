@@ -253,6 +253,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         }
         outDims[index] = temp;
         myNiftiOut->reinitialize(outDims, FloatMatrix::identity(4).getMatrix());
+        myNiftiOut->setValueAllVoxels(0.0f);
         int64_t ijk[3] = { 0, 0, 0 };
         vector<float> rowscratch(outDims[3]);
         for (int64_t i = 0; i < numRows; ++i)
