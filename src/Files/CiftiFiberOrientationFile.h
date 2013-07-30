@@ -88,6 +88,8 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
+        bool supportsWriting() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:

@@ -162,6 +162,8 @@ namespace caret {
         
         void finishRestorationOfScene() throw (DataFileException);
         
+        bool supportsWriting() const;
+        
         // ADD_NEW_METHODS_HERE
         
     private:

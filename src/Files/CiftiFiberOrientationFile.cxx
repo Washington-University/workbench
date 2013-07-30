@@ -521,3 +521,14 @@ CiftiFiberOrientationFile::writeFile(const AString& /*filename*/) throw (DataFil
     throw DataFileException("Writing of Cifti Orientation Files not supported.");
 }
 
+/**
+ * @return True if this file type supports writing, else false.
+ *
+ * Fiber orientation files do NOT support writing.
+ */
+bool
+CiftiFiberOrientationFile::supportsWriting() const
+{
+    return false;
+}
+

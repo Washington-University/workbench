@@ -1305,5 +1305,15 @@ CiftiFiberTrajectoryFile::restoreFileDataFromScene(const SceneAttributes* sceneA
     m_matchingFiberOrientationFileNameFromRestoredScene = m_matchingFiberOrientationFileName;
 }
 
+/**
+ * @return True if this file type supports writing, else false.
+ *
+ * Fiber trajectory files do NOT support writing.
+ */
+bool
+CiftiFiberTrajectoryFile::supportsWriting() const
+{
+    return false;
+}
 
 
