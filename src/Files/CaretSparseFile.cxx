@@ -88,6 +88,13 @@ void CaretSparseFile::readFile(const AString& filename)
     if (xml_offset >= fileInfo.size()) throw DataFileException("file is truncated");
     int64_t xml_length = fileInfo.size() - xml_offset;
     if (xml_length < 1) throw DataFileException("file is truncated");
+    
+    /*
+     * Offset is one byte too short so adjust offset and length
+     */
+    xml_offset += 1;
+    xml_length -= 1;
+    
     if (fseek(m_file, xml_offset, SEEK_SET) != 0) throw DataFileException("error seeking to XML");
     QByteArray myXMLBytes(xml_length, '\0');
     if (fread(myXMLBytes.data(), 1, xml_length, m_file) != (size_t)xml_length) throw DataFileException("error reading from file");
