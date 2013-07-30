@@ -65,6 +65,18 @@ IF (APPLE)
 #       ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
 #   )
 ENDIF (APPLE)
+
+EXECUTE_PROCESS(COMMAND uname -n OUTPUT_VARIABLE MACHINE_NAME)
+MESSAGE("MACHINE_NAME: ${MACHINE_NAME}")
+IF (${MACHINE_NAME} MATCHES "linuxbuild")
+    MESSAGE("is linuxbuild")
+    SET_TARGET_PROPERTIES(${EXE_NAME}
+                          PROPERTIES
+                          LINK_FLAGS "-Wl,-E"
+                          LINK_FLAGS_DEBUG "-Wl,-E"
+                          LINK_FLAGS_RELEASE "-Wl,-E")
+ENDIF()
+
 IF (WIN32)
    ADD_EXECUTABLE(${EXE_NAME}
       desktop.cxx
