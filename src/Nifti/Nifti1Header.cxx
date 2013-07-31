@@ -171,6 +171,7 @@ void Nifti1Header::initHeaderStruct()
  */
 void Nifti1Header::initHeaderStruct(nifti_1_header &header)
 {
+    memset(&header, 0x00, sizeof(nifti_1_header));
     header.sizeof_hdr = NIFTI1_HEADER_SIZE;
     memcpy(header.magic, "n+1\0",4);
     header.datatype = 0;
