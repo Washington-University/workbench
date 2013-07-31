@@ -349,10 +349,10 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
 {
     CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
     void* ptr = m_fileEnableCheckBoxes[indx]->property(FILE_POINTER_PROPERTY_NAME).value<void*>();
-    CiftiMappableDataFile* mapFilePointer = (CiftiMappableDataFile*)ptr;
+    CaretMappableDataFile* mapFilePointer = (CaretMappableDataFile*)ptr;
     
-    ciftiMatrixFileOut = mapFilePointer->dynamicCastToCiftiMappableConnectivityMatrixDataFile();
-    ciftiTrajFileOut   = mapFilePointer->dynamicCastToCiftiFiberTrajectoryFile();
+    ciftiMatrixFileOut = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
+    ciftiTrajFileOut   = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
     
     AString name = "";
     if (mapFilePointer != NULL) {
