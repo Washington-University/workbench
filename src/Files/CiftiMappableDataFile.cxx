@@ -2759,13 +2759,15 @@ CiftiMappableConnectivityMatrixDataFile*
 CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
 {
 #ifdef CARET_OS_LINUX
-    switch(getDataFileType() {
+    switch(getDataFileType()) {
     case DataFileTypeEnum::CONNECTIVITY_DENSE:
     case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
     case DataFileTypeEnum::CONNECTIVITY_PARCEL:
     case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-        CiftiMappableConnectivityMatrixDataFile* matrixFile = (CiftiMappableConnectivityMatrixDataFile*)this;
-        return matrixFile;
+        {
+            CiftiMappableConnectivityMatrixDataFile* matrixFile = (CiftiMappableConnectivityMatrixDataFile*)this;
+            return matrixFile;
+        }
         break;
     default:
         break;
