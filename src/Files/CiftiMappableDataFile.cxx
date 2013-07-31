@@ -2749,7 +2749,7 @@ CiftiMappableDataFile::isModified() const
 /**
  * Use dynamic_cast to cast "this" file to a connectivity matrix file.
  *
- * Note: On Ubuntu Linux, dynamic_cast does not work outside of the 
+ * Note: On Ubuntu Linux and Windows, dynamic_cast does not work outside of the 
  * library in which a class is defined.  This method bypassed this issue.
  *
  * @return result of cast.  If NULL, "this" file is not a connectivity 
@@ -2758,7 +2758,18 @@ CiftiMappableDataFile::isModified() const
 CiftiMappableConnectivityMatrixDataFile*
 CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
 {
+    bool useDynamicCast = true;
 #ifdef CARET_OS_LINUX
+    useDynamicCast = false;
+#elif CARET_OS_WINDOWS_MSVC
+    useDynamicCast = false;
+#endif
+    
+    if (useDynamicCast) {
+        CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this);
+        return matrixFile;
+    }
+    
     switch(getDataFileType()) {
     case DataFileTypeEnum::CONNECTIVITY_DENSE:
     case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
@@ -2772,17 +2783,14 @@ CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
     default:
         break;
     }
+    
     return NULL;
-#else
-    CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this);
-    return matrixFile;
-#endif
 }
 
 /**
  * Use dynamic_cast to cast "this" file to a connectivity trajectory file.
  *
- * Note: On Ubuntu Linux, dynamic_cast does not work outside of the
+ * Note: On Ubuntu Linux and Windows, dynamic_cast does not work outside of the
  * library in which a class is defined.  This method bypassed this issue.
  *
  * @return result of cast.  If NULL, "this" file is not a connectivity
@@ -2791,16 +2799,24 @@ CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
 CiftiFiberTrajectoryFile*
 CiftiMappableDataFile::dynamicCastToCiftiFiberTrajectoryFile()
 {
+    bool useDynamicCast = true;
 #ifdef CARET_OS_LINUX
+    useDynamicCast = false;
+#elif CARET_OS_WINDOWS_MSVC
+    useDynamicCast = false;
+#endif
+
+    if (useDynamicCast){
+        CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(this);
+        return trajFile;
+    }
+    
     if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY) {
         CiftiFiberTrajectoryFile* trajFile = (CiftiFiberTrajectoryFile*)this;
         return trajFile;
     }
+    
     return NULL;
-#else
-    CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(this);
-    return trajFile;
-#endif
 }
 
 /* ========================================================================== */
