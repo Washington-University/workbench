@@ -2758,8 +2758,23 @@ CiftiMappableDataFile::isModified() const
 CiftiMappableConnectivityMatrixDataFile*
 CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
 {
+#ifdef CARET_OS_LINUX
+    switch(getDataFileType() {
+    case DataFileTypeEnum::CONNECTIVITY_DENSE:
+    case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+    case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+    case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+        CiftiMappableConnectivityMatrixDataFile* matrixFile = (CiftiMappableConnectivityMatrixDataFile*)this;
+        return matrixFile;
+        break;
+    default:
+        break;
+    }
+    return NULL;
+#else
     CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this);
     return matrixFile;
+#endif
 }
 
 /**
@@ -2774,8 +2789,16 @@ CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
 CiftiFiberTrajectoryFile*
 CiftiMappableDataFile::dynamicCastToCiftiFiberTrajectoryFile()
 {
+#ifdef CARET_OS_LINUX
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY) {
+        CiftiFiberTrajectoryFile* trajFile = (CiftiFiberTrajectoryFile*)this;
+        return trajFile;
+    }
+    return NULL;
+#else
     CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(this);
     return trajFile;
+#endif
 }
 
 /* ========================================================================== */
