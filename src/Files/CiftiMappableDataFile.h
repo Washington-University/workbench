@@ -291,9 +291,6 @@ namespace caret {
 
 		bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const;
         
-        CiftiMappableConnectivityMatrixDataFile* dynamicCastToCiftiMappableConnectivityMatrixDataFile();
-
-        CiftiFiberTrajectoryFile* dynamicCastToCiftiFiberTrajectoryFile();
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
