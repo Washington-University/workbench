@@ -41,8 +41,10 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiFacade.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFile.h"
 #include "CiftiInterface.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretTemporaryFile.h"
 #include "CiftiXnat.h"
 #include "CiftiXML.h"
@@ -2744,6 +2746,37 @@ CiftiMappableDataFile::isModified() const
     return false;
 }
 
+/**
+ * Use dynamic_cast to cast "this" file to a connectivity matrix file.
+ *
+ * Note: On Ubuntu Linux, dynamic_cast does not work outside of the 
+ * library in which a class is defined.  This method bypassed this issue.
+ *
+ * @return result of cast.  If NULL, "this" file is not a connectivity 
+ * matrix file.
+ */
+CiftiMappableConnectivityMatrixDataFile*
+CiftiMappableDataFile::dynamicCastToCiftiMappableConnectivityMatrixDataFile()
+{
+    CiftiMappableConnectivityMatrixDataFile* matrixFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this);
+    return matrixFile;
+}
+
+/**
+ * Use dynamic_cast to cast "this" file to a connectivity trajectory file.
+ *
+ * Note: On Ubuntu Linux, dynamic_cast does not work outside of the
+ * library in which a class is defined.  This method bypassed this issue.
+ *
+ * @return result of cast.  If NULL, "this" file is not a connectivity
+ * trajectory file.
+ */
+CiftiFiberTrajectoryFile*
+CiftiMappableDataFile::dynamicCastToCiftiFiberTrajectoryFile()
+{
+    CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(this);
+    return trajFile;
+}
 
 /* ========================================================================== */
 

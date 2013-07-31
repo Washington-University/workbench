@@ -43,7 +43,9 @@
 namespace caret {
     
     class CiftiFacade;
+    class CiftiFiberTrajectoryFile;
     class CiftiInterface;
+    class CiftiMappableConnectivityMatrixDataFile;
     class CiftiXML;
     class DescriptiveStatistics;
     class FastStatistics;
@@ -289,7 +291,11 @@ namespace caret {
 
 		bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const;
         
+        CiftiMappableConnectivityMatrixDataFile* dynamicCastToCiftiMappableConnectivityMatrixDataFile();
+
+        CiftiFiberTrajectoryFile* dynamicCastToCiftiFiberTrajectoryFile();
     private:
+        
         CiftiMappableDataFile(const CiftiMappableDataFile&);
         
         CiftiMappableDataFile& operator=(const CiftiMappableDataFile&);
