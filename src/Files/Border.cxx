@@ -860,6 +860,106 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
     replacePoints(&tempBorder);
 }
 
+///**
+// * Revise a border by replacing a segment in a border.
+// *
+// * @param surfaceFile
+// *    Surface on which border segment replacement is performed.
+// * @param segment
+// *    A border containing the new segment.
+// * @throws BorderException
+// *    If there is an error replacing the segment in the border.
+// */
+//void 
+//Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
+//                             const Border* segment) throw (BorderException)
+//{
+//    /*
+//     * Get coordinate of first and last points in the segment
+//     */
+//    const int numberOfSegmentPoints = segment->getNumberOfPoints();
+//    if (numberOfSegmentPoints <= 0) {
+//        throw BorderException("Border segment for erasing contains no points");
+//    }
+//    float segmentStartXYZ[3];
+//    if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
+//                                                   segmentStartXYZ, 
+//                                                   true) == false) {
+//        throw BorderException("First point in erase segment has invalid coordinate.  Redraw.");
+//    }
+//    
+//    float segmentEndXYZ[3];
+//    if (segment->getPoint(numberOfSegmentPoints - 1)->getProjectedPosition(*surfaceFile, 
+//                                                                           segmentEndXYZ, 
+//                                                                           true) == false) {
+//        throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
+//    }
+//    
+//    const float tolerance = 10.0;
+//    
+//    /*
+//     * Find points in this border nearest the first and
+//     * last points in the erase segment
+//     */
+//    float distanceToStartPoint = 0.0;
+//    int32_t startPointIndex = findPointIndexNearestXYZ(surfaceFile, 
+//                                                             segmentStartXYZ, 
+//                                                             tolerance,
+//                                                             distanceToStartPoint);
+//    if (startPointIndex < 0) {
+//        throw BorderException("Start of segment drawn for erasing is not close enough to existing border");
+//    }
+//    float distanceToEndPoint = 0.0;
+//    int32_t endPointIndex   = findPointIndexNearestXYZ(surfaceFile, 
+//                                                             segmentEndXYZ, 
+//                                                             tolerance,
+//                                                             distanceToEndPoint);
+//    if (endPointIndex < 0) {
+//        throw BorderException("End of segment drawn for erasing is not close enough to existing border");
+//    }
+//    
+//    /*
+//     * If needed, swap point indices
+//     */
+//    const bool reverseOrderFlag = (startPointIndex > endPointIndex);
+//    if (reverseOrderFlag) {
+//        std::swap(startPointIndex, endPointIndex);
+//    }
+//    
+//    /*
+//     * Create a temporary border
+//     */
+//    Border tempBorder;
+//    
+//    /*
+//     * Add in points prior to updated points
+//     */
+//    if (startPointIndex >= 0) {
+//        tempBorder.addPoints(this,
+//                             0,
+//                             startPointIndex);
+//    }
+//    
+//    /*
+//     * Add new points
+//     */
+//    Border segmentCopy = *segment;
+//    if (reverseOrderFlag) {
+//        segmentCopy.reverse();
+//    }
+//    tempBorder.addPoints(&segmentCopy);
+//    
+//    /*
+//     * Add in points after updated points
+//     */
+//    if (endPointIndex >= 0) {
+//        tempBorder.addPoints(this,
+//                             (endPointIndex + 1));
+//    }
+//    
+//    replacePoints(&tempBorder);
+//}
+
 /**
  * Revise a border by replacing a segment in a border.
  *
@@ -870,7 +970,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
  * @throws BorderException
  *    If there is an error replacing the segment in the border.
  */
-void 
+void
 Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
                              const Border* segment) throw (BorderException)
 {
@@ -882,15 +982,15 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
         throw BorderException("Border segment for erasing contains no points");
     }
     float segmentStartXYZ[3];
-    if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
-                                                   segmentStartXYZ, 
+    if (segment->getPoint(0)->getProjectedPosition(*surfaceFile,
+                                                   segmentStartXYZ,
                                                    true) == false) {
         throw BorderException("First point in erase segment has invalid coordinate.  Redraw.");
     }
     
     float segmentEndXYZ[3];
-    if (segment->getPoint(numberOfSegmentPoints - 1)->getProjectedPosition(*surfaceFile, 
-                                                                           segmentEndXYZ, 
+    if (segment->getPoint(numberOfSegmentPoints - 1)->getProjectedPosition(*surfaceFile,
+                                                                           segmentEndXYZ,
                                                                            true) == false) {
         throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
     }
@@ -902,63 +1002,205 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
      * last points in the erase segment
      */
     float distanceToStartPoint = 0.0;
-    int32_t startPointIndex = findPointIndexNearestXYZ(surfaceFile, 
-                                                             segmentStartXYZ, 
-                                                             tolerance,
-                                                             distanceToStartPoint);
-    if (startPointIndex < 0) {
+    int32_t segmentStartPointIndex = findPointIndexNearestXYZ(surfaceFile,
+                                                       segmentStartXYZ,
+                                                       tolerance,
+                                                       distanceToStartPoint);
+    if (segmentStartPointIndex < 0) {
         throw BorderException("Start of segment drawn for erasing is not close enough to existing border");
     }
     float distanceToEndPoint = 0.0;
-    int32_t endPointIndex   = findPointIndexNearestXYZ(surfaceFile, 
-                                                             segmentEndXYZ, 
-                                                             tolerance,
-                                                             distanceToEndPoint);
-    if (endPointIndex < 0) {
+    int32_t segmentEndPointIndex   = findPointIndexNearestXYZ(surfaceFile,
+                                                       segmentEndXYZ,
+                                                       tolerance,
+                                                       distanceToEndPoint);
+    if (segmentEndPointIndex < 0) {
         throw BorderException("End of segment drawn for erasing is not close enough to existing border");
     }
     
     /*
-     * If needed, swap point indices
+     * Make copy of segment
      */
-    const bool reverseOrderFlag = (startPointIndex > endPointIndex);
+    Border replacementSegment(*segment);
+    
+    /*
+     * If needed, swap point indices and reverse order in segment
+     */
+    const bool reverseOrderFlag = (segmentStartPointIndex > segmentEndPointIndex);
     if (reverseOrderFlag) {
-        std::swap(startPointIndex, endPointIndex);
+        std::swap(segmentStartPointIndex, segmentEndPointIndex);
     }
+    
+    /*
+     * Determine which segment in border to replace by using the 
+     * segment with the minimal length.
+     */
+    const float startToEndLength = getSegmentLength(surfaceFile,
+                                                    segmentStartPointIndex,
+                                                    segmentEndPointIndex);
+    const float endToStartLength = getSegmentLength(surfaceFile,
+                                                    segmentEndPointIndex,
+                                                    segmentStartPointIndex);
     
     /*
      * Create a temporary border
      */
     Border tempBorder;
     
-    /*
-     * Add in points prior to updated points
-     */
-    if (startPointIndex >= 0) {
-        tempBorder.addPoints(this,
-                             0,
-                             startPointIndex);
+    if (startToEndLength < endToStartLength) {
+        /*
+         * Add in points from start of border
+         */
+        if (segmentStartPointIndex >= 0) {
+            tempBorder.addPoints(this,
+                                 0,
+                                 segmentStartPointIndex);
+        }
+        
+        /*
+         * Add new points
+         */
+        if (reverseOrderFlag) {
+            replacementSegment.reverse();
+        }
+        tempBorder.addPoints(&replacementSegment);
+        
+        /*
+         * Add in points from end of border
+         */
+        if (segmentEndPointIndex >= 0) {
+            tempBorder.addPoints(this,
+                                 (segmentEndPointIndex + 1));
+        }
     }
-    
-    /*
-     * Add new points
-     */
-    Border segmentCopy = *segment;
-    if (reverseOrderFlag) {
-        segmentCopy.reverse();
-    }
-    tempBorder.addPoints(&segmentCopy);
-    
-    /*
-     * Add in points after updated points
-     */
-    if (endPointIndex >= 0) {
+    else {
+        /*
+         * Add new points
+         */
+        tempBorder.addPoints(&replacementSegment);
+        
+        /*
+         * Add points from start to end
+         */
+        const int32_t numSegmentPoints = (segmentEndPointIndex
+                                          - segmentStartPointIndex
+                                          + 1);
         tempBorder.addPoints(this,
-                             (endPointIndex + 1));
+                             segmentStartPointIndex,
+                             numSegmentPoints);
+
+//        
+//        /*
+//         * Add in points from end of border
+//         */
+//        if (segmentEndPointIndex >= 0) {
+//            tempBorder.addPoints(this,
+//                                 (segmentEndPointIndex + 1));
+//        }
+//        
+//        /*
+//         * Add new points
+//         */
+//        tempBorder.addPoints(&replacementSegment);
+//        
+//        /*
+//         * Add in points from start of border
+//         */
+//        if (segmentStartPointIndex >= 0) {
+//            tempBorder.addPoints(this,
+//                                 0,
+//                                 segmentStartPointIndex);
+//        }
     }
     
     replacePoints(&tempBorder);
 }
+
+/**
+ * Get the length of the border segment formed by the all of the points
+ * using the starting and ending point indices (inclusively).
+ *
+ * When (segmentStartPointIndex < endPointIndex), the segment length is that 
+ * formed by the points from startPointIndex to endPointIndex.
+ *
+ * When (segmentStartPointIndex > endPointIndex), the segment length is that 
+ * formed by startPointIndex to the last point, last point to first point
+ * and first point to endPointIndex. (Assumes border is a circular border).
+ *
+ * @param segmentStartPointIndex
+ *    Index of first border point in the border segement.
+ * @param segmentEndPointIndex
+ *    Index of last border point in the border segment.
+ * @param surfaceFile
+ *    Surface on which straightline distance between border points
+ *    is calculated.
+ */
+float
+Border::getSegmentLength(SurfaceFile* surfaceFile,
+                         const int32_t segmentStartPointIndex,
+                         const int32_t segmentEndPointIndex)
+{
+    CaretAssert(surfaceFile);
+    
+    const int32_t numPoints = getNumberOfPoints();
+    if (numPoints <= 1) {
+        return 0.0;
+    }
+    const int32_t lastPointIndex = numPoints - 1;
+    
+    CaretAssert((segmentStartPointIndex >= 0)
+                && (segmentStartPointIndex < numPoints));
+    CaretAssert((segmentEndPointIndex >= 0)
+                && (segmentEndPointIndex < numPoints));
+    
+    float segmentLength = 0.0;
+    
+    if (segmentStartPointIndex > segmentEndPointIndex) {
+        CaretAssert(segmentStartPointIndex <= lastPointIndex);
+        const float d1 = getSegmentLength(surfaceFile,
+                                          segmentStartPointIndex,
+                                          lastPointIndex);
+        
+        float d2 = 0.0;
+        {
+            float xyz[3], xyzNext[3];
+            if (m_points[lastPointIndex]->getProjectedPosition(*surfaceFile,
+                                                               xyz,
+                                                               true)
+                && m_points[0]->getProjectedPosition(*surfaceFile,
+                                                     xyzNext,
+                                                     true)) {
+                    d2 = MathFunctions::distance3D(xyz,
+                                                   xyzNext);
+            }
+        }
+        
+        CaretAssert(0 <= segmentEndPointIndex);
+        const float d3 = getSegmentLength(surfaceFile,
+                                          0,
+                                          segmentEndPointIndex);
+        segmentLength = (d1 + d2 + d3);
+    }
+    else {
+        for (int32_t i = segmentStartPointIndex; i < segmentEndPointIndex; i++) {
+            float xyz[3], xyzNext[3];
+            const int32_t iNext = i + 1;
+            CaretAssert(iNext < numPoints);
+            if (m_points[i]->getProjectedPosition(*surfaceFile,
+                                                  xyz,
+                                                  true)
+                && m_points[iNext]->getProjectedPosition(*surfaceFile,
+                                                       xyzNext,
+                                                       true)) {
+                segmentLength += MathFunctions::distance3D(xyz,
+                                                           xyzNext);
+            }
+        }
+    }
+    
+    return segmentLength;
+}
+
 
 /**
  * Replace the points in this border with

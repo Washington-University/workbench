@@ -2383,7 +2383,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
         borderDrawInfo.borderIndex = -1;
         borderDrawInfo.isSelect = false;
         borderDrawInfo.isContralateralEnabled = false;
-        borderDrawInfo.isHighlightEndPoints = true;
+        borderDrawInfo.isHighlightEndPoints = false;
         this->drawBorder(borderDrawInfo);
     }
 }

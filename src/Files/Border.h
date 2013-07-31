@@ -139,6 +139,10 @@ namespace caret {
         
         void setNameOrClassModified();
         
+        float getSegmentLength(SurfaceFile* surfaceFile,
+                                 const int32_t startPointIndex,
+                                 const int32_t endPointIndex);
+        
         AString m_name;
         
         AString m_className;

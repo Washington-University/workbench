@@ -262,8 +262,8 @@ UserInputModeBorders::setDrawOperation(const DrawOperation drawOperation)
 bool
 UserInputModeBorders::isHighlightBorderEndPoints() const
 {
-    if (this->mode == MODE_DRAW) {
-        if (this->drawOperation != DRAW_OPERATION_CREATE) {
+    if (getMode() == MODE_DRAW) {
+        if (getDrawOperation() != DRAW_OPERATION_CREATE) {
             return true;
         }
     }
