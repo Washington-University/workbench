@@ -514,6 +514,55 @@ CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
     m_connectivityDataLoaded->reset();
 }
 
+/**
+ * Load the given row from the file even if the file is disabled.
+ *
+ * NOTE: Afterwards, it will be necessary to update this file's color mapping
+ * with updateScalarColoringForMap().
+ *
+ *
+ * @param rowIndex
+ *    Index of row that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException)
+{
+    setLoadedRowDataToAllZeros();
+    
+    try {
+        const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+        if (dataCount > 0) {
+            m_rowLoadedTextForMapName = ("Row: "
+                                         + AString::number(rowIndex));
+            
+            m_rowLoadedText = ("Row_"
+                               + AString::number(rowIndex));
+            CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+            m_loadedRowData.resize(dataCount);
+            
+            m_ciftiInterface->getRow(&m_loadedRowData[0],
+                                     rowIndex);
+            
+            CaretLogFine("Read row " + AString::number(rowIndex));
+        }
+        else {
+            throw DataFileException("Row "
+                                    + AString::number(rowIndex)
+                                    + " is invalid or contains no data.");
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+    
+    CaretAssertVectorIndex(m_mapContent, 0);
+    m_mapContent[0]->invalidateColoring();
+
+    m_connectivityDataLoaded->setRowLoading(rowIndex);
+}
 
 /**
  * Load connectivity data for the surface's node.
@@ -1154,6 +1203,13 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_NONE:
+            break;
+        case ConnectivityDataLoaded::MODE_ROW:
+        {
+            int64_t rowIndex;
+            m_connectivityDataLoaded->getRowLoading(rowIndex);
+            loadDataForRowIndex(rowIndex);
+        }
             break;
         case ConnectivityDataLoaded::MODE_SURFACE_NODE:
         {

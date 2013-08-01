@@ -1327,6 +1327,30 @@ Brain::convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMa
 }
 
 /**
+ * Create a new fiber trajectory from the data currently loaded in the given
+ * fiber trajectory file.
+ *
+ * @param ciftiFiberTrajectoryFile
+ *    File that is the source of data for the new file.
+ * @param errorMessage
+ *    DataFileException if there is an error during conversion.
+ */
+void
+Brain::createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTrajectoryFile* ciftiFiberTrajectoryFile) throw (DataFileException)
+{
+    AString errorMessage;
+    CiftiFiberTrajectoryFile* trajFile = CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(ciftiFiberTrajectoryFile,
+                                                                                                           errorMessage);
+    
+    if (trajFile == NULL) {
+        throw DataFileException(errorMessage);
+    }
+    
+    m_connectivityFiberTrajectoryFiles.push_back(trajFile);
+    m_specFile->addCaretDataFile(trajFile);
+}
+
+/**
  * Read a connectivity dense scalar file.
  *
  * @param reloadThisFileIfNotNull

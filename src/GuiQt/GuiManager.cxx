@@ -1980,37 +1980,42 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
          * node that was loaded.
          */
         if (idNode->isValid()) {
-            Surface* surface = idNode->getSurface();
-            const int32_t nodeIndex = idNode->getNodeNumber();
-            try {
-                ciftiConnectivityManager->loadDataForSurfaceNode(surface,
+            /*
+             * NOT: node id was NOT created from voxel ID
+             */
+            if (nodeIdentificationCreatedFromVoxelIdentificationFlag == false) {
+                Surface* surface = idNode->getSurface();
+                const int32_t nodeIndex = idNode->getNodeNumber();
+                try {
+                    ciftiConnectivityManager->loadDataForSurfaceNode(surface,
+                                                                     nodeIndex,
+                                                                     ciftiLoadingInfo);
+                    
+                    ciftiFiberTrajectoryManager->loadDataForSurfaceNode(surface,
+                                                                        nodeIndex);
+                    QList<TimeLine> timeLines;
+                    chartingDataManager->loadChartForSurfaceNode(surface,
                                                                  nodeIndex,
-                                                                 ciftiLoadingInfo);
-                
-                ciftiFiberTrajectoryManager->loadDataForSurfaceNode(surface,
-                                                                    nodeIndex);
-                QList<TimeLine> timeLines;
-                chartingDataManager->loadChartForSurfaceNode(surface,
-                                                             nodeIndex,
-                                                             true, // only charting enabled files
-                                                             timeLines);
-                if (timeLines.empty() == false) {
-                    const int numTimeLines = timeLines.size();
-                    for (int itl = 0; itl < numTimeLines; itl++) {
-                        surface->getTimeLineInformation(nodeIndex,
-                                                        timeLines[itl]);
+                                                                 true, // only charting enabled files
+                                                                 timeLines);
+                    if (timeLines.empty() == false) {
+                        const int numTimeLines = timeLines.size();
+                        for (int itl = 0; itl < numTimeLines; itl++) {
+                            surface->getTimeLineInformation(nodeIndex,
+                                                            timeLines[itl]);
+                        }
+                        GuiManager::get()->addTimeLines(timeLines);
+                        EventUpdateTimeCourseDialog e;
+                        EventManager::get()->sendEvent(e.getPointer());
                     }
-                    GuiManager::get()->addTimeLines(timeLines);
-                    EventUpdateTimeCourseDialog e;
-                    EventManager::get()->sendEvent(e.getPointer());
+                    
+                    updateGraphicsFlag = true;
                 }
-                
-                updateGraphicsFlag = true;
-            }
-            catch (const DataFileException& e) {
-                cursor.restoreCursor();
-                QMessageBox::critical(parentWidget, "", e.whatString());
-                cursor.showWaitCursor();
+                catch (const DataFileException& e) {
+                    cursor.restoreCursor();
+                    QMessageBox::critical(parentWidget, "", e.whatString());
+                    cursor.showWaitCursor();
+                }
             }
         }
         

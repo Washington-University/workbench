@@ -138,6 +138,8 @@ namespace caret {
         virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
         
+        void loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException);
+        
         const std::vector<FiberOrientationTrajectory*>& getLoadedFiberOrientationTrajectories() const;
         
         void clearLoadedFiberOrientations();
@@ -163,6 +165,9 @@ namespace caret {
         void finishRestorationOfScene() throw (DataFileException);
         
         bool supportsWriting() const;
+        
+        static CiftiFiberTrajectoryFile* newFiberTrajectoryFileFromLoadedRowData(const CiftiFiberTrajectoryFile* trajFile,
+                                                                                 AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
         

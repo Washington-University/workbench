@@ -60,6 +60,7 @@ namespace caret {
     public:
         enum Mode {
             MODE_NONE,
+            MODE_ROW,
             MODE_SURFACE_NODE,
             MODE_SURFACE_NODE_AVERAGE,
             MODE_VOXEL_XYZ,
@@ -69,6 +70,10 @@ namespace caret {
         void reset();
         
         Mode getMode() const;
+        
+        void getRowLoading(int64_t& rowIndex) const;
+        
+        void setRowLoading(const int64_t rowIndex);
         
         void getSurfaceNodeLoading(StructureEnum::Enum& structure,
                                    int32_t& surfaceNumberOfNodes,
@@ -108,6 +113,8 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
         
         Mode m_mode;
+        
+        int32_t m_rowIndex;
         
         StructureEnum::Enum m_surfaceStructure;
         

@@ -43,7 +43,7 @@ class QSpinBox;
 
 namespace caret {
 
-    class CiftiMappableDataFile;
+    class CaretMappableDataFile;
     class StructureEnumComboBox;
     
     class IdentifyBrainordinateDialog : public WuQDialogModal {
@@ -92,7 +92,7 @@ namespace caret {
         
         static int32_t s_lastSelectedVertexIndex;
         
-        static CiftiMappableDataFile* s_lastSelectedCiftiFile;
+        static CaretMappableDataFile* s_lastSelectedCaretMappableDataFile;
         
         static int64_t s_lastSelectedCiftiRowIndex;
         
@@ -105,7 +105,7 @@ namespace caret {
     
     int32_t IdentifyBrainordinateDialog::s_lastSelectedVertexIndex = 0;
     
-    CiftiMappableDataFile* IdentifyBrainordinateDialog::s_lastSelectedCiftiFile = NULL;
+    CaretMappableDataFile* IdentifyBrainordinateDialog::s_lastSelectedCaretMappableDataFile = NULL;
     
     int64_t IdentifyBrainordinateDialog::s_lastSelectedCiftiRowIndex = -1;
     

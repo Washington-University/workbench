@@ -77,7 +77,9 @@ namespace caret {
         virtual bool loadMapAverageDataForVoxelIndices(const int32_t mapIndex,
                                                        const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
-        
+
+        void loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException);
+                
 //        bool getStructureAndNodeIndexFromRowIndex(const int64_t rowIndex,
 //                                                  StructureEnum::Enum& structureOut,
 //                                                  int64_t& nodeIndexOut) const;

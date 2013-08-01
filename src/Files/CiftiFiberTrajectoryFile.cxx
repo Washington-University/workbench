@@ -40,6 +40,7 @@
 #undef __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__
 
 #include "CaretAssert.h"
+#include "CiftiFacade.h"
 #include "CaretLogger.h"
 #include "CaretSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
@@ -743,6 +744,24 @@ CiftiFiberTrajectoryFile::writeFile(const AString& /*filename*/) throw (DataFile
 }
 
 /**
+ * Create a new fiber trajectory file from the loaded data of this file.
+ * 
+ * @param trajFile
+ *    Name of file to which loaded data is written.
+ * @param errorMessageOut
+ *    Error message if creation of new fiber trajectory file failed.
+ * @param 
+ *    Pointer to new file that was created or NULL if creation failed.
+ */
+CiftiFiberTrajectoryFile*
+CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(const CiftiFiberTrajectoryFile* trajFile,
+                                                                  AString& errorMessageOut)
+{
+    errorMessageOut = "Writing of loaded row not implemented.";
+    return NULL;
+}
+
+/**
  * Clear the loaded fiber orientations.
  */
 void
@@ -1171,6 +1190,61 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
                                  + AString::number(numberOfVoxels));
 }
 
+/**
+ * Load the given row index from the file even if the file is disabled for data loading
+ *
+ * @param rowIndex
+ *    Index of row that is loaded.
+ * @throw DataFileException
+ *    If an error occurs.
+ */
+void
+CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException)
+{
+    clearLoadedFiberOrientations();
+    
+    validateAssignedMatchingFiberOrientationFile();
+    
+    std::vector<int64_t> fiberIndices;
+    std::vector<FiberFractions> fiberFractions;
+    m_sparseFile->getFibersRowSparse(rowIndex,
+                                     fiberIndices,
+                                     fiberFractions);
+    CaretAssert(fiberIndices.size() == fiberFractions.size());
+    
+    const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
+    
+    if (numFibers > 0) {
+        m_fiberOrientationTrajectories.reserve(numFibers);
+        
+        for (int64_t iFiber = 0; iFiber < numFibers; iFiber++) {
+            const int64_t numFiberOrientations = m_matchingFiberOrientationFile->getNumberOfFiberOrientations();
+            const int64_t fiberIndex = fiberIndices[iFiber];
+            if (fiberIndex < numFiberOrientations) {
+                const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
+                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
+                                                                                 rowIndex);
+                fot->addFiberFractions(fiberFractions[iFiber]);
+                m_fiberOrientationTrajectories.push_back(fot);
+            }
+            else{
+                CaretLogSevere("Invalid index="
+                               + QString::number(fiberIndex)
+                               + " into fiber orientations");
+            }
+        }
+        
+        m_loadedDataDescriptionForMapName = ("Row: "
+                                             + AString::number(rowIndex));
+        
+        m_connectivityDataLoaded->setRowLoading(rowIndex);
+    }
+    else {
+        throw DataFileException("Row "
+                                + AString::number(rowIndex)
+                                + " is invalid or contains no data.");
+    }
+}
 
 /**
  * Finish restoration of scene.
@@ -1193,6 +1267,13 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_NONE:
+            break;
+        case ConnectivityDataLoaded::MODE_ROW:
+        {
+            int64_t rowIndex;
+            m_connectivityDataLoaded->getRowLoading(rowIndex);
+            loadDataForRowIndex(rowIndex);
+        }
             break;
         case ConnectivityDataLoaded::MODE_SURFACE_NODE:
         {
@@ -1315,5 +1396,3 @@ CiftiFiberTrajectoryFile::supportsWriting() const
 {
     return false;
 }
-
-

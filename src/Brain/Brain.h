@@ -260,6 +260,8 @@ namespace caret {
         
         void getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& ciftiFiberTrajectoryFilesOut) const;
         
+        void createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTrajectoryFile* ciftiFiberTrajectoryFile) throw (DataFileException);
+        
         int32_t getNumberOfConnectivityMatrixParcelFiles() const;
         
         CiftiConnectivityMatrixParcelFile* getConnectivityMatrixParcelFile(int32_t indx);

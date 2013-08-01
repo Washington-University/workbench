@@ -63,6 +63,8 @@ ConnectivityDataLoaded::ConnectivityDataLoaded()
     
     m_sceneAssistant = new SceneClassAssistant();
     
+    m_sceneAssistant->add("m_rowIndex",
+                          &m_rowIndex);
     m_sceneAssistant->add("m_surfaceNumberOfNodes",
                           &m_surfaceNumberOfNodes);
     m_sceneAssistant->add<StructureEnum, StructureEnum::Enum>("m_surfaceStructure",
@@ -92,6 +94,8 @@ ConnectivityDataLoaded::reset()
 {
     m_mode = MODE_NONE;
     
+    m_rowIndex = -1;
+    
     m_surfaceNodeIndices.clear();
     m_surfaceNumberOfNodes = 0;
     m_surfaceStructure = StructureEnum::INVALID;
@@ -106,6 +110,33 @@ ConnectivityDataLoaded::Mode
 ConnectivityDataLoaded::getMode() const
 {
     return m_mode;
+}
+
+/**
+ * Get the row that were loaded.
+ * 
+ * @param rowIndex
+ *    Row that were loaded, -1 if none.
+ */
+void
+ConnectivityDataLoaded::getRowLoading(int64_t& rowIndex) const
+{
+    rowIndex = m_rowIndex;
+}
+
+/**
+ * Set the row that were loaded.
+ *
+ * @param rowIndex
+ *    Indices of rows that were loaded.
+ */
+void
+ConnectivityDataLoaded::setRowLoading(const int64_t rowIndex)
+{
+    reset();
+    
+    m_mode = MODE_ROW;
+    m_rowIndex = rowIndex;
 }
 
 /**
@@ -298,6 +329,9 @@ ConnectivityDataLoaded::restoreFromScene(const SceneAttributes* sceneAttributes,
     if (modeName == "MODE_NONE") {
         m_mode = MODE_NONE;
     }
+    else if (modeName == "MODE_ROW") {
+        m_mode = MODE_ROW;
+    }
     else if (modeName == "MODE_SURFACE_NODE_AVERAGE") {
         m_mode = MODE_SURFACE_NODE_AVERAGE;
     }
@@ -366,6 +400,9 @@ ConnectivityDataLoaded::saveToScene(const SceneAttributes* sceneAttributes,
     switch (m_mode) {
         case MODE_NONE:
             modeName = "MODE_NONE";
+            break;
+        case MODE_ROW:
+            modeName = "MODE_ROW";
             break;
         case MODE_SURFACE_NODE:
             modeName = "MODE_SURFACE_NODE";

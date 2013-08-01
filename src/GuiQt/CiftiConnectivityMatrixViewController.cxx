@@ -226,13 +226,20 @@ CiftiConnectivityMatrixViewController::updateViewController()
 
     const int32_t numItems = static_cast<int32_t>(m_fileEnableCheckBoxes.size());
     for (int32_t i = 0; i < numItems; i++) {
-        const bool showIt = (i < numFiles);
+        bool showRow = false;
+        bool showOrientationComboBox = false;
+        if (i < numFiles) {
+            showRow = true;
+            if (dynamic_cast<CiftiFiberTrajectoryFile*>(files[i]) != NULL) {
+                showOrientationComboBox = true;
+            }
+        }
         
-        m_fileEnableCheckBoxes[i]->setVisible(showIt);
-        m_fileCopyToolButtons[i]->setVisible(showIt);
-        m_fileNameLineEdits[i]->setVisible(showIt);
-        m_fiberOrientationFileComboBoxes[i]->setVisible(showIt);
-        m_fiberOrientationFileComboBoxes[i]->setEnabled(showIt);
+        m_fileEnableCheckBoxes[i]->setVisible(showRow);
+        m_fileCopyToolButtons[i]->setVisible(showRow);
+        m_fileNameLineEdits[i]->setVisible(showRow);
+        m_fiberOrientationFileComboBoxes[i]->setVisible(showOrientationComboBox);
+        m_fiberOrientationFileComboBoxes[i]->setEnabled(showOrientationComboBox);
     }
     
     updateFiberOrientationComboBoxes();
@@ -254,11 +261,11 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
         CiftiFiberTrajectoryFile* trajFile = NULL;
         
-//        if (comboBox->isEnabled()) {
+        if (comboBox->isEnabled()) {
             getFileAtIndex(i,
                            matrixFile,
                            trajFile);
-//        }
+        }
         
         if (trajFile != NULL) {
             int32_t selectedIndex = 0;
@@ -287,9 +294,9 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
             comboBox->clear();
         }
         
-        const bool showComboBox = (trajFile != NULL);
-        m_fiberOrientationFileComboBoxes[i]->setVisible(showComboBox);
-        m_fiberOrientationFileComboBoxes[i]->setEnabled(showComboBox);
+//        const bool showComboBox = (trajFile != NULL);
+//        m_fiberOrientationFileComboBoxes[i]->setVisible(showComboBox);
+//        m_fiberOrientationFileComboBoxes[i]->setEnabled(showComboBox);
 //        std::cout << "Show Orientation File Combo Box: "
 //        << i
 //        << ": "
@@ -452,7 +459,7 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
             brain->convertCiftiMatrixFileToCiftiScalarFile(matrixFile);
         }
         else if (trajFile != NULL) {
-            throw DataFileException("Conversion to CIFTI Traj Parcel not implemented.");
+            brain->createNewConnectivityFiberTrajectoryFileFromLoadedData(trajFile);
         }
         else {
             CaretAssertMessage(0,
