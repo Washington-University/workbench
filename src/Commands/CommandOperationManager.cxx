@@ -104,6 +104,7 @@
 #include "OperationCiftiChangeTimestep.h"
 #include "OperationCiftiConvert.h"
 #include "OperationCiftiConvertToScalar.h"
+#include "OperationCiftiLabelImport.h"
 #include "OperationCiftiMath.h"
 #include "OperationCiftiPalette.h"
 #include "OperationCiftiROIAverage.h"
@@ -277,6 +278,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeTimestep()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));

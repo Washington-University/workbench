@@ -401,7 +401,7 @@ namespace caret {
         
         //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index
-        GiftiLabelTable* getMapLabelTable(const int& index, const int& myMapIndex) const;
+        GiftiLabelTable* getMapLabelTable(const int& direction, const int& myMapIndex) const;
 
         ///set the map name for an index along a column
         bool setMapNameForColumnIndex(const int& index, const AString& name) const;
