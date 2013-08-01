@@ -84,7 +84,8 @@ CiftiFiberTrajectoryManager::~CiftiFiberTrajectoryManager()
  */
 bool
 CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
-                                                    const int32_t nodeIndex) throw (DataFileException)
+                                                    const int32_t nodeIndex,
+                                                    std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     bool dataWasLoaded = false;
     
@@ -94,10 +95,20 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFi
     const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
         CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
-        trajFile->loadDataForSurfaceNode(surfaceFile->getStructure(),
+        const int64_t rowIndex = trajFile->loadDataForSurfaceNode(surfaceFile->getStructure(),
                                          surfaceFile->getNumberOfNodes(),
                                          nodeIndex);
-        dataWasLoaded = true;
+        if (rowIndex >= 0) {
+            /*
+             * Get row/column info for node
+             */
+            rowColumnInformationOut.push_back(trajFile->getFileNameNoPath()
+                                              + " nodeIndex="
+                                              + AString::number(nodeIndex)
+                                              + ", row index= "
+                                              + AString::number(rowIndex));
+            dataWasLoaded = true;
+        }
     }
     
     return dataWasLoaded;
@@ -155,7 +166,8 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
  *    true if any connectivity loaders are active, else false.
  */
 bool
-CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(const float xyz[3],
+                                                          std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
     m_brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
@@ -166,8 +178,18 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(const float xyz[3]) th
          iter++) {
         CiftiFiberTrajectoryFile* trajFile = *iter;
         if (trajFile->isEmpty() == false) {
-            trajFile->loadMapDataForVoxelAtCoordinate(xyz);
-            haveData = true;
+            const int64_t rowIndex = trajFile->loadMapDataForVoxelAtCoordinate(xyz);
+            if (rowIndex >= 0) {
+                /*
+                 * Get row/column info for node
+                 */
+                rowColumnInformationOut.push_back(trajFile->getFileNameNoPath()
+                                                  + " Voxel XYZ="
+                                                  + AString::fromNumbers(xyz, 3, ",")
+                                                  + ", row index= "
+                                                  + AString::number(rowIndex));
+                haveData = true;
+            }
         }
     }
     

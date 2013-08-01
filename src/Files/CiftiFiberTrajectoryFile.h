@@ -125,7 +125,7 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
-        void loadDataForSurfaceNode(const StructureEnum::Enum structure,
+        int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t surfaceNumberOfNodes,
                                     const int32_t nodeIndex) throw (DataFileException);
         
@@ -133,7 +133,7 @@ namespace caret {
                                             const int32_t surfaceNumberOfNodes,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
-        virtual void loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual int64_t loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         virtual void loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                                        const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);

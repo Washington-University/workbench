@@ -824,14 +824,16 @@ CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile() throw (
  *    Number of nodes in the surface.
  * @param nodeIndex
  *    Index of the surface node.
+ * @return 
+ *    Index of row that was loaded or -1 if no data was found for node.
  */
-void
+int64_t
 CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                                  const int32_t surfaceNumberOfNodes,
                                                  const int32_t nodeIndex) throw (DataFileException)
 {
     if (m_dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
     
     clearLoadedFiberOrientations();
@@ -840,16 +842,16 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
     
     const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
     if (trajXML.hasColumnSurfaceData(structure) == false) {
-        return;
+        return -1;
     }
     if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
-        return;
+        return -1;
     }
     
     const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
                                                         structure);
     if (rowIndex < 0) {
-        return;
+        return -1;
     }
     
     std::vector<int64_t> fiberIndices;
@@ -897,6 +899,11 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
                                                         surfaceNumberOfNodes,
                                                         nodeIndex);
     }
+    else {
+        return -1;
+    }
+    
+    return rowIndex;
 }
 
 /**
@@ -1020,14 +1027,16 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
  *
  * @param xyz
  *    Coordinate of voxel.
+ * @return
+ *    Index of row that was loaded or -1 if no data was found for coordinate.
  * @throw
  *    DataFileException if there is an error.
  */
-void
+int64_t
 CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
     if (m_dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
     
     clearLoadedFiberOrientations();
@@ -1041,7 +1050,7 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
 
     const int64_t rowIndex = trajXML.getRowIndexForVoxelCoordinate(xyz);
     if (rowIndex < 0) {
-        return;
+        return -1;
     }
     
     std::vector<int64_t> fiberIndices;
@@ -1086,6 +1095,11 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
         
         m_connectivityDataLoaded->setVolumeXYZLoading(xyz);
     }
+    else {
+        return -1;
+    }
+    
+    return rowIndex;
 }
 
 /**

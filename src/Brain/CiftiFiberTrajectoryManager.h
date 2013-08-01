@@ -53,13 +53,15 @@ namespace caret {
         virtual ~CiftiFiberTrajectoryManager();
         
         bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
-                                    const int32_t nodeIndex) throw (DataFileException);
+                                    const int32_t nodeIndex,
+                                    std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
         bool loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         void reset();
         
-        bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        bool loadDataForVoxelAtCoordinate(const float xyz[3],
+                                          std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
         bool loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
                                             const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);

@@ -1992,7 +1992,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                                                                      ciftiLoadingInfo);
                     
                     ciftiFiberTrajectoryManager->loadDataForSurfaceNode(surface,
-                                                                        nodeIndex);
+                                                                        nodeIndex,
+                                                                        ciftiLoadingInfo);
                     QList<TimeLine> timeLines;
                     chartingDataManager->loadChartForSurfaceNode(surface,
                                                                  nodeIndex,
@@ -2037,7 +2038,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 try {
                     ciftiConnectivityManager->loadDataForVoxelAtCoordinate(xyz,
                                                            ciftiLoadingInfo);
-                    ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(xyz);
+                    ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(xyz,
+                                                                              ciftiLoadingInfo);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
