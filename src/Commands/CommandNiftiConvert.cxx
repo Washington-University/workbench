@@ -88,14 +88,14 @@ CommandNiftiConvert::executeOperation(ProgramParameters& parameters) throw (Comm
 {
     try
     {
-    const AString inputFileName = parameters.nextString("Input NIFTI File Name");
-    const AString outputFileName = parameters.nextString("Output NIFTI File Name");
-    NiftiFile nf(inputFileName);
-    //NiftiFile nfOut;
-    Nifti2Header header;
-    nf.getHeader(header);
-    nf.setHeader(header);
-    nf.writeFile(outputFileName);
+        const AString inputFileName = parameters.nextString("Input NIFTI File Name");
+        const AString outputFileName = parameters.nextString("Output NIFTI File Name");
+        NiftiFile nf(inputFileName);
+        //NiftiFile nfOut;
+        Nifti2Header header;
+        nf.getHeader(header);
+        nf.setHeader(header);
+        nf.writeFile(outputFileName);
     } catch (ProgramParametersException& e) {
         throw e;
     } catch (CaretException& e) {

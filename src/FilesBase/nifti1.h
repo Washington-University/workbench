@@ -128,6 +128,10 @@ extern "C" {
 #endif
 /*=================*/
 
+//hopefully cross-platform solution to byte padding added by some compilers
+#pragma pack(push)
+#pragma pack(1)
+
 /*! \struct nifti_1_header
     \brief Data structure defining the fields in the nifti1 header.
            This binary header should be found at the beginning of a valid
@@ -289,6 +293,9 @@ struct nifti1_extension {
     char * edata ; /*!< raw data, with no byte swapping                      */
 } ;
 typedef struct nifti1_extension nifti1_extension ;
+
+//and restore packing behavior
+#pragma pack(pop)
 
 /*---------------------------------------------------------------------------*/
 /* DATA DIMENSIONALITY (as in ANALYZE 7.5):
