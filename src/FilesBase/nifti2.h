@@ -40,6 +40,10 @@ const int32_t NIFTI2_HEADER_SIZE=540;
      ( (h).magic[2]>='1' && (h).magic[2]<='9' )   )    \
 ? (h).magic[2]-'0' : 0 )*/
 
+//hopefully cross-platform solution to byte padding added by some compilers
+#pragma pack(push)
+#pragma pack(1)
+
 /*************************/  /************************/ /************/
 struct nifti_2_header {   /* NIFTI-2 usage         */  /* NIFTI-1 usage        */ /*  offset  */
     /*************************/  /************************/ /************/
@@ -82,6 +86,9 @@ struct nifti_2_header {   /* NIFTI-2 usage         */  /* NIFTI-1 usage        *
     char unused_str[15];  /*!< unused, filled with \0 */                                  /* 525 */
 } ;                       /**** 540 bytes total ****/
 typedef struct nifti_2_header nifti_2_header ;
+
+//and restore packing behavior
+#pragma pack(pop)
 
 /*=================*/
 #ifdef  __cplusplus

@@ -86,6 +86,8 @@ void
 CommandNiftiConvert::executeOperation(ProgramParameters& parameters) throw (CommandException,
                                                                ProgramParametersException)
 {
+    try
+    {
     const AString inputFileName = parameters.nextString("Input NIFTI File Name");
     const AString outputFileName = parameters.nextString("Output NIFTI File Name");
     NiftiFile nf(inputFileName);
@@ -94,4 +96,13 @@ CommandNiftiConvert::executeOperation(ProgramParameters& parameters) throw (Comm
     nf.getHeader(header);
     nf.setHeader(header);
     nf.writeFile(outputFileName);
+    } catch (ProgramParametersException& e) {
+        throw e;
+    } catch (CaretException& e) {
+        throw CommandException(e);//rethrow all other caret exceptions as CommandException
+    } catch (std::exception& e) {
+        throw CommandException(e.what());//rethrow std::exception and derived as CommandException
+    } catch (...) {
+        throw CommandException("unknown exception type thrown");//throw dummy CommandException for anything else
+    }
 }
