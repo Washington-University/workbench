@@ -44,6 +44,7 @@ class QRadioButton;
 
 namespace caret {
     class EnumComboBoxTemplate;
+    class UsernamePasswordWidget;
     class WuQWidgetObjectGroup;
 
     class CaretFileRemoteDialog : public WuQDialogModal {
@@ -63,8 +64,6 @@ namespace caret {
         void selectCustomRadioButton();
         
         void selectStandardRadioButton();
-        
-        void savePasswordToPreferencesClicked(bool);
         
     private:
         CaretFileRemoteDialog(const CaretFileRemoteDialog&);
@@ -91,25 +90,21 @@ namespace caret {
                 m_customURL = "http://";
                 m_customDataFileType = DataFileTypeEnum::CONNECTIVITY_DENSE;
                 m_standardFileComboBoxIndex = 0;
-                m_username = "";
-                m_password = "";
                 m_firstTime = true;
             }
             
             AString m_customURL;
             DataFileTypeEnum::Enum m_customDataFileType;
             int m_standardFileComboBoxIndex;
-            AString m_username;
-            AString m_password;
             AString m_radioButtonText;
             bool m_firstTime;
         };
         
         QWidget* createLocationWidget();
         
-        QWidget* createLoginWidget();
-        
         void createAndLoadStandardData();
+        
+        UsernamePasswordWidget* m_usernamePasswordWidget;
         
         QRadioButton* m_locationCustomRadioButton;
         QRadioButton* m_locationStandardRadioButton;
@@ -117,8 +112,6 @@ namespace caret {
         QComboBox* m_standardFileComboBox;
         EnumComboBoxTemplate* m_customUrlFileTypeComboBox;
         QLineEdit* m_customUrlLineEdit;
-        QLineEdit* m_usernameLineEdit;
-        QLineEdit* m_passwordLineEdit;
         
         QCheckBox* m_savePasswordToPreferencesCheckBox;
         

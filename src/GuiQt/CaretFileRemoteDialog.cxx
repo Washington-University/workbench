@@ -65,6 +65,7 @@
 #include "ProgressReportingDialog.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
+#include "UsernamePasswordWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -85,14 +86,14 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
                  parent)
 {
     QWidget* locationWidget = createLocationWidget();
-    QWidget* loginWidget    = createLoginWidget();
+    m_usernamePasswordWidget = new UsernamePasswordWidget();
     
     createAndLoadStandardData();
     
     QWidget* controlsWidget = new QWidget();
     QVBoxLayout* controlsLayout = new QVBoxLayout(controlsWidget);
     controlsLayout->addWidget(locationWidget);
-    controlsLayout->addWidget(loginWidget, 0, Qt::AlignCenter);
+    controlsLayout->addWidget(m_usernamePasswordWidget, 0, Qt::AlignCenter);
     WuQtUtilities::setLayoutSpacingAndMargins(controlsLayout, 4, 2);
 
     setCentralWidget(controlsWidget);
@@ -104,25 +105,11 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
     
     if (s_previousSelections.m_firstTime) {
         s_previousSelections.m_firstTime = false;
-        
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        AString userName;
-        AString password;
-        prefs->getRemoteFileUserNameAndPassword(userName,
-                                                password);
-        s_previousSelections.m_username = userName;
-        if (prefs->isRemoteFilePasswordSaved()) {
-            s_previousSelections.m_password = password;
-        }
-        else {
-            s_previousSelections.m_password = "";
-        }
     }
+    
     m_customUrlLineEdit->setText(s_previousSelections.m_customURL);
     m_customUrlFileTypeComboBox->setSelectedItem<DataFileTypeEnum, DataFileTypeEnum::Enum>(s_previousSelections.m_customDataFileType);
     m_standardFileComboBox->setCurrentIndex(s_previousSelections.m_standardFileComboBoxIndex);
-    m_usernameLineEdit->setText(s_previousSelections.m_username);
-    m_passwordLineEdit->setText(s_previousSelections.m_password);
     if (m_locationCustomRadioButton->text() == s_previousSelections.m_radioButtonText) {
         defaultRadioButton = m_locationCustomRadioButton;
     }
@@ -271,72 +258,6 @@ CaretFileRemoteDialog::locationSourceRadioButtonClicked(QAbstractButton* button)
 }
 
 /**
- * @return The login widget.
- */
-QWidget*
-CaretFileRemoteDialog::createLoginWidget()
-{
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
-    QLabel* usernameLabel = new QLabel("User Name: ");
-    m_usernameLineEdit = new QLineEdit();
-    m_usernameLineEdit->setFixedWidth(200);
-    
-    QLabel* passwordLabel = new QLabel("Password: ");
-    m_passwordLineEdit = new QLineEdit();
-    m_passwordLineEdit->setFixedWidth(200);
-    m_passwordLineEdit->setEchoMode(QLineEdit::Password);
-    
-    m_savePasswordToPreferencesCheckBox = new QCheckBox("Save Password to Preferences");
-    m_savePasswordToPreferencesCheckBox->setChecked(prefs->isRemoteFilePasswordSaved());
-    QObject::connect(m_savePasswordToPreferencesCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(savePasswordToPreferencesClicked(bool)));
-    
-    int row = 0;
-    QGroupBox* logingroupBox = new QGroupBox("Login");
-    QGridLayout* loginGridLayout = new QGridLayout(logingroupBox);
-    loginGridLayout->setColumnStretch(0, 0);
-    loginGridLayout->setColumnStretch(1, 100);
-    loginGridLayout->addWidget(usernameLabel, row, 0);
-    loginGridLayout->addWidget(m_usernameLineEdit, row, 1);
-    row++;
-    loginGridLayout->addWidget(passwordLabel, row, 0);
-    loginGridLayout->addWidget(m_passwordLineEdit, row, 1);
-    row++;
-    loginGridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
-                               row, 0, 1, 2);
-    row++;
-    loginGridLayout->addWidget(m_savePasswordToPreferencesCheckBox,
-                               row, 0, 1, 2, Qt::AlignLeft);
-    row++;
-
-    return logingroupBox;
-}
-
-/**
- * Called when save password to preferences checkbox value is changed
- * by the user.
- *
- * @param status
- *   New status of save password to preferences checkbox.
- */
-void
-CaretFileRemoteDialog::savePasswordToPreferencesClicked(bool status)
-{
-    if (status) {
-        const QString msg = ("The Workbench preferences are stored in a file somewhere in your "
-                             "home directory and the location depends upon your operating "
-                             "system.  This is not a secure file and it may be possible "
-                             "other users to access this file and find your "
-                             "open location password.  Unchceck the box if you do not want "
-                             "your password saved within your preferences.");
-        WuQMessageBox::informationOk(m_savePasswordToPreferencesCheckBox,
-                                     WuQtUtilities::createWordWrappedToolTipText(msg));
-    }
-}
-
-
-/**
  * Create and load the standard data.
  */
 void
@@ -370,22 +291,10 @@ CaretFileRemoteDialog::createAndLoadStandardData()
 void
 CaretFileRemoteDialog::okButtonClicked()
 {
-    const AString username = m_usernameLineEdit->text().trimmed();
-    const AString password = m_passwordLineEdit->text().trimmed();
-    s_previousSelections.m_username = username;
-    s_previousSelections.m_password = password;
-    const bool savePassword = m_savePasswordToPreferencesCheckBox->isChecked();
-    
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setRemoteFilePasswordSaved(savePassword);
-    if (savePassword) {
-        prefs->setRemoteFileUserNameAndPassword(username,
-                                                password);
-    }
-    else {
-        prefs->setRemoteFileUserNameAndPassword(username,
-                                                "");
-    }
+    AString username;
+    AString password;
+    m_usernamePasswordWidget->getUsernameAndPassword(username,
+                                                     password);
     
     bool customSelected = false;
     if (m_locationCustomRadioButton->isChecked()) {

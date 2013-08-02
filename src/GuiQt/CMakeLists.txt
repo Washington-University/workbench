@@ -95,6 +95,7 @@ TimeCoursePlotter.h
 TimeSeriesManagerForViewController.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
+UsernamePasswordWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
@@ -222,6 +223,7 @@ UserInputModeFociWidget.h
 UserInputModeFoci.h
 UserInputModeView.h
 UserInputReceiverInterface.h
+UsernamePasswordWidget.h
 ViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
@@ -342,6 +344,7 @@ UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
 UserInputModeView.cxx
+UsernamePasswordWidget.cxx
 ViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
 VolumeSurfaceOutlineSetViewController.cxx
