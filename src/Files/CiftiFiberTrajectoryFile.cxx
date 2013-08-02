@@ -746,18 +746,66 @@ CiftiFiberTrajectoryFile::writeFile(const AString& /*filename*/) throw (DataFile
 /**
  * Create a new fiber trajectory file from the loaded data of this file.
  * 
- * @param trajFile
- *    Name of file to which loaded data is written.
  * @param errorMessageOut
  *    Error message if creation of new fiber trajectory file failed.
  * @param 
  *    Pointer to new file that was created or NULL if creation failed.
  */
 CiftiFiberTrajectoryFile*
-CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(const CiftiFiberTrajectoryFile* trajFile,
-                                                                  AString& errorMessageOut)
+CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& errorMessageOut) const
 {
-    errorMessageOut = "Writing of loaded row not implemented.";
+    errorMessageOut = "Implementation not complete.";
+    return NULL;
+    
+    
+    
+    
+    
+    errorMessageOut = "";
+    
+    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
+    if (numTraj <= 0) {
+        errorMessageOut = "No data is loaded so cannot create file.";
+        return NULL;
+    }
+    
+    
+    
+    CiftiFiberTrajectoryFile* newFile = NULL;
+    try {
+        const AString newFileName = "test." + DataFileTypeEnum::toFileExtension(getDataFileType());
+        std::cout << "Filename: " << qPrintable(newFileName) << std::endl;
+        
+        /*
+         * Write to temp file!!!!!
+         */
+        CiftiXML xml = m_sparseFile->getCiftiXML();
+        CaretSparseFileWriter sparseWriter (newFileName,
+                                            xml);
+        
+        for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
+            const FiberOrientationTrajectory* fiberTraj = m_fiberOrientationTrajectories[iTraj];
+            const int64_t rowIndex = fiberTraj->getRowIndex();
+            
+            
+            //        sparseWriter.writeFibersRowSparse(rowIndex,
+            //                                    fiberTraj->m_fiberIndices,
+            //                                    fiberTraj->m_fiberFractions);
+        }
+        sparseWriter.finish();
+        
+        newFile = new CiftiFiberTrajectoryFile();
+        newFile->readFile(newFileName);
+        return newFile;
+    }
+    catch (const DataFileException& dfe) {
+        if (newFile != NULL) {
+            delete newFile;
+        }
+        errorMessageOut = dfe.whatString();
+        return NULL;
+    }
+
     return NULL;
 }
 
@@ -878,7 +926,8 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
                                                                                  rowIndex);
-                fot->addFiberFractions(fiberFractions[iFiber]);
+                fot->addFiberFractions(fiberFractions[iFiber],
+                                       fiberIndex);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
             else{
@@ -985,7 +1034,8 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
                          */
                         FiberOrientationTrajectory* fot = trajIter->second;
                         CaretAssert(fot);
-                        fot->addFiberFractions(fiberFractions[indx]);
+                        fot->addFiberFractions(fiberFractions[indx],
+                                               fiberOrientationIndex);
                     }
                     else {
                         /*
@@ -999,7 +1049,8 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
                         /*
                          * Add fiber fractions to trajectory
                          */
-                        fot->addFiberFractions(fiberFractions[indx]);
+                        fot->addFiberFractions(fiberFractions[indx],
+                                               fiberOrientationIndex);
                         
                         /*
                          * Add to map keyed by fiber orientation index for averaging
@@ -1077,7 +1128,8 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
                                                                                  rowIndex);
-                fot->addFiberFractions(fiberFractions[iFiber]);
+                fot->addFiberFractions(fiberFractions[iFiber],
+                                       fiberIndex);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
             else{
@@ -1170,7 +1222,8 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
                          */
                         FiberOrientationTrajectory* fot = trajIter->second;
                         CaretAssert(fot);
-                        fot->addFiberFractions(fiberFractions[indx]);
+                        fot->addFiberFractions(fiberFractions[indx],
+                                               fiberOrientationIndex);
                     }
                     else {
                         /*
@@ -1184,7 +1237,8 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
                         /*
                          * Add fiber fractions to trajectory
                          */
-                        fot->addFiberFractions(fiberFractions[indx]);
+                        fot->addFiberFractions(fiberFractions[indx],
+                                               fiberOrientationIndex);
                         
                         /*
                          * Add to map keyed by fiber orientation index for averaging
@@ -1238,7 +1292,8 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (Dat
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation,
                                                                                  rowIndex);
-                fot->addFiberFractions(fiberFractions[iFiber]);
+                fot->addFiberFractions(fiberFractions[iFiber],
+                                       fiberIndex);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
             else{

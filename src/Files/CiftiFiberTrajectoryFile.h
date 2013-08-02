@@ -166,8 +166,7 @@ namespace caret {
         
         bool supportsWriting() const;
         
-        static CiftiFiberTrajectoryFile* newFiberTrajectoryFileFromLoadedRowData(const CiftiFiberTrajectoryFile* trajFile,
-                                                                                 AString& errorMessageOut);
+        CiftiFiberTrajectoryFile* newFiberTrajectoryFileFromLoadedRowData(AString& errorMessageOut) const;
         
         // ADD_NEW_METHODS_HERE
         

@@ -67,8 +67,10 @@ FiberOrientationTrajectory::~FiberOrientationTrajectory()
 }
 
 void
-FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
+FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction,
+                                              const int64_t fiberIndex)
 {
     m_fiberFractions.push_back(fiberFraction);
+    m_fiberIndices.push_back(fiberIndex);
 }
 

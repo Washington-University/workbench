@@ -37,6 +37,7 @@
 #include <vector>
 #include <stdint.h>
 
+#include "CaretAssert.h"
 
 namespace caret {
 
@@ -51,7 +52,8 @@ namespace caret {
         
         virtual ~FiberOrientationTrajectory();
         
-        void addFiberFractions(const FiberFractions& fiberFraction);
+        void addFiberFractions(const FiberFractions& fiberFraction,
+                               const int64_t fiberIndex);
         
         /**
          * @return the Fiber Orientation.
@@ -77,7 +79,21 @@ namespace caret {
          *    Fiber fraction at the given index.
          */
         inline const FiberFractions* getFiberFraction(const int64_t indx) const {
+            CaretAssertVectorIndex(m_fiberFractions, indx);
             return &m_fiberFractions[indx];
+        }
+        
+        /**
+         * Get the fiber indices at the given index.
+         *
+         * @param indx
+         *    Index of the fiber fraction.
+         * @return
+         *    Fiber indices at the given index.
+         */
+        inline int64_t getFiberIndex(const int64_t indx) const {
+            CaretAssertVectorIndex(m_fiberIndices, indx);
+            return m_fiberIndices[indx];
         }
         
     private:
@@ -96,8 +112,11 @@ namespace caret {
         
         std::vector<FiberFractions> m_fiberFractions;
 
+        std::vector<int64_t> m_fiberIndices;
+        
         // ADD_NEW_MEMBERS_HERE
 
+        friend class CiftiFiberTrajectoryFile;
     };
     
 #ifdef __FIBER_ORIENTATION_TRAJECTORY_DECLARE__

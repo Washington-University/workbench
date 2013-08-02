@@ -1339,8 +1339,8 @@ void
 Brain::createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTrajectoryFile* ciftiFiberTrajectoryFile) throw (DataFileException)
 {
     AString errorMessage;
-    CiftiFiberTrajectoryFile* trajFile = CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(ciftiFiberTrajectoryFile,
-                                                                                                           errorMessage);
+    
+    CiftiFiberTrajectoryFile* trajFile = ciftiFiberTrajectoryFile->newFiberTrajectoryFileFromLoadedRowData(errorMessage);
     
     if (trajFile == NULL) {
         throw DataFileException(errorMessage);
