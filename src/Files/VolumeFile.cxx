@@ -1049,12 +1049,18 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
  * Does nothing if coloring is not enabled and output colors are undefined
  * in this case.
  *
+ * @param paletteFile
+ *    The palette file.
  * @param mapIndex
  *    Index of the map.
  * @param slicePlane
  *    Plane for which colors are requested.
  * @param sliceIndex
  *    Index of the slice.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbaOut
  *    Contains colors upon exit.
  */
@@ -1063,6 +1069,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
                                         const int32_t mapIndex,
                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                  const int64_t sliceIndex,
+                                        const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
                                  uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1153,6 +1161,8 @@ VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
  * Does nothing if coloring is not enabled and output colors are undefined
  * in this case.
  *
+ * @param paletteFile
+ *    The palette file.
  * @param i
  *    Parasaggital index
  * @param j
@@ -1161,6 +1171,10 @@ VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
  *    Axial index
  * @param mapIndex
  *    Index of map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbaOut
  *    Contains voxel coloring on exit.
  */
@@ -1170,6 +1184,8 @@ VolumeFile::getVoxelColorInMap(const PaletteFile* /*paletteFile*/,
                         const int64_t j,
                         const int64_t k,
                         const int64_t mapIndex,
+                               const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex,
                         uint8_t rgbaOut[4]) const
 {
     if (s_voxelColoringEnabled == false) {

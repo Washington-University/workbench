@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include "DisplayGroupEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
@@ -204,12 +205,18 @@ namespace caret {
         /**
          * Get the voxel colors for a slice in the map.
          *
+         * @param paletteFile
+         *    The palette file.
          * @param mapIndex
          *    Index of the map.
          * @param slicePlane
          *    The slice plane.
          * @param sliceIndex
          *    Index of the slice.
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
          * @param rgbaOut
          *    Output containing the rgba values (must have been allocated
          *    by caller to sufficient count of elements in the slice).
@@ -218,11 +225,15 @@ namespace caret {
                                                  const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
+                                                 const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex,
                                                  uint8_t* rgbaOut) const = 0;
         
         /**
          * Get the voxel coloring for the voxel at the given indices.
          *
+         * @param paletteFile
+         *    The palette file.
          * @param indexIn1
          *     First dimension (i).
          * @param indexIn2
@@ -231,6 +242,10 @@ namespace caret {
          *     Third dimension (k).
          * @param brickIndex
          *     Time/map index.
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
          * @param rgbaOut
          *     Output containing RGBA values for voxel at the given indices.
          */
@@ -239,7 +254,9 @@ namespace caret {
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t brickIndex,
-                                        uint8_t rgbaOut[4]) const = 0;        
+                                        const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
+                                        uint8_t rgbaOut[4]) const = 0;
     };
     
 #ifdef __VOLUME_MAPPABLE_INTERFACE_DECLARE__

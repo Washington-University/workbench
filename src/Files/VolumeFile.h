@@ -226,6 +226,8 @@ namespace caret {
                                          const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
+                                         const DisplayGroupEnum::Enum displayGroup,
+                                         const int32_t tabIndex,
                                          uint8_t* rgbaOut) const;
 
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
@@ -238,6 +240,8 @@ namespace caret {
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,
+                                const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const;
         
         void clearVoxelColoringForMap(const int64_t mapIndex);

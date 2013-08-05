@@ -1513,12 +1513,18 @@ CiftiMappableDataFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) con
 /**
  * Get the voxel colors for a slice in the map.
  *
+ * @param paletteFile
+ *    The palette file.
  * @param mapIndex
  *    Index of the map.
  * @param slicePlane
  *    The slice plane.
  * @param sliceIndex
  *    Index of the slice.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbaOut
  *    Output containing the rgba values (must have been allocated
  *    by caller to sufficient count of elements in the slice).
@@ -1528,6 +1534,8 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                                                    const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
+                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                   const int32_t tabIndex,
                                          uint8_t* rgbaOut) const
 {
     CaretAssertVectorIndex(m_mapContent,
@@ -1598,6 +1606,14 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     const float* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
     
     CaretAssert(m_voxelIndicesToOffset);
+
+    std::vector<float> dataValues;
+    getMapData(mapIndex,
+               dataValues);
+    const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
+    if (isMappedWithLabelTable()) {
+        CaretAssert(labelTable);
+    }
     
     /*
      * Set the rgba components for the slice.
@@ -1610,8 +1626,8 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
             for (int64_t j = 0; j < dimJ; j++) {
                 for (int64_t i = 0; i < dimI; i++) {
                     const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(i,
-                                                                                           j,
-                                                                                           sliceIndex);
+                                                                                     j,
+                                                                                     sliceIndex);
                     if (dataOffset >= 0) {
                         const int64_t dataOffset4 = dataOffset * 4;
                         CaretAssert(dataOffset4 < mapRgbaCount);
@@ -1630,6 +1646,27 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                         if (alpha < 0.0) {
                             alpha = 0.0;
                         }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, invalidate the data offset which will
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
@@ -1699,6 +1736,8 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
 /**
  * Get the voxel coloring for the voxel at the given indices.
  *
+ * @param paletteFile
+ *     The palette file.
  * @param indexIn1
  *     First dimension (i).
  * @param indexIn2
@@ -1707,6 +1746,10 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
  *     Third dimension (k).
  * @param mapIndex
  *     Time/map index.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbaOut
  *     Output containing RGBA values for voxel at the given indices.
  */
@@ -1716,6 +1759,8 @@ CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
                                 const int64_t indexIn2,
                                 const int64_t indexIn3,
                                 const int64_t mapIndex,
+                                          const DisplayGroupEnum::Enum displayGroup,
+                                          const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const
 {
     rgbaOut[0] = 0;

@@ -3260,6 +3260,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                                     mapIndex,
                                                     slicePlane,
                                                     drawingSliceIndex,
+                                                    displayGroup,
+                                                    browserTabIndex,
                                                     sliceVoxelsRGBA);
             
             /*
@@ -3704,6 +3706,9 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     
     glEnable(GL_CULL_FACE);
     
+    const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
+    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
+    
     /*
      * For identification, five items per voxel
      * 1) volume index
@@ -3752,6 +3757,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                    jVoxel,
                                                    kVoxel,
                                                    volInfo.mapIndex,
+                                                   displayGroup,
+                                                   this->windowTabIndex,
                                                    rgba);
                     if (rgba[3] > 0) {
                         if (volInfo.opacity < 1.0) {
@@ -4649,6 +4656,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                                                jVoxel,
                                                kVoxel,
                                                volInfo.mapIndex,
+                                               displayGroup,
+                                               this->windowTabIndex,
                                                rgbaVoxel);
                         rgba[sliceRgbaOffset]   = rgbaVoxel[0];
                         rgba[sliceRgbaOffset+1] = rgbaVoxel[1];

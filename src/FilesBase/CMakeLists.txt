@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(FilesBase
 BrainConstants.h
+DisplayGroupEnum.h
 GiftiException.h
 GiftiLabel.h
 GiftiLabelTable.h
@@ -35,6 +36,7 @@ VolumeSliceViewPlaneEnum.h
 VolumeSpace.h
 
 BrainConstants.cxx
+DisplayGroupEnum.cxx
 GiftiException.cxx
 GiftiLabel.cxx
 GiftiLabelTable.cxx

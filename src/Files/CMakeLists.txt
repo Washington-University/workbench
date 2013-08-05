@@ -43,7 +43,6 @@ CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
 ConnectivityDataLoaded.h
 DataFileTypeEnum.h
-DisplayGroupEnum.h
 EventCiftiMappableDataFileColoringUpdated.h
 EventSurfaceColoringInvalidate.h
 Fiber.h
@@ -130,7 +129,6 @@ CiftiMappableDataFile.cxx
 CiftiMappableConnectivityMatrixDataFile.cxx
 ConnectivityDataLoaded.cxx
 DataFileTypeEnum.cxx
-DisplayGroupEnum.cxx
 EventCiftiMappableDataFileColoringUpdated.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
