@@ -79,6 +79,7 @@ AlgorithmVolumeDilate.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
 AlgorithmVolumeGradient.h
+AlgorithmVolumeLabelToSurfaceMapping.h
 AlgorithmVolumeMerge.h
 AlgorithmVolumeParcelResampling.h
 AlgorithmVolumeParcelResamplingGeneric.h
@@ -153,6 +154,7 @@ AlgorithmVolumeDilate.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx
 AlgorithmVolumeGradient.cxx
+AlgorithmVolumeLabelToSurfaceMapping.cxx
 AlgorithmVolumeMerge.cxx
 AlgorithmVolumeParcelResampling.cxx
 AlgorithmVolumeParcelResamplingGeneric.cxx

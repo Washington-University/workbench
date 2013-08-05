@@ -87,6 +87,7 @@
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeFillHoles.h"
 #include "AlgorithmVolumeGradient.h"
+#include "AlgorithmVolumeLabelToSurfaceMapping.h"
 #include "AlgorithmVolumeMerge.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
@@ -261,6 +262,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
