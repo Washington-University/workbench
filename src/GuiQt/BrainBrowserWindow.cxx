@@ -47,7 +47,6 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
-#include "CaretFileDialogExtendable.h"
 #include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
@@ -1580,7 +1579,7 @@ BrainBrowserWindow::processDataFileOpen()
     /*
      * Setup file selection dialog.
      */
-    CaretFileDialogExtendable fd(this);
+    CaretFileDialog fd(this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);
@@ -1595,7 +1594,7 @@ BrainBrowserWindow::processDataFileOpen()
     
     AString errorMessages;
     
-    if (fd.exec() == CaretFileDialogExtendable::Accepted) {
+    if (fd.exec() == CaretFileDialog::Accepted) {
         QStringList selectedFiles = fd.selectedFiles();
         if (selectedFiles.empty() == false) {            
             /*
