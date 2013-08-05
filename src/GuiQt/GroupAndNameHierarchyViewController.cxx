@@ -61,6 +61,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
+#include "VolumeFile.h"
 #include "WuQTreeWidget.h"
 #include "WuQtUtilities.h"
 
@@ -335,12 +336,15 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<FociFile*>& foci
  *    The label files.
  * @param ciftiLabelFiles
  *    The CIFTI label files.
+ * @param volumeLabelFiles
+ *    The volume label files.
  * @param displayGroup
  *    The selected display group.
  */
 void
 GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*>& labelFiles,
                                                     std::vector<CiftiBrainordinateLabelFile*>& ciftiLabelFiles,
+                                                    std::vector<VolumeFile*>& volumeLabelFiles,
                                                     const DisplayGroupEnum::Enum displayGroup)
 {
     std::vector<GroupAndNameHierarchyModel*> models;
@@ -362,6 +366,14 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<LabelFile*>& lab
         CiftiBrainordinateLabelFile* clf = *iter;
         CaretAssert(clf);
         models.push_back(clf->getGroupAndNameHierarchyModel());
+    }
+    
+    for (std::vector<VolumeFile*>::iterator iter = volumeLabelFiles.begin();
+         iter != volumeLabelFiles.end();
+         iter++) {
+        VolumeFile* vf = *iter;
+        CaretAssert(vf);
+        models.push_back(vf->getGroupAndNameHierarchyModel());
     }
     
     updateContents(models,

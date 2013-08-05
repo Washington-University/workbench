@@ -46,6 +46,7 @@ namespace caret {
     class CiftiMappableDataFile;
     class FociFile;
     class LabelFile;
+    class VolumeFile;
     
     class GroupAndNameHierarchyModel : public GroupAndNameHierarchyItem {
     public:
@@ -73,6 +74,9 @@ namespace caret {
                     const bool forceUpdate);
         
         void update(CiftiMappableDataFile* ciftiMappableDataFile,
+                    const bool forceUpdate);
+        
+        void update(VolumeFile* volumeFile,
                     const bool forceUpdate);
         
         bool needsUserInterfaceUpdate(const DisplayGroupEnum::Enum displayGroup,

@@ -1610,7 +1610,9 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     std::vector<float> dataValues;
     getMapData(mapIndex,
                dataValues);
-    const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
+    const GiftiLabelTable* labelTable = (isMappedWithLabelTable()
+                                         ? getMapLabelTable(mapIndex)
+                                         : NULL);
     if (isMappedWithLabelTable()) {
         CaretAssert(labelTable);
     }
@@ -1651,7 +1653,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
-                                 * If NOT displayed, invalidate the data offset which will
+                                 * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
                                 const int32_t dataValue = dataValues[dataOffset];
@@ -1701,7 +1703,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
-                                 * If NOT displayed, invalidate the data offset which will
+                                 * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
                                 const int32_t dataValue = dataValues[dataOffset];
@@ -1751,7 +1753,7 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                             if (labelTable != NULL) {
                                 /*
                                  * For label data, verify that the label is displayed.
-                                 * If NOT displayed, invalidate the data offset which will
+                                 * If NOT displayed, zero out the alpha value to
                                  * prevent display of the data.
                                  */
                                 const int32_t dataValue = dataValues[dataOffset];

@@ -48,6 +48,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -605,6 +606,205 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
              * Get indices of labels used in this map
              */
             std::vector<int32_t> labelKeys = ciftiMappableDataFile->getUniqueLabelKeysUsedInMap(iMap);
+            
+            const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
+            for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {
+                const int32_t labelKey = labelKeys[iLabel];
+                GiftiLabel* label = labelTable->getLabel(labelKey);
+                if (label == NULL) {
+                    continue;
+                }
+                
+                AString labelName = label->getName();
+                if (labelName.isEmpty()) {
+                    labelName = missingName;
+                }
+                
+                const float* rgba = label->getColor();
+                
+                /*
+                 * Adding focus to class
+                 */
+                GroupAndNameHierarchyItem* nameItem = groupItem->addChild(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
+                                                                          labelName,
+                                                                          labelKey);
+                nameItem->setIconColorRGBA(rgba);
+                
+                /*
+                 * Place the name selector into the label.
+                 */
+                label->setGroupNameSelectionItem(nameItem);
+            }
+        }
+        
+        /*
+         * Sort names in each group
+         */
+        std::vector<GroupAndNameHierarchyItem*> groups = getChildren();
+        for (std::vector<GroupAndNameHierarchyItem*>::iterator iter = groups.begin();
+             iter != groups.end();
+             iter++) {
+            GroupAndNameHierarchyItem* nameItem = *iter;
+            nameItem->sortDescendantsByName();
+        }
+        
+        setUserInterfaceUpdateNeeded();
+        
+        CaretLogFine("LABEL HIERARCHY:"
+                     + toString());
+    }
+}
+
+/**
+ * Update this group hierarchy with the label names
+ * and groups.
+ *
+ * @param ciftiMappableDataFile
+ *    The volume file from which classes and names are from.
+ * @parm forceUpdate
+ *    If true, force an update.
+ */
+void
+GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
+                                   const bool forceUpdate)
+{
+    /*
+     * If it is not a label file, there is nothing to do.
+     */
+    if (volumeFile->isMappedWithLabelTable() == false) {
+        this->clear();
+        return;
+    }
+    
+    bool needToGenerateKeys = forceUpdate;
+    
+    setName(volumeFile->getFileNameNoPath());
+    
+    std::vector<std::map<int32_t, AString> > labelMapKeysAndNames;
+    
+    if (needToGenerateKeys == false) {
+        /*
+         * Check to see if any group (map) names have changed.
+         */
+        const std::vector<GroupAndNameHierarchyItem*> groups = getChildren();
+        const int numGroups = static_cast<int32_t>(groups.size());
+        if (numGroups != volumeFile->getNumberOfMaps()) {
+            /*
+             * Number of maps has changed.
+             */
+            needToGenerateKeys = true;
+        }
+        else {
+            for (int32_t i = 0; i < numGroups; i++) {
+                if (groups[i]->getName() != volumeFile->getMapName(i)) {
+                    needToGenerateKeys = true;
+                    break;
+                }
+            }
+            
+            if (needToGenerateKeys == false) {
+                if (static_cast<int32_t>(m_previousCiftiLabelFileMapKeysAndNames.size()) != volumeFile->getNumberOfMaps()) {
+                    needToGenerateKeys = true;
+                }
+            }
+            if (needToGenerateKeys == false) {
+                for (int32_t i = 0; i < numGroups; i++) {
+                    const GiftiLabelTable* labelTable = volumeFile->getMapLabelTable(i);
+                    std::map<int32_t, AString> labelKeysAndNames;
+                    labelTable->getKeysAndNames(labelKeysAndNames);
+                    
+                    labelMapKeysAndNames.push_back(labelKeysAndNames);
+                }
+                
+                for (int32_t i = 0; i < numGroups; i++) {
+                    const std::map<int32_t, AString>& labelKeysAndNames = labelMapKeysAndNames[i];
+                    
+                    const std::map<int32_t, AString>& previousLabelKeysAndNames = m_previousCiftiLabelFileMapKeysAndNames[i];
+                    
+                    if (previousLabelKeysAndNames.size() != labelKeysAndNames.size()) {
+                        needToGenerateKeys = true;
+                        break;
+                    }
+                    else {
+                        std::map<int32_t, AString>::const_iterator prevIter = previousLabelKeysAndNames.begin();
+                        for (std::map<int32_t, AString>::const_iterator labelIter = labelKeysAndNames.begin();
+                             labelIter != labelKeysAndNames.end();
+                             labelIter++) {
+                            if (prevIter->first != labelIter->first) {
+                                needToGenerateKeys = true;
+                                break;
+                            }
+                            else if (prevIter->second != labelIter->second) {
+                                needToGenerateKeys = true;
+                                break;
+                            }
+                            
+                            prevIter++;
+                        }
+                    }
+                }
+            }
+            
+        }
+    }
+    
+    if (needToGenerateKeys) {
+        //const int32_t ID_NOT_USED = 0;
+        
+        /*
+         * Save keys and names for comparison in next update test
+         */
+        const int numMaps = volumeFile->getNumberOfMaps();
+        m_previousCiftiLabelFileMapKeysAndNames = labelMapKeysAndNames;
+        if (m_previousCiftiLabelFileMapKeysAndNames.empty()) {
+            for (int32_t i = 0; i < numMaps; i++) {
+                const GiftiLabelTable* labelTable = volumeFile->getMapLabelTable(i);
+                std::map<int32_t, AString> labelKeysAndNames;
+                labelTable->getKeysAndNames(labelKeysAndNames);
+                m_previousCiftiLabelFileMapKeysAndNames.push_back(labelKeysAndNames);
+            }
+        }
+        
+        /*
+         * Clear everything
+         */
+        this->clear();
+        
+        /*
+         * Names for missing group names or foci names.
+         */
+        const AString missingGroupName = "NoGroup";
+        const AString missingName = "NoName";
+        
+        /*
+         * Update with labels from maps
+         */
+        for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+            /*
+             * The label table
+             */
+            GiftiLabelTable* labelTable = volumeFile->getMapLabelTable(iMap);
+            
+            /*
+             * Get the group.  If it is empty, use the default name.
+             */
+            AString theGroupName = volumeFile->getMapName(iMap);
+            if (theGroupName.isEmpty()) {
+                theGroupName = missingGroupName;
+            }
+            
+            /*
+             * Find/create group
+             */
+            GroupAndNameHierarchyItem* groupItem = addChild(GroupAndNameHierarchyItem::ITEM_TYPE_GROUP,
+                                                            theGroupName,
+                                                            iMap);
+            CaretAssert(groupItem);
+            
+            /*
+             * Get indices of labels used in this map
+             */
+            std::vector<int32_t> labelKeys = volumeFile->getUniqueLabelKeysUsedInMap(iMap);
             
             const int32_t numLabelKeys = static_cast<int32_t>(labelKeys.size());
             for (int32_t iLabel = 0; iLabel < numLabelKeys; iLabel++) {

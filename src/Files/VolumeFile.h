@@ -40,11 +40,16 @@
 
 namespace caret {
     
+    class GroupAndNameHierarchyModel;
     class VolumeFileVoxelColorizer;
     class VolumeSpline;
     
     class VolumeFile : public VolumeBase, public CaretMappableDataFile
     {
+        VolumeFile(const VolumeFile&);
+        
+        VolumeFile& operator=(const VolumeFile&);
+        
         CaretVolumeExtension m_caretVolExt;
         
         void parseExtensions();//called after reading a file, in order to populate m_caretVolExt with best guesses
@@ -85,6 +90,19 @@ namespace caret {
         mutable float m_dataRangeMinimum;
         
         mutable float m_dataRangeMaximum;
+        
+        /** Holds class and name hierarchy used for display selection */
+        mutable GroupAndNameHierarchyModel* m_classNameHierarchy;
+        
+        /** force an update of the class and name hierarchy */
+        mutable bool m_forceUpdateOfGroupAndNameHierarchy;
+        
+    protected:
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
         
     public:
         
@@ -217,6 +235,8 @@ namespace caret {
                                          const int32_t labelKey,
                                          std::vector<VoxelIJK>& voxelIndicesOut) const;
         
+        std::vector<int32_t> getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const;
+        
         AString getMapUniqueID(const int32_t mapIndex) const;
         
         void updateScalarColoringForMap(const int32_t mapIndex,
@@ -246,14 +266,18 @@ namespace caret {
         
         void clearVoxelColoringForMap(const int64_t mapIndex);
         
-        void setVoxelColorInMap(const int64_t i,
-                                 const int64_t j,
-                                 const int64_t k,
-                                 const int64_t mapIndex,
-                                 const float rgba[4]);
+//        void setVoxelColorInMap(const int64_t i,
+//                                 const int64_t j,
+//                                 const int64_t k,
+//                                 const int64_t mapIndex,
+//                                 const float rgba[4]);
         
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
+        
+        GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
+        
+        const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
         
     };
 

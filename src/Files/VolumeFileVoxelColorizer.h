@@ -36,6 +36,7 @@
 
 
 #include "CaretObject.h"
+#include "DisplayGroupEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
@@ -63,6 +64,8 @@ namespace caret {
         void getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                     const int64_t sliceIndex,
+                                         const DisplayGroupEnum::Enum displayGroup,
+                                         const int32_t tabIndex,
                                     uint8_t* rgbaOut) const;
         
         void getVoxelColorInMap(const int64_t i,
@@ -73,12 +76,12 @@ namespace caret {
         
         void clearVoxelColoringForMap(const int64_t mapIndex);
         
-        void setVoxelColorInMap(const int64_t i,
-                                 const int64_t j,
-                                 const int64_t k,
-                                 const int64_t mapIndex,
-                                 const float rgbaFloat[4]);
-                
+//        void setVoxelColorInMap(const int64_t i,
+//                                 const int64_t j,
+//                                 const int64_t k,
+//                                 const int64_t mapIndex,
+//                                 const float rgbaFloat[4]);
+        
         void invalidateColoring();
         
     private:

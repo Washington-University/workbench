@@ -21,20 +21,23 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
  */
-#include <QTemporaryFile>
-
-#include "CaretHttpManager.h"
-#include "CaretTemporaryFile.h"
-#include "VolumeFile.h"
 #include <cmath>
-#include "NiftiFile.h"
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include <QTemporaryFile>
+
+#include "CaretHttpManager.h"
 #include "CaretLogger.h"
-#include "Palette.h"
+#include "CaretTemporaryFile.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
+#include "NiftiFile.h"
+#include "Palette.h"
+#include "SceneClass.h"
+#include "VolumeFile.h"
 #include "VolumeFileVoxelColorizer.h"
 #include "VolumeSpline.h"
 
@@ -70,6 +73,8 @@ VolumeFile::setVoxelColoringEnabled(const bool enabled)
 VolumeFile::VolumeFile()
 : VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_classNameHierarchy = NULL;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
     validateMembers();
 }
@@ -77,6 +82,8 @@ VolumeFile::VolumeFile()
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_classNameHierarchy = NULL;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
     validateMembers();
     setType(whatType);
@@ -85,6 +92,8 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
+    m_classNameHierarchy = NULL;
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
     validateMembers();
     setType(whatType);
@@ -155,6 +164,12 @@ VolumeFile::clear()
         delete m_voxelColorizer;
         m_voxelColorizer = NULL;
     }
+    
+    if (m_classNameHierarchy != NULL) {
+        delete m_classNameHierarchy;
+        m_classNameHierarchy = NULL;
+    }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     
     m_caretVolExt.clear();
     m_brickAttributes.clear();
@@ -249,6 +264,14 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
     } catch (...) {
         clear();
         throw DataFileException("unknown error while trying to open volume file " + filename);
+    }
+    
+    /*
+     * This will update the map name/label hierarchy
+     */
+    if (isMappedWithLabelTable()) {
+        m_forceUpdateOfGroupAndNameHierarchy = true;
+        getGroupAndNameHierarchyModel();
     }
 }
 
@@ -543,6 +566,11 @@ void VolumeFile::validateMembers()
     if (s_voxelColoringEnabled) {
         m_voxelColorizer = new VolumeFileVoxelColorizer(this);
     }
+    if (m_classNameHierarchy == NULL) {
+        m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    }
+    m_classNameHierarchy->clear();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
 /**
@@ -1082,6 +1110,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const PaletteFile* /*paletteFile*/,
     m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
                                                   slicePlane,
                                                   sliceIndex,
+                                                  displayGroup,
+                                                  tabIndex,
                                                   rgbaOut);
 }
 
@@ -1234,21 +1264,21 @@ VolumeFile::clearVoxelColoringForMap(const int64_t mapIndex)
  * @param rgba
  *    RGBA color components for voxel.
  */
-void
-VolumeFile::setVoxelColorInMap(const int64_t i,
-                         const int64_t j,
-                         const int64_t k,
-                         const int64_t mapIndex,
-                         const float rgba[4])
-
-{
-    if (s_voxelColoringEnabled == false) {
-        return;
-    }
-    CaretAssert(m_voxelColorizer);
-    
-    m_voxelColorizer->setVoxelColorInMap(i, j, k, mapIndex, rgba);
-}
+//void
+//VolumeFile::setVoxelColorInMap(const int64_t i,
+//                         const int64_t j,
+//                         const int64_t k,
+//                         const int64_t mapIndex,
+//                         const float rgba[4])
+//
+//{
+//    if (s_voxelColoringEnabled == false) {
+//        return;
+//    }
+//    CaretAssert(m_voxelColorizer);
+//    
+//    m_voxelColorizer->setVoxelColorInMap(i, j, k, mapIndex, rgba);
+//}
 
 /**
  * Get the minimum and maximum values from ALL maps in this file.
@@ -1345,5 +1375,119 @@ VolumeFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
     }
 }
 
+/**
+ * Get the unique label keys in the given map.
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Keys used by the map.
+ */
+std::vector<int32_t>
+VolumeFile::getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const
+{
+    std::vector<int64_t> dims;
+    getDimensions(dims);
+    
+    const int64_t dimI = dims[0];
+    const int64_t dimJ = dims[1];
+    const int64_t dimK = dims[2];
+    
+    std::set<int32_t> uniqueKeys;
+    for (int64_t i = 0; i < dimI; i++) {
+        for (int64_t j = 0; j < dimJ; j++) {
+            for (int64_t k = 0; k < dimK; k++) {
+                const float keyValue = static_cast<int32_t>(getValue(i, j, k, mapIndex));
+                uniqueKeys.insert(keyValue);
+            }
+        }
+    }
+
+    std::vector<int32_t> keyVector;
+    keyVector.insert(keyVector.end(),
+                     uniqueKeys.begin(),
+                     uniqueKeys.end());
+    return keyVector;
+}
+
+/**
+ * @return The class and name hierarchy.
+ */
+GroupAndNameHierarchyModel*
+VolumeFile::getGroupAndNameHierarchyModel()
+{
+    m_classNameHierarchy->update(this,
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
+ * @return The class and name hierarchy.
+ */
+const GroupAndNameHierarchyModel*
+VolumeFile::getGroupAndNameHierarchyModel() const
+{
+    m_classNameHierarchy->update(const_cast<VolumeFile*>(this),
+                                 m_forceUpdateOfGroupAndNameHierarchy);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    return m_classNameHierarchy;
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+VolumeFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                           SceneClass* sceneClass)
+{
+    CaretMappableDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
+    if (isMappedWithLabelTable()) {
+        sceneClass->addClass(m_classNameHierarchy->saveToScene(sceneAttributes,
+                                                               "m_classNameHierarchy"));
+    }
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+VolumeFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                const SceneClass* sceneClass)
+{
+    CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
+    if (isMappedWithLabelTable()) {
+        const SceneClass* sc = sceneClass->getClass("m_classNameHierarchy");
+        m_classNameHierarchy->restoreFromScene(sceneAttributes,
+                                               sc);
+        m_forceUpdateOfGroupAndNameHierarchy = false;
+    }
+}
 
 

@@ -60,6 +60,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SceneClass.h"
+#include "VolumeFile.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
@@ -272,10 +273,23 @@ LabelSelectionViewController::updateLabelViewController()
     }
     
     /*
+     * Get all Volume Files that are mapped with label tables
+     */
+    std::vector<VolumeFile*> allVolumeLabelFiles;
+    const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
+    for (int32_t iVol = 0; iVol < numVolumeFiles; iVol++) {
+        VolumeFile* vf = brain->getVolumeFile(iVol);
+        if (vf->isMappedWithLabelTable()) {
+            allVolumeLabelFiles.push_back(vf);
+        }
+    }
+    
+    /*
      * Update the class/name hierarchy
      */
     m_labelClassNameHierarchyViewController->updateContents(allLabelFiles,
                                                             allCiftiLabelFiles,
+                                                            allVolumeLabelFiles,
                                                              displayGroup);
 }
 

@@ -39,6 +39,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "GiftiLabel.h"
+#include "GroupAndNameHierarchyItem.h"
 #include "NodeAndVoxelColoring.h"
 #include "VolumeFile.h"
 
@@ -244,6 +246,10 @@ VolumeFileVoxelColorizer::invalidateColoring()
  *    Plane of the slice.
  * @param sliceIndex
  *    Index of the slice.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbaOut
  *    RGBA color components out.
  */
@@ -251,6 +257,8 @@ void
 VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                       const int64_t sliceIndex,
+                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex,
                                                       uint8_t* rgbaOut) const
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
@@ -286,6 +294,13 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
      */
     const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
     
+    const GiftiLabelTable* labelTable = (m_volumeFile->isMappedWithLabelTable()
+                                         ? m_volumeFile->getMapLabelTable(mapIndex)
+                                         : NULL);
+    if (m_volumeFile->isMappedWithLabelTable()) {
+        CaretAssert(labelTable);
+    }
+    
     /*
      * Output RGBA values for slice
      */
@@ -293,32 +308,41 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     for (int64_t k = kStart; k <= kEnd; k++) {
         for (int64_t j = jStart; j <= jEnd; j++) {
             for (int64_t i = iStart; i <= iEnd; i++) {
-                int64_t rgbaOffset = -1;
-//                switch (slicePlane) {
-//                    case VolumeSliceViewPlaneEnum::ALL:
-//                        CaretAssert(0);
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::AXIAL:
-//                        rgbaOffset = (i + (j * m_dimI));
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::CORONAL:
-//                        rgbaOffset = (i + (k * m_dimI));
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                        rgbaOffset = (j + (k * m_dimJ));
-//                        break;
-//                }
-                
-                rgbaOffset = m_volumeFile->getIndex(i,
-                                                    j,
-                                                    k,
-                                                    0);
-                rgbaOffset *= 4;
+                const int64_t rgbaOffset = (4
+                                            * m_volumeFile->getIndex(i,
+                                                                     j,
+                                                                     k,
+                                                                     mapIndex));
                 CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
                 rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];
                 rgbaOut[rgbaOutIndex+1] = mapRGBA[rgbaOffset+1];
                 rgbaOut[rgbaOutIndex+2] = mapRGBA[rgbaOffset+2];
-                rgbaOut[rgbaOutIndex+3] = mapRGBA[rgbaOffset+3];
+                uint8_t alpha = mapRGBA[rgbaOffset+3];
+                
+                if (alpha > 0) {
+                    if (labelTable != NULL) {
+                        /*
+                         * For label data, verify that the label is displayed.
+                         * If NOT displayed, zero out the alpha value to
+                         * prevent display of the data.
+                         */
+                        const int32_t dataValue = static_cast<int32_t>(m_volumeFile->getValue(i,
+                                                                                              j,
+                                                                                              k,
+                                                                                              mapIndex));
+                        const GiftiLabel* label = labelTable->getLabel(dataValue);
+                        if (label != NULL) {
+                            const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                            if (item != NULL) {
+                                if (item->isSelected(displayGroup, tabIndex) == false) {
+                                    alpha = 0;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                rgbaOut[rgbaOutIndex+3] = alpha;
                 rgbaOutIndex += 4;
             }
         }
@@ -351,11 +375,11 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
      */
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
     const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
-    int64_t rgbaOffset = m_volumeFile->getIndex(i,
+    const int64_t rgbaOffset = (4
+                          * m_volumeFile->getIndex(i,
                                         j,
                                         k,
-                                        mapIndex);
-    rgbaOffset *= 4;
+                                        mapIndex));
     CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
     rgbaOut[0] = mapRGBA[rgbaOffset];
     rgbaOut[1] = mapRGBA[rgbaOffset+1];
@@ -393,31 +417,31 @@ VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex)
  * @param rgbaFloat
  *    RGBA color components for voxel.
  */
-void
-VolumeFileVoxelColorizer::setVoxelColorInMap(const int64_t i,
-                                             const int64_t j,
-                                             const int64_t k,
-                                             const int64_t mapIndex,
-                                             const float rgbaFloat[4])
-
-{
-    /*
-     * Pointer to maps RGBA values
-     */
-    CaretAssertVectorIndex(m_mapRGBA, mapIndex);
-    uint8_t* mapRGBA = m_mapRGBA[mapIndex];
-    int64_t rgbaOffset = m_volumeFile->getIndex(i,
-                                                j,
-                                                k,
-                                                mapIndex);
-    rgbaOffset *= 4;
-    CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
-    mapRGBA[rgbaOffset]   = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
-    mapRGBA[rgbaOffset+1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
-    mapRGBA[rgbaOffset+2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
-    float alpha = rgbaFloat[3];
-    if (alpha < 0.0) {
-        alpha = 0.0;
-    }
-    mapRGBA[rgbaOffset+3] = static_cast<uint8_t>(alpha * 255.0);
-}
+//void
+//VolumeFileVoxelColorizer::setVoxelColorInMap(const int64_t i,
+//                                             const int64_t j,
+//                                             const int64_t k,
+//                                             const int64_t mapIndex,
+//                                             const float rgbaFloat[4])
+//
+//{
+//    /*
+//     * Pointer to maps RGBA values
+//     */
+//    CaretAssertVectorIndex(m_mapRGBA, mapIndex);
+//    uint8_t* mapRGBA = m_mapRGBA[mapIndex];
+//    int64_t rgbaOffset = m_volumeFile->getIndex(i,
+//                                                j,
+//                                                k,
+//                                                mapIndex);
+//    rgbaOffset *= 4;
+//    CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
+//    mapRGBA[rgbaOffset]   = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+//    mapRGBA[rgbaOffset+1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+//    mapRGBA[rgbaOffset+2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+//    float alpha = rgbaFloat[3];
+//    if (alpha < 0.0) {
+//        alpha = 0.0;
+//    }
+//    mapRGBA[rgbaOffset+3] = static_cast<uint8_t>(alpha * 255.0);
+//}

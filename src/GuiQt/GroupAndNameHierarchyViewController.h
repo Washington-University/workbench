@@ -53,6 +53,7 @@ namespace caret {
     class LabelFile;
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchyTreeWidgetItem;
+    class VolumeFile;
     class WuQTreeWidget;
     
     class GroupAndNameHierarchyViewController : public QWidget {
@@ -73,6 +74,7 @@ namespace caret {
         
         void updateContents(std::vector<LabelFile*>& labelFiles,
                             std::vector<CiftiBrainordinateLabelFile*>& ciftiLabelFiles,
+                            std::vector<VolumeFile*>& volumeLabelFiles,
                             const DisplayGroupEnum::Enum displayGroup);
         
     private slots:
