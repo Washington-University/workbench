@@ -1696,6 +1696,27 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                         if (alpha < 0.0) {
                             alpha = 0.0;
                         }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, invalidate the data offset which will
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
@@ -1725,6 +1746,27 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
                         if (alpha < 0.0) {
                             alpha = 0.0;
                         }
+                        
+                        if (alpha > 0.0) {
+                            if (labelTable != NULL) {
+                                /*
+                                 * For label data, verify that the label is displayed.
+                                 * If NOT displayed, invalidate the data offset which will
+                                 * prevent display of the data.
+                                 */
+                                const int32_t dataValue = dataValues[dataOffset];
+                                const GiftiLabel* label = labelTable->getLabel(dataValue);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    CaretAssert(item);
+                                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                                        alpha = 0.0;
+                                    }
+                                }
+                            }
+                            
+                        }
+                        
                         rgbaOut[rgbaOffset+3] = (alpha * 255.0);
                     }
                 }
