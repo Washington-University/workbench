@@ -743,9 +743,26 @@ CiftiFiberTrajectoryFile::writeFile(const AString& /*filename*/) throw (DataFile
     throw DataFileException("Writing of Cifti Trajectory Files not supported.");
 }
 
+class FiberFractionAndIndex {
+public:
+    FiberFractionAndIndex(const FiberFractions& fiberFraction,
+                          const int64_t fiberIndex) {
+        m_fiberFraction = fiberFraction;
+        m_fiberIndex = fiberIndex;
+    }
+    
+    bool operator<(const FiberFractionAndIndex& other) const {
+        return (m_fiberIndex < other.m_fiberIndex);
+    }
+    
+    FiberFractions m_fiberFraction;
+    int64_t m_fiberIndex;
+};
+
+
 /**
  * Create a new fiber trajectory file from the loaded data of this file.
- * 
+ *
  * @param errorMessageOut
  *    Error message if creation of new fiber trajectory file failed.
  * @param 
@@ -758,55 +775,122 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
     return NULL;
     
     
+    /*
+     * Logic below will not work for averages.  Need to save
+     * content of m_fiberOrientationTrajectories to a file,
+     * probably a new file type.
+     */
     
     
-    
-    errorMessageOut = "";
-    
-    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
-    if (numTraj <= 0) {
-        errorMessageOut = "No data is loaded so cannot create file.";
-        return NULL;
-    }
-    
-    
-    
-    CiftiFiberTrajectoryFile* newFile = NULL;
-    try {
-        const AString newFileName = "test." + DataFileTypeEnum::toFileExtension(getDataFileType());
-        std::cout << "Filename: " << qPrintable(newFileName) << std::endl;
-        
-        /*
-         * Write to temp file!!!!!
-         */
-        CiftiXML xml = m_sparseFile->getCiftiXML();
-        CaretSparseFileWriter sparseWriter (newFileName,
-                                            xml);
-        
-        for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
-            const FiberOrientationTrajectory* fiberTraj = m_fiberOrientationTrajectories[iTraj];
-            const int64_t rowIndex = fiberTraj->getRowIndex();
-            
-            
-            //        sparseWriter.writeFibersRowSparse(rowIndex,
-            //                                    fiberTraj->m_fiberIndices,
-            //                                    fiberTraj->m_fiberFractions);
-        }
-        sparseWriter.finish();
-        
-        newFile = new CiftiFiberTrajectoryFile();
-        newFile->readFile(newFileName);
-        return newFile;
-    }
-    catch (const DataFileException& dfe) {
-        if (newFile != NULL) {
-            delete newFile;
-        }
-        errorMessageOut = dfe.whatString();
-        return NULL;
-    }
-
-    return NULL;
+//    errorMessageOut = "";
+//    
+//    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
+//    if (numTraj <= 0) {
+//        errorMessageOut = "No data is loaded so cannot create file.";
+//        return NULL;
+//    }
+//    
+//    
+//    
+//    CiftiFiberTrajectoryFile* newFile = NULL;
+//    try {
+//        const AString newFileName = "test." + DataFileTypeEnum::toFileExtension(getDataFileType());
+//        std::cout << "Filename: " << qPrintable(newFileName) << std::endl;
+//        
+//        /*
+//         * Need to sort by fiber index.
+//         */
+//        std::vector<FiberFractionAndIndex> fiberFractionsAndIndices;
+//        for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
+//            const FiberOrientationTrajectory* fiberTraj = m_fiberOrientationTrajectories[iTraj];
+//            //            const int64_t rowIndex = fiberTraj->getRowIndex();
+//            
+//            const int64_t numFractions = fiberTraj->getNumberOfFiberFractions();
+//            for (int64_t j = 0; j < numFractions; j++) {
+//                fiberFractionsAndIndices.push_back(FiberFractionAndIndex(*(fiberTraj->getFiberFraction(j)),
+//                                                                         fiberTraj->getFiberIndex(j)));
+//            }
+//        }
+//        std::sort(fiberFractionsAndIndices.begin(),
+//                  fiberFractionsAndIndices.end());
+//        
+//        std::vector<int64_t> fiberIndices;
+//        std::vector<FiberFractions> fiberFractions;
+//        
+//        const int64_t numSorted = static_cast<int64_t>(fiberFractionsAndIndices.size());
+//        for (int64_t i = 0; i < numSorted; i++) {
+//            FiberFractionAndIndex& ffai = fiberFractionsAndIndices[i];
+//            fiberIndices.push_back(ffai.m_fiberIndex);
+//            fiberFractions.push_back(ffai.m_fiberFraction);
+//            std::cout << "Fiber " << i << " fiberIndex=" << ffai.m_fiberIndex << std::endl;
+//        }
+//        
+//        /*
+//         * Write to temp file!!!!!
+//         */
+//        CiftiXML xml = m_sparseFile->getCiftiXML();
+//        xml.resetRowsToBrainModels();
+//        
+//        switch (m_connectivityDataLoaded->getMode()) {
+//            case ConnectivityDataLoaded::MODE_NONE:
+//                throw DataFileException("No data loaded");
+//                break;
+//            case ConnectivityDataLoaded::MODE_ROW:
+//                throw DataFileException("Data loaded by row not supported");
+//                break;
+//            case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+//            {
+//                StructureEnum::Enum structure;
+//                int32_t surfaceNumberOfNodes = 0;
+//                int32_t surfaceNodeIndex = -1;
+//                m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
+//                                                                surfaceNumberOfNodes,
+//                                                                surfaceNodeIndex);
+//                if ((surfaceNumberOfNodes > 0)
+//                    && (surfaceNodeIndex >= 0)) {
+//                    std::vector<int64_t> surfaceNodeList;
+//                    surfaceNodeList.push_back(surfaceNodeIndex);
+//                    
+//                    xml.addSurfaceModelToRows(surfaceNumberOfNodes,
+//                                              structure,
+//                                              surfaceNodeList);
+//                }
+//            }
+//                break;
+//            case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+//                throw DataFileException("Data loaded surface average not supported");
+//                break;
+//            case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
+//                throw DataFileException("Data loaded by voxel average not supported");
+//                break;
+//            case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
+//                throw DataFileException("Data loaded by voxel not supported");
+//                break;
+//        }
+//        
+//        
+//        CaretSparseFileWriter sparseWriter (newFileName,
+//                                            xml);
+//        const int64_t rowIndex = 0;
+//        sparseWriter.writeFibersRowSparse(rowIndex,
+//                                          fiberIndices,
+//                                          fiberFractions);
+//        
+//        sparseWriter.finish();
+//        
+//        newFile = new CiftiFiberTrajectoryFile();
+//        newFile->readFile(newFileName);
+//        return newFile;
+//    }
+//    catch (const DataFileException& dfe) {
+//        if (newFile != NULL) {
+//            delete newFile;
+//        }
+//        errorMessageOut = dfe.whatString();
+//        return NULL;
+//    }
+//
+//    return NULL;
 }
 
 /**
