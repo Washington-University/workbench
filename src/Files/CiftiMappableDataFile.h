@@ -364,13 +364,17 @@ namespace caret {
         
         static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         
-        
-        
         void validateKeysAndLabels() const;
         
         virtual void validateAfterFileReading() throw (DataFileException);
         
         bool isCiftiInterfaceValid() const;
+        
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
         
         /** How to read data from file */
         const FileReading m_fileReading;

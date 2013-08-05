@@ -3021,6 +3021,55 @@ CiftiMappableDataFile::setSelectionMode(const CiftiMappableDataFile::SelectionMo
 }
 
 
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CiftiMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                                  SceneClass* sceneClass)
+{
+    CaretMappableDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
+    if (isMappedWithLabelTable()) {
+        sceneClass->addClass(m_classNameHierarchy->saveToScene(sceneAttributes,
+                                                               "m_classNameHierarchy"));
+    }
+}
 
-
-
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CiftiMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                       const SceneClass* sceneClass)
+{
+    CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
+    if (isMappedWithLabelTable()) {
+        m_classNameHierarchy->restoreFromScene(sceneAttributes,
+                                               sceneClass->getClass("m_classNameHierarchy"));
+    }
+}
