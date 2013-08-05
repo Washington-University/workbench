@@ -323,7 +323,7 @@ CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* /*sce
  *     this interface.  May be NULL for some types of scenes.
  */
 void
-CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* sceneAttributes,
+CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                             const SceneClass* sceneClass)
 {
     PaletteFile* paletteFile = m_brain->getPaletteFile();
