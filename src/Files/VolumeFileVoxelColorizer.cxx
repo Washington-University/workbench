@@ -360,15 +360,21 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Axial index
  * @param mapIndex
  *    Index of map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbaOut
  *    Contains voxel coloring on exit.
  */
 void
 VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
-                               const int64_t j,
-                               const int64_t k,
-                               const int64_t mapIndex,
-                               uint8_t rgbaOut[4]) const
+                                             const int64_t j,
+                                             const int64_t k,
+                                             const int64_t mapIndex,
+                                             const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex,
+                                             uint8_t rgbaOut[4]) const
 {
     /*
      * Pointer to maps RGBA values
@@ -384,7 +390,34 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
     rgbaOut[0] = mapRGBA[rgbaOffset];
     rgbaOut[1] = mapRGBA[rgbaOffset+1];
     rgbaOut[2] = mapRGBA[rgbaOffset+2];
-    rgbaOut[3] = mapRGBA[rgbaOffset+3];    
+    uint8_t alpha = mapRGBA[rgbaOffset+3];
+    
+    if (alpha > 0) {
+        if (m_volumeFile->isMappedWithLabelTable()) {
+            const GiftiLabelTable* labelTable = m_volumeFile->getMapLabelTable(mapIndex);
+            CaretAssert(labelTable);
+            /*
+             * For label data, verify that the label is displayed.
+             * If NOT displayed, zero out the alpha value to
+             * prevent display of the data.
+             */
+            const int32_t dataValue = static_cast<int32_t>(m_volumeFile->getValue(i,
+                                                                                  j,
+                                                                                  k,
+                                                                                  mapIndex));
+            const GiftiLabel* label = labelTable->getLabel(dataValue);
+            if (label != NULL) {
+                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                if (item != NULL) {
+                    if (item->isSelected(displayGroup, tabIndex) == false) {
+                        alpha = 0;
+                    }
+                }
+            }
+        }
+    }
+    
+    rgbaOut[3] = alpha;
 }
 
 /**

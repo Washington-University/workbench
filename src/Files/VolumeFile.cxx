@@ -1228,6 +1228,8 @@ VolumeFile::getVoxelColorInMap(const PaletteFile* /*paletteFile*/,
                                          j,
                                          k,
                                          mapIndex,
+                                         displayGroup,
+                                         tabIndex,
                                          rgbaOut);
 }
 
