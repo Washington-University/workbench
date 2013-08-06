@@ -91,6 +91,11 @@ namespace caret {
                                              const QString &dir = QString(),
                                              Options options = 0);
         
+        // modal method to get choose file name
+        static QString getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
+                                               const QString& directoryOrFileName,
+                                               QWidget *parent = 0);
+        
         // modal method to get directory name
         static QString getExistingDirectoryDialog(QWidget *parent = 0,
                                             const QString &caption = QString(),

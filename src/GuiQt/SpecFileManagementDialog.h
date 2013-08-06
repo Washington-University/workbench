@@ -120,9 +120,9 @@ namespace caret {
         
         void toolBarManageFilesLoadedNotLoadedActionTriggered(QAction* action);
         
-        void chooseSpecFileNameActionTriggered();
+//        void chooseSpecFileNameActionTriggered();
 
-        void specFileOptionsActionTriggered();
+//        void specFileOptionsActionTriggered();
         
         void fileReloadOrOpenFileActionSelected(int indx);
         

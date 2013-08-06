@@ -1906,20 +1906,27 @@ SpecFileManagementDialog::changeFileName(QWidget* parent,
         CaretAssert(m_specFile);
     }
     
-    QStringList filenameFilterList;
-    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(caretDataFile->getDataFileType()));
-    CaretFileDialog fd(parent);
-    fd.setAcceptMode(CaretFileDialog::AcceptSave);
-    fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(CaretFileDialog::AnyFile);
-    fd.setViewMode(CaretFileDialog::List);
-    fd.selectFile(caretDataFile->getFileName());
-    fd.setLabelText(CaretFileDialog::Accept, "Choose");
-    fd.setWindowTitle("Choose File Name");
-    if (fd.exec() == CaretFileDialog::Accepted) {
-        QStringList files = fd.selectedFiles();
-        if (files.isEmpty() == false) {
-            AString newFileName = files.at(0);
+    const AString newFileName = CaretFileDialog::getChooseFileNameDialog(caretDataFile->getDataFileType(),
+                                                                      caretDataFile->getFileName(),
+                                                                      parent);
+    if (newFileName.isEmpty()) {
+        return;
+    }
+    
+//    QStringList filenameFilterList;
+//    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(caretDataFile->getDataFileType()));
+//    CaretFileDialog fd(parent);
+//    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+//    fd.setNameFilters(filenameFilterList);
+//    fd.setFileMode(CaretFileDialog::AnyFile);
+//    fd.setViewMode(CaretFileDialog::List);
+//    fd.selectFile(caretDataFile->getFileName());
+//    fd.setLabelText(CaretFileDialog::Accept, "Choose");
+//    fd.setWindowTitle("Choose File Name");
+//    if (fd.exec() == CaretFileDialog::Accepted) {
+//        QStringList files = fd.selectedFiles();
+//        if (files.isEmpty() == false) {
+//            AString newFileName = files.at(0);
             if (newFileName != caretDataFile->getFileName()) {
                 /*
                  * Clone current item, remove file from it,
@@ -1959,90 +1966,90 @@ SpecFileManagementDialog::changeFileName(QWidget* parent,
                  */
                 updateGraphicWindowsAndUserInterface();
             }
-        }
-    }
+//        }
+//    }
 }
 
-/**
- * Called when spec file options tool button is triggered.
- */
-void
-SpecFileManagementDialog::specFileOptionsActionTriggered()
-{
-    QAction* setFileNameAction = NULL;
-    
-    QMenu menu;
-    QAction* metadataAction = menu.addAction("Edit Metadata...");
-    metadataAction->setEnabled(false);
-    switch (m_dialogMode) {
-        case MODE_MANAGE_FILES:
-        case MODE_SAVE_FILES_WHILE_QUITTING:
-            setFileNameAction = menu.addAction("Set File Name...");
-            break;
-        case MODE_OPEN_SPEC_FILE:
-            break;
-    }
-    
-    QAction* selectedAction = menu.exec(QCursor::pos());
-    
-    if (selectedAction == setFileNameAction) {
-        QStringList filenameFilterList;
-        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-        CaretFileDialog fd(&menu);
-        fd.setAcceptMode(CaretFileDialog::AcceptSave);
-        fd.setNameFilters(filenameFilterList);
-        fd.setFileMode(CaretFileDialog::AnyFile);
-        fd.setViewMode(CaretFileDialog::List);
-        fd.selectFile(m_specFile->getFileName());
-        fd.setLabelText(CaretFileDialog::Accept, "Choose");
-        fd.setWindowTitle("Choose Spec File Name");
-        if (fd.exec() == CaretFileDialog::Accepted) {
-            QStringList files = fd.selectedFiles();
-            if (files.isEmpty() == false) {
-                AString newFileName = files.at(0);
-                m_specFile->setFileName(newFileName);
-                loadSpecFileContentIntoDialog();
-            }
-        }
-    }
-    else if (selectedAction == metadataAction) {
-        
-    }
-    else if (selectedAction != NULL) {
-        CaretAssertMessage(0,
-                           ("Unhandled Menu Action: " + selectedAction->text()));
-    }
-}
+///**
+// * Called when spec file options tool button is triggered.
+// */
+//void
+//SpecFileManagementDialog::specFileOptionsActionTriggered()
+//{
+//    QAction* setFileNameAction = NULL;
+//    
+//    QMenu menu;
+//    QAction* metadataAction = menu.addAction("Edit Metadata...");
+//    metadataAction->setEnabled(false);
+//    switch (m_dialogMode) {
+//        case MODE_MANAGE_FILES:
+//        case MODE_SAVE_FILES_WHILE_QUITTING:
+//            setFileNameAction = menu.addAction("Set File Name...");
+//            break;
+//        case MODE_OPEN_SPEC_FILE:
+//            break;
+//    }
+//    
+//    QAction* selectedAction = menu.exec(QCursor::pos());
+//    
+//    if (selectedAction == setFileNameAction) {
+//        QStringList filenameFilterList;
+//        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+//        CaretFileDialog fd(&menu);
+//        fd.setAcceptMode(CaretFileDialog::AcceptSave);
+//        fd.setNameFilters(filenameFilterList);
+//        fd.setFileMode(CaretFileDialog::AnyFile);
+//        fd.setViewMode(CaretFileDialog::List);
+//        fd.selectFile(m_specFile->getFileName());
+//        fd.setLabelText(CaretFileDialog::Accept, "Choose");
+//        fd.setWindowTitle("Choose Spec File Name");
+//        if (fd.exec() == CaretFileDialog::Accepted) {
+//            QStringList files = fd.selectedFiles();
+//            if (files.isEmpty() == false) {
+//                AString newFileName = files.at(0);
+//                m_specFile->setFileName(newFileName);
+//                loadSpecFileContentIntoDialog();
+//            }
+//        }
+//    }
+//    else if (selectedAction == metadataAction) {
+//        
+//    }
+//    else if (selectedAction != NULL) {
+//        CaretAssertMessage(0,
+//                           ("Unhandled Menu Action: " + selectedAction->text()));
+//    }
+//}
 
-/**
- * Called to choose the name of the spec file.
- */
-void
-SpecFileManagementDialog::chooseSpecFileNameActionTriggered()
-{
-    QWidget* toolButtonWidget = m_filesTableWidget->cellWidget(m_specFileTableRowIndex,
-                                                               m_COLUMN_OPTIONS_TOOLBUTTON);
-    CaretAssert(toolButtonWidget);
-    
-    QStringList filenameFilterList;
-    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-    CaretFileDialog fd(toolButtonWidget);
-    fd.setAcceptMode(CaretFileDialog::AcceptSave);
-    fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(CaretFileDialog::AnyFile);
-    fd.setViewMode(CaretFileDialog::List);
-    fd.selectFile(m_specFile->getFileName());
-    fd.setLabelText(CaretFileDialog::Accept, "Choose");
-    fd.setWindowTitle("Choose Spec File Name");
-    if (fd.exec() == CaretFileDialog::Accepted) {
-        QStringList files = fd.selectedFiles();
-        if (files.isEmpty() == false) {
-            AString newFileName = files.at(0);
-            m_specFile->setFileName(newFileName);
-            loadSpecFileContentIntoDialog();
-        }
-    }
-}
+///**
+// * Called to choose the name of the spec file.
+// */
+//void
+//SpecFileManagementDialog::chooseSpecFileNameActionTriggered()
+//{
+//    QWidget* toolButtonWidget = m_filesTableWidget->cellWidget(m_specFileTableRowIndex,
+//                                                               m_COLUMN_OPTIONS_TOOLBUTTON);
+//    CaretAssert(toolButtonWidget);
+//    
+//    QStringList filenameFilterList;
+//    filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+//    CaretFileDialog fd(toolButtonWidget);
+//    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+//    fd.setNameFilters(filenameFilterList);
+//    fd.setFileMode(CaretFileDialog::AnyFile);
+//    fd.setViewMode(CaretFileDialog::List);
+//    fd.selectFile(m_specFile->getFileName());
+//    fd.setLabelText(CaretFileDialog::Accept, "Choose");
+//    fd.setWindowTitle("Choose Spec File Name");
+//    if (fd.exec() == CaretFileDialog::Accepted) {
+//        QStringList files = fd.selectedFiles();
+//        if (files.isEmpty() == false) {
+//            AString newFileName = files.at(0);
+//            m_specFile->setFileName(newFileName);
+//            loadSpecFileContentIntoDialog();
+//        }
+//    }
+//}
 
 
 /**

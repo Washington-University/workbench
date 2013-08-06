@@ -293,7 +293,8 @@ CaretFileDialog::getSaveFileNameDialog(QWidget *parent,
  * @param options
  *    Options (see QFileDialog).
  * @return
- *    Name of file selected or empty string if user cancelled.
+ *    Name of file selected or empty string if user cancelled.  If there is
+ *    no file extension or it is invalid, a valid extension will be added.
  */
 QString 
 CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
@@ -319,6 +320,93 @@ CaretFileDialog::getSaveFileNameDialog(const DataFileTypeEnum::Enum dataFileType
             return filename;
         }
     }
+    
+    return QString();
+}
+
+/**
+ * Like QFileDialog::getSaveFileName() except that this
+ * NEVER uses the native file dialog thus providing
+ * a consistent user-interface across platforms.  It also will
+ * display "Choose" for the selection button.
+ *
+ * The file filter will be from the given data file type.
+ * The returned file will contain a valid extension from the
+ * given data file type.
+ *
+ * @param dataFileType
+ *    Type of file being saved.
+ * @param directoryOrFileName
+ *    Name of directory or name of file.
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ * @param caption
+ *    Caption for dialog (if not provided a default caption is shown)
+ * @param dir
+ *    Directory show by dialog (Brain's current directory if empty string)
+ * @param options
+ *    Options (see QFileDialog).
+ * @return
+ *    Name of file selected or empty string if user cancelled.  If there is
+ *    no file extension or it is invalid, a valid extension will be added.
+ */
+QString
+CaretFileDialog::getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileType,
+                                         const QString& directoryOrFileName,
+                                         QWidget *parent)
+{
+    CaretFileDialog fd(parent);
+    fd.setFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    fd.selectFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+    fd.setFileMode(CaretFileDialog::AnyFile);
+    fd.setViewMode(CaretFileDialog::List);
+    
+    if (directoryOrFileName.isEmpty() == false) {
+        QFileInfo fileInfo(directoryOrFileName);
+        if (fileInfo.isDir()) {
+            fd.setDirectory(directoryOrFileName);
+        }
+        else {
+            fd.selectFile(directoryOrFileName);
+        }
+    }
+    else {
+        fd.setDirectory(GuiManager::get()->getBrain()->getCurrentDirectory());
+    }
+    
+    fd.setLabelText(CaretFileDialog::Accept, "Choose");
+    fd.setWindowTitle("Choose File Name");
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        QStringList selectedFiles = fd.selectedFiles();
+        if (selectedFiles.size() > 0) {
+            AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0],
+                                                                           dataFileType);
+            return filename;
+        }
+    }
+    
+    
+    
+//    CaretFileDialog cfd(parent,
+//                        caption,
+//                        dir,
+//                        DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+//    cfd.selectFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
+//    cfd.setOptions(options);
+//    cfd.setAcceptMode(QFileDialog::AcceptSave);
+//    cfd.setFileMode(CaretFileDialog::AnyFile);
+//    cfd.setLabelText(CaretFileDialog::Accept, "Choose");
+//    cfd.setWindowTitle("Choose File Name");
+//    
+//    if (cfd.exec() == CaretFileDialog::Accepted) {
+//        QStringList selectedFiles = cfd.selectedFiles();
+//        if (selectedFiles.size() > 0) {
+//            AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0],
+//                                                                           dataFileType);
+//            return filename;
+//        }
+//    }
     
     return QString();
 }
