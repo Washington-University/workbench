@@ -109,6 +109,8 @@ namespace caret {
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
 
+        void addDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
+        
         int32_t getNumberOfBorderFiles() const;
         
         BorderFile* getBorderFile(const int32_t indx);

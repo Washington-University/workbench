@@ -60,6 +60,7 @@
 #include "GiftiLabelTableEditor.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
+#include "GuiManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "SpecFile.h"
@@ -449,6 +450,8 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                                                                         newMapName);
     
     if (newFileMapDialog.exec() == WuQDataEntryDialog::Accepted) {
+        Brain* brain = GuiManager::get()->getBrain();
+        
         QString mapFileName   = mapFileNameLineEdit->text();
         const QString mapName = mapNameLineEdit->text();
         
@@ -470,16 +473,17 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     labelFile->setMapName(0, mapName);
                     labelFile->setStructure(this->brainStructure->getStructure());
                     labelFile->setFileName(mapFileName);
-                    this->brainStructure->addLabelFile(labelFile,
-                                                       false);
-                    fileIndex = this->brainStructure->getNumberOfLabelFiles() - 1;
-                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(labelFile);
-                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
-                                            brainStructure->getStructure(),
-                                            mapFileName,
-                                            true,
-                                            true,
-                                            false);
+                    brain->addDataFile(labelFile);
+//                    this->brainStructure->addLabelFile(labelFile,
+//                                                       false);
+//                    fileIndex = this->brainStructure->getNumberOfLabelFiles() - 1;
+//                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(labelFile);
+//                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
+//                                            brainStructure->getStructure(),
+//                                            mapFileName,
+//                                            true,
+//                                            true,
+//                                            false);
                 }
                     break;
                 case DataFileTypeEnum::METRIC:
@@ -489,16 +493,17 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     metricFile->setMapName(0, mapName);
                     metricFile->setStructure(this->brainStructure->getStructure());
                     metricFile->setFileName(mapFileName);
-                    this->brainStructure->addMetricFile(metricFile,
-                                                        false);
-                    fileIndex = this->brainStructure->getNumberOfMetricFiles() - 1;
-                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(metricFile);//TSC: I stole this code out of Brain::readOrReloadDataFile and added some includes to get it working
-                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
-                                            brainStructure->getStructure(),
-                                            mapFileName,
-                                            true,
-                                            true,
-                                            false);
+                    brain->addDataFile(metricFile);
+//                    this->brainStructure->addMetricFile(metricFile,
+//                                                        false);
+//                    fileIndex = this->brainStructure->getNumberOfMetricFiles() - 1;
+//                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(metricFile);//TSC: I stole this code out of Brain::readOrReloadDataFile and added some includes to get it working
+//                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
+//                                            brainStructure->getStructure(),
+//                                            mapFileName,
+//                                            true,
+//                                            true,
+//                                            false);
                 }
                     break;
                 default:

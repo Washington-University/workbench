@@ -2372,6 +2372,208 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityM
 }
 
 /**
+ * Add a data file to the brain.
+ *
+ * This will add the file to its corresponding data file type and add the
+ * file into the spec file.
+ *
+ * @param caretDataFile
+ *    The caret data file.
+ * @throw DataFileException
+ *    If there is an error.
+ */
+void
+Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
+{
+    CaretAssert(caretDataFile);
+    
+    caretDataFile->setFileName(updateFileNameForWriting(caretDataFile->getFileName()));
+    
+    const StructureEnum::Enum structure = caretDataFile->getStructure();
+    
+    BrainStructure* brainStructure = getBrainStructure(structure,
+                                                       false);
+    
+    const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
+            switch (dataFileType) {
+                case DataFileTypeEnum::BORDER:
+                {
+                    BorderFile* file = dynamic_cast<BorderFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_borderFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                {
+                    CiftiConnectivityMatrixDenseFile* file = dynamic_cast<CiftiConnectivityMatrixDenseFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityMatrixDenseFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                {
+                    CiftiBrainordinateLabelFile* file = dynamic_cast<CiftiBrainordinateLabelFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityDenseLabelFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                {
+                    CiftiConnectivityMatrixDenseParcelFile* file = dynamic_cast<CiftiConnectivityMatrixDenseParcelFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityMatrixDenseParcelFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                {
+                    CiftiBrainordinateScalarFile* file = dynamic_cast<CiftiBrainordinateScalarFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityDenseScalarFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                {
+                    CiftiBrainordinateDataSeriesFile* file = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityDataSeriesFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                {
+                    CiftiFiberOrientationFile* file = dynamic_cast<CiftiFiberOrientationFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityFiberOrientationFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                {
+                    CiftiFiberTrajectoryFile* file = dynamic_cast<CiftiFiberTrajectoryFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityFiberTrajectoryFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                {
+                    CiftiConnectivityMatrixParcelFile* file = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityMatrixParcelFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                {
+                    CiftiConnectivityMatrixParcelDenseFile* file = dynamic_cast<CiftiConnectivityMatrixParcelDenseFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_connectivityMatrixParcelDenseFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::FOCI:
+                {
+                    FociFile* file = dynamic_cast<FociFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_fociFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::LABEL:
+                {
+                    LabelFile* file = dynamic_cast<LabelFile*>(caretDataFile);
+                    CaretAssert(file);
+                    if (structure == StructureEnum::INVALID) {
+                        throw DataFileException("Structure in label file is INVALID.");
+                    }
+                    if (brainStructure == NULL) {
+                        throw DataFileException("Must load surface(s) with matching structure prior to label files");
+                    }
+                    brainStructure->addLabelFile(file,
+                                                 false);
+                }
+                    break;
+                case DataFileTypeEnum::METRIC:
+                {
+                    MetricFile* file = dynamic_cast<MetricFile*>(caretDataFile);
+                    CaretAssert(file);
+                    if (structure == StructureEnum::INVALID) {
+                        throw DataFileException("Structure in metric file is INVALID.");
+                    }
+                    if (brainStructure == NULL) {
+                        throw DataFileException("Must load surface(s) with matching structure prior to metric files");
+                    }
+                    brainStructure->addMetricFile(file,
+                                                 false);
+                }
+                    break;
+                case DataFileTypeEnum::PALETTE:
+                {
+                    throw DataFileException("Adding palette files not supported at this time.");
+                }
+                    break;
+                case DataFileTypeEnum::RGBA:
+                {
+                    RgbaFile* file = dynamic_cast<RgbaFile*>(caretDataFile);
+                    CaretAssert(file);
+                    if (structure == StructureEnum::INVALID) {
+                        throw DataFileException("Structure in rgba file is INVALID.");
+                    }
+                    if (brainStructure == NULL) {
+                        throw DataFileException("Must load surface(s) with matching structure prior to label files");
+                    }
+                    brainStructure->addRgbaFile(file,
+                                                 false);
+                }
+                    break;
+                case DataFileTypeEnum::SCENE:
+                {
+                    SceneFile* file = dynamic_cast<SceneFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_sceneFiles.push_back(file);
+                }
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readOrReloadDataFile()");
+                    throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readOrReloadDataFile()");
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                {
+                    Surface* file = dynamic_cast<Surface*>(caretDataFile);
+                    if (structure == StructureEnum::INVALID) {
+                        throw DataFileException("Structure in surface file is INVALID.");
+                    }
+                    if (file == NULL) {
+                        throw DataFileException("Cannot add SurfaceFile but can add a Surface.");
+                    }
+                    if (brainStructure == NULL) {
+                        brainStructure = getBrainStructure(structure,
+                                                           true);
+                    }
+                    brainStructure->addSurface(file,
+                                               false,
+                                               true);
+                }
+                    break;
+                case DataFileTypeEnum::UNKNOWN:
+                    throw DataFileException("Unable to read files of type");
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                {
+                    VolumeFile* file = dynamic_cast<VolumeFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_volumeFiles.push_back(file);
+                }
+                    break;
+            }
+            
+            m_specFile->addCaretDataFile(caretDataFile);
+    
+//            m_specFile->addDataFile(dataFileType,
+//                                    structure,
+//                                    dataFileName,
+//                                    true,
+//                                    false,
+//                                    false);
+    
+}
+
+
+/**
  * @return Number of border files.
  */
 int32_t 
@@ -2387,9 +2589,10 @@ BorderFile*
 Brain::addBorderFile()
 {
     BorderFile* bf = new BorderFile();
-    bf->setFileName(updateFileNameForWriting(bf->getFileName()));
-    m_borderFiles.push_back(bf);
-    m_specFile->addCaretDataFile(bf);
+    addDataFile(bf);
+//    bf->setFileName(updateFileNameForWriting(bf->getFileName()));
+//    m_borderFiles.push_back(bf);
+//    m_specFile->addCaretDataFile(bf);
     return bf;
 }
 
@@ -2667,9 +2870,10 @@ FociFile*
 Brain::addFociFile()
 {
     FociFile* ff = new FociFile();
-    ff->setFileName(updateFileNameForWriting(ff->getFileName()));
-    m_fociFiles.push_back(ff);
-    m_specFile->addCaretDataFile(ff);
+    addDataFile(ff);
+//    ff->setFileName(updateFileNameForWriting(ff->getFileName()));
+//    m_fociFiles.push_back(ff);
+//    m_specFile->addCaretDataFile(ff);
     return ff;
 }
 
@@ -2702,9 +2906,10 @@ SceneFile*
 Brain::addSceneFile()
 {
     SceneFile* sf = new SceneFile();
-    sf->setFileName(updateFileNameForWriting(sf->getFileName()));
-    m_sceneFiles.push_back(sf);
-    m_specFile->addCaretDataFile(sf);
+    addDataFile(sf);
+//    sf->setFileName(updateFileNameForWriting(sf->getFileName()));
+//    m_sceneFiles.push_back(sf);
+//    m_specFile->addCaretDataFile(sf);
     return sf;
 }
 
