@@ -3748,18 +3748,38 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         const float dy = y1 - originY;
         const float dz = z1 - originZ;
         
+        std::vector<float> labelMapData;
+        const CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<const CiftiBrainordinateLabelFile*>(volumeFile);
+        if (ciftiLabelFile != NULL) {
+            ciftiLabelFile->getMapData(volInfo.mapIndex,
+                                       labelMapData);
+        }
+        
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
                 for (int64_t kVoxel = 0; kVoxel < dimK; kVoxel++) {
-                    volumeFile->getVoxelColorInMap(paletteFile,
-                                                   iVoxel,
-                                                   jVoxel,
-                                                   kVoxel,
-                                                   volInfo.mapIndex,
-                                                   displayGroup,
-                                                   this->windowTabIndex,
-                                                   rgba);
+                    if (ciftiLabelFile != NULL) {
+                        ciftiLabelFile->getVoxelColorInMapForLabelData(paletteFile,
+                                                                       labelMapData,
+                                                                       iVoxel,
+                                                                       jVoxel,
+                                                                       kVoxel,
+                                                                       volInfo.mapIndex,
+                                                                       displayGroup,
+                                                                       this->windowTabIndex,
+                                                                       rgba);
+                    }
+                    else {
+                        volumeFile->getVoxelColorInMap(paletteFile,
+                                                       iVoxel,
+                                                       jVoxel,
+                                                       kVoxel,
+                                                       volInfo.mapIndex,
+                                                       displayGroup,
+                                                       this->windowTabIndex,
+                                                       rgba);
+                    }
                     if (rgba[3] > 0) {
                         if (volInfo.opacity < 1.0) {
                             rgba[3] *= volInfo.opacity;
@@ -4614,6 +4634,13 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
         
         VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
         VolumeMappableInterface* vf = volInfo.volumeFile;
+        
+        std::vector<float> labelMapData;
+        CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(vf);
+        if (ciftiLabelFile != NULL) {
+            ciftiLabelFile->getMapData(volInfo.mapIndex,
+                                       labelMapData);
+        }
         for (int64_t i = 0; i < numVoxelsX; i++) {
             for (int64_t j = 0; j < numVoxelsY; j++) {
                 for (int64_t k = 0; k < numVoxelsZ; k++) {
@@ -4651,14 +4678,27 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                     uint8_t rgbaVoxel[4];
                     if (vf->indexValid(iVoxel, jVoxel, kVoxel, volInfo.mapIndex)) {
                         valid = true;
-                        vf->getVoxelColorInMap(paletteFile,
-                                               iVoxel,
-                                               jVoxel,
-                                               kVoxel,
-                                               volInfo.mapIndex,
-                                               displayGroup,
-                                               this->windowTabIndex,
-                                               rgbaVoxel);
+                        if (ciftiLabelFile != NULL) {
+                            ciftiLabelFile->getVoxelColorInMapForLabelData(paletteFile,
+                                                                           labelMapData,
+                                                                           iVoxel,
+                                                                           jVoxel,
+                                                                           kVoxel,
+                                                                           volInfo.mapIndex,
+                                                                           displayGroup,
+                                                                           this->windowTabIndex,
+                                                                           rgbaVoxel);
+                        }
+                        else {
+                            vf->getVoxelColorInMap(paletteFile,
+                                                   iVoxel,
+                                                   jVoxel,
+                                                   kVoxel,
+                                                   volInfo.mapIndex,
+                                                   displayGroup,
+                                                   this->windowTabIndex,
+                                                   rgbaVoxel);
+                        }
                         rgba[sliceRgbaOffset]   = rgbaVoxel[0];
                         rgba[sliceRgbaOffset+1] = rgbaVoxel[1];
                         rgba[sliceRgbaOffset+2] = rgbaVoxel[2];

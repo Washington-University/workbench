@@ -1779,6 +1779,88 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
 
 /**
  * Get the voxel coloring for the voxel at the given indices.
+ * This method is for label data.  Accessing the actual voxel values is
+ * needed for coloring labels.  But, one can only access the entire set
+ * of values for a map.  Since this method is typically called many times
+ * when coloring slices in ALL view, get the map data value before calling
+ * this and then pass them in.
+ *
+ * This will work for non-label data.
+ *
+ * @param paletteFile
+ *     The palette file.
+ * @param dataForMap
+ *     Data for the map.
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param mapIndex
+ *     Time/map index.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *     Output containing RGBA values for voxel at the given indices.
+ */
+void
+CiftiMappableDataFile::getVoxelColorInMapForLabelData(const PaletteFile* paletteFile,
+                                                      const std::vector<float>& dataForMap,
+                                                      const int64_t indexIn1,
+                                                      const int64_t indexIn2,
+                                                      const int64_t indexIn3,
+                                                      const int64_t mapIndex,
+                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                      const int32_t tabIndex,
+                                                      uint8_t rgbaOut[4]) const
+{
+    getVoxelColorInMap(paletteFile,
+                       indexIn1,
+                       indexIn2,
+                       indexIn3,
+                       mapIndex,
+                       displayGroup,
+                       tabIndex,
+                       rgbaOut);
+    
+
+    if (isMappedWithLabelTable()) {
+        if (rgbaOut[3] > 0.0) {
+            const GiftiLabelTable* labelTable = getMapLabelTable(mapIndex);
+            CaretAssert(labelTable);
+            
+            const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(indexIn1,
+                                                                                   indexIn2,
+                                                                                   indexIn3);
+            if (dataOffset >= 0) {
+                /*
+                 * If the label is NOT selected for the given display
+                 * group and tab, inhibit its display by setting the
+                 * alpha component to zero.
+                 */
+                CaretAssertVectorIndex(dataForMap, dataOffset);
+                const int32_t labelKey = dataForMap[dataOffset];
+                const GiftiLabel* label = labelTable->getLabel(labelKey);
+                if (label != NULL) {
+                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                    if (item != NULL) {
+                        if (item->isSelected(displayGroup, tabIndex) == false) {
+                            rgbaOut[3] = 0.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Get the voxel coloring for the voxel at the given indices.
+ *
+ * @see getVoxelColorInMapForLabelData
  *
  * @param paletteFile
  *     The palette file.
@@ -1803,8 +1885,8 @@ CiftiMappableDataFile::getVoxelColorInMap(const PaletteFile* paletteFile,
                                 const int64_t indexIn2,
                                 const int64_t indexIn3,
                                 const int64_t mapIndex,
-                                          const DisplayGroupEnum::Enum displayGroup,
-                                          const int32_t tabIndex,
+                                          const DisplayGroupEnum::Enum /*displayGroup*/,
+                                          const int32_t /*tabIndex*/,
                                 uint8_t rgbaOut[4]) const
 {
     rgbaOut[0] = 0;

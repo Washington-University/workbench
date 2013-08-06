@@ -217,6 +217,16 @@ namespace caret {
                                         const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const;
         
+        virtual void getVoxelColorInMapForLabelData(const PaletteFile* paletteFile,
+                                                    const std::vector<float>& dataForMap,
+                                        const int64_t indexIn1,
+                                        const int64_t indexIn2,
+                                        const int64_t indexIn3,
+                                        const int64_t mapIndex,
+                                        const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
+                                        uint8_t rgbaOut[4]) const;
+        
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,
                                             const float xyz[3],
                                             int64_t ijkOut[3],
