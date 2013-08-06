@@ -72,8 +72,9 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
     ret->setHelpText(
-        AString("Creates a new volume with label information in the header in the caret nifti extension format.  The label list file must have ") +
-        "lines of the following format:\n\n" + 
+        AString("Creates a new volume with label information in the header in the caret nifti extension format.  ") +
+        "You may specify the empty string ('' will work on linux/mac) for <label-list-file>, which will be treated as if it is an empty file.  " +
+        "The label list file must have lines of the following format:\n\n" + 
         "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" + 
         "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
         "Label names must be on a separate line, but may contain spaces or other unusual characters (but not newline).  " +
@@ -118,77 +119,80 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         }
     }
     bool dropUnused = myParams->getOptionalParameter(7)->m_present;
-    FileInformation textFileInfo(listfileName);
-    if (!textFileInfo.exists())
-    {
-        throw OperationException("label list file doesn't exist");
-    }
-    fstream labelListFile(listfileName.toLocal8Bit().constData(), fstream::in);
-    if (!labelListFile.good())
-    {
-        throw OperationException("error reading label list file");
-    }
-    string labelName;
-    int32_t value, red, green, blue, alpha;
     GiftiLabelTable myTable;
     map<int32_t, int32_t> translate;
-    translate[unlabeledValue] = 0;//placeholder, we don't know the correct translated value yet
-    while (labelListFile.good())
+    if (listfileName != "")
     {
-        getline(labelListFile, labelName);
-        labelListFile >> value;
-        labelListFile >> red;
-        labelListFile >> green;
-        labelListFile >> blue;
-        if (!(labelListFile >> alpha))//yes, that is seriously the correct way to check if input was successfully extracted...so much fail
+        FileInformation textFileInfo(listfileName);
+        if (!textFileInfo.exists())
         {
-            break;//stop at malformed lines
+            throw OperationException("label list file doesn't exist");
         }
-        while (isspace(labelListFile.peek()))
+        fstream labelListFile(listfileName.toLocal8Bit().constData(), fstream::in);
+        if (!labelListFile.good())
         {
-            labelListFile.ignore();//drop the newline, possible carriage return or other whitespace so that getline doesn't get nothing, and cause int extraction to fail
+            throw OperationException("error reading label list file");
         }
-        temp = AString(labelName.c_str()).trimmed();//drop errant CR or other whitespace from beginning and end of lines
-        if (translate.find(value) != translate.end())
+        string labelName;
+        int32_t value, red, green, blue, alpha;
+        translate[unlabeledValue] = 0;//placeholder, we don't know the correct translated value yet
+        while (labelListFile.good())
         {
-            if (value == unlabeledValue)
+            getline(labelListFile, labelName);
+            labelListFile >> value;
+            labelListFile >> red;
+            labelListFile >> green;
+            labelListFile >> blue;
+            if (!(labelListFile >> alpha))//yes, that is seriously the correct way to check if input was successfully extracted...so much fail
             {
-                throw OperationException("the unlabeled value must not be specified in label list file");
-            } else {
-                throw OperationException(AString("label key ") + AString::number(value) + " specified more than once");
+                break;//stop at malformed lines
             }
-        }
-        GiftiLabel myLabel(value, temp, red, green, blue, alpha);
-        if (myTable.getLabelKeyFromName(temp) != GiftiLabel::getInvalidLabelKey())
-        {
-            AString nameBase = temp, newName;//resolve collision by generating a name with an additional number on it
-            bool success = false;
-            for (int extra = 1; extra < 100; ++extra)//but stop at 100, because really...
+            while (isspace(labelListFile.peek()))
             {
-                newName = nameBase + "_" + AString::number(extra);
-                if (myTable.getLabelKeyFromName(newName) == GiftiLabel::getInvalidLabelKey())
+                labelListFile.ignore();//drop the newline, possible carriage return or other whitespace so that getline doesn't get nothing, and cause int extraction to fail
+            }
+            temp = AString(labelName.c_str()).trimmed();//drop errant CR or other whitespace from beginning and end of lines
+            if (translate.find(value) != translate.end())
+            {
+                if (value == unlabeledValue)
                 {
-                    success = true;
-                    break;
+                    throw OperationException("the unlabeled value must not be specified in label list file");
+                } else {
+                    throw OperationException(AString("label key ") + AString::number(value) + " specified more than once");
                 }
             }
-            if (success)
+            GiftiLabel myLabel(value, temp, red, green, blue, alpha);
+            if (myTable.getLabelKeyFromName(temp) != GiftiLabel::getInvalidLabelKey())
             {
-                CaretLogWarning("name collision in input name '" + nameBase + "', changing one to '" + newName + "'");
-            } else {
-                throw OperationException("giving up on resolving name collision for input name '" + nameBase + "'");
+                AString nameBase = temp, newName;//resolve collision by generating a name with an additional number on it
+                bool success = false;
+                for (int extra = 1; extra < 100; ++extra)//but stop at 100, because really...
+                {
+                    newName = nameBase + "_" + AString::number(extra);
+                    if (myTable.getLabelKeyFromName(newName) == GiftiLabel::getInvalidLabelKey())
+                    {
+                        success = true;
+                        break;
+                    }
+                }
+                if (success)
+                {
+                    CaretLogWarning("name collision in input name '" + nameBase + "', changing one to '" + newName + "'");
+                } else {
+                    throw OperationException("giving up on resolving name collision for input name '" + nameBase + "'");
+                }
+                myLabel.setName(newName);
             }
-            myLabel.setName(newName);
+            int32_t newValue;
+            if (value == 0)//because label 0 exists in the default constructed table
+            {
+                myTable.insertLabel(&myLabel);//but we do want to be able to overwrite the default 0 label
+                newValue = 0;//if value 0 is specified twice, or once without specifying a different unlabeled value, the check versus the translate map will catch it
+            } else {
+                newValue = myTable.addLabel(&myLabel);//we don't want to overwrite relocated labels
+            }
+            translate[value] = newValue;
         }
-        int32_t newValue;
-        if (value == 0)//because label 0 exists in the default constructed table
-        {
-            myTable.insertLabel(&myLabel);//but we do want to be able to overwrite the default 0 label
-            newValue = 0;//if value 0 is specified twice, or once without specifying a different unlabeled value, the check versus the translate map will catch it
-        } else {
-            newValue = myTable.addLabel(&myLabel);//we don't want to overwrite relocated labels
-        }
-        translate[value] = newValue;
     }
     vector<int64_t> myDims;
     myVol->getDimensions(myDims);
