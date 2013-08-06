@@ -89,10 +89,12 @@ using namespace caret;
  * @param parent
  *    The parent.
  */
-CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainStructure* brainStructure,
+CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(const AString defaultName,
+                                                                         BrainStructure* brainStructure,
                                                                          QObject* parent)
 : WuQWidget(parent)
 {
+    m_defaultName = defaultName;
     CaretAssert(brainStructure);
     this->brainStructure = brainStructure;
 
@@ -429,14 +431,22 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                                 + " not allowed."));
             break;
     }
-    QString newFileName = "NewFile." + fileExtension;
+    
+    QString newFileName = "NewFile";
+    QString newMapName  = "Map Name";
+    if (m_defaultName.isEmpty() == false) {
+        newFileName = m_defaultName;
+        newMapName  = m_defaultName;
+    }
+    newFileName += ("."
+                    + fileExtension);
 
     WuQDataEntryDialog newFileMapDialog("New Map File and Map",
                                         this->widget);
     QLineEdit* mapFileNameLineEdit = newFileMapDialog.addLineEditWidget("New Map File Name", 
                                                                         newFileName);
     QLineEdit* mapNameLineEdit     = newFileMapDialog.addLineEditWidget("New Map Name", 
-                                                                        "Map Name");
+                                                                        newMapName);
     
     if (newFileMapDialog.exec() == WuQDataEntryDialog::Accepted) {
         QString mapFileName   = mapFileNameLineEdit->text();
@@ -536,12 +546,18 @@ CaretMappableDataFileAndMapSelector::newMapToolButtonSelected()
             return;
         }
         
+        QString presetMapName  = "Map Name";
+        if (m_defaultName.isEmpty() == false) {
+            presetMapName  = m_defaultName;
+        }
+        
         bool valid = false;
         const QString newMapName = QInputDialog::getText(this->mapFileComboBox, 
                                                          "Map Name", 
                                                          "Map Name", 
                                                          QLineEdit::Normal, 
-                                                         "map", &valid);
+                                                         presetMapName,
+                                                         &valid);
         if (valid) {
             try {
                 gtf->addMaps(gtf->getNumberOfNodes(),

@@ -177,6 +177,11 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
                                                         std::vector<Surface*>& surfaces,
                                                         STRUCTURE_MAP_FILE_SELECTOR_MAP& mapFileSelectors)
 {
+    AString borderName;
+    if (this->borders.empty() == false) {
+        borderName = this->borders[0]->getName();
+    }
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* mapSelectionLayout = new QVBoxLayout(widget);
     
@@ -192,8 +197,9 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
             if (surface->getStructure() == structure) {
                 BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretMappableDataFileAndMapSelector* mapSelector =
-                    new CaretMappableDataFileAndMapSelector(brainStructure,
-                                                        this);
+                    new CaretMappableDataFileAndMapSelector(borderName,
+                                                            brainStructure,
+                                                            this);
                 QObject::connect(mapSelector, SIGNAL(selectionChanged(CaretMappableDataFileAndMapSelector*)),
                                  this, SLOT(fileSelectionWasChanged(CaretMappableDataFileAndMapSelector*)));
                 

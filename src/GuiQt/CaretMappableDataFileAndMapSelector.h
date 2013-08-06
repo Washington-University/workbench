@@ -60,7 +60,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        CaretMappableDataFileAndMapSelector(BrainStructure* brainStructure,
+        CaretMappableDataFileAndMapSelector(const AString defaultName,
+                                            BrainStructure* brainStructure,
                                             QObject* parent);
         
         virtual ~CaretMappableDataFileAndMapSelector();
@@ -150,6 +151,8 @@ namespace caret {
         QWidget* valueWidgetLabel;
         
         std::vector<DataFileTypeEnum::Enum> supportedMapFileTypes;
+        
+        AString m_defaultName;
         
         class Selections {
         public:
