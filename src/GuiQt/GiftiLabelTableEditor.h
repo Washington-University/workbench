@@ -45,6 +45,7 @@ class QListWidgetItem;
 namespace caret {
 
     class BorderFile;
+    class CaretMappableDataFile;
     class ColorEditorWidget;
     class FociFile;
     class GiftiLabel;
@@ -68,6 +69,12 @@ namespace caret {
         };
         
         GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
+                              const AString& dialogTitle,
+                              const uint32_t options,
+                              QWidget* parent);
+        
+        GiftiLabelTableEditor(CaretMappableDataFile* caretMappableDataFile,
+                              const int32_t mapIndex,
                               const AString& dialogTitle,
                               const uint32_t options,
                               QWidget* parent);
@@ -128,6 +135,10 @@ namespace caret {
         BorderFile* m_borderFile;
         
         FociFile* m_fociFile;
+        
+        CaretMappableDataFile* m_caretMappableDataFile;
+        
+        int32_t m_caretMappableDataFileMapIndex;
         
         GiftiLabelTable* m_giftiLableTable;
         

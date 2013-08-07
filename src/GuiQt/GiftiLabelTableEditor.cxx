@@ -49,22 +49,25 @@
 #include <QToolButton>
 
 #include "BorderFile.h"
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
 #include "ColorEditorWidget.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GroupAndNameHierarchyItem.h"
+#include "GuiManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::GiftiLabelTableEditor 
  * \brief Dialog for editing a GIFTI lable table.
@@ -95,10 +98,39 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
 }
 
 /**
- * \class caret::GiftiLabelTableEditor
- * \brief Dialog for editing a GIFTI lable table.
+ * Constructor.
  *
+ * @param fociFile
+ *    Foci file whose color table being edited.  As colors are edited,
+ *    the assigned foci will have their color validity invalidated.
+ * @param giftiLabelTable
+ *    Label table being edited.
+ * @param dialogTitle
+ *    Title for the dialog.
+ * @param options
+ *    Bitwise OR'ed Options values.
+ * @param parent
+ *    Parent on which this dialog is displayed.
  */
+GiftiLabelTableEditor::GiftiLabelTableEditor(CaretMappableDataFile* caretMappableDataFile,
+                                             const int32_t mapIndex,
+                                             const AString& dialogTitle,
+                                             const uint32_t options,
+                                             QWidget* parent)
+: WuQDialogModal(dialogTitle,
+                 parent)
+{
+    CaretAssert(caretMappableDataFile);
+    CaretAssert(mapIndex >= 0);
+    CaretAssert(mapIndex < caretMappableDataFile->getNumberOfMaps());
+    
+    
+    initializeDialog(caretMappableDataFile->getMapLabelTable(mapIndex),
+                     options);
+    
+    m_caretMappableDataFile = caretMappableDataFile;
+    m_caretMappableDataFileMapIndex = mapIndex;
+}
 
 /**
  * Constructor.
@@ -182,6 +214,8 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
                                         const uint32_t options)
 {
     m_borderFile = NULL;
+    m_caretMappableDataFile = NULL;
+    m_caretMappableDataFileMapIndex = -1;
     m_fociFile = NULL;
     
     m_showUnassignedLabelInEditor = true;
@@ -432,8 +466,15 @@ GiftiLabelTableEditor::colorEditorColorChanged(const float* rgba)
         if (m_fociFile != NULL) {
             m_fociFile->invalidateAllAssignedColors();
         }
-        if (m_borderFile != NULL) {
+        else if (m_borderFile != NULL) {
             m_borderFile->invalidateAllAssignedColors();
+        }
+        else if (m_caretMappableDataFile != NULL) {
+            GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
+            if (item != NULL) {
+                item->setIconColorRGBA(rgba);
+            }
+            
         }
     }
 }
@@ -637,8 +678,14 @@ GiftiLabelTableEditor::deleteButtonClicked()
 void
 GiftiLabelTableEditor::okButtonClicked()
 {
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    if (m_caretMappableDataFile != NULL) {
+        const PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+        m_caretMappableDataFile->updateScalarColoringForMap(m_caretMappableDataFileMapIndex,
+                                                            paletteFile);
+    }
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 
     WuQDialogModal::okButtonClicked();
 }

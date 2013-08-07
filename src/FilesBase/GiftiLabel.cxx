@@ -28,7 +28,6 @@
 #include "GiftiLabel.h"
 #undef __GIFTI_LABEL_DECLARE__
 
-
 using namespace caret;
 
 /**
@@ -286,7 +285,7 @@ GiftiLabel::copyHelper(const GiftiLabel& gl)
     this->y = gl.y;
     this->z = gl.z;
     this->count = 0;
-    m_groupNameSelectionItem = NULL;
+    m_groupNameSelectionItem = gl.m_groupNameSelectionItem;
 }
 
 /**
@@ -654,7 +653,6 @@ void
 GiftiLabel::setModified()
 {
     this->modifiedFlag = true;
-    m_groupNameSelectionItem = NULL;
 }
 
 /**
@@ -784,6 +782,16 @@ GiftiLabel::setGroupNameSelectionItem(GroupAndNameHierarchyItem* item)
  */
 const GroupAndNameHierarchyItem*
 GiftiLabel::getGroupNameSelectionItem() const
+{
+    return m_groupNameSelectionItem;
+}
+
+/**
+ * @return The selection item for the Group/Name selection hierarchy.
+ *      May be NULL in some circumstances.
+ */
+GroupAndNameHierarchyItem*
+GiftiLabel::getGroupNameSelectionItem()
 {
     return m_groupNameSelectionItem;
 }

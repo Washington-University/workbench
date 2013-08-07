@@ -31,6 +31,7 @@
 class QCheckBox;
 class QLabel;
 class QLayout;
+class QPushButton;
 class QTabWidget;
 
 namespace caret {
@@ -68,10 +69,14 @@ namespace caret {
     private slots:
         void doNotReplaceCheckBoxStateChanged(int state);
         
+        void editLabelTablePushButtonClicked();
+        
     private:
         QWidget* createWindowOptionsSection();
         
         QWidget* createMapFileAndNameSection();
+        
+        QWidget* createLabelsSection();
         
         void setLayoutSpacingAndMargins(QLayout* layout);
         
@@ -90,6 +95,10 @@ namespace caret {
         MapSettingsFiberTrajectoryWidget* m_fiberTrajectoryWidget;
         
         MapSettingsLayerWidget* m_layerWidget;
+        
+        QWidget* m_labelsWidget;
+        
+        QPushButton* m_editLabelTablePushButton;
         
         QLabel* m_selectedMapFileNameLabel;
         

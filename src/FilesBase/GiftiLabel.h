@@ -182,6 +182,8 @@ namespace caret {
         
         const GroupAndNameHierarchyItem* getGroupNameSelectionItem() const;
         
+        GroupAndNameHierarchyItem* getGroupNameSelectionItem();
+        
         /**
          * @return The invalid label key.
          */
@@ -215,7 +217,7 @@ namespace caret {
         int32_t count;
         
         /** Selection status of this label in the map/label hierarchy */
-        GroupAndNameHierarchyItem* m_groupNameSelectionItem;
+        mutable GroupAndNameHierarchyItem* m_groupNameSelectionItem;
         
         /** The invalid label key */
         const static int32_t s_invalidLabelKey;

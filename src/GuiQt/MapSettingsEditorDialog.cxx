@@ -28,6 +28,7 @@
 #include <QFocusEvent>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 #include <QTabWidget>
 
 #define __MAP_SETTINGS_EDITOR_DIALOG_DECLARE__
@@ -36,8 +37,12 @@
 
 #include "CaretMappableDataFile.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GiftiLabelTableEditor.h"
 #include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLayerWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
@@ -90,8 +95,10 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
+    m_labelsWidget = createLabelsSection();
+    
     m_tabWidget = new QTabWidget();
-    m_labelsWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
+    m_labelsWidgetTabIndex = m_tabWidget->addTab(m_labelsWidget,
                       "Labels");
     m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
 
@@ -416,5 +423,44 @@ MapSettingsEditorDialog::createWindowOptionsSection()
     return optionsWidget;
 }
 
+/**
+ * Called when the edit label table button is clicked.
+ */
+void
+MapSettingsEditorDialog::editLabelTablePushButtonClicked()
+{
+    if (m_caretMappableDataFile != NULL) {
+        if (m_caretMappableDataFile->isMappedWithLabelTable()) {
+            if (m_mapIndex >= 0) {
+                GiftiLabelTableEditor labelTableEditor(m_caretMappableDataFile,
+                                                       m_mapIndex,
+                                                       "Edit Labels",
+                                                       0,
+                                                       m_editLabelTablePushButton);
+                labelTableEditor.exec();
+            }
+        }
+    }
+}
+
+/**
+ * Create and return widget for editing label tables.
+ */
+QWidget*
+MapSettingsEditorDialog::createLabelsSection()
+{
+    m_editLabelTablePushButton = new QPushButton("Edit");
+    QObject::connect(m_editLabelTablePushButton, SIGNAL(clicked()),
+                     this, SLOT(editLabelTablePushButtonClicked()));
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(m_editLabelTablePushButton,
+                      0,
+                      Qt::AlignLeft);
+    layout->addStretch();
+    
+    return widget;
+}
 
 
