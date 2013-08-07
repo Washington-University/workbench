@@ -500,6 +500,11 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
             m_modelTreeWidget->addTopLevelItem(modelItem);
         }
     }
+    else {
+        for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
+            this->m_treeWidgetItems[iModel]->updateIconColorIncludingChildren();
+        }
+    }
     
     updateSelectedAndExpandedCheckboxes();
     

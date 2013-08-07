@@ -60,7 +60,8 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
 : QTreeWidgetItem()
 {
     CaretAssert(classAndNameHierarchyModel);
-    initialize(displayGroup,
+    initialize(classAndNameHierarchyModel,
+               displayGroup,
                      tabIndex,
                      ITEM_TYPE_HIERARCHY_MODEL,
                      classAndNameHierarchyModel->getName(),
@@ -97,7 +98,8 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
 : QTreeWidgetItem()
 {
     CaretAssert(classDisplayGroupSelector);
-    initialize(displayGroup,
+    initialize(classDisplayGroupSelector,
+               displayGroup,
                      tabIndex,
                      ITEM_TYPE_CLASS,
                      classDisplayGroupSelector->getName(),
@@ -131,7 +133,8 @@ GroupAndNameHierarchyTreeWidgetItem::GroupAndNameHierarchyTreeWidgetItem(const D
 : QTreeWidgetItem()
 {
     CaretAssert(nameDisplayGroupSelector);
-    initialize(displayGroup,
+    initialize(nameDisplayGroupSelector,
+               displayGroup,
                      tabIndex,
                      ITEM_TYPE_NAME,
                      nameDisplayGroupSelector->getName(),
@@ -156,18 +159,35 @@ GroupAndNameHierarchyTreeWidgetItem::~GroupAndNameHierarchyTreeWidgetItem()
  *    Type of item contained in this instance.
  */
 void 
-GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum displayGroup,
+GroupAndNameHierarchyTreeWidgetItem::initialize(GroupAndNameHierarchyItem* groupAndNameHierarchyItem,
+                                                const DisplayGroupEnum::Enum displayGroup,
                                               const int32_t tabIndex,
                                               const ItemType itemType,
                                               const QString text,
                                               const float* iconColorRGBA)
 {
+    m_groupAndNameHierarchyItem = groupAndNameHierarchyItem;
+    m_classAndNameHierarchyModel = dynamic_cast<GroupAndNameHierarchyModel*>(groupAndNameHierarchyItem);
+    m_classDisplayGroupSelector  = dynamic_cast<GroupAndNameHierarchyGroup*>(groupAndNameHierarchyItem);
+    m_nameDisplayGroupSelector   = dynamic_cast<GroupAndNameHierarchyName*>(groupAndNameHierarchyItem);
+    const int32_t count = (((m_classAndNameHierarchyModel != NULL) ? 1 : 0)
+                           + ((m_classDisplayGroupSelector != NULL) ? 1 : 0)
+                           + ((m_nameDisplayGroupSelector != NULL) ? 1 : 0));
+    if (count != 1) {
+        CaretAssertMessage(0,
+                           "Invalid item added to group/name hierarchy tree.");
+    }
+    
+    m_iconColorRGBA[0] = -1.0;
+    m_iconColorRGBA[1] = -1.0;
+    m_iconColorRGBA[2] = -1.0;
+    m_iconColorRGBA[3] = -1.0;
     m_displayGroup = displayGroup;
     m_tabIndex = tabIndex;
     m_itemType = itemType;
-    m_classAndNameHierarchyModel = NULL;
-    m_classDisplayGroupSelector  = NULL;
-    m_nameDisplayGroupSelector   = NULL;
+//    m_classAndNameHierarchyModel = NULL;
+//    m_classDisplayGroupSelector  = NULL;
+//    m_nameDisplayGroupSelector   = NULL;
     m_hasChildren = false;
 
     switch (m_itemType) {
@@ -192,16 +212,18 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(const DisplayGroupEnum::Enum dis
     }
 //    setFlags(itemFlags);   // NEW 11/14/12
     
-    if (iconColorRGBA != NULL) {
-        if (iconColorRGBA[3] > 0.0) {
-            QPixmap pm(10, 10);
-            pm.fill(QColor::fromRgbF(iconColorRGBA[0],
-                                     iconColorRGBA[1],
-                                     iconColorRGBA[2]));
-            QIcon icon(pm);
-            setIcon(TREE_COLUMN, icon);
-        }
-    }
+//    if (iconColorRGBA != NULL) {
+//        if (iconColorRGBA[3] > 0.0) {
+//            QPixmap pm(10, 10);
+//            pm.fill(QColor::fromRgbF(iconColorRGBA[0],
+//                                     iconColorRGBA[1],
+//                                     iconColorRGBA[2]));
+//            QIcon icon(pm);
+//            setIcon(TREE_COLUMN, icon);
+//        }
+//    }
+    
+    updateIconColorIncludingChildren();
 }
 
 /**
@@ -252,6 +274,51 @@ GroupAndNameHierarchyTreeWidgetItem::updateSelections(const DisplayGroupEnum::En
         }
     }
 }
+
+/**
+ * If this item's color has changed, update its icon.
+ * Process all of its children.
+ */
+void
+GroupAndNameHierarchyTreeWidgetItem::updateIconColorIncludingChildren()
+{
+    if (m_groupAndNameHierarchyItem != NULL) {
+        const float* rgba = m_groupAndNameHierarchyItem->getIconColorRGBA();
+        if (rgba != NULL) {
+            if (rgba[3] > 0.0) {
+
+                bool colorChanged = false;
+                for (int32_t i = 0; i < 4; i++) {
+                    if (m_iconColorRGBA[i] != rgba[i]) {
+                        colorChanged = true;
+                        break;
+                    }
+                }
+                if (colorChanged) {
+                    m_iconColorRGBA[0] = rgba[0];
+                    m_iconColorRGBA[1] = rgba[1];
+                    m_iconColorRGBA[2] = rgba[2];
+                    m_iconColorRGBA[3] = rgba[3];
+                    
+                    QPixmap pm(10, 10);
+                    pm.fill(QColor::fromRgbF(m_iconColorRGBA[0],
+                                             m_iconColorRGBA[1],
+                                             m_iconColorRGBA[2]));
+                    QIcon icon(pm);
+                    setIcon(TREE_COLUMN, icon);
+                }
+            }
+        }
+    }
+    
+    for (std::vector<GroupAndNameHierarchyTreeWidgetItem*>::iterator iter = m_children.begin();
+         iter != m_children.end();
+         iter++) {
+        GroupAndNameHierarchyTreeWidgetItem* item = *iter;
+        item->updateIconColorIncludingChildren();
+    }
+}
+
 
 /**
  * Add a child.

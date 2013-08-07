@@ -47,6 +47,7 @@ class QVBoxLayout;
 namespace caret {
 
     class GroupAndNameHierarchyGroup;
+    class GroupAndNameHierarchyItem;
     class GroupAndNameHierarchyModel;
     class GroupAndNameHierarchyName;
     
@@ -94,12 +95,15 @@ namespace caret {
         
         void setModelDataSelected(const bool selected);
         
+        void updateIconColorIncludingChildren();
+        
     private:
         GroupAndNameHierarchyTreeWidgetItem(const GroupAndNameHierarchyTreeWidgetItem&);
         
         GroupAndNameHierarchyTreeWidgetItem& operator=(const GroupAndNameHierarchyTreeWidgetItem&);
         
-        void initialize(const DisplayGroupEnum::Enum displayGroup,
+        void initialize(GroupAndNameHierarchyItem* groupAndNameHierarchyItem,
+                        const DisplayGroupEnum::Enum displayGroup,
                         const int32_t tabIndex,
                         const ItemType itemType,
                         const QString text,
@@ -115,6 +119,8 @@ namespace caret {
         
         int32_t m_tabIndex;
         
+        GroupAndNameHierarchyItem* m_groupAndNameHierarchyItem;
+        
         GroupAndNameHierarchyModel* m_classAndNameHierarchyModel;
         
         GroupAndNameHierarchyGroup* m_classDisplayGroupSelector;
@@ -126,6 +132,8 @@ namespace caret {
         bool m_displayNamesWithZeroCount;
         
         bool m_hasChildren;
+        
+        float m_iconColorRGBA[4];
         
         static const int TREE_COLUMN;
         
