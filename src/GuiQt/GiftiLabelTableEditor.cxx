@@ -315,6 +315,11 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     
     loadLabels("", false);
     
+    m_applyPushButton = NULL;
+    if (options & OPTION_ADD_APPLY_BUTTON) {
+        m_applyPushButton = addUserPushButton("Apply",
+                                              QDialogButtonBox::ApplyRole);
+    }
     //setOkButtonText("Close");
     //setCancelButtonText("");
     
@@ -675,8 +680,34 @@ GiftiLabelTableEditor::deleteButtonClicked()
     }
 }
 
+/**
+ * Gets called when a button this dialog added is clicked.
+ *
+ * @param userPushButton
+ *    Button that was clicked.
+ */
+WuQDialogModal::ModalDialogUserButtonResult
+GiftiLabelTableEditor::userButtonPressed(QPushButton* userPushButton)
+{
+    ModalDialogUserButtonResult result = RESULT_NONE;
+    
+    if (userPushButton == m_applyPushButton) {
+        processApplyButton();
+        result = RESULT_NONE;
+    }
+    else {
+        result = WuQDialogModal::userButtonPressed(userPushButton);
+    }
+    
+    return result;
+}
+
+/**
+ * Process as if the apply button was pressed.
+ * Apply is like OK, except that the dialog remains open.
+ */
 void
-GiftiLabelTableEditor::okButtonClicked()
+GiftiLabelTableEditor::processApplyButton()
 {
     if (m_caretMappableDataFile != NULL) {
         const PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
@@ -686,7 +717,16 @@ GiftiLabelTableEditor::okButtonClicked()
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
 
+/**
+ * Called when the OK button is clicked.
+ */
+void
+GiftiLabelTableEditor::okButtonClicked()
+{
+    processApplyButton();
+    
     WuQDialogModal::okButtonClicked();
 }
 

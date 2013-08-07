@@ -435,7 +435,7 @@ MapSettingsEditorDialog::editLabelTablePushButtonClicked()
                 GiftiLabelTableEditor labelTableEditor(m_caretMappableDataFile,
                                                        m_mapIndex,
                                                        "Edit Labels",
-                                                       0,
+                                                       GiftiLabelTableEditor::OPTION_ADD_APPLY_BUTTON,
                                                        m_editLabelTablePushButton);
                 labelTableEditor.exec();
             }

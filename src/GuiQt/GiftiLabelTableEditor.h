@@ -41,6 +41,7 @@ class QAction;
 class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
+class QPushButton;
 
 namespace caret {
 
@@ -65,7 +66,12 @@ namespace caret {
              * Hide the unassigned label so that it is not shown in editor.
              * May be bitwise OR'ed with other options.
              */
-            OPTION_UNASSIGNED_LABEL_HIDDEN = 1
+            OPTION_UNASSIGNED_LABEL_HIDDEN = 1,
+            /**
+             * Add an apply button so that the graphics windows can be
+             * updated without having to close the dialog.
+             */
+            OPTION_ADD_APPLY_BUTTON = 2
         };
         
         GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
@@ -118,7 +124,10 @@ namespace caret {
     protected:
         virtual void okButtonClicked();
 
+        ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        
     private:
+        
         void initializeDialog(GiftiLabelTable* giftiLabelTable,
                               const uint32_t options);
         
@@ -129,6 +138,8 @@ namespace caret {
         
         void setWidgetItemIconColor(QListWidgetItem* item,
                                     const float rgba[4]);
+        
+        void processApplyButton();
         
         QListWidget* m_labelSelectionListWidget;
         
@@ -153,6 +164,8 @@ namespace caret {
         bool m_showUnassignedLabelInEditor;
         
         WuQWidgetObjectGroup* m_editingGroup;
+        
+        QPushButton* m_applyPushButton;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
