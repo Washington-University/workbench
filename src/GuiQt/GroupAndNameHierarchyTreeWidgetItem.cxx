@@ -164,7 +164,7 @@ GroupAndNameHierarchyTreeWidgetItem::initialize(GroupAndNameHierarchyItem* group
                                               const int32_t tabIndex,
                                               const ItemType itemType,
                                               const QString text,
-                                              const float* iconColorRGBA)
+                                              const float* /*iconColorRGBA*/)
 {
     m_groupAndNameHierarchyItem = groupAndNameHierarchyItem;
     m_classAndNameHierarchyModel = dynamic_cast<GroupAndNameHierarchyModel*>(groupAndNameHierarchyItem);
