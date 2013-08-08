@@ -752,7 +752,9 @@ CaretMappableDataFileAndMapSelector::showLabelsEditor()
         LabelFile* labelFile = dynamic_cast<LabelFile*>(gtf);
         if (labelFile != NULL) {
             GiftiLabelTable* labelTable = labelFile->getLabelTable();
-            GiftiLabelTableEditor labelsEditor(labelTable,
+            const int32_t mapIndex = getSelectedMapIndex();
+            GiftiLabelTableEditor labelsEditor(labelFile,
+                                               mapIndex,
                                                "Edit Labels",
                                                GiftiLabelTableEditor::OPTION_NONE,
                                                this->getWidget());

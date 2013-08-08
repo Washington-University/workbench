@@ -86,16 +86,16 @@ using namespace caret;
  * @param parent
  *    Parent on which this dialog is displayed.
  */
-GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
-                                             const AString& dialogTitle,
-                                             const uint32_t options,
-                                             QWidget* parent)
-: WuQDialogModal(dialogTitle,
-                 parent)
-{
-    initializeDialog(giftiLabelTable,
-                     options);
-}
+//GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLabelTable,
+//                                             const AString& dialogTitle,
+//                                             const uint32_t options,
+//                                             QWidget* parent)
+//: WuQDialogModal(dialogTitle,
+//                 parent)
+//{
+//    initializeDialog(giftiLabelTable,
+//                     options);
+//}
 
 /**
  * Constructor.
