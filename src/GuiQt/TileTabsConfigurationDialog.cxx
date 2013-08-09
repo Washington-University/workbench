@@ -733,9 +733,9 @@ TileTabsConfigurationDialog::updateGraphicsWindows()
          iter++) {
         BrainBrowserWindow* bbw = *iter;
         if (bbw->isTileTabsSelected()) {
-            if (bbw->getSelectedTileTabsConfiguration() == getSelectedTileTabsConfiguration()) {
+//            if (bbw->getSelectedTileTabsConfiguration() == getSelectedTileTabsConfiguration()) {
                 EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(bbw->getBrowserWindowIndex()).getPointer());
-            }
+//            }
         }
     }
 }

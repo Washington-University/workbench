@@ -1099,7 +1099,8 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
 }
 
 /*
- * Set the selected tile tabs configuration.
+ * Set the selected tile tabs configuration.  If requested configuration is
+ * NULL, the default configuration will be selected.
  *
  * @param configuration
  *    New selection for tile tabs configuration.
@@ -1107,8 +1108,12 @@ BrainBrowserWindow::processTileTabsMenuSelection(QAction* action)
 void
 BrainBrowserWindow::setSelectedTileTabsConfiguration(TileTabsConfiguration* configuration)
 {
-    CaretAssert(configuration);
-    m_selectedTileTabsConfigurationUniqueIdentifier = configuration->getUniqueIdentifier();
+    if (configuration != NULL) {
+        m_selectedTileTabsConfigurationUniqueIdentifier = configuration->getUniqueIdentifier();
+    }
+    else {
+        m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
+    }
 }
 
 /**
