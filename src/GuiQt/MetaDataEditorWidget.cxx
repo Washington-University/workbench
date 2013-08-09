@@ -209,8 +209,8 @@ MetaDataEditorWidget::loadMetaData(GiftiMetaData* metaData)
     m_unmodifiedNamesAndValues.clear();
     m_namesAndValues.clear();
     for (int32_t iRow = 0; iRow < numMetaData; iRow++) {
-        const AString name = metaDataNames[iRow];
-        const AString value = m_metaDataBeingEdited->get(name);
+        const AString name = metaDataNames[iRow].trimmed();
+        const AString value = m_metaDataBeingEdited->get(name).trimmed();
         m_namesAndValues.push_back(std::make_pair(name,
                                                   value));
         m_unmodifiedNamesAndValues.insert(std::make_pair(name,
