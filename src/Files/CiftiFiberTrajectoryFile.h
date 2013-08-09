@@ -185,6 +185,8 @@ namespace caret {
 
     private:
 
+        void loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException);
+        
         void clearPrivate();
         
         void validateAssignedMatchingFiberOrientationFile() throw (DataFileException);

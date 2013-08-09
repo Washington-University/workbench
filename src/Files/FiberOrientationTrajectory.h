@@ -47,8 +47,7 @@ namespace caret {
     class FiberOrientationTrajectory {
         
     public:
-        FiberOrientationTrajectory(const FiberOrientation* fiberOrientation,
-                                   const int64_t rowIndex);
+        FiberOrientationTrajectory(const FiberOrientation* fiberOrientation);
         
         virtual ~FiberOrientationTrajectory();
         
@@ -59,11 +58,6 @@ namespace caret {
          * @return the Fiber Orientation.
          */
         inline const FiberOrientation* getFiberOrientation() const { return m_fiberOrientation; }
-        
-        /**
-         * @return The row index from which this data originated.
-         */
-        inline int64_t getRowIndex() const { return m_rowIndex; }
         
         /**
          * @return The number of fiber fractions.
@@ -107,8 +101,6 @@ namespace caret {
 
     private:
         const FiberOrientation* m_fiberOrientation;
-        
-        const int64_t m_rowIndex;
         
         std::vector<FiberFractions> m_fiberFractions;
 

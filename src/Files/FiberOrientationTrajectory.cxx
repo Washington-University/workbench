@@ -51,10 +51,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* fiberOrientation,
-                                                       const int64_t rowIndex)
-: m_fiberOrientation(fiberOrientation),
-m_rowIndex(rowIndex)
+FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* fiberOrientation)
+: m_fiberOrientation(fiberOrientation)
 {
 }
 
