@@ -712,6 +712,8 @@ Overlay::saveToScene(const SceneAttributes* sceneAttributes,
     
     if ((selectedMapFile != NULL) 
         && (selectedMapIndex >= 0)) {
+        sceneClass->addPathName("selectedMapFileNameWithPath",
+                                selectedMapFile->getFileName());
         sceneClass->addString("selectedMapFile",
                               selectedMapFile->getFileNameNoPath());
         sceneClass->addString("selectedMapUniqueID",
@@ -767,6 +769,8 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
     
+    const AString selectedMapFileNameWithPath = sceneClass->getPathNameValue("selectedMapFileNameWithPath");
+    
     const AString selectedMapFileName = sceneClass->getStringValue("selectedMapFile",
                                                                    "");
     const AString selectedMapUniqueID = sceneClass->getStringValue("selectedMapUniqueID",
@@ -778,14 +782,14 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
         bool found = false;
         
         /*
-         * First try to find map by unique ID
+         * First try to find file by filename INCLUDING path and map by unique ID
          */
         if (selectedMapUniqueID.isEmpty() == false) {
             for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
                  iter != mapFiles.end();
                  iter++) {
                 CaretMappableDataFile* mapFile = *iter;
-                const AString fileName = mapFile->getFileNameNoPath();
+                const AString fileName = mapFile->getFileName();
                 if (fileName == selectedMapFileName) {
                     CaretMappableDataFile* mapFile = *iter;
                     const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
@@ -794,6 +798,30 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                                          mapIndex);
                         found = true;
                         break;
+                    }
+                }
+            }
+        }
+        
+        /*
+         * Second try to find file by filename WITHOUT path and map by unique ID
+         */
+        if (found == false) {
+            if (selectedMapUniqueID.isEmpty() == false) {
+                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+                     iter != mapFiles.end();
+                     iter++) {
+                    CaretMappableDataFile* mapFile = *iter;
+                    const AString fileName = mapFile->getFileNameNoPath();
+                    if (fileName == selectedMapFileName) {
+                        CaretMappableDataFile* mapFile = *iter;
+                        const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
+                        if (mapIndex >= 0) {
+                            setSelectionData(mapFile,
+                                             mapIndex);
+                            found = true;
+                            break;
+                        }
                     }
                 }
             }
