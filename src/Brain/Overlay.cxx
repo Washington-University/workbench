@@ -778,19 +778,19 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     const AString selectedMapName = sceneClass->getStringValue("selectedMapName",
                                                                    "");
     
-    if (selectedMapFileName.isEmpty() == false) {
-        bool found = false;
-        
-        /*
-         * First try to find file by filename INCLUDING path and map by unique ID
-         */
+    bool found = false;
+
+    /*
+     * First try to find file by filename INCLUDING path and map by unique ID
+     */
+    if (selectedMapFileNameWithPath.isEmpty() == false) {
         if (selectedMapUniqueID.isEmpty() == false) {
             for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
                  iter != mapFiles.end();
                  iter++) {
                 CaretMappableDataFile* mapFile = *iter;
                 const AString fileName = mapFile->getFileName();
-                if (fileName == selectedMapFileName) {
+                if (fileName == selectedMapFileNameWithPath) {
                     CaretMappableDataFile* mapFile = *iter;
                     const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
                     if (mapIndex >= 0) {
@@ -802,50 +802,50 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
             }
         }
-        
-        /*
-         * Second try to find file by filename WITHOUT path and map by unique ID
-         */
-        if (found == false) {
-            if (selectedMapUniqueID.isEmpty() == false) {
-                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
-                     iter != mapFiles.end();
-                     iter++) {
+    }
+    
+    /*
+     * Second try to find file by filename WITHOUT path and map by unique ID
+     */
+    if (found == false) {
+        if (selectedMapUniqueID.isEmpty() == false) {
+            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+                 iter != mapFiles.end();
+                 iter++) {
+                CaretMappableDataFile* mapFile = *iter;
+                const AString fileName = mapFile->getFileNameNoPath();
+                if (fileName == selectedMapFileName) {
                     CaretMappableDataFile* mapFile = *iter;
-                    const AString fileName = mapFile->getFileNameNoPath();
-                    if (fileName == selectedMapFileName) {
-                        CaretMappableDataFile* mapFile = *iter;
-                        const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
-                        if (mapIndex >= 0) {
-                            setSelectionData(mapFile,
-                                             mapIndex);
-                            found = true;
-                            break;
-                        }
+                    const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
+                    if (mapIndex >= 0) {
+                        setSelectionData(mapFile,
+                                         mapIndex);
+                        found = true;
+                        break;
                     }
                 }
             }
         }
-        
-        if (found == false) {
-            /*
-             * If not found by unique ID, try to find map by name
-             */
-            if (selectedMapName.isEmpty() == false) {
-                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
-                     iter != mapFiles.end();
-                     iter++) {
+    }
+    
+    if (found == false) {
+        /*
+         * If not found by unique ID, try to find map by name
+         */
+        if (selectedMapName.isEmpty() == false) {
+            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+                 iter != mapFiles.end();
+                 iter++) {
+                CaretMappableDataFile* mapFile = *iter;
+                const AString fileName = mapFile->getFileNameNoPath();
+                if (fileName == selectedMapFileName) {
                     CaretMappableDataFile* mapFile = *iter;
-                    const AString fileName = mapFile->getFileNameNoPath();
-                    if (fileName == selectedMapFileName) {
-                        CaretMappableDataFile* mapFile = *iter;
-                        const int32_t mapIndex = mapFile->getMapIndexFromName(selectedMapName);
-                        if (mapIndex >= 0) {
-                            setSelectionData(mapFile, 
-                                             mapIndex);
-                            found = true;
-                            break;
-                        }
+                    const int32_t mapIndex = mapFile->getMapIndexFromName(selectedMapName);
+                    if (mapIndex >= 0) {
+                        setSelectionData(mapFile,
+                                         mapIndex);
+                        found = true;
+                        break;
                     }
                 }
             }
