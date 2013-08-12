@@ -109,6 +109,10 @@ void CaretSparseFile::readFile(const AString& filename)
     QByteArray myXMLBytes(xml_length, '\0');
     if (fread(myXMLBytes.data(), 1, xml_length, m_file) != (size_t)xml_length) throw DataFileException("error reading from file");
     m_xml.readXML(myXMLBytes);
+    if (m_xml.getNumberOfColumns() != m_dims[0] || m_xml.getNumberOfRows() != m_dims[1])
+    {
+        throw DataFileException("cifti XML doesn't match dimensions of sparse file");
+    }
 }
 
 CaretSparseFile::~CaretSparseFile()
