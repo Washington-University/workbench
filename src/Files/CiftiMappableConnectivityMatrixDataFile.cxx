@@ -1167,6 +1167,9 @@ void
 CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                                              SceneClass* sceneClass)
 {
+    CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
     m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
 }
 
@@ -1188,6 +1191,9 @@ void
 CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                                   const SceneClass* sceneClass)
 {
+    CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
     m_connectivityDataLoaded->reset();
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
