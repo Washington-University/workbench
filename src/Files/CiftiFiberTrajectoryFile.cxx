@@ -1009,8 +1009,7 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
             if (fiberIndex < numFiberOrientations) {
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
-                fot->addFiberFractions(fiberFractions[iFiber],
-                                       fiberIndex);
+                fot->addFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
             else{
@@ -1019,6 +1018,8 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
                                + " into fiber orientations");
             }
         }
+        
+        finishFiberOrientationTrajectories();
         
         m_loadedDataDescriptionForMapName = ("Row: "
                                              + AString::number(rowIndex)
@@ -1037,6 +1038,18 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
     
     return rowIndex;
 }
+
+void
+CiftiFiberTrajectoryFile::finishFiberOrientationTrajectories()
+{
+    for (std::vector<FiberOrientationTrajectory*>::iterator iter = m_fiberOrientationTrajectories.begin();
+         iter != m_fiberOrientationTrajectories.end();
+         iter++) {
+        FiberOrientationTrajectory* fot = *iter;
+        fot->finish();
+    }
+}
+
 
 /**
  * Load average data for the given surface nodes.
@@ -1059,100 +1072,102 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
     
     clearLoadedFiberOrientations();
     
-    if (surfaceNumberOfNodes <= 0) {
-        return;
-    }
+    throw DataFileException("Loading of node average is temporarily disabled.");
     
-    validateAssignedMatchingFiberOrientationFile();
-
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    
-    if (trajXML.hasColumnSurfaceData(structure) == false) {
-        return;
-    }
-    if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
-        return;
-    }
-    
-    /*
-     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
-     * to a FiberOrientationTrajectory instance.  For averaging, items that have
-     * a matching fiber orientation index are averaged.
-     */
-    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
-    
-    const int32_t numberOfNodes = static_cast<int32_t>(nodeIndices.size());
-    for (int32_t i = 0; i < numberOfNodes; i++) {
-        const int32_t nodeIndex = nodeIndices[i];
-        
-        /*
-         * Get and load row for node
-         */
-        const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
-                                                            structure);
-        if (rowIndex >= 0) {
-            std::vector<int64_t> fiberOrientationIndicesForRow;
-            std::vector<FiberFractions> fiberFractions;
-            m_sparseFile->getFibersRowSparse(rowIndex,
-                                             fiberOrientationIndicesForRow,
-                                             fiberFractions);
-            
-            CaretAssert(fiberOrientationIndicesForRow.size() == fiberFractions.size());
-            
-            /*
-             * Process trajectory for node
-             */
-            const int64_t numItems = static_cast<int64_t>(fiberOrientationIndicesForRow.size());
-            if (numItems > 0) {
-                for (int64_t indx = 0; indx < numItems; indx++) {
-                    const int64_t fiberOrientationIndex = fiberOrientationIndicesForRow[indx];
-                    
-                    /*
-                     * See if the trajectory for the orientation has already been created
-                     */
-                    std::map<int64_t, FiberOrientationTrajectory*>::iterator trajIter = fiberOrientationIndexMapToFiberTrajectory.find(fiberOrientationIndex);
-                    if (trajIter != fiberOrientationIndexMapToFiberTrajectory.end()) {
-                        /*
-                         * Add additional fiber fractions
-                         */
-                        FiberOrientationTrajectory* fot = trajIter->second;
-                        CaretAssert(fot);
-                        fot->addFiberFractions(fiberFractions[indx],
-                                               fiberOrientationIndex);
-                    }
-                    else {
-                        /*
-                         * Create a new trajectory
-                         */
-                        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberOrientationIndex);
-                        FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
-                        m_fiberOrientationTrajectories.push_back(fot);
-                        
-                        /*
-                         * Add fiber fractions to trajectory
-                         */
-                        fot->addFiberFractions(fiberFractions[indx],
-                                               fiberOrientationIndex);
-                        
-                        /*
-                         * Add to map keyed by fiber orientation index for averaging
-                         */
-                        fiberOrientationIndexMapToFiberTrajectory.insert(std::make_pair(fiberOrientationIndex,
-                                                                                        fot));
-                    }
-                }
-            }
-        }
-    }
-    
-    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-                                                           surfaceNumberOfNodes,
-                                                           nodeIndices);
-    
-    m_loadedDataDescriptionForMapName = ("Structure: "
-                                         + StructureEnum::toName(structure)
-                                         + ", Averaged Node Count: "
-                                         + AString::number(numberOfNodes));
+//    if (surfaceNumberOfNodes <= 0) {
+//        return;
+//    }
+//    
+//    validateAssignedMatchingFiberOrientationFile();
+//
+//    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+//    
+//    if (trajXML.hasColumnSurfaceData(structure) == false) {
+//        return;
+//    }
+//    if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
+//        return;
+//    }
+//    
+//    /*
+//     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
+//     * to a FiberOrientationTrajectory instance.  For averaging, items that have
+//     * a matching fiber orientation index are averaged.
+//     */
+//    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
+//    
+//    const int32_t numberOfNodes = static_cast<int32_t>(nodeIndices.size());
+//    for (int32_t i = 0; i < numberOfNodes; i++) {
+//        const int32_t nodeIndex = nodeIndices[i];
+//        
+//        /*
+//         * Get and load row for node
+//         */
+//        const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
+//                                                            structure);
+//        if (rowIndex >= 0) {
+//            std::vector<int64_t> fiberOrientationIndicesForRow;
+//            std::vector<FiberFractions> fiberFractions;
+//            m_sparseFile->getFibersRowSparse(rowIndex,
+//                                             fiberOrientationIndicesForRow,
+//                                             fiberFractions);
+//            
+//            CaretAssert(fiberOrientationIndicesForRow.size() == fiberFractions.size());
+//            
+//            /*
+//             * Process trajectory for node
+//             */
+//            const int64_t numItems = static_cast<int64_t>(fiberOrientationIndicesForRow.size());
+//            if (numItems > 0) {
+//                for (int64_t indx = 0; indx < numItems; indx++) {
+//                    const int64_t fiberOrientationIndex = fiberOrientationIndicesForRow[indx];
+//                    
+//                    /*
+//                     * See if the trajectory for the orientation has already been created
+//                     */
+//                    std::map<int64_t, FiberOrientationTrajectory*>::iterator trajIter = fiberOrientationIndexMapToFiberTrajectory.find(fiberOrientationIndex);
+//                    if (trajIter != fiberOrientationIndexMapToFiberTrajectory.end()) {
+//                        /*
+//                         * Add additional fiber fractions
+//                         */
+//                        FiberOrientationTrajectory* fot = trajIter->second;
+//                        CaretAssert(fot);
+//                        fot->addFiberFractions(fiberFractions[indx],
+//                                               fiberOrientationIndex);
+//                    }
+//                    else {
+//                        /*
+//                         * Create a new trajectory
+//                         */
+//                        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberOrientationIndex);
+//                        FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
+//                        m_fiberOrientationTrajectories.push_back(fot);
+//                        
+//                        /*
+//                         * Add fiber fractions to trajectory
+//                         */
+//                        fot->addFiberFractions(fiberFractions[indx],
+//                                               fiberOrientationIndex);
+//                        
+//                        /*
+//                         * Add to map keyed by fiber orientation index for averaging
+//                         */
+//                        fiberOrientationIndexMapToFiberTrajectory.insert(std::make_pair(fiberOrientationIndex,
+//                                                                                        fot));
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    
+//    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+//                                                           surfaceNumberOfNodes,
+//                                                           nodeIndices);
+//    
+//    m_loadedDataDescriptionForMapName = ("Structure: "
+//                                         + StructureEnum::toName(structure)
+//                                         + ", Averaged Node Count: "
+//                                         + AString::number(numberOfNodes));
 }
 
 ///**
@@ -1260,10 +1275,11 @@ CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIn
         
         for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
             FiberOrientationTrajectory* fot = m_fiberOrientationTrajectories[iCol];
-            fot->addFiberFractions(fiberFractionsForRow[iCol], iCol);
+            fot->addFiberFractions(fiberFractionsForRow[iCol]);
         }
     }
     
+    finishFiberOrientationTrajectories();
 }
 
 /**
@@ -1320,8 +1336,7 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
             if (fiberIndex < numFiberOrientations) {
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
-                fot->addFiberFractions(fiberFractions[iFiber],
-                                       fiberIndex);
+                fot->addFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
             else{
@@ -1330,6 +1345,8 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
                                + " into fiber orientations");
             }
         }
+        
+        finishFiberOrientationTrajectories();
         
         m_loadedDataDescriptionForMapName = ("Row: "
                                              + AString::number(rowIndex)
@@ -1366,87 +1383,94 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
     
     clearLoadedFiberOrientations();
     
-    validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    throw DataFileException("Loading of voxel average is temporarily disabled.");
     
-    if (trajXML.hasColumnVolumeData() == false) {
-        return;
-    }
     
-    /*
-     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
-     * to a FiberOrientationTrajectory instance.  For averaging, items that have
-     * a matching fiber orientation index are averaged.
-     */
-    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
     
-    const int32_t numberOfVoxels = static_cast<int32_t>(voxelIndices.size());
-    for (int32_t i = 0; i < numberOfVoxels; i++) {
-        /*
-         * Get and load row for voxel
-         */
-        const int64_t rowIndex = trajXML.getRowIndexForVoxel(voxelIndices[i].m_ijk);
-        if (rowIndex >= 0) {
-            std::vector<int64_t> fiberOrientationIndicesForRow;
-            std::vector<FiberFractions> fiberFractions;
-            m_sparseFile->getFibersRowSparse(rowIndex,
-                                             fiberOrientationIndicesForRow,
-                                             fiberFractions);
-            
-            CaretAssert(fiberOrientationIndicesForRow.size() == fiberFractions.size());
-            
-            /*
-             * Process trajectory for node
-             */
-            const int64_t numItems = static_cast<int64_t>(fiberOrientationIndicesForRow.size());
-            if (numItems > 0) {
-                for (int64_t indx = 0; indx < numItems; indx++) {
-                    const int64_t fiberOrientationIndex = fiberOrientationIndicesForRow[indx];
-                    
-                    /*
-                     * See if the trajectory for the orientation has already been created
-                     */
-                    std::map<int64_t, FiberOrientationTrajectory*>::iterator trajIter = fiberOrientationIndexMapToFiberTrajectory.find(fiberOrientationIndex);
-                    if (trajIter != fiberOrientationIndexMapToFiberTrajectory.end()) {
-                        /*
-                         * Add additional fiber fractions
-                         */
-                        FiberOrientationTrajectory* fot = trajIter->second;
-                        CaretAssert(fot);
-                        fot->addFiberFractions(fiberFractions[indx],
-                                               fiberOrientationIndex);
-                    }
-                    else {
-                        /*
-                         * Create a new trajectory
-                         */
-                        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberOrientationIndex);
-                        FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
-                        m_fiberOrientationTrajectories.push_back(fot);
-                        
-                        /*
-                         * Add fiber fractions to trajectory
-                         */
-                        fot->addFiberFractions(fiberFractions[indx],
-                                               fiberOrientationIndex);
-                        
-                        /*
-                         * Add to map keyed by fiber orientation index for averaging
-                         */
-                        fiberOrientationIndexMapToFiberTrajectory.insert(std::make_pair(fiberOrientationIndex,
-                                                                                        fot));
-                    }
-                }
-            }
-        }
-    }
     
-    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
-                                                           voxelIndices);
     
-    m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
-                                 + AString::number(numberOfVoxels));
+//    validateAssignedMatchingFiberOrientationFile();
+//    
+//    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+//    
+//    if (trajXML.hasColumnVolumeData() == false) {
+//        return;
+//    }
+//    
+//    /*
+//     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
+//     * to a FiberOrientationTrajectory instance.  For averaging, items that have
+//     * a matching fiber orientation index are averaged.
+//     */
+//    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
+//    
+//    const int32_t numberOfVoxels = static_cast<int32_t>(voxelIndices.size());
+//    for (int32_t i = 0; i < numberOfVoxels; i++) {
+//        /*
+//         * Get and load row for voxel
+//         */
+//        const int64_t rowIndex = trajXML.getRowIndexForVoxel(voxelIndices[i].m_ijk);
+//        if (rowIndex >= 0) {
+//            std::vector<int64_t> fiberOrientationIndicesForRow;
+//            std::vector<FiberFractions> fiberFractions;
+//            m_sparseFile->getFibersRowSparse(rowIndex,
+//                                             fiberOrientationIndicesForRow,
+//                                             fiberFractions);
+//            
+//            CaretAssert(fiberOrientationIndicesForRow.size() == fiberFractions.size());
+//            
+//            /*
+//             * Process trajectory for node
+//             */
+//            const int64_t numItems = static_cast<int64_t>(fiberOrientationIndicesForRow.size());
+//            if (numItems > 0) {
+//                for (int64_t indx = 0; indx < numItems; indx++) {
+//                    const int64_t fiberOrientationIndex = fiberOrientationIndicesForRow[indx];
+//                    
+//                    /*
+//                     * See if the trajectory for the orientation has already been created
+//                     */
+//                    std::map<int64_t, FiberOrientationTrajectory*>::iterator trajIter = fiberOrientationIndexMapToFiberTrajectory.find(fiberOrientationIndex);
+//                    if (trajIter != fiberOrientationIndexMapToFiberTrajectory.end()) {
+//                        /*
+//                         * Add additional fiber fractions
+//                         */
+//                        FiberOrientationTrajectory* fot = trajIter->second;
+//                        CaretAssert(fot);
+//                        fot->addFiberFractions(fiberFractions[indx],
+//                                               fiberOrientationIndex);
+//                    }
+//                    else {
+//                        /*
+//                         * Create a new trajectory
+//                         */
+//                        const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberOrientationIndex);
+//                        FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
+//                        m_fiberOrientationTrajectories.push_back(fot);
+//                        
+//                        /*
+//                         * Add fiber fractions to trajectory
+//                         */
+//                        fot->addFiberFractions(fiberFractions[indx],
+//                                               fiberOrientationIndex);
+//                        
+//                        /*
+//                         * Add to map keyed by fiber orientation index for averaging
+//                         */
+//                        fiberOrientationIndexMapToFiberTrajectory.insert(std::make_pair(fiberOrientationIndex,
+//                                                                                        fot));
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    
+//    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+//                                                           voxelIndices);
+//    
+//    m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
+//                                 + AString::number(numberOfVoxels));
 }
 
 /**
@@ -1482,8 +1506,7 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (Dat
             if (fiberIndex < numFiberOrientations) {
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
                 FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
-                fot->addFiberFractions(fiberFractions[iFiber],
-                                       fiberIndex);
+                fot->addFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
             else{

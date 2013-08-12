@@ -54,6 +54,12 @@ using namespace caret;
 FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* fiberOrientation)
 : m_fiberOrientation(fiberOrientation)
 {
+    m_fiberFraction = new FiberFractions();
+
+    m_totalCountSum = 0.0;
+    m_fiberCountsSum.clear();
+    m_distanceSum = 0.0;
+    m_countForAveraging = 0;
 }
 
 /**
@@ -61,14 +67,49 @@ FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* f
  */
 FiberOrientationTrajectory::~FiberOrientationTrajectory()
 {
-    
+    delete m_fiberFraction;
 }
 
 void
-FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction,
-                                              const int64_t fiberIndex)
+FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
 {
-    m_fiberFractions.push_back(fiberFraction);
-    m_fiberIndices.push_back(fiberIndex);
+    m_totalCountSum += fiberFraction.totalCount;
+    const int64_t numFractions= fiberFraction.fiberFractions.size();
+    if (numFractions > 0) {
+        if (m_fiberCountsSum.empty()) {
+            m_fiberCountsSum.resize(numFractions,
+                                    0.0);
+        }
+        else if (static_cast<int64_t>(m_fiberCountsSum.size()) != numFractions) {
+            CaretAssertMessage(0,
+                               "Sizes should be the same");
+        }
+        
+        for (int64_t i = 0; i < numFractions; i++) {
+            m_fiberCountsSum[i] += fiberFraction.fiberFractions[i];
+        }
+        
+        m_distanceSum += fiberFraction.distance;
+        
+        m_countForAveraging += 1.0;
+    }
 }
+
+void
+FiberOrientationTrajectory::finish()
+{
+    if (m_countForAveraging > 0) {
+        m_fiberFraction->distance = m_distanceSum / m_countForAveraging;
+        m_fiberFraction->totalCount = m_totalCountSum / m_countForAveraging;
+
+        const int64_t numFiberCounts = static_cast<int64_t>(m_fiberCountsSum.size());
+        m_fiberFraction->fiberFractions.resize(numFiberCounts);
+        if (numFiberCounts > 0) {
+            for (int64_t i = 0; i < numFiberCounts; i++) {
+                m_fiberFraction->fiberFractions[i] = m_fiberCountsSum[i] / m_countForAveraging;
+            }
+        }
+    }
+}
+
 

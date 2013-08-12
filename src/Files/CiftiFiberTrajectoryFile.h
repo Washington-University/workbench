@@ -191,6 +191,8 @@ namespace caret {
         
         void validateAssignedMatchingFiberOrientationFile() throw (DataFileException);
         
+        void finishFiberOrientationTrajectories();
+        
         CaretSparseFile* m_sparseFile;
         
         GiftiMetaData* m_metadata;

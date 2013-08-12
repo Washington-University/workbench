@@ -51,18 +51,12 @@ namespace caret {
         
         virtual ~FiberOrientationTrajectory();
         
-        void addFiberFractions(const FiberFractions& fiberFraction,
-                               const int64_t fiberIndex);
+        void addFiberFractions(const FiberFractions& fiberFraction);
         
         /**
          * @return the Fiber Orientation.
          */
         inline const FiberOrientation* getFiberOrientation() const { return m_fiberOrientation; }
-        
-        /**
-         * @return The number of fiber fractions.
-         */
-        inline int64_t getNumberOfFiberFractions() const { return m_fiberFractions.size(); }
         
         /**
          * Get the fiber fraction at the given index.
@@ -72,23 +66,11 @@ namespace caret {
          * @return 
          *    Fiber fraction at the given index.
          */
-        inline const FiberFractions* getFiberFraction(const int64_t indx) const {
-            CaretAssertVectorIndex(m_fiberFractions, indx);
-            return &m_fiberFractions[indx];
+        inline const FiberFractions* getFiberFraction() const {
+            return m_fiberFraction;
         }
         
-        /**
-         * Get the fiber indices at the given index.
-         *
-         * @param indx
-         *    Index of the fiber fraction.
-         * @return
-         *    Fiber indices at the given index.
-         */
-        inline int64_t getFiberIndex(const int64_t indx) const {
-            CaretAssertVectorIndex(m_fiberIndices, indx);
-            return m_fiberIndices[indx];
-        }
+        void finish();
         
     private:
         FiberOrientationTrajectory(const FiberOrientationTrajectory&);
@@ -102,9 +84,12 @@ namespace caret {
     private:
         const FiberOrientation* m_fiberOrientation;
         
-        std::vector<FiberFractions> m_fiberFractions;
-
-        std::vector<int64_t> m_fiberIndices;
+        FiberFractions* m_fiberFraction;
+        
+        double m_totalCountSum;
+        std::vector<double> m_fiberCountsSum;
+        double m_distanceSum;
+        int64_t m_countForAveraging;
         
         // ADD_NEW_MEMBERS_HERE
 
