@@ -185,7 +185,7 @@ namespace caret {
 
     private:
 
-        void loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException);
+        bool loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException);
         
         void clearPrivate();
         

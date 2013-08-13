@@ -46,6 +46,8 @@
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiInterface.h"
 #include "ConnectivityDataLoaded.h"
+#include "EventManager.h"
+#include "EventProgressUpdate.h"
 #include "FiberOrientationTrajectory.h"
 #include "FiberTrajectoryMapProperties.h"
 #include "GiftiMetaData.h"
@@ -771,8 +773,8 @@ public:
 CiftiFiberTrajectoryFile*
 CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& errorMessageOut) const
 {
-    errorMessageOut = "Implementation not complete.";
-    return NULL;
+//    errorMessageOut = "Implementation not complete.";
+//    return NULL;
     
     
     /*
@@ -782,115 +784,111 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
      */
     
     
-//    errorMessageOut = "";
-//    
-//    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
-//    if (numTraj <= 0) {
-//        errorMessageOut = "No data is loaded so cannot create file.";
-//        return NULL;
-//    }
-//    
-//    
-//    
-//    CiftiFiberTrajectoryFile* newFile = NULL;
-//    try {
-//        const AString newFileName = "test." + DataFileTypeEnum::toFileExtension(getDataFileType());
-//        std::cout << "Filename: " << qPrintable(newFileName) << std::endl;
-//        
-//        /*
-//         * Need to sort by fiber index.
-//         */
-//        std::vector<FiberFractionAndIndex> fiberFractionsAndIndices;
-//        for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
-//            const FiberOrientationTrajectory* fiberTraj = m_fiberOrientationTrajectories[iTraj];
-//            //            const int64_t rowIndex = fiberTraj->getRowIndex();
-//            
-//            const int64_t numFractions = fiberTraj->getNumberOfFiberFractions();
-//            for (int64_t j = 0; j < numFractions; j++) {
-//                fiberFractionsAndIndices.push_back(FiberFractionAndIndex(*(fiberTraj->getFiberFraction(j)),
-//                                                                         fiberTraj->getFiberIndex(j)));
-//            }
-//        }
-//        std::sort(fiberFractionsAndIndices.begin(),
-//                  fiberFractionsAndIndices.end());
-//        
-//        std::vector<int64_t> fiberIndices;
-//        std::vector<FiberFractions> fiberFractions;
-//        
-//        const int64_t numSorted = static_cast<int64_t>(fiberFractionsAndIndices.size());
-//        for (int64_t i = 0; i < numSorted; i++) {
-//            FiberFractionAndIndex& ffai = fiberFractionsAndIndices[i];
-//            fiberIndices.push_back(ffai.m_fiberIndex);
-//            fiberFractions.push_back(ffai.m_fiberFraction);
-//            std::cout << "Fiber " << i << " fiberIndex=" << ffai.m_fiberIndex << std::endl;
-//        }
-//        
-//        /*
-//         * Write to temp file!!!!!
-//         */
-//        CiftiXML xml = m_sparseFile->getCiftiXML();
-//        xml.resetRowsToBrainModels();
-//        
-//        switch (m_connectivityDataLoaded->getMode()) {
-//            case ConnectivityDataLoaded::MODE_NONE:
-//                throw DataFileException("No data loaded");
-//                break;
-//            case ConnectivityDataLoaded::MODE_ROW:
-//                throw DataFileException("Data loaded by row not supported");
-//                break;
-//            case ConnectivityDataLoaded::MODE_SURFACE_NODE:
-//            {
-//                StructureEnum::Enum structure;
-//                int32_t surfaceNumberOfNodes = 0;
-//                int32_t surfaceNodeIndex = -1;
-//                m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
-//                                                                surfaceNumberOfNodes,
-//                                                                surfaceNodeIndex);
-//                if ((surfaceNumberOfNodes > 0)
-//                    && (surfaceNodeIndex >= 0)) {
-//                    std::vector<int64_t> surfaceNodeList;
-//                    surfaceNodeList.push_back(surfaceNodeIndex);
-//                    
-//                    xml.addSurfaceModelToRows(surfaceNumberOfNodes,
-//                                              structure,
-//                                              surfaceNodeList);
-//                }
-//            }
-//                break;
-//            case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
-//                throw DataFileException("Data loaded surface average not supported");
-//                break;
-//            case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
-//                throw DataFileException("Data loaded by voxel average not supported");
-//                break;
-//            case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
-//                throw DataFileException("Data loaded by voxel not supported");
-//                break;
-//        }
-//        
-//        
-//        CaretSparseFileWriter sparseWriter (newFileName,
-//                                            xml);
-//        const int64_t rowIndex = 0;
-//        sparseWriter.writeFibersRowSparse(rowIndex,
-//                                          fiberIndices,
-//                                          fiberFractions);
-//        
-//        sparseWriter.finish();
-//        
-//        newFile = new CiftiFiberTrajectoryFile();
-//        newFile->readFile(newFileName);
-//        return newFile;
-//    }
-//    catch (const DataFileException& dfe) {
-//        if (newFile != NULL) {
-//            delete newFile;
-//        }
-//        errorMessageOut = dfe.whatString();
-//        return NULL;
-//    }
-//
-//    return NULL;
+    errorMessageOut = "";
+    
+    const int64_t numTraj = static_cast<int64_t>(m_fiberOrientationTrajectories.size());
+    if (numTraj <= 0) {
+        errorMessageOut = "No data is loaded so cannot create file.";
+        return NULL;
+    }
+    
+    
+    
+    CiftiFiberTrajectoryFile* newFile = NULL;
+    try {
+        const AString newFileName = "test." + DataFileTypeEnum::toFileExtension(getDataFileType());
+        std::cout << "Filename: " << qPrintable(newFileName) << std::endl;
+        
+        /*
+         * Need to sort by fiber index.
+         */
+        std::vector<FiberFractionAndIndex> fiberFractionsAndIndices;
+        for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
+            const FiberOrientationTrajectory* fiberTraj = m_fiberOrientationTrajectories[iTraj];
+            
+            fiberFractionsAndIndices.push_back(FiberFractionAndIndex(*fiberTraj->getFiberFraction(),
+                                                                     fiberTraj->getFiberOrientationIndex()));
+        }
+        std::sort(fiberFractionsAndIndices.begin(),
+                  fiberFractionsAndIndices.end());
+        
+        std::vector<int64_t> fiberIndices;
+        std::vector<FiberFractions> fiberFractions;
+        
+        const int64_t numSorted = static_cast<int64_t>(fiberFractionsAndIndices.size());
+        for (int64_t i = 0; i < numSorted; i++) {
+            FiberFractionAndIndex& ffai = fiberFractionsAndIndices[i];
+            fiberIndices.push_back(ffai.m_fiberIndex);
+            fiberFractions.push_back(ffai.m_fiberFraction);
+            std::cout << "Fiber " << i << " fiberIndex=" << ffai.m_fiberIndex << std::endl;
+        }
+        
+        /*
+         * Write to temp file!!!!!
+         */
+        CiftiXML xml = m_sparseFile->getCiftiXML();
+        xml.resetRowsToBrainModels();
+        
+        switch (m_connectivityDataLoaded->getMode()) {
+            case ConnectivityDataLoaded::MODE_NONE:
+                throw DataFileException("No data loaded");
+                break;
+            case ConnectivityDataLoaded::MODE_ROW:
+                throw DataFileException("Data loaded by row not supported");
+                break;
+            case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+            {
+                StructureEnum::Enum structure;
+                int32_t surfaceNumberOfNodes = 0;
+                int32_t surfaceNodeIndex = -1;
+                m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
+                                                                surfaceNumberOfNodes,
+                                                                surfaceNodeIndex);
+                if ((surfaceNumberOfNodes > 0)
+                    && (surfaceNodeIndex >= 0)) {
+                    std::vector<int64_t> surfaceNodeList;
+                    surfaceNodeList.push_back(surfaceNodeIndex);
+                    
+                    xml.addSurfaceModelToRows(surfaceNumberOfNodes,
+                                              structure,
+                                              surfaceNodeList);
+                }
+            }
+                break;
+            case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+                throw DataFileException("Data loaded surface average not supported");
+                break;
+            case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
+                throw DataFileException("Data loaded by voxel average not supported");
+                break;
+            case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
+                throw DataFileException("Data loaded by voxel not supported");
+                break;
+        }
+        
+        
+        CaretSparseFileWriter sparseWriter (newFileName,
+                                            xml);
+        const int64_t rowIndex = 0;
+        sparseWriter.writeFibersRowSparse(rowIndex,
+                                          fiberIndices,
+                                          fiberFractions);
+        
+        sparseWriter.finish();
+        
+        newFile = new CiftiFiberTrajectoryFile();
+        newFile->readFile(newFileName);
+        return newFile;
+    }
+    catch (const DataFileException& dfe) {
+        if (newFile != NULL) {
+            delete newFile;
+        }
+        errorMessageOut = dfe.whatString();
+        return NULL;
+    }
+
+    return NULL;
 }
 
 /**
@@ -1008,7 +1006,8 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
             const int64_t fiberIndex = fiberIndices[iFiber];
             if (fiberIndex < numFiberOrientations) {
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
-                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
+                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberIndex,
+                                                                                 fiberOrientation);
                 fot->addFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
@@ -1229,16 +1228,17 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
         }
     }
     
-    loadRowsForAveraging(rowIndicesToLoad);
+    if (loadRowsForAveraging(rowIndicesToLoad)) {
+        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                               surfaceNumberOfNodes,
+                                                               nodeIndices);
+        
+        m_loadedDataDescriptionForMapName = ("Structure: "
+                                             + StructureEnum::toName(structure)
+                                             + ", Averaged Node Count: "
+                                             + AString::number(numberOfNodes));
+    }
     
-    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-                                                           surfaceNumberOfNodes,
-                                                           nodeIndices);
-    
-    m_loadedDataDescriptionForMapName = ("Structure: "
-                                         + StructureEnum::toName(structure)
-                                         + ", Averaged Node Count: "
-                                         + AString::number(numberOfNodes));
 }
 
 /**
@@ -1246,10 +1246,12 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
  *
  * @param rowIndices
  *    Indices of rows for averaging.
+ * @return
+ *    True if data was loaded else false if no data or user cancelled.
  * @throw 
  *    DataFileException if there is an error.
  */
-void
+bool
 CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException)
 {
     
@@ -1260,15 +1262,41 @@ CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIn
     FiberFractions* fiberFractionsForRow = &fiberFractionsForRowVector[0];
     
     const int64_t numberOfRowsToLoad = static_cast<int64_t>(rowIndices.size());
-
+    if (numberOfRowsToLoad <= 0) {
+        return false;
+    }
+    
+    const int32_t progressUpdateInterval = 1;
+    EventProgressUpdate progressEvent(0,
+                                      numberOfRowsToLoad,
+                                      0,
+                                      ("Loading data for "
+                                       + QString::number(numberOfRowsToLoad)
+                                       + " brainordinates in file ")
+                                      + getFileNameNoPath());
+    
+    EventManager::get()->sendEvent(progressEvent.getPointer());
     for (int64_t iCol = 0; iCol < numberOfColumns; iCol++) {
         const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(iCol);
         CaretAssert(fiberOrientation);
-        m_fiberOrientationTrajectories.push_back(new FiberOrientationTrajectory(fiberOrientation));
+        m_fiberOrientationTrajectories.push_back(new FiberOrientationTrajectory(iCol,
+                                                                                fiberOrientation));
     }
+    
+    bool userCancelled = false;
     
     for (int64_t iRow = 0; iRow < numberOfRowsToLoad; iRow++) {
         const int64_t rowIndex = rowIndices[iRow];
+        
+        if ((iRow % progressUpdateInterval) == 0) {
+            progressEvent.setProgress(iRow,
+                                      "");
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+            if (progressEvent.isCancelled()) {
+                userCancelled = true;
+                break;
+            }
+        }
         
         m_sparseFile->getFibersRow(rowIndex,
                                    fiberFractionsForRow);
@@ -1279,7 +1307,14 @@ CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIn
         }
     }
     
+    if (userCancelled) {
+        clearLoadedFiberOrientations();
+        return false;
+    }
+    
     finishFiberOrientationTrajectories();
+    
+    return true;
 }
 
 /**
@@ -1335,7 +1370,8 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
             const int64_t fiberIndex = fiberIndices[iFiber];
             if (fiberIndex < numFiberOrientations) {
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
-                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
+                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberIndex,
+                                                                                 fiberOrientation);
                 fot->addFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
             }
@@ -1403,13 +1439,13 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
         }
     }
     
-    loadRowsForAveraging(rowIndicesToLoad);
-    
-    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
-                                                           voxelIndices);
-    
-    m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
-                                         + AString::number(numberOfVoxels));
+    if (loadRowsForAveraging(rowIndicesToLoad)) {
+        m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+                                                               voxelIndices);
+        
+        m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
+                                             + AString::number(numberOfVoxels));
+    }
 }
 
 ///**
@@ -1547,7 +1583,8 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (Dat
             const int64_t fiberIndex = fiberIndices[iFiber];
             if (fiberIndex < numFiberOrientations) {
                 const FiberOrientation* fiberOrientation = m_matchingFiberOrientationFile->getFiberOrientations(fiberIndex);
-                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberOrientation);
+                FiberOrientationTrajectory* fot = new FiberOrientationTrajectory(fiberIndex,
+                                                                                 fiberOrientation);
                 fot->addFiberFractions(fiberFractions[iFiber]);
                 m_fiberOrientationTrajectories.push_back(fot);
             }

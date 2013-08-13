@@ -51,11 +51,15 @@ using namespace caret;
 /**
  * Constructor that accepts a fiber orientation.
  *
+ * @param fiberOrientationIndex
+ *    Index of the fiber orientation.
  * @param fiberOrientation
  *    Fiber orientation that is associated with this fiber trajectory.
  */
-FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* fiberOrientation)
-: m_fiberOrientation(fiberOrientation)
+FiberOrientationTrajectory::FiberOrientationTrajectory(const int64_t fiberOrientationIndex,
+                                                       const FiberOrientation* fiberOrientation)
+: m_fiberOrientationIndex(fiberOrientationIndex),
+m_fiberOrientation(fiberOrientation)
 {
     CaretAssert(fiberOrientation);
     
@@ -84,30 +88,33 @@ FiberOrientationTrajectory::~FiberOrientationTrajectory()
 void
 FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
 {
-    if (fiberFraction.totalCount > 0) {
-        
-        const int64_t numFractions = fiberFraction.fiberFractions.size();
-        if (numFractions > 0) {
-            if (m_fiberCountsSum.empty()) {
-                m_fiberCountsSum.resize(numFractions,
-                                        0.0);
-            }
-            else if (static_cast<int64_t>(m_fiberCountsSum.size()) != numFractions) {
-                CaretAssertMessage(0,
-                                   "Sizes should be the same");
-                return;
-            }
-            
-            m_totalCountSum += fiberFraction.totalCount;
-            
-            for (int64_t i = 0; i < numFractions; i++) {
-                m_fiberCountsSum[i] += fiberFraction.fiberFractions[i] * fiberFraction.totalCount;
-            }
-            
-            m_distanceSum += fiberFraction.distance;
-            
-            m_countForAveraging += 1;
+    const bool includeZeroTotalCountWhenAveraging = true;
+    
+    const int64_t numFractions = fiberFraction.fiberFractions.size();
+    if ((fiberFraction.totalCount > 0)
+        && (numFractions > 0)) {
+        if (m_fiberCountsSum.empty()) {
+            m_fiberCountsSum.resize(numFractions,
+                                    0.0);
         }
+        else if (static_cast<int64_t>(m_fiberCountsSum.size()) != numFractions) {
+            CaretAssertMessage(0,
+                               "Sizes should be the same");
+            return;
+        }
+        
+        m_totalCountSum += fiberFraction.totalCount;
+        
+        for (int64_t i = 0; i < numFractions; i++) {
+            m_fiberCountsSum[i] += fiberFraction.fiberFractions[i] * fiberFraction.totalCount;
+        }
+        
+        m_distanceSum += fiberFraction.distance;
+        
+        m_countForAveraging += 1;
+    }
+    else if (includeZeroTotalCountWhenAveraging) {
+        m_countForAveraging += 1;
     }
 }
 

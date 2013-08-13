@@ -47,7 +47,8 @@ namespace caret {
     class FiberOrientationTrajectory {
         
     public:
-        FiberOrientationTrajectory(const FiberOrientation* fiberOrientation);
+        FiberOrientationTrajectory(const int64_t fiberOrientationIndex,
+                                   const FiberOrientation* fiberOrientation);
         
         virtual ~FiberOrientationTrajectory();
         
@@ -56,10 +57,12 @@ namespace caret {
         /**
          * @return the Fiber Orientation.
          */
-        inline const FiberOrientation* getFiberOrientation() const { return m_fiberOrientation; }
+        inline const FiberOrientation* getFiberOrientation() const {
+            return m_fiberOrientation;
+        }
         
         /**
-         * Get the fiber fraction at the given index.
+         * Get the fiber fraction.
          *
          * @param indx
          *    Index of the fiber fraction.
@@ -68,6 +71,13 @@ namespace caret {
          */
         inline const FiberFractions* getFiberFraction() const {
             return m_fiberFraction;
+        }
+        
+        /**
+         * @return The fiber orientation index.
+         */
+        inline int64_t getFiberOrientationIndex() const {
+            return m_fiberOrientationIndex;
         }
         
         void finish();
@@ -82,6 +92,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        const int64_t m_fiberOrientationIndex;
+        
         const FiberOrientation* m_fiberOrientation;
         
         FiberFractions* m_fiberFraction;
