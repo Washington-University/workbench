@@ -1051,29 +1051,29 @@ CiftiFiberTrajectoryFile::finishFiberOrientationTrajectories()
 }
 
 
-/**
- * Load average data for the given surface nodes.
- *
- * @param structure
- *    Structure in which surface node is located.
- * @param surfaceNumberOfNodes
- *    Number of nodes in surface.
- * @param nodeIndices
- *    Indices of the surface nodes.
- */
-void
-CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
-                                                         const int32_t surfaceNumberOfNodes,
-                                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
-{
-    if (m_dataLoadingEnabled == false) {
-        return;
-    }
-    
-    clearLoadedFiberOrientations();
-    
-    throw DataFileException("Loading of node average is temporarily disabled.");
-    
+///**
+// * Load average data for the given surface nodes.
+// *
+// * @param structure
+// *    Structure in which surface node is located.
+// * @param surfaceNumberOfNodes
+// *    Number of nodes in surface.
+// * @param nodeIndices
+// *    Indices of the surface nodes.
+// */
+//void
+//CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
+//                                                         const int32_t surfaceNumberOfNodes,
+//                                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+//{
+//    if (m_dataLoadingEnabled == false) {
+//        return;
+//    }
+//    
+//    clearLoadedFiberOrientations();
+//    
+//    throw DataFileException("Loading of node average is temporarily disabled.");
+//    
 //    if (surfaceNumberOfNodes <= 0) {
 //        return;
 //    }
@@ -1168,78 +1168,78 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
 //                                         + StructureEnum::toName(structure)
 //                                         + ", Averaged Node Count: "
 //                                         + AString::number(numberOfNodes));
-}
-
-///**
-// * Load average data for the given surface nodes.
-// *
-// * @param structure
-// *    Structure in which surface node is located.
-// * @param surfaceNumberOfNodes
-// *    Number of nodes in surface.
-// * @param nodeIndices
-// *    Indices of the surface nodes.
-// */
-//void
-//CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
-//                                                         const int32_t surfaceNumberOfNodes,
-//                                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
-//{
-//    if (m_dataLoadingEnabled == false) {
-//        return;
-//    }
-//    
-//    clearLoadedFiberOrientations();
-//    
-//    if (surfaceNumberOfNodes <= 0) {
-//        return;
-//    }
-//    
-//    validateAssignedMatchingFiberOrientationFile();
-//    
-//    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-//    
-//    if (trajXML.hasColumnSurfaceData(structure) == false) {
-//        return;
-//    }
-//    if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
-//        return;
-//    }
-//    
-//    /*
-//     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
-//     * to a FiberOrientationTrajectory instance.  For averaging, items that have
-//     * a matching fiber orientation index are averaged.
-//     */
-//    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
-//    
-//    std::vector<int64_t> rowIndicesToLoad;
-//    
-//    const int32_t numberOfNodes = static_cast<int32_t>(nodeIndices.size());
-//    for (int32_t i = 0; i < numberOfNodes; i++) {
-//        const int32_t nodeIndex = nodeIndices[i];
-//        
-//        /*
-//         * Get and load row for node
-//         */
-//        const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
-//                                                            structure);
-//        if (rowIndex >= 0) {
-//            rowIndicesToLoad.push_back(rowIndex);
-//        }
-//    }
-//    
-//    loadRowsForAveraging(rowIndicesToLoad);
-//    
-//    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-//                                                           surfaceNumberOfNodes,
-//                                                           nodeIndices);
-//    
-//    m_loadedDataDescriptionForMapName = ("Structure: "
-//                                         + StructureEnum::toName(structure)
-//                                         + ", Averaged Node Count: "
-//                                         + AString::number(numberOfNodes));
 //}
+
+/**
+ * Load average data for the given surface nodes.
+ *
+ * @param structure
+ *    Structure in which surface node is located.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in surface.
+ * @param nodeIndices
+ *    Indices of the surface nodes.
+ */
+void
+CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::Enum structure,
+                                                         const int32_t surfaceNumberOfNodes,
+                                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    if (m_dataLoadingEnabled == false) {
+        return;
+    }
+    
+    clearLoadedFiberOrientations();
+    
+    if (surfaceNumberOfNodes <= 0) {
+        return;
+    }
+    
+    validateAssignedMatchingFiberOrientationFile();
+    
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    
+    if (trajXML.hasColumnSurfaceData(structure) == false) {
+        return;
+    }
+    if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
+        return;
+    }
+    
+    /*
+     * This map uses the index of a fiber orientation (from the Fiber Orientation File)
+     * to a FiberOrientationTrajectory instance.  For averaging, items that have
+     * a matching fiber orientation index are averaged.
+     */
+    std::map<int64_t, FiberOrientationTrajectory*> fiberOrientationIndexMapToFiberTrajectory;
+    
+    std::vector<int64_t> rowIndicesToLoad;
+    
+    const int32_t numberOfNodes = static_cast<int32_t>(nodeIndices.size());
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        const int32_t nodeIndex = nodeIndices[i];
+        
+        /*
+         * Get and load row for node
+         */
+        const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
+                                                            structure);
+        if (rowIndex >= 0) {
+            rowIndicesToLoad.push_back(rowIndex);
+        }
+    }
+    
+    loadRowsForAveraging(rowIndicesToLoad);
+    
+    m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                           surfaceNumberOfNodes,
+                                                           nodeIndices);
+    
+    m_loadedDataDescriptionForMapName = ("Structure: "
+                                         + StructureEnum::toName(structure)
+                                         + ", Averaged Node Count: "
+                                         + AString::number(numberOfNodes));
+}
 
 /**
  * Load the given rows for averaging.
@@ -1375,7 +1375,7 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
  */
 void
 CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
-                                                                           const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+                                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
 {
     if (m_dataLoadingEnabled == false) {
         return;
@@ -1383,13 +1383,55 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
     
     clearLoadedFiberOrientations();
     
+    validateAssignedMatchingFiberOrientationFile();
     
-    throw DataFileException("Loading of voxel average is temporarily disabled.");
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
     
+    if (trajXML.hasColumnVolumeData() == false) {
+        return;
+    }
     
+    std::vector<int64_t> rowIndicesToLoad;
+    const int32_t numberOfVoxels = static_cast<int32_t>(voxelIndices.size());
+    for (int32_t i = 0; i < numberOfVoxels; i++) {
+        /*
+         * Get and load row for voxel
+         */
+        const int64_t rowIndex = trajXML.getRowIndexForVoxel(voxelIndices[i].m_ijk);
+        if (rowIndex >= 0) {
+            rowIndicesToLoad.push_back(rowIndex);
+        }
+    }
     
+    loadRowsForAveraging(rowIndicesToLoad);
     
+    m_connectivityDataLoaded->setVolumeAverageVoxelLoading(volumeDimensionIJK,
+                                                           voxelIndices);
     
+    m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
+                                         + AString::number(numberOfVoxels));
+}
+
+///**
+// * Load connectivity data for the voxel indices and then average the data.
+// *
+// * @param volumeDimensionIJK
+// *    Dimensions of the volume.
+// * @param voxelIndices
+// *    Indices of voxels.
+// * @throw
+// *    DataFileException if there is an error.
+// */
+//void
+//CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+//                                                                           const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
+//{
+//    if (m_dataLoadingEnabled == false) {
+//        return;
+//    }
+//    
+//    clearLoadedFiberOrientations();
+//    
 //    validateAssignedMatchingFiberOrientationFile();
 //    
 //    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
@@ -1471,7 +1513,7 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
 //    
 //    m_loadedDataDescriptionForMapName = ("Averaged Voxel Count: "
 //                                 + AString::number(numberOfVoxels));
-}
+//}
 
 /**
  * Load the given row index from the file even if the file is disabled for data loading

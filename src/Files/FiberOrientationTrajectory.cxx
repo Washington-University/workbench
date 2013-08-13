@@ -49,11 +49,16 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor that accepts a fiber orientation.
+ *
+ * @param fiberOrientation
+ *    Fiber orientation that is associated with this fiber trajectory.
  */
 FiberOrientationTrajectory::FiberOrientationTrajectory(const FiberOrientation* fiberOrientation)
 : m_fiberOrientation(fiberOrientation)
 {
+    CaretAssert(fiberOrientation);
+    
     m_fiberFraction = new FiberFractions();
 
     m_totalCountSum = 0.0;
@@ -70,31 +75,46 @@ FiberOrientationTrajectory::~FiberOrientationTrajectory()
     delete m_fiberFraction;
 }
 
+/**
+ * Add a fiber fraction.
+ * 
+ * @param fiberFraction
+ *    Fiber fraction that is added.
+ */
 void
 FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
 {
-    m_totalCountSum += fiberFraction.totalCount;
-    const int64_t numFractions= fiberFraction.fiberFractions.size();
-    if (numFractions > 0) {
-        if (m_fiberCountsSum.empty()) {
-            m_fiberCountsSum.resize(numFractions,
-                                    0.0);
-        }
-        else if (static_cast<int64_t>(m_fiberCountsSum.size()) != numFractions) {
-            CaretAssertMessage(0,
-                               "Sizes should be the same");
-        }
+    if (fiberFraction.totalCount > 0) {
         
-        for (int64_t i = 0; i < numFractions; i++) {
-            m_fiberCountsSum[i] += fiberFraction.fiberFractions[i];
+        const int64_t numFractions = fiberFraction.fiberFractions.size();
+        if (numFractions > 0) {
+            if (m_fiberCountsSum.empty()) {
+                m_fiberCountsSum.resize(numFractions,
+                                        0.0);
+            }
+            else if (static_cast<int64_t>(m_fiberCountsSum.size()) != numFractions) {
+                CaretAssertMessage(0,
+                                   "Sizes should be the same");
+                return;
+            }
+            
+            m_totalCountSum += fiberFraction.totalCount;
+            
+            for (int64_t i = 0; i < numFractions; i++) {
+                m_fiberCountsSum[i] += fiberFraction.fiberFractions[i] * fiberFraction.totalCount;
+            }
+            
+            m_distanceSum += fiberFraction.distance;
+            
+            m_countForAveraging += 1;
         }
-        
-        m_distanceSum += fiberFraction.distance;
-        
-        m_countForAveraging += 1.0;
     }
 }
 
+/**
+ * Finish, which will update the fiber fraction using the average of all
+ * of the fiber fractions that were added.
+ */
 void
 FiberOrientationTrajectory::finish()
 {
@@ -106,9 +126,18 @@ FiberOrientationTrajectory::finish()
         m_fiberFraction->fiberFractions.resize(numFiberCounts);
         if (numFiberCounts > 0) {
             for (int64_t i = 0; i < numFiberCounts; i++) {
-                m_fiberFraction->fiberFractions[i] = m_fiberCountsSum[i] / m_countForAveraging;
+                if (m_fiberFraction->totalCount > 0.0) {
+                    const float averageCount = m_fiberCountsSum[i] / m_countForAveraging;
+                    m_fiberFraction->fiberFractions[i] = (averageCount / m_fiberFraction->totalCount);
+                }
+                else {
+                    m_fiberFraction->fiberFractions[i] = 0.0;
+                }
             }
         }
+    }
+    else {
+        m_fiberFraction->zero();
     }
 }
 

@@ -6286,7 +6286,7 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
             
             const int64_t fiberFractionTotalCount = fiberFraction->totalCount;
             if (fiberFraction->fiberFractions.size() != 3) {
-                CaretLogWarning("Fiber Trajectory index="
+                CaretLogFinest("Fiber Trajectory index="
                                 + AString::number(iTraj)
                                 + " has "
                                 + AString::number(fiberFraction->fiberFractions.size())
