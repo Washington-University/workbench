@@ -184,7 +184,16 @@ namespace caret {
         
 
     private:
-
+        /**
+         * Type of fiber trajectory file
+         */
+        enum FiberTrajectoryFileType {
+            /** Load data by brainordinate */
+            FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE,
+            /** Load single row (does not map to a brainordinate) */
+            FIBER_TRAJECTORY_LOAD_SINGLE_ROW
+        };
+        
         bool loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException);
         
         void clearPrivate();
@@ -192,6 +201,11 @@ namespace caret {
         void validateAssignedMatchingFiberOrientationFile() throw (DataFileException);
         
         void finishFiberOrientationTrajectories();
+       
+        void writeLoadedDataToFile(const AString& filename) const throw (DataFileException);
+        
+        /** True if file supports loading of data by row */
+        FiberTrajectoryFileType m_fiberTrajectoryFileType;
         
         CaretSparseFile* m_sparseFile;
         
