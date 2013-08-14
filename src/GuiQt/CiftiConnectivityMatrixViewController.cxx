@@ -170,6 +170,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
             m_fileEnableCheckBoxes.push_back(checkBox);
             
             lineEdit = new QLineEdit();
+            lineEdit->setReadOnly(true);
             m_fileNameLineEdits.push_back(lineEdit);
             
             copyToolButton = new QToolButton();
