@@ -806,8 +806,8 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
         for (int64_t iTraj = 0; iTraj < numTraj; iTraj++) {
             const FiberOrientationTrajectory* fiberTraj = m_fiberOrientationTrajectories[iTraj];
             
-            fiberFractionsAndIndices.push_back(FiberFractionAndIndex(*fiberTraj->getFiberFraction(),
-                                                                     fiberTraj->getFiberOrientationIndex()));
+//            fiberFractionsAndIndices.push_back(FiberFractionAndIndex(*fiberTraj->getFiberFraction(),
+//                                                                     fiberTraj->getFiberOrientationIndex()));
         }
         std::sort(fiberFractionsAndIndices.begin(),
                   fiberFractionsAndIndices.end());
@@ -1594,6 +1594,8 @@ CiftiFiberTrajectoryFile::loadDataForRowIndex(const int64_t rowIndex) throw (Dat
                                + " into fiber orientations");
             }
         }
+        
+        finishFiberOrientationTrajectories();
         
         m_loadedDataDescriptionForMapName = ("Row: "
                                              + AString::number(rowIndex));

@@ -64,7 +64,8 @@ m_fiberOrientation(fiberOrientation)
     CaretAssert(fiberOrientation);
     
     m_fiberFraction = new FiberFractions();
-
+    m_fiberFractionTotalCountFloat = 0.0;
+    
     m_totalCountSum = 0.0;
     m_fiberCountsSum.clear();
     m_distanceSum = 0.0;
@@ -128,6 +129,7 @@ FiberOrientationTrajectory::finish()
     if (m_countForAveraging > 0) {
         m_fiberFraction->distance = m_distanceSum / m_countForAveraging;
         m_fiberFraction->totalCount = m_totalCountSum / m_countForAveraging;
+        m_fiberFractionTotalCountFloat = m_totalCountSum / m_countForAveraging;
 
         const int64_t numFiberCounts = static_cast<int64_t>(m_fiberCountsSum.size());
         m_fiberFraction->fiberFractions.resize(numFiberCounts);

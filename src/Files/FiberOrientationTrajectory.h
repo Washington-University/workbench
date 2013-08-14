@@ -38,10 +38,10 @@
 #include <stdint.h>
 
 #include "CaretAssert.h"
+#include "CaretSparseFile.h"
 
 namespace caret {
 
-    struct FiberFractions;
     class FiberOrientation;
     
     class FiberOrientationTrajectory {
@@ -61,23 +61,44 @@ namespace caret {
             return m_fiberOrientation;
         }
         
-        /**
-         * Get the fiber fraction.
-         *
-         * @param indx
-         *    Index of the fiber fraction.
-         * @return 
-         *    Fiber fraction at the given index.
-         */
-        inline const FiberFractions* getFiberFraction() const {
-            return m_fiberFraction;
-        }
+//        /**
+//         * Get the fiber fraction.
+//         *
+//         * @param indx
+//         *    Index of the fiber fraction.
+//         * @return 
+//         *    Fiber fraction at the given index.
+//         */
+//        inline const FiberFractions* getFiberFraction() const {
+//            return m_fiberFraction;
+//        }
         
         /**
          * @return The fiber orientation index.
          */
         inline int64_t getFiberOrientationIndex() const {
             return m_fiberOrientationIndex;
+        }
+        
+        /**
+         * @return The total count as a float.
+         */
+        inline float getFiberFractionTotalCount() const {
+            return m_fiberFractionTotalCountFloat;
+        }
+
+        /**
+         * @return The fiber fractions (proportions).
+         */
+        inline const std::vector<float>& getFiberFractions() const {
+            return m_fiberFraction->fiberFractions;
+        }
+        
+        /**
+         * @return The fiber fractions distance.
+         */
+        inline float getFiberFractionDistance() const {
+            return m_fiberFraction->distance;
         }
         
         void finish();
@@ -97,6 +118,8 @@ namespace caret {
         const FiberOrientation* m_fiberOrientation;
         
         FiberFractions* m_fiberFraction;
+        
+        float m_fiberFractionTotalCountFloat;
         
         double m_totalCountSum;
         std::vector<double> m_fiberCountsSum;

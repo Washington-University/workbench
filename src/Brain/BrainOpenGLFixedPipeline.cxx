@@ -6224,7 +6224,7 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         const float distanceRangeOpacity = distanceMaximumOpacity - distanceMinimumOpacity;
         
         const FiberTrajectoryDisplayModeEnum::Enum displayMode = ftmp->getDisplayMode();
-        uint32_t streamlineThreshold = std::numeric_limits<uint32_t>::max();
+        float streamlineThreshold = std::numeric_limits<float>::max();
         switch (displayMode) {
             case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
                 streamlineThreshold = ftmp->getCountStreamline();
@@ -6282,30 +6282,30 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
             const FiberOrientationTrajectory* fiberTraj = trajectories[iTraj];
             const FiberOrientation* orientation = fiberTraj->getFiberOrientation();
             
-            const FiberFractions* fiberFraction = fiberTraj->getFiberFraction();
+            const float fiberFractionTotalCount = fiberTraj->getFiberFractionTotalCount();
             
-            const int64_t fiberFractionTotalCount = fiberFraction->totalCount;
-            if (fiberFraction->fiberFractions.size() != 3) {
+            const std::vector<float>& fiberFractions = fiberTraj->getFiberFractions();
+            if (fiberFractions.size() != 3) {
                 CaretLogFinest("Fiber Trajectory index="
                                 + AString::number(iTraj)
                                 + " has "
-                                + AString::number(fiberFraction->fiberFractions.size())
+                                + AString::number(fiberFractions.size())
                                 + " fibers != 3 from file "
                                 + trajFile->getFileNameNoPath());
                 
                 continue;
             }
-            else if (fiberFraction->totalCount < streamlineThreshold) {
+            else if (fiberFractionTotalCount < streamlineThreshold) {
                 continue;
             }
             float fiberOpacities[3] = { 0.0, 0.0, 0.0 };
             const float fiberCounts[3] = {
-                fiberFraction->fiberFractions[0] * fiberFractionTotalCount,
-                fiberFraction->fiberFractions[1] * fiberFractionTotalCount,
-                fiberFraction->fiberFractions[2] * fiberFractionTotalCount
+                fiberFractions[0] * fiberFractionTotalCount,
+                fiberFractions[1] * fiberFractionTotalCount,
+                fiberFractions[2] * fiberFractionTotalCount
             };
             
-            const float fiberFractionDistance = fiberFraction->distance;
+            const float fiberFractionDistance = fiberTraj->getFiberFractionDistance();
             
             /*
              * Set opacities for each fiber using mapping of minimum and
@@ -6340,11 +6340,11 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
                 }
                     break;
                 case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
-                    fiberOpacities[0] = (fiberFraction->fiberFractions[0]
+                    fiberOpacities[0] = (fiberFractions[0]
                                          - proportionMinimumOpacity) /proportionRangeOpacity;
-                    fiberOpacities[1] = (fiberFraction->fiberFractions[1]
+                    fiberOpacities[1] = (fiberFractions[1]
                                          - proportionMinimumOpacity) /proportionRangeOpacity;
-                    fiberOpacities[2] = (fiberFraction->fiberFractions[2]
+                    fiberOpacities[2] = (fiberFractions[2]
                                          - proportionMinimumOpacity) /proportionRangeOpacity;
                     break;
             }
