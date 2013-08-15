@@ -128,6 +128,17 @@ FiberTrajectoryColorModel::getSelectedItem()
 }
 
 /**
+ * @return Pointer to selected item.
+ */
+const FiberTrajectoryColorModel::Item*
+FiberTrajectoryColorModel::getSelectedItem() const
+{
+    FiberTrajectoryColorModel* nonConstThis = const_cast<FiberTrajectoryColorModel*>(this);
+    const Item* item = nonConstThis->getSelectedItem();
+    return item;
+}
+
+/**
  * Set the selected item.
  * @param item
  *   New selected item.
@@ -193,6 +204,25 @@ FiberTrajectoryColorModel::setFiberOrientationColoringTypeSelected()
             setSelectedItem(allItems[i]);
             break;
         }
+    }
+}
+
+/**
+ * Copy the selection from the other model.
+ *
+ * @param other
+ *    The other model.
+ */
+void
+FiberTrajectoryColorModel::copy(const FiberTrajectoryColorModel& other) {
+    const Item* otherItem = other.getSelectedItem();
+    switch (otherItem->getItemType()) {
+        case Item::ITEM_TYPE_CARET_COLOR:
+            setCaretColor(otherItem->getCaretColor());
+            break;
+        case Item::ITEM_TYPE_FIBER_ORIENTATION_COLORING_TYPE:
+            setFiberOrientationColoringTypeSelected();
+            break;
     }
 }
 

@@ -105,14 +105,17 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+        void copy(const FiberTrajectoryMapProperties& other);
+        
     private:
         FiberTrajectoryMapProperties(const FiberTrajectoryMapProperties&);
 
         FiberTrajectoryMapProperties& operator=(const FiberTrajectoryMapProperties&);
         
-        FiberTrajectoryDisplayModeEnum::Enum m_displayMode;
-        
         SceneClassAssistant* m_sceneAssistant;
+        
+        FiberTrajectoryDisplayModeEnum::Enum m_displayMode;
         
         bool m_displayStatus;
         

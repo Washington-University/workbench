@@ -94,6 +94,8 @@ namespace caret {
         
         Item* getSelectedItem();
         
+        const Item* getSelectedItem() const;
+        
         void setSelectedItem(const Item* item);
         
         void setCaretColor(const CaretColorEnum::Enum color);
@@ -102,6 +104,8 @@ namespace caret {
         
         void setFiberOrientationColoringTypeSelected();
 
+        void copy(const FiberTrajectoryColorModel& other);
+    
     private:
         FiberTrajectoryColorModel(const FiberTrajectoryColorModel&);
 

@@ -364,6 +364,29 @@ FiberTrajectoryMapProperties::getFiberTrajectoryColorModel() const
 }
 
 /**
+ * Copy the other map properties.
+ *
+ * @param other
+ *   The map properties that are copied.
+ */
+void
+FiberTrajectoryMapProperties::copy(const FiberTrajectoryMapProperties& other)
+{
+    m_displayMode              = other.m_displayMode;
+    m_displayStatus            = other.m_displayStatus;
+    m_proportionStreamline     = other.m_proportionStreamline;
+    m_maximumProportionOpacity = other.m_maximumProportionOpacity;
+    m_minimumProportionOpacity = other.m_minimumProportionOpacity;
+    m_countStreamline          = other.m_countStreamline;
+    m_countMaximumOpacity      = other.m_countMaximumOpacity;
+    m_countMinimumOpacity      = other.m_countMinimumOpacity;
+    m_distanceStreamline       = other.m_distanceStreamline;
+    m_distanceMaximumOpacity   = other.m_distanceMaximumOpacity;
+    m_distanceMinimumOpacity   = other.m_distanceMinimumOpacity;
+    m_fiberTrajectoryColoringModel->copy(*other.getFiberTrajectoryColorModel());
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes

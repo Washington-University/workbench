@@ -839,6 +839,7 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
         newFile->readFile(tempFileName);
         newFile->setFileName(defaultFileName);
         newFile->setMatchingFiberOrientationFile(const_cast<CiftiFiberOrientationFile*>(getMatchingFiberOrientationFile()));
+        newFile->m_fiberTrajectoryMapProperties->copy(*getFiberTrajectoryMapProperties());
         newFile->setModified();
         return newFile;
     }
