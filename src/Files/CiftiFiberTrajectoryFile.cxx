@@ -51,6 +51,7 @@
 #include "FiberOrientationTrajectory.h"
 #include "FiberTrajectoryMapProperties.h"
 #include "GiftiMetaData.h"
+#include "PaletteColorMapping.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -1044,11 +1045,28 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
     
     std::vector<int64_t> fiberIndices;
     std::vector<FiberFractions> fiberFractions;
-    m_sparseFile->getFibersRowSparse(rowIndex,
-                                     fiberIndices,
-                                     fiberFractions);
-    CaretAssert(fiberIndices.size() == fiberFractions.size());
     
+    
+    bool rowTest = false;
+    if (rowTest) {
+        /*
+         * Test loading a full row instead of sparse.
+         */
+        const int numCols = m_sparseFile->getCiftiXML().getNumberOfColumns();
+        fiberFractions.resize(numCols);
+        m_sparseFile->getFibersRow(rowIndex, &fiberFractions[0]);
+        
+        for (int64_t i = 0; i < numCols; i++) {
+            fiberIndices.push_back(i);
+        }
+    }
+    else {
+        m_sparseFile->getFibersRowSparse(rowIndex,
+                                         fiberIndices,
+                                         fiberFractions);
+    }
+    CaretAssert(fiberIndices.size() == fiberFractions.size());
+
     const int64_t numFibers = static_cast<int64_t>(fiberIndices.size());
     
     CaretLogFine("For node "

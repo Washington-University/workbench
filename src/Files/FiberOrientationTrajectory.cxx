@@ -159,17 +159,28 @@ FiberOrientationTrajectory::finishAveraging()
         m_fiberFraction->fiberFractions.resize(numFiberCounts);
         if (numFiberCounts > 0) {
             for (int64_t i = 0; i < numFiberCounts; i++) {
-                if (m_fiberFraction->totalCount > 0.0) {
-//                if (m_fiberFractionTotalCountFloat > 0.0) {
+                if (m_fiberFractionTotalCountFloat > 0.0) {
                     const float averageCount = m_fiberCountsSum[i] / m_countForAveraging;
-                    m_fiberFraction->fiberFractions[i] = (averageCount / m_fiberFraction->totalCount);
+                    m_fiberFraction->fiberFractions[i] = (averageCount / m_fiberFractionTotalCountFloat);
+                    
+                    float sum = (m_fiberFraction->fiberFractions[0]
+                                 + m_fiberFraction->fiberFractions[1]
+                                 + m_fiberFraction->fiberFractions[2]);
+                    if (sum > 1.0) {
+                        const float divisor = 1.0 / sum;
+                        m_fiberFraction->fiberFractions[0] *= divisor;
+                        m_fiberFraction->fiberFractions[1] *= divisor;
+                        m_fiberFraction->fiberFractions[2] *= divisor;
+//                        float newSum = (m_fiberFraction->fiberFractions[0]
+//                                     + m_fiberFraction->fiberFractions[1]
+//                                     + m_fiberFraction->fiberFractions[2]);
+//                        std::cout << "Sum too big: " << sum << " new sum: " << newSum << std::endl;
+                    }
                 }
                 else {
                     m_fiberFraction->fiberFractions[i] = 0.0;
                 }
             }
-//            MathFunctions::normalizeVector(&m_fiberFraction->fiberFractions[0]);
-//            std::cout << "Fractions sum: " << MathFunctions::vectorLength(&m_fiberFraction->fiberFractions[0]) << std::endl;
         }
     }
     else {
