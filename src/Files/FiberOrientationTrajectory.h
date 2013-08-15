@@ -52,7 +52,9 @@ namespace caret {
         
         virtual ~FiberOrientationTrajectory();
         
-        void addFiberFractions(const FiberFractions& fiberFraction);
+        void addFiberFractionsForAveraging(const FiberFractions& fiberFraction);
+        
+        void setFiberFractions(const FiberFractions& fiberFraction);
         
         /**
          * @return the Fiber Orientation.
@@ -101,7 +103,7 @@ namespace caret {
             return m_fiberFraction->distance;
         }
         
-        void finish();
+        void finishAveraging();
         
     private:
         FiberOrientationTrajectory(const FiberOrientationTrajectory&);

@@ -200,7 +200,7 @@ namespace caret {
         
         void validateAssignedMatchingFiberOrientationFile() throw (DataFileException);
         
-        void finishFiberOrientationTrajectories();
+        void finishFiberOrientationTrajectoriesAveraging();
        
         void writeLoadedDataToFile(const AString& filename) const throw (DataFileException);
         
@@ -221,6 +221,7 @@ namespace caret {
         
         bool m_dataLoadingEnabled;
         
+        AString m_loadedDataDescriptionForFileCopy;
         AString m_loadedDataDescriptionForMapName;
         
         ConnectivityDataLoaded* m_connectivityDataLoaded;

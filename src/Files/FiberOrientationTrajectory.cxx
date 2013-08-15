@@ -38,6 +38,8 @@
 
 #include "CaretAssert.h"
 #include "CaretSparseFile.h"
+#include "MathFunctions.h"
+
 
 using namespace caret;
 
@@ -81,19 +83,25 @@ FiberOrientationTrajectory::~FiberOrientationTrajectory()
 }
 
 /**
- * Add a fiber fraction.
+ * Add a fiber fraction for averaging.
  * 
  * @param fiberFraction
  *    Fiber fraction that is added.
  */
 void
-FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFraction)
+FiberOrientationTrajectory::addFiberFractionsForAveraging(const FiberFractions& fiberFraction)
 {
     const bool includeZeroTotalCountWhenAveraging = true;
     
     const int64_t numFractions = fiberFraction.fiberFractions.size();
     if ((fiberFraction.totalCount > 0)
         && (numFractions > 0)) {
+        
+//        const float len = MathFunctions::vectorLength(&fiberFraction.fiberFractions[0]);
+//        if (len < 1.0) {
+//            std::cout << "Fraction len < 1: " << len << std::endl;
+//        }
+        
         if (m_fiberCountsSum.empty()) {
             m_fiberCountsSum.resize(numFractions,
                                     0.0);
@@ -120,11 +128,27 @@ FiberOrientationTrajectory::addFiberFractions(const FiberFractions& fiberFractio
 }
 
 /**
+ * Set a fiber fraction.
+ *
+ * @param fiberFraction
+ *    Fiber fraction that is replaced.
+ */
+void
+FiberOrientationTrajectory::setFiberFractions(const FiberFractions& fiberFraction)
+{
+    *m_fiberFraction = fiberFraction;
+    if (m_fiberFraction->fiberFractions.empty()) {
+        m_fiberFraction->zero();
+    }
+    m_fiberFractionTotalCountFloat = m_fiberFraction->totalCount;
+}
+
+/**
  * Finish, which will update the fiber fraction using the average of all
  * of the fiber fractions that were added.
  */
 void
-FiberOrientationTrajectory::finish()
+FiberOrientationTrajectory::finishAveraging()
 {
     if (m_countForAveraging > 0) {
         m_fiberFraction->distance = m_distanceSum / m_countForAveraging;
@@ -136,6 +160,7 @@ FiberOrientationTrajectory::finish()
         if (numFiberCounts > 0) {
             for (int64_t i = 0; i < numFiberCounts; i++) {
                 if (m_fiberFraction->totalCount > 0.0) {
+//                if (m_fiberFractionTotalCountFloat > 0.0) {
                     const float averageCount = m_fiberCountsSum[i] / m_countForAveraging;
                     m_fiberFraction->fiberFractions[i] = (averageCount / m_fiberFraction->totalCount);
                 }
@@ -143,6 +168,8 @@ FiberOrientationTrajectory::finish()
                     m_fiberFraction->fiberFractions[i] = 0.0;
                 }
             }
+//            MathFunctions::normalizeVector(&m_fiberFraction->fiberFractions[0]);
+//            std::cout << "Fractions sum: " << MathFunctions::vectorLength(&m_fiberFraction->fiberFractions[0]) << std::endl;
         }
     }
     else {
