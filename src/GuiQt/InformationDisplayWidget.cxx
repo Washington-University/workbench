@@ -326,7 +326,7 @@ InformationDisplayWidget::showPropertiesDialog()
     QObject::connect(m_propertiesDialogIdContraColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                      this, SLOT(controlInPropertiesDialogChanged()));
     
-    m_propertiesDialogSizeSpinBox = ded.addDoubleSpinBox("Symbol Size:", 
+    m_propertiesDialogSizeSpinBox = ded.addDoubleSpinBox("Symbol Diameter:", 
                                                         info->getIdentificationSymbolSize(),
                                                        0.1,
                                                        100000.0,
@@ -336,7 +336,7 @@ InformationDisplayWidget::showPropertiesDialog()
     QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(controlInPropertiesDialogChanged()));
     
-    m_propertiesDialogMostRecentSizeSpinBox = ded.addDoubleSpinBox("Most Recent ID Symbol Size:",
+    m_propertiesDialogMostRecentSizeSpinBox = ded.addDoubleSpinBox("Most Recent ID Symbol Diameter:",
                                                                    info->getMostRecentIdentificationSymbolSize(),
                                                                    0.1,
                                                                    100000.0,

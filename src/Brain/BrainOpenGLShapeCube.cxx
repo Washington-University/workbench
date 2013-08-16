@@ -87,15 +87,15 @@ void
 BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
     GLfloat cubeVertices[8][3] = {
-        { -1.0, -1.0,  1.0 }, // 0: left, near, top
-        {  1.0, -1.0,  1.0 }, // 1: right, near, top
-        { -1.0,  1.0,  1.0 }, // 2: left, far, top
-        {  1.0,  1.0,  1.0 }, // 3: right, far, top
+        { -0.5, -0.5,  0.5 }, // 0: left, near, top
+        {  0.5, -0.5,  0.5 }, // 1: right, near, top
+        { -0.5,  0.5,  0.5 }, // 2: left, far, top
+        {  0.5,  0.5,  0.5 }, // 3: right, far, top
         
-        { -1.0, -1.0, -1.0 }, // 4: left, near, bottom
-        {  1.0, -1.0, -1.0 }, // 5: right, near, bottom
-        { -1.0,  1.0, -1.0 }, // 6: left, far, bottom
-        {  1.0,  1.0, -1.0 }  // 7: right, far, bottom
+        { -0.5, -0.5, -0.5 }, // 4: left, near, bottom
+        {  0.5, -0.5, -0.5 }, // 5: right, near, bottom
+        { -0.5,  0.5, -0.5 }, // 6: left, far, bottom
+        {  0.5,  0.5, -0.5 }  // 7: right, far, bottom
     };
     
     const GLfloat halfCubeSize = m_cubeSize * 0.5;

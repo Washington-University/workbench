@@ -190,14 +190,15 @@ FociSelectionViewController::createAttributesWidget()
     //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
     //                                maxLineWidth);
         
-    QLabel* pointSizeLabel = new QLabel("Symbol Size");
+    QLabel* pointSizeLabel = new QLabel("Symbol Diameter");
     m_sizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_sizeSpinBox->setFixedWidth(80);
     m_sizeSpinBox->setRange(minLineWidth,
                                  maxLineWidth);
     m_sizeSpinBox->setSingleStep(1.0);
     m_sizeSpinBox->setDecimals(1);
-    m_sizeSpinBox->setToolTip("Adjust the size of foci");
+    m_sizeSpinBox->setToolTip("Adjust the diameter of foci");
+    m_sizeSpinBox->setSuffix("mm");
     QObject::connect(m_sizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     

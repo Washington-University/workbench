@@ -181,13 +181,14 @@ BorderSelectionViewController::createAttributesWidget()
     //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
     //                                maxLineWidth);
     
-    QLabel* lineWidthLabel = new QLabel("Line Width");
+    QLabel* lineWidthLabel = new QLabel("Line Diameter");
     m_lineWidthSpinBox = WuQFactory::newDoubleSpinBox();
     m_lineWidthSpinBox->setFixedWidth(80);
     m_lineWidthSpinBox->setRange(minLineWidth,
                                  maxLineWidth);
     m_lineWidthSpinBox->setSingleStep(1.0);
     m_lineWidthSpinBox->setDecimals(1);
+    m_lineWidthSpinBox->setSuffix("mm");
     m_lineWidthSpinBox->setToolTip("Adjust the width of borders drawn as lines.\n"
                                    "The maximum width is dependent upon the \n"
                                    "graphics system.  There is no maximum value\n"
@@ -197,7 +198,7 @@ BorderSelectionViewController::createAttributesWidget()
     QObject::connect(m_lineWidthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
-    QLabel* pointSizeLabel = new QLabel("Symbol Size");
+    QLabel* pointSizeLabel = new QLabel("Symbol Diameter");
     m_pointSizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_pointSizeSpinBox->setFixedWidth(80);
     m_pointSizeSpinBox->setRange(minLineWidth,
@@ -205,6 +206,7 @@ BorderSelectionViewController::createAttributesWidget()
     m_pointSizeSpinBox->setSingleStep(1.0);
     m_pointSizeSpinBox->setDecimals(1);
     m_pointSizeSpinBox->setToolTip("Adjust the size of borders drawn as points");
+    m_pointSizeSpinBox->setSuffix("mm");
     QObject::connect(m_pointSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     

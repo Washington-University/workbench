@@ -891,7 +891,7 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
         
     if (m_shapeSphere == NULL) {
         m_shapeSphere = new BrainOpenGLShapeSphere(5,
-                                                   1.0);
+                                                   0.5);
     }
     if (m_shapeCone == NULL) {
         m_shapeCone = new BrainOpenGLShapeCone(8);
@@ -1735,7 +1735,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         const IdentifiedItemNode& nodeID = *iter;
         
         const int32_t nodeIndex = nodeID.getNodeIndex();
-        const float symbolSize = nodeID.getSymbolSize();
+        const float symbolDiameter = nodeID.getSymbolSize();
         
         if (isSelect) {
             this->colorIdentification->addItem(idRGB,
@@ -1755,7 +1755,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         const int32_t i3 = nodeIndex * 3;
         glPushMatrix();
         glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
-        this->drawSphere(symbolSize);
+        this->drawSphereWithDiameter(symbolDiameter);
         glPopMatrix();
     }
     
@@ -1806,7 +1806,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const int32_t numBorderPoints = borderDrawInfo.border->getNumberOfPoints();
     const bool isHighlightEndPoints = borderDrawInfo.isHighlightEndPoints;
     
-    float pointSize = 2.0;
+    float pointDiameter = 2.0;
     float lineWidth  = 2.0;
     BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
     if (borderDrawInfo.borderFileIndex >= 0) {
@@ -1814,7 +1814,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         const Brain* brain = bs->getBrain();
         const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
         const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(this->windowTabIndex);
-        pointSize = dpb->getPointSize(displayGroup,
+        pointDiameter = dpb->getPointSize(displayGroup,
                                       this->windowTabIndex);
         lineWidth  = dpb->getLineWidth(displayGroup,
                                        this->windowTabIndex);
@@ -1887,11 +1887,10 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const int32_t numPointsToDraw = static_cast<int32_t>(pointXYZ.size() / 3);
     
     /*
-     * Draw spherical points
+     * Draw points
      */
     if (drawSphericalPoints
         || drawSquarePoints) {
-        const float pointSymbolRadius = pointSize / 2.0;
         for (int32_t i = 0; i < numPointsToDraw; i++) {
             const int32_t i3 = i * 3;
             if (borderDrawInfo.isSelect) {
@@ -1920,10 +1919,10 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             if (drawSphericalPoints) {
-                this->drawSphere(pointSymbolRadius);
+                this->drawSphereWithDiameter(pointDiameter);
             }
             else {
-                this->drawSquare(pointSymbolRadius);
+                this->drawSquare(pointDiameter);
             }
             glPopMatrix();
         }
@@ -2054,8 +2053,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                                            this->windowTabIndex) == false) {
         return;
     }
-    const float focusRadius = fociDisplayProperties->getFociSize(displayGroup,
-                                                                 this->windowTabIndex) / 2.0;
+    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
+                                                                 this->windowTabIndex);
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                this->windowTabIndex);
     
@@ -2169,10 +2168,10 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                         glPushMatrix();
                         glTranslatef(xyz[0], xyz[1], xyz[2]);
                         if (drawAsSpheres) {
-                            this->drawSphere(focusRadius);
+                            this->drawSphereWithDiameter(focusDiameter);
                         }
                         else {
-                            this->drawSquare(focusRadius);
+                            this->drawSquare(focusDiameter);
                         }
                         glPopMatrix();
                     }
@@ -5370,8 +5369,8 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                                            this->windowTabIndex) == false) {
         return;
     }
-    const float focusRadius = fociDisplayProperties->getFociSize(displayGroup,
-                                                                 this->windowTabIndex) / 2.0;
+    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
+                                                                 this->windowTabIndex);
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                this->windowTabIndex);
     
@@ -5471,10 +5470,10 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                         glPushMatrix();
                         glTranslatef(xyz[0], xyz[1], xyz[2]);
                         if (drawAsSpheres) {
-                            this->drawSphere(focusRadius);
+                            this->drawSphereWithDiameter(focusDiameter);
                         }
                         else {
-                            this->drawSquare(focusRadius);
+                            this->drawSquare(focusDiameter);
                         }
                         glPopMatrix();
                     }
@@ -7277,14 +7276,14 @@ BrainOpenGLFixedPipeline::setSelectedItemScreenXYZ(SelectionItem* item,
 /**
  * Draw sphere.
  *
- * @param radius
- *    Radius of the sphere.
+ * @param diameter
+ *    Diameter of the sphere.
  */
 void 
-BrainOpenGLFixedPipeline::drawSphere(const double radius)
+BrainOpenGLFixedPipeline::drawSphereWithDiameter(const double diameter)
 {
     glPushMatrix();
-    glScaled(radius, radius, radius);
+    glScaled(diameter, diameter, diameter);
     m_shapeSphere->draw();
     glPopMatrix();
 }

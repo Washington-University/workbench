@@ -80,19 +80,21 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
                      this, SLOT(surfaceDisplayPropertyChanged()));
     m_surfaceDrawingTypeComboBox->setup<SurfaceDrawingTypeEnum, SurfaceDrawingTypeEnum::Enum>();
     
-    QLabel* linkSizeLabel = new QLabel("Link Size: ");
+    QLabel* linkSizeLabel = new QLabel("Link Diameter: ");
     m_linkSizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_linkSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_linkSizeSpinBox->setSingleStep(1.0);
     m_linkSizeSpinBox->setDecimals(1);
+    m_linkSizeSpinBox->setSuffix("mm");
     QObject::connect(m_linkSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(surfaceDisplayPropertyChanged()));
     
-    QLabel* nodeSizeLabel = new QLabel("Vertex Size: ");
+    QLabel* nodeSizeLabel = new QLabel("Vertex Diameter: ");
     m_nodeSizeSpinBox = WuQFactory::newDoubleSpinBox();
     m_nodeSizeSpinBox->setRange(0.0, std::numeric_limits<float>::max());
     m_nodeSizeSpinBox->setSingleStep(1.0);
     m_nodeSizeSpinBox->setDecimals(1);
+    m_nodeSizeSpinBox->setSuffix("mm");
     QObject::connect(m_nodeSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(surfaceDisplayPropertyChanged()));
     

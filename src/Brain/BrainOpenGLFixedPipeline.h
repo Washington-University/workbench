@@ -327,7 +327,7 @@ namespace caret {
         
         void drawSurfaceAxes();
         
-        void drawSphere(const double radius);
+        void drawSphereWithDiameter(const double diameter);
         
         void drawSquare(const float size);
         
