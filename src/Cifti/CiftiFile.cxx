@@ -274,9 +274,9 @@ void CiftiFile::writeFile(const AString &fileName)
 
 
     int64_t vox_offset = 544 + length;
-    int remainder = vox_offset % 8;
+    int remainder = vox_offset % 16;
     int padding = 0;
-    if (remainder) padding = 8 - remainder;//for 8 byte alignment
+    if (remainder) padding = 16 - remainder;//for 16 byte alignment
     vox_offset += padding;
     length += padding;
 
@@ -314,7 +314,7 @@ void CiftiFile::writeFile(const AString &fileName)
     file->write((char *)&length,4);
     file->write((char *)&ecode, 4);
     file->write(xmlBytes);
-    char nulls[8] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    char nulls[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     file->write(nulls,padding);//pad out null values to 8 byte boundary
     file->flush();
 
