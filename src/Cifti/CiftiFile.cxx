@@ -189,9 +189,9 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
     ciftiHeader.setDimensions(dim);
 
     int64_t vox_offset = 544 + length;
-    int remainder = vox_offset % 8;
+    int remainder = vox_offset % 16;
     int padding = 0;
-    if (remainder) padding = 8 - remainder;//for 8 byte alignment
+    if (remainder) padding = 16 - remainder;//for 8 byte alignment
     vox_offset += padding;
     length += padding;
 
