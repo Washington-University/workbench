@@ -73,9 +73,17 @@ OperationParameters* OperationMetricLabelImport::getParameters()
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("Creates a new gifti label file from a metric file with label-like values.  ") +
+        "You may specify the empty string ('' will work on linux/mac) for <label-list-file>, which will be treated as if it is an empty file.  " +
+        "The label list file must have lines of the following format:\n\n" + 
+        "<labelname>\n<value> <red> <green> <blue> <alpha>\n\n" + 
+        "Do not specify the \"unlabeled\" key in the file, it is assumed that 0 means not labeled unless -unlabeled-value is specified.  " +
+        "Label names must be on a separate line, but may contain spaces or other unusual characters (but not newline).  " +
+        "Whitespace is trimmed from both ends of the label name, but is kept if it is in the middle of a label.  " +
+        "The values of red, green, blue and alpha must be integers from 0 to 255, and will specify the color the label is drawn as " +
+        "(alpha of 255 means opaque, which is probably what you want).  " +
+        "By default, it will set new label names with names of LABEL_# for any values encountered that are not mentioned in the " +
+        "list file, specify -discard-others to instead set these voxels to the \"unlabeled\" key."
     );
     return ret;
 }

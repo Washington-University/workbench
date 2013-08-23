@@ -81,8 +81,7 @@ OperationParameters* OperationCiftiLabelImport::getParameters()
         "The values of red, green, blue and alpha must be integers from 0 to 255, and will specify the color the label is drawn as " +
         "(alpha of 255 means opaque, which is probably what you want).  " +
         "By default, it will set new label names with names of LABEL_# for any values encountered that are not mentioned in the " +
-        "list file, specify -discard-others to instead set these to the \"unlabeled\" key.  " +
-        "Negative keys will get remapped to unused positive keys (workbench doesn't allow negative label keys)."
+        "list file, specify -discard-others to instead set these to the \"unlabeled\" key."
     );
     return ret;
 }
