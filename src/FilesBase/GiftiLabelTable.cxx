@@ -326,7 +326,37 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
 int32_t 
 GiftiLabelTable::generateUnusedKey() const
 {
-   int32_t numKeys = labelsMap.size();
+    const int32_t numKeys = labelsMap.size();
+    LABELS_MAP::const_reverse_iterator rbegin = labelsMap.rbegin();//reverse end is largest key
+    if (numKeys > 0 && rbegin->first > 0)//there is at least one positive key
+    {
+        if (rbegin->first < numKeys)
+        {
+            CaretAssert(labelsMap.find(rbegin->first + 1) == labelsMap.end());
+            return rbegin->first + 1;//keys are compact unless negatives exist, in which case consider it "compact enough" if positive holes equal number of negative keys
+        } else {
+            LABELS_MAP::const_iterator begin = labelsMap.begin();
+            if (begin->first == 1 && rbegin->first == numKeys)
+            {
+                CaretAssert(labelsMap.find(rbegin->first + 1) == labelsMap.end());
+                return rbegin->first + 1;//keys are compact but missing 0, do not return 0, so return next
+            } else {//there aren't enough negatives to make up for the missing, search for a hole in the positives
+                LABELS_MAP::const_iterator iter = labelsMap.upper_bound(0);//start with first positive
+                int32_t curVal = 0;//if it isn't one, we can stop early
+                while (iter != labelsMap.end() && iter->first == curVal + 1)//it should NEVER hit end(), due to above checks, but if it did, it would return rbegin->first + 1
+                {
+                    curVal = iter->first;
+                    ++iter;
+                }
+                CaretAssert(labelsMap.find(curVal + 1) == labelsMap.end());
+                return curVal + 1;
+            }
+        }
+    } else {
+        CaretAssert(labelsMap.find(1) == labelsMap.end());
+        return 1;//otherwise, no keys exist or all keys are non-positive, return 1
+    }
+   /*int32_t numKeys = labelsMap.size();
    LABELS_MAP_CONST_ITERATOR myend = labelsMap.end();
    if (labelsMap.upper_bound(numKeys - 1) == myend)
    {//returns a valid iterator only if there is no strictly greater key - zero key is assumed to exist, being the ??? special palette, no negatives exist
@@ -344,7 +374,7 @@ GiftiLabelTable::generateUnusedKey() const
    }
    for (LABELS_MAP_CONST_ITERATOR iter = labelsMap.begin(); iter != myend; ++iter)
    {
-      if (iter->first < numKeys)
+      if (iter->first >= 0 && iter->first < numKeys)
       {//dont try to mark above the range
          scratch[iter->first] = 1;
       }
@@ -357,7 +387,7 @@ GiftiLabelTable::generateUnusedKey() const
       }
    }
    CaretAssertMessage(false, "generateUnusedKey() failed for unknown reasons");
-   return 0;//should never happen
+   return 0;//should never happen//*/
     /*std::set<int32_t> keys = getKeys();
     
     int32_t newKey = 1;
