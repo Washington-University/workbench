@@ -70,7 +70,7 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     volumeOpt->addVolumeOutputParameter(2, "volume", "the input volume");
     volumeOpt->createOptionalParameter(3, "-from-cropped", "the input is cropped to the size of the component");
 
-    OptionalParameter* volumeAllOpt = ret->createOptionalParameter(5, "-volume-all", "replace the data in all volume components");
+    OptionalParameter* volumeAllOpt = ret->createOptionalParameter(6, "-volume-all", "replace the data in all volume components");
     volumeAllOpt->addVolumeOutputParameter(1, "volume", "the input volume");
     volumeAllOpt->createOptionalParameter(2, "-from-cropped", "the input is cropped to the size of the data");
 
