@@ -436,11 +436,12 @@ CommandOperationManager::printAllCommands()
         
         cmdMap.insert(make_pair(cmdSwitch,
                                      op->getOperationShortDescription()));
-        
-        const AString helpInfo = op->getHelpInformation("");
-        if (helpInfo.isEmpty()) {
+#ifndef NDEBUG
+        const AString helpInfo = op->getHelpInformation("");//TSC: generating help info takes a little processing (populating and walking an OperationParameters tree for each command)
+        if (helpInfo.isEmpty()) {//So, test the same define as for asserts and skip this check in release
             CaretLogSevere("Command has no help info: " + cmdSwitch);
         }
+#endif
     }
 
     for (map<AString, AString>::iterator iter = cmdMap.begin();

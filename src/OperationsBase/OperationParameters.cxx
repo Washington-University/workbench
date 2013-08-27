@@ -97,23 +97,72 @@ ParameterComponent::ParameterComponent(const ParameterComponent& rhs)
     }
 }
 
-void ParameterComponent::addOptionalParameter(OptionalParameter* param)
-{
-    m_optionList.push_back(param);
-}
-
 OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOption(key), "optional parameter created with previously used key");
     OptionalParameter* ret = new OptionalParameter(key, optionSwitch, description);
-    addOptionalParameter(ret);
+    m_optionList.push_back(ret);
     return ret;
 }
 
 ParameterComponent* ParameterComponent::createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
+    CaretAssertMessage(checkUniqueRepeatable(key), "repeatable parameter created with previously used key");
     RepeatableOption* newOpt = new RepeatableOption(key, optionSwitch, description);
     m_repeatableOptions.push_back(newOpt);
     return &(newOpt->m_template);
+}
+
+bool ParameterComponent::checkUniqueInput(const int32_t& key, const OperationParametersEnum::Enum& type)
+{
+    uint32_t i;
+    for (i = 0; i < m_paramList.size(); ++i)
+    {
+        if (m_paramList[i]->m_key == key && type == m_paramList[i]->getType())
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ParameterComponent::checkUniqueOption(const int32_t& key)
+{
+    uint32_t i;
+    for (i = 0; i < m_optionList.size(); ++i)
+    {
+        if (m_optionList[i]->m_key == key)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ParameterComponent::checkUniqueRepeatable(const int32_t& key)
+{
+    uint32_t i;
+    for (i = 0; i < m_repeatableOptions.size(); ++i)
+    {
+        if (m_repeatableOptions[i]->m_key == key)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ParameterComponent::checkUniqueOutput(const int32_t& key, const OperationParametersEnum::Enum& type)
+{
+    uint32_t i;
+    for (i = 0; i < m_outputList.size(); ++i)
+    {
+        if (m_outputList[i]->m_key == key && type == m_outputList[i]->getType())
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, const OperationParametersEnum::Enum type)
@@ -175,51 +224,61 @@ AbstractParameter* ParameterComponent::getOutputParameter(const int32_t key, con
 //sadly, lots of boilerplate for convenience functions
 void ParameterComponent::addBooleanParameter(const int32_t key, const caret::AString& name, const caret::AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::BOOL), "input boolean parameter created with previously used key");
     m_paramList.push_back(new BooleanParameter(key, name, description));
 }
 
 void ParameterComponent::addCiftiParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::CIFTI), "input cifti parameter created with previously used key");
     m_paramList.push_back(new CiftiParameter(key, name, description));
 }
 
 void ParameterComponent::addFociParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::FOCI), "input foci parameter created with previously used key");
     m_paramList.push_back(new FociParameter(key, name, description));
 }
 
 void ParameterComponent::addDoubleParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::DOUBLE), "input double parameter created with previously used key");
     m_paramList.push_back(new DoubleParameter(key, name, description));
 }
 
 void ParameterComponent::addMetricParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::METRIC), "input metric parameter created with previously used key");
     m_paramList.push_back(new MetricParameter(key, name, description));
 }
 
 void ParameterComponent::addIntegerParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::INT), "input integer parameter created with previously used key");
     m_paramList.push_back(new IntegerParameter(key, name, description));
 }
 
 void ParameterComponent::addLabelParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::LABEL), "input label parameter created with previously used key");
     m_paramList.push_back(new LabelParameter(key, name, description));
 }
 
 void ParameterComponent::addStringParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::STRING), "input string parameter created with previously used key");
     m_paramList.push_back(new StringParameter(key, name, description));
 }
 
 void ParameterComponent::addSurfaceParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::SURFACE), "input surface parameter created with previously used key");
     m_paramList.push_back(new SurfaceParameter(key, name, description));
 }
 
 void ParameterComponent::addVolumeParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::VOLUME), "input volume parameter created with previously used key");
     m_paramList.push_back(new VolumeParameter(key, name, description));
 }
 
@@ -230,31 +289,37 @@ void OperationParameters::setHelpText(const AString& textIn)
 
 void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::CIFTI), "output cifti parameter created with previously used key");
     m_outputList.push_back(new CiftiParameter(key, name, description));
 }
 
 void ParameterComponent::addFociOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::FOCI), "output foci parameter created with previously used key");
     m_outputList.push_back(new FociParameter(key, name, description));
 }
 
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::METRIC), "output metric parameter created with previously used key");
     m_outputList.push_back(new MetricParameter(key, name, description));
 }
 
 void ParameterComponent::addLabelOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::LABEL), "output label parameter created with previously used key");
     m_outputList.push_back(new LabelParameter(key, name, description));
 }
 
 void ParameterComponent::addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::SURFACE), "output surface parameter created with previously used key");
     m_outputList.push_back(new SurfaceParameter(key, name, description));
 }
 
 void ParameterComponent::addVolumeOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::VOLUME), "output volume parameter created with previously used key");
     m_outputList.push_back(new VolumeParameter(key, name, description));
 }
 
@@ -327,25 +392,10 @@ FociFile* ParameterComponent::getOutputFoci(const int32_t key)
     return ((FociParameter*)getOutputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
 }
 
-/*double* ParameterComponent::getOutputDouble(const int32_t key)
-{
-    return &(((DoubleParameter*)getOutputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter);
-}//*/
-
-/*int64_t* ParameterComponent::getOutputInteger(const int32_t key)
-{
-    return &(((IntegerParameter*)getOutputParameter(key, OperationParametersEnum::INT))->m_parameter);
-}//*/
-
 LabelFile* ParameterComponent::getOutputLabel(const int32_t key)
 {
     return ((LabelParameter*)getOutputParameter(key, OperationParametersEnum::LABEL))->m_parameter.getPointer();
 }
-
-/*AString* ParameterComponent::getOutputString(const int32_t key)
-{
-    return &(((StringParameter*)getOutputParameter(key, OperationParametersEnum::STRING))->m_parameter);
-}//*/
 
 SurfaceFile* ParameterComponent::getOutputSurface(const int32_t key)
 {

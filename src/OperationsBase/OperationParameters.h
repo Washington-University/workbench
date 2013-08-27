@@ -135,27 +135,6 @@ namespace caret {
         ///get a cifti with a key
         FociFile* getFoci(const int32_t key);
         
-        ///add a preconstructed optional parameter
-        void addOptionalParameter(OptionalParameter* param);
-        
-        //add a parameter to get next item as a string
-        //void addStringOutputParameter(const int32_t key, const AString& name, const AString& description);
-        
-        //get a string with a key
-        //AString* getOutputString(const int32_t key);
-        
-        //add a parameter to get next item as an int32
-        //void addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description);
-        
-        //get an integer with a key
-        //int64_t* getOutputInteger(const int32_t key);
-        
-        //add a parameter to get next item as a double
-        //void addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description);
-        
-        //get a double with a key
-        //double* getOutputDouble(const int32_t key);
-        
         ///add a parameter to get next item as a surface
         void addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description);
         
@@ -209,6 +188,12 @@ namespace caret {
         
         ///return instances of a repeatable option
         const std::vector<ParameterComponent*>* getRepeatableParameterInstances(const int32_t key);
+        
+        ///functions to check for key/type uniqueness - used only in asserts
+        bool checkUniqueInput(const int32_t& key, const OperationParametersEnum::Enum& type);
+        bool checkUniqueOutput(const int32_t& key, const OperationParametersEnum::Enum& type);
+        bool checkUniqueOption(const int32_t& key);
+        bool checkUniqueRepeatable(const int32_t& key);
     };
     
     struct OptionalParameter : public ParameterComponent
