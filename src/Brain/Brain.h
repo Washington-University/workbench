@@ -470,7 +470,7 @@ namespace caret {
         
         void updateSurfaceMontageController();
         
-        void updateMatchingFiberOrientationFiles();
+        void updateFiberTrajectoryMatchingFiberOrientationFiles();
         
         void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const throw (DataFileException);
         

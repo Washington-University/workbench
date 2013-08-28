@@ -1357,7 +1357,7 @@ Brain::createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTr
  * files are added or removed.
  */
 void
-Brain::updateMatchingFiberOrientationFiles()
+Brain::updateFiberTrajectoryMatchingFiberOrientationFiles()
 {
     for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = m_connectivityFiberTrajectoryFiles.begin();
          iter != m_connectivityFiberTrajectoryFiles.end();
@@ -3595,7 +3595,7 @@ Brain::updateAfterFilesAddedOrRemoved()
     updateWholeBrainController();
     updateSurfaceMontageController();
     
-    updateMatchingFiberOrientationFiles();
+    updateFiberTrajectoryMatchingFiberOrientationFiles();
 }
 
 /**
@@ -5005,7 +5005,7 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Fiber trajectory files need special handling after restoring a scene.
      */
-    updateMatchingFiberOrientationFiles();
+    updateFiberTrajectoryMatchingFiberOrientationFiles();
     for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = m_connectivityFiberTrajectoryFiles.begin();
          iter != m_connectivityFiberTrajectoryFiles.end();
          iter++) {
