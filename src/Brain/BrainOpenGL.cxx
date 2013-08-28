@@ -121,33 +121,55 @@ BrainOpenGL::setDrawHighlightedEndPoints(const bool drawHighlightedEndPoints)
 
 
 /**
- * @return The runtime version of OpenGL (e.g. 1.0, 2.1, etc.)
+ * @return The runtime library version of OpenGL (e.g. 1.0, 2.1, etc.)
  */
 AString
-BrainOpenGL::getRuntimeVersionOfOpenGL()
+BrainOpenGL::getRuntimeLibraryVersionOfOpenGL()
 {
-    return s_versionOfOpenGL;
+    return s_runtimeLibraryVersionOfOpenGL;
 }
 
 /**
- * @return true if the version of OpenGL is supported at runtime.
- * @param versionNumber
- *    Version of OpenGL in the form Y.X (eg: 1.1, 2.1, 3.0, etc.)
+ * Determine if the given version of OpenGL is supported at runtime.
+ * OpenGL is continually updated and this method is used to test for 
+ * support of a given runtime version of OpenGL so that OpenGL functions
+ * in the given version may be used.  For example, if a function in OpenGL
+ * 2.1 is called on a system that it is OpenGL 1.1, a crash will likely occur.
+ *
+ * The OpenGL runtime version is two or three numbers separated by a period,
+ * possibly followed by a space and then text.
+ * The first number is the major version, the second number is the minor 
+ * version, and the optional third number is the release of the major/minor 
+ * version.
+ *
+ * A version of of OpenGL is supported when it is less than or equal to 
+ * the runtime version of the OpenGL library.  However, there may be exceptions as 
+ * OpenGL is deprecating functionality from OpenGL 1.x and 2.x in versions
+ * 3.1 and later.  At this time, an extension is provided by all vendors so
+ * that OpenGL 1.x and 2.x is available in 3.1 and later.  THIS MAY CHANGE.
+ * This method does not check for this potential missing, deprecated capability.
+ * 
+ * @param versionOfOpenGL
+ *    Version of OpenGL in the form X.Y.Z (eg: 1.1, 2.1, 3.0, 3.0.0, 3.1, etc.)
+ *    for which support is tested.
+ *
+ * @return true if the given version of OpenGL is less than the runtime version.
  */
 bool
-BrainOpenGL::isRuntimeVersionOfOpenGLSupported(const AString& versionNumber)
+BrainOpenGL::testForVersionOfOpenGLSupported(const AString& versionOfOpenGL)
 {
     AString majorVersion;
     AString minorVersion;
-    getOpenGLMajorMinorVersions(versionNumber,
+    getOpenGLMajorMinorVersions(versionOfOpenGL,
                                 majorVersion,
                                 minorVersion);
 
-    if (s_majorVersionOfOpenGL.toInt() >= majorVersion.toInt()) {
+    if (majorVersion.toInt() < s_runtimeLibraryMajorVersionOfOpenGL.toInt()) {
         return true;
     }
-    else if (s_majorVersionOfOpenGL.toInt() == majorVersion.toInt()) {
-        if (s_minorVersionOfOpenGL.toInt() >= minorVersion.toInt()) {
+    
+    if (s_runtimeLibraryMajorVersionOfOpenGL.toInt() == majorVersion.toInt()) {
+        if (minorVersion.toInt() < s_runtimeLibraryMinorVersionOfOpenGL.toInt()) {
             return true;
         }
     }
@@ -267,13 +289,13 @@ BrainOpenGL::initializeOpenGL()
     compileVersions += " ES_3.0";
 #endif
     
-    s_versionOfOpenGL = QLatin1String(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-    if (s_versionOfOpenGL.isEmpty()) {
-        s_versionOfOpenGL = "1.1";
+    s_runtimeLibraryVersionOfOpenGL = QLatin1String(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    if (s_runtimeLibraryVersionOfOpenGL.isEmpty()) {
+        s_runtimeLibraryVersionOfOpenGL = "1.1";
     }
-    getOpenGLMajorMinorVersions(s_versionOfOpenGL,
-                                s_majorVersionOfOpenGL,
-                                s_minorVersionOfOpenGL);
+    getOpenGLMajorMinorVersions(s_runtimeLibraryVersionOfOpenGL,
+                                s_runtimeLibraryMajorVersionOfOpenGL,
+                                s_runtimeLibraryMinorVersionOfOpenGL);
     
     //
     // Note: The version string might be something like 1.2.4.  std::atof()
@@ -282,15 +304,15 @@ BrainOpenGL::initializeOpenGL()
     const char* vendorStr = (char*)(glGetString(GL_VENDOR));
     const char* renderStr = (char*)(glGetString(GL_RENDERER));
     AString lineInfo = (compileVersions
-                        + "\nOpenGL Runtime Version: " + s_versionOfOpenGL
-                        + "\nMajor Runtime Version: " + BrainOpenGL::s_majorVersionOfOpenGL
-                        + "\nMinor Runtime Version: " + BrainOpenGL::s_minorVersionOfOpenGL
+                        + "\nOpenGL Runtime Version: " + s_runtimeLibraryVersionOfOpenGL
+                        + "\nMajor Runtime Version: " + BrainOpenGL::s_runtimeLibraryMajorVersionOfOpenGL
+                        + "\nMinor Runtime Version: " + BrainOpenGL::s_runtimeLibraryMinorVersionOfOpenGL
                         + "\nOpenGL Vendor: " + AString(vendorStr)
                         + "\nOpenGL Renderer: " + AString(renderStr));
     
     lineInfo += "\n";
 #ifdef GL_VERSION_2_0
-    if (isRuntimeVersionOfOpenGLSupported("2.0")) {
+    if (testForVersionOfOpenGLSupported("2.0")) {
         GLfloat values[2];
         glGetFloatv (GL_ALIASED_LINE_WIDTH_RANGE, values);
         const AString aliasedLineWidthRange = ("GL_ALIASED_LINE_WIDTH_RANGE value is "
@@ -352,7 +374,7 @@ BrainOpenGL::initializeOpenGL()
         }
     }
     
-    if (isRuntimeVersionOfOpenGLSupported("3.1")) {
+    if (testForVersionOfOpenGLSupported("3.1")) {
         if (haveARBCompatibility == false) {
             CaretLogSevere("OpenGL 3.1 or later and ARB compatibilty extensions not found.\n"
                            "OpenGL may fail.");

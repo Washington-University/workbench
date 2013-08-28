@@ -165,9 +165,9 @@ namespace caret {
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
         
-        static AString getRuntimeVersionOfOpenGL();
+        static AString getRuntimeLibraryVersionOfOpenGL();
         
-        static bool isRuntimeVersionOfOpenGLSupported(const AString& versionNumber);
+        static bool testForVersionOfOpenGLSupported(const AString& versionOfOpenGL);
         
         static QString getBestDrawingModeName();
         
@@ -232,14 +232,14 @@ namespace caret {
                                                 AString& majorVersionOut,
                                                 AString& minorVersionOut);
         
-        /** version of OpenGL */
-        static AString s_versionOfOpenGL;
+        /** runtime library version of OpenGL */
+        static AString s_runtimeLibraryVersionOfOpenGL;
         
-        /** major version number of OpenGL */
-        static AString s_majorVersionOfOpenGL;
+        /** runtime library major version number of OpenGL */
+        static AString s_runtimeLibraryMajorVersionOfOpenGL;
         
-        /** minor version number of OpenGL */
-        static AString s_minorVersionOfOpenGL;
+        /** runtime library minor version number of OpenGL */
+        static AString s_runtimeLibraryMinorVersionOfOpenGL;
         
         static DrawMode s_drawingMode;
         
@@ -253,9 +253,9 @@ namespace caret {
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H
-    AString BrainOpenGL::s_versionOfOpenGL = "";
-    AString BrainOpenGL::s_majorVersionOfOpenGL = "";
-    AString BrainOpenGL::s_minorVersionOfOpenGL = "";
+    AString BrainOpenGL::s_runtimeLibraryVersionOfOpenGL = "";
+    AString BrainOpenGL::s_runtimeLibraryMajorVersionOfOpenGL = "";
+    AString BrainOpenGL::s_runtimeLibraryMinorVersionOfOpenGL = "";
     float BrainOpenGL::s_minPointSize = 1.0f;
     float BrainOpenGL::s_maxPointSize = 10.0f;
     float BrainOpenGL::s_minLineWidth = 1.0f;
