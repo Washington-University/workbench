@@ -60,11 +60,9 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain
- *    Brain holds these display properties.
  */
-DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
-: DisplayProperties(brain)
+DisplayPropertiesBorders::DisplayPropertiesBorders()
+: DisplayProperties()
 {
     const float defaultPointSize = 2.0;
     const float defaultLineSize  = 1.0;

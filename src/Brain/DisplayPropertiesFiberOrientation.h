@@ -173,6 +173,8 @@ namespace caret {
         
         void resetPrivate();
         
+        Brain* m_brain;
+        
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_displayStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];

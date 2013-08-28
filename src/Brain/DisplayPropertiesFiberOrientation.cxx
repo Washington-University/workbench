@@ -73,8 +73,11 @@ using namespace caret;
  *    Brain holds these display properties.
  */
 DisplayPropertiesFiberOrientation::DisplayPropertiesFiberOrientation(Brain* brain)
-: DisplayProperties(brain)
+: DisplayProperties(),
+  m_brain(brain)
 {
+    CaretAssert(brain);
+    
     const float aboveLimit = 0.63;
     const float belowLimit = -0.63;
     const float minimumMagnitude = 0.05;

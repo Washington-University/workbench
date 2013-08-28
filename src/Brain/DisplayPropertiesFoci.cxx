@@ -52,11 +52,9 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain
- *    Brain holds these display properties.
  */
-DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
-: DisplayProperties(brain)
+DisplayPropertiesFoci::DisplayPropertiesFoci()
+: DisplayProperties()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();

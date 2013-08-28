@@ -106,34 +106,36 @@ Brain::Brain()
 {
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager(this);
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager(this);
-    
     m_chartingDataManager = new ChartingDataManager(this);
+    
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
+    
     m_specFile = new SpecFile();
     m_specFile->setFileName("");
     m_specFile->clearModified();
+    
     m_surfaceMontageController = NULL;
     m_volumeSliceController = NULL;
     m_wholeBrainController = NULL;
     
-    m_displayPropertiesBorders = new DisplayPropertiesBorders(this);
+    m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
     m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
-    m_displayPropertiesFoci = new DisplayPropertiesFoci(this);
+    m_displayPropertiesFoci = new DisplayPropertiesFoci();
     m_displayProperties.push_back(m_displayPropertiesFoci);
     
-    m_displayPropertiesLabels = new DisplayPropertiesLabels(this);
+    m_displayPropertiesLabels = new DisplayPropertiesLabels();
     m_displayProperties.push_back(m_displayPropertiesLabels);
     
-    m_displayPropertiesSurface = new DisplayPropertiesSurface(this);
+    m_displayPropertiesSurface = new DisplayPropertiesSurface();
     m_displayProperties.push_back(m_displayPropertiesSurface);
     
-    m_displayPropertiesVolume = new DisplayPropertiesVolume(this);
+    m_displayPropertiesVolume = new DisplayPropertiesVolume();
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
     EventManager::get()->addEventListener(this,
@@ -175,7 +177,7 @@ Brain::Brain()
     
     m_selectionManager = new SelectionManager();
 
-    m_identificationManager = new IdentificationManager(this);
+    m_identificationManager = new IdentificationManager();
 }
 
 /**

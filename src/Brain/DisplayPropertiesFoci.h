@@ -42,12 +42,10 @@
 
 namespace caret {
 
-    class Brain;
-    
     class DisplayPropertiesFoci : public DisplayProperties {
         
     public:
-        DisplayPropertiesFoci(Brain* brain);
+        DisplayPropertiesFoci();
         
         virtual ~DisplayPropertiesFoci();
 

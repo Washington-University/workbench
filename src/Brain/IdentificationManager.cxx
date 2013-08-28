@@ -56,11 +56,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-IdentificationManager::IdentificationManager(Brain* brain)
+IdentificationManager::IdentificationManager()
 : SceneableInterface()
 {
-    m_brain = brain;
-    
     m_sceneAssistant = new SceneClassAssistant();
     
     m_contralateralIdentificationEnabled = false;

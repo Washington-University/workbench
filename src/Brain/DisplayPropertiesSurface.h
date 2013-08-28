@@ -35,7 +35,7 @@ namespace caret {
     class DisplayPropertiesSurface : public DisplayProperties {
         
     public:
-        DisplayPropertiesSurface(Brain* brain);
+        DisplayPropertiesSurface();
         
         virtual ~DisplayPropertiesSurface();
         

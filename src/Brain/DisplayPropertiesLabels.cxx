@@ -50,11 +50,9 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain
- *    parent brain.
  */
-DisplayPropertiesLabels::DisplayPropertiesLabels(Brain* brain)
-: DisplayProperties(brain)
+DisplayPropertiesLabels::DisplayPropertiesLabels()
+: DisplayProperties()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();

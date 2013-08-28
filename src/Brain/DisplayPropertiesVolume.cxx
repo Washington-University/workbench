@@ -43,8 +43,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
-: DisplayProperties(brain)
+DisplayPropertiesVolume::DisplayPropertiesVolume()
+: DisplayProperties()
 {
 }
 

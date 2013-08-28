@@ -34,7 +34,7 @@ namespace caret {
     class DisplayPropertiesVolume : public DisplayProperties {
         
     public:
-        DisplayPropertiesVolume(Brain* brain);
+        DisplayPropertiesVolume();
         
         virtual ~DisplayPropertiesVolume();
         

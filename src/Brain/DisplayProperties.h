@@ -31,21 +31,16 @@
 
 namespace caret {
 
-    class Brain;
     class SceneClassAssistant;
     
     
     class DisplayProperties : public CaretObject, public SceneableInterface {
         
     protected:
-        DisplayProperties(Brain* brain);
+        DisplayProperties();
 
     public:
         virtual ~DisplayProperties();
-        
-        Brain* getBrain();
-        
-        const Brain* getBrain() const;
         
         /**
          * Reset all settings to their defaults
@@ -83,8 +78,6 @@ namespace caret {
         virtual AString toString() const;
         
     protected:
-        Brain* m_brain;
-        
         SceneClassAssistant* m_sceneAssistant;
     };
     

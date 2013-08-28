@@ -42,11 +42,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-DisplayProperties::DisplayProperties(Brain* brain)
+DisplayProperties::DisplayProperties()
 : CaretObject()
 {
-    m_brain = brain;
-
     m_sceneAssistant = new SceneClassAssistant();
 }
 
@@ -67,22 +65,3 @@ DisplayProperties::toString() const
 {
     return "DisplayProperties";
 }
-
-/**
- * @return Brain to which these display settings belong.
- */
-Brain* 
-DisplayProperties::getBrain()
-{
-    return m_brain;
-}
-
-/**
- * @return Brain to which these display settings belong.
- */
-const Brain* 
-DisplayProperties::getBrain() const
-{
-    return m_brain;
-}
-

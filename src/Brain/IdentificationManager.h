@@ -42,7 +42,6 @@
 
 namespace caret {
 
-    class Brain;
     class IdentifiedItem;
     class IdentifiedItemNode;
     class SceneClassAssistant;
@@ -50,7 +49,7 @@ namespace caret {
     class IdentificationManager : public SceneableInterface {
         
     public:
-        IdentificationManager(Brain* brain);
+        IdentificationManager();
         
         virtual ~IdentificationManager();
         
@@ -117,8 +116,6 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         SceneClassAssistant* m_sceneAssistant;
-        
-        Brain* m_brain;
         
         std::list<IdentifiedItem*> m_identifiedItems;
         

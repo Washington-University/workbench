@@ -35,17 +35,17 @@ using namespace caret;
     
 /**
  * \class DisplayPropertiesSurface 
- * \brief Display properties for volume slices.
+ * \brief Display properties for surface drawing attributes.
  *
- * Display properties for volume slices.
+ * Display properties for surface drawing attributes.
  */
 
 
 /**
  * Constructor.
  */
-DisplayPropertiesSurface::DisplayPropertiesSurface(Brain* brain)
-: DisplayProperties(brain)
+DisplayPropertiesSurface::DisplayPropertiesSurface()
+: DisplayProperties()
 {
     m_displayNormalVectors = false;
     m_linkSize = 2.0;
