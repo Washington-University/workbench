@@ -56,12 +56,9 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain
- *    Brain whose trajectory files are managed.
  */
-CiftiFiberTrajectoryManager::CiftiFiberTrajectoryManager(Brain* brain)
-: CaretObject(),
-m_brain(brain)
+CiftiFiberTrajectoryManager::CiftiFiberTrajectoryManager()
+: CaretObject()
 {
 }
 
@@ -83,7 +80,8 @@ CiftiFiberTrajectoryManager::~CiftiFiberTrajectoryManager()
  *    true if any data was loaded, else false.
  */
 bool
-CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
+CiftiFiberTrajectoryManager::loadDataForSurfaceNode(Brain* brain,
+                                                    const SurfaceFile* surfaceFile,
                                                     const int32_t nodeIndex,
                                                     std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
@@ -92,9 +90,9 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFi
     /*
      * Load fiber trajectory data
      */
-    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    const int32_t numTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-        CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+        CiftiFiberTrajectoryFile* trajFile = brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
         const int64_t rowIndex = trajFile->loadDataForSurfaceNode(surfaceFile->getStructure(),
                                          surfaceFile->getNumberOfNodes(),
                                          nodeIndex);
@@ -125,7 +123,8 @@ CiftiFiberTrajectoryManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFi
  *    true if any data was loaded, else false.
  */
 bool
-CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
+CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(Brain* brain,
+                                                            const SurfaceFile* surfaceFile,
                                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
     bool dataWasLoaded = false;
@@ -134,9 +133,9 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
     /*
      * Load fiber trajectory data
      */
-    const int32_t numTrajFiles = m_brain->getNumberOfConnectivityFiberTrajectoryFiles();
+    const int32_t numTrajFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t iTrajFileIndex = 0; iTrajFileIndex < numTrajFiles; iTrajFileIndex++) {
-        CiftiFiberTrajectoryFile* trajFile = m_brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
+        CiftiFiberTrajectoryFile* trajFile = brain->getConnectivityFiberTrajectoryFile(iTrajFileIndex);
         
         try {
             trajFile->loadDataAverageForSurfaceNodes(surfaceFile->getStructure(),
@@ -166,11 +165,12 @@ CiftiFiberTrajectoryManager::loadDataAverageForSurfaceNodes(const SurfaceFile* s
  *    true if any connectivity loaders are active, else false.
  */
 bool
-CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(const float xyz[3],
+CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(Brain* brain,
+                                                          const float xyz[3],
                                                           std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
-    m_brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
+    brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
     
     bool haveData = false;
     for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = ciftiTrajFiles.begin();
@@ -209,11 +209,12 @@ CiftiFiberTrajectoryManager::loadDataForVoxelAtCoordinate(const float xyz[3],
  *    If an error occurs.
  */
 bool
-CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(Brain* brain,
+                                                            const int64_t volumeDimensionIJK[3],
                                                             const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
 {
     std::vector<CiftiFiberTrajectoryFile*> ciftiTrajFiles;
-    m_brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
+    brain->getConnectivityFiberTrajectoryFiles(ciftiTrajFiles);
     
     bool haveData = false;
     for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = ciftiTrajFiles.begin();
@@ -229,101 +230,4 @@ CiftiFiberTrajectoryManager::loadAverageDataForVoxelIndices(const int64_t volume
     
     return haveData;
 }
-
-/**
- * Reset all data.
- */
-void
-CiftiFiberTrajectoryManager::reset()
-{
-}
-
-/**
- * Create a scene for an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    saving the scene.
- *
- * @return Pointer to SceneClass object representing the state of
- *    this object.  Under some circumstances a NULL pointer may be
- *    returned.  Caller will take ownership of returned object.
- */
-SceneClass*
-CiftiFiberTrajectoryManager::saveToScene(const SceneAttributes* /*sceneAttributes*/,
-                                         const AString& instanceName)
-{
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "CiftiFiberTrajectoryManager",
-                                            1);
-    return sceneClass;
-}
-
-/**
- * Restore the state of an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.  May be NULL for some types of scenes.
- */
-void
-CiftiFiberTrajectoryManager::restoreFromScene(const SceneAttributes* sceneAttributes,
-                                                         const SceneClass* sceneClass)
-{
-    if (sceneClass == NULL) {
-        return;
-    }
-    
-    try {
-        /*
-         * Need to update trajectory files with matching fiber orientation file
-         * and then finish with restoration of files scene data (loaded
-         * trajectory data).
-         */
-        updateMatchingFiberOrientationFiles();
-
-        std::vector<CiftiFiberTrajectoryFile*> fiberTrajectoryFiles;
-        m_brain->getConnectivityFiberTrajectoryFiles(fiberTrajectoryFiles);
-        
-        for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = fiberTrajectoryFiles.begin();
-             iter != fiberTrajectoryFiles.end();
-             iter++) {
-            CiftiFiberTrajectoryFile* trajFile = *iter;
-            trajFile->finishRestorationOfScene();
-        }
-    }
-    catch (const DataFileException& dfe) {
-        sceneAttributes->addToErrorMessage("Restoring Trajectory Data: "
-                                           + dfe.whatString());
-    }
-}
-
-/**
- * Update the fiber orientation files assigned to matching
- * fiber trajectory files.  This is typically called after
- * files are added or removed.
- */
-void
-CiftiFiberTrajectoryManager::updateMatchingFiberOrientationFiles()
-{
-    std::vector<CiftiFiberOrientationFile*> orientationFiles;
-    m_brain->getConnectivityFiberOrientationFiles(orientationFiles);
-    std::vector<CiftiFiberTrajectoryFile*> trajectoryFiles;
-    m_brain->getConnectivityFiberTrajectoryFiles(trajectoryFiles);
-    
-    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = trajectoryFiles.begin();
-         iter != trajectoryFiles.end();
-         iter++) {
-        CiftiFiberTrajectoryFile* trajFile = *iter;
-        trajFile->updateMatchingFiberOrientationFileFromList(orientationFiles);
-    }
-}
-
-
 

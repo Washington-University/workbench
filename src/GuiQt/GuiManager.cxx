@@ -1991,7 +1991,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                                                                      nodeIndex,
                                                                      ciftiLoadingInfo);
                     
-                    ciftiFiberTrajectoryManager->loadDataForSurfaceNode(surface,
+                    ciftiFiberTrajectoryManager->loadDataForSurfaceNode(brain,
+                                                                        surface,
                                                                         nodeIndex,
                                                                         ciftiLoadingInfo);
                     QList<TimeLine> timeLines;
@@ -2038,7 +2039,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 try {
                     ciftiConnectivityManager->loadDataForVoxelAtCoordinate(xyz,
                                                            ciftiLoadingInfo);
-                    ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(xyz,
+                    ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(brain,
+                                                                              xyz,
                                                                               ciftiLoadingInfo);
                 }
                 catch (const DataFileException& e) {

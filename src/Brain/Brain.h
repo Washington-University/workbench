@@ -470,6 +470,8 @@ namespace caret {
         
         void updateSurfaceMontageController();
         
+        void updateMatchingFiberOrientationFiles();
+        
         void validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) const throw (DataFileException);
         
         std::vector<BrainStructure*> m_brainStructures;

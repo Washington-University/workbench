@@ -37,7 +37,6 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
-#include "SceneableInterface.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -45,36 +44,30 @@ namespace caret {
     class Brain;
     class SurfaceFile;
     
-    class CiftiFiberTrajectoryManager : public CaretObject, public SceneableInterface {
+    class CiftiFiberTrajectoryManager : public CaretObject {
         
     public:
-        CiftiFiberTrajectoryManager(Brain* brain);
+        CiftiFiberTrajectoryManager();
         
         virtual ~CiftiFiberTrajectoryManager();
         
-        bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
+        bool loadDataForSurfaceNode(Brain* brain,
+                                    const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
                                     std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
-        bool loadDataAverageForSurfaceNodes(const SurfaceFile* surfaceFile,
+        bool loadDataAverageForSurfaceNodes(Brain* brain,
+                                            const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
-        void reset();
-        
-        bool loadDataForVoxelAtCoordinate(const float xyz[3],
+        bool loadDataForVoxelAtCoordinate(Brain* brain,
+                                          const float xyz[3],
                                           std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
-        bool loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+        bool loadAverageDataForVoxelIndices(Brain* brain,
+                                            const int64_t volumeDimensionIJK[3],
                                             const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
         
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
-        
-        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
-        
         // ADD_NEW_METHODS_HERE
-        
-        void updateMatchingFiberOrientationFiles();
         
     private:
         CiftiFiberTrajectoryManager(const CiftiFiberTrajectoryManager&);
@@ -82,8 +75,6 @@ namespace caret {
         CiftiFiberTrajectoryManager& operator=(const CiftiFiberTrajectoryManager&);
         
         // ADD_NEW_MEMBERS_HERE
-        
-        Brain* m_brain;
     };
     
 #ifdef __CIFTI_FIBER_TRAJECTORY_MANAGER_DECLARE__

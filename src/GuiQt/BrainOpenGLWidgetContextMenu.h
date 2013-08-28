@@ -113,7 +113,8 @@ namespace caret {
                 PARCEL_TYPE_VOLUME_VOXELS
             };
             
-            ParcelConnectivity(const ParcelType parcelType,
+            ParcelConnectivity(Brain* brain,
+                               const ParcelType parcelType,
                                CaretMappableDataFile* mappableLabelFile,
                                const int32_t labelFileMapIndex,
                                const int32_t labelKey,
@@ -131,6 +132,7 @@ namespace caret {
             
             void getVoxelIndices(std::vector<VoxelIJK>& voxelIndicesOut) const;
             
+            Brain* brain;
             ParcelType parcelType;
             CaretMappableDataFile* mappableLabelFile;
             int32_t labelFileMapIndex;

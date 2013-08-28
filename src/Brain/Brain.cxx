@@ -105,7 +105,7 @@ using namespace caret;
 Brain::Brain()
 {
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager(this);
-    m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager(this);
+    m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     m_chartingDataManager = new ChartingDataManager(this);
     
     m_paletteFile = new PaletteFile();
@@ -431,7 +431,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_paletteFile->clearModified();
     
     m_ciftiConnectivityMatrixDataFileManager->reset();
-    m_ciftiFiberTrajectoryManager->reset();
     
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
@@ -1352,6 +1351,21 @@ Brain::createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTr
     m_specFile->addCaretDataFile(trajFile);
 }
 
+/**
+ * Update the fiber orientation files assigned to matching
+ * fiber trajectory files.  This is typically called after
+ * files are added or removed.
+ */
+void
+Brain::updateMatchingFiberOrientationFiles()
+{
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = m_connectivityFiberTrajectoryFiles.begin();
+         iter != m_connectivityFiberTrajectoryFiles.end();
+         iter++) {
+        CiftiFiberTrajectoryFile* trajFile = *iter;
+        trajFile->updateMatchingFiberOrientationFileFromList(m_connectivityFiberOrientationFiles);
+    }
+}
 /**
  * Read a connectivity dense scalar file.
  *
@@ -3581,7 +3595,7 @@ Brain::updateAfterFilesAddedOrRemoved()
     updateWholeBrainController();
     updateSurfaceMontageController();
     
-    m_ciftiFiberTrajectoryManager->updateMatchingFiberOrientationFiles();
+    updateMatchingFiberOrientationFiles();
 }
 
 /**
@@ -4881,8 +4895,6 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
      */
     sceneClass->addClass(m_ciftiConnectivityMatrixDataFileManager->saveToScene(sceneAttributes,
                                                                                "m_ciftiConnectivityMatrixDataFileManager"));
-    sceneClass->addClass(m_ciftiFiberTrajectoryManager->saveToScene(sceneAttributes,
-                                                                  "m_ciftiFiberTrajectoryManager"));
     
     /*
      * Save Group/Name Selection Hierarchies
@@ -4991,6 +5003,17 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
+     * Fiber trajectory files need special handling after restoring a scene.
+     */
+    updateMatchingFiberOrientationFiles();
+    for (std::vector<CiftiFiberTrajectoryFile*>::iterator iter = m_connectivityFiberTrajectoryFiles.begin();
+         iter != m_connectivityFiberTrajectoryFiles.end();
+         iter++) {
+        CiftiFiberTrajectoryFile* trajFile = *iter;
+        trajFile->finishRestorationOfScene();
+    }
+
+    /*
      * Restore members
      */
     m_sceneAssistant->restoreMembers(sceneAttributes,
@@ -5004,9 +5027,6 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
                                                                sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
 
-    m_ciftiFiberTrajectoryManager->restoreFromScene(sceneAttributes,
-                                                    sceneClass->getClass("m_ciftiFiberTrajectoryManager"));
-    
     /*
      * Restore all models
      */

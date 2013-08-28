@@ -944,7 +944,8 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                 if (parcelType != ParcelConnectivity::PARCEL_TYPE_INVALID) {
                     const AString mapName = mappableLabelFile->getMapName(mapIndex);
                     
-                    ParcelConnectivity* parcelConnectivity = new ParcelConnectivity(parcelType,
+                    ParcelConnectivity* parcelConnectivity = new ParcelConnectivity(brain,
+                                                                                    parcelType,
                                                                                     mappableLabelFile,
                                                                                   mapIndex,
                                                                                   labelKey,
@@ -1240,13 +1241,15 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
             case ParcelConnectivity::PARCEL_TYPE_INVALID:
                 break;
             case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
-                pc->ciftiFiberTrajectoryManager->loadDataAverageForSurfaceNodes(pc->surface,
+                pc->ciftiFiberTrajectoryManager->loadDataAverageForSurfaceNodes(pc->brain,
+                                                                                pc->surface,
                                                                                 nodeIndices);
                 break;
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
                 std::vector<VoxelIJK> voxelIndices;
                 pc->getVoxelIndices(voxelIndices);
-                pc->ciftiFiberTrajectoryManager->loadAverageDataForVoxelIndices(pc->volumeDimensions,
+                pc->ciftiFiberTrajectoryManager->loadAverageDataForVoxelIndices(pc->brain,
+                                                                                pc->volumeDimensions,
                                                                                 voxelIndices);
                 break;
         }
@@ -1934,7 +1937,8 @@ BrainOpenGLWidgetContextMenu::warnIfNetworkBrainordinateCountIsLarge(const int64
 /**
  * Constructor.
  */
-BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(const ParcelType parcelType,
+BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(Brain* brain,
+                                                                     const ParcelType parcelType,
                                                                      CaretMappableDataFile* mappableLabelFile,
                                                                      const int32_t labelFileMapIndex,
                                                                      const int32_t labelKey,
@@ -1945,6 +1949,7 @@ BrainOpenGLWidgetContextMenu::ParcelConnectivity::ParcelConnectivity(const Parce
                                                                      ChartingDataManager* chartingDataManager,
                                                                      CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager,
                                                                      CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager) {
+    this->brain = brain;
     this->parcelType = parcelType;
     this->mappableLabelFile = mappableLabelFile;
     this->labelFileMapIndex = labelFileMapIndex;
