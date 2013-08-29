@@ -89,6 +89,8 @@ EventOverlayYokingGroupGet.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FeatureColoringTypeEnum.h
+FiberOrientationSamplesLoader.h
+FiberOrientationSamplesVector.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
 IdentificationManager.h
@@ -177,6 +179,7 @@ EventOverlayYokingGroupGet.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FeatureColoringTypeEnum.cxx
+FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
 IdentificationManager.cxx

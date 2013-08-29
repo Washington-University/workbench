@@ -338,12 +338,13 @@ FiberSamplesOpenGLWidget::drawOrientations()
     
     DisplayPropertiesFiberOrientation* dpfo = GuiManager::get()->getBrain()->getDisplayPropertiesFiberOrientation();
     
-    std::vector<DisplayPropertiesFiberOrientation::OrientationVector> xVectors;
-    std::vector<DisplayPropertiesFiberOrientation::OrientationVector> yVectors;
-    std::vector<DisplayPropertiesFiberOrientation::OrientationVector> zVectors;
+    std::vector<FiberOrientationSamplesVector> xVectors;
+    std::vector<FiberOrientationSamplesVector> yVectors;
+    std::vector<FiberOrientationSamplesVector> zVectors;
     FiberOrientation* fiberOrientation;
     AString errorMessage;
-    if (dpfo->getSphericalOrientationVectors(xVectors,
+    Brain* brain = GuiManager::get()->getBrain();
+    if (brain->getFiberOrientationSphericalSamplesVectors(xVectors,
                                              yVectors,
                                              zVectors,
                                              fiberOrientation,
@@ -364,9 +365,9 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 continue;
             }
             float xyz[3] = {
-                xVectors[i].vector[0] * s_sphereBigRadius,
-                xVectors[i].vector[1] * s_sphereBigRadius,
-                xVectors[i].vector[2] * s_sphereBigRadius
+                xVectors[i].direction[0] * s_sphereBigRadius,
+                xVectors[i].direction[1] * s_sphereBigRadius,
+                xVectors[i].direction[2] * s_sphereBigRadius
             };
             
             switch (coloringType) {
@@ -398,9 +399,9 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 continue;
             }
             float xyz[3] = {
-                yVectors[i].vector[0] * s_sphereBigRadius,
-                yVectors[i].vector[1] * s_sphereBigRadius,
-                yVectors[i].vector[2] * s_sphereBigRadius
+                yVectors[i].direction[0] * s_sphereBigRadius,
+                yVectors[i].direction[1] * s_sphereBigRadius,
+                yVectors[i].direction[2] * s_sphereBigRadius
             };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
@@ -431,9 +432,9 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 continue;
             }
             float xyz[3] = {
-                zVectors[i].vector[0] * s_sphereBigRadius,
-                zVectors[i].vector[1] * s_sphereBigRadius,
-                zVectors[i].vector[2] * s_sphereBigRadius
+                zVectors[i].direction[0] * s_sphereBigRadius,
+                zVectors[i].direction[1] * s_sphereBigRadius,
+                zVectors[i].direction[2] * s_sphereBigRadius
             };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:

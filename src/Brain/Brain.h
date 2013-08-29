@@ -33,6 +33,8 @@
 #include "DataFileException.h"
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
+#include "FiberOrientationSamplesLoader.h"
+#include "FiberOrientationSamplesVector.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 
@@ -243,6 +245,12 @@ namespace caret {
         const CiftiFiberOrientationFile* getConnectivityFiberOrientationFile(int32_t indx) const;
         
         void getConnectivityFiberOrientationFiles(std::vector<CiftiFiberOrientationFile*>& connectivityFiberOrientationFilesOut) const;
+        
+        bool getFiberOrientationSphericalSamplesVectors(std::vector<FiberOrientationSamplesVector>& xVectors,
+                                                        std::vector<FiberOrientationSamplesVector>& yVectors,
+                                                        std::vector<FiberOrientationSamplesVector>& zVectors,
+                                                        FiberOrientation* &fiberOrientationOut,
+                                                        AString& errorMessageOut);
         
         int32_t getNumberOfConnectivityFiberTrajectoryFiles() const;
         
@@ -555,6 +563,10 @@ namespace caret {
         
         /** Identification Manager */
         IdentificationManager* m_identificationManager;
+        
+        /** The loader of fiber orientation samples */
+        FiberOrientationSamplesLoader* m_fiberOrientationSamplesLoader;
+        
     };
 
 } // namespace

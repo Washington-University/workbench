@@ -62,6 +62,7 @@
 #include "EventProgressUpdate.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
+#include "FiberOrientationSamplesLoader.h"
 #include "FileInformation.h"
 #include "FociFile.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -103,6 +104,7 @@ using namespace caret;
 Brain::Brain()
 {
     m_chartingDataManager = new ChartingDataManager(this);
+    m_fiberOrientationSamplesLoader = new FiberOrientationSamplesLoader();
     
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
@@ -119,7 +121,7 @@ Brain::Brain()
     m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
     
-    m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation(this);
+    m_displayPropertiesFiberOrientation = new DisplayPropertiesFiberOrientation();
     m_displayProperties.push_back(m_displayPropertiesFiberOrientation);
     
     m_displayPropertiesFoci = new DisplayPropertiesFoci();
@@ -196,6 +198,7 @@ Brain::~Brain()
 
     delete m_specFile;
     delete m_chartingDataManager;
+    delete m_fiberOrientationSamplesLoader;
     delete m_paletteFile;
     if (m_surfaceMontageController != NULL) {
         delete m_surfaceMontageController;
@@ -423,6 +426,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
+    
+    m_fiberOrientationSamplesLoader->reset();
     
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
@@ -5086,6 +5091,41 @@ IdentificationManager*
 Brain::getIdentificationManager()
 {
     return m_identificationManager;
+}
+
+/**
+ * Get the fiber orientation sample vectors for display on a sphere.
+ *
+ * @param xVectors
+ *    Vectors for X-orientation.
+ * @param yVectors
+ *    Vectors for Y-orientation.
+ * @param zVectors
+ *    Vectors for Z-orientation.
+ * @param fiberOrientation
+ *    The nearby fiber orientation
+ * @param errorMessageOut
+ *    Will contain any error messages.
+ *    This error message will only be set in some cases when there is an
+ *    error.
+ * @return
+ *    True if data is valid, else false.
+ */
+bool
+Brain::getFiberOrientationSphericalSamplesVectors(std::vector<FiberOrientationSamplesVector>& xVectors,
+                                                                          std::vector<FiberOrientationSamplesVector>& yVectors,
+                                                                          std::vector<FiberOrientationSamplesVector>& zVectors,
+                                                                          FiberOrientation* &fiberOrientationOut,
+                                                                          AString& errorMessageOut)
+{
+    CaretAssert(m_fiberOrientationSamplesLoader);
+    
+    return m_fiberOrientationSamplesLoader->getFiberOrientationSphericalSamplesVectors(this,
+                                                                                       xVectors,
+                                                                                       yVectors,
+                                                                                       zVectors,
+                                                                                       fiberOrientationOut,
+                                                                                       errorMessageOut);
 }
 
 
