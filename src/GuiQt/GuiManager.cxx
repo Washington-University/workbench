@@ -1987,7 +1987,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 Surface* surface = idNode->getSurface();
                 const int32_t nodeIndex = idNode->getNodeNumber();
                 try {
-                    ciftiConnectivityManager->loadDataForSurfaceNode(surface,
+                    ciftiConnectivityManager->loadDataForSurfaceNode(brain,
+                                                                     surface,
                                                                      nodeIndex,
                                                                      ciftiLoadingInfo);
                     
@@ -2037,7 +2038,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 updateGraphicsFlag = true;
                 
                 try {
-                    ciftiConnectivityManager->loadDataForVoxelAtCoordinate(xyz,
+                    ciftiConnectivityManager->loadDataForVoxelAtCoordinate(brain,
+                                                                           xyz,
                                                            ciftiLoadingInfo);
                     ciftiFiberTrajectoryManager->loadDataForVoxelAtCoordinate(brain,
                                                                               xyz,

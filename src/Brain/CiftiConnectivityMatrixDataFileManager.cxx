@@ -4,7 +4,7 @@
  * Copyright 2012 Washington University,
  * All rights reserved.
  *
- * Connectome DB and Connectome Workbench are part of the integrated Connectome 
+ * Connectome DB and Connectome Workbench are part of the integrated Connectome
  * Informatics Platform.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -19,15 +19,15 @@
  *      derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR  
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR  SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
 /*LICENSE_END*/
@@ -49,23 +49,22 @@
 #include "SurfaceFile.h"
 
 using namespace caret;
-    
+
 /**
- * \class caret::CiftiConnectivityMatrixDataFileManager 
+ * \class caret::CiftiConnectivityMatrixDataFileManager
  * \brief Manages loading data from cifti connectivity files
  * \ingroup Brain
  */
 
 /**
  * Constructor.
- * 
+ *
  * @param brain
  *    Brain that uses this instance.
  */
-CiftiConnectivityMatrixDataFileManager::CiftiConnectivityMatrixDataFileManager(Brain* brain)
+CiftiConnectivityMatrixDataFileManager::CiftiConnectivityMatrixDataFileManager()
 : CaretObject()
 {
-    m_brain = brain;
 }
 
 /**
@@ -76,17 +75,9 @@ CiftiConnectivityMatrixDataFileManager::~CiftiConnectivityMatrixDataFileManager(
 }
 
 /**
- * Get a description of this object's content.
- * @return String describing this object's content.
- */
-AString 
-CiftiConnectivityMatrixDataFileManager::toString() const
-{
-    return "CiftiConnectivityMatrixDataFileManager";
-}
-
-/**
  * Load data for the given surface node index.
+ * @param brain
+ *    Brain for which data is loaded.
  * @param surfaceFile
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
@@ -97,14 +88,15 @@ CiftiConnectivityMatrixDataFileManager::toString() const
  *    true if any connectivity loaders are active, else false.
  */
 bool
-CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
-                                                  const int32_t nodeIndex,
-                                                  std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(Brain* brain,
+                                                               const SurfaceFile* surfaceFile,
+                                                               const int32_t nodeIndex,
+                                                               std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    PaletteFile* paletteFile = brain->getPaletteFile();
     
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
@@ -120,7 +112,7 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
             cmf->updateScalarColoringForMap(mapIndex,
                                             paletteFile);
             haveData = true;
-
+            
             if (rowIndex >= 0) {
                 /*
                  * Get row/column info for node
@@ -143,6 +135,8 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
 
 /**
  * Load data for each of the given surface node indices and average the data.
+ * @param brain
+ *    Brain for which data is loaded.
  * @param surfaceFile
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndices
@@ -151,13 +145,14 @@ CiftiConnectivityMatrixDataFileManager::loadDataForSurfaceNode(const SurfaceFile
  *    true if any connectivity loaders are active, else false.
  */
 bool
-CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
-                                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(Brain* brain,
+                                                                       const SurfaceFile* surfaceFile,
+                                                                       const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    PaletteFile* paletteFile = brain->getPaletteFile();
     
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
@@ -185,6 +180,8 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const Sur
 
 /**
  * Load data for the voxel near the given coordinate.
+ * @param brain
+ *    Brain for which data is loaded.
  * @param xyz
  *     Coordinate of voxel.
  * @param rowColumnInformationOut
@@ -193,13 +190,14 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForSurfaceNodes(const Sur
  *    true if any connectivity loaders are active, else false.
  */
 bool
-CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float xyz[3],
-                                                        std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brain,
+                                                                     const float xyz[3],
+                                                                     std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
 {
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    PaletteFile* paletteFile = brain->getPaletteFile();
     
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
@@ -236,7 +234,9 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
 
 /**
  * Load average data for the given voxel indices.
- * 
+ *
+ * @param brain
+ *    Brain for which data is loaded.
  * @param volumeDimensionIJK
  *    Dimensions of the volume.
  * @param voxelIndices
@@ -247,13 +247,14 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(const float
  *    If an error occurs.
  */
 bool
-CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(Brain* brain,
+                                                                       const int64_t volumeDimensionIJK[3],
                                                                        const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
 {
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
+    PaletteFile* paletteFile = brain->getPaletteFile();
     
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     bool haveData = false;
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
@@ -277,88 +278,21 @@ CiftiConnectivityMatrixDataFileManager::loadAverageDataForVoxelIndices(const int
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
-    return haveData;    
+    return haveData;
 }
 
 /**
- * Reset all connectivity loaders.
- */
-void
-CiftiConnectivityMatrixDataFileManager::reset()
-{
-}
-
-/**
- * Create a scene for an instance of a class.
+ * @param brain
+ *    Brain for containing network files.
  *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    saving the scene.
- *
- * @return Pointer to SceneClass object representing the state of
- *    this object.  Under some circumstances a NULL pointer may be
- *    returned.  Caller will take ownership of returned object.
- */
-SceneClass*
-CiftiConnectivityMatrixDataFileManager::saveToScene(const SceneAttributes* /*sceneAttributes*/,
-                                       const AString& instanceName)
-{
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "CiftiConnectivityMatrixDataFileManager",
-                                            1);
-    return sceneClass;
-}
-
-/**
- * Restore the state of an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     sceneClass for the instance of a class that implements
- *     this interface.  May be NULL for some types of scenes.
- */
-void
-CiftiConnectivityMatrixDataFileManager::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
-                                            const SceneClass* sceneClass)
-{
-    PaletteFile* paletteFile = m_brain->getPaletteFile();
-    
-    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
-
-    /*
-     * Need to update coloring in file.
-     */
-    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
-         iter != ciftiMatrixFiles.end();
-         iter++) {
-        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
-        if (cmf->isEmpty() == false) {
-            const int32_t mapIndex = 0;
-            cmf->updateScalarColoringForMap(mapIndex,
-                                            paletteFile);
-        }
-    }
-    
-    if (sceneClass == NULL) {
-        return;
-    }
-}
-
-/**
  * @return True if there are enabled connectivity
  * files that retrieve data from the network.
  */
 bool
-CiftiConnectivityMatrixDataFileManager::hasNetworkFiles() const
+CiftiConnectivityMatrixDataFileManager::hasNetworkFiles(Brain* brain) const
 {
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
-    m_brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     
     
     for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();

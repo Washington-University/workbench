@@ -104,7 +104,7 @@ using namespace caret;
  */
 Brain::Brain()
 {
-    m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager(this);
+    m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     m_chartingDataManager = new ChartingDataManager(this);
     
@@ -429,8 +429,6 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileName()));
     m_paletteFile->clearModified();
-    
-    m_ciftiConnectivityMatrixDataFileManager->reset();
     
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
@@ -4891,12 +4889,6 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(brainStructureClassArray);
     
     /*
-     * Save connectivity data
-     */
-    sceneClass->addClass(m_ciftiConnectivityMatrixDataFileManager->saveToScene(sceneAttributes,
-                                                                               "m_ciftiConnectivityMatrixDataFileManager"));
-    
-    /*
      * Save Group/Name Selection Hierarchies
      */
     for (std::vector<BorderFile*>::iterator borderIter = m_borderFiles.begin();
@@ -5020,12 +5012,20 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
                                      sceneClass);
     
     /*
-     * Restore connectivity data
-     * Must be restored before models are restored for overlays to
-     * be restored correctly.
+     * Need to color all connectivity matrix files
      */
-    m_ciftiConnectivityMatrixDataFileManager->restoreFromScene(sceneAttributes,
-                                                               sceneClass->getClass("m_ciftiConnectivityMatrixDataFileManager"));
+    std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
+    getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
+    for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+         iter != ciftiMatrixFiles.end();
+         iter++) {
+        CiftiMappableConnectivityMatrixDataFile* cmf = *iter;
+        if (cmf->isEmpty() == false) {
+            const int32_t mapIndex = 0;
+            cmf->updateScalarColoringForMap(mapIndex,
+                                            getPaletteFile());
+        }
+    }
 
     /*
      * Restore all models

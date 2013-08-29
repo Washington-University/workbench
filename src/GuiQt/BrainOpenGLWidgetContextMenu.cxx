@@ -1139,7 +1139,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                 return;
             }
             
-            if (pc->ciftiConnectivityManager->hasNetworkFiles()) {
+            if (pc->ciftiConnectivityManager->hasNetworkFiles(pc->brain)) {
                 if (warnIfNetworkBrainordinateCountIsLarge(nodeIndices.size()) == false) {
                     return;
                 }
@@ -1152,7 +1152,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
                                        "No voxels match label " + pc->labelName);
                 return;
             }
-            if (pc->ciftiConnectivityManager->hasNetworkFiles()) {
+            if (pc->ciftiConnectivityManager->hasNetworkFiles(pc->brain)) {
                 if (warnIfNetworkBrainordinateCountIsLarge(voxelIndices.size()) == false) {
                     return;
                 }
@@ -1174,11 +1174,13 @@ BrainOpenGLWidgetContextMenu::parcelCiftiConnectivityActionSelected(QAction* act
             case ParcelConnectivity::PARCEL_TYPE_INVALID:
                 break;
             case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
-                pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->surface,
+                pc->ciftiConnectivityManager->loadAverageDataForSurfaceNodes(pc->brain,
+                                                                             pc->surface,
                                                                              nodeIndices);
                 break;
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
-                pc->ciftiConnectivityManager->loadAverageDataForVoxelIndices(pc->volumeDimensions,
+                pc->ciftiConnectivityManager->loadAverageDataForVoxelIndices(pc->brain,
+                                                                             pc->volumeDimensions,
                                                                              voxelIndices);
                 break;
         }
@@ -1317,7 +1319,8 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
                                                    this);
             progressDialog.setValue(0);
             CiftiConnectivityMatrixDataFileManager* ciftiConnMann = borderID->getBrain()->getCiftiConnectivityMatrixDataFileManager();
-            ciftiConnMann->loadAverageDataForSurfaceNodes(surface,
+            ciftiConnMann->loadAverageDataForSurfaceNodes(borderID->getBrain(),
+                                                          surface,
                                                           nodeIndices);
         }
         catch (const DataFileException& e) {

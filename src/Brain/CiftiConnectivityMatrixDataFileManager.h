@@ -37,7 +37,6 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
-#include "SceneableInterface.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -46,37 +45,32 @@ namespace caret {
     class SurfaceFile;
     
     class CiftiConnectivityMatrixDataFileManager
-    : public CaretObject,
-    public SceneableInterface
+    : public CaretObject
     {
         
     public:
-        CiftiConnectivityMatrixDataFileManager(Brain* brain);
+        CiftiConnectivityMatrixDataFileManager();
         
         virtual ~CiftiConnectivityMatrixDataFileManager();
         
-        bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
+        bool loadDataForSurfaceNode(Brain* brain,
+                                    const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex,
                                     std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
-        bool loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
+        bool loadAverageDataForSurfaceNodes(Brain* brain,
+                                            const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
-        bool loadDataForVoxelAtCoordinate(const float xyz[3],
+        bool loadDataForVoxelAtCoordinate(Brain* brain,
+                                          const float xyz[3],
                                           std::vector<AString>& rowColumnInformationOut) throw (DataFileException);
         
-        bool loadAverageDataForVoxelIndices(const int64_t volumeDimensionIJK[3],
+        bool loadAverageDataForVoxelIndices(Brain* brain,
+                                            const int64_t volumeDimensionIJK[3],
                                             const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException);
 
-        void reset();
-        
-        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName);
-        
-        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
-                                      const SceneClass* sceneClass);
-        
-        bool hasNetworkFiles() const;
+        bool hasNetworkFiles(Brain* brain) const;
         
     private:
         CiftiConnectivityMatrixDataFileManager(const CiftiConnectivityMatrixDataFileManager&);
@@ -87,13 +81,9 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-        virtual AString toString() const;
-        
     private:
 
         // ADD_NEW_MEMBERS_HERE
-        
-        Brain* m_brain;
     };
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_DATA_FILE_MANAGER_DECLARE__
