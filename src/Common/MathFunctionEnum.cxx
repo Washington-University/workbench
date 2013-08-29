@@ -91,7 +91,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(CEIL, "ceil", "1 argument, the smallest integer not less than the argument"));
     enumData.push_back(MathFunctionEnum(MIN, "min", "2 arguments, min(x, y) returns y if (x > y), x otherwise"));
     enumData.push_back(MathFunctionEnum(MAX, "max", "2 arguments, max(x, y) returns y if (x < y), x otherwise"));
-    enumData.push_back(MathFunctionEnum(CLAMP, "clamp", "3 arguments, clamp(x, low, high) = max(min(x, low), high)"));
+    enumData.push_back(MathFunctionEnum(CLAMP, "clamp", "3 arguments, clamp(x, low, high) = min(max(x, low), high)"));
 }
 
 /**

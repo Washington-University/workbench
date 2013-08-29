@@ -249,7 +249,7 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     double high = m_arguments[2].eval(values);
                     if (ret < low)
                     {
-                        ret = high;
+                        ret = low;
                     }
                     if (ret > high)
                     {
