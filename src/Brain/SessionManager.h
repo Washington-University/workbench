@@ -35,6 +35,8 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class CaretPreferences;
+    class CiftiConnectivityMatrixDataFileManager;
+    class CiftiFiberTrajectoryManager;
     class Model;
     
     /// Manages a Caret session which contains 'global' brain data.
@@ -56,6 +58,14 @@ namespace caret {
         Brain* getBrain(const int32_t brainIndex);
         
         CaretPreferences* getCaretPreferences();
+        
+        CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager();
+        
+        const CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager() const;
+        
+        CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager();
+        
+        const CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -93,6 +103,13 @@ namespace caret {
         
         /** Caret's preferences */
         CaretPreferences* m_caretPreferences;
+        
+        /** Loads connectivity matrix data */
+        CiftiConnectivityMatrixDataFileManager* m_ciftiConnectivityMatrixDataFileManager;
+        
+        /** Loads fiber trajectory data */
+        CiftiFiberTrajectoryManager* m_ciftiFiberTrajectoryManager;
+        
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

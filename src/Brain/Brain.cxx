@@ -36,7 +36,6 @@
 #include "CaretPreferences.h"
 #include "ChartingDataManager.h"
 #include "ChartableInterface.h"
-#include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
@@ -46,7 +45,6 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
-#include "CiftiFiberTrajectoryManager.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "DisplayPropertiesFoci.h"
@@ -104,8 +102,6 @@ using namespace caret;
  */
 Brain::Brain()
 {
-    m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
-    m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     m_chartingDataManager = new ChartingDataManager(this);
     
     m_paletteFile = new PaletteFile();
@@ -199,8 +195,6 @@ Brain::~Brain()
     resetBrain();
 
     delete m_specFile;
-    delete m_ciftiConnectivityMatrixDataFileManager;
-    delete m_ciftiFiberTrajectoryManager;
     delete m_chartingDataManager;
     delete m_paletteFile;
     if (m_surfaceMontageController != NULL) {
@@ -4102,24 +4096,6 @@ Brain::receiveEvent(Event* event)
 }
 
 /**
- * @param The CIFTI connectivity matrix data file manager
- */
-CiftiConnectivityMatrixDataFileManager*
-Brain::getCiftiConnectivityMatrixDataFileManager()
-{
-    return m_ciftiConnectivityMatrixDataFileManager;
-}
-
-/**
- * @param The CIFTI connectivity matrix data file manager
- */
-const CiftiConnectivityMatrixDataFileManager*
-Brain::getCiftiConnectivityMatrixDataFileManager() const
-{
-    return m_ciftiConnectivityMatrixDataFileManager;
-}
-
-/**
  * @return The charting data manager.
  */
 ChartingDataManager*
@@ -5110,24 +5086,6 @@ IdentificationManager*
 Brain::getIdentificationManager()
 {
     return m_identificationManager;
-}
-
-/**
- * @return The CIFTI Fiber Trajectory Manager
- */
-CiftiFiberTrajectoryManager*
-Brain::getCiftiFiberTrajectoryManager()
-{
-    return m_ciftiFiberTrajectoryManager;
-}
-
-/**
- * @return The CIFTI Fiber Trajectory Manager (const method)
- */
-const CiftiFiberTrajectoryManager*
-Brain::getCiftiFiberTrajectoryManager() const
-{
-    return m_ciftiFiberTrajectoryManager;
 }
 
 

@@ -1915,8 +1915,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
     cursor.showWaitCursor();
     
     Brain* brain = GuiManager::get()->getBrain();
-    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager = brain->getCiftiConnectivityMatrixDataFileManager();
-    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
+    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityManager = SessionManager::get()->getCiftiConnectivityMatrixDataFileManager();
+    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = SessionManager::get()->getCiftiFiberTrajectoryManager();
     ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
     IdentificationManager* identificationManager = brain->getIdentificationManager();
     

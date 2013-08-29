@@ -75,6 +75,7 @@
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "TimeCourseDialog.h"
 #include "UserInputModeFociWidget.h"
@@ -771,7 +772,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
     /*
      * Manager for connectivity matrix files
      */
-    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityMatrixManager = brain->getCiftiConnectivityMatrixDataFileManager();
+    CiftiConnectivityMatrixDataFileManager* ciftiConnectivityMatrixManager = SessionManager::get()->getCiftiConnectivityMatrixDataFileManager();
     std::vector<CiftiMappableConnectivityMatrixDataFile*> ciftiMatrixFiles;
     brain->getAllCiftiConnectivityMatrixFiles(ciftiMatrixFiles);
     bool hasCiftiConnectivity = (ciftiMatrixFiles.empty() == false);
@@ -779,7 +780,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
     /*
      * Manager for fiber trajectory
      */
-    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = brain->getCiftiFiberTrajectoryManager();
+    CiftiFiberTrajectoryManager* ciftiFiberTrajectoryManager = SessionManager::get()->getCiftiFiberTrajectoryManager();
     std::vector<CiftiFiberTrajectoryFile*> ciftiFiberTrajectoryFiles;
     const int32_t numFiberFiles = brain->getNumberOfConnectivityFiberTrajectoryFiles();
     for (int32_t i = 0; i < numFiberFiles; i++) {
@@ -1318,7 +1319,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
                                                    "",
                                                    this);
             progressDialog.setValue(0);
-            CiftiConnectivityMatrixDataFileManager* ciftiConnMann = borderID->getBrain()->getCiftiConnectivityMatrixDataFileManager();
+            CiftiConnectivityMatrixDataFileManager* ciftiConnMann = SessionManager::get()->getCiftiConnectivityMatrixDataFileManager();
             ciftiConnMann->loadAverageDataForSurfaceNodes(borderID->getBrain(),
                                                           surface,
                                                           nodeIndices);

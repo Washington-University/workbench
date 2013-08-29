@@ -33,6 +33,8 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiFiberTrajectoryManager.h"
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
@@ -61,6 +63,9 @@ SessionManager::SessionManager()
 : CaretObject(), EventListenerInterface(), SceneableInterface()
 {
     m_caretPreferences = new CaretPreferences();
+    
+    m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
+    m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_browserTabs[i] = NULL;
@@ -103,6 +108,9 @@ SessionManager::~SessionManager()
     m_brains.clear();
     
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete m_ciftiConnectivityMatrixDataFileManager;
+    delete m_ciftiFiberTrajectoryManager;
     
     delete m_caretPreferences;
 }
@@ -606,5 +614,42 @@ SessionManager::resetBrains(const bool keepSceneFiles)
         m_brains.resize(1);
     }
 }
+
+/**
+ * @param The CIFTI connectivity matrix data file manager
+ */
+CiftiConnectivityMatrixDataFileManager*
+SessionManager::getCiftiConnectivityMatrixDataFileManager()
+{
+    return m_ciftiConnectivityMatrixDataFileManager;
+}
+
+/**
+ * @param The CIFTI connectivity matrix data file manager
+ */
+const CiftiConnectivityMatrixDataFileManager*
+SessionManager::getCiftiConnectivityMatrixDataFileManager() const
+{
+    return m_ciftiConnectivityMatrixDataFileManager;
+}
+
+/**
+ * @return The CIFTI Fiber Trajectory Manager
+ */
+CiftiFiberTrajectoryManager*
+SessionManager::getCiftiFiberTrajectoryManager()
+{
+    return m_ciftiFiberTrajectoryManager;
+}
+
+/**
+ * @return The CIFTI Fiber Trajectory Manager (const method)
+ */
+const CiftiFiberTrajectoryManager*
+SessionManager::getCiftiFiberTrajectoryManager() const
+{
+    return m_ciftiFiberTrajectoryManager;
+}
+
 
 

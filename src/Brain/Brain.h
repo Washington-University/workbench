@@ -49,14 +49,12 @@ namespace caret {
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
-    class CiftiConnectivityMatrixDataFileManager;
     class CiftiConnectivityMatrixDenseFile;
     class CiftiConnectivityMatrixDenseParcelFile;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiConnectivityMatrixParcelDenseFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
-    class CiftiFiberTrajectoryManager;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class DisplayProperties;
@@ -204,10 +202,6 @@ namespace caret {
         
         void convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile) throw (DataFileException);
         
-        CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager();
-        
-        const CiftiConnectivityMatrixDataFileManager* getCiftiConnectivityMatrixDataFileManager() const;
-        
         void getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCiftiMappableDataFilesOut) const;
         
         int32_t getNumberOfConnectivityMatrixDenseFiles() const;
@@ -249,10 +243,6 @@ namespace caret {
         const CiftiFiberOrientationFile* getConnectivityFiberOrientationFile(int32_t indx) const;
         
         void getConnectivityFiberOrientationFiles(std::vector<CiftiFiberOrientationFile*>& connectivityFiberOrientationFilesOut) const;
-        
-        CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager();
-        
-        const CiftiFiberTrajectoryManager* getCiftiFiberTrajectoryManager() const;
         
         int32_t getNumberOfConnectivityFiberTrajectoryFiles() const;
         
@@ -516,10 +506,6 @@ namespace caret {
         
         ChartingDataManager* m_chartingDataManager;
         
-        CiftiConnectivityMatrixDataFileManager* m_ciftiConnectivityMatrixDataFileManager;
-        
-        CiftiFiberTrajectoryManager* m_ciftiFiberTrajectoryManager;
-
         /** contains all display properties */
         std::vector<DisplayProperties*> m_displayProperties;
         
