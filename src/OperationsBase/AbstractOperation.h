@@ -60,8 +60,8 @@ namespace caret {
     {
         virtual OperationParameters* getParameters() = 0;
         virtual void useParameters(OperationParameters* a, ProgressObject* b) = 0;
-        virtual const AString& getCommandSwitch() = 0;
-        virtual const AString& getShortDescription() = 0;
+        virtual AString getCommandSwitch() = 0;
+        virtual AString getShortDescription() = 0;
         virtual bool takesParameters() = 0;
         virtual ~AutoOperationInterface();
     };
@@ -70,12 +70,11 @@ namespace caret {
     template<typename T>
     struct TemplateAutoOperation : public AutoOperationInterface
     {
-        AString m_switch, m_shortInfo;
-        TemplateAutoOperation() : m_switch(T::getCommandSwitch()), m_shortInfo(T::getShortDescription()) { }
+        TemplateAutoOperation() { }
         OperationParameters* getParameters() { return T::getParameters(); }
         void useParameters(OperationParameters* a, ProgressObject* b) { T::useParameters(a, b); }
-        const AString& getCommandSwitch() { return m_switch; }
-        const AString& getShortDescription() { return m_shortInfo; }
+        AString getCommandSwitch() { return T::getCommandSwitch(); }
+        AString getShortDescription() { return T::getShortDescription(); }
         bool takesParameters() { return T::takesParameters(); }
     };
 
