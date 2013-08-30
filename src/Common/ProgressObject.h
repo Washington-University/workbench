@@ -106,7 +106,7 @@ namespace caret {
       LevelProgress(ProgressObject* myProgObj, const float finishedProgress = 1.0f, const float internalWeight = 1.0f, const float internalResolution = ProgressObject::MAX_INTERNAL_RESOLUTION);
       
       ///call with the fraction of finishedProgress passed to ProgressObject::startLevel (default 1.0) that this algorithm has done internally
-      ///work done by subalgorithms is automatically added and updated as progress is made, DO NOT call this unless the current algorithm does direct processing
+      ///work done by subalgorithms is automatically added and updated as progress is made, you do not need to call this unless the current algorithm does direct processing
       void reportProgress(const float currentTotal);
       
       ///set a description for current task, like the name of the subalgorithm you are about to call

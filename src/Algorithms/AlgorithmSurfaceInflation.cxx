@@ -151,16 +151,20 @@ AlgorithmSurfaceInflation::AlgorithmSurfaceInflation(ProgressObject* myProgObj,
                                                      const float inflationFactorIn)
    : AbstractAlgorithm(myProgObj)
 {
-    ProgressObject* subAlgProgress1 = NULL;
+    std::vector<ProgressObject*> subAlgProgress;
     if (myProgObj != NULL) {
-        subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmSurfaceSmoothing::getAlgorithmWeight());
+        subAlgProgress.resize(cycles);
+        for (int32_t i = 0; i < cycles; ++i)
+        {
+            subAlgProgress[i] = myProgObj->addAlgorithm(AlgorithmSurfaceSmoothing::getAlgorithmWeight());
+        }
     }
     
     /*
      * Sets the algorithm up to use the progress object, and will
      * finish the progress object automatically when the algorithm terminates
      */
-    LevelProgress myProgress(myProgObj);
+    LevelProgress myProgress(myProgObj, 1.0f, 0.1f);//lower the internal weight
     
     const float inflationFactor = inflationFactorIn - 1.0;
     
@@ -178,7 +182,12 @@ AlgorithmSurfaceInflation::AlgorithmSurfaceInflation(ProgressObject* myProgObj,
         /*
          * Smooth
          */
-        AlgorithmSurfaceSmoothing(myProgObj,
+        ProgressObject* subProgress = NULL;
+        if (myProgObj != NULL)
+        {
+            subProgress = subAlgProgress[iCycle];
+        }
+        AlgorithmSurfaceSmoothing(subProgress,
                                   outputSurfaceFile,
                                   outputSurfaceFile,
                                   strength,
@@ -223,7 +232,7 @@ AlgorithmSurfaceInflation::getAlgorithmInternalWeight()
     /*
      * override this if needed, if the progress bar isn't smooth
      */
-    return 1.0f;
+    return 0.1f;//all this does internally is rescale the coordinates, lower the internal weight
 }
 
 /**
@@ -235,7 +244,6 @@ AlgorithmSurfaceInflation::getSubAlgorithmWeight()
     /*
      * If you use a subalgorithm
      */
-    //return AlgorithmInsertNameHere::getAlgorithmWeight()
-    return 0.0f;
+    return AlgorithmSurfaceSmoothing::getAlgorithmWeight();
 }
 

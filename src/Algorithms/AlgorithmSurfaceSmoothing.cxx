@@ -189,11 +189,6 @@ AlgorithmSurfaceSmoothing::AlgorithmSurfaceSmoothing(ProgressObject* myProgObj,
     const float inverseStrength = 1.0 - strength;
     
     /*
-     * For progress update
-     */
-    const int tenPercent = iterations / 10;
-    
-    /*
      * Perform the requested number of iterations
      */
     for (int32_t iter = 1; iter <= iterations; iter++) {
@@ -297,13 +292,9 @@ AlgorithmSurfaceSmoothing::AlgorithmSurfaceSmoothing(ProgressObject* myProgObj,
         /*
          * Update progress
          */
-        if (tenPercent > 0) {
-            if ((iter % tenPercent) == 0) {
-                const float percentDone = (static_cast<float>(iter)
-                                           / static_cast<float>(iterations));
-                myProgress.reportProgress(percentDone);
-            }
-        }
+        const float percentDone = (static_cast<float>(iter)
+                                    / static_cast<float>(iterations));
+        myProgress.reportProgress(percentDone);//give continuous updates, if it slows things down we can reduce the resolution in the progress framework
         
     }
 

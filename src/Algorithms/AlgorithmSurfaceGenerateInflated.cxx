@@ -151,20 +151,18 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
                                                                    const float iterationsScaleIn)
    : AbstractAlgorithm(myProgObj)
 {
-    /*
-     * Uncomment these if you use another algorithm inside here
-     *
-     * ProgressObject* subAlgProgress1 = NULL;
-     * if (myProgObj != NULL) {
-     *    subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmInsertNameHere::getAlgorithmWeight());
-     * }
-     */
+    ProgressObject* lowProgress = NULL, *inflatedProgress = NULL, *veryInfProgress = NULL;
+    if (myProgObj != NULL) {
+        lowProgress = myProgObj->addAlgorithm(AlgorithmSurfaceInflation::getAlgorithmWeight());
+        inflatedProgress = myProgObj->addAlgorithm(AlgorithmSurfaceInflation::getAlgorithmWeight() * 2);
+        veryInfProgress = myProgObj->addAlgorithm(AlgorithmSurfaceInflation::getAlgorithmWeight() * 4);
+    }
     
     /*
      * Sets the algorithm up to use the progress object, and will 
      * finish the progress object automatically when the algorithm terminates
      */
-    LevelProgress myProgress(myProgObj);
+    LevelProgress myProgress(myProgObj, 1.0f, 0.1f);//low internal weight because this function doesn't do much non-subalgorithm stuff
     
     const float iterationsScale = ((iterationsScaleIn > 0.0)
                                    ? iterationsScaleIn
@@ -179,7 +177,8 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
     const float lowSmoothStrength = 0.2;
     const int32_t lowSmoothIterations = static_cast<int32_t>(50 * iterationsScale);
     const float lowSmoothInflationFactor = 1.0;
-    AlgorithmSurfaceInflation(myProgObj,
+    myProgress.setTask("Generating Low-smooth Surface");
+    AlgorithmSurfaceInflation(lowProgress,
                               anatomicalSurfaceFile,
                               &lowSmoothSurface,
                               &lowSmoothSurface,
@@ -188,7 +187,6 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
                               lowSmoothIterations,
                               lowSmoothInflationFactor);
     
-    myProgress.reportProgress(0.33);
 
     /*
      * Generation the inflated surface
@@ -198,7 +196,8 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
     const float inflatedSmoothStrength = 1.0;
     const int32_t inflatedSmoothIterations = static_cast<int32_t>(30 * iterationsScale);
     const float inflatedSmoothInflationFactor = 1.4;
-    AlgorithmSurfaceInflation(myProgObj,
+    myProgress.setTask("Generating Inflated Surface");
+    AlgorithmSurfaceInflation(inflatedProgress,
                               anatomicalSurfaceFile,
                               inflatedSurfaceFileOut,
                               inflatedSurfaceFileOut,
@@ -207,7 +206,6 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
                               inflatedSmoothIterations,
                               inflatedSmoothInflationFactor);
     inflatedSurfaceFileOut->setSurfaceType(SurfaceTypeEnum::INFLATED);
-    myProgress.reportProgress(0.66);
     
     /*
      * Generation the inflated surface
@@ -217,7 +215,8 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
     const float veryInflatedSmoothStrength = 1.0;
     const int32_t veryInflatedSmoothIterations = static_cast<int32_t>(30 * iterationsScale);
     const float veryInflatedSmoothInflationFactor = 1.1;
-    AlgorithmSurfaceInflation(myProgObj,
+    myProgress.setTask("Generating Very Inflated Surface");
+    AlgorithmSurfaceInflation(veryInfProgress,
                               anatomicalSurfaceFile,
                               veryInflatedSurfaceFileOut,
                               veryInflatedSurfaceFileOut,
@@ -226,12 +225,12 @@ AlgorithmSurfaceGenerateInflated::AlgorithmSurfaceGenerateInflated(ProgressObjec
                               veryInflatedSmoothIterations,
                               veryInflatedSmoothInflationFactor);
     veryInflatedSurfaceFileOut->setSurfaceType(SurfaceTypeEnum::VERY_INFLATED);
-    myProgress.reportProgress(0.98);
     
+    myProgress.setTask("Matching Bounding Boxes");
     inflatedSurfaceFileOut->matchSurfaceBoundingBox(anatomicalSurfaceFile);
+    myProgress.reportProgress(0.5);//report progress of non-subalgorithm computation only
     veryInflatedSurfaceFileOut->matchSurfaceBoundingBox(anatomicalSurfaceFile);
-    
-    myProgress.reportProgress(1.0);
+    myProgress.reportProgress(1.0);//this isn't really needed, happens automatically when algorithm ends, but for clarity
 }
 
 /**
@@ -243,7 +242,7 @@ AlgorithmSurfaceGenerateInflated::getAlgorithmInternalWeight()
     /*
      * override this if needed, if the progress bar isn't smooth
      */
-    return 1.0f;
+    return 0.1f;//we very little inside this algorithm except call other algorithms
 }
 
 /**
@@ -255,7 +254,6 @@ AlgorithmSurfaceGenerateInflated::getSubAlgorithmWeight()
     /*
      * If you use a subalgorithm
      */
-    //return AlgorithmInsertNameHere::getAlgorithmWeight()
-    return 0.0f;
+    return AlgorithmSurfaceInflation::getAlgorithmWeight() * 7;//7 cycles in total - may deserve factoring in default number of iterations
 }
 

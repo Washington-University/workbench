@@ -27,6 +27,8 @@
 #include "EventProgressUpdate.h"
 #include "EventManager.h"
 
+#include <algorithm>
+
 using namespace std;
 using namespace caret;
 
@@ -123,7 +125,7 @@ LevelProgress::LevelProgress(ProgressObject* myProgObj, const float finishedProg
     m_lastReported = 0.0f;
     m_maximum = finishedProgress;
     m_progObjRef = myProgObj;
-    m_internalResolution = internalResolution;
+    m_internalResolution = max(internalResolution, ProgressObject::MAX_INTERNAL_RESOLUTION);//the lower the value, the more often it updates
     if (m_progObjRef != NULL)
     {
         m_progObjRef->setInternalWeight(internalWeight);
