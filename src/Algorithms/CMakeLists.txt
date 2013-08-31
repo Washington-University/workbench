@@ -45,6 +45,7 @@ AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmFiberDotProducts.h
 AlgorithmLabelDilate.h
+AlgorithmLabelMerge.h
 AlgorithmLabelResample.h
 AlgorithmMetricDilate.h
 AlgorithmMetricExtrema.h
@@ -120,6 +121,7 @@ AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmFiberDotProducts.cxx
 AlgorithmLabelDilate.cxx
+AlgorithmLabelMerge.cxx
 AlgorithmLabelResample.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricExtrema.cxx

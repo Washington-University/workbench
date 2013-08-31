@@ -58,7 +58,7 @@ OperationParameters* AlgorithmVolumeMerge::getParameters()
         "The input volume files must have the same volume space.\n\n" +
         "Example: wb_command -volume-merge out.nii -volume first.nii -subvolume 1 -volume second.nii\n\n" +
         "This example would take the first subvolume from first.nii and all subvolumes from second.nii, " +
-        "and write these to out.nii"
+        "and write these to out.nii."
     );
     return ret;
 }

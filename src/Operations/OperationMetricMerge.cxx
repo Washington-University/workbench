@@ -59,7 +59,7 @@ OperationParameters* OperationMetricMerge::getParameters()
         "The input metric files must have the same number of vertices and same structure.\n\n" +
         "Example: wb_command -metric-merge out.func.gii -metric first.func.gii -column 1 -metric second.func.gii\n\n" +
         "This example would take the first column from first.func.gii and all columns from second.func.gii, " +
-        "and write these columns to out.func.gii"
+        "and write these columns to out.func.gii."
     );
     return ret;
 }

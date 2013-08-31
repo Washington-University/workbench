@@ -58,7 +58,7 @@ OperationParameters* AlgorithmCiftiMerge::getParameters()
         "are the same type, all either time points, scalars, or labels, this command concatenates the specified columns horizontally (rows become longer).\n\n" +
         "Example: wb_command -cifti-merge out.dtseries.nii -cifti first.dtseries.nii -column 1 -cifti second.dtseries.nii\n\n" +
         "This example would take the first column from first.dtseries.nii and all columns from second.dtseries.nii, " +
-        "and write these columns to out.dtseries.nii"
+        "and write these columns to out.dtseries.nii."
     );
     return ret;
 }
