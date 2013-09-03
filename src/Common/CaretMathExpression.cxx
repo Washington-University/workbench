@@ -58,7 +58,8 @@ CaretMathExpression::MathNode::MathNode()
 AString CaretMathExpression::getExpressionHelpInfo()
 {
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
-        "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _.  " +
+        "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _, but may not take the name of a named constant.  " +
+        "Currently, there is only one named constant, PI.  " +
         "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.  " +
         "The <= and >= operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
         "Comparison operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
@@ -193,6 +194,18 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     CaretAssert(m_arguments.size() == 1);
                     ret = tanh(m_arguments[0].eval(values));
                     break;
+                case MathFunctionEnum::ASINH:
+                    CaretAssert(m_arguments.size() == 1);
+                    ret = asinh(m_arguments[0].eval(values));
+                    break;
+                case MathFunctionEnum::ACOSH:
+                    CaretAssert(m_arguments.size() == 1);
+                    ret = acosh(m_arguments[0].eval(values));
+                    break;
+                case MathFunctionEnum::ATANH:
+                    CaretAssert(m_arguments.size() == 1);
+                    ret = atanh(m_arguments[0].eval(values));
+                    break;
                 case MathFunctionEnum::LN:
                     CaretAssert(m_arguments.size() == 1);
                     ret = log(m_arguments[0].eval(values));
@@ -239,6 +252,19 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     ret = m_arguments[0].eval(values);
                     double other = m_arguments[1].eval(values);
                     if (ret < other) ret = other;
+                    break;
+                }
+                case MathFunctionEnum::MOD:
+                {
+                    CaretAssert(m_arguments.size() == 2);
+                    double second = m_arguments[1].eval(values);
+                    if (second == 0)
+                    {
+                        ret = 0;
+                    } else {
+                        double first = m_arguments[0].eval(values);
+                        ret = first - second * floor(first / second);
+                    }
                     break;
                 }
                 case MathFunctionEnum::CLAMP:
@@ -372,7 +398,12 @@ AString CaretMathExpression::MathNode::toString(const std::vector<AString>& varN
             break;
         case CONST:
             addParens = false;
-            ret = AString::number(m_constVal);
+            if (m_constName != "")
+            {
+                ret = m_constName;
+            } else {
+                ret = AString::number(m_constVal, 'g', 15);
+            }
             break;
         case INVALID:
             ret = "???";
@@ -820,6 +851,9 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
         case MathFunctionEnum::SINH:
         case MathFunctionEnum::COSH:
         case MathFunctionEnum::TANH:
+        case MathFunctionEnum::ASINH:
+        case MathFunctionEnum::ACOSH:
+        case MathFunctionEnum::ATANH:
         case MathFunctionEnum::LN:
         case MathFunctionEnum::EXP:
         case MathFunctionEnum::LOG:
@@ -832,6 +866,7 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
         case MathFunctionEnum::ATAN2:
         case MathFunctionEnum::MIN:
         case MathFunctionEnum::MAX:
+        case MathFunctionEnum::MOD:
             numArgs = 2;
             break;
         case MathFunctionEnum::CLAMP:
@@ -903,11 +938,30 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
 bool CaretMathExpression::tryConst(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
     node.m_arguments.clear();
+    if (getNamedConstant(input.mid(start, end - start).trimmed(), node.m_constVal))
+    {
+        node.m_type = MathNode::CONST;
+        node.m_constName = input.mid(start, end - start).trimmed();
+        return true;
+    }
     bool ok = false;
     node.m_constVal = input.mid(start, end - start).trimmed().toDouble(&ok);
-    if (!ok) return false;
-    node.m_type = MathNode::CONST;
-    return true;
+    if (ok)
+    {
+        node.m_type = MathNode::CONST;
+        return true;
+    }
+    return false;
+}
+
+bool CaretMathExpression::getNamedConstant(const AString& name, double& valueOut)
+{
+    if (name == "PI")
+    {
+        valueOut = 3.1415926535897932;//double can do about 16 decimal digits, give 17 for rounding
+        return true;
+    }
+    return false;//presumably we will have more named constants later
 }
 
 bool CaretMathExpression::tryVar(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)

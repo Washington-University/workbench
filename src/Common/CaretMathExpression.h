@@ -49,6 +49,7 @@ class CaretMathExpression
         };
         ExprType m_type;
         MathFunctionEnum::Enum m_function;
+        AString m_constName;
         double m_constVal;
         int m_varIndex;
         bool m_negate;
@@ -74,6 +75,7 @@ class CaretMathExpression
     CaretMathExpression();
 public:
     static AString getExpressionHelpInfo();
+    static bool getNamedConstant(const AString& name, double& valueOut);
     CaretMathExpression(const AString& expression);
     double evaluate(const std::vector<float>& variableValues) const;
     const std::vector<AString>& getVarNames() const { return m_varNames; }

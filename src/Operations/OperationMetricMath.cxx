@@ -95,6 +95,11 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     for (int i = 0; i < numInputs; ++i)
     {
         AString varName = myVarOpts[i]->getString(1);
+        double constVal;
+        if (CaretMathExpression::getNamedConstant(varName, constVal))
+        {
+            throw OperationException("'" + varName + "' is a named constant equal to " + AString::number(constVal, 'g', 15) + ", please use a different variable name");
+        }
         for (int j = 0; j < numVars; ++j)
         {
             if (varName == myVarNames[j])

@@ -82,6 +82,9 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(SINH, "sinh", "1 argument, the hyperbolic sine of the argument"));
     enumData.push_back(MathFunctionEnum(COSH, "cosh", "1 argument, the hyperbolic cosine of the argument"));
     enumData.push_back(MathFunctionEnum(TANH, "tanh", "1 argument, the hyperboloc tangent of the argument"));
+    enumData.push_back(MathFunctionEnum(ASINH, "asinh", "1 argument, the inverse hyperbolic sine of the argument"));
+    enumData.push_back(MathFunctionEnum(ACOSH, "acosh", "1 argument, the inverse hyperbolic cosine of the argument"));
+    enumData.push_back(MathFunctionEnum(ATANH, "atanh", "1 argument, the inverse hyperboloc tangent of the argument"));
     enumData.push_back(MathFunctionEnum(LN, "ln", "1 argument, the natural logarithm of the argument"));
     enumData.push_back(MathFunctionEnum(EXP, "exp", "1 argument, the constant e raised to the power the argument"));
     enumData.push_back(MathFunctionEnum(LOG, "log", "1 argument, the base 10 logarithm of the argument"));
@@ -91,6 +94,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(CEIL, "ceil", "1 argument, the smallest integer not less than the argument"));
     enumData.push_back(MathFunctionEnum(MIN, "min", "2 arguments, min(x, y) returns y if (x > y), x otherwise"));
     enumData.push_back(MathFunctionEnum(MAX, "max", "2 arguments, max(x, y) returns y if (x < y), x otherwise"));
+    enumData.push_back(MathFunctionEnum(MOD, "mod", "2 arguments, mod(x, y) = x - y * floor(x / y), or 0 if y == 0"));
     enumData.push_back(MathFunctionEnum(CLAMP, "clamp", "3 arguments, clamp(x, low, high) = min(max(x, low), high)"));
 }
 

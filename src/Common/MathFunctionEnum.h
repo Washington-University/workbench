@@ -55,6 +55,9 @@ public:
             SINH,
             COSH,
             TANH,
+            ASINH,
+            ACOSH,
+            ATANH,
             LN,
             EXP,
             LOG,
@@ -64,6 +67,7 @@ public:
             CEIL,
             MIN,
             MAX,
+            MOD,
             CLAMP
     };
 
