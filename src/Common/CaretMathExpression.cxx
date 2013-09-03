@@ -195,17 +195,34 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     ret = tanh(m_arguments[0].eval(values));
                     break;
                 case MathFunctionEnum::ASINH:
+                {
                     CaretAssert(m_arguments.size() == 1);
-                    ret = asinh(m_arguments[0].eval(values));
+                    //ret = asinh(m_arguments[0].eval(values));//will work, and be preferred, when we use c++11, but doesn't work on windows with previous standard
+                    double arg = m_arguments[0].eval(values);
+                    if (arg > 0)
+                    {
+                        ret = log(arg + sqrt(arg * arg + 1));
+                    } else {
+                        ret = -log(-arg + sqrt(arg * arg + 1));//special case negative for stability in large negatives
+                    }
                     break;
+                }
                 case MathFunctionEnum::ACOSH:
+                {
                     CaretAssert(m_arguments.size() == 1);
-                    ret = acosh(m_arguments[0].eval(values));
+                    //ret = acosh(m_arguments[0].eval(values));
+                    double arg = m_arguments[0].eval(values);
+                    ret = log(arg + sqrt(arg * arg - 1));
                     break;
+                }
                 case MathFunctionEnum::ATANH:
+                {
                     CaretAssert(m_arguments.size() == 1);
-                    ret = atanh(m_arguments[0].eval(values));
+                    //ret = atanh(m_arguments[0].eval(values));
+                    double arg = m_arguments[0].eval(values);
+                    ret = 0.5 * log((1 + arg) / (1 - arg));
                     break;
+                }
                 case MathFunctionEnum::LN:
                     CaretAssert(m_arguments.size() == 1);
                     ret = log(m_arguments[0].eval(values));
@@ -258,9 +275,9 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                 {
                     CaretAssert(m_arguments.size() == 2);
                     double second = m_arguments[1].eval(values);
-                    if (second == 0)
+                    if (second == 0.0)
                     {
-                        ret = 0;
+                        ret = 0.0;
                     } else {
                         double first = m_arguments[0].eval(values);
                         ret = first - second * floor(first / second);
