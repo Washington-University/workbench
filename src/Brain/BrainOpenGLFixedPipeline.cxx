@@ -50,6 +50,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLFPVolumeObliqueDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLShapeCube.h"
@@ -2675,6 +2676,13 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
             }
                 break;
             case VolumeSliceViewModeEnum::OBLIQUE:
+            {
+                BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                obliqueDrawing.draw(this,
+                                    browserTabContent,
+                                    volumeDrawInfo,
+                                    viewport);
+            }
                 break;
             case VolumeSliceViewModeEnum::ORTHOGONAL:
             {

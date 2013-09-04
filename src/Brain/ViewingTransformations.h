@@ -71,6 +71,8 @@ namespace caret {
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);
         
+        void resetVolumeView();
+        
         void resetView();
         
         void rightView();

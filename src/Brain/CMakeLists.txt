@@ -50,6 +50,7 @@ ADD_LIBRARY(Brain
 BorderDrawingTypeEnum.h
 Brain.h
 BrainOpenGL.h
+BrainOpenGLFPVolumeObliqueDrawing.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLShape.h
 BrainOpenGLShapeCone.h
@@ -141,6 +142,7 @@ YokingGroupEnum.h
 BorderDrawingTypeEnum.cxx
 Brain.cxx
 BrainOpenGL.cxx
+BrainOpenGLFPVolumeObliqueDrawing.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLShape.cxx
 BrainOpenGLShapeCone.cxx

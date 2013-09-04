@@ -3029,7 +3029,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
                      this, SLOT(volumePlaneViewActionGroupTriggered(QAction*)));
     
     this->volumePlaneResetToolButtonAction = WuQtUtilities::createAction("Reset", 
-                                                                         "Reset to remove panning/zooming", 
+                                                                         "Reset to remove panning, zooming, and/or oblique rotation", 
                                                                          this, 
                                                                          this, 
                                                                          SLOT(volumePlaneResetToolButtonTriggered(bool)));

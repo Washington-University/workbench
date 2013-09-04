@@ -222,7 +222,18 @@ ViewingTransformations::setRotationMatrix(const Matrix4x4& rotationMatrix)
 }
 
 /**
- * Reset the view to the default view.
+ * Reset the view to the default view for a VOLUME.
+ */
+void
+ViewingTransformations::resetVolumeView()
+{
+    setTranslation(0.0, 0.0, 0.0);
+    m_rotationMatrix->identity();
+    setScaling(1.0);
+}
+
+/**
+ * Reset the view to the default view for a SURFACE
  */
 void
 ViewingTransformations::resetView()

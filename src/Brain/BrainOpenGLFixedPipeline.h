@@ -458,6 +458,8 @@ namespace caret {
         static float COLOR_RED[3];
         static float COLOR_GREEN[3];
         static float COLOR_BLUE[3];
+        
+        friend class BrainOpenGLFPVolumeObliqueDrawing;
     };
 
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H

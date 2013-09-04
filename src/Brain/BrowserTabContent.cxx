@@ -1139,7 +1139,7 @@ void
 BrowserTabContent::resetView()
 {
     if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceViewingTransformation->resetView();
+        m_volumeSliceViewingTransformation->resetVolumeView();
     }
     else {
         m_viewingTransformation->resetView();
@@ -1256,6 +1256,20 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                                       const int32_t mouseDY)
 {
     if (isVolumeSlicesDisplayed()) {
+        switch (getSliceViewMode()) {
+            case VolumeSliceViewModeEnum::MONTAGE:
+                break;
+            case VolumeSliceViewModeEnum::OBLIQUE:
+            {
+                Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+                rotationMatrix.rotateX(-mouseDY);
+                rotationMatrix.rotateY(-mouseDX);
+                m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+            }
+                break;
+            case VolumeSliceViewModeEnum::ORTHOGONAL:
+                break;
+        }
         /* Volume slices are not rotated */
     }
     else {
