@@ -84,7 +84,8 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fnresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
     
     ret->setHelpText(
-        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
+        AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
+        "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
         "Only one of -to-gifti-ext or -from-gifti-ext may be specified.  " +
         "The -transpose option is needed if the binary file is in column-major order."
     );
