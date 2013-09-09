@@ -26,6 +26,7 @@
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
+#include "GiftiMetaData.h"
 #include "SurfaceFile.h"
 #include "SurfaceResamplingHelper.h"
 
@@ -124,7 +125,18 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
             if (newSphere->getNumberOfNodes() != newArea->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
     }
     int numNewNodes = newSphere->getNumberOfNodes();
+    GiftiMetaData savedMD;
+    GiftiMetaData* provenanceMD = surfaceOut->getFileMetaData();//save provenance, since we are using operator= on surface as a hack around setting the topology
+    if (provenanceMD != NULL)
+    {
+        savedMD = *provenanceMD;//put it into a local instance, because operator= will probably change the one the pointer refers to
+    }
     *surfaceOut = *newSphere;
+    provenanceMD = surfaceOut->getFileMetaData();//in case the pointer changes anyway
+    if (provenanceMD != NULL)
+    {
+        *provenanceMD = savedMD;//put it back
+    }
     surfaceOut->setStructure(newSphere->getStructure());
     surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
     surfaceOut->setSurfaceType(surfaceIn->getSurfaceType());
