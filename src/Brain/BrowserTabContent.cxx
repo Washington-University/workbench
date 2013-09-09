@@ -1237,6 +1237,65 @@ BrowserTabContent::ventralView()
     updateYokedBrowserTabs();
 }
 
+/*
+ * @return The slice view plane for the given viewport coordinate.
+ * If ALL is returned, is indicates that the given viewport coordinate
+ * is in the bottom left region in which volume slices are not displayed.
+ *
+ * @param viewport
+ *   The viewport.
+ * @param mousePressX
+ *   X Location of the mouse press.
+ * @param mousePressY
+ *   Y Location of the mouse press.
+ */
+VolumeSliceViewPlaneEnum::Enum
+BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
+                                                          const int32_t mousePressX,
+                                                          const int32_t mousePressY) const
+{
+    VolumeSliceViewPlaneEnum::Enum view = VolumeSliceViewPlaneEnum::ALL;
+    
+    const int32_t halfWidth  = viewport[2] / 2;
+    const int32_t halfHeight = viewport[3] / 2;
+    const int32_t viewportMousePressedX = mousePressX - viewport[0];
+    const int32_t viewportMousePressedY = mousePressY - viewport[1];
+    bool isRight  = false;
+    bool isTop = false;
+    if (viewportMousePressedX > halfWidth) {
+        isRight = true;
+    }
+    if (viewportMousePressedY > halfHeight) {
+        isTop = true;
+    }
+    
+    /*
+     * Top Right is Coronal
+     * Top Left is Parasagittal
+     * Bottom Right is Axial
+     * Bottom Left is Empty or Surfaces
+     */
+    if (isTop) {
+        if (isRight) {
+            view = VolumeSliceViewPlaneEnum::CORONAL;
+        }
+        else {
+            view = VolumeSliceViewPlaneEnum::PARASAGITTAL;
+        }
+    }
+    else {
+        if (isRight) {
+            view = VolumeSliceViewPlaneEnum::AXIAL;
+        }
+        else {
+            
+        }
+    }
+
+    return view;
+}
+
+
 /**
  * Apply mouse rotation to the displayed model.
  *
@@ -1250,7 +1309,8 @@ BrowserTabContent::ventralView()
  *    Change in mouse Y coordinate.
  */
 void
-BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
+BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
+                                      const int32_t mousePressX,
                                       const int32_t mousePressY,
                                       const int32_t mouseDX,
                                       const int32_t mouseDY)
@@ -1261,16 +1321,42 @@ BrowserTabContent::applyMouseRotation(const int32_t mousePressX,
                 break;
             case VolumeSliceViewModeEnum::OBLIQUE:
             {
-                Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
-                rotationMatrix.rotateX(-mouseDY);
-                rotationMatrix.rotateY(-mouseDX);
-                m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+                if (mouseDY != 0) {
+                    int viewport[4];
+                    viewportContent->getModelViewport(viewport);
+                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
+                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                        slicePlane = getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                            mousePressX,
+                                                                            mousePressY);
+                    }
+                    
+                    Matrix4x4 rotation;
+                    switch (slicePlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            rotation.rotateZ(mouseDY);
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            rotation.rotateY(mouseDY);
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            rotation.rotateX(mouseDY);
+                            break;
+                    }
+                    
+                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+                    rotationMatrix.premultiply(rotation);
+                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+                }
+                
             }
                 break;
             case VolumeSliceViewModeEnum::ORTHOGONAL:
+                /* Orthogonal olume slices are not rotated */
                 break;
         }
-        /* Volume slices are not rotated */
     }
     else {
         if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {

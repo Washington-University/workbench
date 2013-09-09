@@ -44,6 +44,7 @@ namespace caret {
 
     class BrainOpenGLFixedPipeline;
     class BrowserTabContent;
+    class Matrix4x4;
     
     class BrainOpenGLFPVolumeObliqueDrawing : public CaretObject {
         
@@ -57,16 +58,39 @@ namespace caret {
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const int viewport[4]);
         
+        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                      const Matrix4x4& rotationMatrix);
+        
         void drawSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                   const int viewport[4]);
         
+        void drawSliceOld(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                       BrowserTabContent* browserTabContent,
+                       std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                       const int viewport[4]);
+        
         void drawQuads(const std::vector<float>& coordinates,
                        const std::vector<float>& normals,
                        const std::vector<uint8_t>& rgbaColors);
         
+        void drawLines(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                       const std::vector<float>& coordinates,
+                       const std::vector<uint8_t>& rgbaColors,
+                       const float thickness);
+        
+        void drawSurfaces(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                          BrowserTabContent* browserTabContent,
+                          const int viewport[4]);
+        
+        void drawFibers(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                        const Matrix4x4& rotationMatrix);
+    
     private:
         BrainOpenGLFPVolumeObliqueDrawing(const BrainOpenGLFPVolumeObliqueDrawing&);
 

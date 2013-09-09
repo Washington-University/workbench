@@ -179,7 +179,8 @@ namespace caret {
         
         void ventralView();
         
-        void applyMouseRotation(const int32_t mousePressX,
+        void applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
+                                const int32_t mousePressX,
                                 const int32_t mousePressY,
                                 const int32_t mouseDX,
                                 const int32_t mouseDY);
@@ -308,6 +309,10 @@ namespace caret {
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);
+        
+        VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
+                                                                  const int32_t mousePressX,
+                                                                  const int32_t mousePressY) const;
         
         /** Number of this tab */
         int32_t m_tabNumber;

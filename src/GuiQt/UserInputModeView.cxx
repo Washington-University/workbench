@@ -208,7 +208,8 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     if (browserTabContent == NULL) {
         return;
     }
-    browserTabContent->applyMouseRotation(mouseEvent.getPressedX(),
+    browserTabContent->applyMouseRotation(viewportContent,
+                                          mouseEvent.getPressedX(),
                                           mouseEvent.getPressedY(),
                                           mouseEvent.getDx(),
                                           mouseEvent.getDy());
