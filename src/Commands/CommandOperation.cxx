@@ -58,14 +58,22 @@ CommandOperation::~CommandOperation()
  *   If the command failed.
  */
 void 
-CommandOperation::execute(ProgramParameters& parameters) throw (CommandException)
+CommandOperation::execute(ProgramParameters& parameters, const bool& preventProvenance) throw (CommandException)
 {
     try {
+        if (preventProvenance)
+        {
+            disableProvenance();//let provenance-ignorant commands not need to deal with an unused parameter
+        }
         this->executeOperation(parameters);
     }
     catch (ProgramParametersException& e) {
         throw CommandException(e);
     }
+}
+
+void CommandOperation::disableProvenance()
+{
 }
 
 bool CommandOperation::takesParameters()

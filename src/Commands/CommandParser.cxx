@@ -33,6 +33,7 @@
 #include "DataFileException.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "GiftiMetaData.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "OperationException.h"
@@ -55,7 +56,14 @@ CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
     CommandOperation(myAutoOper->getCommandSwitch(), myAutoOper->getShortDescription()),
     OperationParserInterface(myAutoOper)
 {
+    m_doProvenance = true;
 }
+
+void CommandParser::disableProvenance()
+{
+    m_doProvenance = false;
+}
+
 
 void CommandParser::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
@@ -63,7 +71,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     {
         CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
         vector<OutputAssoc> myOutAssoc;
-        m_provenance = caret_global_commandLine;//NOTE: m_provenance must be complete before parsing begins, because it sets it on output files as they are encountered in parseComponent
+        m_provenance = caret_global_commandLine;
         //the idea is to have m_provenance set before the command executes, so it can be overridden, but have m_parentProvenance set AFTER the processing is complete
         //the parent provenance should never be generated manually
         m_parentProvenance = "";//in case someone tries to use the same instance more than once
@@ -72,8 +80,9 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
         parameters.verifyAllParametersProcessed();
         checkOutputs(myOutAssoc);//check for input on-disk files used as output on-disk files
         //code to show what arguments map to what parameters should go here
-        provenanceForOnDiskOutputs(myOutAssoc);//on-disk writing poses challenges for persistent metadata, this is where the special handling goes
+        if (m_doProvenance) provenanceBeforeOperation(myOutAssoc);
         m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
+        if (m_doProvenance) provenanceAfterOperation(myOutAssoc);
         //TODO: deallocate input files - give abstract parameter a virtual deallocate method? use CaretPointer and rely on reference counting?
         writeOutput(myOutAssoc);
     } catch (ProgramParametersException& e) {
@@ -145,13 +154,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                     CaretPointer<CiftiFile> myFile(new CiftiFile());
                     myFile->openFile(nextArg, ON_DISK);
                     m_inputCiftiNames.insert(pair<AString, CaretPointer<CiftiFile> >(myInfo.getCanonicalFilePath(), myFile));//track all input cifti names and respective files, so that we can convert inputs to in-memory on collision
-                    const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
-                    if (md != NULL)
+                    if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                     {
-                        map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
-                        if (iter != md->end() && iter->second != "")
+                        const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
+                        if (md != NULL)
                         {
-                            m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
+                            map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
+                            if (iter != md->end() && iter->second != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
+                            }
                         }
                     }
                     ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
@@ -184,13 +196,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<FociFile> myFile(new FociFile());
                 myFile->readFile(nextArg);
-                const GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
+                if (m_doProvenance)
                 {
-                    AString prov = md->get(PROVENANCE_NAME);
-                    if (prov != "")
+                    const GiftiMetaData* md = myFile->getFileMetaData();
+                    if (md != NULL)
                     {
-                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        AString prov = md->get(PROVENANCE_NAME);
+                        if (prov != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        }
                     }
                 }
                 ((FociParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
@@ -216,13 +231,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<LabelFile> myFile(new LabelFile());
                 myFile->readFile(nextArg);
-                const GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
+                if (m_doProvenance)
                 {
-                    AString prov = md->get(PROVENANCE_NAME);
-                    if (prov != "")
+                    const GiftiMetaData* md = myFile->getFileMetaData();
+                    if (md != NULL)
                     {
-                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        AString prov = md->get(PROVENANCE_NAME);
+                        if (prov != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        }
                     }
                 }
                 ((LabelParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
@@ -237,13 +255,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<MetricFile> myFile(new MetricFile());
                 myFile->readFile(nextArg);
-                const GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
+                if (m_doProvenance)
                 {
-                    AString prov = md->get(PROVENANCE_NAME);
-                    if (prov != "")
+                    const GiftiMetaData* md = myFile->getFileMetaData();
+                    if (md != NULL)
                     {
-                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        AString prov = md->get(PROVENANCE_NAME);
+                        if (prov != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        }
                     }
                 }
                 ((MetricParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
@@ -268,13 +289,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<SurfaceFile> myFile(new SurfaceFile());
                 myFile->readFile(nextArg);
-                const GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
+                if (m_doProvenance)
                 {
-                    AString prov = md->get(PROVENANCE_NAME);
-                    if (prov != "")
+                    const GiftiMetaData* md = myFile->getFileMetaData();
+                    if (md != NULL)
                     {
-                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        AString prov = md->get(PROVENANCE_NAME);
+                        if (prov != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        }
                     }
                 }
                 ((SurfaceParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
@@ -289,13 +313,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 CaretPointer<VolumeFile> myFile(new VolumeFile());
                 myFile->readFile(nextArg);
-                const GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
+                if (m_doProvenance)
                 {
-                    AString prov = md->get(PROVENANCE_NAME);
-                    if (prov != "")
+                    const GiftiMetaData* md = myFile->getFileMetaData();
+                    if (md != NULL)
                     {
-                        m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        AString prov = md->get(PROVENANCE_NAME);
+                        if (prov != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        }
                     }
                 }
                 ((VolumeParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
@@ -337,59 +364,34 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 myParam->m_parameter->setCiftiCacheFile(nextArg);
                 break;//we do the metadata stuff in provenanceForOnDiskOutputs() for this type
             }
+            case OperationParametersEnum::FOCI:
+            {
+                CaretPointer<FociFile>& myFile = ((FociParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new FociFile());
+                break;
+            }
             case OperationParametersEnum::LABEL:
             {
                 CaretPointer<LabelFile>& myFile = ((LabelParameter*)(myComponent->m_outputList[i]))->m_parameter;
                 myFile.grabNew(new LabelFile());
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROVENANCE_NAME, m_provenance);
-                }
                 break;
             }
             case OperationParametersEnum::METRIC:
             {
                 CaretPointer<MetricFile>& myFile = ((MetricParameter*)(myComponent->m_outputList[i]))->m_parameter;
                 myFile.grabNew(new MetricFile());
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROVENANCE_NAME, m_provenance);
-                }
                 break;
             }
             case OperationParametersEnum::SURFACE:
             {
                 CaretPointer<SurfaceFile>& myFile = ((SurfaceParameter*)(myComponent->m_outputList[i]))->m_parameter;
                 myFile.grabNew(new SurfaceFile());
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROVENANCE_NAME, m_provenance);
-                }
                 break;
             }
             case OperationParametersEnum::VOLUME:
             {
                 CaretPointer<VolumeFile>& myFile = ((VolumeParameter*)(myComponent->m_outputList[i]))->m_parameter;
                 myFile.grabNew(new VolumeFile());
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROVENANCE_NAME, m_provenance);
-                }
-                break;
-            }
-            case OperationParametersEnum::FOCI:
-            {
-                CaretPointer<FociFile>& myFile = ((FociParameter*)(myComponent->m_outputList[i]))->m_parameter;
-                myFile.grabNew(new FociFile());
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROVENANCE_NAME, m_provenance);
-                }
                 break;
             }
             case OperationParametersEnum::DOUBLE://ignore these output types
@@ -475,9 +477,9 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
     }
 }
 
-void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
+void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAssociation)
 {
-    vector<AString> versionInfo;
+    vector<AString> versionInfo;//need this for on-disk outputs, because we have to set it before the command executes
     ApplicationInformation myInfo;
     myInfo.getAllInformation(versionInfo);
     AString versionProvenance;
@@ -485,9 +487,11 @@ void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAss
     {
         versionProvenance += versionInfo[i] + "\n";
     }
+    AString workingDir = QDir::currentPath();
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
+        GiftiMetaData* md = NULL;//do the common case with the same single piece of code
         switch (myParam->getType())
         {
             case OperationParametersEnum::CIFTI:
@@ -498,8 +502,8 @@ void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAss
                 myXML.applyColumnMapToRows();
                 map<AString, AString>* md = myXML.getFileMetaData();
                 (*md)[PROVENANCE_NAME] = m_provenance;
-                (*md)[PROGRAM_PROVENANCE_NAME] = versionProvenance;
-                (*md)[CWD_PROVENANCE_NAME] = QDir::currentPath();
+                (*md)[PROGRAM_PROVENANCE_NAME] = versionProvenance;//cifti is on-disk, so set all provenance now, because we can't later
+                (*md)[CWD_PROVENANCE_NAME] = workingDir;
                 if (m_parentProvenance != "")
                 {
                     (*md)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
@@ -507,8 +511,104 @@ void CommandParser::provenanceForOnDiskOutputs(const vector<OutputAssoc>& outAss
                 myFile->setCiftiXML(myXML, false);//tells it to use this new metadata, rather than copying metadata from the old XML (which is default so that provenance metadata persists through naive usage)
                 break;
             }
+            case OperationParametersEnum::FOCI:
+            {
+                FociFile* myFile = ((FociParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::LABEL:
+            {
+                LabelFile* myFile = ((LabelParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::METRIC:
+            {
+                MetricFile* myFile = ((MetricParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::SURFACE:
+            {
+                SurfaceFile* myFile = ((SurfaceParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::VOLUME:
+            {
+                VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
             default:
                 break;
+        }
+        if (md != NULL)
+        {
+            md->set(PROVENANCE_NAME, m_provenance);
+        }
+    }
+}
+
+void CommandParser::provenanceAfterOperation(const vector<OutputAssoc>& outAssociation)
+{
+    vector<AString> versionInfo;//now we need this information for outputs that are in memory until written
+    ApplicationInformation myInfo;
+    myInfo.getAllInformation(versionInfo);
+    AString versionProvenance;
+    for (int i = 0; i < (int)versionInfo.size(); ++i)
+    {
+        versionProvenance += versionInfo[i] + "\n";
+    }
+    AString workingDir = QDir::currentPath();
+    for (uint32_t i = 0; i < outAssociation.size(); ++i)
+    {
+        AbstractParameter* myParam = outAssociation[i].m_param;
+        GiftiMetaData* md = NULL;
+        switch (myParam->getType())
+        {
+            case OperationParametersEnum::FOCI:
+            {
+                FociFile* myFile = ((FociParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::LABEL:
+            {
+                LabelFile* myFile = ((LabelParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::METRIC:
+            {
+                MetricFile* myFile = ((MetricParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::SURFACE:
+            {
+                SurfaceFile* myFile = ((SurfaceParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            case OperationParametersEnum::VOLUME:
+            {
+                VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
+            default:
+                break;
+        }
+        if (md != NULL)
+        {
+            md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
+            md->set(CWD_PROVENANCE_NAME, workingDir);
+            if (m_parentProvenance != "")
+            {
+                md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
+            }
         }
     }
 }
@@ -539,15 +639,6 @@ void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
 
 void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
 {
-    vector<AString> versionInfo;
-    ApplicationInformation myInfo;
-    myInfo.getAllInformation(versionInfo);
-    AString versionProvenance;
-    for (int i = 0; i < (int)versionInfo.size(); ++i)
-    {
-        versionProvenance += versionInfo[i] + "\n";
-    }
-    AString workingDir = QDir::currentPath();
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
@@ -568,35 +659,21 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::INT:
                 cout << "Output Integer \"" << myParam->m_shortName << "\" value is " << ((IntegerParameter*)myParam)->m_parameter << endl;
                 break;
+            case OperationParametersEnum::FOCI:
+            {
+                FociFile* myFile = ((FociParameter*)myParam)->m_parameter;
+                myFile->writeFile(outAssociation[i].m_fileName);
+                break;
+            }
             case OperationParametersEnum::LABEL:
             {
                 LabelFile* myFile = ((LabelParameter*)myParam)->m_parameter;
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
-                    md->set(CWD_PROVENANCE_NAME, workingDir);
-                    if (m_parentProvenance != "")
-                    {
-                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
-                    }
-                }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
             }
             case OperationParametersEnum::METRIC:
             {
                 MetricFile* myFile = ((MetricParameter*)myParam)->m_parameter;
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
-                    md->set(CWD_PROVENANCE_NAME, workingDir);
-                    if (m_parentProvenance != "")
-                    {
-                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
-                    }
-                }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
             }
@@ -606,32 +683,12 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::SURFACE:
             {
                 SurfaceFile* myFile = ((SurfaceParameter*)myParam)->m_parameter;
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
-                    md->set(CWD_PROVENANCE_NAME, workingDir);
-                    if (m_parentProvenance != "")
-                    {
-                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
-                    }
-                }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
             }
             case OperationParametersEnum::VOLUME:
             {
                 VolumeFile* myFile = ((VolumeParameter*)myParam)->m_parameter;
-                GiftiMetaData* md = myFile->getFileMetaData();
-                if (md != NULL)
-                {
-                    md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
-                    md->set(CWD_PROVENANCE_NAME, workingDir);
-                    if (m_parentProvenance != "")
-                    {
-                        md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
-                    }
-                }
                 myFile->writeFile(outAssociation[i].m_fileName);
                 break;
             }

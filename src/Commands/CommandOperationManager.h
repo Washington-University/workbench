@@ -67,6 +67,8 @@ namespace caret {
         
         void printVersionInfo();
         
+        bool getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, std::vector<AString>& arguments);
+        
     private:
         std::vector<CommandOperation*> commandOperations;
         

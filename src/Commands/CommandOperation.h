@@ -41,7 +41,7 @@ namespace caret {
     public:
         virtual ~CommandOperation();
         
-        void execute(ProgramParameters& parameters) 
+        void execute(ProgramParameters& parameters, const bool& preventProvenance)
             throw (CommandException);
         
     protected:
@@ -58,6 +58,8 @@ namespace caret {
         virtual void executeOperation(ProgramParameters& parameters) 
            throw (CommandException,
                 ProgramParametersException) = 0;
+        
+        virtual void disableProvenance();
         
         CommandOperation(const AString& commandLineSwitch,
                          const AString& operationShortDescription);

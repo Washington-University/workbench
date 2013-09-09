@@ -40,6 +40,7 @@ namespace caret {
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
         AString m_provenance, m_parentProvenance;
+        bool m_doProvenance;
         const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;//TODO: put this elsewhere?
         std::map<AString, CaretPointer<CiftiFile> > m_inputCiftiNames;
         struct OutputAssoc
@@ -50,7 +51,8 @@ namespace caret {
         void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug = false);
         bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
         void parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
-        void provenanceForOnDiskOutputs(const std::vector<OutputAssoc>& outAssociation);
+        void provenanceBeforeOperation(const std::vector<OutputAssoc>& outAssociation);
+        void provenanceAfterOperation(const std::vector<OutputAssoc>& outAssociation);
         void checkOutputs(const std::vector<OutputAssoc>& outAssociation);//ensures on-disk inputs aren't used as on-disk outputs
         void writeOutput(const std::vector<OutputAssoc>& outAssociation);
         AString getIndentString(int desired);
@@ -62,6 +64,7 @@ namespace caret {
         AString formatString(const AString& in, int curIndent, bool addIndent);
     public:
         CommandParser(AutoOperationInterface* myAutoOper);
+        void disableProvenance();
         void executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
         void showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
         AString getHelpInformation(const AString& programName);

@@ -301,9 +301,8 @@ ProgramParameters::getParameterIndex() const
 void
 ProgramParameters::setParameterIndex(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->parameters, indx);
+    CaretAssert(indx >= 0 && indx <= (int32_t)this->parameters.size());//less or equal to size is intentional, having an index of one past the end is a valid state, notably needed by setParameterIndex(0) on empty ProgramParameters
     this->parameterIndex = indx;
-    
 }
 
 /**

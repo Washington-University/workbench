@@ -365,6 +365,9 @@ CommandOperationManager::~CommandOperationManager()
 void 
 CommandOperationManager::runCommand(ProgramParameters& parameters) throw (CommandException)
 {
+    vector<AString> globalOptionArgs;//not used yet
+    bool preventProvenance = getGlobalOption(parameters, "-disable-provenance", 0, globalOptionArgs);//check these BEFORE we test if we have a command switch
+
     const uint64_t numberOfCommands = this->commandOperations.size();
 
     if (parameters.hasNext() == false) {
@@ -388,7 +391,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
         } else if (commandSwitch == "-all-commands-help") {
             printAllCommandsHelpInfo(parameters.getProgramName());
         } else {
-        
+            
             CommandOperation* operation = NULL;
             
             for (uint64_t i = 0; i < numberOfCommands; i++) {
@@ -406,7 +409,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
             {
                 cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
             } else {
-                operation->execute(parameters);
+                operation->execute(parameters, preventProvenance);
             }
         }
     }
@@ -414,6 +417,33 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
         cerr << "caught PPE" << endl;
         throw CommandException(e);
     }
+}
+
+bool CommandOperationManager::getGlobalOption(ProgramParameters& parameters, const AString& optionString, const int& numArgs, vector<AString>& arguments)
+{
+    parameters.setParameterIndex(0);//this ends up being slightly redundant, but whatever
+    while (parameters.hasNext())//shouldn't be many global options, so do it the simple way
+    {
+        AString test = parameters.nextString("global option");
+        if (test == optionString)
+        {
+            parameters.remove();
+            arguments.clear();
+            for (int i = 0; i < numArgs; ++i)
+            {
+                if (!parameters.hasNext())
+                {
+                    throw CommandException("missing argument #" + AString::number(i + 1) + " to global option '" + optionString + "'");
+                    arguments.push_back(parameters.nextString("global option argument"));
+                    parameters.remove();
+                }
+            }
+            parameters.setParameterIndex(0);
+            return true;
+        }
+    }
+    parameters.setParameterIndex(0);
+    return false;
 }
 
 /**
@@ -480,6 +510,8 @@ void CommandOperationManager::printHelpInfo()
     cout << "   -list-commands        print all non-information (processing) subcommands" << endl;
     cout << "   -all-commands-help    print all non-information (processing) subcommands and" << endl;
     cout << "                            their help info - VERY LONG" << endl;
+    cout << endl << "Global options (can be added to any command):" << endl;
+    cout << "   -disable-provenance   don't generate provenance info in output files" << endl;
     cout << endl;
 }
 
