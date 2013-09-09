@@ -165,6 +165,10 @@ public:
                     const float p1[3],
                     const float p2[3]);
 
+    static float dotProduct(
+                            const double p1[3],
+                            const double p2[3]);
+    
     static float triangleArea(
                     const float v1[3],
                     const float v2[3],

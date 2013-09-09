@@ -619,6 +619,22 @@ MathFunctions::dotProduct(
 }
 
 /**
+ * Dot produce of three dimensional vectors.
+ * @param p1   vector 1
+ * @param p2   vector 2
+ * @return     Dot product of the two vectors.
+ *
+ */
+float
+MathFunctions::dotProduct(
+                          const double p1[3],
+                          const double p2[3])
+{
+    float dot = p1[0]*p2[0] + p1[1]*p2[1] + p1[2]*p2[2];
+    return dot;
+}
+
+/**
  * Calculate the area for a triangle.
  * @param v1 - XYZ coordinates for vertex 1
  * @param v2 - XYZ coordinates for vertex 2
