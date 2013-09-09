@@ -224,6 +224,31 @@ Plane::lineSegmentIntersectPlane(
 }
 
 /**
+ * Project the given point to the plane.
+ * @param pointIn
+ *   Point that will be projected.
+ * @param pointProjectedOut
+ *   Coordinates of point after projection to the plane.
+ */
+void
+Plane::projectPointToPlane(const float pointIn[3],
+                           float pointProjectedOut[3]) const
+{
+    double xo[3] = {
+        pointIn[0] - p1[0],
+        pointIn[1] - p1[1],
+        pointIn[2] - p2[2]
+    };
+    
+    float t = MathFunctions::dotProduct(normalVector, xo);
+    
+    pointProjectedOut[0] = p1[0] - t * normalVector[0];
+    pointProjectedOut[1] = p1[1] - t * normalVector[1];
+    pointProjectedOut[2] = p1[2] - t * normalVector[2];
+}
+
+
+/**
  * Unit test the class.
  *
  */

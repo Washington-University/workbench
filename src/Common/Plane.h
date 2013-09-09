@@ -65,6 +65,9 @@ namespace caret {
                                        const float lp2[3],
                                        float intersectionOut[3]) const;
         
+        void projectPointToPlane(const float pointIn[3],
+                                 float pointProjectedOut[3]) const;
+        
         static void unitTest(std::ostream& stream,
                       const bool isVerbose);
         
