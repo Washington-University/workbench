@@ -1331,24 +1331,44 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                                                             mousePressY);
                     }
                     
-                    Matrix4x4 rotation;
+                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
                     switch (slicePlane) {
                         case VolumeSliceViewPlaneEnum::ALL:
+                            rotationMatrix.rotateX(-mouseDY);
+                            rotationMatrix.rotateY(mouseDX);
                             break;
                         case VolumeSliceViewPlaneEnum::AXIAL:
-                            rotation.rotateZ(mouseDY);
+                            rotationMatrix.rotateZ(mouseDY);
                             break;
                         case VolumeSliceViewPlaneEnum::CORONAL:
-                            rotation.rotateY(mouseDY);
+                            rotationMatrix.rotateY(mouseDY);
                             break;
                         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            rotation.rotateX(mouseDY);
+                            rotationMatrix.rotateX(mouseDY);
                             break;
                     }
-                    
-                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
-                    rotationMatrix.premultiply(rotation);
                     m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+                    
+//                    Matrix4x4 rotation;
+//                    switch (slicePlane) {
+//                        case VolumeSliceViewPlaneEnum::ALL:
+//                            rotation.rotateX(-mouseDY);
+//                            rotation.rotateY(mouseDX);
+//                            break;
+//                        case VolumeSliceViewPlaneEnum::AXIAL:
+//                            rotation.rotateZ(mouseDY);
+//                            break;
+//                        case VolumeSliceViewPlaneEnum::CORONAL:
+//                            rotation.rotateY(mouseDY);
+//                            break;
+//                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                            rotation.rotateX(mouseDY);
+//                            break;
+//                    }
+//                    
+//                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+//                    rotationMatrix.premultiply(rotation);
+//                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
                 }
                 
             }

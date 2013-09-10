@@ -62,11 +62,29 @@ namespace caret {
                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                       const Matrix4x4& rotationMatrix);
         
-        void drawSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+        void drawSlice(Brain* brain,
+                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                  const int viewport[4]);
+                  const bool setViewingTransformForVolumeSliceView);
+        
+        void drawSlicesForAllView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                  BrowserTabContent* browserTabContent,
+                                  std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                                  const int viewport[4]);
+        
+        void drawSliceForSliceView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                       BrowserTabContent* browserTabContent,
+                       std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                       const int viewport[4]);
+        
+        void drawSliceForSliceViewOld(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                   BrowserTabContent* browserTabContent,
+                                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                                   const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                   const int viewport[4]);
         
         void drawSliceOld(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                        BrowserTabContent* browserTabContent,
