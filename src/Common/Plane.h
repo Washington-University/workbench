@@ -68,6 +68,11 @@ namespace caret {
         void projectPointToPlane(const float pointIn[3],
                                  float pointProjectedOut[3]) const;
         
+        void getPlane(double& aOut,
+                      double& bOut,
+                      double& cOut,
+                      double& dOut) const;
+        
         virtual AString toString() const;
         
         static void unitTest(std::ostream& stream,

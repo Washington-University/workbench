@@ -127,6 +127,31 @@ Plane::triangleIntersectPlane(
 }
 
 /**
+ * Get the plane.
+ *
+ * @param aOut
+ *   The value of 'A'
+ * @param bOut
+ *   The value of 'B'
+ * @param cOut
+ *   The value of 'C'
+ * @param dOut
+ *   The value of 'D'
+ */
+void
+Plane::getPlane(double& aOut,
+                double& bOut,
+                double& cOut,
+                double& dOut) const
+{
+    aOut = this->A;
+    bOut = this->B;
+    cOut = this->C;
+    dOut = this->D;
+}
+
+
+/**
  * Get absolute distance of point from the plane.
  * @param p Point.
  * @return  Absolute distance of "p" from plane.
