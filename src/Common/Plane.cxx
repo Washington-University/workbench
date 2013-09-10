@@ -247,6 +247,29 @@ Plane::projectPointToPlane(const float pointIn[3],
     pointProjectedOut[2] = p1[2] - t * normalVector[2];
 }
 
+/**
+ * @return String describing the plane.
+ *
+ */
+AString
+Plane::toString() const
+{
+    AString s;
+    if (isValidPlane()) {
+        s = (AString::number(this->A)
+             + "x + "
+             + AString::number(this->B)
+             + "y + "
+             + AString::number(this->C)
+             + "z + "
+             + AString::number(this->D));
+    }
+    else {
+        s = "invalid";
+    }
+    
+    return s;
+}
 
 /**
  * Unit test the class.
