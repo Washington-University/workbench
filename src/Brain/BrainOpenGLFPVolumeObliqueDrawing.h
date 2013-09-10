@@ -67,7 +67,7 @@ namespace caret {
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                  const bool setViewingTransformForVolumeSliceView);
+                  const bool isSliceView);
         
         void drawSlicesForAllView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                   BrowserTabContent* browserTabContent,

@@ -1334,17 +1334,31 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                     Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
                     switch (slicePlane) {
                         case VolumeSliceViewPlaneEnum::ALL:
+                        {
                             rotationMatrix.rotateX(-mouseDY);
                             rotationMatrix.rotateY(mouseDX);
+                        }
                             break;
                         case VolumeSliceViewPlaneEnum::AXIAL:
-                            rotationMatrix.rotateZ(mouseDY);
+                        {
+                            Matrix4x4 rotation;
+                            rotation.rotateZ(mouseDY);
+                            rotationMatrix.premultiply(rotation);
+                        }
                             break;
                         case VolumeSliceViewPlaneEnum::CORONAL:
-                            rotationMatrix.rotateY(mouseDY);
+                        {
+                            Matrix4x4 rotation;
+                            rotation.rotateY(mouseDY);
+                            rotationMatrix.premultiply(rotation);
+                        }
                             break;
                         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            rotationMatrix.rotateX(mouseDY);
+                        {
+                            Matrix4x4 rotation;
+                            rotation.rotateX(mouseDY);
+                            rotationMatrix.premultiply(rotation);
+                        }
                             break;
                     }
                     m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
@@ -1365,7 +1379,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
 //                            rotation.rotateX(mouseDY);
 //                            break;
 //                    }
-//                    
+//
 //                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
 //                    rotationMatrix.premultiply(rotation);
 //                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);

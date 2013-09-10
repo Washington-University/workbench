@@ -399,8 +399,15 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                                         BrowserTabContent* browserTabContent,
                                         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                        const bool setViewingTransformForVolumeSliceView)
+                                        const bool isSliceView)
 {
+    const AString planeName = VolumeSliceViewPlaneEnum::toGuiName(slicePlane);
+    std::cout
+    << std::endl
+    << (isSliceView ? "Slice View " : "All View")
+    << qPrintable(planeName)
+    << std::endl;
+    
     CaretAssert(brain);
 //    ModelVolume* volumeModel = browserTabContent->getDisplayedVolumeModel();
 //    CaretAssert(volumeModel);
@@ -492,6 +499,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     const float minVoxelSize = std::min(voxelSpacing[0],
                                         std::min(voxelSpacing[1],
                                                  voxelSpacing[2]));
+    
     CaretAssert(maxScreenX - minScreenX);
     CaretAssert(maxScreenY - minScreenY);
     CaretAssert(minVoxelSize > 0.0);
@@ -586,13 +594,12 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     
     
     std::cout
-    << qPrintable(VolumeSliceViewPlaneEnum::toGuiName(slicePlane))
-    << " slice normal vector: "
+    << "Slice normal vector: "
     << qPrintable(AString::fromNumbers(sliceNormalVector, 3, ", "))
     << std::endl;
     
     
-    if (setViewingTransformForVolumeSliceView) {
+    if (isSliceView) {
         /*
          * Set the "up" vector for the slice
          */
@@ -620,9 +627,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
         
         const float distanceFromEyeToCenter = 100.0;
         const float eye[3] = {
-            sliceNormalVector[0] * distanceFromEyeToCenter,
-            sliceNormalVector[1] * distanceFromEyeToCenter,
-            sliceNormalVector[2] * distanceFromEyeToCenter
+            selectedSliceOrigin[0] + sliceNormalVector[0] * distanceFromEyeToCenter,
+            selectedSliceOrigin[1] + sliceNormalVector[1] * distanceFromEyeToCenter,
+            selectedSliceOrigin[2] + sliceNormalVector[2] * distanceFromEyeToCenter
         };
         
         //    transformationMatrix.multiplyPoint3(upVector);
@@ -748,10 +755,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     Plane plane(leftBottomCorner,
                 rightBottomCorner,
                 rightTopCorner);
-    std::cout << qPrintable(VolumeSliceViewPlaneEnum::toGuiName(slicePlane))
-    << " plane: " << qPrintable(plane.toString()) << std::endl;
+    std::cout << "Plane: " << qPrintable(plane.toString()) << std::endl;
     
-    
+
 //    for (float x = leftBottomCorner[0]; x <= leftTopCorner[0]; x += minVoxelSize) {
 //        for (float y = leftBottomCorner[1]; y <= leftTopCorner[1]; y += minVoxelSize) {
 //            for (float z = leftBottomCorner[2]; z <= leftTopCorner[2]; z += minVoxelSize) {
