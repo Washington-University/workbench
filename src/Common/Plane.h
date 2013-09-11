@@ -39,6 +39,9 @@ namespace caret {
               const float p2[3],
               const float p3[3]);
         
+        Plane(const float unitNormalVector[3],
+              const float pointOnPlane[3]);
+        
         virtual ~Plane();
         
     private:

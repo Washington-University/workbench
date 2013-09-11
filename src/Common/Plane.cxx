@@ -29,7 +29,9 @@
 using namespace caret;
 
 /**
- * Constructor.
+ * Construct a plane from three points that are on the plane.
+ * These points should be in counter-clockwise order.
+ *
  * @param p1 Point on plane.
  * @param p2 Point on plane.
  * @param p3 Point on plane.
@@ -63,6 +65,32 @@ Plane::Plane(const float p1[3],
     this->C = this->normalVector[2];
     this->D = -(A*p1[0] + B*p1[1] + C*p1[2]);
 }
+
+/**
+ * Construct a plane from a unit normal vector (length = 1) and a point on the plane.
+ *
+ * @param normalVector
+ *     The normal vector of the plane.
+ * @param pointOnPlane
+ *     A point on the plane.
+ */
+Plane::Plane(const float unitNormalVector[3],
+             const float pointOnPlane[3])
+{
+    this->normalVector[0] = unitNormalVector[0];
+    this->normalVector[1] = unitNormalVector[1];
+    this->normalVector[2] = unitNormalVector[2];
+
+    this->A = this->normalVector[0];
+    this->B = this->normalVector[1];
+    this->C = this->normalVector[2];    
+    this->D = (-this->A * pointOnPlane[0]
+               -this->B * pointOnPlane[1]
+               -this->C * pointOnPlane[2]);
+
+    this->validPlaneFlag = (MathFunctions::vectorLength(this->normalVector) > 0.0);
+}
+
 
 /**
  * Destructor
@@ -262,7 +290,7 @@ Plane::projectPointToPlane(const float pointIn[3],
     double xo[3] = {
         pointIn[0] - p1[0],
         pointIn[1] - p1[1],
-        pointIn[2] - p2[2]
+        pointIn[2] - p1[2]
     };
     
     float t = MathFunctions::dotProduct(normalVector, xo);
