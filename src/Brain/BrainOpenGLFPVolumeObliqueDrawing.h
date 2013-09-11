@@ -109,6 +109,11 @@ namespace caret {
         void drawFibers(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
                         const Matrix4x4& rotationMatrix);
+        
+        void drawSurfaceOutline(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                BrowserTabContent* browserTabContent,
+                                VolumeMappableInterface* underlayVolume,
+                                const Plane& plane);
     
     private:
         BrainOpenGLFPVolumeObliqueDrawing(const BrainOpenGLFPVolumeObliqueDrawing&);

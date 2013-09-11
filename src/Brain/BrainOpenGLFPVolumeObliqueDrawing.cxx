@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <iostream>
 #include <limits>
 
 #ifdef CARET_OS_WINDOWS
@@ -70,6 +71,9 @@
 #include "SessionManager.h"
 #include "Surface.h"
 #include "VolumeMappableInterface.h"
+#include "VolumeSurfaceOutlineModel.h"
+#include "VolumeSurfaceOutlineColorOrTabModel.h"
+#include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
     
@@ -401,12 +405,13 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                         const bool isSliceView)
 {
+    AString debugString;
+    
+    
     const AString planeName = VolumeSliceViewPlaneEnum::toGuiName(slicePlane);
-    std::cout
-    << std::endl
-    << (isSliceView ? "Slice View " : "All View")
-    << qPrintable(planeName)
-    << std::endl;
+    debugString.appendWithNewLine("\n"
+                                  + AString(isSliceView ? "Slice View " : "All View")
+                                  + planeName);
     
     CaretAssert(brain);
 
@@ -590,10 +595,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     MathFunctions::normalizeVector(sliceNormalVector);
     
     
-    std::cout
-    << "Slice normal vector: "
-    << qPrintable(AString::fromNumbers(sliceNormalVector, 3, ", "))
-    << std::endl;
+    debugString.appendWithNewLine("Slice normal vector: "
+                                  + AString::fromNumbers(sliceNormalVector, 3, ", "));
     
     {
         float x0 = sliceOffset[0];
@@ -604,11 +607,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
         float c = sliceNormalVector[2];
         float d = -a*x0 - b*y0 - c*z0;
         
-        std::cout << "abcd: " << a  << ", " << b << ", " << c << ", " << d << std::endl;
-        
         Plane normalPlane(sliceNormalVector,
                           sliceOffset);
-        std::cout << "Plane from normal/pt: " << qPrintable(normalPlane.toString()) << std::endl;
+        debugString.appendWithNewLine("Plane from normal/pt: "
+                                      + normalPlane.toString());
     }
     
     /*
@@ -676,9 +678,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                   upVector[1],
                   upVector[2]);
         
-        std::cout << "Center: " << qPrintable(AString::fromNumbers(center, 3, ", ")) << std::endl;
-        std::cout << "Eye: " << qPrintable(AString::fromNumbers(eye, 3, ", ")) << std::endl;
-        std::cout << "up: " << qPrintable(AString::fromNumbers(upVector, 3, ", ")) << std::endl;
+        debugString.appendWithNewLine("Center: " + AString::fromNumbers(center, 3, ", "));
+        debugString.appendWithNewLine("Eye: " + AString::fromNumbers(eye, 3, ", "));
+        debugString.appendWithNewLine("Up: " + AString::fromNumbers(upVector, 3, ", "));
     }
     else {
         /*
@@ -784,15 +786,16 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     transformationMatrix.multiplyPoint3(leftTopCorner);
     transformationMatrix.multiplyPoint3(rightBottomCorner);
     transformationMatrix.multiplyPoint3(rightTopCorner);
-    std::cout << "Left bottom: " << qPrintable(AString::fromNumbers(leftBottomCorner, 3, ", ")) << std::endl;
-    std::cout << "Left top: " << qPrintable(AString::fromNumbers(leftTopCorner, 3, ", ")) << std::endl;
-    std::cout << "Right bottom: " << qPrintable(AString::fromNumbers(rightBottomCorner, 3, ", ")) << std::endl;
-    std::cout << "Right top: " << qPrintable(AString::fromNumbers(rightTopCorner, 3, ", ")) << std::endl;
+//    std::cout << "Left bottom: " << qPrintable(AString::fromNumbers(leftBottomCorner, 3, ", ")) << std::endl;
+//    std::cout << "Left top: " << qPrintable(AString::fromNumbers(leftTopCorner, 3, ", ")) << std::endl;
+//    std::cout << "Right bottom: " << qPrintable(AString::fromNumbers(rightBottomCorner, 3, ", ")) << std::endl;
+//    std::cout << "Right top: " << qPrintable(AString::fromNumbers(rightTopCorner, 3, ", ")) << std::endl;
     
     Plane plane(leftBottomCorner,
                 rightBottomCorner,
                 rightTopCorner);
-    std::cout << "Plane from corners: " << qPrintable(plane.toString()) << std::endl;
+    debugString.appendWithNewLine("Plane from corners: "
+                                  + plane.toString());
     
     float coordsForPlane[3][3];
     bool coordsForPlaneValid = false;
@@ -1006,7 +1009,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
         Plane quadPlane(coordsForPlane[0],
                          coordsForPlane[1],
                          coordsForPlane[2]);
-        std::cout << "Plane from first quad: " << qPrintable(quadPlane.toString()) << std::endl;
+        debugString.appendWithNewLine("Plane from first quad: "
+                                      + quadPlane.toString());
     }
     
     if (false == quadCoords.empty()) {
@@ -1025,6 +1029,11 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                 if (slicePlane.isValidPlane()) {
                     fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
                     fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+                    
+                    drawSurfaceOutline(fixedPipelineDrawing,
+                                       browserTabContent,
+                                       volumeDrawInfo[0].volumeFile,
+                                       plane);
                 }
                 //        drawFibers(fixedPipelineDrawing,
                 //                   slicePlane,
@@ -1078,7 +1087,130 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     }
     
     glPopMatrix();
+    
+    //std::cout << qPrintable(debugString) << std::endl;
 }
+
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                      BrowserTabContent* browserTabContent,
+                                                      VolumeMappableInterface* underlayVolume,
+                                                      const Plane& plane)
+{
+    CaretAssert(browserTabContent);
+    CaretAssert(underlayVolume);
+    
+    if ( ! plane.isValidPlane()) {
+        return;
+    }
+    
+    float intersectionPoint1[3];
+    float intersectionPoint2[3];
+    
+    fixedPipelineDrawing->enableLineAntiAliasing();
+    
+    VolumeSurfaceOutlineSetModel* outlineSet = browserTabContent->getVolumeSurfaceOutlineSet();
+    
+    /*
+     * Process each surface outline
+     */
+    const int32_t numberOfOutlines = outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
+    for (int io = 0;
+         io < numberOfOutlines;
+         io++) {
+        VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
+        if (outline->isDisplayed()) {
+            Surface* surface = outline->getSurface();
+            if (surface != NULL) {
+                const float thickness = outline->getThickness();
+                const float lineWidth = fixedPipelineDrawing->modelSizeToPixelSize(thickness);
+                
+                int numTriangles = surface->getNumberOfTriangles();
+                
+                CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+                int32_t colorSourceBrowserTabIndex = -1;
+                
+                VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
+                VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
+                switch (selectedColorOrTabItem->getItemType()) {
+                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+                        colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                        break;
+                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                        outlineColor = selectedColorOrTabItem->getColor();
+                        break;
+                }
+                const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
+                
+                float* nodeColoringRGBA = NULL;
+                if (surfaceColorFlag) {
+                    nodeColoringRGBA = fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL, /*modelDisplayController*/
+                                                                                    surface,
+                                                                                    colorSourceBrowserTabIndex);
+                }
+                
+                glColor3fv(CaretColorEnum::toRGB(outlineColor));
+                fixedPipelineDrawing->setLineWidth(lineWidth);
+                
+                /*
+                 * Examine each triangle to see if it intersects the Plane
+                 * in which the slice exists.
+                 */
+                glBegin(GL_LINES);
+                for (int it = 0; it < numTriangles; it++) {
+                    const int32_t* triangleNodes = surface->getTriangle(it);
+                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
+                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
+                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
+                    
+                    if (plane.triangleIntersectPlane(c1, c2, c3,
+                                                     intersectionPoint1,
+                                                     intersectionPoint2)) {
+                        if (surfaceColorFlag) {
+                            /*
+                             * Use coloring assigned to the first node in the triangle
+                             * but only if Alpha is valid (greater than zero).
+                             */
+                            const int64_t colorIndex = triangleNodes[0] * 4;
+                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
+                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
+                            }
+                            else {
+                                continue;
+                            }
+                        }
+                        
+                        /*
+                         * Draw the line where the triangle intersections the slice
+                         */
+                        glVertex3fv(intersectionPoint1);
+                        glVertex3fv(intersectionPoint2);
+//                        switch(slicePlane) {
+//                            case VolumeSliceViewPlaneEnum::ALL:
+//                                break;
+//                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                                glVertex3f(p1[0], intersectionPoint1[1], intersectionPoint1[2]);
+//                                glVertex3f(p1[0], intersectionPoint2[1], intersectionPoint2[2]);
+//                                break;
+//                            case VolumeSliceViewPlaneEnum::CORONAL:
+//                                glVertex3f(intersectionPoint1[0], p1[1], intersectionPoint1[2]);
+//                                glVertex3f(intersectionPoint2[0], p1[1], intersectionPoint2[2]);
+//                                break;
+//                            case VolumeSliceViewPlaneEnum::AXIAL:
+//                                glVertex3f(intersectionPoint1[0], intersectionPoint1[1], p1[2]);
+//                                glVertex3f(intersectionPoint2[0], intersectionPoint2[1], p1[2]);
+//                                break;
+//                        }
+                    }
+                }
+                glEnd();
+            }
+        }
+    }
+    
+    fixedPipelineDrawing->disableLineAntiAliasing();
+}
+
 
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewOld(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
