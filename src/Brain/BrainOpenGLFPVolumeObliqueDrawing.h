@@ -86,11 +86,12 @@ namespace caret {
                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                    const int viewport[4]);
         
-        void drawSliceOld(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                       BrowserTabContent* browserTabContent,
-                       std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                       const int viewport[4]);
+        void drawSliceOld(Brain* brain,
+                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                          BrowserTabContent* browserTabContent,
+                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                          const bool isSliceView);
         
         void drawQuads(const std::vector<float>& coordinates,
                        const std::vector<float>& normals,
