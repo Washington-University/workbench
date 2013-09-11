@@ -455,6 +455,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             break;
     }
     
+    glPushMatrix();
+    
     /*
      * When selecting, need to use flat shading so that colors do 
      * not get interpolated as identification information is in
@@ -547,14 +549,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
      * 3) Translate back to rotation point
      */
     Matrix4x4 transformationMatrix;
-    transformationMatrix.translate(-selectedSliceOrigin[0],
-                                   -selectedSliceOrigin[1],
-                                   -selectedSliceOrigin[2]);
+//    transformationMatrix.translate(-selectedSliceOrigin[0],
+//                                   -selectedSliceOrigin[1],
+//                                   -selectedSliceOrigin[2]);
     transformationMatrix.postmultiply(rotationMatrix);
 //    transformationMatrix.postmultiply(rotationMatrix);
-    transformationMatrix.translate(selectedSliceOrigin[0],
-                                   selectedSliceOrigin[1],
-                                   selectedSliceOrigin[2]);
+//    transformationMatrix.translate(selectedSliceOrigin[0],
+//                                   selectedSliceOrigin[1],
+//                                   selectedSliceOrigin[2]);
     
     /*
      * Transform a unit vector for the selected slice view
@@ -588,8 +590,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     transformationMatrix.translate(sliceOffset[0],
                              sliceOffset[1],
                              sliceOffset[2]);
-    transformationMatrix.multiplyPoint3(sliceNormalVector);
-//    rotationMatrix.multiplyPoint3(sliceNormalVector);
+    //transformationMatrix.multiplyPoint3(sliceNormalVector);
+    rotationMatrix.multiplyPoint3(sliceNormalVector);
     MathFunctions::normalizeVector(sliceNormalVector);
     
     
@@ -598,7 +600,17 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     << qPrintable(AString::fromNumbers(sliceNormalVector, 3, ", "))
     << std::endl;
     
-    
+    {
+        float x0 = sliceOffset[0];
+        float y0 = sliceOffset[1];
+        float z0 = sliceOffset[2];
+        float a = sliceNormalVector[0];
+        float b = sliceNormalVector[1];
+        float c = sliceNormalVector[2];
+        float d = -a*x0 - b*y0 - c*z0;
+        
+        std::cout << "abcd: " << a  << ", " << b << ", " << c << ", " << d << std::endl;
+    }
     if (isSliceView) {
         /*
          * Set the "up" vector for the slice
@@ -625,11 +637,22 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                 break;
         }
         
+        //        float center[3] = {
+        //            selectedSliceOrigin[0],
+        //            selectedSliceOrigin[1],
+        //            selectedSliceOrigin[2]
+        //        };
+        float center[3] = {
+            sliceOffset[0],
+            sliceOffset[1],
+            sliceOffset[2]
+        };
+        
         const float distanceFromEyeToCenter = 100.0;
         const float eye[3] = {
-            selectedSliceOrigin[0] + sliceNormalVector[0] * distanceFromEyeToCenter,
-            selectedSliceOrigin[1] + sliceNormalVector[1] * distanceFromEyeToCenter,
-            selectedSliceOrigin[2] + sliceNormalVector[2] * distanceFromEyeToCenter
+            center[0] + sliceNormalVector[0] * distanceFromEyeToCenter,
+            center[1] + sliceNormalVector[1] * distanceFromEyeToCenter,
+            center[2] + sliceNormalVector[2] * distanceFromEyeToCenter
         };
         
         //    transformationMatrix.multiplyPoint3(upVector);
@@ -642,16 +665,21 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
         gluLookAt(eye[0],
                   eye[1],
                   eye[2],
-                  selectedSliceOrigin[0],
-                  selectedSliceOrigin[1],
-                  selectedSliceOrigin[2],
+                  center[0],
+                  center[1],
+                  center[2],
                   upVector[0],
                   upVector[1],
                   upVector[2]);
         
-        std::cout << "Center: " << qPrintable(AString::fromNumbers(selectedSliceOrigin, 3, ", ")) << std::endl;
+        std::cout << "Center: " << qPrintable(AString::fromNumbers(center, 3, ", ")) << std::endl;
         std::cout << "Eye: " << qPrintable(AString::fromNumbers(eye, 3, ", ")) << std::endl;
         std::cout << "up: " << qPrintable(AString::fromNumbers(upVector, 3, ", ")) << std::endl;
+    }
+    else {
+        glTranslatef(sliceOffset[0],
+                     sliceOffset[1],
+                     sliceOffset[2]);
     }
     
     
@@ -747,10 +775,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
 //    rotationMatrix.multiplyPoint3(leftTopCorner);
 //    rotationMatrix.multiplyPoint3(rightBottomCorner);
 //    rotationMatrix.multiplyPoint3(rightTopCorner);
-//    std::cout << "Left bottom: " << qPrintable(AString::fromNumbers(leftBottomCorner, 3, ", ")) << std::endl;
-//    std::cout << "Left top: " << qPrintable(AString::fromNumbers(leftTopCorner, 3, ", ")) << std::endl;
-//    std::cout << "Right bottom: " << qPrintable(AString::fromNumbers(rightBottomCorner, 3, ", ")) << std::endl;
-//    std::cout << "Right top: " << qPrintable(AString::fromNumbers(rightTopCorner, 3, ", ")) << std::endl;
+    std::cout << "Left bottom: " << qPrintable(AString::fromNumbers(leftBottomCorner, 3, ", ")) << std::endl;
+    std::cout << "Left top: " << qPrintable(AString::fromNumbers(leftTopCorner, 3, ", ")) << std::endl;
+    std::cout << "Right bottom: " << qPrintable(AString::fromNumbers(rightBottomCorner, 3, ", ")) << std::endl;
+    std::cout << "Right top: " << qPrintable(AString::fromNumbers(rightTopCorner, 3, ", ")) << std::endl;
     
     Plane plane(leftBottomCorner,
                 rightBottomCorner,
@@ -1100,6 +1128,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     if (cullFaceOn) {
         glEnable(GL_CULL_FACE);
     }
+    
+    glPopMatrix(); // return
 }
 
 void
