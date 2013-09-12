@@ -161,6 +161,11 @@ public:
                     const float endXYZ[3],
                     float unitVectorOut[3]);
 
+    static void createUnitVector(
+                                 const double startXYZ[3],
+                                 const double endXYZ[3],
+                                 double unitVectorOut[3]);
+    
     static float dotProduct(
                     const float p1[3],
                     const float p2[3]);

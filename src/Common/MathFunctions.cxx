@@ -603,6 +603,28 @@ MathFunctions::createUnitVector(
 }
 
 /**
+ * Create the unit vector for a vector that starts at startXYZ and
+ * ends at endXYZ.
+ *
+ * @param startXYZ - Starting position of vector.
+ * @param endXYZ - Ending position of vector.
+ * @param  Unit vector starting at startXYZ and pointing to endXYZ.
+ *
+ */
+void
+MathFunctions::createUnitVector(
+                                const double startXYZ[3],
+                                const double endXYZ[3],
+                                double resultOut[3])
+{
+    resultOut[0] = endXYZ[0] - startXYZ[0];
+    resultOut[1] = endXYZ[1] - startXYZ[1];
+    resultOut[2] = endXYZ[2] - startXYZ[2];
+    
+    MathFunctions::normalizeVector(resultOut);
+}
+
+/**
  * Dot produce of three dimensional vectors.
  * @param p1   vector 1
  * @param p2   vector 2
