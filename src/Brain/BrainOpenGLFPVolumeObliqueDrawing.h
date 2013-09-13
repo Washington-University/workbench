@@ -58,6 +58,12 @@ namespace caret {
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const int viewport[4]);
     private:
+        enum DRAW_MODE {
+            DRAW_MODE_ALL_VIEW,
+            DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
+            DRAW_MODE_VOLUME_VIEW_SLICE_3D
+        };
+        
         BrainOpenGLFPVolumeObliqueDrawing(const BrainOpenGLFPVolumeObliqueDrawing&);
 
         BrainOpenGLFPVolumeObliqueDrawing& operator=(const BrainOpenGLFPVolumeObliqueDrawing&);
@@ -74,7 +80,7 @@ namespace caret {
                        BrowserTabContent* browserTabContent,
                        std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                       const bool isSliceView);
+                       const DRAW_MODE drawMode);
         
         void drawSliceVoxelsWithTransform(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                           std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
@@ -88,9 +94,10 @@ namespace caret {
                                           const float screenBounds[4],
                                           const float sliceNormalVector[3],
                                           const float voxelSize,
+                                          const float zoom,
                                           const bool isSelectionMode);
         
-        void drawSliceVoxelsWithInterpolation(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+        void drawSliceVoxelsModelCoordInterpolation(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                           std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           std::vector<int32_t>& identificationIndices,
@@ -102,12 +109,14 @@ namespace caret {
                                           const float screenBounds[4],
                                           const float sliceNormalVector[3],
                                           const float voxelSize,
+                                                    const float zoom,
                                           const bool isSelectionMode);
         
         void drawSlicesForAllView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                   BrowserTabContent* browserTabContent,
                                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                  const int viewport[4]);
+                                  const int viewport[4],
+                                  const DRAW_MODE drawMode);
         
         void drawSliceForSliceView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                    BrowserTabContent* browserTabContent,
