@@ -66,8 +66,8 @@ namespace caret {
                                                 float boundsOut[6],
                                                 float spacingOut[3]);
         
-        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                      const Matrix4x4& rotationMatrix);
+//        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+//                      const Matrix4x4& rotationMatrix);
         
         void drawSlice(Brain* brain,
                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
@@ -104,21 +104,6 @@ namespace caret {
                                           const float voxelSize,
                                           const bool isSelectionMode);
         
-        void drawSliceVoxelsWithInterpolationOld(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                              std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                              std::vector<int32_t>& identificationIndices,
-                                              const PaletteFile* paletteFile,
-                                              const int32_t idPerVoxelCount,
-                                              const Matrix4x4& transformationMatrix,
-                                              const DisplayGroupEnum::Enum displayGroup,
-                                              const int32_t tabIndex,
-                                              const float screenBounds[4],
-                                              const float sliceNormalVector[3],
-                                              const float voxelSize,
-                                              const bool isSelectionMode);
-        
-
         void drawSlicesForAllView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                   BrowserTabContent* browserTabContent,
                                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
@@ -129,13 +114,6 @@ namespace caret {
                                    std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                    const int viewport[4]);
-        
-        void drawSliceOld(Brain* brain,
-                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                          BrowserTabContent* browserTabContent,
-                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                          const bool isSliceView);
         
         void drawQuads(const std::vector<float>& coordinates,
                        const std::vector<float>& normals,
