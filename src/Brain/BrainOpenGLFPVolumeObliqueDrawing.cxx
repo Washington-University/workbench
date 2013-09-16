@@ -435,11 +435,38 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     
     
     glPushMatrix();
+    
     switch (drawMode) {
         case DRAW_MODE_ALL_VIEW:
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-            glLoadIdentity();
+        {
+            /*
+             * User's translation.
+             */
+            const float* translation = browserTabContent->getTranslation();
+            float translationadj[3] = { translation[0], translation[1], translation[2] };
+            switch (sliceViewPlane) {//prevents going outside near/far?
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    translationadj[2] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    translationadj[1] = translationadj[2];
+                    translationadj[2] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    translationadj[0] = -translationadj[1];
+                    translationadj[1] = translationadj[2];
+                    translationadj[2] = 0.0;
+                    break;
+            }
+            
+            glTranslatef(translationadj[0], 
+                         translationadj[1], 
+                         translationadj[2]);
+        }
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
             break;
@@ -655,23 +682,48 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     }
 
     /*
-     * Might allow zooming
+     * Might allow transformations
      */
-    bool allowZoomingFlag = false;
+    bool allowTransformationsFlag = false;
     switch (drawMode) {
         case DRAW_MODE_ALL_VIEW:
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-            allowZoomingFlag = true;
+            allowTransformationsFlag = true;
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-            allowZoomingFlag = true;
+            allowTransformationsFlag = true;
             break;
     }
-    const float zoom = (allowZoomingFlag
+    const float zoom = (allowTransformationsFlag
                         ? browserTabContent->getScaling()
                         : 1.0);
     
+//    float translation[3] = { 0.0, 0.0, 0.0 };
+//    if (allowTransformationsFlag) {
+//        /*
+//         * User's translation.
+//         */
+//        const float* userTranslation = browserTabContent->getTranslation();
+//        translation[0] = userTranslation[0];
+//        translation[1] = userTranslation[1];
+//        translation[2] = userTranslation[2];
+//
+//        switch (sliceViewPlane) {//prevents going outside near/far?
+//            case VolumeSliceViewPlaneEnum::ALL:
+//                break;
+//            case VolumeSliceViewPlaneEnum::AXIAL:
+//                translation[2] = 0.0;
+//                break;
+//            case VolumeSliceViewPlaneEnum::CORONAL:
+//                translation[1] = 0.0;
+//                break;
+//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                translation[0] = 0.0;
+//                break;
+//        }
+//    }
+
     /*
      * Draw slice
      */
@@ -733,7 +785,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             
             drawSurfaceOutline(fixedPipelineDrawing,
                                browserTabContent,
-                               volumeDrawInfo[0].volumeFile,
                                slicePlane);
             glPopMatrix();
         }
@@ -1521,11 +1572,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                       BrowserTabContent* browserTabContent,
-                                                      VolumeMappableInterface* underlayVolume,
                                                       const Plane& plane)
 {
     CaretAssert(browserTabContent);
-    CaretAssert(underlayVolume);
     
     if ( ! plane.isValidPlane()) {
         return;

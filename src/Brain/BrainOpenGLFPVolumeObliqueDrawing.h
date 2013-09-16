@@ -147,7 +147,6 @@ namespace caret {
         
         void drawSurfaceOutline(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                 BrowserTabContent* browserTabContent,
-                                VolumeMappableInterface* underlayVolume,
                                 const Plane& plane);
         
         // ADD_NEW_MEMBERS_HERE
