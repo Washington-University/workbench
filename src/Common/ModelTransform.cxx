@@ -378,24 +378,27 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
 }
 
 /**
- * Set pan (X & Y), rotation (X, Y, & Z), and zoom.
+ * Set panning (X, Y, & Z), rotation (X, Y, & Z), and zoom.
  *
  * @param panX
  *    X-Panning.
  * @param panY
  *    Y-Panning.
+ * @param panZ
+ *    Z-Panning.
  * @param rotationMatrix
  *    4x4 rotation matrix.
  * @param zoom
  *    Zooming.
  */
 void
-ModelTransform::setPanXyRotationMatrixAndZoom(const float panX,
-                                      const float panY,
-                                      const float rotationMatrix[4][4],
-                                      const float zoom)
+ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
+                                                const float panY,
+                                                const float panZ,
+                                                const float rotationMatrix[4][4],
+                                                const float zoom)
 {
-    this->setTranslation(panX, panY, 0.0);
+    this->setTranslation(panX, panY, panZ);
 
     setRotation(rotationMatrix);
     
@@ -403,7 +406,7 @@ ModelTransform::setPanXyRotationMatrixAndZoom(const float panX,
 }
 
 /**
- * Get pan (X & Y), rotation (X, Y, & Z), and zoom.
+ * Get pan (X, Y, & Z), rotation (X, Y, & Z), and zoom.
  *
  * @param panX
  *    X-Panning.
@@ -415,13 +418,15 @@ ModelTransform::setPanXyRotationMatrixAndZoom(const float panX,
  *    Zooming.
  */
 void
-ModelTransform::getPanXyRotationMatrixAndZoom(float& panX,
-                                     float& panY,
-                                     float rotationMatrix[4][4],
-                                     float& zoom) const
+ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
+                                                float& panY,
+                                                float& panZ,
+                                                float rotationMatrix[4][4],
+                                                float& zoom) const
 {
     panX = this->translation[0];
     panY = this->translation[1];
+    panZ = this->translation[2];
     
     getRotation(rotationMatrix);
     

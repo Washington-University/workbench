@@ -65,15 +65,17 @@ namespace caret {
         
         void setScaling(const float scaling);
         
-        void setPanXyRotationMatrixAndZoom(const float panX,
-                                        const float panY,
-                                        const float rotationMatrix[4][4],
-                                        const float zoom);
+        void setPanningRotationMatrixAndZoom(const float panX,
+                                             const float panY,
+                                             const float panZ,
+                                             const float rotationMatrix[4][4],
+                                             const float zoom);
         
-        void getPanXyRotationMatrixAndZoom(float& panX,
-                                        float& panY,
-                                        float rotationMatrix[4][4],
-                                        float& zoom) const;
+        void getPanningRotationMatrixAndZoom(float& panX,
+                                             float& panY,
+                                             float& panZ,
+                                             float rotationMatrix[4][4],
+                                             float& zoom) const;
         
         AString getAsString() const;
         

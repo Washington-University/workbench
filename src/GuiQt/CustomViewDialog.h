@@ -102,6 +102,7 @@ namespace caret {
         
         void getTransformationControlValues(double& panX,
                                 double& panY,
+                                            double& panZ,
                                 double& rotX,
                                 double& rotY,
                                 double& rotZ,
@@ -109,6 +110,7 @@ namespace caret {
         
         void setTransformationControlValues(const double panX,
                                 const double panY,
+                                            const double panZ,
                                 const double rotX,
                                 const double rotY,
                                 const double rotZ,
@@ -137,6 +139,8 @@ namespace caret {
         QDoubleSpinBox* m_xPanDoubleSpinBox;
         
         QDoubleSpinBox* m_yPanDoubleSpinBox;
+        
+        QDoubleSpinBox* m_zPanDoubleSpinBox;
         
         QDoubleSpinBox* m_xRotateDoubleSpinBox;
         
