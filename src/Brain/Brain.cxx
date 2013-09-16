@@ -3253,15 +3253,6 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
     
     CaretDataFile::setFileReadingUsernameAndPassword(reloadDataFileEvent->getUsername(),
                                                      reloadDataFileEvent->getPassword());
-
-//    EventProgressUpdate progressEvent(0,
-//                                      1,
-//                                      0,
-//                                      ("Reading: " + caretDataFile->getFileNameNoPath()));
-//    EventManager::get()->sendEvent(progressEvent.getPointer());
-    
-    CaretDataFile::setFileReadingUsernameAndPassword("",
-                                                     "");
     
     try {
         readOrReloadDataFile(caretDataFile,

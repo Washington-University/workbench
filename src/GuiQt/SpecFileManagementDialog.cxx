@@ -75,6 +75,7 @@
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
+#include "UsernamePasswordWidget.h"
 #include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
@@ -1487,12 +1488,36 @@ SpecFileManagementDialog::okButtonClicked ()
 void
 SpecFileManagementDialog::okButtonClickedOpenSpecFile()
 {
+    AString username;
+    AString password;
+    
+    if (m_specFile->hasFilesWithRemotePathSelectedForLoading()) {
+        const QString msg("This spec file contains files that are on the network.  "
+                          "If accessing the files requires a username and "
+                          "password, enter it here.  Otherwise, remove any "
+                          "text from the username and password fields.");
+        
+        
+        if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(this,
+                                                                   "Username and Password",
+                                                                   msg,
+                                                                   username,
+                                                                   password)) {
+            /* nothing */
+        }
+        else {
+            return;
+        }
+    }
+    
     AString specFileErrorMessage = writeSpecFile(true);
     AString errorMessages;
     errorMessages.appendWithNewLine(specFileErrorMessage);
     
     EventSpecFileReadDataFiles readSpecFileEvent(m_brain,
                                                  m_specFile);
+    readSpecFileEvent.setUsernameAndPassword(username,
+                                             password);
     
     ProgressReportingDialog::runEvent(&readSpecFileEvent,
                                       this,
@@ -1704,10 +1729,34 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
             }
         }
         
+        AString username;
+        AString password;
+        
+        if (DataFile::isFileOnNetwork(caretDataFile->getFileName())) {
+            const QString msg("This file is on the network.  "
+                              "If accessing the file requires a username and "
+                              "password, enter it here.  Otherwise, remove any "
+                              "text from the username and password fields.");
+            
+            
+            if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(this,
+                                                                       "Username and Password",
+                                                                       msg,
+                                                                       username,
+                                                                       password)) {
+                /* nothing */
+            }
+            else {
+                return;
+            }
+        }
+        
         specFileDataFile->setSavingSelected(false);
         
         EventDataFileReload reloadEvent(m_brain,
                                         caretDataFile);
+        reloadEvent.setUsernameAndPassword(username,
+                                           password);
         EventManager::get()->sendEvent(reloadEvent.getPointer());
         
         if (reloadEvent.isError()) {
@@ -1715,7 +1764,30 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         }
     }
     else {
+        AString username;
+        AString password;
+        if (DataFile::isFileOnNetwork(specFileDataFile->getFileName())) {
+            const QString msg("This file is on the network.  "
+                              "If accessing the file requires a username and "
+                              "password, enter it here.  Otherwise, remove any "
+                              "text from the username and password fields.");
+            
+            
+            if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(this,
+                                                                       "Username and Password",
+                                                                       msg,
+                                                                       username,
+                                                                       password)) {
+                /* nothing */
+            }
+            else {
+                return;
+            }
+        }
+        
         EventDataFileRead readEvent(m_brain);
+        readEvent.setUsernameAndPassword(username,
+                                         password);
         readEvent.addDataFile(specFileDataFile->getStructure(),
                               specFileDataFile->getDataFileType(),
                               specFileDataFile->getFileName());

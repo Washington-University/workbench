@@ -762,6 +762,31 @@ SpecFile::getNumberOfFilesSelectedForSaving() const
 }
 
 /**
+ * @return True if there is at least one file with a remote path 
+ * (http...) AND the file is selected for loading.
+ */
+bool
+SpecFile::hasFilesWithRemotePathSelectedForLoading() const
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        const SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            const SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+            if (sfdf->isLoadingSelected()) {
+                if (DataFile::isFileOnNetwork(sfdf->getFileName())) {
+                    return true;
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
  * @return A vector containing all file names.
  */
 std::vector<AString>

@@ -89,6 +89,8 @@ namespace caret {
                                     const AString& filename,
                                     const bool fileSelectionStatus);
         
+        bool hasFilesWithRemotePathSelectedForLoading() const;
+        
         int32_t getNumberOfFiles() const;
         
         int32_t getNumberOfFilesSelectedForLoading() const;
