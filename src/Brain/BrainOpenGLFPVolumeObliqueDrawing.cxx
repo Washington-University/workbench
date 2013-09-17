@@ -65,6 +65,7 @@
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "ModelVolume.h"
+#include "NodeAndVoxelColoring.h"
 #include "Plane.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -1248,8 +1249,20 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
     std::vector<float> quadNormals;
     std::vector<uint8_t> quadRGBAs;
     
-    const bool doPerVertexNormalsAndColors = false;
-    bool numberOfVoxelsEstimated = false;
+    /*
+     * For fastest coloring, need to color data values as a group
+     * Also, reserve space for values to avoid reallocation
+     */
+    std::vector<VolumeSlice> volumeSlices;
+    for (int32_t i = 0; i < numVolumes; i++) {
+        volumeSlices.push_back(VolumeSlice(volumeDrawInfo[i].volumeFile,
+                                           volumeDrawInfo[i].mapIndex));
+    }
+    
+    /*
+     * Track voxels that will be drawn
+     */
+    std::vector<VoxelToDraw*> voxelsToDraw;
     
     if ((bottomLeftToTopLeftDistance > 0)
         && (bottomRightToTopRightDistance > 0)) {
@@ -1329,83 +1342,87 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
             /*
              * Initialize bottom and top left coordinate of first voxel in row
              */
-            float bottomLeftVoxelCoord[3] = {
+            double bottomLeftVoxelCoord[3] = {
                 leftEdgeBottomCoord[0],
                 leftEdgeBottomCoord[1],
                 leftEdgeBottomCoord[2]
             };
-            float topLeftVoxelCoord[3] = {
+            double topLeftVoxelCoord[3] = {
                 leftEdgeTopCoord[0],
                 leftEdgeTopCoord[1],
                 leftEdgeTopCoord[2]
             };
             
-            /*
-             * Allocate buffers for drawing voxels now that we have a reasonable
-             * estimate on the number of voxels
-             */
-            if ( ! numberOfVoxelsEstimated) {
-                numberOfVoxelsEstimated = true;
-                
-                const int64_t estimatedNumberOfVoxels = (numVoxelsInRow + 1) * std::ceil(numLeftSteps);
-//                std::cout << "Estimate number of voxels from rows "
-//                << estimatedNumberOfVoxels
-//                << std::endl;
-                
-                quadCoords.reserve(estimatedNumberOfVoxels * 4 * 3);
-                quadNormals.reserve(estimatedNumberOfVoxels * 3);
-                quadRGBAs.reserve(estimatedNumberOfVoxels * 4);
-                
-                const bool doPerVertexNormalsAndColors = false;
-                if (doPerVertexNormalsAndColors) {
-                    quadNormals.reserve(estimatedNumberOfVoxels * 3 * 4);
-                    quadRGBAs.reserve(estimatedNumberOfVoxels * 4 * 4);
-                }
-            }
+            const bool useInterpolatedVoxel = true;
             
             /*
              * Draw the voxels in the row
              */
-            bool firstFlag = false;
             for (int64_t i = 0; i < numVoxelsInRow; i++) {
                 /*
                  * Initialize color for voxel (zero alpha => do not draw)
                  */
-                uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
+//                uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
                 
-//                bool useInterpolatedVoxel = false;
+                /*
+                 * Top right corner of voxel
+                 */
+                const double topRightVoxelCoord[3] = {
+                    topLeftVoxelCoord[0] + topVoxelEdgeDX,
+                    topLeftVoxelCoord[1] + topVoxelEdgeDY,
+                    topLeftVoxelCoord[2] + topVoxelEdgeDZ
+                };
+                
+                const float voxelCenter[3] = {
+                    (bottomLeftVoxelCoord[0] + topRightVoxelCoord[0]) * 0.5,
+                    (bottomLeftVoxelCoord[1] + topRightVoxelCoord[1]) * 0.5,
+                    (bottomLeftVoxelCoord[2] + topRightVoxelCoord[2]) * 0.5
+                };
+
                 
                 /*
                  * Loop through the volumes selected as overlays.
                  */
+                VoxelToDraw* voxelDrawingInfo = NULL;
+                
                 for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
                     const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = volumeDrawInfo[iVol];
                     const VolumeMappableInterface* volInter = vdi.volumeFile;
-//                    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volInter);
+                    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volInter);
                     uint8_t rgba[4] = { 0, 0, 0, 0 };
                     int64_t voxelI, voxelJ, voxelK;
-//                    if (useInterpolatedVoxel
-//                        && (volumeFile != NULL)) {
-//                        const bool valid = volumeFile->getColorForInterpolatedValue(bottomLeftVoxelCoord,
-//                                                                                    vdi.mapIndex,
-//                                                                                    paletteFile,
-//                                                                                    displayGroup,
-//                                                                                    tabIndex,
-//                                                                                    rgba);
-//                        if (valid) {
-//                            volInter->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
+                    
+                    float value = 0;
+                    bool valueValidFlag = false;
+                    
+                    bool isPaletteMappedVolumeFile = false;
+                    if (volumeFile != NULL) {
+                        if (volumeFile->isMappedWithPalette()) {
+                            isPaletteMappedVolumeFile = true;
+                        }
+                    }
+                    
+                    if (useInterpolatedVoxel
+                        && isPaletteMappedVolumeFile) {
+                        value = volumeFile->interpolateValue(voxelCenter,
+                                                             VolumeFile::CUBIC,
+                                                             &valueValidFlag,
+                                                             vdi.mapIndex);
+//                        if (valueValidFlag
+//                            && isSelectionMode) {
+//                            volumeFile->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
 //                                                     voxelI, voxelJ, voxelK);
 //                            
-//                            if ( ! volInter->indexValid(voxelI, voxelJ, voxelK)) {
+//                            if ( ! volumeFile->indexValid(voxelI, voxelJ, voxelK)) {
 //                                rgba[3] = 0;
 //                            }
 //                        }
-//                    }
-//                    else {
+                    }
+                    else {
                         /*
                          * Does the coordinate correspond to a valid voxel?
                          */
-                        volInter->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
+                        volInter->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
                                                  voxelI, voxelJ, voxelK);
                         
                         if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
@@ -1415,120 +1432,149 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                                                          tabIndex,
                                                          rgba);
                         }
-//                        
-//                        if (volumeFile != NULL) {
-//                            volumeFile->interpolateValue(bottomLeftVoxelCoord);
-//                        }
-//                    }
+                    }
+                    
+                    if (valueValidFlag) {
+                        if (voxelDrawingInfo == NULL) {
+                            /*
+                             * Bottom right corner of voxel
+                             */
+                            const double bottomRightVoxelCoord[3] = {
+                                bottomLeftVoxelCoord[0] + bottomVoxelEdgeDX,
+                                bottomLeftVoxelCoord[1] + bottomVoxelEdgeDY,
+                                bottomLeftVoxelCoord[2] + bottomVoxelEdgeDZ
+                            };
+                            
+                            /*
+                             * Top right corner of voxel
+                             */
+                            const double topRightVoxelCoord[3] = {
+                                topLeftVoxelCoord[0] + topVoxelEdgeDX,
+                                topLeftVoxelCoord[1] + topVoxelEdgeDY,
+                                topLeftVoxelCoord[2] + topVoxelEdgeDZ
+                            };
+                            
+                            voxelDrawingInfo = new VoxelToDraw(voxelCenter,
+                                                               bottomLeftVoxelCoord,
+                                                           bottomRightVoxelCoord,
+                                                           topRightVoxelCoord,
+                                                           topLeftVoxelCoord);
+                        }
+                        
+                        const int64_t offset = volumeSlices[iVol].addValue(value);
+                        voxelDrawingInfo->addVolumeValue(iVol, offset);
+                        voxelsToDraw.push_back(voxelDrawingInfo);
+                    }
+                    
                     if (rgba[3] > 0) {
                         if ((rgba[0] > 0)
-                            && (rgba[1] > 0)
-                            && (rgba[2] > 0)) {
-                            if (isSelectionMode) {
-                                /*
-                                 * Performing a selection?
-                                 */
-                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-                                fixedPipelineDrawing->colorIdentification->addItem(rgba,
-                                                                                   SelectionItemDataTypeEnum::VOXEL,
-                                                                                   idIndex);
-                                rgba[3] = 255;
-                                identificationIndices.push_back(iVol);
-                                identificationIndices.push_back(vdi.mapIndex);
-                                identificationIndices.push_back(voxelI);
-                                identificationIndices.push_back(voxelJ);
-                                identificationIndices.push_back(voxelK);
-                            }
-                            
-                            voxelRGBA[0] = rgba[0];
-                            voxelRGBA[1] = rgba[1];
-                            voxelRGBA[2] = rgba[2];
-                            voxelRGBA[3] = rgba[3];
+                            || (rgba[1] > 0)
+                            || (rgba[2] > 0)) {
+//                            if (isSelectionMode) {
+//                                /*
+//                                 * Performing a selection?
+//                                 */
+//                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+//                                fixedPipelineDrawing->colorIdentification->addItem(rgba,
+//                                                                                   SelectionItemDataTypeEnum::VOXEL,
+//                                                                                   idIndex);
+//                                rgba[3] = 255;
+//                                identificationIndices.push_back(iVol);
+//                                identificationIndices.push_back(vdi.mapIndex);
+//                                identificationIndices.push_back(voxelI);
+//                                identificationIndices.push_back(voxelJ);
+//                                identificationIndices.push_back(voxelK);
+//                            }
+//                            
+//                            voxelRGBA[0] = rgba[0];
+//                            voxelRGBA[1] = rgba[1];
+//                            voxelRGBA[2] = rgba[2];
+//                            voxelRGBA[3] = rgba[3];
                         }
                     }
                 }
                 
-                if (voxelRGBA[3] > 0) {
-                    /*
-                     * Bottom right corner of voxel
-                     */
-                    const double bottomRightVoxelCoord[3] = {
-                        bottomLeftVoxelCoord[0] + bottomVoxelEdgeDX,
-                        bottomLeftVoxelCoord[1] + bottomVoxelEdgeDY,
-                        bottomLeftVoxelCoord[2] + bottomVoxelEdgeDZ
-                    };
-                    
-                    /*
-                     * Top right corner of voxel
-                     */
-                    const double topRightVoxelCoord[3] = {
-                        topLeftVoxelCoord[0] + topVoxelEdgeDX,
-                        topLeftVoxelCoord[1] + topVoxelEdgeDY,
-                        topLeftVoxelCoord[2] + topVoxelEdgeDZ
-                    };
-
-                    if (firstFlag) {
-                        firstFlag = false;
-                        std::cout << "bl: " << qPrintable(AString::fromNumbers(bottomLeftVoxelCoord, 3, ", ")) << std::endl;
-                        std::cout << "br: " << qPrintable(AString::fromNumbers(bottomRightVoxelCoord, 3, ", ")) << std::endl;
-                        std::cout << "tr: " << qPrintable(AString::fromNumbers(topRightVoxelCoord, 3, ", ")) << std::endl;
-                        std::cout << "tl: " << qPrintable(AString::fromNumbers(topLeftVoxelCoord, 3, ", ")) << std::endl;
-                    }
-                    
-                    quadRGBAs.push_back(voxelRGBA[0]);
-                    quadRGBAs.push_back(voxelRGBA[1]);
-                    quadRGBAs.push_back(voxelRGBA[2]);
-                    quadRGBAs.push_back(voxelRGBA[3]);
-                    
-                    quadNormals.push_back(sliceNormalVector[0]);
-                    quadNormals.push_back(sliceNormalVector[1]);
-                    quadNormals.push_back(sliceNormalVector[2]);
-                    
-                    if (doPerVertexNormalsAndColors) {
-                        quadRGBAs.push_back(voxelRGBA[0]);
-                        quadRGBAs.push_back(voxelRGBA[1]);
-                        quadRGBAs.push_back(voxelRGBA[2]);
-                        quadRGBAs.push_back(voxelRGBA[3]);
-                        
-                        quadNormals.push_back(sliceNormalVector[0]);
-                        quadNormals.push_back(sliceNormalVector[1]);
-                        quadNormals.push_back(sliceNormalVector[2]);
-
-                        quadRGBAs.push_back(voxelRGBA[0]);
-                        quadRGBAs.push_back(voxelRGBA[1]);
-                        quadRGBAs.push_back(voxelRGBA[2]);
-                        quadRGBAs.push_back(voxelRGBA[3]);
-                        
-                        quadNormals.push_back(sliceNormalVector[0]);
-                        quadNormals.push_back(sliceNormalVector[1]);
-                        quadNormals.push_back(sliceNormalVector[2]);
-                        
-                        quadRGBAs.push_back(voxelRGBA[0]);
-                        quadRGBAs.push_back(voxelRGBA[1]);
-                        quadRGBAs.push_back(voxelRGBA[2]);
-                        quadRGBAs.push_back(voxelRGBA[3]);
-                        
-                        quadNormals.push_back(sliceNormalVector[0]);
-                        quadNormals.push_back(sliceNormalVector[1]);
-                        quadNormals.push_back(sliceNormalVector[2]);
-                    }
-                    
-                    quadCoords.push_back(bottomLeftVoxelCoord[0]);
-                    quadCoords.push_back(bottomLeftVoxelCoord[1]);
-                    quadCoords.push_back(bottomLeftVoxelCoord[2]);
-                    
-                    quadCoords.push_back(bottomRightVoxelCoord[0]);
-                    quadCoords.push_back(bottomRightVoxelCoord[1]);
-                    quadCoords.push_back(bottomRightVoxelCoord[2]);
-                    
-                    quadCoords.push_back(topRightVoxelCoord[0]);
-                    quadCoords.push_back(topRightVoxelCoord[1]);
-                    quadCoords.push_back(topRightVoxelCoord[2]);
-                    
-                    quadCoords.push_back(topLeftVoxelCoord[0]);
-                    quadCoords.push_back(topLeftVoxelCoord[1]);
-                    quadCoords.push_back(topLeftVoxelCoord[2]);
-                }
+//                if (voxelRGBA[3] > 0) {
+//                    /*
+//                     * Bottom right corner of voxel
+//                     */
+//                    const double bottomRightVoxelCoord[3] = {
+//                        bottomLeftVoxelCoord[0] + bottomVoxelEdgeDX,
+//                        bottomLeftVoxelCoord[1] + bottomVoxelEdgeDY,
+//                        bottomLeftVoxelCoord[2] + bottomVoxelEdgeDZ
+//                    };
+//                    
+//                    /*
+//                     * Top right corner of voxel
+//                     */
+//                    const double topRightVoxelCoord[3] = {
+//                        topLeftVoxelCoord[0] + topVoxelEdgeDX,
+//                        topLeftVoxelCoord[1] + topVoxelEdgeDY,
+//                        topLeftVoxelCoord[2] + topVoxelEdgeDZ
+//                    };
+//
+//                    if (firstFlag) {
+//                        firstFlag = false;
+//                        std::cout << "bl: " << qPrintable(AString::fromNumbers(bottomLeftVoxelCoord, 3, ", ")) << std::endl;
+//                        std::cout << "br: " << qPrintable(AString::fromNumbers(bottomRightVoxelCoord, 3, ", ")) << std::endl;
+//                        std::cout << "tr: " << qPrintable(AString::fromNumbers(topRightVoxelCoord, 3, ", ")) << std::endl;
+//                        std::cout << "tl: " << qPrintable(AString::fromNumbers(topLeftVoxelCoord, 3, ", ")) << std::endl;
+//                    }
+//                    
+//                    quadRGBAs.push_back(voxelRGBA[0]);
+//                    quadRGBAs.push_back(voxelRGBA[1]);
+//                    quadRGBAs.push_back(voxelRGBA[2]);
+//                    quadRGBAs.push_back(voxelRGBA[3]);
+//                    
+//                    quadNormals.push_back(sliceNormalVector[0]);
+//                    quadNormals.push_back(sliceNormalVector[1]);
+//                    quadNormals.push_back(sliceNormalVector[2]);
+//                    
+//                    if (doPerVertexNormalsAndColors) {
+//                        quadRGBAs.push_back(voxelRGBA[0]);
+//                        quadRGBAs.push_back(voxelRGBA[1]);
+//                        quadRGBAs.push_back(voxelRGBA[2]);
+//                        quadRGBAs.push_back(voxelRGBA[3]);
+//                        
+//                        quadNormals.push_back(sliceNormalVector[0]);
+//                        quadNormals.push_back(sliceNormalVector[1]);
+//                        quadNormals.push_back(sliceNormalVector[2]);
+//
+//                        quadRGBAs.push_back(voxelRGBA[0]);
+//                        quadRGBAs.push_back(voxelRGBA[1]);
+//                        quadRGBAs.push_back(voxelRGBA[2]);
+//                        quadRGBAs.push_back(voxelRGBA[3]);
+//                        
+//                        quadNormals.push_back(sliceNormalVector[0]);
+//                        quadNormals.push_back(sliceNormalVector[1]);
+//                        quadNormals.push_back(sliceNormalVector[2]);
+//                        
+//                        quadRGBAs.push_back(voxelRGBA[0]);
+//                        quadRGBAs.push_back(voxelRGBA[1]);
+//                        quadRGBAs.push_back(voxelRGBA[2]);
+//                        quadRGBAs.push_back(voxelRGBA[3]);
+//                        
+//                        quadNormals.push_back(sliceNormalVector[0]);
+//                        quadNormals.push_back(sliceNormalVector[1]);
+//                        quadNormals.push_back(sliceNormalVector[2]);
+//                    }
+//                    
+//                    quadCoords.push_back(bottomLeftVoxelCoord[0]);
+//                    quadCoords.push_back(bottomLeftVoxelCoord[1]);
+//                    quadCoords.push_back(bottomLeftVoxelCoord[2]);
+//                    
+//                    quadCoords.push_back(bottomRightVoxelCoord[0]);
+//                    quadCoords.push_back(bottomRightVoxelCoord[1]);
+//                    quadCoords.push_back(bottomRightVoxelCoord[2]);
+//                    
+//                    quadCoords.push_back(topRightVoxelCoord[0]);
+//                    quadCoords.push_back(topRightVoxelCoord[1]);
+//                    quadCoords.push_back(topRightVoxelCoord[2]);
+//                    
+//                    quadCoords.push_back(topLeftVoxelCoord[0]);
+//                    quadCoords.push_back(topLeftVoxelCoord[1]);
+//                    quadCoords.push_back(topLeftVoxelCoord[2]);
+//                }
                 
                 /*
                  * Move to the next voxel in the row
@@ -1543,6 +1589,161 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
         }
     }
 
+    /*
+     * Color voxel values
+     */
+    for (int32_t i = 0; i < numVolumes; i++) {
+        const int64_t numValues = static_cast<int64_t>(volumeSlices[i].m_values.size());
+        if (numValues > 0) {
+            volumeSlices[i].allocateColors();
+    
+            VolumeMappableInterface* volume = volumeSlices[i].m_volumeMappableInterface;
+            CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(volume);
+            CaretAssert(mappableFile);
+            const int32_t mapIndex = volumeSlices[i].m_mapIndex;
+            const float* values = &volumeSlices[i].m_values[0];
+            uint8_t* rgba = &volumeSlices[i].m_rgba[0];
+            
+            if (mappableFile->isMappedWithPalette()) {
+                const PaletteColorMapping* paletteColorMapping = mappableFile->getMapPaletteColorMapping(mapIndex);
+                const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+                const Palette* palette = paletteFile->getPaletteByName(paletteName);
+                if (palette != NULL) {
+                    NodeAndVoxelColoring::colorScalarsWithPalette(mappableFile->getMapFastStatistics(mapIndex),
+                                                                  paletteColorMapping,
+                                                                  palette,
+                                                                  values,
+                                                                  values,
+                                                                  numValues,
+                                                                  rgba);
+                    
+                }
+                else {
+                    CaretLogWarning("Missing palette named: "
+                                    + paletteName);
+                }
+            }
+            else if (mappableFile->isMappedWithLabelTable()) {
+                GiftiLabelTable* labelTable = mappableFile->getMapLabelTable(mapIndex);
+                NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
+                                                                 values,
+                                                                 numValues,
+                                                                 rgba);
+            }
+            else {
+                CaretAssert(0);
+            }
+        }
+    }
+    
+    const int64_t numVoxelsToDraw = static_cast<int64_t>(voxelsToDraw.size());
+    
+    /*
+     * Reserve space to avoid reallocations
+     */
+    const bool doPerVertexNormalsAndColors = false;
+    if (numVoxelsToDraw > 0) {
+        quadCoords.reserve(numVoxelsToDraw * 4 * 3);
+        quadNormals.reserve(numVoxelsToDraw * 3);
+        quadRGBAs.reserve(numVoxelsToDraw * 4);
+        
+        if (doPerVertexNormalsAndColors) {
+            quadNormals.reserve(numVoxelsToDraw * 3 * 4);
+            quadRGBAs.reserve(numVoxelsToDraw * 4 * 4);
+        }
+    }
+
+    for (int64_t iVox = 0; iVox < numVoxelsToDraw; iVox++) {
+        CaretAssertVectorIndex(voxelsToDraw, iVox);
+        VoxelToDraw* vtd = voxelsToDraw[iVox];
+        
+        uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
+        
+        const int32_t numSlicesForVoxel = static_cast<int32_t>(vtd->m_sliceIndices.size());
+        for (int32_t iSlice = 0; iSlice < numSlicesForVoxel; iSlice++) {
+            const int32_t sliceIndex = vtd->m_sliceIndices[iSlice];
+            const int64_t voxelOffset = vtd->m_sliceOffsets[iSlice];
+            
+            const uint8_t* rgba = volumeSlices[sliceIndex].getRgbaForValueByIndex(voxelOffset);
+            if (rgba[3] > 0) {
+                voxelRGBA[0] = rgba[0];
+                voxelRGBA[1] = rgba[1];
+                voxelRGBA[2] = rgba[2];
+                voxelRGBA[3] = rgba[3];
+                
+                if (isSelectionMode) {
+                    VolumeMappableInterface* volMap = volumeSlices[sliceIndex].m_volumeMappableInterface;
+                    int64_t voxelI, voxelJ, voxelK;
+                    volMap->enclosingVoxel(vtd->m_center[0], vtd->m_center[1], vtd->m_center[2],
+                                             voxelI, voxelJ, voxelK);
+                    
+                    if (volMap->indexValid(voxelI, voxelJ, voxelK)) {
+                        /*
+                         * Performing a selection?
+                         */
+                        const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+                        fixedPipelineDrawing->colorIdentification->addItem(voxelRGBA,
+                                                                           SelectionItemDataTypeEnum::VOXEL,
+                                                                           idIndex);
+                        voxelRGBA[3] = 255;
+                        
+                        identificationIndices.push_back(sliceIndex);
+                        identificationIndices.push_back(volumeSlices[sliceIndex].m_mapIndex);
+                        identificationIndices.push_back(voxelI);
+                        identificationIndices.push_back(voxelJ);
+                        identificationIndices.push_back(voxelK);
+                    }
+                }
+            }
+        }
+        
+        if (voxelRGBA[3] > 0) {
+            quadRGBAs.push_back(voxelRGBA[0]);
+            quadRGBAs.push_back(voxelRGBA[1]);
+            quadRGBAs.push_back(voxelRGBA[2]);
+            quadRGBAs.push_back(voxelRGBA[3]);
+            
+            quadNormals.push_back(sliceNormalVector[0]);
+            quadNormals.push_back(sliceNormalVector[1]);
+            quadNormals.push_back(sliceNormalVector[2]);
+            
+            if (doPerVertexNormalsAndColors) {
+                quadRGBAs.push_back(voxelRGBA[0]);
+                quadRGBAs.push_back(voxelRGBA[1]);
+                quadRGBAs.push_back(voxelRGBA[2]);
+                quadRGBAs.push_back(voxelRGBA[3]);
+                
+                quadNormals.push_back(sliceNormalVector[0]);
+                quadNormals.push_back(sliceNormalVector[1]);
+                quadNormals.push_back(sliceNormalVector[2]);
+                
+                quadRGBAs.push_back(voxelRGBA[0]);
+                quadRGBAs.push_back(voxelRGBA[1]);
+                quadRGBAs.push_back(voxelRGBA[2]);
+                quadRGBAs.push_back(voxelRGBA[3]);
+                
+                quadNormals.push_back(sliceNormalVector[0]);
+                quadNormals.push_back(sliceNormalVector[1]);
+                quadNormals.push_back(sliceNormalVector[2]);
+                
+                quadRGBAs.push_back(voxelRGBA[0]);
+                quadRGBAs.push_back(voxelRGBA[1]);
+                quadRGBAs.push_back(voxelRGBA[2]);
+                quadRGBAs.push_back(voxelRGBA[3]);
+                
+                quadNormals.push_back(sliceNormalVector[0]);
+                quadNormals.push_back(sliceNormalVector[1]);
+                quadNormals.push_back(sliceNormalVector[2]);
+            }
+            
+            for (int32_t iq = 0; iq < 12; iq++) {
+                quadCoords.push_back(vtd->m_coordinates[iq]);
+            }
+        }
+        
+        delete vtd;
+    }
+    
 //    std::cout << "Number of voxels from quads: "
 //    << (quadCoords.size() / 12)
 //    << std::endl;
@@ -2418,4 +2619,469 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
     glDisableClientState(GL_NORMAL_ARRAY);
 }
 
+
+
+
+
+
+
+
+
+///**
+// * Draw a volume slice by interpolating in model coordinates.
+// *
+// * @param fixedPipelineDrawing
+// *   The fixed pipeline drawing.
+// * @param volumeDrawInfo
+// *   Vector containing about volumes selected as overlays for drawing.
+// * @param sliceViewPlane
+// *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
+// * @param identificationIndices
+// *   Indices into with identification information may be added.
+// * @param paletteFile
+// *   The palette file used for voxel coloring.
+// * @param idPerVoxelCount
+// *   Number of items per voxel identification for identificationIndices
+// * @param transformationMatrix
+// *   Transformation matrix for screen to model.
+// * @param displayGroup
+// *   The selected display group for volume labels.
+// * @param tabIndex
+// *   The selected tab index for volume labels.
+// * @param screenBounds
+// *   Bounds of the screen.
+// * @param sliceNormalVector
+// *   Unit normal vector of slice being drawn.
+// * @param voxelSize
+// *   Size of voxels.
+// * @param isSelectionMode
+// *   True if performing selection.
+// */
+//void
+//BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+//                                                                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+//                                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                                                                          std::vector<int32_t>& identificationIndices,
+//                                                                          const PaletteFile* paletteFile,
+//                                                                          const int32_t idPerVoxelCount,
+//                                                                          const Matrix4x4& transformationMatrix,
+//                                                                          const DisplayGroupEnum::Enum displayGroup,
+//                                                                          const int32_t tabIndex,
+//                                                                          const float screenBounds[4],
+//                                                                          const float sliceNormalVector[3],
+//                                                                          const float voxelSize,
+//                                                                          const float zoom,
+//                                                                          const bool isSelectionMode)
+//{
+//    const int32_t numVolumes = static_cast<int32_t>(volumeDrawInfo.size());
+//    
+//    const float minScreenX = screenBounds[0];
+//    const float maxScreenX = screenBounds[1];
+//    const float minScreenY = screenBounds[2];
+//    const float maxScreenY = screenBounds[3];
+//    
+//    /*
+//     * Set the corners of the screen for the respective view
+//     */
+//    float bottomLeft[3];
+//    float bottomRight[3];
+//    float topRight[3];
+//    float topLeft[3];
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            CaretAssert(0);
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            bottomLeft[0] = minScreenX;
+//            bottomLeft[1] = minScreenY;
+//            bottomLeft[2] = 0;
+//            bottomRight[0] = maxScreenX;
+//            bottomRight[1] = minScreenY;
+//            bottomRight[2] = 0;
+//            topRight[0] = maxScreenX;
+//            topRight[1] = maxScreenY;
+//            topRight[2] = 0;
+//            topLeft[0] = minScreenX;
+//            topLeft[1] = maxScreenY;
+//            topLeft[2] = 0;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            bottomLeft[0] = minScreenX;
+//            bottomLeft[1] = 0;
+//            bottomLeft[2] = minScreenY;
+//            bottomRight[0] = maxScreenX;
+//            bottomRight[1] = 0;
+//            bottomRight[2] = minScreenY;
+//            topRight[0] = maxScreenX;
+//            topRight[1] = 0;
+//            topRight[2] = maxScreenY;
+//            topLeft[0] = minScreenX;
+//            topLeft[1] = 0;
+//            topLeft[2] = maxScreenY;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            bottomLeft[0] = 0;
+//            bottomLeft[1] = minScreenX;
+//            bottomLeft[2] = minScreenY;
+//            bottomRight[0] = 0;
+//            bottomRight[1] = maxScreenX;
+//            bottomRight[2] = minScreenY;
+//            topRight[0] = 0;
+//            topRight[1] = maxScreenX;
+//            topRight[2] = maxScreenY;
+//            topLeft[0] = 0;
+//            topLeft[1] = minScreenX;
+//            topLeft[2] = maxScreenY;
+//            break;
+//    }
+//    
+//    /*
+//     * Transform the corners of the screen into model coordinates
+//     */
+//    transformationMatrix.multiplyPoint3(bottomLeft);
+//    transformationMatrix.multiplyPoint3(bottomRight);
+//    transformationMatrix.multiplyPoint3(topRight);
+//    transformationMatrix.multiplyPoint3(topLeft);
+//    
+//    /*
+//     * Unit vector and distance in model coords along left side of screen
+//     */
+//    double bottomLeftToTopLeftUnitVector[3] = {
+//        topLeft[0] - bottomLeft[0],
+//        topLeft[1] - bottomLeft[1],
+//        topLeft[2] - bottomLeft[2],
+//    };
+//    MathFunctions::normalizeVector(bottomLeftToTopLeftUnitVector);
+//    const double bottomLeftToTopLeftDistance = MathFunctions::distance3D(bottomLeft,
+//                                                                         topLeft);
+//    
+//    /*
+//     * Unit vector and distance in model coords along right side of screen
+//     */
+//    double bottomRightToTopRightUnitVector[3] = {
+//        topRight[0] - bottomRight[0],
+//        topRight[1] - bottomRight[1],
+//        topRight[2] - bottomRight[2]
+//    };
+//    MathFunctions::normalizeVector(bottomRightToTopRightUnitVector);
+//    const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight,
+//                                                                           topRight);
+//    /*
+//     * quadCoords is the coordinates for all four corners of a 'quad'
+//     * that is used to draw a voxel.  quadRGBA is the colors for each
+//     * voxel drawn as a 'quad'.
+//     */
+//    std::vector<float> quadCoords;
+//    std::vector<float> quadNormals;
+//    std::vector<uint8_t> quadRGBAs;
+//    
+//    const bool doPerVertexNormalsAndColors = false;
+//    bool numberOfVoxelsEstimated = false;
+//    
+//    if ((bottomLeftToTopLeftDistance > 0)
+//        && (bottomRightToTopRightDistance > 0)) {
+//        
+//        const double bottomLeftToTopLeftStep = voxelSize;
+//        const double numLeftSteps = (bottomLeftToTopLeftDistance / bottomLeftToTopLeftStep);
+//        
+//        const double bottomRightToTopRightStep = (bottomRightToTopRightDistance
+//                                                  / numLeftSteps);
+//        
+//        const double dtVertical = bottomLeftToTopLeftStep / bottomLeftToTopLeftDistance;
+//        
+//        /*
+//         * Voxels are drawn in rows, left to right, across the screen,
+//         * starting at the bottom.
+//         */
+//        double leftEdgeBottomCoord[3];
+//        double leftEdgeTopCoord[3];
+//        double rightEdgeBottomCoord[3];
+//        double rightEdgeTopCoord[3];
+//        for (double tVertical = 0.0, dLeft = 0.0, dRight = 0.0;
+//             tVertical < 1.0;
+//             tVertical += dtVertical, dLeft += bottomLeftToTopLeftStep, dRight += bottomRightToTopRightStep) {
+//            /*
+//             * Coordinate on left edge at BOTTOM of current row
+//             */
+//            leftEdgeBottomCoord[0] = bottomLeft[0] + (dLeft * bottomLeftToTopLeftUnitVector[0]);
+//            leftEdgeBottomCoord[1] = bottomLeft[1] + (dLeft * bottomLeftToTopLeftUnitVector[1]);
+//            leftEdgeBottomCoord[2] = bottomLeft[2] + (dLeft * bottomLeftToTopLeftUnitVector[2]);
+//            
+//            /*
+//             * Coordinate on right edge at BOTTOM of current row
+//             */
+//            rightEdgeBottomCoord[0] = bottomRight[0] + (dRight * bottomRightToTopRightUnitVector[0]);
+//            rightEdgeBottomCoord[1] = bottomRight[1] + (dRight * bottomRightToTopRightUnitVector[1]);
+//            rightEdgeBottomCoord[2] = bottomRight[2] + (dRight * bottomRightToTopRightUnitVector[2]);
+//            
+//            /*
+//             * Coordinate on left edge at TOP of current row
+//             */
+//            leftEdgeTopCoord[0] = bottomLeft[0] + ((dLeft + bottomLeftToTopLeftStep) * bottomLeftToTopLeftUnitVector[0]);
+//            leftEdgeTopCoord[1] = bottomLeft[1] + ((dLeft + bottomLeftToTopLeftStep) * bottomLeftToTopLeftUnitVector[1]);
+//            leftEdgeTopCoord[2] = bottomLeft[2] + ((dLeft + bottomLeftToTopLeftStep) * bottomLeftToTopLeftUnitVector[2]);
+//            
+//            /*
+//             * Coordinate on right edge at TOP of current row
+//             */
+//            rightEdgeTopCoord[0] = bottomRight[0] + ((dRight + bottomRightToTopRightStep) * bottomRightToTopRightUnitVector[0]);
+//            rightEdgeTopCoord[1] = bottomRight[1] + ((dRight + bottomRightToTopRightStep) * bottomRightToTopRightUnitVector[1]);
+//            rightEdgeTopCoord[2] = bottomRight[2] + ((dRight + bottomRightToTopRightStep) * bottomRightToTopRightUnitVector[2]);
+//            
+//            /*
+//             * Determine change in XYZ per voxel along the bottom of the current row
+//             */
+//            const double bottomVoxelEdgeDistance = MathFunctions::distance3D(leftEdgeBottomCoord,
+//                                                                             rightEdgeBottomCoord);
+//            double bottomEdgeUnitVector[3];
+//            MathFunctions::createUnitVector(leftEdgeBottomCoord, rightEdgeBottomCoord, bottomEdgeUnitVector);
+//            const int64_t numVoxelsInRow = bottomVoxelEdgeDistance / voxelSize;
+//            const double bottomEdgeVoxelSize = bottomVoxelEdgeDistance / numVoxelsInRow;
+//            const double bottomVoxelEdgeDX = bottomEdgeVoxelSize * bottomEdgeUnitVector[0];
+//            const double bottomVoxelEdgeDY = bottomEdgeVoxelSize * bottomEdgeUnitVector[1];
+//            const double bottomVoxelEdgeDZ = bottomEdgeVoxelSize * bottomEdgeUnitVector[2];
+//            
+//            /*
+//             * Determine change in XYZ per voxel along top of the current row
+//             */
+//            const double topVoxelEdgeDistance = MathFunctions::distance3D(leftEdgeTopCoord,
+//                                                                          rightEdgeTopCoord);
+//            double topEdgeUnitVector[3];
+//            MathFunctions::createUnitVector(leftEdgeTopCoord, rightEdgeTopCoord, topEdgeUnitVector);
+//            const double topEdgeVoxelSize = topVoxelEdgeDistance / numVoxelsInRow;
+//            const double topVoxelEdgeDX = topEdgeVoxelSize * topEdgeUnitVector[0];
+//            const double topVoxelEdgeDY = topEdgeVoxelSize * topEdgeUnitVector[1];
+//            const double topVoxelEdgeDZ = topEdgeVoxelSize * topEdgeUnitVector[2];
+//            
+//            /*
+//             * Initialize bottom and top left coordinate of first voxel in row
+//             */
+//            float bottomLeftVoxelCoord[3] = {
+//                leftEdgeBottomCoord[0],
+//                leftEdgeBottomCoord[1],
+//                leftEdgeBottomCoord[2]
+//            };
+//            float topLeftVoxelCoord[3] = {
+//                leftEdgeTopCoord[0],
+//                leftEdgeTopCoord[1],
+//                leftEdgeTopCoord[2]
+//            };
+//            
+//            /*
+//             * Allocate buffers for drawing voxels now that we have a reasonable
+//             * estimate on the number of voxels
+//             */
+//            if ( ! numberOfVoxelsEstimated) {
+//                numberOfVoxelsEstimated = true;
+//                
+//                const int64_t estimatedNumberOfVoxels = (numVoxelsInRow + 1) * std::ceil(numLeftSteps);
+//                //                std::cout << "Estimate number of voxels from rows "
+//                //                << estimatedNumberOfVoxels
+//                //                << std::endl;
+//                
+//                quadCoords.reserve(estimatedNumberOfVoxels * 4 * 3);
+//                quadNormals.reserve(estimatedNumberOfVoxels * 3);
+//                quadRGBAs.reserve(estimatedNumberOfVoxels * 4);
+//                
+//                const bool doPerVertexNormalsAndColors = false;
+//                if (doPerVertexNormalsAndColors) {
+//                    quadNormals.reserve(estimatedNumberOfVoxels * 3 * 4);
+//                    quadRGBAs.reserve(estimatedNumberOfVoxels * 4 * 4);
+//                }
+//            }
+//            
+//            const bool useInterpolatedVoxel = true;
+//            
+//            /*
+//             * Draw the voxels in the row
+//             */
+//            bool firstFlag = false;
+//            for (int64_t i = 0; i < numVoxelsInRow; i++) {
+//                /*
+//                 * Initialize color for voxel (zero alpha => do not draw)
+//                 */
+//                uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
+//                
+//                
+//                /*
+//                 * Loop through the volumes selected as overlays.
+//                 */
+//                for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
+//                    const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = volumeDrawInfo[iVol];
+//                    const VolumeMappableInterface* volInter = vdi.volumeFile;
+//                    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volInter);
+//                    uint8_t rgba[4] = { 0, 0, 0, 0 };
+//                    int64_t voxelI, voxelJ, voxelK;
+//                    if (useInterpolatedVoxel
+//                        && (volumeFile != NULL)) {
+//                        const bool valid = volumeFile->getColorForInterpolatedValueAtCoordinate(bottomLeftVoxelCoord,
+//                                                                                                vdi.mapIndex,
+//                                                                                                paletteFile,
+//                                                                                                displayGroup,
+//                                                                                                tabIndex,
+//                                                                                                rgba);
+//                        if (valid) {
+//                            volumeFile->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
+//                                                       voxelI, voxelJ, voxelK);
+//                            
+//                            if ( ! volumeFile->indexValid(voxelI, voxelJ, voxelK)) {
+//                                rgba[3] = 0;
+//                            }
+//                        }
+//                    }
+//                    else {
+//                        /*
+//                         * Does the coordinate correspond to a valid voxel?
+//                         */
+//                        volInter->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
+//                                                 voxelI, voxelJ, voxelK);
+//                        
+//                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
+//                            volInter->getVoxelColorInMap(paletteFile,
+//                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
+//                                                         displayGroup,
+//                                                         tabIndex,
+//                                                         rgba);
+//                        }
+//                        
+//                        if (volumeFile != NULL) {
+//                            volumeFile->interpolateValue(bottomLeftVoxelCoord);
+//                        }
+//                    }
+//                    if (rgba[3] > 0) {
+//                        if ((rgba[0] > 0)
+//                            || (rgba[1] > 0)
+//                            || (rgba[2] > 0)) {
+//                            if (isSelectionMode) {
+//                                /*
+//                                 * Performing a selection?
+//                                 */
+//                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+//                                fixedPipelineDrawing->colorIdentification->addItem(rgba,
+//                                                                                   SelectionItemDataTypeEnum::VOXEL,
+//                                                                                   idIndex);
+//                                rgba[3] = 255;
+//                                identificationIndices.push_back(iVol);
+//                                identificationIndices.push_back(vdi.mapIndex);
+//                                identificationIndices.push_back(voxelI);
+//                                identificationIndices.push_back(voxelJ);
+//                                identificationIndices.push_back(voxelK);
+//                            }
+//                            
+//                            voxelRGBA[0] = rgba[0];
+//                            voxelRGBA[1] = rgba[1];
+//                            voxelRGBA[2] = rgba[2];
+//                            voxelRGBA[3] = rgba[3];
+//                        }
+//                    }
+//                }
+//                
+//                if (voxelRGBA[3] > 0) {
+//                    /*
+//                     * Bottom right corner of voxel
+//                     */
+//                    const double bottomRightVoxelCoord[3] = {
+//                        bottomLeftVoxelCoord[0] + bottomVoxelEdgeDX,
+//                        bottomLeftVoxelCoord[1] + bottomVoxelEdgeDY,
+//                        bottomLeftVoxelCoord[2] + bottomVoxelEdgeDZ
+//                    };
+//                    
+//                    /*
+//                     * Top right corner of voxel
+//                     */
+//                    const double topRightVoxelCoord[3] = {
+//                        topLeftVoxelCoord[0] + topVoxelEdgeDX,
+//                        topLeftVoxelCoord[1] + topVoxelEdgeDY,
+//                        topLeftVoxelCoord[2] + topVoxelEdgeDZ
+//                    };
+//                    
+//                    if (firstFlag) {
+//                        firstFlag = false;
+//                        std::cout << "bl: " << qPrintable(AString::fromNumbers(bottomLeftVoxelCoord, 3, ", ")) << std::endl;
+//                        std::cout << "br: " << qPrintable(AString::fromNumbers(bottomRightVoxelCoord, 3, ", ")) << std::endl;
+//                        std::cout << "tr: " << qPrintable(AString::fromNumbers(topRightVoxelCoord, 3, ", ")) << std::endl;
+//                        std::cout << "tl: " << qPrintable(AString::fromNumbers(topLeftVoxelCoord, 3, ", ")) << std::endl;
+//                    }
+//                    
+//                    quadRGBAs.push_back(voxelRGBA[0]);
+//                    quadRGBAs.push_back(voxelRGBA[1]);
+//                    quadRGBAs.push_back(voxelRGBA[2]);
+//                    quadRGBAs.push_back(voxelRGBA[3]);
+//                    
+//                    quadNormals.push_back(sliceNormalVector[0]);
+//                    quadNormals.push_back(sliceNormalVector[1]);
+//                    quadNormals.push_back(sliceNormalVector[2]);
+//                    
+//                    if (doPerVertexNormalsAndColors) {
+//                        quadRGBAs.push_back(voxelRGBA[0]);
+//                        quadRGBAs.push_back(voxelRGBA[1]);
+//                        quadRGBAs.push_back(voxelRGBA[2]);
+//                        quadRGBAs.push_back(voxelRGBA[3]);
+//                        
+//                        quadNormals.push_back(sliceNormalVector[0]);
+//                        quadNormals.push_back(sliceNormalVector[1]);
+//                        quadNormals.push_back(sliceNormalVector[2]);
+//                        
+//                        quadRGBAs.push_back(voxelRGBA[0]);
+//                        quadRGBAs.push_back(voxelRGBA[1]);
+//                        quadRGBAs.push_back(voxelRGBA[2]);
+//                        quadRGBAs.push_back(voxelRGBA[3]);
+//                        
+//                        quadNormals.push_back(sliceNormalVector[0]);
+//                        quadNormals.push_back(sliceNormalVector[1]);
+//                        quadNormals.push_back(sliceNormalVector[2]);
+//                        
+//                        quadRGBAs.push_back(voxelRGBA[0]);
+//                        quadRGBAs.push_back(voxelRGBA[1]);
+//                        quadRGBAs.push_back(voxelRGBA[2]);
+//                        quadRGBAs.push_back(voxelRGBA[3]);
+//                        
+//                        quadNormals.push_back(sliceNormalVector[0]);
+//                        quadNormals.push_back(sliceNormalVector[1]);
+//                        quadNormals.push_back(sliceNormalVector[2]);
+//                    }
+//                    
+//                    quadCoords.push_back(bottomLeftVoxelCoord[0]);
+//                    quadCoords.push_back(bottomLeftVoxelCoord[1]);
+//                    quadCoords.push_back(bottomLeftVoxelCoord[2]);
+//                    
+//                    quadCoords.push_back(bottomRightVoxelCoord[0]);
+//                    quadCoords.push_back(bottomRightVoxelCoord[1]);
+//                    quadCoords.push_back(bottomRightVoxelCoord[2]);
+//                    
+//                    quadCoords.push_back(topRightVoxelCoord[0]);
+//                    quadCoords.push_back(topRightVoxelCoord[1]);
+//                    quadCoords.push_back(topRightVoxelCoord[2]);
+//                    
+//                    quadCoords.push_back(topLeftVoxelCoord[0]);
+//                    quadCoords.push_back(topLeftVoxelCoord[1]);
+//                    quadCoords.push_back(topLeftVoxelCoord[2]);
+//                }
+//                
+//                /*
+//                 * Move to the next voxel in the row
+//                 */
+//                bottomLeftVoxelCoord[0] += bottomVoxelEdgeDX;
+//                bottomLeftVoxelCoord[1] += bottomVoxelEdgeDY;
+//                bottomLeftVoxelCoord[2] += bottomVoxelEdgeDZ;
+//                topLeftVoxelCoord[0] += topVoxelEdgeDX;
+//                topLeftVoxelCoord[1] += topVoxelEdgeDY;
+//                topLeftVoxelCoord[2] += topVoxelEdgeDZ;
+//            }
+//        }
+//    }
+//    
+//    //    std::cout << "Number of voxels from quads: "
+//    //    << (quadCoords.size() / 12)
+//    //    << std::endl;
+//    
+//    if ( ! quadCoords.empty()) {
+//        glPushMatrix();
+//        glScalef(zoom, zoom, zoom);
+//        drawQuads(quadCoords,
+//                  quadNormals,
+//                  quadRGBAs);
+//        glPopMatrix();
+//    }
+//}
 

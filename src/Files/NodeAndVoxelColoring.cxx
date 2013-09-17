@@ -856,6 +856,46 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
 }
 
 /**
+ * Assign colors to label indices using a GIFTI label table.
+ *
+ * @param labelTabl
+ *     Label table used for coloring and indexing with label indices.
+ * @param labelIndices
+ *     The indices are are used to access colors in the label table.
+ * @param numberOfIndices
+ *     Number of indices.
+ * @param rgbv
+ *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
+ */
+void
+NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                                 const float* labelIndices,
+                                                 const int32_t numberOfIndices,
+                                                 uint8_t* rgbv)
+{
+    if (numberOfIndices <= 0) {
+        return;
+    }
+    const int64_t numRGBA = numberOfIndices * 4;
+    std::vector<float> rgbaFloatVector(numRGBA);
+    float* rgbaFloat = &rgbaFloatVector[0];
+    
+    NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
+                                                     labelIndices,
+                                                     numberOfIndices,
+                                                     rgbaFloat);
+    
+    for (int64_t i = 0; i < numRGBA; i++) {
+        if (rgbaFloat[i] < 0.0) {
+            rgbv[i] = 0;
+        }
+        else {
+            rgbv[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
+        }
+    }
+}
+
+/**
  * Convert the slice coloring to outline mode.
  *
  * @param rgbaInOut

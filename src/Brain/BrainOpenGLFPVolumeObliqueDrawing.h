@@ -64,6 +64,166 @@ namespace caret {
             DRAW_MODE_VOLUME_VIEW_SLICE_3D
         };
         
+        /**
+         * Holds values in the slice for a volume so that they 
+         * can be colored all at once which is more efficient than
+         * colors singles voxels many times
+         */
+        class VolumeSlice{
+        public:
+            /**
+             * Constructor
+             *
+             * @param volumeMappableInterface
+             *   Volume that contains the data values.
+             */
+            VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
+                        const int32_t mapIndex) {
+                m_volumeMappableInterface = volumeMappableInterface;
+                m_mapIndex = mapIndex;
+                
+                const int64_t sliceDim = 300;
+                m_values.reserve(sliceDim * sliceDim);
+            }
+            
+            /**
+             * Add a value and return its index.
+             *
+             * @param value
+             *     Value that is added.
+             * @return
+             *     The index for the value.
+             */
+            int64_t addValue(const float value) {
+                const int64_t indx = static_cast<int64_t>(m_values.size());
+                m_values.push_back(value);
+                return indx;
+            }
+            
+            /**
+             * Return RGBA colors for value using the value's index
+             * returned by addValue().
+             *
+             * @param indx
+             *    Index of the value.
+             * @return
+             *    RGBA coloring for value.
+             */
+            uint8_t* getRgbaForValueByIndex(const int64_t indx) {
+                CaretAssertVectorIndex(m_rgba, indx * 4);
+                return &m_rgba[indx*4];
+            }
+            
+            /**
+             * Allocate colors for the voxel values
+             */
+            void allocateColors() {
+                m_rgba.resize(m_values.size() * 4);
+            }
+            
+            
+            /**
+             * Volume containing the values
+             */
+            VolumeMappableInterface* m_volumeMappableInterface;
+            
+            /**
+             * Map index
+             */
+            int32_t m_mapIndex;
+            
+            /**
+             * The voxel values
+             */
+            std::vector<float> m_values;
+            
+            /**
+             * Coloring corresponding to the values (4 components per voxel)
+             */
+            std::vector<uint8_t> m_rgba;
+        };
+
+        /**
+         * For each voxel, contains offsets to each layer
+         */
+        class VoxelToDraw {
+        public:
+            /**
+             * Create a voxel for drawing.
+             * 
+             * @param center
+             *    Center of voxel.
+             * @param leftBottom
+             *    Left bottom coordinate of voxel.
+             * @param rightBottom
+             *    Right bottom coordinate of voxel.
+             * @param rightTop
+             *    Right top coordinate of voxel.
+             * @param leftTop
+             *    Left top coordinate of voxel.
+             */
+            VoxelToDraw(const float center[3],
+                        const double leftBottom[3],
+                        const double rightBottom[3],
+                        const double rightTop[3],
+                        const double leftTop[3]) {
+                m_center[0] = center[0];
+                m_center[1] = center[1];
+                m_center[2] = center[2];
+                
+                m_coordinates[0]  = leftBottom[0];
+                m_coordinates[1]  = leftBottom[1];
+                m_coordinates[2]  = leftBottom[2];
+                m_coordinates[3]  = rightBottom[0];
+                m_coordinates[4]  = rightBottom[1];
+                m_coordinates[5]  = rightBottom[2];
+                m_coordinates[6]  = rightTop[0];
+                m_coordinates[7]  = rightTop[1];
+                m_coordinates[8]  = rightTop[2];
+                m_coordinates[9]  = leftTop[0];
+                m_coordinates[10] = leftTop[1];
+                m_coordinates[11] = leftTop[2];
+                
+                const int64_t numSlices = 5;
+                m_sliceIndices.reserve(numSlices);
+                m_sliceOffsets.reserve(numSlices);
+            }
+            
+            /**
+             * Add a value from a volume slice.
+             *
+             * @param sliceIndex
+             *    Index of the slice.
+             * @param sliceOffset
+             *    Offset of value in the slice.
+             */
+            void addVolumeValue(const int32_t sliceIndex,
+                                const int32_t sliceOffset) {
+                m_sliceIndices.push_back(sliceIndex);
+                m_sliceOffsets.push_back(sliceOffset);
+            }
+            
+            /**
+             * Center of voxel.
+             */
+            float m_center[3];
+            
+            /**
+             * Corners of voxel
+             */
+            float m_coordinates[12];
+            
+            /*
+             * Index of volume in VoxelsInSliceForVolume
+             */
+            std::vector<int64_t> m_sliceIndices;
+            
+            /**
+             * Offset in values in VoxelsInSliceForVolume
+             */
+            std::vector<int64_t> m_sliceOffsets;
+        };
+        
         BrainOpenGLFPVolumeObliqueDrawing(const BrainOpenGLFPVolumeObliqueDrawing&);
 
         BrainOpenGLFPVolumeObliqueDrawing& operator=(const BrainOpenGLFPVolumeObliqueDrawing&);
