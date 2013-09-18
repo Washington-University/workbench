@@ -1150,15 +1150,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
     const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight,
                                                                            topRight);
     /*
-     * quadCoords is the coordinates for all four corners of a 'quad'
-     * that is used to draw a voxel.  quadRGBA is the colors for each
-     * voxel drawn as a 'quad'.
-     */
-    std::vector<float> quadCoords;
-    std::vector<float> quadNormals;
-    std::vector<uint8_t> quadRGBAs;
-    
-    /*
      * For fastest coloring, need to color data values as a group
      */
     std::vector<VolumeSlice> volumeSlices;
@@ -1425,20 +1416,47 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
     const int64_t numVoxelsToDraw = static_cast<int64_t>(voxelsToDraw.size());
     
     /*
+     * quadCoords is the coordinates for all four corners of a 'quad'
+     * that is used to draw a voxel.  quadRGBA is the colors for each
+     * voxel drawn as a 'quad'.
+     */
+    std::vector<float> quadCoordsVector;
+    std::vector<float> quadNormalsVector;
+    std::vector<uint8_t> quadRGBAsVector;
+    
+    /*
      * Reserve space to avoid reallocations
      */
     const bool doPerVertexNormalsAndColors = true;
+//    if (numVoxelsToDraw > 0) {
+//        quadCoordsVector.reserve(numVoxelsToDraw * 4 * 3);
+//        quadNormalsVector.reserve(numVoxelsToDraw * 3);
+//        quadRGBAsVector.reserve(numVoxelsToDraw * 4);
+//        
+//        if (doPerVertexNormalsAndColors) {
+//            quadNormalsVector.reserve(numVoxelsToDraw * 3 * 4);
+//            quadRGBAsVector.reserve(numVoxelsToDraw * 4 * 4);
+//        }
+//    }
     if (numVoxelsToDraw > 0) {
-        quadCoords.reserve(numVoxelsToDraw * 4 * 3);
-        quadNormals.reserve(numVoxelsToDraw * 3);
-        quadRGBAs.reserve(numVoxelsToDraw * 4);
+        quadCoordsVector.resize(numVoxelsToDraw * 4 * 3);
+        quadNormalsVector.resize(numVoxelsToDraw * 3);
+        quadRGBAsVector.resize(numVoxelsToDraw * 4);
         
         if (doPerVertexNormalsAndColors) {
-            quadNormals.reserve(numVoxelsToDraw * 3 * 4);
-            quadRGBAs.reserve(numVoxelsToDraw * 4 * 4);
+            quadNormalsVector.resize(numVoxelsToDraw * 3 * 4);
+            quadRGBAsVector.resize(numVoxelsToDraw * 4 * 4);
         }
     }
 
+    int64_t coordOffset = 0;
+    int64_t normalOffset = 0;
+    int64_t rgbaOffset = 0;
+
+    float*   quadCoords  = &quadCoordsVector[0];
+    float*   quadNormals = &quadNormalsVector[0];
+    uint8_t* quadRGBAs   = &quadRGBAsVector[0];
+    
     for (int64_t iVox = 0; iVox < numVoxelsToDraw; iVox++) {
         CaretAssertVectorIndex(voxelsToDraw, iVox);
         VoxelToDraw* vtd = voxelsToDraw[iVox];
@@ -1487,49 +1505,114 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
         }
         
         if (voxelRGBA[3] > 0) {
-            quadRGBAs.push_back(voxelRGBA[0]);
-            quadRGBAs.push_back(voxelRGBA[1]);
-            quadRGBAs.push_back(voxelRGBA[2]);
-            quadRGBAs.push_back(voxelRGBA[3]);
+            CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+            quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+            quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+            quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+            quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+            rgbaOffset += 4;
             
-            quadNormals.push_back(sliceNormalVector[0]);
-            quadNormals.push_back(sliceNormalVector[1]);
-            quadNormals.push_back(sliceNormalVector[2]);
+            CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+            quadNormals[normalOffset]   = sliceNormalVector[0];
+            quadNormals[normalOffset+1] = sliceNormalVector[1];
+            quadNormals[normalOffset+2] = sliceNormalVector[2];
+            normalOffset += 3;
             
             if (doPerVertexNormalsAndColors) {
-                quadRGBAs.push_back(voxelRGBA[0]);
-                quadRGBAs.push_back(voxelRGBA[1]);
-                quadRGBAs.push_back(voxelRGBA[2]);
-                quadRGBAs.push_back(voxelRGBA[3]);
+                CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+                quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+                quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+                quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+                quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+                rgbaOffset += 4;
                 
-                quadNormals.push_back(sliceNormalVector[0]);
-                quadNormals.push_back(sliceNormalVector[1]);
-                quadNormals.push_back(sliceNormalVector[2]);
+                CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+                quadNormals[normalOffset]   = sliceNormalVector[0];
+                quadNormals[normalOffset+1] = sliceNormalVector[1];
+                quadNormals[normalOffset+2] = sliceNormalVector[2];
+                normalOffset += 3;
                 
-                quadRGBAs.push_back(voxelRGBA[0]);
-                quadRGBAs.push_back(voxelRGBA[1]);
-                quadRGBAs.push_back(voxelRGBA[2]);
-                quadRGBAs.push_back(voxelRGBA[3]);
+                CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+                quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+                quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+                quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+                quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+                rgbaOffset += 4;
                 
-                quadNormals.push_back(sliceNormalVector[0]);
-                quadNormals.push_back(sliceNormalVector[1]);
-                quadNormals.push_back(sliceNormalVector[2]);
+                CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+                quadNormals[normalOffset]   = sliceNormalVector[0];
+                quadNormals[normalOffset+1] = sliceNormalVector[1];
+                quadNormals[normalOffset+2] = sliceNormalVector[2];
+                normalOffset += 3;
                 
-                quadRGBAs.push_back(voxelRGBA[0]);
-                quadRGBAs.push_back(voxelRGBA[1]);
-                quadRGBAs.push_back(voxelRGBA[2]);
-                quadRGBAs.push_back(voxelRGBA[3]);
+                CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+                quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+                quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+                quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+                quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+                rgbaOffset += 4;
                 
-                quadNormals.push_back(sliceNormalVector[0]);
-                quadNormals.push_back(sliceNormalVector[1]);
-                quadNormals.push_back(sliceNormalVector[2]);
+                CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+                quadNormals[normalOffset]   = sliceNormalVector[0];
+                quadNormals[normalOffset+1] = sliceNormalVector[1];
+                quadNormals[normalOffset+2] = sliceNormalVector[2];
+                normalOffset += 3;
             }
             
+            CaretAssertVectorIndex(quadCoordsVector, coordOffset + 11);
             for (int32_t iq = 0; iq < 12; iq++) {
-                quadCoords.push_back(vtd->m_coordinates[iq]);
+                quadCoords[coordOffset + iq] = vtd->m_coordinates[iq];
             }
+            coordOffset += 12;
         }
+//        if (voxelRGBA[3] > 0) {
+//            quadRGBAs.push_back(voxelRGBA[0]);
+//            quadRGBAs.push_back(voxelRGBA[1]);
+//            quadRGBAs.push_back(voxelRGBA[2]);
+//            quadRGBAs.push_back(voxelRGBA[3]);
+//            
+//            quadNormals.push_back(sliceNormalVector[0]);
+//            quadNormals.push_back(sliceNormalVector[1]);
+//            quadNormals.push_back(sliceNormalVector[2]);
+//            
+//            if (doPerVertexNormalsAndColors) {
+//                quadRGBAs.push_back(voxelRGBA[0]);
+//                quadRGBAs.push_back(voxelRGBA[1]);
+//                quadRGBAs.push_back(voxelRGBA[2]);
+//                quadRGBAs.push_back(voxelRGBA[3]);
+//                
+//                quadNormals.push_back(sliceNormalVector[0]);
+//                quadNormals.push_back(sliceNormalVector[1]);
+//                quadNormals.push_back(sliceNormalVector[2]);
+//                
+//                quadRGBAs.push_back(voxelRGBA[0]);
+//                quadRGBAs.push_back(voxelRGBA[1]);
+//                quadRGBAs.push_back(voxelRGBA[2]);
+//                quadRGBAs.push_back(voxelRGBA[3]);
+//                
+//                quadNormals.push_back(sliceNormalVector[0]);
+//                quadNormals.push_back(sliceNormalVector[1]);
+//                quadNormals.push_back(sliceNormalVector[2]);
+//                
+//                quadRGBAs.push_back(voxelRGBA[0]);
+//                quadRGBAs.push_back(voxelRGBA[1]);
+//                quadRGBAs.push_back(voxelRGBA[2]);
+//                quadRGBAs.push_back(voxelRGBA[3]);
+//                
+//                quadNormals.push_back(sliceNormalVector[0]);
+//                quadNormals.push_back(sliceNormalVector[1]);
+//                quadNormals.push_back(sliceNormalVector[2]);
+//            }
+//            
+//            for (int32_t iq = 0; iq < 12; iq++) {
+//                quadCoords.push_back(vtd->m_coordinates[iq]);
+//            }
+//        }
     }
+    
+    quadCoordsVector.resize(coordOffset);
+    quadNormalsVector.resize(normalOffset);
+    quadRGBAsVector.resize(rgbaOffset);
     
     for (std::vector<VoxelToDraw*>::iterator iter = voxelsToDraw.begin();
          iter != voxelsToDraw.end();
@@ -1539,12 +1622,12 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
     }
     voxelsToDraw.clear();
     
-    if ( ! quadCoords.empty()) {
+    if ( ! quadCoordsVector.empty()) {
         glPushMatrix();
         glScalef(zoom, zoom, zoom);
-        drawQuads(quadCoords,
-                  quadNormals,
-                  quadRGBAs);
+        drawQuads(quadCoordsVector,
+                  quadNormalsVector,
+                  quadRGBAsVector);
         glPopMatrix();
     }
 }
@@ -2512,7 +2595,6 @@ BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::getRgbaForValueByIndex(const int
 void
 BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::allocateColors()
 {
-    m_rgba.resize(m_values.size() * 4,
-                  0);
+    m_rgba.resize(m_values.size() * 4);
 }
 
