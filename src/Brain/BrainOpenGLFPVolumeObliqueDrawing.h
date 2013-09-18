@@ -44,6 +44,7 @@ namespace caret {
 
     class BrainOpenGLFixedPipeline;
     class BrowserTabContent;
+    class CiftiMappableDataFile;
     class Matrix4x4;
     
     class BrainOpenGLFPVolumeObliqueDrawing : public CaretObject {
@@ -78,13 +79,7 @@ namespace caret {
              *   Volume that contains the data values.
              */
             VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
-                        const int32_t mapIndex) {
-                m_volumeMappableInterface = volumeMappableInterface;
-                m_mapIndex = mapIndex;
-                
-                const int64_t sliceDim = 300;
-                m_values.reserve(sliceDim * sliceDim);
-            }
+                        const int32_t mapIndex);
             
             /**
              * Add a value and return its index.
@@ -94,11 +89,7 @@ namespace caret {
              * @return
              *     The index for the value.
              */
-            int64_t addValue(const float value) {
-                const int64_t indx = static_cast<int64_t>(m_values.size());
-                m_values.push_back(value);
-                return indx;
-            }
+            int64_t addValue(const float value);
             
             /**
              * Return RGBA colors for value using the value's index
@@ -109,23 +100,27 @@ namespace caret {
              * @return
              *    RGBA coloring for value.
              */
-            uint8_t* getRgbaForValueByIndex(const int64_t indx) {
-                CaretAssertVectorIndex(m_rgba, indx * 4);
-                return &m_rgba[indx*4];
-            }
+            uint8_t* getRgbaForValueByIndex(const int64_t indx);
             
             /**
              * Allocate colors for the voxel values
              */
-            void allocateColors() {
-                m_rgba.resize(m_values.size() * 4);
-            }
-            
+            void allocateColors();
             
             /**
              * Volume containing the values
              */
             VolumeMappableInterface* m_volumeMappableInterface;
+            
+            /**
+             * If not NULL, it is a VolumeFile
+             */
+            VolumeFile* m_volumeFile;
+            
+            /**
+             * If not NULL, it is a Cifti Mappable Data File
+             */
+            CiftiMappableDataFile* m_ciftiMappableDataFile;
             
             /**
              * Map index
@@ -166,29 +161,7 @@ namespace caret {
                         const double leftBottom[3],
                         const double rightBottom[3],
                         const double rightTop[3],
-                        const double leftTop[3]) {
-                m_center[0] = center[0];
-                m_center[1] = center[1];
-                m_center[2] = center[2];
-                
-                m_coordinates[0]  = leftBottom[0];
-                m_coordinates[1]  = leftBottom[1];
-                m_coordinates[2]  = leftBottom[2];
-                m_coordinates[3]  = rightBottom[0];
-                m_coordinates[4]  = rightBottom[1];
-                m_coordinates[5]  = rightBottom[2];
-                m_coordinates[6]  = rightTop[0];
-                m_coordinates[7]  = rightTop[1];
-                m_coordinates[8]  = rightTop[2];
-                m_coordinates[9]  = leftTop[0];
-                m_coordinates[10] = leftTop[1];
-                m_coordinates[11] = leftTop[2];
-                
-                const int64_t numSlices = 5;
-                m_sliceIndices.reserve(numSlices);
-                m_sliceOffsets.reserve(numSlices);
-            }
-            
+                        const double leftTop[3]);
             /**
              * Add a value from a volume slice.
              *
@@ -197,11 +170,8 @@ namespace caret {
              * @param sliceOffset
              *    Offset of value in the slice.
              */
-            void addVolumeValue(const int32_t sliceIndex,
-                                const int32_t sliceOffset) {
-                m_sliceIndices.push_back(sliceIndex);
-                m_sliceOffsets.push_back(sliceOffset);
-            }
+            void addVolumeValue(const int64_t sliceIndex,
+                                const int64_t sliceOffset);
             
             /**
              * Center of voxel.

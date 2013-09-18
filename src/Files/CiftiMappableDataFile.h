@@ -234,6 +234,21 @@ namespace caret {
                                             bool& numericalValueOutValid,
                                             AString& textValueOut) const;
         
+        int64_t getMapDataOffsetForVoxelAtCoordinate(const float coordinate[3],
+                                                     const int32_t mapIndex) const;
+        
+        virtual float getVoxelValue(const float* coordinateIn,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const;
+        
+        virtual float getVoxelValue(const float coordinateX,
+                                    const float coordinateY,
+                                    const float coordinateZ,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const;
+        
         virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const float xyz[3],
                                                          int64_t ijkOut[3],

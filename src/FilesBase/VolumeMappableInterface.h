@@ -98,6 +98,52 @@ namespace caret {
         virtual const int64_t& getNumberOfComponents() const = 0;
         
         /**
+         * Get the value of the voxel containing the given coordinate.
+         *
+         * @param coordinateIn
+         *    The 3D coordinate
+         * @param validOut
+         *    If not NULL, will indicate if the coordinate (and hence the 
+         *    returned value) is valid.
+         * @param mapIndex
+         *    Index of map.
+         * @param component
+         *    Voxel component.
+         * @return
+         *    Value of voxel containing the given coordinate.
+         */
+        virtual float getVoxelValue(const float* coordinateIn,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const = 0;
+        
+        /**
+         * Get the value of the voxel containing the given coordinate.
+         *
+         * @param coordinateX
+         *    The X coordinate
+         * @param coordinateY
+         *    The Y coordinate
+         * @param coordinateZ
+         *    The Z coordinate
+         * @param validOut
+         *    If not NULL, will indicate if the coordinate (and hence the
+         *    returned value) is valid.
+         * @param mapIndex
+         *    Index of map.
+         * @param component
+         *    Voxel component.
+         * @return
+         *    Value of voxel containing the given coordinate.
+         */
+        virtual float getVoxelValue(const float coordinateX,
+                                    const float coordinateY,
+                                    const float coordinateZ,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const = 0;
+        
+        /**
          * Convert an index to space (coordinates).
          *
          * @param indexIn1

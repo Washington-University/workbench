@@ -2719,6 +2719,152 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
 }
 
 /**
+ * Get the value of the voxel containing the given coordinate.
+ *
+ * @param coordinateIn
+ *    The 3D coordinate
+ * @param validOut
+ *    If not NULL, will indicate if the coordinate (and hence the
+ *    returned value) is valid.
+ * @param mapIndex
+ *    Index of map.
+ * @param component
+ *    Voxel component.
+ * @return
+ *    Value of voxel containing the given coordinate.
+ */
+float
+CiftiMappableDataFile::getVoxelValue(const float* coordinateIn,
+                                   bool* validOut,
+                                   const int64_t mapIndex,
+                                   const int64_t component) const
+{
+    return getVoxelValue(coordinateIn[0],
+                         coordinateIn[1],
+                         coordinateIn[2],
+                         validOut,
+                         mapIndex,
+                         component);
+}
+
+/**
+ * Get the value of the voxel containing the given coordinate.
+ *
+ * @param coordinateX
+ *    The X coordinate
+ * @param coordinateY
+ *    The Y coordinate
+ * @param coordinateZ
+ *    The Z coordinate
+ * @param validOut
+ *    If not NULL, will indicate if the coordinate (and hence the
+ *    returned value) is valid.
+ * @param mapIndex
+ *    Index of map.
+ * @param component
+ *    Voxel component.
+ * @return
+ *    Value of voxel containing the given coordinate.
+ */
+float
+CiftiMappableDataFile::getVoxelValue(const float coordinateX,
+                                   const float coordinateY,
+                                   const float coordinateZ,
+                                   bool* validOut,
+                                   const int64_t mapIndex,
+                                   const int64_t component) const
+{
+    if (validOut != NULL) {
+        *validOut = false;
+    }
+    
+    if (isCiftiInterfaceValid() == false) {
+        return 0.0;
+    }
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    int64_t voxelI, voxelJ, voxelK;
+    enclosingVoxel(coordinateX,
+                   coordinateY,
+                   coordinateZ,
+                   voxelI,
+                   voxelJ,
+                   voxelK);
+    if (indexValid(voxelI,
+                   voxelJ,
+                   voxelK,
+                   mapIndex,
+                   component)) {
+        const int64_t dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(voxelI,
+                                                                               voxelJ,
+                                                                               voxelK);
+        if (dataOffset >= 0) {
+            std::vector<float> mapData;
+            getMapData(mapIndex,
+                       mapData);
+            CaretAssertVectorIndex(mapData,
+                                   dataOffset);
+            const float value = mapData[dataOffset];
+            if (validOut != NULL) {
+                *validOut = true;
+            }
+            return value;
+        }
+    }
+    
+    return 0.0;
+}
+
+/**
+ * @param coordinate
+ *    Coordinate for which enclosing voxel is located.
+ * @param mapIndex
+ *    Index of the map.
+ * @return 
+ *    Offset in map data for enclosing voxel or NULL if not within a voxel.
+ */
+int64_t
+CiftiMappableDataFile::getMapDataOffsetForVoxelAtCoordinate(const float coordinate[3],
+                                             const int32_t mapIndex) const
+{
+    int64_t dataOffset = -1;
+    
+    if (isCiftiInterfaceValid() == false) {
+        return dataOffset;
+    }
+    
+    /*
+     * Get content for map.
+     */
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    int64_t voxelI, voxelJ, voxelK;
+    enclosingVoxel(coordinate[0],
+                   coordinate[1],
+                   coordinate[2],
+                   voxelI,
+                   voxelJ,
+                   voxelK);
+    if (indexValid(voxelI,
+                   voxelJ,
+                   voxelK,
+                   mapIndex,
+                   0)) {
+        dataOffset = m_voxelIndicesToOffset->getOffsetForIndices(voxelI,
+                                                                 voxelJ,
+                                                                 voxelK);
+    }
+    
+    return dataOffset;    
+}
+
+/**
  * Get the identification information for a surface node in the given maps.
  *
  * @param mapIndices

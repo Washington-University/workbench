@@ -194,6 +194,85 @@ namespace caret {
             }
         }
 
+        /**
+         * Get the value of the voxel containing the given coordinate.
+         *
+         * @param coordinateIn
+         *    The 3D coordinate
+         * @param validOut
+         *    If not NULL, will indicate if the coordinate (and hence the
+         *    returned value) is valid.
+         * @param mapIndex
+         *    Index of map.
+         * @param component
+         *    Voxel component.
+         * @return
+         *    Value of voxel containing the given coordinate.
+         */
+        virtual inline float getVoxelValue(const float* coordinateIn,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const
+        {
+            return getVoxelValue(coordinateIn[0],
+                                 coordinateIn[1],
+                                 coordinateIn[2],
+                                 validOut,
+                                 mapIndex,
+                                 component);
+        }
+        
+        /**
+         * Get the value of the voxel containing the given coordinate.
+         *
+         * @param coordinateX
+         *    The X coordinate
+         * @param coordinateY
+         *    The Y coordinate
+         * @param coordinateZ
+         *    The Z coordinate
+         * @param validOut
+         *    If not NULL, will indicate if the coordinate (and hence the
+         *    returned value) is valid.
+         * @param mapIndex
+         *    Index of map.
+         * @param component
+         *    Voxel component.
+         * @return
+         *    Value of voxel containing the given coordinate.
+         */
+        virtual inline float getVoxelValue(const float coordinateX,
+                                    const float coordinateY,
+                                    const float coordinateZ,
+                                    bool* validOut = NULL,
+                                    const int64_t mapIndex = 0,
+                                    const int64_t component = 0) const
+        {
+            if (validOut != NULL) {
+                *validOut = false;
+            }
+            
+            int64_t voxelI, voxelJ, voxelK;
+            enclosingVoxel(coordinateX,
+                           coordinateY,
+                           coordinateZ,
+                           voxelI,
+                           voxelJ,
+                           voxelK);
+            if (indexValid(voxelI,
+                           voxelJ,
+                           voxelK,
+                           mapIndex,
+                           component)) {
+                if (validOut != NULL) {
+                    *validOut = true;
+                }
+                return getValue(voxelI, voxelJ, voxelK, mapIndex, component);
+            }
+            
+            return 0.0;
+        }
+        
         ///get a frame (const)
         const float* getFrame(const int64_t brickIndex = 0, const int64_t component = 0) const;
         

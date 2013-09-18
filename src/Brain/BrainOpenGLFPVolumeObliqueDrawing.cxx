@@ -59,6 +59,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CiftiMappableDataFile.h"
 #include "DisplayPropertiesLabels.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
@@ -1254,9 +1255,18 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
      * Also, reserve space for values to avoid reallocation
      */
     std::vector<VolumeSlice> volumeSlices;
+    std::vector<std::vector<float> > ciftiMappableFileData;
     for (int32_t i = 0; i < numVolumes; i++) {
         volumeSlices.push_back(VolumeSlice(volumeDrawInfo[i].volumeFile,
                                            volumeDrawInfo[i].mapIndex));
+        
+        std::vector<float> ciftiMapData;
+        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(volumeDrawInfo[i].volumeFile);
+        if (ciftiMapFile != NULL) {
+            ciftiMapFile->getMapData(volumeDrawInfo[i].mapIndex,
+                                     ciftiMapData);
+        }
+        ciftiMappableFileData.push_back(ciftiMapData);
     }
     
     /*
@@ -1388,9 +1398,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                 for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
                     const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = volumeDrawInfo[iVol];
                     const VolumeMappableInterface* volInter = vdi.volumeFile;
-                    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volInter);
-                    uint8_t rgba[4] = { 0, 0, 0, 0 };
-                    int64_t voxelI, voxelJ, voxelK;
+                    const VolumeFile* volumeFile = volumeSlices[iVol].m_volumeFile; //   dynamic_cast<const VolumeFile*>(volInter);
+//                    uint8_t rgba[4] = { 0, 0, 0, 0 };
+//                    int64_t voxelI, voxelJ, voxelK;
                     
                     float value = 0;
                     bool valueValidFlag = false;
@@ -1401,6 +1411,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                             isPaletteMappedVolumeFile = true;
                         }
                     }
+                    const CiftiMappableDataFile* ciftiMappableFile = volumeSlices[iVol].m_ciftiMappableDataFile; // dynamic_cast<const CiftiMappableDataFile*>(volInter);
                     
                     if (useInterpolatedVoxel
                         && isPaletteMappedVolumeFile) {
@@ -1418,20 +1429,48 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
 //                            }
 //                        }
                     }
-                    else {
-                        /*
-                         * Does the coordinate correspond to a valid voxel?
-                         */
-                        volInter->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
-                                                 voxelI, voxelJ, voxelK);
+                    else if (ciftiMappableFile != NULL) {
+//                        int64_t voxelI, voxelJ, voxelK;
+//                        ciftiMappableFile->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
+//                                                 voxelI, voxelJ, voxelK);
+//
+//                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
+//                            uint8_t rgba[4];
+//                            volInter->getVoxelColorInMap(paletteFile,
+//                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
+//                                                         displayGroup,
+//                                                         tabIndex,
+//                                                         rgba);
+//                        }
                         
-                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
-                            volInter->getVoxelColorInMap(paletteFile,
-                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
-                                                         displayGroup,
-                                                         tabIndex,
-                                                         rgba);
+                        const int64_t voxelOffset = ciftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
+                                                                                                            vdi.mapIndex);
+                        if (voxelOffset >= 0) {
+                            CaretAssertVectorIndex(ciftiMappableFileData, iVol);
+                            const std::vector<float>& data = ciftiMappableFileData[iVol];
+                            CaretAssertVectorIndex(data, voxelOffset);
+                            value = data[voxelOffset];
+                            valueValidFlag = true;
                         }
+                    }
+                    else {
+                        value = volInter->getVoxelValue(voxelCenter,
+                                                        &valueValidFlag,
+                                                        vdi.mapIndex);
+
+//                        /*
+//                         * Does the coordinate correspond to a valid voxel?
+//                         */
+//                        volInter->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
+//                                                 voxelI, voxelJ, voxelK);
+//                        
+//                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
+//                            volInter->getVoxelColorInMap(paletteFile,
+//                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
+//                                                         displayGroup,
+//                                                         tabIndex,
+//                                                         rgba);
+//                        }
                     }
                     
                     if (valueValidFlag) {
@@ -1459,17 +1498,17 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                                                            bottomRightVoxelCoord,
                                                            topRightVoxelCoord,
                                                            topLeftVoxelCoord);
+                            voxelsToDraw.push_back(voxelDrawingInfo);
                         }
                         
                         const int64_t offset = volumeSlices[iVol].addValue(value);
                         voxelDrawingInfo->addVolumeValue(iVol, offset);
-                        voxelsToDraw.push_back(voxelDrawingInfo);
                     }
                     
-                    if (rgba[3] > 0) {
-                        if ((rgba[0] > 0)
-                            || (rgba[1] > 0)
-                            || (rgba[2] > 0)) {
+//                    if (rgba[3] > 0) {
+//                        if ((rgba[0] > 0)
+//                            || (rgba[1] > 0)
+//                            || (rgba[2] > 0)) {
 //                            if (isSelectionMode) {
 //                                /*
 //                                 * Performing a selection?
@@ -1490,8 +1529,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
 //                            voxelRGBA[1] = rgba[1];
 //                            voxelRGBA[2] = rgba[2];
 //                            voxelRGBA[3] = rgba[3];
-                        }
-                    }
+//                        }
+//                    }
                 }
                 
 //                if (voxelRGBA[3] > 0) {
@@ -1656,11 +1695,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
     for (int64_t iVox = 0; iVox < numVoxelsToDraw; iVox++) {
         CaretAssertVectorIndex(voxelsToDraw, iVox);
         VoxelToDraw* vtd = voxelsToDraw[iVox];
+        CaretAssert(vtd);
         
         uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
         
         const int32_t numSlicesForVoxel = static_cast<int32_t>(vtd->m_sliceIndices.size());
         for (int32_t iSlice = 0; iSlice < numSlicesForVoxel; iSlice++) {
+            CaretAssertVectorIndex(vtd->m_sliceIndices, iSlice);
+            CaretAssertVectorIndex(vtd->m_sliceOffsets, iSlice);
             const int32_t sliceIndex = vtd->m_sliceIndices[iSlice];
             const int64_t voxelOffset = vtd->m_sliceOffsets[iSlice];
             
@@ -1741,8 +1783,16 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
             }
         }
         
+//        delete vtd;
+    }
+    
+    for (std::vector<VoxelToDraw*>::iterator iter = voxelsToDraw.begin();
+         iter != voxelsToDraw.end();
+         iter++) {
+        VoxelToDraw* vtd = *iter;
         delete vtd;
     }
+    voxelsToDraw.clear();
     
 //    std::cout << "Number of voxels from quads: "
 //    << (quadCoords.size() / 12)
@@ -3084,4 +3134,139 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
 //        glPopMatrix();
 //    }
 //}
+
+
+
+
+
+
+
+
+/* ======================================================================= */
+/**
+ * Create a voxel for drawing.
+ *
+ * @param center
+ *    Center of voxel.
+ * @param leftBottom
+ *    Left bottom coordinate of voxel.
+ * @param rightBottom
+ *    Right bottom coordinate of voxel.
+ * @param rightTop
+ *    Right top coordinate of voxel.
+ * @param leftTop
+ *    Left top coordinate of voxel.
+ */
+BrainOpenGLFPVolumeObliqueDrawing::VoxelToDraw::VoxelToDraw(const float center[3],
+            const double leftBottom[3],
+            const double rightBottom[3],
+            const double rightTop[3],
+            const double leftTop[3])
+{
+    m_center[0] = center[0];
+    m_center[1] = center[1];
+    m_center[2] = center[2];
+    
+    m_coordinates[0]  = leftBottom[0];
+    m_coordinates[1]  = leftBottom[1];
+    m_coordinates[2]  = leftBottom[2];
+    m_coordinates[3]  = rightBottom[0];
+    m_coordinates[4]  = rightBottom[1];
+    m_coordinates[5]  = rightBottom[2];
+    m_coordinates[6]  = rightTop[0];
+    m_coordinates[7]  = rightTop[1];
+    m_coordinates[8]  = rightTop[2];
+    m_coordinates[9]  = leftTop[0];
+    m_coordinates[10] = leftTop[1];
+    m_coordinates[11] = leftTop[2];
+    
+    const int64_t numSlices = 5;
+    m_sliceIndices.reserve(numSlices);
+    m_sliceOffsets.reserve(numSlices);
+}
+
+/**
+ * Add a value from a volume slice.
+ *
+ * @param sliceIndex
+ *    Index of the slice.
+ * @param sliceOffset
+ *    Offset of value in the slice.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::VoxelToDraw::addVolumeValue(const int64_t sliceIndex,
+                    const int64_t sliceOffset)
+{
+    CaretAssert(sliceIndex >= 0);
+    CaretAssert(sliceOffset >= 0);
+    m_sliceIndices.push_back(sliceIndex);
+    m_sliceOffsets.push_back(sliceOffset);
+}
+
+
+/* ======================================================================= */
+
+/**
+ * Constructor
+ *
+ * @param volumeMappableInterface
+ *   Volume that contains the data values.
+ */
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
+            const int32_t mapIndex)
+{
+    m_volumeMappableInterface = volumeMappableInterface;
+    m_volumeFile = dynamic_cast<VolumeFile*>(m_volumeMappableInterface);
+    m_ciftiMappableDataFile = dynamic_cast<CiftiMappableDataFile*>(m_volumeMappableInterface);
+    
+    CaretAssert(m_volumeMappableInterface);
+    m_mapIndex = mapIndex;
+    CaretAssert(m_mapIndex >= 0);
+    
+    const int64_t sliceDim = 300;
+    const int64_t numVoxels = sliceDim * sliceDim;
+    m_values.reserve(numVoxels);
+}
+
+/**
+ * Add a value and return its index.
+ *
+ * @param value
+ *     Value that is added.
+ * @return
+ *     The index for the value.
+ */
+int64_t
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::addValue(const float value)
+{
+    const int64_t indx = static_cast<int64_t>(m_values.size());
+    m_values.push_back(value);
+    return indx;
+}
+
+/**
+ * Return RGBA colors for value using the value's index
+ * returned by addValue().
+ *
+ * @param indx
+ *    Index of the value.
+ * @return
+ *    RGBA coloring for value.
+ */
+uint8_t*
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::getRgbaForValueByIndex(const int64_t indx)
+{
+    CaretAssertVectorIndex(m_rgba, indx * 4);
+    return &m_rgba[indx*4];
+}
+
+/**
+ * Allocate colors for the voxel values
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::allocateColors()
+{
+    m_rgba.resize(m_values.size() * 4,
+                  0);
+}
 
