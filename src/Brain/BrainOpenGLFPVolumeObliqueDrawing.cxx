@@ -302,16 +302,15 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllView(const int viewport[4],
     m_fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
                                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
 
-    drawSlice(m_brain,
-              VolumeSliceViewPlaneEnum::AXIAL,
+    setOrthographicBounds(drawMode);
+    
+    drawSlice(VolumeSliceViewPlaneEnum::AXIAL,
               drawMode);
     
-    drawSlice(m_brain,
-              VolumeSliceViewPlaneEnum::CORONAL,
+    drawSlice(VolumeSliceViewPlaneEnum::CORONAL,
               drawMode);
     
-    drawSlice(m_brain,
-              VolumeSliceViewPlaneEnum::PARASAGITTAL,
+    drawSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL,
               drawMode);
     
     glPopMatrix();
@@ -339,24 +338,94 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceView(const VolumeSliceViewPl
     m_fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
                                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
     
-    drawSlice(m_brain,
-              slicePlane,
+    setOrthographicBounds(DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE);
+    
+    drawSlice(slicePlane,
               DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE);
     
     glPopMatrix();
 }
 
 /**
+ * Set the orthographic bounds based upon the given mode so that slices
+ * 'fill' the alotted space.
+ * 
+ * @param drawMode
+ *    The drawing mode.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::setOrthographicBounds(const DRAW_MODE drawMode)
+{
+    bool updateBoundsForSliceView = false;
+    
+    switch (drawMode) {
+        case DRAW_MODE_ALL_VIEW:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            updateBoundsForSliceView = true;
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            updateBoundsForSliceView = true;
+            break;
+    }
+    
+    m_orthographicBounds[0] = m_fixedPipelineDrawing->orthographicLeft;
+    m_orthographicBounds[1] = m_fixedPipelineDrawing->orthographicRight;
+    m_orthographicBounds[2] = m_fixedPipelineDrawing->orthographicBottom;
+    m_orthographicBounds[3] = m_fixedPipelineDrawing->orthographicTop;
+    m_orthographicBounds[4] = m_fixedPipelineDrawing->orthographicNear;
+    m_orthographicBounds[5] = m_fixedPipelineDrawing->orthographicFar;
+    
+    if (updateBoundsForSliceView) {
+        float coordBounds[6];
+        float spacing[3];
+        getVoxelCoordinateBoundsAndSpacing(coordBounds, spacing);
+        float maxCoordBound = 0;
+        for (int32_t i = 0; i < 6; i++) {
+            const float absBound = std::fabs(coordBounds[i]);
+            maxCoordBound = std::max(maxCoordBound, absBound);
+        }
+        if (maxCoordBound > 0.0) {
+            const double rightOrTop = std::min(std::fabs(m_fixedPipelineDrawing->orthographicLeft),
+                                               std::fabs(m_fixedPipelineDrawing->orthographicTop));
+//            const float scaleToFitWindow = (m_fixedPipelineDrawing->orthographicRight
+//                                            / maxBound) * 1.10;
+            const float scaleToFitWindow = (maxCoordBound
+                                            / rightOrTop) * 1.05;
+            //        glScalef(scaleToFitWindow,
+            //                 scaleToFitWindow,
+            //                 scaleToFitWindow);
+            
+            m_orthographicBounds[0] = m_fixedPipelineDrawing->orthographicLeft * scaleToFitWindow;
+            m_orthographicBounds[1] = m_fixedPipelineDrawing->orthographicRight * scaleToFitWindow;
+            m_orthographicBounds[2] = m_fixedPipelineDrawing->orthographicBottom * scaleToFitWindow;
+            m_orthographicBounds[3] = m_fixedPipelineDrawing->orthographicTop * scaleToFitWindow;
+            m_orthographicBounds[4] = m_fixedPipelineDrawing->orthographicNear;
+            m_orthographicBounds[5] = m_fixedPipelineDrawing->orthographicFar;
+            
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(m_orthographicBounds[0], m_orthographicBounds[1],
+                    m_orthographicBounds[2], m_orthographicBounds[3],
+                    m_orthographicBounds[4], m_orthographicBounds[5]);
+            glMatrixMode(GL_MODELVIEW);
+        }
+    }
+}
+
+
+/**
  * Draw a volume slice for the given slice plane.
  *
+ * @param orthoBounds
+ *   Bounds of the orthographic projection.
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param drawMode
  *   The drawing mode
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
-                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                         const DRAW_MODE drawMode)
 {
     const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
@@ -372,9 +441,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                                   //+ AString(isSliceView ? "Slice View " : "All View")
                                   + planeName);
     
-    CaretAssert(brain);
-
-
     float voxelBounds[6];
     float voxelSpacing[3];
     
@@ -387,7 +453,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
         return;
     }
 
-    SelectionItemVoxel* voxelID = brain->getSelectionManager()->getVoxelIdentification();
+    SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -484,10 +550,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     /*
      * Determine the larget slice coordinate range and the minimum voxel spacing
      */
-    const float minScreenX = m_fixedPipelineDrawing->orthographicLeft;
-    const float maxScreenX = m_fixedPipelineDrawing->orthographicRight;
-    const float minScreenY = m_fixedPipelineDrawing->orthographicBottom;
-    const float maxScreenY = m_fixedPipelineDrawing->orthographicTop;
+    const float minScreenX = m_orthographicBounds[0];
+    const float maxScreenX = m_orthographicBounds[1];
+    const float minScreenY = m_orthographicBounds[2];
+    const float maxScreenY = m_orthographicBounds[3];
+//    const float minScreenX = m_fixedPipelineDrawing->orthographicLeft;
+//    const float maxScreenX = m_fixedPipelineDrawing->orthographicRight;
+//    const float minScreenY = m_fixedPipelineDrawing->orthographicBottom;
+//    const float maxScreenY = m_fixedPipelineDrawing->orthographicTop;
 
     const float minVoxelSize = std::min(voxelSpacing[0],
                                         std::min(voxelSpacing[1],

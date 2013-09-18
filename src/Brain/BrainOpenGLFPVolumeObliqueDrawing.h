@@ -204,8 +204,7 @@ namespace caret {
 //        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
 //                      const Matrix4x4& rotationMatrix);
         
-        void drawSlice(Brain* brain,
-                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                        const DRAW_MODE drawMode);
         
         void drawSliceVoxelsWithTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -254,6 +253,8 @@ namespace caret {
         
         void drawSurfaceOutline(const Plane& plane);
         
+        void setOrthographicBounds(const DRAW_MODE drawMode);
+
         // ADD_NEW_MEMBERS_HERE
 
         Brain* m_brain;
@@ -271,6 +272,8 @@ namespace caret {
         DisplayGroupEnum::Enum m_displayGroup;
         
         int32_t m_tabIndex;
+        
+        double m_orthographicBounds[6];
         
     };
     
