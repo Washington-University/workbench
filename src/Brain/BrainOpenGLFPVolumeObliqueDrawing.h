@@ -198,60 +198,40 @@ namespace caret {
 
         BrainOpenGLFPVolumeObliqueDrawing& operator=(const BrainOpenGLFPVolumeObliqueDrawing&);
         
-        bool getVoxelCoordinateBoundsAndSpacing(const std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                                float boundsOut[6],
+        bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                 float spacingOut[3]);
         
 //        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
 //                      const Matrix4x4& rotationMatrix);
         
         void drawSlice(Brain* brain,
-                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                       BrowserTabContent* browserTabContent,
-                       std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                        const DRAW_MODE drawMode);
         
-        void drawSliceVoxelsWithTransform(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawSliceVoxelsWithTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           std::vector<int32_t>& identificationIndices,
-                                          const PaletteFile* paletteFile,
                                           const int32_t idPerVoxelCount,
                                           const Matrix4x4& transformationMatrix,
-                                          const DisplayGroupEnum::Enum displayGroup,
-                                          const int32_t tabIndex,
                                           const float screenBounds[4],
                                           const float sliceNormalVector[3],
                                           const float voxelSize,
                                           const float zoom,
                                           const bool isSelectionMode);
         
-        void drawSliceVoxelsModelCoordInterpolation(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawSliceVoxelsModelCoordInterpolation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           std::vector<int32_t>& identificationIndices,
-                                          const PaletteFile* paletteFile,
                                           const int32_t idPerVoxelCount,
                                           const Matrix4x4& transformationMatrix,
-                                          const DisplayGroupEnum::Enum displayGroup,
-                                          const int32_t tabIndex,
                                           const float screenBounds[4],
                                           const float sliceNormalVector[3],
                                           const float voxelSize,
                                                     const float zoom,
                                           const bool isSelectionMode);
         
-        void drawSlicesForAllView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                  BrowserTabContent* browserTabContent,
-                                  std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                  const int viewport[4],
+        void drawSlicesForAllView(const int viewport[4],
                                   const DRAW_MODE drawMode);
         
-        void drawSliceForSliceView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                   BrowserTabContent* browserTabContent,
-                                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                   const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                    const int viewport[4]);
         
         void drawQuads(const std::vector<float>& coordinates,
@@ -266,21 +246,32 @@ namespace caret {
                        const std::vector<float>& normals,
                        const std::vector<uint8_t>& rgbaColors);
         
-        void drawLines(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                       const std::vector<float>& coordinates,
+        void drawLines(const std::vector<float>& coordinates,
                        const std::vector<uint8_t>& rgbaColors,
                        const float thickness);
         
-        void drawSurfaces(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                          BrowserTabContent* browserTabContent,
-                          const int viewport[4]);
+        void drawSurfaces(const int viewport[4]);
         
-        void drawSurfaceOutline(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                BrowserTabContent* browserTabContent,
-                                const Plane& plane);
+        void drawSurfaceOutline(const Plane& plane);
         
         // ADD_NEW_MEMBERS_HERE
 
+        Brain* m_brain;
+        
+        std::vector<std::vector<float> > m_ciftiMappableFileData;
+
+        BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
+        
+        std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo> m_volumeDrawInfo;
+        
+        BrowserTabContent* m_browserTabContent;
+        
+        PaletteFile* m_paletteFile;
+        
+        DisplayGroupEnum::Enum m_displayGroup;
+        
+        int32_t m_tabIndex;
+        
     };
     
 #ifdef __BRAIN_OPEN_G_L_F_P_VOLUME_OBLIQUE_DRAWING_DECLARE__

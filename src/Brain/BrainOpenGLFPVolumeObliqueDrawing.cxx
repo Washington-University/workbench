@@ -126,9 +126,55 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
     
+    /*
+     * Initialize class members which help reduce the number of 
+     * parameters that are passed to methods.
+     */
+    Model* model = browserTabContent->getModelControllerForDisplay();
+    CaretAssert(model);
+    
+    m_brain = model->getBrain();
+    CaretAssert(m_brain);
+    
+    m_fixedPipelineDrawing = fixedPipelineDrawing;
+    
+    m_volumeDrawInfo = volumeDrawInfo;
+    
+    m_browserTabContent = browserTabContent;
+    
+    m_paletteFile = browserTabContent->getModelControllerForDisplay()->getBrain()->getPaletteFile();
+    CaretAssert(m_paletteFile);
+    
+    const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
+    m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
+    
+    m_tabIndex = m_browserTabContent->getTabNumber();
+    
+    /*
+     * Cifti files are slow at getting individual voxels since they
+     * provide no access to individual voxels.  The reason is that
+     * the data may be on a server (Dense data) and accessing a single
+     * voxel would require requesting the entire map.  So, for 
+     * each Cifti file, get the enter map.  This also, eliminate multiple
+     * requests for the same map when drawing an ALL view.
+     */
+    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
+    for (int32_t i = 0; i < numVolumes; i++) {
+        std::vector<float> ciftiMapData;
+        m_ciftiMappableFileData.push_back(ciftiMapData);
+        
+        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeDrawInfo[i].volumeFile);
+        if (ciftiMapFile != NULL) {
+            ciftiMapFile->getMapData(m_volumeDrawInfo[i].mapIndex,
+                                     m_ciftiMappableFileData[i]);
+        }
+    }
+    
+
+    
     glEnable(GL_DEPTH_TEST);
     
-    if (volumeDrawInfo.empty()) {
+    if (m_volumeDrawInfo.empty()) {
         return;
     }
     
@@ -136,8 +182,6 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     switch (slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
-//            const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-//            const int montageMargin = caretPreferences->getVolumeMontageGap();
             const int gap = 2;
             
             const int vpHalfX = viewport[2] / 2;
@@ -151,10 +195,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
             };
             
             glLoadIdentity();
-            drawSlicesForAllView(fixedPipelineDrawing,
-                                 browserTabContent,
-                                 volumeDrawInfo,
-                                 allVP,
+            drawSlicesForAllView(allVP,
                                  DRAW_MODE_VOLUME_VIEW_SLICE_3D);
 //            drawSurfaces(fixedPipelineDrawing,
 //                         browserTabContent,
@@ -166,10 +207,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                 vpHalfX - gap,
                 vpHalfY - gap
             };
-            drawSliceForSliceView(fixedPipelineDrawing,
-                      browserTabContent,
-                      volumeDrawInfo,
-                      VolumeSliceViewPlaneEnum::PARASAGITTAL,
+            drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
                       paraVP);
             
             
@@ -179,10 +217,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                 vpHalfX - gap,
                 vpHalfY - gap
             };
-            drawSliceForSliceView(fixedPipelineDrawing,
-                      browserTabContent,
-                      volumeDrawInfo,
-                      VolumeSliceViewPlaneEnum::CORONAL,
+            drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
                       coronalVP);
             
             
@@ -192,20 +227,14 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                 vpHalfX - gap,
                 vpHalfY - gap
             };
-            drawSliceForSliceView(fixedPipelineDrawing,
-                      browserTabContent,
-                      volumeDrawInfo,
-                      VolumeSliceViewPlaneEnum::AXIAL,
+            drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
                       axialVP);
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         case VolumeSliceViewPlaneEnum::CORONAL:
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            drawSliceForSliceView(fixedPipelineDrawing,
-                      browserTabContent,
-                      volumeDrawInfo,
-                      slicePlane,
+            drawSliceForSliceView(slicePlane,
                       viewport);
             break;
     }
@@ -260,49 +289,28 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
 /**
  * Draw all slice planes for an all view.
  *
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
- * @param browserTabContent
- *   Content of the browser tab being drawn.
- * @param volumeDrawInfo
- *   Vector containing about volumes selected as overlays for drawing.
  * @param viewport
  *   Viewport in which drawing takes place.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                          BrowserTabContent* browserTabContent,
-                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                          const int viewport[4],
+BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllView(const int viewport[4],
                                                         const DRAW_MODE drawMode)
 {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     
-    Model* model = browserTabContent->getModelControllerForDisplay();
-    Brain* brain = model->getBrain();
-    
-    fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
+    m_fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
                                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
 
-    drawSlice(brain,
-              fixedPipelineDrawing,
-              browserTabContent,
-              volumeDrawInfo,
+    drawSlice(m_brain,
               VolumeSliceViewPlaneEnum::AXIAL,
               drawMode);
     
-    drawSlice(brain,
-              fixedPipelineDrawing,
-              browserTabContent,
-              volumeDrawInfo,
+    drawSlice(m_brain,
               VolumeSliceViewPlaneEnum::CORONAL,
               drawMode);
     
-    drawSlice(brain,
-              fixedPipelineDrawing,
-              browserTabContent,
-              volumeDrawInfo,
+    drawSlice(m_brain,
               VolumeSliceViewPlaneEnum::PARASAGITTAL,
               drawMode);
     
@@ -312,41 +320,26 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllView(BrainOpenGLFixedPipeline
 /**
  * Draw a volume slice for a volume slice view.
  *
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
- * @param browserTabContent
- *   Content of the browser tab being drawn.
- * @param volumeDrawInfo
- *   Vector containing about volumes selected as overlays for drawing.
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param viewport
  *   Viewport in which drawing takes place.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceView(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                            BrowserTabContent* browserTabContent,
-                                                            std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                                            const VolumeSliceViewPlaneEnum::Enum slicePlane,
+BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                             const int viewport[4])
 {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
     
-    Model* model = browserTabContent->getModelControllerForDisplay();
-    Brain* brain = model->getBrain();
-    
     /*
      * Setup the viewport so left on left, bottom at bottom, and near towards viewer
      */
-    fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
+    m_fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
                                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
     
-    drawSlice(brain,
-              fixedPipelineDrawing,
-              browserTabContent,
-              volumeDrawInfo,
+    drawSlice(m_brain,
               slicePlane,
               DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE);
     
@@ -356,14 +349,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceView(BrainOpenGLFixedPipelin
 /**
  * Draw a volume slice for the given slice plane.
  *
- * @param brain
- *   The "brain".
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
- * @param browserTabContent
- *   Content of the browser tab being drawn.
- * @param volumeDrawInfo
- *   Vector containing about volumes selected as overlays for drawing.
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param drawMode
@@ -371,13 +356,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceView(BrainOpenGLFixedPipelin
  */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
-                                             BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                        BrowserTabContent* browserTabContent,
-                                        std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                         const DRAW_MODE drawMode)
 {
-    const int32_t numVolumes = static_cast<int32_t>(volumeDrawInfo.size());
+    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     if (numVolumes <= 0) {
         return;
     }
@@ -392,13 +374,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     
     CaretAssert(brain);
 
-    PaletteFile* paletteFile = brain->getPaletteFile();
-    const DisplayPropertiesLabels* dsl = brain->getDisplayPropertiesLabels();
-    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(fixedPipelineDrawing->windowTabIndex);
-    
 
-    const int32_t tabIndex = browserTabContent->getTabNumber();
-    
     float voxelBounds[6];
     float voxelSpacing[3];
     
@@ -406,8 +382,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
      * Get the maximum bounds of the voxels from all slices
      * and the smallest voxel spacing
      */
-    if (false == getVoxelCoordinateBoundsAndSpacing(volumeDrawInfo,
-                                                    voxelBounds,
+    if (false == getVoxelCoordinateBoundsAndSpacing(voxelBounds,
                                                     voxelSpacing)) {
         return;
     }
@@ -418,7 +393,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
      * Check for a 'selection' type mode
      */
     bool isSelect = false;
-    switch (fixedPipelineDrawing->mode) {
+    switch (m_fixedPipelineDrawing->mode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
@@ -446,7 +421,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             /*
              * User's translation.
              */
-            const float* translation = browserTabContent->getTranslation();
+            const float* translation = m_browserTabContent->getTranslation();
             float translationadj[3] = { translation[0], translation[1], translation[2] };
             switch (sliceViewPlane) {//prevents going outside near/far?
                 case VolumeSliceViewPlaneEnum::ALL:
@@ -509,10 +484,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     /*
      * Determine the larget slice coordinate range and the minimum voxel spacing
      */
-    const float minScreenX = fixedPipelineDrawing->orthographicLeft;
-    const float maxScreenX = fixedPipelineDrawing->orthographicRight;
-    const float minScreenY = fixedPipelineDrawing->orthographicBottom;
-    const float maxScreenY = fixedPipelineDrawing->orthographicTop;
+    const float minScreenX = m_fixedPipelineDrawing->orthographicLeft;
+    const float maxScreenX = m_fixedPipelineDrawing->orthographicRight;
+    const float minScreenY = m_fixedPipelineDrawing->orthographicBottom;
+    const float maxScreenY = m_fixedPipelineDrawing->orthographicTop;
 
     const float minVoxelSize = std::min(voxelSpacing[0],
                                         std::min(voxelSpacing[1],
@@ -526,15 +501,15 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
      * Get coordinate of selected slices
      */
     const float selectedSliceOrigin[3] = {
-        browserTabContent->getSliceCoordinateParasagittal(),
-        browserTabContent->getSliceCoordinateCoronal(),
-        browserTabContent->getSliceCoordinateAxial()
+        m_browserTabContent->getSliceCoordinateParasagittal(),
+        m_browserTabContent->getSliceCoordinateCoronal(),
+        m_browserTabContent->getSliceCoordinateAxial()
     };
     
     /*
      * Get the rotation matrix
      */
-    Matrix4x4 rotationMatrix = browserTabContent->getRotationMatrix();
+    Matrix4x4 rotationMatrix = m_browserTabContent->getRotationMatrix();
 
     /*
      * Create the transformation matrix
@@ -698,34 +673,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             break;
     }
     const float zoom = (allowTransformationsFlag
-                        ? browserTabContent->getScaling()
+                        ? m_browserTabContent->getScaling()
                         : 1.0);
     
-//    float translation[3] = { 0.0, 0.0, 0.0 };
-//    if (allowTransformationsFlag) {
-//        /*
-//         * User's translation.
-//         */
-//        const float* userTranslation = browserTabContent->getTranslation();
-//        translation[0] = userTranslation[0];
-//        translation[1] = userTranslation[1];
-//        translation[2] = userTranslation[2];
-//
-//        switch (sliceViewPlane) {//prevents going outside near/far?
-//            case VolumeSliceViewPlaneEnum::ALL:
-//                break;
-//            case VolumeSliceViewPlaneEnum::AXIAL:
-//                translation[2] = 0.0;
-//                break;
-//            case VolumeSliceViewPlaneEnum::CORONAL:
-//                translation[1] = 0.0;
-//                break;
-//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                translation[0] = 0.0;
-//                break;
-//        }
-//    }
-
     /*
      * Draw slice
      */
@@ -738,15 +688,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             maxScreenY
         };
         
-        drawSliceVoxelsModelCoordInterpolation(fixedPipelineDrawing,
-                                     volumeDrawInfo,
-                                     sliceViewPlane,
+        drawSliceVoxelsModelCoordInterpolation(sliceViewPlane,
                                      identificationIndices,
-                                     paletteFile,
                                      idPerVoxelCount,
                                      transformationMatrix,
-                                     displayGroup,
-                                     tabIndex,
                                      screenBounds,
                                      sliceNormalVector,
                                      minVoxelSize,
@@ -761,15 +706,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             maxScreenY
         };
         
-        drawSliceVoxelsWithTransform(fixedPipelineDrawing,
-                                     volumeDrawInfo,
-                                     sliceViewPlane,
+        drawSliceVoxelsWithTransform(sliceViewPlane,
                                      identificationIndices,
-                                     paletteFile,
                                      idPerVoxelCount,
                                      transformationMatrix,
-                                     displayGroup,
-                                     tabIndex,
                                      screenBounds,
                                      sliceNormalVector,
                                      minVoxelSize,
@@ -782,12 +722,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
             glPushMatrix();
             glScalef(zoom, zoom, zoom);
             
-            fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
-            fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+            m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
+            m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
             
-            drawSurfaceOutline(fixedPipelineDrawing,
-                               browserTabContent,
-                               slicePlane);
+            drawSurfaceOutline(slicePlane);
             glPopMatrix();
         }
     }
@@ -798,16 +736,16 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
     if (isSelect) {
         int32_t identifiedItemIndex;
         float depth = -1.0;
-        fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
-                                         fixedPipelineDrawing->mouseX,
-                                         fixedPipelineDrawing->mouseY,
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+                                         m_fixedPipelineDrawing->mouseX,
+                                         m_fixedPipelineDrawing->mouseY,
                                          identifiedItemIndex,
                                          depth);
         if (identifiedItemIndex >= 0) {
             const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
             const int32_t volDrawInfoIndex = identificationIndices[idIndex];
-            CaretAssertVectorIndex(volumeDrawInfo, volDrawInfoIndex);
-            VolumeMappableInterface* vf = volumeDrawInfo[volDrawInfoIndex].volumeFile;
+            CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
+            VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
             //const int32_t mapIndex = identificationIndices[idIndex + 1];
             const int64_t voxelIndices[3] = {
                 identificationIndices[idIndex + 2],
@@ -824,7 +762,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
                 vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                  voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
                 
-                fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                voxelCoordinates);
                 CaretLogFine("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
             }
@@ -842,24 +780,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
 /**
  * Draw a volume slice by transforming each screen point to a model coordinate.
  *
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
- * @param volumeDrawInfo
- *   Vector containing about volumes selected as overlays for drawing.
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param identificationIndices
  *   Indices into with identification information may be added.
- * @param paletteFile
- *   The palette file used for voxel coloring.
  * @param idPerVoxelCount
  *   Number of items per voxel identification for identificationIndices
  * @param transformationMatrix
  *   Transformation matrix for screen to model.
- * @param displayGroup
- *   The selected display group for volume labels.
- * @param tabIndex
- *   The selected tab index for volume labels.
  * @param screenBounds
  *   Bounds of the screen.
  * @param sliceNormalVector
@@ -870,22 +798,17 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(Brain* brain,
  *   True if performing selection.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                  std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                 std::vector<int32_t>& identificationIndices,
-                                                                const PaletteFile* paletteFile,
                                                                 const int32_t idPerVoxelCount,
                                                                 const Matrix4x4& transformationMatrix,
-                                                                const DisplayGroupEnum::Enum displayGroup,
-                                                                const int32_t tabIndex,
                                                                 const float screenBounds[4],
                                                                 const float sliceNormalVector[3],
                                                                 const float voxelSize,
                                                                 const float zoom,
                                                                 const bool isSelectionMode)
 {
-    const int32_t numVolumes = static_cast<int32_t>(volumeDrawInfo.size());
+    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     const float halfVoxelSize = voxelSize / 2.0;
     
     const float minScreenX = screenBounds[0];
@@ -953,7 +876,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(BrainOpenGLFixed
             uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
             
             for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
-                const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = volumeDrawInfo[iVol];
+                const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
                 const VolumeMappableInterface* volInter = vdi.volumeFile;
                 int64_t voxelI, voxelJ, voxelK;
                 volInter->enclosingVoxel(pt[0], pt[1], pt[2],
@@ -961,10 +884,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(BrainOpenGLFixed
                 
                 uint8_t rgba[4] = { 0, 0, 0, 0 };
                 if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
-                    volInter->getVoxelColorInMap(paletteFile,
+                    volInter->getVoxelColorInMap(m_paletteFile,
                                                  voxelI, voxelJ, voxelK, vdi.mapIndex,
-                                                 displayGroup,
-                                                 tabIndex,
+                                                 m_displayGroup,
+                                                 m_tabIndex,
                                                  rgba);
                     if (rgba[3] > 0) {
                         if ((rgba[0] > 0)
@@ -972,7 +895,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(BrainOpenGLFixed
                             && (rgba[2] > 0)) {
                             if (isSelectionMode) {
                                 const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-                                fixedPipelineDrawing->colorIdentification->addItem(rgba,
+                                m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
                                                                                    SelectionItemDataTypeEnum::VOXEL,
                                                                                    idIndex);
                                 rgba[3] = 255;
@@ -1105,24 +1028,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(BrainOpenGLFixed
 /**
  * Draw a volume slice by interpolating in model coordinates.
  *
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
- * @param volumeDrawInfo
- *   Vector containing about volumes selected as overlays for drawing.
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param identificationIndices
  *   Indices into with identification information may be added.
- * @param paletteFile
- *   The palette file used for voxel coloring.
  * @param idPerVoxelCount
  *   Number of items per voxel identification for identificationIndices
  * @param transformationMatrix
  *   Transformation matrix for screen to model.
- * @param displayGroup
- *   The selected display group for volume labels.
- * @param tabIndex
- *   The selected tab index for volume labels.
  * @param screenBounds
  *   Bounds of the screen.
  * @param sliceNormalVector
@@ -1133,22 +1046,17 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(BrainOpenGLFixed
  *   True if performing selection.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                      std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       std::vector<int32_t>& identificationIndices,
-                                      const PaletteFile* paletteFile,
                                       const int32_t idPerVoxelCount,
                                       const Matrix4x4& transformationMatrix,
-                                      const DisplayGroupEnum::Enum displayGroup,
-                                      const int32_t tabIndex,
                                       const float screenBounds[4],
                                       const float sliceNormalVector[3],
                                       const float voxelSize,
                                                                           const float zoom,
                                       const bool isSelectionMode)
 {
-    const int32_t numVolumes = static_cast<int32_t>(volumeDrawInfo.size());
+    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     
     const float minScreenX = screenBounds[0];
     const float maxScreenX = screenBounds[1];
@@ -1252,21 +1160,12 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
     
     /*
      * For fastest coloring, need to color data values as a group
-     * Also, reserve space for values to avoid reallocation
      */
     std::vector<VolumeSlice> volumeSlices;
-    std::vector<std::vector<float> > ciftiMappableFileData;
     for (int32_t i = 0; i < numVolumes; i++) {
-        volumeSlices.push_back(VolumeSlice(volumeDrawInfo[i].volumeFile,
-                                           volumeDrawInfo[i].mapIndex));
+        volumeSlices.push_back(VolumeSlice(m_volumeDrawInfo[i].volumeFile,
+                                           m_volumeDrawInfo[i].mapIndex));
         
-        std::vector<float> ciftiMapData;
-        const CiftiMappableDataFile* ciftiMapFile = dynamic_cast<const CiftiMappableDataFile*>(volumeDrawInfo[i].volumeFile);
-        if (ciftiMapFile != NULL) {
-            ciftiMapFile->getMapData(volumeDrawInfo[i].mapIndex,
-                                     ciftiMapData);
-        }
-        ciftiMappableFileData.push_back(ciftiMapData);
     }
     
     /*
@@ -1370,11 +1269,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
              */
             for (int64_t i = 0; i < numVoxelsInRow; i++) {
                 /*
-                 * Initialize color for voxel (zero alpha => do not draw)
-                 */
-//                uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
-                
-                /*
                  * Top right corner of voxel
                  */
                 const double topRightVoxelCoord[3] = {
@@ -1396,11 +1290,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                 VoxelToDraw* voxelDrawingInfo = NULL;
                 
                 for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
-                    const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = volumeDrawInfo[iVol];
+                    const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
                     const VolumeMappableInterface* volInter = vdi.volumeFile;
-                    const VolumeFile* volumeFile = volumeSlices[iVol].m_volumeFile; //   dynamic_cast<const VolumeFile*>(volInter);
-//                    uint8_t rgba[4] = { 0, 0, 0, 0 };
-//                    int64_t voxelI, voxelJ, voxelK;
+                    const VolumeFile* volumeFile = volumeSlices[iVol].m_volumeFile;
                     
                     float value = 0;
                     bool valueValidFlag = false;
@@ -1419,35 +1311,13 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                                                              VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
-//                        if (valueValidFlag
-//                            && isSelectionMode) {
-//                            volumeFile->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
-//                                                     voxelI, voxelJ, voxelK);
-//                            
-//                            if ( ! volumeFile->indexValid(voxelI, voxelJ, voxelK)) {
-//                                rgba[3] = 0;
-//                            }
-//                        }
                     }
                     else if (ciftiMappableFile != NULL) {
-//                        int64_t voxelI, voxelJ, voxelK;
-//                        ciftiMappableFile->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
-//                                                 voxelI, voxelJ, voxelK);
-//
-//                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
-//                            uint8_t rgba[4];
-//                            volInter->getVoxelColorInMap(paletteFile,
-//                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
-//                                                         displayGroup,
-//                                                         tabIndex,
-//                                                         rgba);
-//                        }
-                        
                         const int64_t voxelOffset = ciftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
                                                                                                             vdi.mapIndex);
                         if (voxelOffset >= 0) {
-                            CaretAssertVectorIndex(ciftiMappableFileData, iVol);
-                            const std::vector<float>& data = ciftiMappableFileData[iVol];
+                            CaretAssertVectorIndex(m_ciftiMappableFileData, iVol);
+                            const std::vector<float>& data = m_ciftiMappableFileData[iVol];
                             CaretAssertVectorIndex(data, voxelOffset);
                             value = data[voxelOffset];
                             valueValidFlag = true;
@@ -1457,20 +1327,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                         value = volInter->getVoxelValue(voxelCenter,
                                                         &valueValidFlag,
                                                         vdi.mapIndex);
-
-//                        /*
-//                         * Does the coordinate correspond to a valid voxel?
-//                         */
-//                        volInter->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
-//                                                 voxelI, voxelJ, voxelK);
-//                        
-//                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
-//                            volInter->getVoxelColorInMap(paletteFile,
-//                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
-//                                                         displayGroup,
-//                                                         tabIndex,
-//                                                         rgba);
-//                        }
                     }
                     
                     if (valueValidFlag) {
@@ -1503,118 +1359,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                         
                         const int64_t offset = volumeSlices[iVol].addValue(value);
                         voxelDrawingInfo->addVolumeValue(iVol, offset);
-                    }
-                    
-//                    if (rgba[3] > 0) {
-//                        if ((rgba[0] > 0)
-//                            || (rgba[1] > 0)
-//                            || (rgba[2] > 0)) {
-//                            if (isSelectionMode) {
-//                                /*
-//                                 * Performing a selection?
-//                                 */
-//                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-//                                fixedPipelineDrawing->colorIdentification->addItem(rgba,
-//                                                                                   SelectionItemDataTypeEnum::VOXEL,
-//                                                                                   idIndex);
-//                                rgba[3] = 255;
-//                                identificationIndices.push_back(iVol);
-//                                identificationIndices.push_back(vdi.mapIndex);
-//                                identificationIndices.push_back(voxelI);
-//                                identificationIndices.push_back(voxelJ);
-//                                identificationIndices.push_back(voxelK);
-//                            }
-//                            
-//                            voxelRGBA[0] = rgba[0];
-//                            voxelRGBA[1] = rgba[1];
-//                            voxelRGBA[2] = rgba[2];
-//                            voxelRGBA[3] = rgba[3];
-//                        }
-//                    }
+                    }                    
                 }
-                
-//                if (voxelRGBA[3] > 0) {
-//                    /*
-//                     * Bottom right corner of voxel
-//                     */
-//                    const double bottomRightVoxelCoord[3] = {
-//                        bottomLeftVoxelCoord[0] + bottomVoxelEdgeDX,
-//                        bottomLeftVoxelCoord[1] + bottomVoxelEdgeDY,
-//                        bottomLeftVoxelCoord[2] + bottomVoxelEdgeDZ
-//                    };
-//                    
-//                    /*
-//                     * Top right corner of voxel
-//                     */
-//                    const double topRightVoxelCoord[3] = {
-//                        topLeftVoxelCoord[0] + topVoxelEdgeDX,
-//                        topLeftVoxelCoord[1] + topVoxelEdgeDY,
-//                        topLeftVoxelCoord[2] + topVoxelEdgeDZ
-//                    };
-//
-//                    if (firstFlag) {
-//                        firstFlag = false;
-//                        std::cout << "bl: " << qPrintable(AString::fromNumbers(bottomLeftVoxelCoord, 3, ", ")) << std::endl;
-//                        std::cout << "br: " << qPrintable(AString::fromNumbers(bottomRightVoxelCoord, 3, ", ")) << std::endl;
-//                        std::cout << "tr: " << qPrintable(AString::fromNumbers(topRightVoxelCoord, 3, ", ")) << std::endl;
-//                        std::cout << "tl: " << qPrintable(AString::fromNumbers(topLeftVoxelCoord, 3, ", ")) << std::endl;
-//                    }
-//                    
-//                    quadRGBAs.push_back(voxelRGBA[0]);
-//                    quadRGBAs.push_back(voxelRGBA[1]);
-//                    quadRGBAs.push_back(voxelRGBA[2]);
-//                    quadRGBAs.push_back(voxelRGBA[3]);
-//                    
-//                    quadNormals.push_back(sliceNormalVector[0]);
-//                    quadNormals.push_back(sliceNormalVector[1]);
-//                    quadNormals.push_back(sliceNormalVector[2]);
-//                    
-//                    if (doPerVertexNormalsAndColors) {
-//                        quadRGBAs.push_back(voxelRGBA[0]);
-//                        quadRGBAs.push_back(voxelRGBA[1]);
-//                        quadRGBAs.push_back(voxelRGBA[2]);
-//                        quadRGBAs.push_back(voxelRGBA[3]);
-//                        
-//                        quadNormals.push_back(sliceNormalVector[0]);
-//                        quadNormals.push_back(sliceNormalVector[1]);
-//                        quadNormals.push_back(sliceNormalVector[2]);
-//
-//                        quadRGBAs.push_back(voxelRGBA[0]);
-//                        quadRGBAs.push_back(voxelRGBA[1]);
-//                        quadRGBAs.push_back(voxelRGBA[2]);
-//                        quadRGBAs.push_back(voxelRGBA[3]);
-//                        
-//                        quadNormals.push_back(sliceNormalVector[0]);
-//                        quadNormals.push_back(sliceNormalVector[1]);
-//                        quadNormals.push_back(sliceNormalVector[2]);
-//                        
-//                        quadRGBAs.push_back(voxelRGBA[0]);
-//                        quadRGBAs.push_back(voxelRGBA[1]);
-//                        quadRGBAs.push_back(voxelRGBA[2]);
-//                        quadRGBAs.push_back(voxelRGBA[3]);
-//                        
-//                        quadNormals.push_back(sliceNormalVector[0]);
-//                        quadNormals.push_back(sliceNormalVector[1]);
-//                        quadNormals.push_back(sliceNormalVector[2]);
-//                    }
-//                    
-//                    quadCoords.push_back(bottomLeftVoxelCoord[0]);
-//                    quadCoords.push_back(bottomLeftVoxelCoord[1]);
-//                    quadCoords.push_back(bottomLeftVoxelCoord[2]);
-//                    
-//                    quadCoords.push_back(bottomRightVoxelCoord[0]);
-//                    quadCoords.push_back(bottomRightVoxelCoord[1]);
-//                    quadCoords.push_back(bottomRightVoxelCoord[2]);
-//                    
-//                    quadCoords.push_back(topRightVoxelCoord[0]);
-//                    quadCoords.push_back(topRightVoxelCoord[1]);
-//                    quadCoords.push_back(topRightVoxelCoord[2]);
-//                    
-//                    quadCoords.push_back(topLeftVoxelCoord[0]);
-//                    quadCoords.push_back(topLeftVoxelCoord[1]);
-//                    quadCoords.push_back(topLeftVoxelCoord[2]);
-//                }
-                
+                                
                 /*
                  * Move to the next voxel in the row
                  */
@@ -1646,16 +1393,16 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
             if (mappableFile->isMappedWithPalette()) {
                 const PaletteColorMapping* paletteColorMapping = mappableFile->getMapPaletteColorMapping(mapIndex);
                 const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-                const Palette* palette = paletteFile->getPaletteByName(paletteName);
+                const Palette* palette = m_paletteFile->getPaletteByName(paletteName);
                 if (palette != NULL) {
-                    NodeAndVoxelColoring::colorScalarsWithPalette(mappableFile->getMapFastStatistics(mapIndex),
+                    CaretAssertVectorIndex(m_volumeDrawInfo, i);
+                    NodeAndVoxelColoring::colorScalarsWithPalette(m_volumeDrawInfo[i].statistics,
                                                                   paletteColorMapping,
                                                                   palette,
                                                                   values,
                                                                   values,
                                                                   numValues,
                                                                   rgba);
-                    
                 }
                 else {
                     CaretLogWarning("Missing palette named: "
@@ -1680,7 +1427,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
     /*
      * Reserve space to avoid reallocations
      */
-    const bool doPerVertexNormalsAndColors = false;
+    const bool doPerVertexNormalsAndColors = true;
     if (numVoxelsToDraw > 0) {
         quadCoords.reserve(numVoxelsToDraw * 4 * 3);
         quadNormals.reserve(numVoxelsToDraw * 3);
@@ -1724,7 +1471,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                          * Performing a selection?
                          */
                         const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-                        fixedPipelineDrawing->colorIdentification->addItem(voxelRGBA,
+                        m_fixedPipelineDrawing->colorIdentification->addItem(voxelRGBA,
                                                                            SelectionItemDataTypeEnum::VOXEL,
                                                                            idIndex);
                         voxelRGBA[3] = 255;
@@ -1782,8 +1529,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
                 quadCoords.push_back(vtd->m_coordinates[iq]);
             }
         }
-        
-//        delete vtd;
     }
     
     for (std::vector<VoxelToDraw*>::iterator iter = voxelsToDraw.begin();
@@ -1793,10 +1538,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
         delete vtd;
     }
     voxelsToDraw.clear();
-    
-//    std::cout << "Number of voxels from quads: "
-//    << (quadCoords.size() / 12)
-//    << std::endl;
     
     if ( ! quadCoords.empty()) {
         glPushMatrix();
@@ -1811,22 +1552,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainO
 /**
  * Draw surface outlines on the volume slices
  *
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
- * @param browserTabContent
- *   Content of browser tab being drawn.
  * @param underlayVolume
  *   The underlay volume
  * @param plane
  *   Plane of the volume slice on which surface outlines are drawn.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                      BrowserTabContent* browserTabContent,
-                                                      const Plane& plane)
+BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(const Plane& plane)
 {
-    CaretAssert(browserTabContent);
-    
     if ( ! plane.isValidPlane()) {
         return;
     }
@@ -1834,9 +1567,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* 
     float intersectionPoint1[3];
     float intersectionPoint2[3];
     
-    fixedPipelineDrawing->enableLineAntiAliasing();
+    m_fixedPipelineDrawing->enableLineAntiAliasing();
     
-    VolumeSurfaceOutlineSetModel* outlineSet = browserTabContent->getVolumeSurfaceOutlineSet();
+    VolumeSurfaceOutlineSetModel* outlineSet = m_browserTabContent->getVolumeSurfaceOutlineSet();
     
     /*
      * Process each surface outline
@@ -1850,7 +1583,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* 
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 const float thickness = outline->getThickness();
-                const float lineWidth = fixedPipelineDrawing->modelSizeToPixelSize(thickness);
+                const float lineWidth = m_fixedPipelineDrawing->modelSizeToPixelSize(thickness);
                 
                 int numTriangles = surface->getNumberOfTriangles();
                 
@@ -1871,13 +1604,13 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* 
                 
                 float* nodeColoringRGBA = NULL;
                 if (surfaceColorFlag) {
-                    nodeColoringRGBA = fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL, /*modelDisplayController*/
+                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL, /*modelDisplayController*/
                                                                                     surface,
                                                                                     colorSourceBrowserTabIndex);
                 }
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
-                fixedPipelineDrawing->setLineWidth(lineWidth);
+                m_fixedPipelineDrawing->setLineWidth(lineWidth);
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane
@@ -1919,7 +1652,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* 
         }
     }
     
-    fixedPipelineDrawing->disableLineAntiAliasing();
+    m_fixedPipelineDrawing->disableLineAntiAliasing();
 }
 
 
@@ -1927,8 +1660,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* 
  * Get the maximum bounds that enclose the volumes and the minimum
  * voxel spacing from the volumes.
  *
- * @param volumeDrawInfo
- *    Volumes that are being drawn.
  * @param boundsOut
  *    Bounds of the volumes.
  * @param spacingOut
@@ -1936,11 +1667,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(BrainOpenGLFixedPipeline* 
  *
  */
 bool
-BrainOpenGLFPVolumeObliqueDrawing::getVoxelCoordinateBoundsAndSpacing(const std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-                                                                      float boundsOut[6],
+BrainOpenGLFPVolumeObliqueDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                                       float spacingOut[3])
 {
-    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
     if (numberOfVolumesToDraw <= 0) {
         return false;
     }
@@ -1960,7 +1690,7 @@ BrainOpenGLFPVolumeObliqueDrawing::getVoxelCoordinateBoundsAndSpacing(const std:
     float voxelStepZ = std::numeric_limits<float>::max();
     float sliceCoordinate = 0.0;
     for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
-        const VolumeMappableInterface* volumeFile = volumeDrawInfo[i].volumeFile;
+        const VolumeMappableInterface* volumeFile = m_volumeDrawInfo[i].volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
         
@@ -2033,14 +1763,9 @@ BrainOpenGLFPVolumeObliqueDrawing::getVoxelCoordinateBoundsAndSpacing(const std:
 }
 
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                BrowserTabContent* browserTabContent,
-                                                const int viewport[4])
+BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(const int viewport[4])
 {
-    Model* model = browserTabContent->getModelControllerForDisplay();
-    Brain* brain = model->getBrain();
-    
-    std::vector<const Surface*> surfaces = brain->getVolumeInteractionSurfaces();
+    std::vector<const Surface*> surfaces = m_brain->getVolumeInteractionSurfaces();
     
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2062,16 +1787,16 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
                 nodeColors[i4+3] = 0.5; // 1.0;
             }
             
-            fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
+            m_fixedPipelineDrawing->setViewportAndOrthographicProjection(viewport,
                                                                        ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
             
             const float center[3] = { 0.0, 0.0, 0.0 };
-            fixedPipelineDrawing->applyViewingTransformations(center,
+            m_fixedPipelineDrawing->applyViewingTransformations(center,
                                               ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
             
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-            fixedPipelineDrawing->drawSurface(const_cast<Surface*>(sf),
+            m_fixedPipelineDrawing->drawSurface(const_cast<Surface*>(sf),
                                               &nodeColors[0]);
             
         }
@@ -2083,9 +1808,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
     /*
      * Translate to selected location
      */
-    const float centerX = browserTabContent->getSliceCoordinateParasagittal();
-    const float centerY = browserTabContent->getSliceCoordinateCoronal();
-    const float centerZ = browserTabContent->getSliceCoordinateAxial();
+    const float centerX = m_browserTabContent->getSliceCoordinateParasagittal();
+    const float centerY = m_browserTabContent->getSliceCoordinateCoronal();
+    const float centerZ = m_browserTabContent->getSliceCoordinateAxial();
     Matrix4x4 transformationMatrix;
     transformationMatrix.translate(centerX,
                                    centerY,
@@ -2094,7 +1819,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
     /*
      * Apply rotation
      */
-    Matrix4x4 rotationMatrix = browserTabContent->getRotationMatrix();
+    Matrix4x4 rotationMatrix = m_browserTabContent->getRotationMatrix();
     transformationMatrix.premultiply(rotationMatrix);
     
     double openGLMatrix[16];
@@ -2139,8 +1864,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
         rgba.push_back(0);
         rgba.push_back(maxAlpha);
         
-        drawLines(fixedPipelineDrawing,
-                  coords,
+        drawLines(coords,
                   rgba,
                   lineThickness);
     }
@@ -2170,8 +1894,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
         rgba.push_back(0);
         rgba.push_back(maxAlpha);
         
-        drawLines(fixedPipelineDrawing,
-                  coords,
+        drawLines(coords,
                   rgba,
                   lineThickness);
     }
@@ -2201,8 +1924,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
         rgba.push_back(maxIntensity);
         rgba.push_back(maxAlpha);
         
-        drawLines(fixedPipelineDrawing,
-                  coords,
+        drawLines(coords,
                   rgba,
                   lineThickness);
     }
@@ -2384,8 +2106,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
 /**
  * Draw lines segments (2 coords per segment).
  *
- * @param fixedPipelineDrawing
- *   The fixed pipeline drawing.
  * @param coordinates
  *    Coordinates of the lines.
  * @param rgbaColors
@@ -2394,12 +2114,11 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(BrainOpenGLFixedPipeline* fixedP
  *    Thickness of the lines
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawLines(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                             const std::vector<float>& coordinates,
+BrainOpenGLFPVolumeObliqueDrawing::drawLines(const std::vector<float>& coordinates,
                                              const std::vector<uint8_t>& rgbaColors,
                                              const float thickness)
 {
-    fixedPipelineDrawing->setLineWidth(thickness);
+    m_fixedPipelineDrawing->setLineWidth(thickness);
     
     const uint64_t numCoords  = coordinates.size() / 3;
     const uint64_t numColors  = rgbaColors.size() / 4;
@@ -2668,479 +2387,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 }
-
-
-
-
-
-
-
-
-
-///**
-// * Draw a volume slice by interpolating in model coordinates.
-// *
-// * @param fixedPipelineDrawing
-// *   The fixed pipeline drawing.
-// * @param volumeDrawInfo
-// *   Vector containing about volumes selected as overlays for drawing.
-// * @param sliceViewPlane
-// *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
-// * @param identificationIndices
-// *   Indices into with identification information may be added.
-// * @param paletteFile
-// *   The palette file used for voxel coloring.
-// * @param idPerVoxelCount
-// *   Number of items per voxel identification for identificationIndices
-// * @param transformationMatrix
-// *   Transformation matrix for screen to model.
-// * @param displayGroup
-// *   The selected display group for volume labels.
-// * @param tabIndex
-// *   The selected tab index for volume labels.
-// * @param screenBounds
-// *   Bounds of the screen.
-// * @param sliceNormalVector
-// *   Unit normal vector of slice being drawn.
-// * @param voxelSize
-// *   Size of voxels.
-// * @param isSelectionMode
-// *   True if performing selection.
-// */
-//void
-//BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-//                                                                          std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
-//                                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-//                                                                          std::vector<int32_t>& identificationIndices,
-//                                                                          const PaletteFile* paletteFile,
-//                                                                          const int32_t idPerVoxelCount,
-//                                                                          const Matrix4x4& transformationMatrix,
-//                                                                          const DisplayGroupEnum::Enum displayGroup,
-//                                                                          const int32_t tabIndex,
-//                                                                          const float screenBounds[4],
-//                                                                          const float sliceNormalVector[3],
-//                                                                          const float voxelSize,
-//                                                                          const float zoom,
-//                                                                          const bool isSelectionMode)
-//{
-//    const int32_t numVolumes = static_cast<int32_t>(volumeDrawInfo.size());
-//    
-//    const float minScreenX = screenBounds[0];
-//    const float maxScreenX = screenBounds[1];
-//    const float minScreenY = screenBounds[2];
-//    const float maxScreenY = screenBounds[3];
-//    
-//    /*
-//     * Set the corners of the screen for the respective view
-//     */
-//    float bottomLeft[3];
-//    float bottomRight[3];
-//    float topRight[3];
-//    float topLeft[3];
-//    switch (sliceViewPlane) {
-//        case VolumeSliceViewPlaneEnum::ALL:
-//            CaretAssert(0);
-//            break;
-//        case VolumeSliceViewPlaneEnum::AXIAL:
-//            bottomLeft[0] = minScreenX;
-//            bottomLeft[1] = minScreenY;
-//            bottomLeft[2] = 0;
-//            bottomRight[0] = maxScreenX;
-//            bottomRight[1] = minScreenY;
-//            bottomRight[2] = 0;
-//            topRight[0] = maxScreenX;
-//            topRight[1] = maxScreenY;
-//            topRight[2] = 0;
-//            topLeft[0] = minScreenX;
-//            topLeft[1] = maxScreenY;
-//            topLeft[2] = 0;
-//            break;
-//        case VolumeSliceViewPlaneEnum::CORONAL:
-//            bottomLeft[0] = minScreenX;
-//            bottomLeft[1] = 0;
-//            bottomLeft[2] = minScreenY;
-//            bottomRight[0] = maxScreenX;
-//            bottomRight[1] = 0;
-//            bottomRight[2] = minScreenY;
-//            topRight[0] = maxScreenX;
-//            topRight[1] = 0;
-//            topRight[2] = maxScreenY;
-//            topLeft[0] = minScreenX;
-//            topLeft[1] = 0;
-//            topLeft[2] = maxScreenY;
-//            break;
-//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//            bottomLeft[0] = 0;
-//            bottomLeft[1] = minScreenX;
-//            bottomLeft[2] = minScreenY;
-//            bottomRight[0] = 0;
-//            bottomRight[1] = maxScreenX;
-//            bottomRight[2] = minScreenY;
-//            topRight[0] = 0;
-//            topRight[1] = maxScreenX;
-//            topRight[2] = maxScreenY;
-//            topLeft[0] = 0;
-//            topLeft[1] = minScreenX;
-//            topLeft[2] = maxScreenY;
-//            break;
-//    }
-//    
-//    /*
-//     * Transform the corners of the screen into model coordinates
-//     */
-//    transformationMatrix.multiplyPoint3(bottomLeft);
-//    transformationMatrix.multiplyPoint3(bottomRight);
-//    transformationMatrix.multiplyPoint3(topRight);
-//    transformationMatrix.multiplyPoint3(topLeft);
-//    
-//    /*
-//     * Unit vector and distance in model coords along left side of screen
-//     */
-//    double bottomLeftToTopLeftUnitVector[3] = {
-//        topLeft[0] - bottomLeft[0],
-//        topLeft[1] - bottomLeft[1],
-//        topLeft[2] - bottomLeft[2],
-//    };
-//    MathFunctions::normalizeVector(bottomLeftToTopLeftUnitVector);
-//    const double bottomLeftToTopLeftDistance = MathFunctions::distance3D(bottomLeft,
-//                                                                         topLeft);
-//    
-//    /*
-//     * Unit vector and distance in model coords along right side of screen
-//     */
-//    double bottomRightToTopRightUnitVector[3] = {
-//        topRight[0] - bottomRight[0],
-//        topRight[1] - bottomRight[1],
-//        topRight[2] - bottomRight[2]
-//    };
-//    MathFunctions::normalizeVector(bottomRightToTopRightUnitVector);
-//    const double bottomRightToTopRightDistance = MathFunctions::distance3D(bottomRight,
-//                                                                           topRight);
-//    /*
-//     * quadCoords is the coordinates for all four corners of a 'quad'
-//     * that is used to draw a voxel.  quadRGBA is the colors for each
-//     * voxel drawn as a 'quad'.
-//     */
-//    std::vector<float> quadCoords;
-//    std::vector<float> quadNormals;
-//    std::vector<uint8_t> quadRGBAs;
-//    
-//    const bool doPerVertexNormalsAndColors = false;
-//    bool numberOfVoxelsEstimated = false;
-//    
-//    if ((bottomLeftToTopLeftDistance > 0)
-//        && (bottomRightToTopRightDistance > 0)) {
-//        
-//        const double bottomLeftToTopLeftStep = voxelSize;
-//        const double numLeftSteps = (bottomLeftToTopLeftDistance / bottomLeftToTopLeftStep);
-//        
-//        const double bottomRightToTopRightStep = (bottomRightToTopRightDistance
-//                                                  / numLeftSteps);
-//        
-//        const double dtVertical = bottomLeftToTopLeftStep / bottomLeftToTopLeftDistance;
-//        
-//        /*
-//         * Voxels are drawn in rows, left to right, across the screen,
-//         * starting at the bottom.
-//         */
-//        double leftEdgeBottomCoord[3];
-//        double leftEdgeTopCoord[3];
-//        double rightEdgeBottomCoord[3];
-//        double rightEdgeTopCoord[3];
-//        for (double tVertical = 0.0, dLeft = 0.0, dRight = 0.0;
-//             tVertical < 1.0;
-//             tVertical += dtVertical, dLeft += bottomLeftToTopLeftStep, dRight += bottomRightToTopRightStep) {
-//            /*
-//             * Coordinate on left edge at BOTTOM of current row
-//             */
-//            leftEdgeBottomCoord[0] = bottomLeft[0] + (dLeft * bottomLeftToTopLeftUnitVector[0]);
-//            leftEdgeBottomCoord[1] = bottomLeft[1] + (dLeft * bottomLeftToTopLeftUnitVector[1]);
-//            leftEdgeBottomCoord[2] = bottomLeft[2] + (dLeft * bottomLeftToTopLeftUnitVector[2]);
-//            
-//            /*
-//             * Coordinate on right edge at BOTTOM of current row
-//             */
-//            rightEdgeBottomCoord[0] = bottomRight[0] + (dRight * bottomRightToTopRightUnitVector[0]);
-//            rightEdgeBottomCoord[1] = bottomRight[1] + (dRight * bottomRightToTopRightUnitVector[1]);
-//            rightEdgeBottomCoord[2] = bottomRight[2] + (dRight * bottomRightToTopRightUnitVector[2]);
-//            
-//            /*
-//             * Coordinate on left edge at TOP of current row
-//             */
-//            leftEdgeTopCoord[0] = bottomLeft[0] + ((dLeft + bottomLeftToTopLeftStep) * bottomLeftToTopLeftUnitVector[0]);
-//            leftEdgeTopCoord[1] = bottomLeft[1] + ((dLeft + bottomLeftToTopLeftStep) * bottomLeftToTopLeftUnitVector[1]);
-//            leftEdgeTopCoord[2] = bottomLeft[2] + ((dLeft + bottomLeftToTopLeftStep) * bottomLeftToTopLeftUnitVector[2]);
-//            
-//            /*
-//             * Coordinate on right edge at TOP of current row
-//             */
-//            rightEdgeTopCoord[0] = bottomRight[0] + ((dRight + bottomRightToTopRightStep) * bottomRightToTopRightUnitVector[0]);
-//            rightEdgeTopCoord[1] = bottomRight[1] + ((dRight + bottomRightToTopRightStep) * bottomRightToTopRightUnitVector[1]);
-//            rightEdgeTopCoord[2] = bottomRight[2] + ((dRight + bottomRightToTopRightStep) * bottomRightToTopRightUnitVector[2]);
-//            
-//            /*
-//             * Determine change in XYZ per voxel along the bottom of the current row
-//             */
-//            const double bottomVoxelEdgeDistance = MathFunctions::distance3D(leftEdgeBottomCoord,
-//                                                                             rightEdgeBottomCoord);
-//            double bottomEdgeUnitVector[3];
-//            MathFunctions::createUnitVector(leftEdgeBottomCoord, rightEdgeBottomCoord, bottomEdgeUnitVector);
-//            const int64_t numVoxelsInRow = bottomVoxelEdgeDistance / voxelSize;
-//            const double bottomEdgeVoxelSize = bottomVoxelEdgeDistance / numVoxelsInRow;
-//            const double bottomVoxelEdgeDX = bottomEdgeVoxelSize * bottomEdgeUnitVector[0];
-//            const double bottomVoxelEdgeDY = bottomEdgeVoxelSize * bottomEdgeUnitVector[1];
-//            const double bottomVoxelEdgeDZ = bottomEdgeVoxelSize * bottomEdgeUnitVector[2];
-//            
-//            /*
-//             * Determine change in XYZ per voxel along top of the current row
-//             */
-//            const double topVoxelEdgeDistance = MathFunctions::distance3D(leftEdgeTopCoord,
-//                                                                          rightEdgeTopCoord);
-//            double topEdgeUnitVector[3];
-//            MathFunctions::createUnitVector(leftEdgeTopCoord, rightEdgeTopCoord, topEdgeUnitVector);
-//            const double topEdgeVoxelSize = topVoxelEdgeDistance / numVoxelsInRow;
-//            const double topVoxelEdgeDX = topEdgeVoxelSize * topEdgeUnitVector[0];
-//            const double topVoxelEdgeDY = topEdgeVoxelSize * topEdgeUnitVector[1];
-//            const double topVoxelEdgeDZ = topEdgeVoxelSize * topEdgeUnitVector[2];
-//            
-//            /*
-//             * Initialize bottom and top left coordinate of first voxel in row
-//             */
-//            float bottomLeftVoxelCoord[3] = {
-//                leftEdgeBottomCoord[0],
-//                leftEdgeBottomCoord[1],
-//                leftEdgeBottomCoord[2]
-//            };
-//            float topLeftVoxelCoord[3] = {
-//                leftEdgeTopCoord[0],
-//                leftEdgeTopCoord[1],
-//                leftEdgeTopCoord[2]
-//            };
-//            
-//            /*
-//             * Allocate buffers for drawing voxels now that we have a reasonable
-//             * estimate on the number of voxels
-//             */
-//            if ( ! numberOfVoxelsEstimated) {
-//                numberOfVoxelsEstimated = true;
-//                
-//                const int64_t estimatedNumberOfVoxels = (numVoxelsInRow + 1) * std::ceil(numLeftSteps);
-//                //                std::cout << "Estimate number of voxels from rows "
-//                //                << estimatedNumberOfVoxels
-//                //                << std::endl;
-//                
-//                quadCoords.reserve(estimatedNumberOfVoxels * 4 * 3);
-//                quadNormals.reserve(estimatedNumberOfVoxels * 3);
-//                quadRGBAs.reserve(estimatedNumberOfVoxels * 4);
-//                
-//                const bool doPerVertexNormalsAndColors = false;
-//                if (doPerVertexNormalsAndColors) {
-//                    quadNormals.reserve(estimatedNumberOfVoxels * 3 * 4);
-//                    quadRGBAs.reserve(estimatedNumberOfVoxels * 4 * 4);
-//                }
-//            }
-//            
-//            const bool useInterpolatedVoxel = true;
-//            
-//            /*
-//             * Draw the voxels in the row
-//             */
-//            bool firstFlag = false;
-//            for (int64_t i = 0; i < numVoxelsInRow; i++) {
-//                /*
-//                 * Initialize color for voxel (zero alpha => do not draw)
-//                 */
-//                uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
-//                
-//                
-//                /*
-//                 * Loop through the volumes selected as overlays.
-//                 */
-//                for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
-//                    const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = volumeDrawInfo[iVol];
-//                    const VolumeMappableInterface* volInter = vdi.volumeFile;
-//                    const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volInter);
-//                    uint8_t rgba[4] = { 0, 0, 0, 0 };
-//                    int64_t voxelI, voxelJ, voxelK;
-//                    if (useInterpolatedVoxel
-//                        && (volumeFile != NULL)) {
-//                        const bool valid = volumeFile->getColorForInterpolatedValueAtCoordinate(bottomLeftVoxelCoord,
-//                                                                                                vdi.mapIndex,
-//                                                                                                paletteFile,
-//                                                                                                displayGroup,
-//                                                                                                tabIndex,
-//                                                                                                rgba);
-//                        if (valid) {
-//                            volumeFile->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
-//                                                       voxelI, voxelJ, voxelK);
-//                            
-//                            if ( ! volumeFile->indexValid(voxelI, voxelJ, voxelK)) {
-//                                rgba[3] = 0;
-//                            }
-//                        }
-//                    }
-//                    else {
-//                        /*
-//                         * Does the coordinate correspond to a valid voxel?
-//                         */
-//                        volInter->enclosingVoxel(bottomLeftVoxelCoord[0], bottomLeftVoxelCoord[1], bottomLeftVoxelCoord[2],
-//                                                 voxelI, voxelJ, voxelK);
-//                        
-//                        if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
-//                            volInter->getVoxelColorInMap(paletteFile,
-//                                                         voxelI, voxelJ, voxelK, vdi.mapIndex,
-//                                                         displayGroup,
-//                                                         tabIndex,
-//                                                         rgba);
-//                        }
-//                        
-//                        if (volumeFile != NULL) {
-//                            volumeFile->interpolateValue(bottomLeftVoxelCoord);
-//                        }
-//                    }
-//                    if (rgba[3] > 0) {
-//                        if ((rgba[0] > 0)
-//                            || (rgba[1] > 0)
-//                            || (rgba[2] > 0)) {
-//                            if (isSelectionMode) {
-//                                /*
-//                                 * Performing a selection?
-//                                 */
-//                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-//                                fixedPipelineDrawing->colorIdentification->addItem(rgba,
-//                                                                                   SelectionItemDataTypeEnum::VOXEL,
-//                                                                                   idIndex);
-//                                rgba[3] = 255;
-//                                identificationIndices.push_back(iVol);
-//                                identificationIndices.push_back(vdi.mapIndex);
-//                                identificationIndices.push_back(voxelI);
-//                                identificationIndices.push_back(voxelJ);
-//                                identificationIndices.push_back(voxelK);
-//                            }
-//                            
-//                            voxelRGBA[0] = rgba[0];
-//                            voxelRGBA[1] = rgba[1];
-//                            voxelRGBA[2] = rgba[2];
-//                            voxelRGBA[3] = rgba[3];
-//                        }
-//                    }
-//                }
-//                
-//                if (voxelRGBA[3] > 0) {
-//                    /*
-//                     * Bottom right corner of voxel
-//                     */
-//                    const double bottomRightVoxelCoord[3] = {
-//                        bottomLeftVoxelCoord[0] + bottomVoxelEdgeDX,
-//                        bottomLeftVoxelCoord[1] + bottomVoxelEdgeDY,
-//                        bottomLeftVoxelCoord[2] + bottomVoxelEdgeDZ
-//                    };
-//                    
-//                    /*
-//                     * Top right corner of voxel
-//                     */
-//                    const double topRightVoxelCoord[3] = {
-//                        topLeftVoxelCoord[0] + topVoxelEdgeDX,
-//                        topLeftVoxelCoord[1] + topVoxelEdgeDY,
-//                        topLeftVoxelCoord[2] + topVoxelEdgeDZ
-//                    };
-//                    
-//                    if (firstFlag) {
-//                        firstFlag = false;
-//                        std::cout << "bl: " << qPrintable(AString::fromNumbers(bottomLeftVoxelCoord, 3, ", ")) << std::endl;
-//                        std::cout << "br: " << qPrintable(AString::fromNumbers(bottomRightVoxelCoord, 3, ", ")) << std::endl;
-//                        std::cout << "tr: " << qPrintable(AString::fromNumbers(topRightVoxelCoord, 3, ", ")) << std::endl;
-//                        std::cout << "tl: " << qPrintable(AString::fromNumbers(topLeftVoxelCoord, 3, ", ")) << std::endl;
-//                    }
-//                    
-//                    quadRGBAs.push_back(voxelRGBA[0]);
-//                    quadRGBAs.push_back(voxelRGBA[1]);
-//                    quadRGBAs.push_back(voxelRGBA[2]);
-//                    quadRGBAs.push_back(voxelRGBA[3]);
-//                    
-//                    quadNormals.push_back(sliceNormalVector[0]);
-//                    quadNormals.push_back(sliceNormalVector[1]);
-//                    quadNormals.push_back(sliceNormalVector[2]);
-//                    
-//                    if (doPerVertexNormalsAndColors) {
-//                        quadRGBAs.push_back(voxelRGBA[0]);
-//                        quadRGBAs.push_back(voxelRGBA[1]);
-//                        quadRGBAs.push_back(voxelRGBA[2]);
-//                        quadRGBAs.push_back(voxelRGBA[3]);
-//                        
-//                        quadNormals.push_back(sliceNormalVector[0]);
-//                        quadNormals.push_back(sliceNormalVector[1]);
-//                        quadNormals.push_back(sliceNormalVector[2]);
-//                        
-//                        quadRGBAs.push_back(voxelRGBA[0]);
-//                        quadRGBAs.push_back(voxelRGBA[1]);
-//                        quadRGBAs.push_back(voxelRGBA[2]);
-//                        quadRGBAs.push_back(voxelRGBA[3]);
-//                        
-//                        quadNormals.push_back(sliceNormalVector[0]);
-//                        quadNormals.push_back(sliceNormalVector[1]);
-//                        quadNormals.push_back(sliceNormalVector[2]);
-//                        
-//                        quadRGBAs.push_back(voxelRGBA[0]);
-//                        quadRGBAs.push_back(voxelRGBA[1]);
-//                        quadRGBAs.push_back(voxelRGBA[2]);
-//                        quadRGBAs.push_back(voxelRGBA[3]);
-//                        
-//                        quadNormals.push_back(sliceNormalVector[0]);
-//                        quadNormals.push_back(sliceNormalVector[1]);
-//                        quadNormals.push_back(sliceNormalVector[2]);
-//                    }
-//                    
-//                    quadCoords.push_back(bottomLeftVoxelCoord[0]);
-//                    quadCoords.push_back(bottomLeftVoxelCoord[1]);
-//                    quadCoords.push_back(bottomLeftVoxelCoord[2]);
-//                    
-//                    quadCoords.push_back(bottomRightVoxelCoord[0]);
-//                    quadCoords.push_back(bottomRightVoxelCoord[1]);
-//                    quadCoords.push_back(bottomRightVoxelCoord[2]);
-//                    
-//                    quadCoords.push_back(topRightVoxelCoord[0]);
-//                    quadCoords.push_back(topRightVoxelCoord[1]);
-//                    quadCoords.push_back(topRightVoxelCoord[2]);
-//                    
-//                    quadCoords.push_back(topLeftVoxelCoord[0]);
-//                    quadCoords.push_back(topLeftVoxelCoord[1]);
-//                    quadCoords.push_back(topLeftVoxelCoord[2]);
-//                }
-//                
-//                /*
-//                 * Move to the next voxel in the row
-//                 */
-//                bottomLeftVoxelCoord[0] += bottomVoxelEdgeDX;
-//                bottomLeftVoxelCoord[1] += bottomVoxelEdgeDY;
-//                bottomLeftVoxelCoord[2] += bottomVoxelEdgeDZ;
-//                topLeftVoxelCoord[0] += topVoxelEdgeDX;
-//                topLeftVoxelCoord[1] += topVoxelEdgeDY;
-//                topLeftVoxelCoord[2] += topVoxelEdgeDZ;
-//            }
-//        }
-//    }
-//    
-//    //    std::cout << "Number of voxels from quads: "
-//    //    << (quadCoords.size() / 12)
-//    //    << std::endl;
-//    
-//    if ( ! quadCoords.empty()) {
-//        glPushMatrix();
-//        glScalef(zoom, zoom, zoom);
-//        drawQuads(quadCoords,
-//                  quadNormals,
-//                  quadRGBAs);
-//        glPopMatrix();
-//    }
-//}
-
-
-
-
-
-
-
 
 /* ======================================================================= */
 /**
