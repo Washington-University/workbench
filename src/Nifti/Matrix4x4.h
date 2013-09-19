@@ -80,7 +80,7 @@ public:
 
     void getScale(double& scaleOutX,
                   double& scaleOutY,
-                  double& scaleOutZ);
+                  double& scaleOutZ) const;
     
     void rotateX(const double degrees);
 
@@ -163,7 +163,7 @@ public:
 
     AString toString() const;
 
-    AString toFormattedString(const AString& indentation);
+    AString toFormattedString(const AString& indentation) const;
 
     void setModified();
 

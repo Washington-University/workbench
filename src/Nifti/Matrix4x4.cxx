@@ -268,7 +268,7 @@ Matrix4x4::scale(
 void
 Matrix4x4::getScale(double& scaleOutX,
                     double& scaleOutY,
-                    double& scaleOutZ)
+                    double& scaleOutZ) const
 {
     double U[3][3], VT[3][3];
     
@@ -2144,7 +2144,7 @@ Matrix4x4::writeAsGiftiXML(XmlWriter& xmlWriter,
 AString
 Matrix4x4::toString() const
 {
-    return "Matrix4x4";
+    return toFormattedString("   ");
 }
 
 /**
@@ -2155,9 +2155,20 @@ Matrix4x4::toString() const
  *
  */
 AString
-Matrix4x4::toFormattedString(const AString& /*indentation*/)
+Matrix4x4::toFormattedString(const AString& indentation) const
 {
-    return "Matrix4x4";
+    float translation[3];
+    getTranslation(translation);
+    double rotation[3];
+    getRotation(rotation[0], rotation[1], rotation[2]);
+    double scale[3];
+    getScale(scale[0], scale[1], scale[2]);
+    
+    const AString s("Matrix4x4: \n"
+                    + indentation + "Translation: " + AString::fromNumbers(translation, 3, ", ") + "\n"
+                    + indentation + "Rotation:    " + AString::fromNumbers(rotation, 3, ", ") + "\n"
+                    + indentation + "Scale:       " + AString::fromNumbers(scale, 3, ", "));
+    return s;
 }
 
 /**
