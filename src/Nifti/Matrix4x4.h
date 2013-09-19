@@ -114,6 +114,10 @@ public:
 
     void setMatrixFromOpenGL(const double m[16]);
 
+    void getMatrixForOpenGL(float m[16]) const;
+    
+    void setMatrixFromOpenGL(const float m[16]);
+    
     void setMatrixToOpenGLRotationFromVector(const float vector[3]);
     
     void transpose();

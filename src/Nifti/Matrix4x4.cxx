@@ -1282,6 +1282,68 @@ Matrix4x4::setMatrixFromOpenGL(const double m[16])
 }
 
 /**
+ * Get the matrix as 16 element one-dimensional array for use by OpenGL.
+ *
+ * @param  m  A 16-element array of double.
+ *
+ */
+void
+Matrix4x4::getMatrixForOpenGL(float m[16]) const
+{
+    m[0]  = this->matrix[0][0];
+    m[1]  = this->matrix[1][0];
+    m[2]  = this->matrix[2][0];
+    m[3]  = this->matrix[3][0];
+    
+    m[4]  = this->matrix[0][1];
+    m[5]  = this->matrix[1][1];
+    m[6]  = this->matrix[2][1];
+    m[7] = this->matrix[3][1];
+    
+    m[8]  = this->matrix[0][2];
+    m[9]  = this->matrix[1][2];
+    m[10] = this->matrix[2][2];
+    m[11] = this->matrix[3][2];
+    
+    m[12]  = this->matrix[0][3];
+    m[13]  = this->matrix[1][3];
+    m[14] = this->matrix[2][3];
+    m[15] = this->matrix[3][3];
+}
+
+/**
+ * Set the matrix from a one-dimensional OpenGL Matrix as 16 elements.
+ *
+ * @param  m  A 16-element array of double containing OpenGL Matrix.
+ *
+ */
+void
+Matrix4x4::setMatrixFromOpenGL(const float m[16])
+{
+    this->matrix[0][0] = m[0];
+    this->matrix[1][0] = m[1];
+    this->matrix[2][0] = m[2];
+    this->matrix[3][0] = m[3];
+    
+    this->matrix[0][1] = m[4];
+    this->matrix[1][1] = m[5];
+    this->matrix[2][1] = m[6];
+    this->matrix[3][1] = m[7];
+    
+    this->matrix[0][2] = m[8];
+    this->matrix[1][2] = m[9];
+    this->matrix[2][2] = m[10];
+    this->matrix[3][2] = m[11];
+    
+    this->matrix[0][3] = m[12];
+    this->matrix[1][3] = m[13];
+    this->matrix[2][3] = m[14];
+    this->matrix[3][3] = m[15];
+    this->setModified();
+}
+
+
+/**
  * Convert the given vector to an OpenGL rotation matrix.
  * "This" matrix is set to the identity matrix before createing
  * the rotation matrix.  Use Matrix4x4::getMatrixForOpenGL() 
