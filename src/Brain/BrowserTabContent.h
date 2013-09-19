@@ -163,6 +163,10 @@ namespace caret {
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);
         
+        Matrix4x4 getObliqueVolumeRotationMatrix() const;
+        
+        void setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotationMatrix);
+
         ProjectionViewTypeEnum::Enum getProjectionViewType() const;
         
         void resetView();
@@ -361,6 +365,11 @@ namespace caret {
          */
         bool m_clippingEnabled[3];
         
+        /**
+         * Rotation matrix for oblique volume viewing
+         */
+        Matrix4x4* m_obliqueVolumeRotationMatrix;
+        
         /** Yoking group */
         YokingGroupEnum::Enum m_yokingGroup;
         
@@ -378,9 +387,6 @@ namespace caret {
 
         /** Volume slice settings for volume slices */
         VolumeSliceSettings* m_volumeSliceSettings;
-        
-        /** Volume slice settings for whole brain */
-        VolumeSliceSettings* m_wholeBrainSliceSettings;
         
         /** Whole brain surface settings. */
         WholeBrainSurfaceSettings* m_wholeBrainSurfaceSettings;

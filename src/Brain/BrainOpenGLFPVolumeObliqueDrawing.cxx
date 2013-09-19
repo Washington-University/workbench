@@ -123,6 +123,10 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                                         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                         const int viewport[4])
 {
+    if (volumeDrawInfo.empty()) {
+        return;
+    }
+    
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
     
@@ -150,6 +154,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     
     m_tabIndex = m_browserTabContent->getTabNumber();
     
+    
     /*
      * Cifti files are slow at getting individual voxels since they
      * provide no access to individual voxels.  The reason is that
@@ -170,73 +175,130 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
         }
     }
     
-
-    
-    glEnable(GL_DEPTH_TEST);
-    
-    if (m_volumeDrawInfo.empty()) {
-        return;
+    if (browserTabContent->getDisplayedVolumeModel() != NULL) {
+        glEnable(GL_DEPTH_TEST);
+        
+        const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
+        switch (slicePlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+            {
+                const int gap = 2;
+                
+                const int vpHalfX = viewport[2] / 2;
+                const int vpHalfY = viewport[3] / 2;
+                
+                const int allVP[4] = {
+                    viewport[0],
+                    viewport[1],
+                    vpHalfX - gap,
+                    vpHalfY - gap
+                };
+                
+                glLoadIdentity();
+                drawSlicesForAllSlicesView(allVP,
+                                     DRAW_MODE_VOLUME_VIEW_SLICE_3D);
+                //            drawSurfaces(fixedPipelineDrawing,
+                //                         browserTabContent,
+                //                         allVP);
+                
+                const int paraVP[4] = {
+                    viewport[0],
+                    viewport[1] + vpHalfY + gap,
+                    vpHalfX - gap,
+                    vpHalfY - gap
+                };
+                drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                      paraVP);
+                
+                
+                const int coronalVP[4] = {
+                    viewport[0] + vpHalfX + gap,
+                    viewport[1] + vpHalfY + gap,
+                    vpHalfX - gap,
+                    vpHalfY - gap
+                };
+                drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
+                                      coronalVP);
+                
+                
+                const int axialVP[4] = {
+                    viewport[0] + vpHalfX + gap,
+                    viewport[1],
+                    vpHalfX - gap,
+                    vpHalfY - gap
+                };
+                drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
+                                      axialVP);
+            }
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+            case VolumeSliceViewPlaneEnum::CORONAL:
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                drawSliceForSliceView(slicePlane,
+                                      viewport);
+                break;
+        }
     }
     
-    const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
-    switch (slicePlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-        {
-            const int gap = 2;
-            
-            const int vpHalfX = viewport[2] / 2;
-            const int vpHalfY = viewport[3] / 2;
-            
-            const int allVP[4] = {
-                viewport[0],
-                viewport[1],
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
-            
-            glLoadIdentity();
-            drawSlicesForAllView(allVP,
-                                 DRAW_MODE_VOLUME_VIEW_SLICE_3D);
-//            drawSurfaces(fixedPipelineDrawing,
-//                         browserTabContent,
-//                         allVP);
-            
-            const int paraVP[4] = {
-                viewport[0],
-                viewport[1] + vpHalfY + gap,
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
-            drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                      paraVP);
-            
-            
-            const int coronalVP[4] = {
-                viewport[0] + vpHalfX + gap,
-                viewport[1] + vpHalfY + gap,
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
-            drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
-                      coronalVP);
-            
-            
-            const int axialVP[4] = {
-                viewport[0] + vpHalfX + gap,
-                viewport[1],
-                vpHalfX - gap,
-                vpHalfY - gap
-            };
-            drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
-                      axialVP);
+    if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
+        setOrthographicBounds(DRAW_MODE_ALL_VIEW);
+
+//        glPushMatrix();
+//        const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+//        double matrix[16];
+//        obliqueRotationMatrix.getMatrixForOpenGL(matrix);
+//        glMultMatrixd(matrix);
+        
+//        float m[16];
+//        glGetFloatv(GL_MODELVIEW_MATRIX, m);
+//        Matrix4x4 mv;
+//        mv.setMatrixFromOpenGL(m);
+//        std::cout << "ModelView Before Slice: " << qPrintable(mv.toString()) << std::endl;
+
+//        double rotations[3];
+//        obliqueRotationMatrix.getRotation(rotations[0], rotations[1], rotations[2]);
+//        mv.setRotation(rotations[0], rotations[1], rotations[2]);
+//        double mv16[16];
+//        mv.getMatrixForOpenGL(mv16);
+//        glLoadMatrixd(mv16);
+        
+        if (m_browserTabContent->isSliceAxialEnabled()) {
+            glPushMatrix();
+//            const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+//            double matrix[16];
+//            obliqueRotationMatrix.getMatrixForOpenGL(matrix);
+//            glMultMatrixd(matrix);
+            drawSlice(VolumeSliceViewPlaneEnum::AXIAL,
+                      DRAW_MODE_ALL_VIEW);
+            glPopMatrix();
         }
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-        case VolumeSliceViewPlaneEnum::CORONAL:
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            drawSliceForSliceView(slicePlane,
-                      viewport);
-            break;
+        
+        if (m_browserTabContent->isSliceCoronalEnabled()) {
+            glPushMatrix();
+//            Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+//            double rx, ry, rz;
+//            obliqueRotationMatrix.getRotation(rx, ry, rz);
+//            obliqueRotationMatrix.setRotation(rx, 0.0, rz);
+//            double matrix[16];
+//            obliqueRotationMatrix.getMatrixForOpenGL(matrix);
+//            glMultMatrixd(matrix);
+//
+            drawSlice(VolumeSliceViewPlaneEnum::CORONAL,
+                      DRAW_MODE_ALL_VIEW);
+            glPopMatrix();
+        }
+        
+        if (m_browserTabContent->isSliceParasagittalEnabled()) {
+            glPushMatrix();
+//            const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+//            double matrix[16];
+//            obliqueRotationMatrix.getMatrixForOpenGL(matrix);
+//            glMultMatrixd(matrix);
+            drawSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                      DRAW_MODE_ALL_VIEW);
+            glPopMatrix();
+        }
+        
     }
 }
 
@@ -293,7 +355,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
  *   Viewport in which drawing takes place.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllView(const int viewport[4],
+BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllSlicesView(const int viewport[4],
                                                         const DRAW_MODE drawMode)
 {
     glMatrixMode(GL_MODELVIEW);
@@ -579,7 +641,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
     /*
      * Get the rotation matrix
      */
-    Matrix4x4 rotationMatrix = m_browserTabContent->getRotationMatrix();
+    Matrix4x4 rotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix(); //  m_browserTabContent->getRotationMatrix();
 
     /*
      * Create the transformation matrix
@@ -652,6 +714,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
             break;
     }
+    
     /*
      * If this is a volume slice view,
      * (1) Set the 'center' to the center of the slice
@@ -788,15 +851,28 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
     }
     
     if ( ! isSelect) {
-        if (slicePlane.isValidPlane()) {
-            glPushMatrix();
-            glScalef(zoom, zoom, zoom);
-            
-            m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
-            m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
-            
-            drawSurfaceOutline(slicePlane);
-            glPopMatrix();
+        bool drawLayers = false;
+        switch (drawMode) {
+            case DRAW_MODE_ALL_VIEW:
+                break;
+            case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+                drawLayers = true;
+                break;
+            case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+                drawLayers = true;
+                break;
+        }
+        if (drawLayers) {
+            if (slicePlane.isValidPlane()) {
+                glPushMatrix();
+                glScalef(zoom, zoom, zoom);
+                
+                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
+                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+                
+                drawSurfaceOutline(slicePlane);
+                glPopMatrix();
+            }
         }
     }
     
@@ -1694,6 +1770,11 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
     
     if ( ! quadCoordsVector.empty()) {
         glPushMatrix();
+//        float m[16];
+//        glGetFloatv(GL_MODELVIEW_MATRIX, m);
+//        Matrix4x4 m44;
+//        m44.setMatrixFromOpenGL(m);
+//        std::cout << "Modelview Matrix: " << qPrintable(m44.toFormattedString("   ")) << std::endl;
         glScalef(zoom, zoom, zoom);
         drawQuads(quadCoordsVector,
                   quadNormalsVector,

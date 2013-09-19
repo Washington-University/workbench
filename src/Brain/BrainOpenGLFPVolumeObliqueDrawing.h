@@ -227,7 +227,7 @@ namespace caret {
                                                     const float zoom,
                                           const bool isSelectionMode);
         
-        void drawSlicesForAllView(const int viewport[4],
+        void drawSlicesForAllSlicesView(const int viewport[4],
                                   const DRAW_MODE drawMode);
         
         void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,

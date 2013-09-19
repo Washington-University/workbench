@@ -95,10 +95,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSliceViewingTransformation = new ViewingTransformations();
     m_wholeBrainSurfaceSettings = new WholeBrainSurfaceSettings();
     
+    m_obliqueVolumeRotationMatrix = new Matrix4x4();
+    
     leftView();
 
     m_volumeSliceSettings = new VolumeSliceSettings();
-    m_wholeBrainSliceSettings = new VolumeSliceSettings();
     
     m_clippingCoordinate[0] = 0.0;
     m_clippingCoordinate[1] = 0.0;
@@ -150,10 +151,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "VolumeSliceSettings",
                                m_volumeSliceSettings);
     
-    m_sceneClassAssistant->add("m_wholeBrainSliceSettings",
-                               "VolumeSliceSettings",
-                               m_wholeBrainSliceSettings);
-
     m_sceneClassAssistant->add("m_wholeBrainSurfaceSettings",
                                "WholeBrainSurfaceSettings",
                                m_wholeBrainSurfaceSettings);
@@ -176,6 +173,7 @@ BrowserTabContent::~BrowserTabContent()
     
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
+    delete m_obliqueVolumeRotationMatrix;
     
     delete m_surfaceModelSelector;
     m_surfaceModelSelector = NULL;
@@ -184,7 +182,6 @@ BrowserTabContent::~BrowserTabContent()
     m_volumeSurfaceOutlineSetModel = NULL;
     
     delete m_volumeSliceSettings;
-    delete m_wholeBrainSliceSettings;
     
     delete m_wholeBrainSurfaceSettings;
     
@@ -213,8 +210,9 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
     *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
-    *m_wholeBrainSliceSettings = *tabToClone->m_wholeBrainSliceSettings;
     *m_wholeBrainSurfaceSettings = *tabToClone->m_wholeBrainSurfaceSettings;
+    
+    *m_obliqueVolumeRotationMatrix = *tabToClone->m_obliqueVolumeRotationMatrix;
     
     Model* model = getModelControllerForDisplay();
     
@@ -747,9 +745,6 @@ BrowserTabContent::receiveEvent(Event* event)
                  windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
                  windowTabNumber++) {
                 
-                m_wholeBrainSliceSettings->selectSlicesAtCoordinate(highlighXYZ);
-
-                
                 float volumeSliceXYZ[3] = {
                     highlighXYZ[0],
                     highlighXYZ[1],
@@ -760,26 +755,28 @@ BrowserTabContent::receiveEvent(Event* event)
                  * If volume montage viewing, do not change the
                  * slice in the plane that is being viewed.
                  */
-                switch (m_volumeSliceSettings->getSliceViewMode()) {
-                    case VolumeSliceViewModeEnum::MONTAGE:
-                        switch (getSliceViewPlane()) {
-                            case VolumeSliceViewPlaneEnum::ALL:
-                                break;
-                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
-                                break;
-                            case VolumeSliceViewPlaneEnum::CORONAL:
-                                volumeSliceXYZ[1] = getSliceCoordinateCoronal();
-                                break;
-                            case VolumeSliceViewPlaneEnum::AXIAL:
-                                volumeSliceXYZ[2] = getSliceCoordinateAxial();
-                                break;
-                        }
-                        break;
-                    case VolumeSliceViewModeEnum::OBLIQUE:
-                        break;
-                    case VolumeSliceViewModeEnum::ORTHOGONAL:
-                        break;
+                if (getDisplayedVolumeModel() != NULL) {
+                    switch (m_volumeSliceSettings->getSliceViewMode()) {
+                        case VolumeSliceViewModeEnum::MONTAGE:
+                            switch (getSliceViewPlane()) {
+                                case VolumeSliceViewPlaneEnum::ALL:
+                                    break;
+                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                    break;
+                                case VolumeSliceViewPlaneEnum::CORONAL:
+                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                    break;
+                                case VolumeSliceViewPlaneEnum::AXIAL:
+                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                    break;
+                            }
+                            break;
+                        case VolumeSliceViewModeEnum::OBLIQUE:
+                            break;
+                        case VolumeSliceViewModeEnum::ORTHOGONAL:
+                            break;
+                    }
                 }
                 
                 m_volumeSliceSettings->selectSlicesAtCoordinate(volumeSliceXYZ);
@@ -1133,6 +1130,29 @@ BrowserTabContent::setRotationMatrix(const Matrix4x4& rotationMatrix)
 }
 
 /**
+ * @return The oblique volume rotation matrix.
+ */
+Matrix4x4
+BrowserTabContent::getObliqueVolumeRotationMatrix() const
+{
+    return *m_obliqueVolumeRotationMatrix;
+}
+
+/**
+ * Set the oblique rotation matrix.
+ *
+ * @param obliqueRotationMatrix
+ *    The new oblique rotation matrix.
+ */
+void
+BrowserTabContent::setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotationMatrix)
+{
+    *m_obliqueVolumeRotationMatrix = obliqueRotationMatrix;
+    
+    updateYokedBrowserTabs();
+}
+
+/**
  * Reset the view to the default view.
  */
 void
@@ -1140,6 +1160,7 @@ BrowserTabContent::resetView()
 {
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceViewingTransformation->resetVolumeView();
+        m_obliqueVolumeRotationMatrix->identity();
     }
     else {
         m_viewingTransformation->resetView();
@@ -1331,7 +1352,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                                                             mousePressY);
                     }
                     
-                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix(); //  m_volumeSliceViewingTransformation->getRotationMatrix();
                     switch (slicePlane) {
                         case VolumeSliceViewPlaneEnum::ALL:
                         {
@@ -1361,7 +1382,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                         }
                             break;
                     }
-                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+                    setObliqueVolumeRotationMatrix(rotationMatrix);
+//                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
                     
 //                    Matrix4x4 rotation;
 //                    switch (slicePlane) {
@@ -1835,9 +1857,12 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
                                             "BrowserTabContent",
                                             2); // version 2 as of 4/1/2013
 
+    float obliqueMatrix[16];
+    m_obliqueVolumeRotationMatrix->getMatrixForOpenGL(obliqueMatrix);
+    sceneClass->addFloatArray("m_obliqueVolumeRotationMatrix", obliqueMatrix, 16);
+    
     m_sceneClassAssistant->saveMembers(sceneAttributes, 
                                        sceneClass);
-    
     
     return sceneClass;
 }
@@ -1864,6 +1889,13 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneClassAssistant->restoreMembers(sceneAttributes, 
                                           sceneClass);
+    
+    m_obliqueVolumeRotationMatrix->identity();
+    float obliqueMatrix[16];
+    const int32_t numInObliqueArray = sceneClass->getFloatArrayValue("m_obliqueVolumeRotationMatrix", obliqueMatrix, 16);
+    if (numInObliqueArray == 16) {
+        m_obliqueVolumeRotationMatrix->setMatrixFromOpenGL(obliqueMatrix);
+    }
     
     /*
      * In older version of workbench, transformation were stored in the
@@ -1910,6 +1942,21 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                 }
                 setRotationMatrix(m);
             }
+        }
+    }
+    
+    if (getDisplayedWholeBrainModel() != NULL) {
+        /*
+         * As of 19sep2013 whole brain and volume slice settings were merged
+         * (whole brain slice settings removed).  For compatibility, if a
+         * whole brain model is being viewed and whole brain slice settings
+         * are found, allow them to override volume slice settings.
+         */
+        const SceneClass* wholeBrainVolumeSettings = sceneClass->getClass("m_wholeBrainSliceSettings");
+        if (wholeBrainVolumeSettings != NULL) {
+            VolumeSliceSettings settings;
+            settings.restoreFromScene(sceneAttributes, wholeBrainVolumeSettings);
+            *m_volumeSliceSettings = settings;
         }
     }
 }
@@ -2040,14 +2087,7 @@ BrowserTabContent::getProjectionViewType() const
 VolumeSliceViewPlaneEnum::Enum
 BrowserTabContent::getSliceViewPlane() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceViewPlane();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceViewPlane();
-    }
-    
-    return VolumeSliceViewPlaneEnum::AXIAL;
+    return m_volumeSliceSettings->getSliceViewPlane();
 }
 
 /**
@@ -2058,12 +2098,7 @@ BrowserTabContent::getSliceViewPlane() const
 void
 BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceViewPlane(slicePlane);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceViewPlane(slicePlane);
-    }
+    m_volumeSliceSettings->setSliceViewPlane(slicePlane);
     updateYokedBrowserTabs();
 }
 
@@ -2073,13 +2108,7 @@ BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum sliceP
 VolumeSliceViewModeEnum::Enum
 BrowserTabContent::getSliceViewMode() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceViewMode();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceViewMode();
-    }
-    return VolumeSliceViewModeEnum::ORTHOGONAL;
+    return m_volumeSliceSettings->getSliceViewMode();
 }
 
 /**
@@ -2090,12 +2119,7 @@ BrowserTabContent::getSliceViewMode() const
 void
 BrowserTabContent::setSliceViewMode(const VolumeSliceViewModeEnum::Enum sliceViewMode)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceViewMode(sliceViewMode);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceViewMode(sliceViewMode);
-    }
+    m_volumeSliceSettings->setSliceViewMode(sliceViewMode);
     updateYokedBrowserTabs();
 }
 
@@ -2105,13 +2129,7 @@ BrowserTabContent::setSliceViewMode(const VolumeSliceViewModeEnum::Enum sliceVie
 int32_t
 BrowserTabContent::getMontageNumberOfColumns() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getMontageNumberOfColumns();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getMontageNumberOfColumns();
-    }
-    return 1;
+    return m_volumeSliceSettings->getMontageNumberOfColumns();
 }
 
 
@@ -2123,12 +2141,7 @@ BrowserTabContent::getMontageNumberOfColumns() const
 void
 BrowserTabContent::setMontageNumberOfColumns(const int32_t montageNumberOfColumns)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
-    }
+    m_volumeSliceSettings->setMontageNumberOfColumns(montageNumberOfColumns);
     updateYokedBrowserTabs();
 }
 
@@ -2138,13 +2151,7 @@ BrowserTabContent::setMontageNumberOfColumns(const int32_t montageNumberOfColumn
 int32_t
 BrowserTabContent::getMontageNumberOfRows() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getMontageNumberOfRows();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getMontageNumberOfRows();
-    }
-    return 1;
+    return m_volumeSliceSettings->getMontageNumberOfRows();
 }
 
 /**
@@ -2155,12 +2162,7 @@ BrowserTabContent::getMontageNumberOfRows() const
 void
 BrowserTabContent::setMontageNumberOfRows(const int32_t montageNumberOfRows)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
-    }
+    m_volumeSliceSettings->setMontageNumberOfRows(montageNumberOfRows);
     updateYokedBrowserTabs();
 }
 
@@ -2170,13 +2172,7 @@ BrowserTabContent::setMontageNumberOfRows(const int32_t montageNumberOfRows)
 int32_t
 BrowserTabContent::getMontageSliceSpacing() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getMontageSliceSpacing();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getMontageSliceSpacing();
-    }
-    return 1;
+    return m_volumeSliceSettings->getMontageSliceSpacing();
 }
 
 /**
@@ -2187,12 +2183,7 @@ BrowserTabContent::getMontageSliceSpacing() const
 void
 BrowserTabContent::setMontageSliceSpacing(const int32_t montageSliceSpacing)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
-    }
+    m_volumeSliceSettings->setMontageSliceSpacing(montageSliceSpacing);
     updateYokedBrowserTabs();
 }
 
@@ -2212,11 +2203,10 @@ BrowserTabContent::setSlicesToOrigin()
 void
 BrowserTabContent::reset()
 {
-    if (isVolumeSlicesDisplayed()) {
+    if (isVolumeSlicesDisplayed()
+        || isWholeBrainDisplayed()) {
         m_volumeSliceSettings->reset();
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->reset();
+        m_obliqueVolumeRotationMatrix->identity();
     }
     updateYokedBrowserTabs();
 }
@@ -2230,12 +2220,7 @@ BrowserTabContent::reset()
 void
 BrowserTabContent::updateForVolumeFile(const VolumeMappableInterface* volumeFile)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->updateForVolumeFile(volumeFile);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->updateForVolumeFile(volumeFile);
-    }
+    m_volumeSliceSettings->updateForVolumeFile(volumeFile);
 }
 
 /**
@@ -2244,12 +2229,7 @@ BrowserTabContent::updateForVolumeFile(const VolumeMappableInterface* volumeFile
 void
 BrowserTabContent::selectSlicesAtOrigin()
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->selectSlicesAtOrigin();
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->selectSlicesAtOrigin();
-    }
+    m_volumeSliceSettings->selectSlicesAtOrigin();
     updateYokedBrowserTabs();
 }
 
@@ -2261,12 +2241,7 @@ BrowserTabContent::selectSlicesAtOrigin()
 void
 BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->selectSlicesAtCoordinate(xyz);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->selectSlicesAtCoordinate(xyz);
-    }
+    m_volumeSliceSettings->selectSlicesAtCoordinate(xyz);
     updateYokedBrowserTabs();
 }
 
@@ -2278,13 +2253,7 @@ BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
 int64_t
 BrowserTabContent::getSliceIndexAxial(const VolumeMappableInterface* volumeFile) const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceIndexAxial(volumeFile);
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceIndexAxial(volumeFile);
-    }
-    return 1;
+    return m_volumeSliceSettings->getSliceIndexAxial(volumeFile);
 }
 
 /**
@@ -2296,12 +2265,7 @@ void
 BrowserTabContent::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
                                         const int64_t sliceIndexAxial)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
-    }
+    m_volumeSliceSettings->setSliceIndexAxial(volumeFile, sliceIndexAxial);
     updateYokedBrowserTabs();
 }
 
@@ -2313,13 +2277,7 @@ BrowserTabContent::setSliceIndexAxial(const VolumeMappableInterface* volumeFile,
 int64_t
 BrowserTabContent::getSliceIndexCoronal(const VolumeMappableInterface* volumeFile) const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceIndexCoronal(volumeFile);
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceIndexCoronal(volumeFile);
-    }
-    return 1;
+    return m_volumeSliceSettings->getSliceIndexCoronal(volumeFile);
 }
 
 
@@ -2332,12 +2290,7 @@ void
 BrowserTabContent::setSliceIndexCoronal(const VolumeMappableInterface* volumeFile,
                                           const int64_t sliceIndexCoronal)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
-    }
+    m_volumeSliceSettings->setSliceIndexCoronal(volumeFile, sliceIndexCoronal);
     updateYokedBrowserTabs();
 }
 
@@ -2349,13 +2302,7 @@ BrowserTabContent::setSliceIndexCoronal(const VolumeMappableInterface* volumeFil
 int64_t
 BrowserTabContent::getSliceIndexParasagittal(const VolumeMappableInterface* volumeFile) const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceIndexParasagittal(volumeFile);
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceIndexParasagittal(volumeFile);
-    }
-    return 1;
+    return m_volumeSliceSettings->getSliceIndexParasagittal(volumeFile);
 }
 
 /**
@@ -2367,14 +2314,8 @@ void
 BrowserTabContent::setSliceIndexParasagittal(const VolumeMappableInterface* volumeFile,
                                                const int64_t sliceIndexParasagittal)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceIndexParasagittal(volumeFile,
+    m_volumeSliceSettings->setSliceIndexParasagittal(volumeFile,
                                                          sliceIndexParasagittal);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceIndexParasagittal(volumeFile,
-                                                             sliceIndexParasagittal);
-    }
     updateYokedBrowserTabs();
 }
 
@@ -2384,13 +2325,7 @@ BrowserTabContent::setSliceIndexParasagittal(const VolumeMappableInterface* volu
 float
 BrowserTabContent::getSliceCoordinateAxial() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceCoordinateAxial();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceCoordinateAxial();
-    }
-    return true;
+    return m_volumeSliceSettings->getSliceCoordinateAxial();
 }
 
 /**
@@ -2401,12 +2336,7 @@ BrowserTabContent::getSliceCoordinateAxial() const
 void
 BrowserTabContent::setSliceCoordinateAxial(const float z)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceCoordinateAxial(z);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceCoordinateAxial(z);
-    }
+    m_volumeSliceSettings->setSliceCoordinateAxial(z);
     updateYokedBrowserTabs();
 }
 
@@ -2416,13 +2346,7 @@ BrowserTabContent::setSliceCoordinateAxial(const float z)
 float
 BrowserTabContent::getSliceCoordinateCoronal() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceCoordinateCoronal();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceCoordinateCoronal();
-    }
-    return 0.0;
+    return m_volumeSliceSettings->getSliceCoordinateCoronal();
 }
 
 /**
@@ -2433,12 +2357,7 @@ BrowserTabContent::getSliceCoordinateCoronal() const
 void
 BrowserTabContent::setSliceCoordinateCoronal(const float y)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceCoordinateCoronal(y);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceCoordinateCoronal(y);
-    }
+    m_volumeSliceSettings->setSliceCoordinateCoronal(y);
     updateYokedBrowserTabs();
 }
 
@@ -2448,13 +2367,7 @@ BrowserTabContent::setSliceCoordinateCoronal(const float y)
 float
 BrowserTabContent::getSliceCoordinateParasagittal() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->getSliceCoordinateParasagittal();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->getSliceCoordinateParasagittal();
-    }
-    return 0.0;
+    return m_volumeSliceSettings->getSliceCoordinateParasagittal();
 }
 
 /**
@@ -2465,12 +2378,7 @@ BrowserTabContent::getSliceCoordinateParasagittal() const
 void
 BrowserTabContent::setSliceCoordinateParasagittal(const float x)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceCoordinateParasagittal(x);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceCoordinateParasagittal(x);
-    }
+    m_volumeSliceSettings->setSliceCoordinateParasagittal(x);
     updateYokedBrowserTabs();
 }
 
@@ -2482,13 +2390,7 @@ BrowserTabContent::setSliceCoordinateParasagittal(const float x)
 bool
 BrowserTabContent::isSliceParasagittalEnabled() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->isSliceParasagittalEnabled();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->isSliceParasagittalEnabled();
-    }
-    return true;
+    return m_volumeSliceSettings->isSliceParasagittalEnabled();
 }
 
 /**
@@ -2499,12 +2401,7 @@ BrowserTabContent::isSliceParasagittalEnabled() const
 void
 BrowserTabContent::setSliceParasagittalEnabled(const bool sliceEnabledParasagittal)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
-    }
+    m_volumeSliceSettings->setSliceParasagittalEnabled(sliceEnabledParasagittal);
     updateYokedBrowserTabs();
 }
 
@@ -2516,13 +2413,7 @@ BrowserTabContent::setSliceParasagittalEnabled(const bool sliceEnabledParasagitt
 bool
 BrowserTabContent::isSliceCoronalEnabled() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->isSliceCoronalEnabled();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->isSliceCoronalEnabled();
-    }
-    return true;
+    return m_volumeSliceSettings->isSliceCoronalEnabled();
 }
 
 /**
@@ -2533,12 +2424,7 @@ BrowserTabContent::isSliceCoronalEnabled() const
 void
 BrowserTabContent::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
-    }
+    m_volumeSliceSettings->setSliceCoronalEnabled(sliceEnabledCoronal);
     updateYokedBrowserTabs();
 }
 
@@ -2550,13 +2436,7 @@ BrowserTabContent::setSliceCoronalEnabled(const bool sliceEnabledCoronal)
 bool
 BrowserTabContent::isSliceAxialEnabled() const
 {
-    if (isVolumeSlicesDisplayed()) {
-        return m_volumeSliceSettings->isSliceAxialEnabled();
-    }
-    else if (isWholeBrainDisplayed()) {
-        return m_wholeBrainSliceSettings->isSliceAxialEnabled();
-    }
-    return false;
+    return m_volumeSliceSettings->isSliceAxialEnabled();
 }
 
 /**
@@ -2567,12 +2447,7 @@ BrowserTabContent::isSliceAxialEnabled() const
 void
 BrowserTabContent::setSliceAxialEnabled(const bool sliceEnabledAxial)
 {
-    if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
-    }
-    else if (isWholeBrainDisplayed()) {
-        m_wholeBrainSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
-    }
+    m_volumeSliceSettings->setSliceAxialEnabled(sliceEnabledAxial);
     updateYokedBrowserTabs();
 }
 
@@ -2722,7 +2597,6 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 *m_viewingTransformation = *btc->m_viewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
-                *m_wholeBrainSliceSettings = *btc->m_wholeBrainSliceSettings;
                 break;
             }
         }
@@ -2761,7 +2635,7 @@ BrowserTabContent::updateYokedBrowserTabs()
                 *btc->m_viewingTransformation = *m_viewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
-                *btc->m_wholeBrainSliceSettings = *m_wholeBrainSliceSettings;
+                *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 //*btc->m_wholeBrainSurfaceSettings = *m_wholeBrainSurfaceSettings;
             }
         }

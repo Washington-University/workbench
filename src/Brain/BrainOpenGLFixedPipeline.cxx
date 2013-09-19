@@ -6891,45 +6891,82 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
              * Voxels as 3D
              */
             drawVolumeVoxelsAsCubesWholeBrain(volumeDrawInfo);
-            
+
             /*
-             * Voxels as 2D on slices
+             * Check for oblique slice drawing
              */
-            //const VolumeSliceCoordinateSelection* slices =
-            //wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
-            if (browserTabContent->isSliceAxialEnabled()) {
-                this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::AXIAL,
-                                                browserTabContent->getSliceIndexAxial(underlayVolumeFile), 
-                                                volumeDrawInfo);
-                this->drawVolumeSurfaceOutlines(brain, 
-                                                wholeBrainController,
-                                                browserTabContent,
-                                                VolumeSliceViewPlaneEnum::AXIAL, 
-                                                browserTabContent->getSliceIndexAxial(underlayVolumeFile), 
-                                                volumeDrawInfo[0].volumeFile);
+            const bool doObliqueDrawing = (browserTabContent->getSliceViewMode() == VolumeSliceViewModeEnum::OBLIQUE);
+            if (doObliqueDrawing) {
+                /*
+                 * Filter volumes for drawing and only draw those volumes that
+                 * are to be drawn as 2D volume slices.
+                 */
+                std::vector<VolumeDrawInfo> obliqueDrawVolumeDrawInfo;
+                for (std::vector<VolumeDrawInfo>::iterator iter = volumeDrawInfo.begin();
+                     iter != volumeDrawInfo.end();
+                     iter++) {
+                    bool useIt = false;
+                    VolumeDrawInfo& vdi = *iter;
+                    switch (vdi.wholeBrainVoxelDrawingMode) {
+                        case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
+                        case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
+                            break;
+                        case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
+                            useIt = true;
+                            break;
+                    }
+                    if (useIt) {
+                        obliqueDrawVolumeDrawInfo.push_back(vdi);
+                    }
+                }
+                
+                BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                obliqueDrawing.draw(this,
+                                    browserTabContent,
+                                    obliqueDrawVolumeDrawInfo,
+                                    viewport);
             }
-            if (browserTabContent->isSliceCoronalEnabled()) {
-                this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::CORONAL,
-                                                browserTabContent->getSliceIndexCoronal(underlayVolumeFile), 
-                                                volumeDrawInfo);
-                this->drawVolumeSurfaceOutlines(brain, 
-                                                wholeBrainController,
-                                                browserTabContent,
-                                                VolumeSliceViewPlaneEnum::CORONAL, 
-                                                browserTabContent->getSliceIndexCoronal(underlayVolumeFile), 
-                                                volumeDrawInfo[0].volumeFile);
+            else {
+                /*
+                 * Voxels as 2D on slices
+                 */
+                //const VolumeSliceCoordinateSelection* slices =
+                //wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
+                if (browserTabContent->isSliceAxialEnabled()) {
+                    this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::AXIAL,
+                                                              browserTabContent->getSliceIndexAxial(underlayVolumeFile),
+                                                              volumeDrawInfo);
+                    this->drawVolumeSurfaceOutlines(brain,
+                                                    wholeBrainController,
+                                                    browserTabContent,
+                                                    VolumeSliceViewPlaneEnum::AXIAL,
+                                                    browserTabContent->getSliceIndexAxial(underlayVolumeFile),
+                                                    volumeDrawInfo[0].volumeFile);
+                }
+                if (browserTabContent->isSliceCoronalEnabled()) {
+                    this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::CORONAL,
+                                                              browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
+                                                              volumeDrawInfo);
+                    this->drawVolumeSurfaceOutlines(brain,
+                                                    wholeBrainController,
+                                                    browserTabContent,
+                                                    VolumeSliceViewPlaneEnum::CORONAL,
+                                                    browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
+                                                    volumeDrawInfo[0].volumeFile);
+                }
+                if (browserTabContent->isSliceParasagittalEnabled()) {
+                    this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                                              browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
+                                                              volumeDrawInfo);
+                    this->drawVolumeSurfaceOutlines(brain,
+                                                    wholeBrainController,
+                                                    browserTabContent,
+                                                    VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                                    browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
+                                                    volumeDrawInfo[0].volumeFile);
+                }
             }
-            if (browserTabContent->isSliceParasagittalEnabled()) {
-                this->drawVolumeOrthogonalSliceWholeBrain(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                                browserTabContent->getSliceIndexParasagittal(underlayVolumeFile), 
-                                                volumeDrawInfo);
-                this->drawVolumeSurfaceOutlines(brain, 
-                                                wholeBrainController,
-                                                browserTabContent,
-                                                VolumeSliceViewPlaneEnum::PARASAGITTAL, 
-                                                browserTabContent->getSliceIndexParasagittal(underlayVolumeFile), 
-                                                volumeDrawInfo[0].volumeFile);
-            }
+            
         }
     }
 //    if (surfaceType == SurfaceTypeEnum::ANATOMICAL) {
