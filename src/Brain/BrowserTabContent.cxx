@@ -1802,6 +1802,12 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     float m[4][4];
     rotMatrix.getMatrix(m);
     modelTransform.setRotation(m);
+    
+    const Matrix4x4 obliqueRotationMatrix = getObliqueVolumeRotationMatrix();
+    float mob[4][4];
+    obliqueRotationMatrix.getMatrix(mob);
+    modelTransform.setObliqueRotation(mob);
+    
     modelTransform.setScaling(getScaling());
 }
 
@@ -1827,6 +1833,12 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     Matrix4x4 rotationMatrix;
     rotationMatrix.setMatrix(m);
     setRotationMatrix(rotationMatrix);
+
+    float mob[4][4];
+    modelTransform.getObliqueRotation(mob);
+    Matrix4x4 obliqueRotationMatrix;
+    obliqueRotationMatrix.setMatrix(mob);
+    setObliqueVolumeRotationMatrix(obliqueRotationMatrix);
 
     const float scale = modelTransform.getScaling();
     setScaling(scale);

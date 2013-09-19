@@ -47,6 +47,8 @@ namespace caret {
         
         void getRotation(float rotation[4][4]) const;
         
+        void getObliqueRotation(float obliqueRotation[4][4]) const;
+        
         float getScaling() const;
         
         void setName(const AString& name);
@@ -63,18 +65,22 @@ namespace caret {
         
         void setRotation(const float rotation[4][4]);
         
+        void setObliqueRotation(const float obliqueRotation[4][4]);
+        
         void setScaling(const float scaling);
         
         void setPanningRotationMatrixAndZoom(const float panX,
                                              const float panY,
                                              const float panZ,
                                              const float rotationMatrix[4][4],
+                                             const float obliqueRotationMatrix[4][4],
                                              const float zoom);
         
         void getPanningRotationMatrixAndZoom(float& panX,
                                              float& panY,
                                              float& panZ,
                                              float rotationMatrix[4][4],
+                                             float obliqueRotationMatrix[4][4],
                                              float& zoom) const;
         
         AString getAsString() const;
@@ -100,6 +106,8 @@ namespace caret {
         float translation[3];
         
         float rotation[4][4];
+        
+        float obliqueRotation[4][4];
         
         float scaling;
         

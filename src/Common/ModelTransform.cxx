@@ -75,9 +75,11 @@ ModelTransform::setToIdentity()
         for (int32_t j = 0; j < 4; j++) {
             if (i == j) {
                 this->rotation[i][j] = 1.0;
+                this->obliqueRotation[i][j] = 1.0;
             }
             else {
                 this->rotation[i][j] = 0.0;
+                this->obliqueRotation[i][j] = 0.0;
             }
         }
     }
@@ -164,6 +166,21 @@ ModelTransform::getRotation(float rotation[4][4]) const
     for (int32_t i = 0; i < 4; i++) {
         for (int32_t j = 0; j < 4; j++) {
             rotation[i][j] = this->rotation[i][j];
+        }
+    }
+}
+
+/**
+ * Get the oblique rotation matrix.
+ * @param obliqueRotation
+ *   Output oblique rotation matrix.
+ */
+void
+ModelTransform::getObliqueRotation(float obliqueRotation[4][4]) const
+{
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            obliqueRotation[i][j] = this->obliqueRotation[i][j];
         }
     }
 }
@@ -266,6 +283,21 @@ ModelTransform::setRotation(const float rotation[4][4])
 }
 
 /**
+ * Set the oblique rotation matrix.
+ * @param obliqueRotation
+ *   New oblique rotation matrix.
+ */
+void
+ModelTransform::setObliqueRotation(const float obliqueRotation[4][4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            this->obliqueRotation[i][j] = obliqueRotation[i][j];
+        }
+    }
+}
+
+/**
  * Set the scaling
  * @param scaling
  *    New value for scaling.
@@ -279,7 +311,7 @@ ModelTransform::setScaling(const float scaling)
 /**
  * Returns the user view in a string that contains,
  * separated by commas: View Name, translation[3],
- * rotation[4][4], and scaling.
+ * rotation[4][4], scaling, and obliqueRotation[4][4].
  */
 AString 
 ModelTransform::getAsString() const
@@ -298,28 +330,42 @@ ModelTransform::getAsString() const
     
     s += (s_separatorInPreferences + AString::number(this->scaling));
     
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            s += (s_separatorInPreferences + AString::number(this->obliqueRotation[i][j]));
+        }
+    }
+    
     return s;
 }
 
 /**
  * Set the user view from a string that contains,
  * separated by commas: View Name, translation[3],
- * rotation[4][4], and scaling.
+ * rotation[4][4], scaling, and obliqueRotation[4][4].
  */
 bool 
 ModelTransform::setFromString(const AString& s)
 {
     bool hasComment = false;
+    bool hasObliqueRotation = false;
+    
     QStringList sl;
     if (s.contains(s_separatorInPreferences)) {
         sl = s.split(s_separatorInPreferences,
                                  QString::KeepEmptyParts);
         const int numElements = sl.count();
-        if (numElements != 22) {
+        if (numElements == 38) {
+            hasComment = true;
+            hasObliqueRotation = true;
+        }
+        else if (numElements == 22) {
+            hasComment = true;
+        }
+        else {
             CaretLogSevere("User view string does not contain 22 elements");
             return false;
         }
-        hasComment = true;
     }
     else {
         sl = s.split(",", QString::KeepEmptyParts);
@@ -350,6 +396,26 @@ ModelTransform::setFromString(const AString& s)
     
     this->scaling = sl.at(ctr++).toFloat();
 
+    if (hasObliqueRotation) {
+        for (int32_t i = 0; i < 4; i++) {
+            for (int32_t j = 0; j < 4; j++) {
+                this->obliqueRotation[i][j] = sl.at(ctr++).toFloat();
+            }
+        }
+    }
+    else {
+        for (int32_t i = 0; i < 4; i++) {
+            for (int32_t j = 0; j < 4; j++) {
+                if (i == j) {
+                    this->obliqueRotation[i][j] = 1.0;
+                }
+                else {
+                    this->obliqueRotation[i][j] = 0.0;
+                }
+            }
+        }
+    }
+    
     return true;
 }
 
@@ -371,6 +437,7 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
     for (int32_t i = 0; i < 4; i++) {
         for (int32_t j = 0; j < 4; j++) {
             this->rotation[i][j] = modelTransform.rotation[i][j];
+            this->obliqueRotation[i][j] = modelTransform.obliqueRotation[i][j];
         }
     }
     
@@ -378,7 +445,7 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
 }
 
 /**
- * Set panning (X, Y, & Z), rotation (X, Y, & Z), and zoom.
+ * Set panning, rotation, oblique rotation, and zoom.
  *
  * @param panX
  *    X-Panning.
@@ -388,6 +455,8 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
  *    Z-Panning.
  * @param rotationMatrix
  *    4x4 rotation matrix.
+ * @param obliqueRotationMatrix
+ *    4x4 oblique rotation matrix.
  * @param zoom
  *    Zooming.
  */
@@ -396,17 +465,20 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
                                                 const float panY,
                                                 const float panZ,
                                                 const float rotationMatrix[4][4],
+                                                const float obliqueRotationMatrix[4][4],
                                                 const float zoom)
 {
     this->setTranslation(panX, panY, panZ);
 
     setRotation(rotationMatrix);
     
+    setObliqueRotation(obliqueRotationMatrix);
+    
     this->setScaling(zoom);
 }
 
 /**
- * Get pan (X, Y, & Z), rotation (X, Y, & Z), and zoom.
+ * Get pan, rotation, oblique rotation, and zoom.
  *
  * @param panX
  *    X-Panning.
@@ -414,6 +486,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
  *    Y-Panning.
  * @param rotationMatrix
  *    4x4 rotation matrix.
+ * @param obliqueRotationMatrix
+ *    4x4 oblique rotation matrix.
  * @param zoom
  *    Zooming.
  */
@@ -422,6 +496,7 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
                                                 float& panY,
                                                 float& panZ,
                                                 float rotationMatrix[4][4],
+                                                float obliqueRotationMatrix[4][4],
                                                 float& zoom) const
 {
     panX = this->translation[0];
@@ -429,6 +504,8 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
     panZ = this->translation[2];
     
     getRotation(rotationMatrix);
+    
+    getObliqueRotation(obliqueRotationMatrix);
     
     zoom = getScaling();
 }
