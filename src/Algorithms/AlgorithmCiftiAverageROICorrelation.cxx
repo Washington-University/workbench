@@ -55,20 +55,20 @@ OperationParameters* AlgorithmCiftiAverageROICorrelation::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiOutputParameter(1, "cifti-out", "output cifti file");
     
-    OptionalParameter* ciftiRoiOpt = ret->createOptionalParameter(2, "-cifti-roi", "cifti file containing combined rois");
+    OptionalParameter* ciftiRoiOpt = ret->createOptionalParameter(2, "-cifti-roi", "cifti file containing combined weights");
     ciftiRoiOpt->addCiftiParameter(1, "roi-cifti", "the roi cifti file");
     ciftiRoiOpt->createOptionalParameter(2, "-in-memory", "cache the roi in memory so that it isn't re-read for each input cifti");
     
-    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "vertices to use from left hempsphere");
+    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "weights to use for left hempsphere");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     
-    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "vertices to use from right hempsphere");
+    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "weights to use for right hempsphere");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     
-    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cerebellum-roi", "vertices to use from cerebellum");
+    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cerebellum-roi", "weights to use for cerebellum surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     
-    OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxels to use");
+    OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxel weights to use");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
     OptionalParameter* leftAreaSurfOpt = ret->createOptionalParameter(7, "-left-area-surf", "specify the left surface for vertex area correction");
@@ -87,7 +87,7 @@ OperationParameters* AlgorithmCiftiAverageROICorrelation::getParameters()
         AString("Averages rows for each map of the ROI(s), takes the correlation of each ROI average to the rest of the rows in the same file, then averages the results across all files.  ") +
         "ROIs are always treated as weighting functions, including negative values.  " +
         "For efficiency, ensure that everything that is not intended to be used is zero in the ROI map.  " +
-        "If -cifti-roi is specified, -left-roi, -right-roi, -cerebellum-roi, and -vol-roi may not be specified.  " +
+        "If -cifti-roi is specified, -left-roi, -right-roi, -cerebellum-roi, and -vol-roi must not be specified.  " +
         "If multiple non-cifti ROI files are specified, they must have the same number of columns."
     );
     return ret;
@@ -320,16 +320,28 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     float* leftAreaPointer = NULL, *rightAreaPointer = NULL, *cerebAreaPointer = NULL;
     if (leftAreaSurf != NULL)
     {
+        if (baseXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, StructureEnum::CORTEX_LEFT) != leftAreaSurf->getNumberOfNodes())
+        {
+            throw AlgorithmException("left area surface and left cortex cifti structure have different number of nodes");
+        }
         leftAreaSurf->computeNodeAreas(leftAreaData);
         leftAreaPointer = leftAreaData.data();
     }
     if (rightAreaSurf != NULL)
     {
+        if (baseXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, StructureEnum::CORTEX_RIGHT) != rightAreaSurf->getNumberOfNodes())
+        {
+            throw AlgorithmException("right area surface and right cortex cifti structure have different number of nodes");
+        }
         rightAreaSurf->computeNodeAreas(rightAreaData);
         rightAreaPointer = rightAreaData.data();
     }
     if (cerebAreaSurf != NULL)
     {
+        if (baseXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, StructureEnum::CEREBELLUM) != cerebAreaSurf->getNumberOfNodes())
+        {
+            throw AlgorithmException("cerebellum area surface and cerebellum cortex cifti structure have different number of nodes");
+        }
         cerebAreaSurf->computeNodeAreas(cerebAreaData);
         cerebAreaPointer = cerebAreaData.data();
     }
