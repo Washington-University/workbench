@@ -5591,6 +5591,9 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
      * Find three points on the slice so that the equation for a Plane
      * can be formed.
      */
+    BoundingBox boundingBox;
+    underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
+    
     float p1[3];
     float p2[3];
     float p3[3];
@@ -5601,25 +5604,73 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
-            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
+            float sliceCoord[3];
+            underlayVolume->indexToSpace(sliceIndex, 0, 0,
+                                         sliceCoord[0], sliceCoord[1], sliceCoord[2]);
+            
+            p1[0] = sliceCoord[0];
+            p1[1] = boundingBox.getMaxY();
+            p1[2] = boundingBox.getMinZ();
+            
+            p2[0] = sliceCoord[0];
+            p2[1] = boundingBox.getMinY();
+            p2[2] = boundingBox.getMinZ();
+            
+            p3[0] = sliceCoord[0];
+            p3[1] = boundingBox.getMinY();
+            p3[2] = boundingBox.getMaxZ();
+            
+//            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
             //sliceThickness = sliceThicknesses[0];
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
-            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
+            float sliceCoord[3];
+            underlayVolume->indexToSpace(0, sliceIndex, 0,
+                                         sliceCoord[0], sliceCoord[1], sliceCoord[2]);
+            
+            p1[0] = boundingBox.getMinX();
+            p1[1] = sliceCoord[1];
+            p1[2] = boundingBox.getMinZ();
+            
+            p2[0] = boundingBox.getMaxX();
+            p2[1] = sliceCoord[1];
+            p2[2] = boundingBox.getMinZ();
+            
+            p3[0] = boundingBox.getMaxX();
+            p3[1] = sliceCoord[1];
+            p3[2] = boundingBox.getMaxZ();
+            
+//            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
             //sliceThickness = sliceThicknesses[1];
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
-            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
+            float sliceCoord[3];
+            underlayVolume->indexToSpace(0, 0, sliceIndex,
+                                         sliceCoord[0], sliceCoord[1], sliceCoord[2]);
+
+            p1[0] = boundingBox.getMinX();
+            p1[1] = boundingBox.getMinY();
+            p1[2] = sliceCoord[2];
+            
+            p2[0] = boundingBox.getMaxX();
+            p2[1] = boundingBox.getMinY();
+            p2[2] = sliceCoord[2];
+            
+            p3[0] = boundingBox.getMaxX();
+            p3[1] = boundingBox.getMaxY();
+            p3[2] = sliceCoord[2];
+            
+//            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
             //sliceThickness = sliceThicknesses[2];
         }
             break;
