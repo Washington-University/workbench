@@ -135,6 +135,8 @@ namespace caret {
         
         void getSignedDistanceHelper(CaretPointer<SignedDistanceHelper>& helpOut) const;
         
+        CaretPointer<const CaretPointLocator> getPointLocator() const;
+        
         const BoundingBox* getBoundingBox() const;
         
         void matchSurfaceBoundingBox(const SurfaceFile* surfaceFile);

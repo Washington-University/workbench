@@ -1101,6 +1101,16 @@ SurfaceFile::setModified()
 
 int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) const
 {
+    if (maxDist > 0.0f)
+    {
+        return getPointLocator()->closestPointLimited(target, maxDist);
+    } else {
+        return getPointLocator()->closestPoint(target);
+    }
+}
+
+CaretPointer<const CaretPointLocator> SurfaceFile::getPointLocator() const
+{
     if (m_locator == NULL)//try to avoid locking even once
     {
         CaretMutexLocker myLock(&m_locatorMutex);
@@ -1109,12 +1119,7 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
             m_locator.grabNew(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
         }
     }
-    if (maxDist > 0.0f)
-    {
-        return m_locator->closestPointLimited(target, maxDist);
-    } else {
-        return m_locator->closestPoint(target);
-    }
+    return m_locator;
 }
 
 /**

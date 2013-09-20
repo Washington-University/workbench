@@ -49,6 +49,7 @@ AlgorithmLabelMerge.h
 AlgorithmLabelResample.h
 AlgorithmMetricDilate.h
 AlgorithmMetricExtrema.h
+AlgorithmMetricFalseCorrelation.h
 AlgorithmMetricFillHoles.h
 AlgorithmMetricGradient.h
 AlgorithmMetricReduce.h
@@ -125,6 +126,7 @@ AlgorithmLabelMerge.cxx
 AlgorithmLabelResample.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricExtrema.cxx
+AlgorithmMetricFalseCorrelation.cxx
 AlgorithmMetricFillHoles.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricReduce.cxx

@@ -58,6 +58,7 @@
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricExtrema.h"
+#include "AlgorithmMetricFalseCorrelation.h"
 #include "AlgorithmMetricFillHoles.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricReduce.h"
@@ -235,6 +236,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricReduce()));

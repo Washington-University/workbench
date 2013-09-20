@@ -26,6 +26,7 @@
  *
  */
 
+#include "CaretMutex.h"
 #include "OctTree.h"
 #include "Vector3D.h"
 
@@ -64,6 +65,7 @@ namespace caret {
                 m_mySet = mySet;
             }
         };
+        CaretMutex m_modifyMutex;//thread safety, don't let multiple threads modify the point sets at once
         Oct<LeafVector<Point> >* m_tree;
         int32_t m_nextSetIndex;
         std::vector<int32_t> m_unusedIndexes;

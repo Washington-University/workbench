@@ -76,6 +76,7 @@ void CaretPointLocator::addPoint(Oct<LeafVector<Point> >* thisOct, const float p
 
 int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numCoords)
 {
+    CaretMutexLocker locked(&m_modifyMutex);
     int32_t setNum = newIndex();
     if (numCoords < 1) return setNum;
     if (m_tree == NULL)
@@ -105,7 +106,7 @@ int32_t CaretPointLocator::addPointSet(const float* coordsIn, const int32_t numC
 
 CaretPointLocator::CaretPointLocator(const float* coordsIn, const int32_t numCoords)
 {
-    m_nextSetIndex = 0;
+    m_nextSetIndex = 1;//next set will be set #1
     m_tree = NULL;
     if (numCoords >= 1)
     {
@@ -122,11 +123,10 @@ CaretPointLocator::CaretPointLocator(const float* coordsIn, const int32_t numCoo
             if (coordsIn[i3 + 2] > maxBox[2]) maxBox[2] = coordsIn[i3 + 2];
         }
         m_tree = new Oct<LeafVector<Point> >(minBox, maxBox);
-        int32_t setNum = m_nextSetIndex;
         for (int32_t i = 0; i < numCoords; ++i)
         {
             int32_t i3 = i * 3;
-            addPoint(m_tree, coordsIn + i3, i, setNum);
+            addPoint(m_tree, coordsIn + i3, i, 0);//this is set #0
         }
     }
 }
@@ -324,6 +324,7 @@ int32_t CaretPointLocator::newIndex()
 
 void CaretPointLocator::removePointSet(int32_t whichSet)
 {
+    CaretMutexLocker locked(&m_modifyMutex);
     m_unusedIndexes.push_back(whichSet);
     removeSetHelper(m_tree, whichSet);
 }
