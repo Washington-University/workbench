@@ -41,7 +41,7 @@ next, make OperationName.cxx from AlgorithmTemplate.cxx.txt via one of the follo
 
 cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > OperationName.cxx
 cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > Operations/OperationName.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > src/Operations/OperationName.cxx
+cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's|[S]HORT DESCRIPTION|SHORT DESCRIPTION|g' > src/Operations/OperationName.cxx
 
 or manually copy and replace
 

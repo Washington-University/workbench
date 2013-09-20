@@ -39,7 +39,7 @@ next, make AlgorithmName.cxx from AlgorithmTemplate.cxx.txt via one of the follo
 
 cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > AlgorithmName.cxx
 cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > Algorithms/AlgorithmName.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > src/Algorithms/AlgorithmName.cxx
+cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's|[S]HORT DESCRIPTION|SHORT DESCRIPTION|g' > src/Algorithms/AlgorithmName.cxx
 
 or manually copy and replace
 
