@@ -194,6 +194,18 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(tabMoved(int,int)));
     
     /*
+     * Custom view action
+     */
+    const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
+                                   "Note that custom orientations are stored in your Workbench's preferences and thus\n"
+                                   "will be availble in any concurrent or future instances of Workbench.");
+    this->customViewAction = WuQtUtilities::createAction("Custom",
+                                                         customToolTip,
+                                                         this,
+                                                         this,
+                                                         SLOT(customViewActionTriggered()));
+    
+    /*
      * Actions at right side of toolbar
      */
     QToolButton* informationDialogToolButton = new QToolButton();
@@ -1555,16 +1567,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                          this, 
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
     
-    const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
-                                   "Pressing the arrow button will display a menu for selection of custom orientations.\n"
-                                   "Note that custom orientations are stored in your Workbench's preferences and thus\n"
-                                   "will be availble in any concurrent or future instances of Workbench.");
-    this->orientationCustomViewSelectToolButtonAction = WuQtUtilities::createAction("Custom",
-                                                                                  customToolTip,
-                                                                                  this,
-                                                                                  this,
-                                                                                  SLOT(orientationCustomViewToolButtonTriggered()));
-
     this->orientationLeftOrLateralToolButton = new QToolButton();
     this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
     
@@ -1600,7 +1602,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     orientationResetToolButton->setDefaultAction(this->orientationResetToolButtonAction);
 
     this->orientationCustomViewSelectToolButton = new QToolButton();
-    this->orientationCustomViewSelectToolButton->setDefaultAction(this->orientationCustomViewSelectToolButtonAction);
+    this->orientationCustomViewSelectToolButton->setDefaultAction(this->customViewAction);
     this->orientationCustomViewSelectToolButton->setSizePolicy(QSizePolicy::Minimum,
                                                                QSizePolicy::Fixed);
     
@@ -1632,7 +1634,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationWidgetGroup->add(this->orientationDorsalToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationVentralToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationResetToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationCustomViewSelectToolButtonAction);
 
     QWidget* orientWidget = this->createToolWidget("Orientation", 
                                                    w, 
@@ -3064,6 +3065,11 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
                                       volumePlaneAxialToolButton,
                                       volumePlaneAllToolButton);
     
+    QToolButton* slicePlaneCustomToolButton = new QToolButton();
+    slicePlaneCustomToolButton->setDefaultAction(this->customViewAction);
+    slicePlaneCustomToolButton->setSizePolicy(QSizePolicy::Minimum,
+                                                               QSizePolicy::Fixed);
+    
     
     QHBoxLayout* planeLayout1 = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(planeLayout1, 0, 0);
@@ -3088,6 +3094,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     layout->addLayout(planeLayout1);
     layout->addLayout(planeLayout2);
     layout->addWidget(volumePlaneResetToolButton, 0, Qt::AlignHCenter);
+    layout->addWidget(slicePlaneCustomToolButton, 0, Qt::AlignHCenter);
     
     this->volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
     this->volumePlaneWidgetGroup->add(this->volumePlaneActionGroup);
@@ -3439,11 +3446,10 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
 }
 
 /**
- * Called when orientation custom view button is pressed to show
- * custom view menu.
+ * Called when custom view is triggered and displays Custom View Menu.
  */
 void
-BrainBrowserWindowToolBar::orientationCustomViewToolButtonTriggered()
+BrainBrowserWindowToolBar::customViewActionTriggered()
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->readCustomViews();

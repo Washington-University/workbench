@@ -251,8 +251,12 @@ namespace caret {
         QRadioButton* viewModeWholeBrainRadioButton;
         QRadioButton* viewModeChartRadioButton;
         
+        QAction* customViewAction;
+
     private slots:
         void viewModeRadioButtonClicked(QAbstractButton*);
+        
+        void customViewActionTriggered();
         
     private:
         QAction* orientationLateralMedialToolButtonAction;
@@ -278,7 +282,6 @@ namespace caret {
         QToolButton* orientationVentralToolButton;
 
         QAction* orientationResetToolButtonAction;
-        QAction* orientationCustomViewSelectToolButtonAction;
         QToolButton* orientationCustomViewSelectToolButton;
         
         QIcon* viewOrientationLeftIcon;
@@ -304,8 +307,6 @@ namespace caret {
         void orientationDorsalVentralToolButtonTriggered(bool checked);
         void orientationAnteriorPosteriorToolButtonTriggered(bool checked);
 
-        void orientationCustomViewToolButtonTriggered();
-        
     
     private:
         QComboBox*      wholeBrainSurfaceTypeComboBox;
