@@ -38,6 +38,7 @@
 #include "AlgorithmCiftiCrossCorrelation.h"
 #include "AlgorithmCiftiDilate.h"
 #include "AlgorithmCiftiExtrema.h"
+#include "AlgorithmCiftiFalseCorrelation.h"
 #include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiMerge.h"
 #include "AlgorithmCiftiMergeDense.h"
@@ -216,6 +217,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCrossCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiExtrema()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));

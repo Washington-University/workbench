@@ -28,6 +28,7 @@ AlgorithmCiftiCreateLabel.h
 AlgorithmCiftiCrossCorrelation.h
 AlgorithmCiftiDilate.h
 AlgorithmCiftiExtrema.h
+AlgorithmCiftiFalseCorrelation.h
 AlgorithmCiftiGradient.h
 AlgorithmCiftiMerge.h
 AlgorithmCiftiMergeDense.h
@@ -105,6 +106,7 @@ AlgorithmCiftiCreateLabel.cxx
 AlgorithmCiftiCrossCorrelation.cxx
 AlgorithmCiftiDilate.cxx
 AlgorithmCiftiExtrema.cxx
+AlgorithmCiftiFalseCorrelation.cxx
 AlgorithmCiftiGradient.cxx
 AlgorithmCiftiMerge.cxx
 AlgorithmCiftiMergeDense.cxx
