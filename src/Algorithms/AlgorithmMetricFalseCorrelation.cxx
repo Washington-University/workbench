@@ -44,7 +44,7 @@ AString AlgorithmMetricFalseCorrelation::getCommandSwitch()
 
 AString AlgorithmMetricFalseCorrelation::getShortDescription()
 {
-    return "COMPARE CORRELATION LOCALLY AND ACROSS/THROUGH SULCI";
+    return "COMPARE CORRELATION LOCALLY AND ACROSS/THROUGH SULCI/GYRI";
 }
 
 OperationParameters* AlgorithmMetricFalseCorrelation::getParameters()
@@ -54,18 +54,18 @@ OperationParameters* AlgorithmMetricFalseCorrelation::getParameters()
     
     ret->addMetricParameter(2, "metric-in", "the metric to correlate");
     
-    ret->addMetricOutputParameter(3, "metric-out", "the output metric");
+    ret->addDoubleParameter(3, "3D-dist", "maximum 3D distance to check around each vertex");
     
-    ret->addDoubleParameter(4, "3D-dist", "maximum 3D distance to check around each vertex");
+    ret->addDoubleParameter(4, "geo-outer", "maximum geodesic distance to use for neighboring correlation");
     
-    ret->addDoubleParameter(5, "geo-outer", "maximum geodesic distance to use for neighboring correlation");
+    ret->addDoubleParameter(5, "geo-inner", "minimum geodesic distance to use for neighboring correlation");
     
-    ret->addDoubleParameter(6, "geo-inner", "minimum geodesic distance to use for neighboring correlation");
+    ret->addMetricOutputParameter(6, "metric-out", "the output metric");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-roi", "select a region of interest that has data");
     roiOpt->addMetricParameter(1, "roi-metric", "the region, as a metric file");
     
-    OptionalParameter* dumpTextOpt = ret->createOptionalParameter(8, "-dump-test", "dump the raw measures used to a text file");
+    OptionalParameter* dumpTextOpt = ret->createOptionalParameter(8, "-dump-text", "dump the raw measures used to a text file");
     dumpTextOpt->addStringParameter(1, "text-out", "the output text file");
     
     ret->setHelpText(
@@ -80,10 +80,10 @@ void AlgorithmMetricFalseCorrelation::useParameters(OperationParameters* myParam
 {
     SurfaceFile* mySurf = myParams->getSurface(1);
     MetricFile* myMetric = myParams->getMetric(2);
-    MetricFile* myMetricOut = myParams->getOutputMetric(3);
-    float max3D = (float)myParams->getDouble(4);
-    float maxgeo = (float)myParams->getDouble(5);
-    float mingeo = (float)myParams->getDouble(6);
+    float max3D = (float)myParams->getDouble(3);
+    float maxgeo = (float)myParams->getDouble(4);
+    float mingeo = (float)myParams->getDouble(5);
+    MetricFile* myMetricOut = myParams->getOutputMetric(6);
     MetricFile* myRoi = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
     if (roiOpt->m_present)
