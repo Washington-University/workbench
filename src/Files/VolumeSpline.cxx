@@ -57,7 +57,13 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
         {
             for (int i = 0; i < m_dims[0]; ++i)
             {
-                scratchArray[index2] = frame[index];
+                float tempf = frame[index];
+                if (MathFunctions::isNumeric(tempf))
+                {
+                    scratchArray[index2] = tempf;
+                } else {
+                    scratchArray[index2] = 0.0f;
+                }
                 ++index;
                 ++index2;
             }
@@ -74,7 +80,6 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
         {
             for (int i = 0; i < m_dims[0]; ++i)
             {
-                CaretAssert( ! MathFunctions::isNaN(scratchArray[index2]));
                 m_deconv[index] = scratchArray[index2];
                 ++index;
                 ++index2;
