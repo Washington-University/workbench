@@ -60,7 +60,12 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
+#include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
+#include "FociFile.h"
+#include "Focus.h"
+#include "GiftiLabel.h"
+#include "GroupAndNameHierarchyModel.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -68,6 +73,7 @@
 #include "ModelVolume.h"
 #include "NodeAndVoxelColoring.h"
 #include "Plane.h"
+#include "SelectionItemFocusVolume.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
@@ -869,8 +875,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
                 
                 m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
                 m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
-                
                 drawSurfaceOutline(slicePlane);
+                drawVolumeSliceFoci(slicePlane);
+                
                 glPopMatrix();
             }
         }
@@ -1448,6 +1455,11 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
                                                              VolumeFile::CUBIC,
                                                              &valueValidFlag,
                                                              vdi.mapIndex);
+//                        if (valueValidFlag) {
+//                            if (MathFunctions::isNaN(value)) {
+//                                std::cout << "Not a number: " << qPrintable(AString::fromNumbers(voxelCenter, 3, ",")) << std::endl;
+//                            }
+//                        }
                     }
                     else if (ciftiMappableFile != NULL) {
                         const int64_t voxelOffset = ciftiMappableFile->getMapDataOffsetForVoxelAtCoordinate(voxelCenter,
@@ -1786,8 +1798,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
 /**
  * Draw surface outlines on the volume slices
  *
- * @param underlayVolume
- *   The underlay volume
  * @param plane
  *   Plane of the volume slice on which surface outlines are drawn.
  */
@@ -1887,6 +1897,223 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(const Plane& plane)
     }
     
     m_fixedPipelineDrawing->disableLineAntiAliasing();
+}
+
+/**
+ * Draw foci on volume slice.
+ *
+ * @param plane
+ *   Plane of the volume slice on which surface outlines are drawn.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawVolumeSliceFoci(const Plane& plane)
+{
+    SelectionItemFocusVolume* idFocus = m_brain->getSelectionManager()->getVolumeFocusIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (idFocus->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    VolumeMappableInterface* underlayVolume = m_volumeDrawInfo[0].volumeFile;
+//    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+//    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+//    
+//    /*
+//     * Slice thicknesses
+//     */
+//    float sliceXYZ[3];
+//    float sliceNextXYZ[3];
+//    underlayVolume->indexToSpace(0, 0, 0, sliceXYZ[0], sliceXYZ[1], sliceXYZ[2]);
+//    underlayVolume->indexToSpace(1, 1, 1, sliceNextXYZ[0], sliceNextXYZ[1], sliceNextXYZ[2]);
+//    const float sliceThicknesses[3] = {
+//        sliceNextXYZ[0] - sliceXYZ[0],
+//        sliceNextXYZ[1] - sliceXYZ[1],
+//        sliceNextXYZ[2] - sliceXYZ[2]
+//    };
+    const float sliceThickness = 2.0;
+    const float halfSliceThickness = sliceThickness * 0.5;
+    
+    
+    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
+    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
+    
+    if (fociDisplayProperties->isDisplayed(displayGroup,
+                                           m_fixedPipelineDrawing->windowTabIndex) == false) {
+        return;
+    }
+    const float focusDiameter = fociDisplayProperties->getFociSize(displayGroup,
+                                                                   m_fixedPipelineDrawing->windowTabIndex);
+    const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
+                                                                                                  m_fixedPipelineDrawing->windowTabIndex);
+    
+    bool drawAsSpheres = false;
+    switch (fociDisplayProperties->getDrawingType(displayGroup,
+                                                  m_fixedPipelineDrawing->windowTabIndex)) {
+        case FociDrawingTypeEnum::DRAW_AS_SPHERES:
+            drawAsSpheres = true;
+            break;
+        case FociDrawingTypeEnum::DRAW_AS_SQUARES:
+            break;
+    }
+    
+    /*
+     * Use some polygon offset that will adjust the depth values of the 
+     * foci so that the foci depth values place the foci in front of
+     * the volume slice.
+     */
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(0.0, -1.0);
+    
+    /*
+     * Process each foci file
+     */
+    const int32_t numberOfFociFiles = m_brain->getNumberOfFociFiles();
+    for (int32_t iFile = 0; iFile < numberOfFociFiles; iFile++) {
+        FociFile* fociFile = m_brain->getFociFile(iFile);
+        
+        const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
+        if (classAndNameSelection->isSelected(displayGroup,
+                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
+            continue;
+        }
+        
+        const GiftiLabelTable* classColorTable = fociFile->getClassColorTable();
+        const GiftiLabelTable* nameColorTable = fociFile->getNameColorTable();
+        
+        const int32_t numFoci = fociFile->getNumberOfFoci();
+        
+        for (int32_t j = 0; j < numFoci; j++) {
+            Focus* focus = fociFile->getFocus(j);
+            
+            const GroupAndNameHierarchyItem* groupNameItem = focus->getGroupNameSelectionItem();
+            if (groupNameItem != NULL) {
+                if (groupNameItem->isSelected(displayGroup,
+                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
+                    continue;
+                }
+            }
+            
+            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+            switch (fociColoringType) {
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
+                    if (focus->isClassRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
+                        if (colorLabel != NULL) {
+                            focus->setClassRgba(colorLabel->getColor());
+                        }
+                        else {
+                            focus->setClassRgba(rgba);
+                        }
+                    }
+                    focus->getClassRgba(rgba);
+                    break;
+                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
+                    if (focus->isNameRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
+                        if (colorLabel != NULL) {
+                            focus->setNameRgba(colorLabel->getColor());
+                        }
+                        else {
+                            focus->setNameRgba(rgba);
+                        }
+                    }
+                    focus->getNameRgba(rgba);
+                    break;
+            }
+            
+            glColor3fv(rgba);
+            
+            
+            const int32_t numProjections = focus->getNumberOfProjections();
+            for (int32_t k = 0; k < numProjections; k++) {
+                const SurfaceProjectedItem* spi = focus->getProjection(k);
+                if (spi->isVolumeXYZValid()) {
+                    float xyz[3];
+                    spi->getVolumeXYZ(xyz);
+                    
+                    bool drawIt = false;
+                    if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
+                        drawIt = true;
+                    }
+                    
+                    if (drawIt) {
+                        if (isSelect) {
+                            uint8_t idRGB[3];
+                            m_fixedPipelineDrawing->colorIdentification->addItem(idRGB,
+                                                               SelectionItemDataTypeEnum::FOCUS_VOLUME,
+                                                               iFile, // file index
+                                                               j, // focus index
+                                                               k);// projection index
+                            glColor3ubv(idRGB);
+                        }
+                        
+                        glPushMatrix();
+                        glTranslatef(xyz[0], xyz[1], xyz[2]);
+                        if (drawAsSpheres) {
+                            m_fixedPipelineDrawing->drawSphereWithDiameter(focusDiameter);
+                        }
+                        else {
+                            drawSquare(focusDiameter);
+                        }
+                        glPopMatrix();
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * Disable the polygon offset
+     */
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    if (isSelect) {
+        int32_t fociFileIndex = -1;
+        int32_t focusIndex = -1;
+        int32_t focusProjectionIndex = -1;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
+                                         m_fixedPipelineDrawing->mouseX,
+                                         m_fixedPipelineDrawing->mouseY,
+                                         fociFileIndex,
+                                         focusIndex,
+                                         focusProjectionIndex,
+                                         depth);
+        if (fociFileIndex >= 0) {
+            if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
+                Focus* focus = m_brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
+                idFocus->setBrain(m_brain);
+                idFocus->setFocus(focus);
+                idFocus->setFociFile(m_brain->getFociFile(fociFileIndex));
+                idFocus->setFocusIndex(focusIndex);
+                idFocus->setFocusProjectionIndex(focusProjectionIndex);
+                idFocus->setVolumeFile(underlayVolume);
+                idFocus->setScreenDepth(depth);
+                float xyz[3];
+                const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
+                spi->getVolumeXYZ(xyz);
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(idFocus, xyz);
+                CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
+            }
+        }
+    }
 }
 
 
@@ -2620,6 +2847,40 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+}
+
+/**
+ * Draw a one millimeter square facing the user.
+ * NOTE: This method will alter the current
+ * modelviewing matrices so caller may need
+ * to enclose the call to this method within
+ * glPushMatrix() and glPopMatrix().
+ *
+ * @param size
+ *     Size of square.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawSquare(const float size)
+{
+    const float length = size * 0.5;
+    
+    /*
+     * Draw both front and back side since in some instances,
+     * such as surface montage, we are viweing from the far
+     * side (from back of monitor)
+     */
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 0.0, 1.0);
+    glVertex3f(-length, -length, 0.0);
+    glVertex3f( length, -length, 0.0);
+    glVertex3f( length,  length, 0.0);
+    glVertex3f(-length,  length, 0.0);
+    glNormal3f(0.0, 0.0, -1.0);
+    glVertex3f(-length, -length, 0.0);
+    glVertex3f(-length,  length, 0.0);
+    glVertex3f( length,  length, 0.0);
+    glVertex3f( length, -length, 0.0);
+    glEnd();
 }
 
 /* ======================================================================= */
