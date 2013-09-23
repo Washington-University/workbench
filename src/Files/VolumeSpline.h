@@ -32,6 +32,7 @@ namespace caret {
     
     class VolumeSpline
     {
+        bool m_ignoredNonNumeric;
         int64_t m_dims[3];
         CaretArray<float> m_deconv;//don't do lazy deconvolution, it doesn't save much time, and takes more memory and slightly longer if you have to do the whole volume anyway
         void deconvolve(float* data, const float* backsubs, const int64_t& length);//use CaretArray so that it doesn't reallocate like a vector on copy, and the data is static once computed
@@ -41,6 +42,7 @@ namespace caret {
         VolumeSpline(const float* frame, const int64_t framedims[3]);
         float sample(const float& i, const float& j, const float& k);
         float sample(const float ijk[3]) { return sample(ijk[0], ijk[1], ijk[2]); }
+        bool ignoredNonNumeric() const { return m_ignoredNonNumeric; }
     };
     
 }

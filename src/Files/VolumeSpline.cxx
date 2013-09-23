@@ -36,6 +36,7 @@ using namespace caret;
 
 VolumeSpline::VolumeSpline()
 {
+    m_ignoredNonNumeric = false;
     m_dims[0] = 0;
     m_dims[1] = 0;
     m_dims[2] = 0;
@@ -43,6 +44,7 @@ VolumeSpline::VolumeSpline()
 
 VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
 {
+    m_ignoredNonNumeric = false;
     m_dims[0] = framedims[0];
     m_dims[1] = framedims[1];
     m_dims[2] = framedims[2];
@@ -63,6 +65,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
                     scratchArray[index2] = tempf;
                 } else {
                     scratchArray[index2] = 0.0f;
+                    m_ignoredNonNumeric = true;
                 }
                 ++index;
                 ++index2;
