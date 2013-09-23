@@ -24,6 +24,7 @@
 
 #include "CaretOMP.h"
 #include "CubicSpline.h"
+#include "MathFunctions.h"
 #include "VolumeSpline.h"
 
 #include <algorithm>
@@ -73,6 +74,7 @@ VolumeSpline::VolumeSpline(const float* frame, const int64_t framedims[3])
         {
             for (int i = 0; i < m_dims[0]; ++i)
             {
+                CaretAssert( ! MathFunctions::isNaN(scratchArray[index2]));
                 m_deconv[index] = scratchArray[index2];
                 ++index;
                 ++index2;
