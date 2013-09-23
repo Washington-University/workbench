@@ -397,6 +397,12 @@ namespace caret {
         
         void applyClippingPlanes();
         
+        void getVolumeFitToWindowScalingAndTranslation(const VolumeMappableInterface* volume,
+                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                       const double orthographicExtent[6],
+                                                       float translationOut[3],
+                                                       float& scalingOut) const;
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

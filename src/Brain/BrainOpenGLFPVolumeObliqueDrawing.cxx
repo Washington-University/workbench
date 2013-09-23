@@ -443,7 +443,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setOrthographicBounds(const DRAW_MODE drawMod
     m_orthographicBounds[3] = m_fixedPipelineDrawing->orthographicTop;
     m_orthographicBounds[4] = m_fixedPipelineDrawing->orthographicNear;
     m_orthographicBounds[5] = m_fixedPipelineDrawing->orthographicFar;
-    
+
     if (updateBoundsForSliceView) {
         float coordBounds[6];
         float spacing[3];
@@ -458,8 +458,10 @@ BrainOpenGLFPVolumeObliqueDrawing::setOrthographicBounds(const DRAW_MODE drawMod
                                                std::fabs(m_fixedPipelineDrawing->orthographicTop));
 //            const float scaleToFitWindow = (m_fixedPipelineDrawing->orthographicRight
 //                                            / maxBound) * 1.10;
+//            const float scaleToFitWindow = (maxCoordBound
+//                                            / rightOrTop) * 1.05;
             const float scaleToFitWindow = (maxCoordBound
-                                            / rightOrTop) * 1.05;
+                                            / rightOrTop);
             //        glScalef(scaleToFitWindow,
             //                 scaleToFitWindow,
             //                 scaleToFitWindow);
@@ -545,12 +547,21 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
     }
     
     
+    float windowAdjustmentTranslation[3] = { 0.0, 0.0, 0.0 };
+    float windowAdjustmentScaling = 1.0;
+    m_fixedPipelineDrawing->getVolumeFitToWindowScalingAndTranslation(m_volumeDrawInfo[0].volumeFile,
+                                                                      sliceViewPlane,
+                                                                      m_orthographicBounds,
+                                                                      windowAdjustmentTranslation,
+                                                                      windowAdjustmentScaling);
+    
     glPushMatrix();
     
     switch (drawMode) {
         case DRAW_MODE_ALL_VIEW:
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
         {
             /*
              * User's translation.
@@ -577,9 +588,30 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
             glTranslatef(translationadj[0], 
                          translationadj[1], 
                          translationadj[2]);
+            
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    windowAdjustmentTranslation[2] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    windowAdjustmentTranslation[1] = windowAdjustmentTranslation[2];
+                    windowAdjustmentTranslation[2] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    windowAdjustmentTranslation[0] = -windowAdjustmentTranslation[1];
+                    windowAdjustmentTranslation[1] =  windowAdjustmentTranslation[2];
+                    windowAdjustmentTranslation[2] =  0.0;
+                    break;
+            }
+            glTranslatef(windowAdjustmentTranslation[0],
+                         windowAdjustmentTranslation[1],
+                         windowAdjustmentTranslation[2]);
+            glScalef(windowAdjustmentScaling,
+                     windowAdjustmentScaling,
+                     windowAdjustmentScaling);
         }
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
             break;
     }
     
@@ -812,7 +844,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
             break;
     }
     const float zoom = (allowTransformationsFlag
-                        ? m_browserTabContent->getScaling()
+                        ? (m_browserTabContent->getScaling())
+                        //? (m_browserTabContent->getScaling() * windowAdjustmentScaling)
                         : 1.0);
     
     /*

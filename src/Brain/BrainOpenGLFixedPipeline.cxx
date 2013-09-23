@@ -661,7 +661,105 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
 }
 
 /**
- * Apply the viewing transformations for the model controller 
+ * For a volume, get translation and scaling so that the volume 'fills' 
+ * the window.
+ *
+ * @param volume
+ *   The volume.
+ * @param sliceViewPlane
+ *   The slice viewing plane.
+ * @param orthographicExtent
+ *   The orthographic bounds
+ * @param translationOut
+ *   Output of translation.
+ * @param scalingOut
+ *   Output of scaling.
+ *
+ */
+void
+BrainOpenGLFixedPipeline::getVolumeFitToWindowScalingAndTranslation(const VolumeMappableInterface* volume,
+                                                                    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                    const double orthographicExtent[6],
+                                                                    float translationOut[3],
+                                                                    float& scalingOut) const
+{
+    /*
+     * Apply some scaling and translation so that the volume slice, by default
+     * is not larger than the window in which it is being viewed.
+     */
+    scalingOut = 1.0;
+    translationOut[0] = 0.0;
+    translationOut[1] = 0.0;
+    translationOut[2] = 0.0;
+    
+    if (volume != NULL) {
+        BoundingBox boundingBox;
+        volume->getVoxelSpaceBoundingBox(boundingBox);
+        
+        int64_t dimI, dimJ, dimK, numMaps, numComponents;
+        volume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+        if ((dimI > 2)
+            && (dimJ > 2)
+            && (dimK > 2)) {
+            
+            float volumeCenter[3] = { (boundingBox.getMinX() + boundingBox.getMaxX()) / 2,
+                (boundingBox.getMinY() + boundingBox.getMaxY()) / 2,
+                (boundingBox.getMinZ() + boundingBox.getMaxZ()) / 2 };
+            
+            /*
+             * Translate so that the center voxel (by dimenisons)
+             * is at the center of the screen.
+             */
+            translationOut[0] = -volumeCenter[0];
+            translationOut[1] = -volumeCenter[1];
+            translationOut[2] = -volumeCenter[2];
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    translationOut[2] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    translationOut[1] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    translationOut[0] = 0.0;
+                    break;
+            }
+            
+            
+            /*
+             * Scale so volume fills, but does not extend out of window.
+             */
+            const float xExtent = (boundingBox.getMaxX() - boundingBox.getMinX()) / 2;
+            const float yExtent = (boundingBox.getMaxY() - boundingBox.getMinY()) / 2;
+            const float zExtent = (boundingBox.getMaxZ() - boundingBox.getMinZ()) / 2;
+            
+//            const float orthoExtentX = std::min(std::fabs(this->orthographicRight),
+//                                                std::fabs(this->orthographicLeft));
+//            const float orthoExtentY = std::min(std::fabs(this->orthographicTop),
+//                                                std::fabs(this->orthographicBottom));
+            const float orthoExtentX = std::min(std::fabs(orthographicExtent[0]),
+                                                std::fabs(orthographicExtent[1]));
+            const float orthoExtentY = std::min(std::fabs(orthographicExtent[2]),
+                                                std::fabs(orthographicExtent[3]));
+            
+            float temp;
+            float scaleWindowX = (orthoExtentX / xExtent);
+            temp = (orthoExtentX / yExtent);//parasaggital y is screen x
+            if (temp < scaleWindowX) scaleWindowX = temp;
+            float scaleWindowY = (orthoExtentY / zExtent);
+            temp = (orthoExtentY / yExtent);//axial y is screen y
+            if (temp < scaleWindowY) scaleWindowY = temp;
+            scalingOut = std::min(scaleWindowX,
+                                          scaleWindowY);
+            scalingOut *= 0.98;
+        }
+    }
+}
+
+/**
+ * Apply the viewing transformations for the model controller
  * in the given tab for viewing a volume slice in a plane.
  *
  * @param ModelVolume
