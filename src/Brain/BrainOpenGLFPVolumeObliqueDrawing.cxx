@@ -857,29 +857,37 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
     }
     
     if ( ! isSelect) {
-        bool drawLayers = false;
+        bool isDrawLayers = false;
         switch (drawMode) {
             case DRAW_MODE_ALL_VIEW:
                 break;
             case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-                drawLayers = true;
+                isDrawLayers = true;
                 break;
             case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-                drawLayers = true;
+                isDrawLayers = true;
                 break;
         }
-        if (drawLayers) {
+        if (isDrawLayers) {
             if (slicePlane.isValidPlane()) {
                 glPushMatrix();
                 glScalef(zoom, zoom, zoom);
                 
                 m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
                 m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
-                drawSurfaceOutline(slicePlane);
                 drawVolumeSliceFoci(slicePlane);
                 
                 glPopMatrix();
             }
+        }
+        
+        if (slicePlane.isValidPlane()) {
+            glPushMatrix();
+            glScalef(zoom, zoom, zoom);
+            
+            drawSurfaceOutline(slicePlane);
+            
+            glPopMatrix();
         }
     }
     
