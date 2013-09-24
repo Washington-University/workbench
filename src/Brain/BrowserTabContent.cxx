@@ -1452,8 +1452,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                         
                         if (isClockwise
                             || isCounterClockwise) {
-                            float mouseDelta = std::sqrt((mouseDeltaX * mouseDeltaX)
-                                                         + (mouseDeltaY * mouseDeltaY));
+                            const float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
+                                                                                  + (mouseDeltaY * mouseDeltaY)));
                             
                             switch (slicePlane) {
                                 case VolumeSliceViewPlaneEnum::ALL:
