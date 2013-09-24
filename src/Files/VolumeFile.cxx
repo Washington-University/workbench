@@ -400,7 +400,7 @@ void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t compone
         m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
         if (m_frameSplines[whichFrame].ignoredNonNumeric())
         {
-            CaretLogWarning("ignored non-numeric input value when calculating cubic splines in volume '" + getFileName() + "', frame #" + AString::number(brickIndex));
+            CaretLogWarning("ignored non-numeric input value when calculating cubic splines in volume '" + getFileName() + "', frame #" + AString::number(brickIndex + 1));
         }
         m_frameSplineValid[whichFrame] = true;
     }
