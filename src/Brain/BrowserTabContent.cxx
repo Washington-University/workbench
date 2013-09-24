@@ -1395,7 +1395,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 }
                 else {
                     if ((mouseDeltaX != 0)
-                        && (mouseDeltaY != 0)) {
+                        || (mouseDeltaY != 0)) {
                         
                         const int previousMouseX = mouseX - mouseDeltaX;
                         const int previousMouseY = mouseY - mouseDeltaY;
