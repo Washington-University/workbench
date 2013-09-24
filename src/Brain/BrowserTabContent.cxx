@@ -23,6 +23,7 @@
  * 
  */ 
 
+#include <cmath>
 #include <set>
 
 #define __BROWSER_TAB_CONTENT_DECLARE__
@@ -46,6 +47,7 @@
 #include "FociFile.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
+#include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
@@ -1273,7 +1275,8 @@ BrowserTabContent::ventralView()
 VolumeSliceViewPlaneEnum::Enum
 BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
                                                           const int32_t mousePressX,
-                                                          const int32_t mousePressY) const
+                                                          const int32_t mousePressY,
+                                                          int32_t sliceViewportOut[4]) const
 {
     VolumeSliceViewPlaneEnum::Enum view = VolumeSliceViewPlaneEnum::ALL;
     
@@ -1313,9 +1316,29 @@ BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport
         }
     }
 
+    sliceViewportOut[0] = viewport[0];
+    sliceViewportOut[1] = viewport[1];
+    sliceViewportOut[2] = halfWidth;
+    sliceViewportOut[3] = halfHeight;
+    
+    switch (view) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            sliceViewportOut[2] = viewport[2];
+            sliceViewportOut[3] = viewport[3];
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceViewportOut[0] = halfWidth;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceViewportOut[0] = halfWidth;
+            sliceViewportOut[1] = halfHeight;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceViewportOut[1] = halfHeight;
+            break;
+    }
     return view;
 }
-
 
 /**
  * Apply mouse rotation to the displayed model.
@@ -1324,17 +1347,23 @@ BrowserTabContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport
  *    X coordinate of where mouse was pressed.
  * @param mousePressY
  *    X coordinate of where mouse was pressed.
- * @param mouseDX
+ * @param mouseX
+ *    X coordinate of mouse.
+ * @param mouseY
+ *    Y coordinate of mouse.
+ * @param mouseDeltaX
  *    Change in mouse X coordinate.
- * @param mouseDY
+ * @param mouseDeltaY
  *    Change in mouse Y coordinate.
  */
 void
 BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
                                       const int32_t mousePressX,
                                       const int32_t mousePressY,
-                                      const int32_t mouseDX,
-                                      const int32_t mouseDY)
+                                      const int32_t mouseX,
+                                      const int32_t mouseY,
+                                      const int32_t mouseDeltaX,
+                                      const int32_t mouseDeltaY)
 {
     if (isVolumeSlicesDisplayed()) {
         switch (getSliceViewMode()) {
@@ -1342,70 +1371,194 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 break;
             case VolumeSliceViewModeEnum::OBLIQUE:
             {
-                if (mouseDY != 0) {
-                    int viewport[4];
-                    viewportContent->getModelViewport(viewport);
-                    VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
-                    if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-                        slicePlane = getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                            mousePressX,
-                                                                            mousePressY);
+                int viewport[4];
+                viewportContent->getModelViewport(viewport);
+                VolumeSliceViewPlaneEnum::Enum slicePlane = this->getSliceViewPlane();
+                int sliceViewport[4] = {
+                    viewport[0],
+                    viewport[1],
+                    viewport[2],
+                    viewport[3]
+                };
+                if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                    slicePlane = getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                        mousePressX,
+                                                                        mousePressY,
+                                                                        sliceViewport);
+                }
+                
+                Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix(); //  m_volumeSliceViewingTransformation->getRotationMatrix();
+                
+                if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                    rotationMatrix.rotateX(-mouseDeltaY);
+                    rotationMatrix.rotateY(mouseDeltaX);
+                }
+                else {
+                    if ((mouseDeltaX != 0)
+                        && (mouseDeltaY != 0)) {
+                        
+                        const int previousMouseX = mouseX - mouseDeltaX;
+                        const int previousMouseY = mouseY - mouseDeltaY;
+                        
+                        /*
+                         * Need to account for the quadrants!!!!
+                         */
+                        const float viewportCenter[3] = {
+                            sliceViewport[0] + sliceViewport[2] / 2,
+                            sliceViewport[1] + sliceViewport[3] / 2,
+                            0.0
+                        };
+                        
+                        const float oldPos[3] = {
+                            previousMouseX,
+                            previousMouseY,
+                            0.0
+                        };
+                        
+                        const float newPos[3] = {
+                            mouseX,
+                            mouseY,
+                            0.0
+                        };
+                        
+//                        const AString posString = (" center: "
+//                                             + AString::fromNumbers(viewportCenter, 3, ",")
+//                                             + " old: "
+//                                             + AString::fromNumbers(oldPos, 3, ",")
+//                                             + " mouse: "
+//                                             + AString::fromNumbers(newPos, 3, ","));
+                        /*
+                         * Compute normal vector from viewport center to
+                         * old mouse position to new mouse position.
+                         * If normal-Z is positive, mouse has been moved
+                         * in a counter clockwise motion relative to center.
+                         * If normal-Z is negative, mouse has moved clockwise.
+                         */
+                        float normalDirection[3];
+                        MathFunctions::normalVectorDirection(viewportCenter,
+                                                             oldPos,
+                                                             newPos,
+                                                             normalDirection);
+                        bool isClockwise = false;
+                        bool isCounterClockwise = false;
+                        if (normalDirection[2] > 0.0) {
+                            isCounterClockwise = true;
+//                            std::cout << "CCW" << qPrintable(posString) << std::endl;
+                        }
+                        else if (normalDirection[2] < 0.0) {
+                            isClockwise = true;
+//                            std::cout << "CW" << qPrintable(posString) << std::endl;
+                        }
+                        
+                        if (isClockwise
+                            || isCounterClockwise) {
+                            float mouseDelta = std::sqrt((mouseDeltaX * mouseDeltaX)
+                                                         + (mouseDeltaY * mouseDeltaY));
+                            
+                            switch (slicePlane) {
+                                case VolumeSliceViewPlaneEnum::ALL:
+                                {
+                                    CaretAssert(0);
+                                }
+                                    break;
+                                case VolumeSliceViewPlaneEnum::AXIAL:
+                                {
+                                    Matrix4x4 rotation;
+                                    if (isClockwise) {
+                                        rotation.rotateZ(mouseDelta);
+                                    }
+                                    else if (isCounterClockwise) {
+                                        rotation.rotateZ(-mouseDelta);
+                                    }
+                                    rotationMatrix.premultiply(rotation);
+                                }
+                                    break;
+                                case VolumeSliceViewPlaneEnum::CORONAL:
+                                {
+                                    Matrix4x4 rotation;
+                                    if (isClockwise) {
+                                        rotation.rotateY(-mouseDelta);
+                                    }
+                                    else if (isCounterClockwise) {
+                                        rotation.rotateY(mouseDelta);
+                                    }
+                                    rotationMatrix.premultiply(rotation);
+                                }
+                                    break;
+                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                {
+                                    Matrix4x4 rotation;
+                                    if (isClockwise) {
+                                        rotation.rotateX(-mouseDelta);
+                                    }
+                                    else if (isCounterClockwise) {
+                                        rotation.rotateX(mouseDelta);
+                                    }
+                                    rotationMatrix.premultiply(rotation);
+                                }
+                                    break;
+                            }
+                        }
                     }
-                    
-                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix(); //  m_volumeSliceViewingTransformation->getRotationMatrix();
-                    switch (slicePlane) {
-                        case VolumeSliceViewPlaneEnum::ALL:
-                        {
-                            rotationMatrix.rotateX(-mouseDY);
-                            rotationMatrix.rotateY(mouseDX);
-                        }
-                            break;
-                        case VolumeSliceViewPlaneEnum::AXIAL:
-                        {
-                            Matrix4x4 rotation;
-                            rotation.rotateZ(mouseDY);
-                            rotationMatrix.premultiply(rotation);
-                        }
-                            break;
-                        case VolumeSliceViewPlaneEnum::CORONAL:
-                        {
-                            Matrix4x4 rotation;
-                            rotation.rotateY(mouseDY);
-                            rotationMatrix.premultiply(rotation);
-                        }
-                            break;
-                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        {
-                            Matrix4x4 rotation;
-                            rotation.rotateX(mouseDY);
-                            rotationMatrix.premultiply(rotation);
-                        }
-                            break;
-                    }
-                    setObliqueVolumeRotationMatrix(rotationMatrix);
-//                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
-                    
-//                    Matrix4x4 rotation;
+                }
+                
+                setObliqueVolumeRotationMatrix(rotationMatrix);
+                
+//                if (mouseDeltaY != 0) {
+//                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix(); //  m_volumeSliceViewingTransformation->getRotationMatrix();
 //                    switch (slicePlane) {
 //                        case VolumeSliceViewPlaneEnum::ALL:
-//                            rotation.rotateX(-mouseDY);
-//                            rotation.rotateY(mouseDX);
+//                        {
+//                            rotationMatrix.rotateX(-mouseDeltaY);
+//                            rotationMatrix.rotateY(mouseDeltaX);
+//                        }
 //                            break;
 //                        case VolumeSliceViewPlaneEnum::AXIAL:
-//                            rotation.rotateZ(mouseDY);
+//                        {
+//                            Matrix4x4 rotation;
+//                            rotation.rotateZ(mouseDeltaY);
+//                            rotationMatrix.premultiply(rotation);
+//                        }
 //                            break;
 //                        case VolumeSliceViewPlaneEnum::CORONAL:
-//                            rotation.rotateY(mouseDY);
+//                        {
+//                            Matrix4x4 rotation;
+//                            rotation.rotateY(mouseDeltaY);
+//                            rotationMatrix.premultiply(rotation);
+//                        }
 //                            break;
 //                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                            rotation.rotateX(mouseDY);
+//                        {
+//                            Matrix4x4 rotation;
+//                            rotation.rotateX(mouseDeltaY);
+//                            rotationMatrix.premultiply(rotation);
+//                        }
 //                            break;
 //                    }
-//
-//                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
-//                    rotationMatrix.premultiply(rotation);
-//                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
-                }
+//                    setObliqueVolumeRotationMatrix(rotationMatrix);
+////                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+//                    
+////                    Matrix4x4 rotation;
+////                    switch (slicePlane) {
+////                        case VolumeSliceViewPlaneEnum::ALL:
+////                            rotation.rotateX(-mouseDY);
+////                            rotation.rotateY(mouseDX);
+////                            break;
+////                        case VolumeSliceViewPlaneEnum::AXIAL:
+////                            rotation.rotateZ(mouseDY);
+////                            break;
+////                        case VolumeSliceViewPlaneEnum::CORONAL:
+////                            rotation.rotateY(mouseDY);
+////                            break;
+////                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+////                            rotation.rotateX(mouseDY);
+////                            break;
+////                    }
+////
+////                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+////                    rotationMatrix.premultiply(rotation);
+////                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+//                }
                 
             }
                 break;
@@ -1417,13 +1570,13 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
     else {
         if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
             Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
-            rotationMatrix.rotateX(-mouseDY);
-            rotationMatrix.rotateY(-mouseDX);
+            rotationMatrix.rotateX(-mouseDeltaY);
+            rotationMatrix.rotateY(-mouseDeltaX);
             m_viewingTransformation->setRotationMatrix(rotationMatrix);
         }
         else {
-            float dx = mouseDX;
-            float dy = mouseDY;
+            float dx = mouseDeltaX;
+            float dy = mouseDeltaY;
             
             ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
             if (montageModel != NULL) {

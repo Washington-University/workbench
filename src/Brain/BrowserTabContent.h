@@ -186,8 +186,10 @@ namespace caret {
         void applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
                                 const int32_t mousePressX,
                                 const int32_t mousePressY,
-                                const int32_t mouseDX,
-                                const int32_t mouseDY);
+                                const int32_t mouseX,
+                                const int32_t mouseY,
+                                const int32_t mouseDeltaX,
+                                const int32_t mouseDeltaY);
         
         void applyMouseScaling(const int32_t mouseDX,
                                const int32_t mouseDY);
@@ -314,9 +316,10 @@ namespace caret {
         
         BrowserTabContent& operator=(const BrowserTabContent&);
         
-        VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
+        VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const int viewport[4],
                                                                   const int32_t mousePressX,
-                                                                  const int32_t mousePressY) const;
+                                                                  const int32_t mousePressY,
+                                                                              int sliceViewportOut[4]) const;
         
         /** Number of this tab */
         int32_t m_tabNumber;
