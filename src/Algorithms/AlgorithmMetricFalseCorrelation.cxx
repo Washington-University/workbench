@@ -209,15 +209,25 @@ AlgorithmMetricFalseCorrelation::AlgorithmMetricFalseCorrelation(ProgressObject*
                     {
                         if (roiCol != NULL && !(roiCol[interested[i]] > 0.0f)) continue;
                         float dist3D = (myCoord - Vector3D(mySurf->getCoordinate(interested[i]))).length();
-                        if ((interested[i] == n || geoDists[i] / dist3D < distRatioCutoff) && geoDists[i] >= mingeo)//we already know it is not greater than maxgeo
+                        if ((interested[i] == n || geoDists[i] / dist3D < distRatioCutoff))
                         {
-                            float thiscorr = correlate(n, interested[i]);
-                            neighAccum += thiscorr;
-                            ++neighCount;
                             if (dumpRaw)
                             {
+                                float thiscorr = correlate(n, interested[i]);
                                 rawDumpString += AString::number(n) + sep1 + AString::number(interested[i]) + sep1 + AString::number(thiscorr) + sep1 +
                                     AString::number(geoDists[i]) + sep1 + AString::number(dist3D) + sep2;
+                                if (geoDists[i] >= mingeo)//we already know it is not greater than maxgeo
+                                {
+                                    neighAccum += thiscorr;
+                                    ++neighCount;
+                                }
+                            } else {
+                                if (geoDists[i] >= mingeo)
+                                {
+                                    float thiscorr = correlate(n, interested[i]);
+                                    neighAccum += thiscorr;
+                                    ++neighCount;
+                                }
                             }
                         }
                     }
