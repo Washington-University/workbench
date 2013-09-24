@@ -198,36 +198,29 @@ AlgorithmMetricFalseCorrelation::AlgorithmMetricFalseCorrelation(ProgressObject*
                                     AString::number(geoDists[counter]) + sep1 + AString::number(dist3D) + sep2;
                             }
                         }
-                        if (maxgeo > max3D)//so, we have to run geodesic separately
+                    }
+                    ++counter;
+                }
+                if (maxgeo > max3D)//so, we have to run geodesic separately
+                {
+                    myGeo->getNodesToGeoDist(n, maxgeo, interested, geoDists);//reuse interested, we don't need its previous contents
+                    int numInRange = (int)interested.size();
+                    for (int i = 0; i < numInRange; ++i)
+                    {
+                        if (roiCol != NULL && !(roiCol[interested[i]] > 0.0f)) continue;
+                        float dist3D = (myCoord - Vector3D(mySurf->getCoordinate(interested[i]))).length();
+                        if ((interested[i] == n || geoDists[i] / dist3D < distRatioCutoff) && geoDists[i] >= mingeo)//we already know it is not greater than maxgeo
                         {
-                            myGeo->getNodesToGeoDist(n, maxgeo, interested, geoDists);//reuse interested, we don't need its previous contents
-                            int numInRange = (int)interested.size();
-                            for (int i = 0; i < numInRange; ++i)
+                            float thiscorr = correlate(n, interested[i]);
+                            neighAccum += thiscorr;
+                            ++neighCount;
+                            if (dumpRaw)
                             {
-                                if (roiCol != NULL && !(roiCol[interested[i]] > 0.0f)) continue;
-                                float dist3D = (myCoord - Vector3D(mySurf->getCoordinate(interested[i]))).length();
-                                if (dumpRaw)
-                                {
-                                    float thiscorr = correlate(n, interested[i]);
-                                    rawDumpString += AString::number(n) + sep1 + AString::number(interested[i]) + sep1 + AString::number(thiscorr) + sep1 +
-                                        AString::number(geoDists[counter]) + sep1 + AString::number(dist3D) + sep2;
-                                    if ((iter->index == n || geoDists[i] / dist3D < distRatioCutoff) && geoDists[i] >= mingeo)//we already know it is not greater than maxgeo
-                                    {
-                                        neighAccum += thiscorr;
-                                        ++neighCount;
-                                    }
-                                } else {
-                                    if ((iter->index == n || geoDists[i] / dist3D < distRatioCutoff) && geoDists[i] >= mingeo)
-                                    {
-                                        float thiscorr = correlate(n, interested[i]);
-                                        neighAccum += thiscorr;
-                                        ++neighCount;
-                                    }
-                                }
+                                rawDumpString += AString::number(n) + sep1 + AString::number(interested[i]) + sep1 + AString::number(thiscorr) + sep1 +
+                                    AString::number(geoDists[i]) + sep1 + AString::number(dist3D) + sep2;
                             }
                         }
                     }
-                    ++counter;
                 }
                 if (dumpRaw)
                 {
