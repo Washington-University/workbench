@@ -560,8 +560,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
     switch (drawMode) {
         case DRAW_MODE_ALL_VIEW:
             break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
         {
             /*
              * User's translation.
