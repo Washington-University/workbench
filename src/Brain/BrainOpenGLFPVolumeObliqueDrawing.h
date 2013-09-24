@@ -207,17 +207,7 @@ namespace caret {
         void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                        const DRAW_MODE drawMode);
         
-        void drawSliceVoxelsWithTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          std::vector<int32_t>& identificationIndices,
-                                          const int32_t idPerVoxelCount,
-                                          const Matrix4x4& transformationMatrix,
-                                          const float screenBounds[4],
-                                          const float sliceNormalVector[3],
-                                          const float voxelSize,
-                                          const float zoom,
-                                          const bool isSelectionMode);
-        
-        void drawSliceVoxelsModelCoordInterpolation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           std::vector<int32_t>& identificationIndices,
                                           const int32_t idPerVoxelCount,
                                           const Matrix4x4& transformationMatrix,
@@ -244,6 +234,10 @@ namespace caret {
         void drawQuadsVertexArrays(const std::vector<float>& coordinates,
                        const std::vector<float>& normals,
                        const std::vector<uint8_t>& rgbaColors);
+        
+        void drawQuadsVertexBuffers(const std::vector<float>& coordinates,
+                                    const std::vector<float>& normals,
+                                    const std::vector<uint8_t>& rgbaColors);
         
         void drawLines(const std::vector<float>& coordinates,
                        const std::vector<uint8_t>& rgbaColors,

@@ -852,43 +852,21 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
     /*
      * Draw slice
      */
-    bool isDrawWithInterpolation = true;
-    if (isDrawWithInterpolation) {
-        const float screenBounds[4] = {
-            minScreenX,
-            maxScreenX,
-            minScreenY,
-            maxScreenY
-        };
-        
-        drawSliceVoxelsModelCoordInterpolation(sliceViewPlane,
-                                     identificationIndices,
-                                     idPerVoxelCount,
-                                     transformationMatrix,
-                                     screenBounds,
-                                     sliceNormalVector,
-                                     minVoxelSize,
-                                               zoom,
-                                     isSelect);
-    }
-    else {
-        const float screenBounds[4] = {
-            minScreenX,
-            maxScreenX,
-            minScreenY,
-            maxScreenY
-        };
-        
-        drawSliceVoxelsWithTransform(sliceViewPlane,
-                                     identificationIndices,
-                                     idPerVoxelCount,
-                                     transformationMatrix,
-                                     screenBounds,
-                                     sliceNormalVector,
-                                     minVoxelSize,
-                                     zoom,
-                                     isSelect);
-    }
+    const float screenBounds[4] = {
+        minScreenX,
+        maxScreenX,
+        minScreenY,
+        maxScreenY
+    };
+    drawSliceVoxels(sliceViewPlane,
+                    identificationIndices,
+                    idPerVoxelCount,
+                    transformationMatrix,
+                    screenBounds,
+                    sliceNormalVector,
+                    minVoxelSize,
+                    zoom,
+                    isSelect);
     
     if ( ! isSelect) {
         bool isDrawLayers = false;
@@ -973,7 +951,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
 }
 
 /**
- * Draw a volume slice by transforming each screen point to a model coordinate.
+ * Draw a volume slice's voxels.
  *
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
@@ -993,255 +971,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlice(const VolumeSliceViewPlaneEnum::Enu
  *   True if performing selection.
  */
 void
-BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsWithTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                std::vector<int32_t>& identificationIndices,
-                                                                const int32_t idPerVoxelCount,
-                                                                const Matrix4x4& transformationMatrix,
-                                                                const float screenBounds[4],
-                                                                const float sliceNormalVector[3],
-                                                                const float voxelSize,
-                                                                const float zoom,
-                                                                const bool isSelectionMode)
-{
-    const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
-    const float halfVoxelSize = voxelSize / 2.0;
-    
-    const float minScreenX = screenBounds[0];
-    const float maxScreenX = screenBounds[1];
-    const float minScreenY = screenBounds[2];
-    const float maxScreenY = screenBounds[3];
-    
-    /*
-     * quadCoords is the coordinates for all four corners of a 'quad'
-     * that is used to draw a voxel.  quadRGBA is the colors for each
-     * voxel drawn as a 'quad'.
-     *
-     * Reserve estimate maximum number of voxels to avoid memory reallocations.
-     * Each voxel requires 4 XYZ coordinates (all four corners)
-     * and 4 color components.
-     */
-    const int64_t estimatedVoxelsScreenX = ((maxScreenX - minScreenX) / voxelSize) + 5;
-    const int64_t estimatedVoxelsScreenY = ((maxScreenY - minScreenY) / voxelSize) + 5;
-    const int64_t estimatedVoxelCount = estimatedVoxelsScreenX * estimatedVoxelsScreenY;
-    std::vector<float> quadCoords;
-    quadCoords.reserve(estimatedVoxelCount * 4 * 3);
-    std::vector<float> quadNormals;
-    quadNormals.reserve(estimatedVoxelCount * 3);
-    std::vector<uint8_t> quadRGBAs;
-    quadRGBAs.reserve(estimatedVoxelCount * 4);
-    
-    /*
-     * Draw the voxels by traversing in screen coordinates
-     */
-    for (float x = minScreenX; x < maxScreenX; x += voxelSize) {
-        for (float y = minScreenY; y < maxScreenY; y += voxelSize) {
-            /*
-             * Apply the transformation matrix to the point
-             */
-            float pt[3] = { x, y, 0.0 };
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    pt[0] = x;
-                    pt[1] = y;
-                    pt[2] = 0;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    pt[0] = x;
-                    pt[1] = 0.0;
-                    pt[2] = y;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    pt[0] = 0.0;
-                    pt[1] = x;
-                    pt[2] = y;
-                    break;
-            }
-            
-            /*
-             * Transforms screen into plane
-             */
-            transformationMatrix.multiplyPoint3(pt);
-            
-            /*
-             * Find the voxel in each volume for drawing
-             */
-            uint8_t voxelRGBA[4] = { 0, 0, 0, 0 };
-            
-            for (int32_t iVol = 0; iVol < numVolumes; iVol++) {
-                const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
-                const VolumeMappableInterface* volInter = vdi.volumeFile;
-                int64_t voxelI, voxelJ, voxelK;
-                volInter->enclosingVoxel(pt[0], pt[1], pt[2],
-                                         voxelI, voxelJ, voxelK);
-                
-                uint8_t rgba[4] = { 0, 0, 0, 0 };
-                if (volInter->indexValid(voxelI, voxelJ, voxelK)) {
-                    volInter->getVoxelColorInMap(m_paletteFile,
-                                                 voxelI, voxelJ, voxelK, vdi.mapIndex,
-                                                 m_displayGroup,
-                                                 m_tabIndex,
-                                                 rgba);
-                    if (rgba[3] > 0) {
-                        if ((rgba[0] > 0)
-                            && (rgba[1] > 0)
-                            && (rgba[2] > 0)) {
-                            if (isSelectionMode) {
-                                const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-                                m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
-                                                                                   SelectionItemDataTypeEnum::VOXEL,
-                                                                                   idIndex);
-                                rgba[3] = 255;
-                                identificationIndices.push_back(iVol);
-                                identificationIndices.push_back(vdi.mapIndex);
-                                identificationIndices.push_back(voxelI);
-                                identificationIndices.push_back(voxelJ);
-                                identificationIndices.push_back(voxelK);
-                            }
-                            
-                            voxelRGBA[0] = rgba[0];
-                            voxelRGBA[1] = rgba[1];
-                            voxelRGBA[2] = rgba[2];
-                            voxelRGBA[3] = rgba[3];
-                        }
-                    }
-                }
-            }
-            
-            if (voxelRGBA[3] > 0) {
-                float pt1[3];
-                float pt2[3];
-                float pt3[3];
-                float pt4[3];
-                
-                /*
-                 * Create the coordinates for the corners of the current voxel
-                 * in screen coordinates
-                 */
-                const float xmin = x - halfVoxelSize;
-                const float xmax = x + halfVoxelSize;
-                const float ymin = y - halfVoxelSize;
-                const float ymax = y + halfVoxelSize;
-                
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        CaretAssert(0);
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        pt1[0] = xmin;
-                        pt1[1] = ymin;
-                        pt1[2] = 0.0;
-                        pt2[0] = xmax;
-                        pt2[1] = ymin;
-                        pt2[2] = 0.0;
-                        pt3[0] = xmax;
-                        pt3[1] = ymax;
-                        pt3[2] = 0.0;
-                        pt4[0] = xmin;
-                        pt4[1] = ymax;
-                        pt4[2] = 0.0;
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        pt1[0] = xmin;
-                        pt1[1] = 0.0;
-                        pt1[2] = ymin;
-                        pt2[0] = xmax;
-                        pt2[1] = 0.0;
-                        pt2[2] = ymin;
-                        pt3[0] = xmax;
-                        pt3[1] = 0.0;
-                        pt3[2] = ymax;
-                        pt4[0] = xmin;
-                        pt4[1] = 0.0;
-                        pt4[2] = ymax;
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        pt1[0] = 0.0;
-                        pt1[1] = xmax;
-                        pt1[2] = ymin;
-                        pt2[0] = 0.0;
-                        pt2[1] = xmin;
-                        pt2[2] = ymin;
-                        pt3[0] = 0.0;
-                        pt3[1] = xmin;
-                        pt3[2] = ymax;
-                        pt4[0] = 0.0;
-                        pt4[1] = xmax;
-                        pt4[2] = ymax;
-                        break;
-                }
-                
-                /*
-                 * Transform the voxel from screen to model coordinates
-                 */
-                transformationMatrix.multiplyPoint3(pt1);
-                transformationMatrix.multiplyPoint3(pt2);
-                transformationMatrix.multiplyPoint3(pt3);
-                transformationMatrix.multiplyPoint3(pt4);
-                
-                
-                quadRGBAs.push_back(voxelRGBA[0]);
-                quadRGBAs.push_back(voxelRGBA[1]);
-                quadRGBAs.push_back(voxelRGBA[2]);
-                quadRGBAs.push_back(voxelRGBA[3]);
-                
-                quadNormals.push_back(sliceNormalVector[0]);
-                quadNormals.push_back(sliceNormalVector[1]);
-                quadNormals.push_back(sliceNormalVector[2]);
-                
-                quadCoords.push_back(pt1[0]);
-                quadCoords.push_back(pt1[1]);
-                quadCoords.push_back(pt1[2]);
-                
-                quadCoords.push_back(pt2[0]);
-                quadCoords.push_back(pt2[1]);
-                quadCoords.push_back(pt2[2]);
-                
-                quadCoords.push_back(pt3[0]);
-                quadCoords.push_back(pt3[1]);
-                quadCoords.push_back(pt3[2]);
-                
-                quadCoords.push_back(pt4[0]);
-                quadCoords.push_back(pt4[1]);
-                quadCoords.push_back(pt4[2]);
-            }
-        }
-    }
-    
-    if ( ! quadCoords.empty()) {
-        glPushMatrix();
-        glScalef(zoom, zoom, zoom);
-        drawQuads(quadCoords,
-                  quadNormals,
-                  quadRGBAs);
-        glPopMatrix();
-    }
-}
-
-/**
- * Draw a volume slice by interpolating in model coordinates.
- *
- * @param sliceViewPlane
- *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
- * @param identificationIndices
- *   Indices into with identification information may be added.
- * @param idPerVoxelCount
- *   Number of items per voxel identification for identificationIndices
- * @param transformationMatrix
- *   Transformation matrix for screen to model.
- * @param screenBounds
- *   Bounds of the screen.
- * @param sliceNormalVector
- *   Unit normal vector of slice being drawn.
- * @param voxelSize
- *   Size of voxels.
- * @param isSelectionMode
- *   True if performing selection.
- */
-void
-BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                       std::vector<int32_t>& identificationIndices,
                                       const int32_t idPerVoxelCount,
                                       const Matrix4x4& transformationMatrix,
@@ -1627,27 +1357,16 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
     /*
      * Reserve space to avoid reallocations
      */
-    const bool doPerVertexNormalsAndColors = true;
-//    if (numVoxelsToDraw > 0) {
-//        quadCoordsVector.reserve(numVoxelsToDraw * 4 * 3);
-//        quadNormalsVector.reserve(numVoxelsToDraw * 3);
-//        quadRGBAsVector.reserve(numVoxelsToDraw * 4);
-//        
-//        if (doPerVertexNormalsAndColors) {
-//            quadNormalsVector.reserve(numVoxelsToDraw * 3 * 4);
-//            quadRGBAsVector.reserve(numVoxelsToDraw * 4 * 4);
-//        }
-//    }
-    if (numVoxelsToDraw > 0) {
-        quadCoordsVector.resize(numVoxelsToDraw * 4 * 3);
-        quadNormalsVector.resize(numVoxelsToDraw * 3);
-        quadRGBAsVector.resize(numVoxelsToDraw * 4);
-        
-        if (doPerVertexNormalsAndColors) {
-            quadNormalsVector.resize(numVoxelsToDraw * 3 * 4);
-            quadRGBAsVector.resize(numVoxelsToDraw * 4 * 4);
-        }
-    }
+    const int64_t coordinatesPerQuad = 4;
+    const int64_t componentsPerCoordinate = 3;
+    const int64_t colorComponentsPerCoordinate = 4;
+    quadCoordsVector.resize(numVoxelsToDraw
+                            * coordinatesPerQuad
+                            * componentsPerCoordinate);
+    quadNormalsVector.resize(quadCoordsVector.size());
+    quadRGBAsVector.resize(numVoxelsToDraw *
+                           coordinatesPerQuad *
+                           colorComponentsPerCoordinate);
 
     int64_t coordOffset = 0;
     int64_t normalOffset = 0;
@@ -1718,46 +1437,44 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
             quadNormals[normalOffset+2] = sliceNormalVector[2];
             normalOffset += 3;
             
-            if (doPerVertexNormalsAndColors) {
-                CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
-                quadRGBAs[rgbaOffset]   = voxelRGBA[0];
-                quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
-                quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
-                quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
-                rgbaOffset += 4;
-                
-                CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
-                quadNormals[normalOffset]   = sliceNormalVector[0];
-                quadNormals[normalOffset+1] = sliceNormalVector[1];
-                quadNormals[normalOffset+2] = sliceNormalVector[2];
-                normalOffset += 3;
-                
-                CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
-                quadRGBAs[rgbaOffset]   = voxelRGBA[0];
-                quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
-                quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
-                quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
-                rgbaOffset += 4;
-                
-                CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
-                quadNormals[normalOffset]   = sliceNormalVector[0];
-                quadNormals[normalOffset+1] = sliceNormalVector[1];
-                quadNormals[normalOffset+2] = sliceNormalVector[2];
-                normalOffset += 3;
-                
-                CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
-                quadRGBAs[rgbaOffset]   = voxelRGBA[0];
-                quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
-                quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
-                quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
-                rgbaOffset += 4;
-                
-                CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
-                quadNormals[normalOffset]   = sliceNormalVector[0];
-                quadNormals[normalOffset+1] = sliceNormalVector[1];
-                quadNormals[normalOffset+2] = sliceNormalVector[2];
-                normalOffset += 3;
-            }
+            CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+            quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+            quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+            quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+            quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+            rgbaOffset += 4;
+            
+            CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+            quadNormals[normalOffset]   = sliceNormalVector[0];
+            quadNormals[normalOffset+1] = sliceNormalVector[1];
+            quadNormals[normalOffset+2] = sliceNormalVector[2];
+            normalOffset += 3;
+            
+            CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+            quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+            quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+            quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+            quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+            rgbaOffset += 4;
+            
+            CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+            quadNormals[normalOffset]   = sliceNormalVector[0];
+            quadNormals[normalOffset+1] = sliceNormalVector[1];
+            quadNormals[normalOffset+2] = sliceNormalVector[2];
+            normalOffset += 3;
+            
+            CaretAssertVectorIndex(quadRGBAsVector, rgbaOffset + 3);
+            quadRGBAs[rgbaOffset]   = voxelRGBA[0];
+            quadRGBAs[rgbaOffset+1] = voxelRGBA[1];
+            quadRGBAs[rgbaOffset+2] = voxelRGBA[2];
+            quadRGBAs[rgbaOffset+3] = voxelRGBA[3];
+            rgbaOffset += 4;
+            
+            CaretAssertVectorIndex(quadNormalsVector, normalOffset + 2);
+            quadNormals[normalOffset]   = sliceNormalVector[0];
+            quadNormals[normalOffset+1] = sliceNormalVector[1];
+            quadNormals[normalOffset+2] = sliceNormalVector[2];
+            normalOffset += 3;
             
             CaretAssertVectorIndex(quadCoordsVector, coordOffset + 11);
             for (int32_t iq = 0; iq < 12; iq++) {
@@ -1824,11 +1541,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxelsModelCoordInterpolation(const 
     
     if ( ! quadCoordsVector.empty()) {
         glPushMatrix();
-//        float m[16];
-//        glGetFloatv(GL_MODELVIEW_MATRIX, m);
-//        Matrix4x4 m44;
-//        m44.setMatrixFromOpenGL(m);
-//        std::cout << "Modelview Matrix: " << qPrintable(m44.toFormattedString("   ")) << std::endl;
         glScalef(zoom, zoom, zoom);
         drawQuads(quadCoordsVector,
                   quadNormalsVector,
@@ -2679,12 +2391,55 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuads(const std::vector<float>& coordinat
                                              const std::vector<float>& normals,
                                              const std::vector<uint8_t>& rgbaColors)
 {
-//    drawQuadsVertexArrays(coordinates,
-//                          normals,
-//                          rgbaColors);
-    drawQuadsImmediateMode(coordinates,
-                           normals,
-                           rgbaColors);
+    const uint64_t numCoords  = coordinates.size() / 3;
+    const uint64_t numNormals = normals.size() / 3;
+    const uint64_t numColors  = rgbaColors.size() / 4;
+    const uint64_t numQuads = numCoords / 4;  // 4 three-d coords per quad
+    
+    if (numQuads <= 0) {
+        return;
+    }
+    
+    
+    if (numNormals != numCoords) {
+        const AString message = ("Size of normals must equal size of coordinates. "
+                                 "Coordinate size: " + AString::number(coordinates.size())
+                                 + "  Normals size: " + AString::number(normals.size()));
+        CaretLogSevere(message);
+        CaretAssertMessage(0, message);
+        return;
+    }
+    
+    if (numColors != numCoords) {
+        const AString message = ("Size of RGBA colors must be 4/3 size of coordinates. "
+                                 "Coordinate size: " + AString::number(coordinates.size())
+                                 + "  RGBA size: " + AString::number(rgbaColors.size()));
+        CaretLogSevere(message);
+        CaretAssertMessage(0, message);
+        return;
+    }
+    
+    bool wasDrawnWithVertexBuffers = false;
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    if (BrainOpenGL::isVertexBuffersSupported()) {
+        drawQuadsVertexBuffers(coordinates,
+                               normals,
+                               rgbaColors);
+        wasDrawnWithVertexBuffers = true;
+        std::cout << "Using vertex buffers!!" << std::endl;
+    }
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    
+    
+    if ( ! wasDrawnWithVertexBuffers) {
+
+        drawQuadsVertexArrays(coordinates,
+                          normals,
+                          rgbaColors);
+//    drawQuadsImmediateMode(coordinates,
+//                           normals,
+//                           rgbaColors);
+    }
 }
 
 /**
@@ -2703,38 +2458,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsImmediateMode(const std::vector<floa
                             const std::vector<uint8_t>& rgbaColors)
 {
     const uint64_t numCoords  = coordinates.size() / 3;
-    const uint64_t numNormals = normals.size() / 3;
-    const uint64_t numColors  = rgbaColors.size() / 4;
-    
     const uint64_t numQuads = numCoords / 4;  // 4 three-d coords per quad
-    
-    bool oneNormalPerVertex = false;
-    if (numNormals == numCoords) {
-        oneNormalPerVertex = true;
-    }
-    else if (numNormals == numQuads) {
-        oneNormalPerVertex = false;
-    }
-    else {
-        const AString message = ("There must be one normal per vertex or one normal per quad (four vertices)");
-        CaretAssertMessage(0, message);
-        CaretLogSevere(message);
-        return;
-    }
-    
-    bool oneColorPerVertex = false;
-    if (numColors  == numCoords) {
-        oneColorPerVertex = true;
-    }
-    else if (numColors == numQuads) {
-        oneColorPerVertex = false;
-    }
-    else {
-        const AString message = ("There must be one rgba color per vertex or one rgba color per quad (four vertices)");
-        CaretAssertMessage(0, message);
-        CaretLogSevere(message);
-        return;
-    }
     
     const float* coordPtr = &coordinates[0];
     const float* normalPtr = &normals[0];
@@ -2752,34 +2476,22 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsImmediateMode(const std::vector<floa
         iColor += 4;
         glVertex3fv(&coordPtr[iCoord]);
         
-        if (oneNormalPerVertex) {
-            glNormal3fv(&normalPtr[iNormal]);
-            iNormal += 3;
-        }
-        if (oneColorPerVertex) {
-            glColor4ubv(&colorPtr[iColor]);
-            iColor += 4;
-        }
+        glNormal3fv(&normalPtr[iNormal]);
+        iNormal += 3;
+        glColor4ubv(&colorPtr[iColor]);
+        iColor += 4;
         glVertex3fv(&coordPtr[iCoord+3]);
         
-        if (oneNormalPerVertex) {
-            glNormal3fv(&normalPtr[iNormal]);
-            iNormal += 3;
-        }
-        if (oneColorPerVertex) {
-            glColor4ubv(&colorPtr[iColor]);
-            iColor += 4;
-        }
+        glNormal3fv(&normalPtr[iNormal]);
+        iNormal += 3;
+        glColor4ubv(&colorPtr[iColor]);
+        iColor += 4;
         glVertex3fv(&coordPtr[iCoord+6]);
         
-        if (oneNormalPerVertex) {
-            glNormal3fv(&normalPtr[iNormal]);
-            iNormal += 3;
-        }
-        if (oneColorPerVertex) {
-            glColor4ubv(&colorPtr[iColor]);
-            iColor += 4;
-        }
+        glNormal3fv(&normalPtr[iNormal]);
+        iNormal += 3;
+        glColor4ubv(&colorPtr[iColor]);
+        iColor += 4;
         glVertex3fv(&coordPtr[iCoord+9]);
     }
     glEnd();
@@ -2802,70 +2514,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
                            const std::vector<uint8_t>& rgbaColors)
 {
     const uint64_t numCoords  = coordinates.size() / 3;
-    const uint64_t numNormals = normals.size() / 3;
-    const uint64_t numColors  = rgbaColors.size() / 4;
-    
-    const uint64_t numQuads = numCoords / 4;  // 4 three-d coords per quad
-    
-    float* normalPointer = NULL;
-    std::vector<float> normalForEachVertex;
-    bool oneNormalPerVertex = false;
-    if (numNormals == numCoords) {
-        oneNormalPerVertex = true;
-        normalPointer = const_cast<float*>(&normals[0]);
-    }
-    else if (numNormals == numQuads) {
-        normalForEachVertex.reserve(coordinates.size());
-        
-        for (uint64_t i = 0; i < numNormals; i++) {
-            const uint64_t i3 = i * 3;
-            for (uint64_t j = 0; j < 4; j++) {
-                normalForEachVertex.push_back(normals[i3]);
-                normalForEachVertex.push_back(normals[i3+1]);
-                normalForEachVertex.push_back(normals[i3+2]);
-            }
-        }
-        CaretAssert(normalForEachVertex.size() == coordinates.size());
-        normalPointer = &normalForEachVertex[0];
-        oneNormalPerVertex = false;
-    }
-    else {
-        const AString message = ("There must be one normal per vertex or one normal per quad (four vertices)");
-        CaretAssertMessage(0, message);
-        CaretLogSevere(message);
-        return;
-    }
-    
-    uint8_t* colorPointer = NULL;
-    std::vector<uint8_t> colorForEachVertex;
-    bool oneColorPerVertex = false;
-    if (numColors  == numCoords) {
-        oneColorPerVertex = true;
-        colorPointer = const_cast<uint8_t*>(&rgbaColors[0]);
-    }
-    else if (numColors == numQuads) {
-        colorForEachVertex.reserve(numColors * 4);
-        for (uint64_t i = 0; i < numColors; i++) {
-            const uint64_t i4 = i * 4;
-            for (uint64_t j = 0; j < 4; j++) {
-                colorForEachVertex.push_back(rgbaColors[i4]);
-                colorForEachVertex.push_back(rgbaColors[i4+1]);
-                colorForEachVertex.push_back(rgbaColors[i4+2]);
-                colorForEachVertex.push_back(rgbaColors[i4+3]);
-            }
-        }
-        CaretAssert(colorForEachVertex.size() == numCoords * 4);
-        colorPointer = const_cast<uint8_t*>(&colorForEachVertex[0]);
-        oneColorPerVertex = false;
-    }
-    else {
-        const AString message = ("There must be one rgba color per vertex or one rgba color per quad (four vertices)");
-        CaretAssertMessage(0, message);
-        CaretLogSevere(message);
-        return;
-    }
-    
-    const float* coordPtr = &coordinates[0];
     
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -2873,14 +2521,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
     glVertexPointer(3,
                     GL_FLOAT,
                     0,
-                    reinterpret_cast<const GLvoid*>(&coordPtr[0]));
+                    reinterpret_cast<const GLvoid*>(&coordinates[0]));
     glColorPointer(4,
                    GL_UNSIGNED_BYTE,
                    0,
-                   reinterpret_cast<const GLvoid*>(colorPointer));
+                   reinterpret_cast<const GLvoid*>(&rgbaColors[0]));
     glNormalPointer(GL_FLOAT,
                     0,
-                    reinterpret_cast<const GLvoid*>(normalPointer));
+                    reinterpret_cast<const GLvoid*>(&normals[0]));
     
     glDrawArrays(GL_QUADS,
                  0,
@@ -2889,6 +2537,145 @@ BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexArrays(const std::vector<float
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+}
+
+/**
+ * Draw quads using vertex buffers.
+ *
+ * @param coordinates
+ *    Coordinates of the quads.
+ * @param normals
+ *    Normal vectors for the quads.
+ * @param rgbaColors
+ *    RGBA colors for the quads.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawQuadsVertexBuffers(const std::vector<float>& coordinates,
+                                                          const std::vector<float>& normals,
+                                                          const std::vector<uint8_t>& rgbaColors)
+{
+    const uint64_t numCoords  = coordinates.size() / 3;
+    
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    if (BrainOpenGL::isVertexBuffersSupported()) {
+            /*
+             * Put vertices (coordinates) into its buffer.
+             */
+        GLuint vertexBufferID = -1;
+        glGenBuffers(1, &vertexBufferID);
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         vertexBufferID);
+            glBufferData(GL_ARRAY_BUFFER,
+                         coordinates.size() * sizeof(GLfloat),
+                         &coordinates[0],
+                         GL_STREAM_DRAW);
+            
+            /*
+             * Put normals into its buffer.
+             */
+        GLuint normalBufferID = -1;
+        glGenBuffers(1, &normalBufferID);
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         normalBufferID);
+            glBufferData(GL_ARRAY_BUFFER,
+                         normals.size() * sizeof(GLfloat),
+                         &normals[0],
+                         GL_STREAM_DRAW);
+            
+        /*
+         * Put colors into its buffer.
+         */
+        GLuint colorBufferID = -1;
+        glGenBuffers(1, &colorBufferID);
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     colorBufferID);
+        glBufferData(GL_ARRAY_BUFFER,
+                     rgbaColors.size() * sizeof(uint8_t),
+                     &rgbaColors[0],
+                     GL_STREAM_DRAW);
+        
+//            /*
+//             * Put triangle strips into its buffer.
+//             */
+//        GLuint quadsBufferID = -1;
+//        glGenBuffers(1, &quadsBufferID);
+//            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+//                         quadsBufferID);
+//            glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+//                         quads.size() * sizeof(GLuint),
+//                         &quads[0],
+//                         GL_STREAM_DRAW);
+        
+            /*
+             * Deselect active buffer.
+             */
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         0);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                         0);
+        
+        
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        
+        /*
+         * Set the vertices for drawing.
+         */
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     vertexBufferID);
+        glVertexPointer(3,
+                        GL_FLOAT,
+                        0,
+                        (GLvoid*)0);
+        
+        /*
+         * Set the normal vectors for drawing.
+         */
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     normalBufferID);
+        glNormalPointer(GL_FLOAT,
+                        0,
+                        (GLvoid*)0);
+        
+        /*
+         * Set the rgba colors for drawing
+         */
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     colorBufferID);
+        glColorPointer(4,
+                       GL_UNSIGNED_BYTE,
+                       0,
+                       (GLvoid*)0);
+        
+        /*
+         * Draw the triangle strips.
+         */
+        glDrawArrays(GL_QUADS,
+                     0,
+                     numCoords);
+//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+//                     quadsBufferID);
+//        glDrawElements(GL_TRIANGLE_STRIP,
+//                       quads.size(),
+//                       GL_UNSIGNED_INT,
+//                       (GLvoid*)0);
+        /*
+         * Deselect active buffer.
+         */
+        glBindBuffer(GL_ARRAY_BUFFER,
+                     0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                     0);
+        
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+
+        glDeleteBuffers(1, &vertexBufferID);
+        glDeleteBuffers(1, &normalBufferID);
+        glDeleteBuffers(1, &colorBufferID);
+    }
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
 }
 
 /**
