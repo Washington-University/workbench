@@ -403,6 +403,10 @@ namespace caret {
                                                        float translationOut[3],
                                                        float& scalingOut) const;
         
+        Plane getPlaneForVolumeSliceIndex(const VolumeMappableInterface* volumeMappable,
+                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                          const int64_t sliceIndex) const;
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

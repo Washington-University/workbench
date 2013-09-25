@@ -5233,16 +5233,59 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
  //   CaretAssert(brain);
     CaretAssert(underlayVolume);
     
-    int64_t dimI, dimJ, dimK, numMaps, numComponents;
-    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+//    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+//    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+//    
+//    /*
+//     * Find three points on the slice so that the equation for a Plane
+//     * can be formed.
+//     */
+//    float p1[3];
+//    float p2[3];
+//    float p3[3];
+//    switch(slicePlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            return;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//        {
+//            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
+//        }
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//        {
+//            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
+//        }
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//        {
+//            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
+//        }
+//            break;
+//    }
+//    
+//    Plane plane(p1, p2, p3);
+//    if (plane.isValidPlane() == false) {
+//        return;
+//    }
+    
+    const Plane plane = getPlaneForVolumeSliceIndex(underlayVolume,
+                                                    slicePlane,
+                                                    sliceIndex);
+    if ( ! plane.isValidPlane()) {
+        return;
+    }
     
     /*
-     * Find three points on the slice so that the equation for a Plane
-     * can be formed.
+     * Coordinate of slice.
      */
     float p1[3];
-    float p2[3];
-    float p3[3];
     switch(slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             return;
@@ -5250,30 +5293,20 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* /*brain*/,
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
             underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
             underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
             underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
         }
             break;
     }
     
-    Plane plane(p1, p2, p3);
-    if (plane.isValidPlane() == false) {
-        return;
-    }
     
     float intersectionPoint1[3];
     float intersectionPoint2[3];
@@ -5450,9 +5483,9 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
      * Find three points on the slice so that the equation for a Plane
      * can be formed.
      */
-    float p1[3];
-    float p2[3];
-    float p3[3];
+//    float p1[3];
+//    float p2[3];
+//    float p3[3];
     float sliceThickness = 0.0;
     switch(slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -5460,33 +5493,33 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
-            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
+//            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
             sliceThickness = sliceThicknesses[0];
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
-            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
+//            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
             sliceThickness = sliceThicknesses[1];
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
-            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
-            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
-            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
+//            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+//            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+//            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
             sliceThickness = sliceThicknesses[2];
         }
             break;
     }
     const float halfSliceThickness = sliceThickness * 0.5;
     
-    Plane plane(p1, p2, p3);
-    if (plane.isValidPlane() == false) {
+    const Plane plane = getPlaneForVolumeSliceIndex(underlayVolume, slicePlane, sliceIndex);
+    if ( ! plane.isValidPlane()) {
         return;
     }
     
@@ -5667,43 +5700,158 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
                                            const int64_t sliceIndex,
                                            VolumeMappableInterface* underlayVolume)
 {
-    int64_t dimI, dimJ, dimK, numMaps, numComponents;
-    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+//    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+//    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+//    
+//    /*
+//     * Slice thicknesses
+//     */
+//    /*float sliceXYZ[3];
+//    float sliceNextXYZ[3];
+//    int64_t sliceIJK[3] = { 0, 0, 0 };
+//    int64_t sliceNextIJK[3] = { 1, 1, 1 };
+//    underlayVolume->indexToSpace(sliceIJK, sliceXYZ);
+//    underlayVolume->indexToSpace(sliceNextIJK, sliceNextXYZ);
+//    const float sliceThicknesses[3] = {
+//        sliceNextXYZ[0] - sliceXYZ[0],
+//        sliceNextXYZ[1] - sliceXYZ[1],
+//        sliceNextXYZ[2] - sliceXYZ[2]
+//    };//*///these should not be computed from the underlay volume, commenting out to prevent compiler warning
+//    
+//    /*
+//     * Find three points on the slice so that the equation for a Plane
+//     * can be formed.
+//     */
+//    BoundingBox boundingBox;
+//    underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
+//    
+//    float p1[3];
+//    float p2[3];
+//    float p3[3];
+//    //float sliceThickness = 0.0;
+//    switch(slicePlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            return;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//        {
+//            float sliceCoord[3];
+//            underlayVolume->indexToSpace(sliceIndex, 0, 0,
+//                                         sliceCoord[0], sliceCoord[1], sliceCoord[2]);
+//            
+//            p1[0] = sliceCoord[0];
+//            p1[1] = boundingBox.getMaxY();
+//            p1[2] = boundingBox.getMinZ();
+//            
+//            p2[0] = sliceCoord[0];
+//            p2[1] = boundingBox.getMinY();
+//            p2[2] = boundingBox.getMinZ();
+//            
+//            p3[0] = sliceCoord[0];
+//            p3[1] = boundingBox.getMinY();
+//            p3[2] = boundingBox.getMaxZ();
+//            
+////            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
+////            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
+////            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
+//            //sliceThickness = sliceThicknesses[0];
+//        }
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//        {
+//            float sliceCoord[3];
+//            underlayVolume->indexToSpace(0, sliceIndex, 0,
+//                                         sliceCoord[0], sliceCoord[1], sliceCoord[2]);
+//            
+//            p1[0] = boundingBox.getMinX();
+//            p1[1] = sliceCoord[1];
+//            p1[2] = boundingBox.getMinZ();
+//            
+//            p2[0] = boundingBox.getMaxX();
+//            p2[1] = sliceCoord[1];
+//            p2[2] = boundingBox.getMinZ();
+//            
+//            p3[0] = boundingBox.getMaxX();
+//            p3[1] = sliceCoord[1];
+//            p3[2] = boundingBox.getMaxZ();
+//            
+////            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
+////            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
+////            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
+//            //sliceThickness = sliceThicknesses[1];
+//        }
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//        {
+//            float sliceCoord[3];
+//            underlayVolume->indexToSpace(0, 0, sliceIndex,
+//                                         sliceCoord[0], sliceCoord[1], sliceCoord[2]);
+//
+//            p1[0] = boundingBox.getMinX();
+//            p1[1] = boundingBox.getMinY();
+//            p1[2] = sliceCoord[2];
+//            
+//            p2[0] = boundingBox.getMaxX();
+//            p2[1] = boundingBox.getMinY();
+//            p2[2] = sliceCoord[2];
+//            
+//            p3[0] = boundingBox.getMaxX();
+//            p3[1] = boundingBox.getMaxY();
+//            p3[2] = sliceCoord[2];
+//            
+////            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
+////            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
+////            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
+//            //sliceThickness = sliceThicknesses[2];
+//        }
+//            break;
+//    }
+//    
+//    Plane plane(p1, p2, p3);
+//    if (plane.isValidPlane() == false) {
+//        return;
+//    }
+
+    Plane plane = getPlaneForVolumeSliceIndex(underlayVolume, slicePlane, sliceIndex);
+    if (plane.isValidPlane()) {
+        drawFiberOrientations(&plane);
+        drawFiberTrajectories(&plane);
+    }
     
-    /*
-     * Slice thicknesses
-     */
-    /*float sliceXYZ[3];
-    float sliceNextXYZ[3];
-    int64_t sliceIJK[3] = { 0, 0, 0 };
-    int64_t sliceNextIJK[3] = { 1, 1, 1 };
-    underlayVolume->indexToSpace(sliceIJK, sliceXYZ);
-    underlayVolume->indexToSpace(sliceNextIJK, sliceNextXYZ);
-    const float sliceThicknesses[3] = {
-        sliceNextXYZ[0] - sliceXYZ[0],
-        sliceNextXYZ[1] - sliceXYZ[1],
-        sliceNextXYZ[2] - sliceXYZ[2]
-    };//*///these should not be computed from the underlay volume, commenting out to prevent compiler warning
-    
-    /*
-     * Find three points on the slice so that the equation for a Plane
-     * can be formed.
-     */
+    disableLighting();
+}
+
+/**
+ * Compute the plane for a volume slice index.
+ *
+ * @param volumeMappable
+ *    The volume.
+ * @param slicePlane
+ *    The slice plane view.
+ * @param sliceIndex
+ *    The slice index.
+ * return plane
+ *    Output plane.
+ */
+Plane
+BrainOpenGLFixedPipeline::getPlaneForVolumeSliceIndex(const VolumeMappableInterface* volumeMappable,
+                                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                      const int64_t sliceIndex) const
+{
     BoundingBox boundingBox;
-    underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
+    volumeMappable->getVoxelSpaceBoundingBox(boundingBox);
     
-    float p1[3];
-    float p2[3];
-    float p3[3];
-    //float sliceThickness = 0.0;
+    float p1[3] = { 0.0, 0.0, 0.0 };
+    float p2[3] = { 0.0, 0.0, 0.0 };
+    float p3[3] = { 0.0, 0.0, 0.0 };
+
     switch(slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            return;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
             float sliceCoord[3];
-            underlayVolume->indexToSpace(sliceIndex, 0, 0,
+            volumeMappable->indexToSpace(sliceIndex, 0, 0,
                                          sliceCoord[0], sliceCoord[1], sliceCoord[2]);
             
             p1[0] = sliceCoord[0];
@@ -5717,17 +5865,12 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             p3[0] = sliceCoord[0];
             p3[1] = boundingBox.getMinY();
             p3[2] = boundingBox.getMaxZ();
-            
-//            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1[0], p1[1], p1[2]);
-//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, 0, p2[0], p2[1], p2[2]);
-//            underlayVolume->indexToSpace(sliceIndex, dimJ - 1, dimK - 1, p3[0], p3[1], p3[2]);
-            //sliceThickness = sliceThicknesses[0];
         }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
         {
             float sliceCoord[3];
-            underlayVolume->indexToSpace(0, sliceIndex, 0,
+            volumeMappable->indexToSpace(0, sliceIndex, 0,
                                          sliceCoord[0], sliceCoord[1], sliceCoord[2]);
             
             p1[0] = boundingBox.getMinX();
@@ -5741,19 +5884,14 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             p3[0] = boundingBox.getMaxX();
             p3[1] = sliceCoord[1];
             p3[2] = boundingBox.getMaxZ();
-            
-//            underlayVolume->indexToSpace(0, sliceIndex, 0, p1[0], p1[1], p1[2]);
-//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, 0, p2[0], p2[1], p2[2]);
-//            underlayVolume->indexToSpace(dimI - 1, sliceIndex, dimK - 1, p3[0], p3[1], p3[2]);
-            //sliceThickness = sliceThicknesses[1];
         }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
         {
             float sliceCoord[3];
-            underlayVolume->indexToSpace(0, 0, sliceIndex,
+            volumeMappable->indexToSpace(0, 0, sliceIndex,
                                          sliceCoord[0], sliceCoord[1], sliceCoord[2]);
-
+            
             p1[0] = boundingBox.getMinX();
             p1[1] = boundingBox.getMinY();
             p1[2] = sliceCoord[2];
@@ -5765,23 +5903,12 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
             p3[0] = boundingBox.getMaxX();
             p3[1] = boundingBox.getMaxY();
             p3[2] = sliceCoord[2];
-            
-//            underlayVolume->indexToSpace(0, 0, sliceIndex, p1[0], p1[1], p1[2]);
-//            underlayVolume->indexToSpace(dimI - 1, 0, sliceIndex, p2[0], p2[1], p2[2]);
-//            underlayVolume->indexToSpace(dimI - 1, dimJ - 1, sliceIndex, p3[0], p3[1], p3[2]);
-            //sliceThickness = sliceThicknesses[2];
         }
             break;
     }
     
     Plane plane(p1, p2, p3);
-    if (plane.isValidPlane() == false) {
-        return;
-    }
-
-    drawFiberOrientations(&plane);
-    drawFiberTrajectories(&plane);
-    disableLighting();
+    return plane;
 }
 
 void

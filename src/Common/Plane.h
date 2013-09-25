@@ -44,12 +44,10 @@ namespace caret {
         
         virtual ~Plane();
         
-    private:
-        Plane(const Plane& o);
+        Plane(const Plane& p);
         
-        Plane& operator=(const Plane& o);
+        Plane& operator=(const Plane& p);
         
-    public:
         bool isValidPlane() const;
         
         bool triangleIntersectPlane(
@@ -98,23 +96,21 @@ namespace caret {
         
         static void unitTest3(std::ostream& stream);
         
-        double p1[3];
+        void copyHelperPlane(const Plane& p);
         
-        double p2[3];
+        double m_pointOnPlane[3];
         
-        double p3[3];
+        double m_normalVector[3];
         
-        double normalVector[3];
+        bool m_validPlaneFlag;
         
-        bool validPlaneFlag;
+        double m_A;
         
-        double A;
+        double m_B;
         
-        double B;
+        double m_C;
         
-        double C;
-        
-        double D;
+        double m_D;
         
     };
     

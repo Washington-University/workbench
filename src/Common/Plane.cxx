@@ -42,28 +42,34 @@ Plane::Plane(const float p1[3],
              const float p3[3])
     : CaretObject()
 {
-    this->p1[0] = p1[0];
-    this->p1[1] = p1[1];
-    this->p1[2] = p1[2];
-    this->p2[0] = p2[0];
-    this->p2[1] = p2[1];
-    this->p2[2] = p2[2];
-    this->p3[0] = p3[0];
-    this->p3[1] = p3[1];
-    this->p3[2] = p3[2];
+    m_pointOnPlane[0] = p1[0];
+    m_pointOnPlane[1] = p1[1];
+    m_pointOnPlane[2] = p1[2];
     
-    this->validPlaneFlag =  MathFunctions::normalVector(this->p1, 
-                                                        this->p2, 
-                                                        this->p3, 
-                                                        this->normalVector);
+    double p2d[3] = {
+        p2[0],
+        p2[1],
+        p2[2]
+    };
+    
+    double p3d[3] = {
+        p3[0],
+        p3[1],
+        p3[2]
+    };
+    
+    m_validPlaneFlag =  MathFunctions::normalVector(m_pointOnPlane,
+                                                        p2d,
+                                                        p3d,
+                                                        m_normalVector);
     
     //
     // Compute the plane equation
     //
-    this->A = this->normalVector[0];
-    this->B = this->normalVector[1];
-    this->C = this->normalVector[2];
-    this->D = -(A*p1[0] + B*p1[1] + C*p1[2]);
+    m_A = m_normalVector[0];
+    m_B = m_normalVector[1];
+    m_C = m_normalVector[2];
+    m_D = -(m_A*p1[0] + m_B*p1[1] + m_C*p1[2]);
 }
 
 /**
@@ -77,20 +83,75 @@ Plane::Plane(const float p1[3],
 Plane::Plane(const float unitNormalVector[3],
              const float pointOnPlane[3])
 {
-    this->normalVector[0] = unitNormalVector[0];
-    this->normalVector[1] = unitNormalVector[1];
-    this->normalVector[2] = unitNormalVector[2];
+    m_pointOnPlane[0] = pointOnPlane[0];
+    m_pointOnPlane[1] = pointOnPlane[1];
+    m_pointOnPlane[2] = pointOnPlane[2];
+    
+    m_normalVector[0] = unitNormalVector[0];
+    m_normalVector[1] = unitNormalVector[1];
+    m_normalVector[2] = unitNormalVector[2];
 
-    this->A = this->normalVector[0];
-    this->B = this->normalVector[1];
-    this->C = this->normalVector[2];    
-    this->D = (-this->A * pointOnPlane[0]
-               -this->B * pointOnPlane[1]
-               -this->C * pointOnPlane[2]);
+    m_A = m_normalVector[0];
+    m_B = m_normalVector[1];
+    m_C = m_normalVector[2];    
+    m_D = (-m_A * m_pointOnPlane[0]
+               -m_B * m_pointOnPlane[1]
+               -m_C * m_pointOnPlane[2]);
 
-    this->validPlaneFlag = (MathFunctions::vectorLength(this->normalVector) > 0.0);
+    m_validPlaneFlag = (MathFunctions::vectorLength(m_normalVector) > 0.0);
 }
 
+/**
+ * Copy constructor.
+ * @param p
+ *    Object that is copied.
+ */
+Plane::Plane(const Plane& p)
+: CaretObject(p)
+{
+    this->copyHelperPlane(p);
+}
+
+/**
+ * Assignment operator.
+ * @param p
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+Plane&
+Plane::operator=(const Plane& p)
+{
+    if (this != &p) {
+        CaretObject::operator=(p);
+        this->copyHelperPlane(p);
+    }
+    return *this;
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param p
+ *    Object that is copied.
+ */
+void
+Plane::copyHelperPlane(const Plane& p)
+{
+    m_A = p.m_A;
+    m_B = p.m_B;
+    m_C = p.m_C;
+    m_D = p.m_D;
+    
+    m_normalVector[0] = p.m_normalVector[0];
+    m_normalVector[1] = p.m_normalVector[1];
+    m_normalVector[2] = p.m_normalVector[2];
+    
+    m_pointOnPlane[0] = p.m_pointOnPlane[0];
+    m_pointOnPlane[1] = p.m_pointOnPlane[1];
+    m_pointOnPlane[2] = p.m_pointOnPlane[2];
+    
+    m_validPlaneFlag = p.m_validPlaneFlag;
+}
 
 /**
  * Destructor
@@ -107,7 +168,7 @@ Plane::~Plane()
 bool
 Plane::isValidPlane() const
 {
-    return this->validPlaneFlag;
+    return m_validPlaneFlag;
 }
 
 /**
@@ -133,18 +194,18 @@ Plane::triangleIntersectPlane(
 {
     float* intersection = intersectionPointOut1;
     int count = 0;
-    if (this->lineSegmentIntersectPlane(t1, t2, intersection)) {
+    if (lineSegmentIntersectPlane(t1, t2, intersection)) {
         count++;
         intersection = intersectionPointOut2;
     }
-    if (this->lineSegmentIntersectPlane(t2, t3, intersection)) {
+    if (lineSegmentIntersectPlane(t2, t3, intersection)) {
         count++;
         if (count == 2) {
             return true;
         }
         intersection = intersectionPointOut2;
     }
-    if (this->lineSegmentIntersectPlane(t3, t1, intersection)) {
+    if (lineSegmentIntersectPlane(t3, t1, intersection)) {
         count++;
         if (count == 2) {
             return true;
@@ -172,10 +233,10 @@ Plane::getPlane(double& aOut,
                 double& cOut,
                 double& dOut) const
 {
-    aOut = this->A;
-    bOut = this->B;
-    cOut = this->C;
-    dOut = this->D;
+    aOut = m_A;
+    bOut = m_B;
+    cOut = m_C;
+    dOut = m_D;
 }
 
 
@@ -188,7 +249,7 @@ Plane::getPlane(double& aOut,
 double
 Plane::absoluteDistanceToPlane(const float p[3]) const
 {
-    double dist = (this->A * p[0] + this->B * p[1] + this->C * p[2] + this->D);
+    double dist = (m_A * p[0] + m_B * p[1] + m_C * p[2] + m_D);
     if (dist < 0.0f) dist = -dist;
     return dist;
 }
@@ -202,7 +263,7 @@ Plane::absoluteDistanceToPlane(const float p[3]) const
 double
 Plane::signedDistanceToPlane(const float p[3]) const
 {
-    double dist = (this->A * p[0] + this->B * p[1] + this->C * p[2] + this->D);
+    double dist = (m_A * p[0] + m_B * p[1] + m_C * p[2] + m_D);
     return dist;
 }
 
@@ -243,9 +304,9 @@ Plane::lineSegmentIntersectPlane(
      * intersection.
      */
     double denominator = 
-    (this->A * r0)
-    + (this->B * r1) 
-    + (this->C * r2);
+    (m_A * r0)
+    + (m_B * r1) 
+    + (m_C * r2);
     if (denominator == 0.0) {
         return false;
     }
@@ -263,7 +324,7 @@ Plane::lineSegmentIntersectPlane(
      * (t < 0): Vector (P1, P2) point away from plane but both are
      * on same side of the plane. 
      */
-    double numerator = -((this->A * lp1[0]) + (this->B * lp1[1]) + (this->C * lp1[2]) + this->D);
+    double numerator = -((m_A * lp1[0]) + (m_B * lp1[1]) + (m_C * lp1[2]) + m_D);
     double t = numerator / denominator;
     
     if ((t >= 0.0f) && (t <= 1.0f)) {
@@ -288,16 +349,16 @@ Plane::projectPointToPlane(const float pointIn[3],
                            float pointProjectedOut[3]) const
 {
     double xo[3] = {
-        pointIn[0] - p1[0],
-        pointIn[1] - p1[1],
-        pointIn[2] - p1[2]
+        pointIn[0] - m_pointOnPlane[0],
+        pointIn[1] - m_pointOnPlane[1],
+        pointIn[2] - m_pointOnPlane[2]
     };
     
-    float t = MathFunctions::dotProduct(normalVector, xo);
+    float t = MathFunctions::dotProduct(m_normalVector, xo);
     
-    pointProjectedOut[0] = p1[0] - t * normalVector[0];
-    pointProjectedOut[1] = p1[1] - t * normalVector[1];
-    pointProjectedOut[2] = p1[2] - t * normalVector[2];
+    pointProjectedOut[0] = m_pointOnPlane[0] - t * m_normalVector[0];
+    pointProjectedOut[1] = m_pointOnPlane[1] - t * m_normalVector[1];
+    pointProjectedOut[2] = m_pointOnPlane[2] - t * m_normalVector[2];
 }
 
 /**
@@ -309,13 +370,13 @@ Plane::toString() const
 {
     AString s;
     if (isValidPlane()) {
-        s = (AString::number(this->A)
+        s = (AString::number(m_A)
              + "x + "
-             + AString::number(this->B)
+             + AString::number(m_B)
              + "y + "
-             + AString::number(this->C)
+             + AString::number(m_C)
              + "z + "
-             + AString::number(this->D));
+             + AString::number(m_D));
     }
     else {
         s = "invalid";
