@@ -382,6 +382,8 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
 
 void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t component) const
 {
+    CaretAssert(brickIndex < m_dimensions[3]);//function is public, so check inputs
+    CaretAssert(component < m_dimensions[4]);
     int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
     CaretMutexLocker locked(&m_splineMutex);//prevent concurrent access to spline state
     if (!m_splinesValid)
@@ -682,9 +684,6 @@ VolumeFile::getMapName(const int32_t mapIndex) const
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_caretVolExt.m_attributes[mapIndex] != NULL);
     AString name = m_caretVolExt.m_attributes[mapIndex]->m_guiLabel;
-    if (name.isEmpty()) {
-        name = "#" + AString::number(mapIndex + 1);
-    }
     return name;
 }
 
