@@ -551,14 +551,14 @@ BrainOpenGLFPVolumeObliqueDrawing::setOrthographicProjection(const VolumeSliceVi
     
     const double scaleRatio = 1.0 / 0.98;
  
-    const double near = -200.0;
-    const double far  =  200.0;
+    const double nearDepth = -200.0;
+    const double farDepth  =  200.0;
     m_orthographicBounds[0] = left * scaleRatio * aspectRatio;
-    m_orthographicBounds[1] =     right * scaleRatio * aspectRatio;
-    m_orthographicBounds[2] =     top * scaleRatio;
-    m_orthographicBounds[3] =     bottom * scaleRatio;
-    m_orthographicBounds[4] =      near;
-    m_orthographicBounds[5] =      far;
+    m_orthographicBounds[1] = right * scaleRatio * aspectRatio;
+    m_orthographicBounds[2] = top * scaleRatio;
+    m_orthographicBounds[3] = bottom * scaleRatio;
+    m_orthographicBounds[4] = nearDepth;
+    m_orthographicBounds[5] = farDepth;
     
     std::cout << "New Orthographic Bounds: " << qPrintable(AString::fromNumbers(m_orthographicBounds, 6, ",")) << std::endl;
     
