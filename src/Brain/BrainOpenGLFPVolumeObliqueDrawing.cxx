@@ -3096,10 +3096,20 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
             if (slicePlane.isValidPlane()) {
                 glPushMatrix();
                 
+                /*
+                 * Use some polygon offset that will adjust the depth values of the
+                 * foci so that the foci depth values place the foci in front of
+                 * the volume slice.
+                 */
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                glPolygonOffset(0.0, -1.0);
+                
                 m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
                 m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
                 drawVolumeSliceFoci(slicePlane);
                 drawSurfaceOutline(slicePlane);
+                
+                glEnable(GL_POLYGON_OFFSET_FILL);
                 
                 glPopMatrix();
             }
