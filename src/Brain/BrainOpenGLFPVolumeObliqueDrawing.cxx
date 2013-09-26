@@ -127,6 +127,7 @@ void
 BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                         BrowserTabContent* browserTabContent,
                                         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                                        const VolumeSliceViewModeEnum::Enum sliceViewMode,
                                         const int viewport[4])
 {
     if (volumeDrawInfo.empty()) {
@@ -160,6 +161,16 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     
     m_tabIndex = m_browserTabContent->getTabNumber();
     
+    m_sliceViewMode = sliceViewMode;
+    switch (sliceViewMode) {
+        case VolumeSliceViewModeEnum::MONTAGE:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewModeEnum::OBLIQUE:
+            break;
+        case VolumeSliceViewModeEnum::ORTHOGONAL:
+            break;
+    }
     
     /*
      * Cifti files are slow at getting individual voxels since they
@@ -183,6 +194,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     
     if (browserTabContent->getDisplayedVolumeModel() != NULL) {
         glEnable(GL_DEPTH_TEST);
+        
         
         const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
         switch (slicePlane) {
@@ -481,6 +493,163 @@ BrainOpenGLFPVolumeObliqueDrawing::setOrthographicBounds(const DRAW_MODE drawMod
             glMatrixMode(GL_MODELVIEW);
         }
     }
+}
+
+void
+BrainOpenGLFPVolumeObliqueDrawing::setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                             const int viewport[4])
+{
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    
+    double left = 0;
+    double right = 0;
+    double top = 0;
+    double bottom = 0;
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            top = std::max(boundingBox.getMaxY(),
+                           boundingBox.getMaxZ());
+            bottom = std::min(boundingBox.getMinY(),
+                              boundingBox.getMinZ());
+            right = std::max(boundingBox.getMaxX(),
+                             boundingBox.getMinY());
+            left = std::min(boundingBox.getMinX(),
+                            boundingBox.getMaxY());
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            left = boundingBox.getMinX();
+            right = boundingBox.getMaxX();
+            top = boundingBox.getMaxY();
+            bottom = boundingBox.getMinY();
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            left = boundingBox.getMinX();
+            right = boundingBox.getMaxX();
+            top = boundingBox.getMaxZ();
+            bottom = boundingBox.getMinZ();
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            left = boundingBox.getMaxY();
+            right = boundingBox.getMinY();
+            top = boundingBox.getMaxZ();
+            bottom = boundingBox.getMinZ();
+            break;
+    }
+    
+    CaretAssert(left != right);
+    
+//    const double width = std::fabs(right - left);
+//    CaretAssert(width > 0.0);
+//    const double height = std::fabs(top - bottom);
+//    CaretAssert(height > 0);
+    
+    const double aspectRatio = (static_cast<double>(viewport[2])
+                                / static_cast<double>(viewport[3]));
+    
+    
+    const double scaleRatio = 1.0 / 0.98;
+ 
+    const double near = -200.0;
+    const double far  =  200.0;
+    m_orthographicBounds[0] = left * scaleRatio * aspectRatio;
+    m_orthographicBounds[1] =     right * scaleRatio * aspectRatio;
+    m_orthographicBounds[2] =     top * scaleRatio;
+    m_orthographicBounds[3] =     bottom * scaleRatio;
+    m_orthographicBounds[4] =      near;
+    m_orthographicBounds[5] =      far;
+    
+    std::cout << "New Orthographic Bounds: " << qPrintable(AString::fromNumbers(m_orthographicBounds, 6, ",")) << std::endl;
+    
+    glMatrixMode(GL_PROJECTION);
+    glOrtho(m_orthographicBounds[0],
+            m_orthographicBounds[1],
+            m_orthographicBounds[2],
+            m_orthographicBounds[3],
+            m_orthographicBounds[4],
+            m_orthographicBounds[5]);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+Plane
+BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
+    
+    double upX = 0.0;
+    double upY = 0.0;
+    double upZ = 0.0;
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceNormalVector[2] = 1.0;
+            upY = 1.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceNormalVector[1] = -1.0;
+            upZ = 1.0;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceNormalVector[0] = -1.0;
+            upZ = 1.0;
+            break;
+    }
+    
+    ModelVolume* volumeModel = m_browserTabContent->getDisplayedVolumeModel();
+    CaretAssert(volumeModel);
+    
+    const float* translation = m_browserTabContent->getTranslation();
+    const float zoom = m_browserTabContent->getScaling();
+    const float sliceX = m_browserTabContent->getSliceCoordinateParasagittal();
+    const float sliceY = m_browserTabContent->getSliceCoordinateCoronal();
+    const float sliceZ = m_browserTabContent->getSliceCoordinateAxial();
+
+    const double centerX = translation[0] + sliceX;
+    const double centerY = translation[1] + sliceY;
+    const double centerZ = translation[2] + sliceZ;
+    
+    const double distanceEyeToCenter = 10.0;
+    const double eyeX = centerX + (sliceNormalVector[0] * distanceEyeToCenter);
+    const double eyeY = centerY + (sliceNormalVector[1] * distanceEyeToCenter);
+    const double eyeZ = centerZ + (sliceNormalVector[2] * distanceEyeToCenter);
+    
+    const AString msg = ("New View Transform center: "
+                         + AString::number(centerX)
+                         + ", "
+                         + AString::number(centerY)
+                         + ", "
+                         + AString::number(centerZ)
+                         + "  eye: "
+                         + AString::number(eyeX)
+                         + ", "
+                         + AString::number(eyeY)
+                         + ", "
+                         + AString::number(eyeZ)
+                         + "  up: "
+                         + AString::number(upX)
+                         + ", "
+                         + AString::number(upY)
+                         + ", "
+                         + AString::number(upZ));
+    std::cout << qPrintable(msg) << std::endl;
+    
+    gluLookAt(eyeX, eyeY, eyeZ,
+              centerX, centerY, centerZ,
+              upX, upY, upZ);
+    
+    const float pointOnPlane[3] = {
+        sliceX,
+        sliceY,
+        sliceZ
+    };
+    Plane plane(sliceNormalVector,
+                pointOnPlane);
+    return plane;
 }
 
 
@@ -2838,4 +3007,149 @@ BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::allocateColors()
 {
     m_rgba.resize(m_values.size() * 4);
 }
+
+
+
+
+
+
+
+/**
+ * Draw a volume slice for a volume slice view.
+ *
+ * @param sliceViewPlane
+ *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
+ * @param viewport
+ *   Viewport in which drawing takes place.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                            const int viewport[4])
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    setOrthographicProjection(sliceViewPlane,
+                              viewport);
+    Plane slicePlane = setVolumeSliceViewingTransformation(sliceViewPlane);
+        
+    SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    /*
+     * When selecting, need to use flat shading so that colors do
+     * not get interpolated as identification information is in
+     * the color components.
+     */
+    if (isSelect) {
+        glShadeModel(GL_FLAT);
+    }
+    else {
+        glShadeModel(GL_SMOOTH);
+    }
+    
+    /*
+     * For identification, five items per voxel
+     * 1) volume index
+     * 2) map index
+     * 3) index I
+     * 4) index J
+     * 5) index K
+     */
+    const int32_t idPerVoxelCount = 5;
+    std::vector<int32_t> identificationIndices;
+    if (isSelect) {
+        identificationIndices.reserve(10000 * idPerVoxelCount);
+    }
+    
+    /*
+     * Disable culling so that both sides of the triangles/quads are drawn.
+     */
+    GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
+    
+    drawSlice(sliceViewPlane,
+              DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE);
+    
+    if ( ! isSelect) {
+            if (slicePlane.isValidPlane()) {
+                glPushMatrix();
+                
+                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
+                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+                drawVolumeSliceFoci(slicePlane);
+                drawSurfaceOutline(slicePlane);
+                
+                glPopMatrix();
+            }
+    }
+    
+    /*
+     * Process selection
+     */
+    if (isSelect) {
+        int32_t identifiedItemIndex;
+        float depth = -1.0;
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           identifiedItemIndex,
+                                                           depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
+            const int32_t volDrawInfoIndex = identificationIndices[idIndex];
+            CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
+            VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
+            //const int32_t mapIndex = identificationIndices[idIndex + 1];
+            const int64_t voxelIndices[3] = {
+                identificationIndices[idIndex + 2],
+                identificationIndices[idIndex + 3],
+                identificationIndices[idIndex + 4]
+            };
+            
+            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                voxelID->setVolumeFile(vf);
+                voxelID->setVoxelIJK(voxelIndices);
+                voxelID->setScreenDepth(depth);
+                
+                float voxelCoordinates[3];
+                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                                 voxelCoordinates);
+                CaretLogFine("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+            }
+        }
+    }
+    
+    
+    if (cullFaceOn) {
+        glEnable(GL_CULL_FACE);
+    }
+    
+    glPopMatrix();
+}
+
 

@@ -2623,7 +2623,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
         const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
         const int montageMargin = caretPreferences->getVolumeMontageGap();
         
-        switch (browserTabContent->getSliceViewMode()) {
+        const VolumeSliceViewModeEnum::Enum sliceViewMode = browserTabContent->getSliceViewMode();
+        switch (sliceViewMode) {
             case VolumeSliceViewModeEnum::MONTAGE:
             {
                 const int numRows = browserTabContent->getMontageNumberOfRows();
@@ -2779,6 +2780,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 obliqueDrawing.draw(this,
                                     browserTabContent,
                                     volumeDrawInfo,
+                                    sliceViewMode,
                                     viewport);
             }
                 break;
@@ -5814,8 +5816,18 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
 
     Plane plane = getPlaneForVolumeSliceIndex(underlayVolume, slicePlane, sliceIndex);
     if (plane.isValidPlane()) {
+        GLboolean depthTestingOn;
+        glGetBooleanv(GL_DEPTH_TEST,
+                      &depthTestingOn);
+        glEnable(GL_DEPTH_TEST);
         drawFiberOrientations(&plane);
         drawFiberTrajectories(&plane);
+        if (depthTestingOn) {
+            glEnable(GL_DEPTH_TEST);
+        }
+        else {
+            glDisable(GL_DEPTH_TEST);
+        }
     }
     
     disableLighting();
@@ -7200,6 +7212,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                 obliqueDrawing.draw(this,
                                     browserTabContent,
                                     obliqueDrawVolumeDrawInfo,
+                                    VolumeSliceViewModeEnum::OBLIQUE,
                                     viewport);
             }
             else {

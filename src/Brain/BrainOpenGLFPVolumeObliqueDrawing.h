@@ -37,7 +37,7 @@
 
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
-
+#include "VolumeSliceViewModeEnum.h"
 
 
 namespace caret {
@@ -57,6 +57,7 @@ namespace caret {
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                  const VolumeSliceViewModeEnum::Enum sliceViewMode,
                   const int viewport[4]);
     private:
         enum DRAW_MODE {
@@ -207,6 +208,9 @@ namespace caret {
         void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                        const DRAW_MODE drawMode);
         
+        void drawSliceNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                       const DRAW_MODE drawMode);
+        
         void drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           std::vector<int32_t>& identificationIndices,
                                           const int32_t idPerVoxelCount,
@@ -222,6 +226,9 @@ namespace caret {
         
         void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                    const int viewport[4]);
+        
+        void drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                      const int viewport[4]);
         
         void drawQuads(const std::vector<float>& coordinates,
                        const std::vector<float>& normals,
@@ -253,6 +260,11 @@ namespace caret {
         
         void setOrthographicBounds(const DRAW_MODE drawMode);
 
+        void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                       const int viewport[4]);
+        
+        Plane setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+
         // ADD_NEW_MEMBERS_HERE
 
         Brain* m_brain;
@@ -272,6 +284,9 @@ namespace caret {
         int32_t m_tabIndex;
         
         double m_orthographicBounds[6];
+        
+        VolumeSliceViewModeEnum::Enum m_sliceViewMode;
+
         
     };
     
