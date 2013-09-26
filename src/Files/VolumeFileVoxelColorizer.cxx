@@ -308,11 +308,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     for (int64_t k = kStart; k <= kEnd; k++) {
         for (int64_t j = jStart; j <= jEnd; j++) {
             for (int64_t i = iStart; i <= iEnd; i++) {
-                const int64_t rgbaOffset = (4
-                                            * m_volumeFile->getIndex(i,
-                                                                     j,
-                                                                     k,
-                                                                     mapIndex));
+                /*
+                 * Zero indices are
+                 */
+                const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(i, j, k);
                 CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
                 rgbaOut[rgbaOutIndex]   = mapRGBA[rgbaOffset];
                 rgbaOut[rgbaOutIndex+1] = mapRGBA[rgbaOffset+1];
@@ -381,11 +380,7 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
      */
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
     const uint8_t* mapRGBA = m_mapRGBA[mapIndex];
-    const int64_t rgbaOffset = (4
-                          * m_volumeFile->getIndex(i,
-                                        j,
-                                        k,
-                                        mapIndex));
+    const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(i, j, k);
     CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
     rgbaOut[0] = mapRGBA[rgbaOffset];
     rgbaOut[1] = mapRGBA[rgbaOffset+1];

@@ -91,6 +91,17 @@ namespace caret {
 
         VolumeFileVoxelColorizer& operator=(const VolumeFileVoxelColorizer&);
         
+        /**
+         * Get theRGBA offset for a voxel index
+         */
+        inline int64_t getRgbaOffsetForVoxelIndex(const int64_t i,
+                                           const int64_t j,
+                                           const int64_t k) const {
+            return (4 * (i
+                         + (j * m_dimI)
+                         + ((k * m_dimI * m_dimJ))));
+        }
+
         // ADD_NEW_MEMBERS_HERE
 
         VolumeFile* m_volumeFile;
