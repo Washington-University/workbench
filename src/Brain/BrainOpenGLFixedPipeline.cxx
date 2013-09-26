@@ -5816,12 +5816,18 @@ BrainOpenGLFixedPipeline::drawVolumeFibers(Brain* /*brain*/,
 
     Plane plane = getPlaneForVolumeSliceIndex(underlayVolume, slicePlane, sliceIndex);
     if (plane.isValidPlane()) {
+        /*
+         * Need to enable depth testing so that only parts of fibers
+         * that are 'above' the slice are visible
+         */
         GLboolean depthTestingOn;
         glGetBooleanv(GL_DEPTH_TEST,
                       &depthTestingOn);
         glEnable(GL_DEPTH_TEST);
+        
         drawFiberOrientations(&plane);
         drawFiberTrajectories(&plane);
+        
         if (depthTestingOn) {
             glEnable(GL_DEPTH_TEST);
         }
