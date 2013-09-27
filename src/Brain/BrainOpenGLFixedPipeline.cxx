@@ -2786,6 +2786,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 break;
             case VolumeSliceViewModeEnum::ORTHOGONAL:
             {
+                const bool useNewVolumeDrawingFlag = true;
+                
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
                 switch (slicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
@@ -2892,100 +2894,133 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                     }
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
-                        this->setViewportAndOrthographicProjection(viewport,
-                                                                   ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
-                        this->applyViewingTransformationsVolumeSlice(volumeController, 
-                                                                     this->windowTabIndex, 
-                                                                     VolumeSliceViewPlaneEnum::AXIAL);
-                        this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane, 
-                                                        browserTabContent->getSliceIndexAxial(underlayVolumeFile),
-                                                        volumeDrawInfo);
-                        this->drawVolumeSurfaceOutlines(brain, 
-                                                        volumeController,
-                                                        browserTabContent,
-                                                        slicePlane, 
-                                                        browserTabContent->getSliceIndexAxial(underlayVolumeFile), 
-                                                        underlayVolumeFile);
-                        this->drawVolumeFoci(brain,
-                                             volumeController,
-                                             browserTabContent,
-                                             slicePlane,
-                                             browserTabContent->getSliceIndexAxial(underlayVolumeFile),
-                                             underlayVolumeFile);
-                        this->drawVolumeFibers(brain,
-                                               volumeController,
-                                               browserTabContent,
-                                               slicePlane,
-                                               browserTabContent->getSliceIndexAxial(underlayVolumeFile),
-                                               underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(slicePlane,
-                                                       selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(slicePlane, 
-                                                   viewport);
+                        if (useNewVolumeDrawingFlag) {
+                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            obliqueDrawing.draw(this,
+                                                browserTabContent,
+                                                volumeDrawInfo,
+                                                sliceViewMode,
+                                                viewport);
+
+                        }
+                        else {
+                            this->setViewportAndOrthographicProjection(viewport,
+                                                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+                            this->applyViewingTransformationsVolumeSlice(volumeController,
+                                                                         this->windowTabIndex,
+                                                                         VolumeSliceViewPlaneEnum::AXIAL);
+                            this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane,
+                                                                        browserTabContent->getSliceIndexAxial(underlayVolumeFile),
+                                                                        volumeDrawInfo);
+                            this->drawVolumeSurfaceOutlines(brain,
+                                                            volumeController,
+                                                            browserTabContent,
+                                                            slicePlane,
+                                                            browserTabContent->getSliceIndexAxial(underlayVolumeFile),
+                                                            underlayVolumeFile);
+                            this->drawVolumeFoci(brain,
+                                                 volumeController,
+                                                 browserTabContent,
+                                                 slicePlane,
+                                                 browserTabContent->getSliceIndexAxial(underlayVolumeFile),
+                                                 underlayVolumeFile);
+                            this->drawVolumeFibers(brain,
+                                                   volumeController,
+                                                   browserTabContent,
+                                                   slicePlane,
+                                                   browserTabContent->getSliceIndexAxial(underlayVolumeFile),
+                                                   underlayVolumeFile);
+                            this->drawVolumeAxesCrosshairs(slicePlane,
+                                                           selectedVoxelXYZ);
+                            this->drawVolumeAxesLabels(slicePlane, 
+                                                       viewport);
+                        }
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
-                        this->setViewportAndOrthographicProjection(viewport,
-                                                                   ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
-                        this->applyViewingTransformationsVolumeSlice(volumeController, 
-                                                                     this->windowTabIndex, 
-                                                                     VolumeSliceViewPlaneEnum::CORONAL);
-                        this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane, 
-                                                        browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
-                                                        volumeDrawInfo);
-                        this->drawVolumeSurfaceOutlines(brain, 
-                                                        volumeController,
-                                                        browserTabContent,
-                                                        slicePlane, 
-                                                        browserTabContent->getSliceIndexCoronal(underlayVolumeFile), 
-                                                        underlayVolumeFile);
-                        this->drawVolumeFoci(brain,
-                                             volumeController,
-                                             browserTabContent,
-                                             slicePlane,
-                                             browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
-                                             underlayVolumeFile);
-                        this->drawVolumeFibers(brain,
-                                               volumeController,
-                                               browserTabContent,
-                                               slicePlane,
-                                               browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
-                                               underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(slicePlane,
-                                                       selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(slicePlane, 
-                                                   viewport);
+                        if (useNewVolumeDrawingFlag) {
+                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            obliqueDrawing.draw(this,
+                                                browserTabContent,
+                                                volumeDrawInfo,
+                                                sliceViewMode,
+                                                viewport);
+                            
+                        }
+                        else {
+                            this->setViewportAndOrthographicProjection(viewport,
+                                                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+                            this->applyViewingTransformationsVolumeSlice(volumeController,
+                                                                         this->windowTabIndex,
+                                                                         VolumeSliceViewPlaneEnum::CORONAL);
+                            this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane,
+                                                                        browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
+                                                                        volumeDrawInfo);
+                            this->drawVolumeSurfaceOutlines(brain,
+                                                            volumeController,
+                                                            browserTabContent,
+                                                            slicePlane,
+                                                            browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
+                                                            underlayVolumeFile);
+                            this->drawVolumeFoci(brain,
+                                                 volumeController,
+                                                 browserTabContent,
+                                                 slicePlane,
+                                                 browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
+                                                 underlayVolumeFile);
+                            this->drawVolumeFibers(brain,
+                                                   volumeController,
+                                                   browserTabContent,
+                                                   slicePlane,
+                                                   browserTabContent->getSliceIndexCoronal(underlayVolumeFile),
+                                                   underlayVolumeFile);
+                            this->drawVolumeAxesCrosshairs(slicePlane,
+                                                           selectedVoxelXYZ);
+                            this->drawVolumeAxesLabels(slicePlane, 
+                                                       viewport);
+                        }
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        this->setViewportAndOrthographicProjection(viewport,
-                                                                   ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
-                        this->applyViewingTransformationsVolumeSlice(volumeController, 
-                                                                     this->windowTabIndex, 
-                                                                     VolumeSliceViewPlaneEnum::PARASAGITTAL);
-                        this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane,
-                                                        browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
-                                                        volumeDrawInfo);
-                        this->drawVolumeSurfaceOutlines(brain, 
-                                                        volumeController,
-                                                        browserTabContent,
-                                                        slicePlane, 
-                                                        browserTabContent->getSliceIndexParasagittal(underlayVolumeFile), 
-                                                        underlayVolumeFile);
-                        this->drawVolumeFoci(brain,
-                                             volumeController,
-                                             browserTabContent,
-                                             slicePlane,
-                                             browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
-                                             underlayVolumeFile);
-                        this->drawVolumeFibers(brain,
-                                               volumeController,
-                                               browserTabContent,
-                                               slicePlane,
-                                               browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
-                                               underlayVolumeFile);
-                        this->drawVolumeAxesCrosshairs(slicePlane,
-                                                       selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(slicePlane, 
-                                                   viewport);
+                        if (useNewVolumeDrawingFlag) {
+                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            obliqueDrawing.draw(this,
+                                                browserTabContent,
+                                                volumeDrawInfo,
+                                                sliceViewMode,
+                                                viewport);
+                            
+                        }
+                        else {
+                            this->setViewportAndOrthographicProjection(viewport,
+                                                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+                            this->applyViewingTransformationsVolumeSlice(volumeController,
+                                                                         this->windowTabIndex,
+                                                                         VolumeSliceViewPlaneEnum::PARASAGITTAL);
+                            this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane,
+                                                                        browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
+                                                                        volumeDrawInfo);
+                            this->drawVolumeSurfaceOutlines(brain,
+                                                            volumeController,
+                                                            browserTabContent,
+                                                            slicePlane,
+                                                            browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
+                                                            underlayVolumeFile);
+                            this->drawVolumeFoci(brain,
+                                                 volumeController,
+                                                 browserTabContent,
+                                                 slicePlane,
+                                                 browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
+                                                 underlayVolumeFile);
+                            this->drawVolumeFibers(brain,
+                                                   volumeController,
+                                                   browserTabContent,
+                                                   slicePlane,
+                                                   browserTabContent->getSliceIndexParasagittal(underlayVolumeFile),
+                                                   underlayVolumeFile);
+                            this->drawVolumeAxesCrosshairs(slicePlane,
+                                                           selectedVoxelXYZ);
+                            this->drawVolumeAxesLabels(slicePlane, 
+                                                       viewport);
+                        }
                         break;
                 }
             }
