@@ -221,11 +221,27 @@ namespace caret {
                                                     const float zoom,
                                           const bool isSelectionMode);
         
-        void drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        std::vector<int32_t>& identificationIndices,
                                        const int32_t idPerVoxelCount,
                                        const bool isSelectionMode);
         
+        void drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                       const float sliceNormalVector[3],
+                                       const int64_t selectedSliceIndices[3],
+                                       const float coordinate[3],
+                                       const float rowStep[3],
+                                       const float columnStep[3],
+                                       const int64_t numberOfColumns,
+                                       const int64_t numberOfRows,
+                                       const std::vector<uint8_t>& sliceRGBA,
+                                       const int32_t volumeIndex,
+                                       const int32_t mapIndex,
+                                       const uint8_t sliceOpacity,
+                                       std::vector<int32_t>& identificationIndices,
+                                        const int32_t idPerVoxelCount,
+                                       const bool isIdentificationMode);
+                                       
         void drawSlicesForAllSlicesView(const int viewport[4],
                                   const DRAW_MODE drawMode);
         
