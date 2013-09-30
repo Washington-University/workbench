@@ -35,6 +35,8 @@ namespace caret {
     class Plane : public CaretObject {
         
     public:
+        Plane();
+        
         Plane(const float p1[3],
               const float p2[3],
               const float p3[3]);
@@ -73,6 +75,10 @@ namespace caret {
                       double& bOut,
                       double& cOut,
                       double& dOut) const;
+        
+        void getNormalVector(double normalVectorOut[3]) const;
+        
+        void getNormalVector(float normalVectorOut[3]) const;
         
         virtual AString toString() const;
         

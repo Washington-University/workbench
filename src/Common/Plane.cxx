@@ -29,6 +29,30 @@
 using namespace caret;
 
 /**
+ * Construct an invalid plane.
+ * Intended for use by the assignement operator.
+ */
+Plane::Plane()
+: CaretObject()
+{
+    m_pointOnPlane[0] = 0.0;
+    m_pointOnPlane[1] = 0.0;
+    m_pointOnPlane[2] = 0.0;
+    
+    m_normalVector[0] = 0.0;
+    m_normalVector[1] = 0.0;
+    m_normalVector[2] = 0.0;
+
+    
+    m_validPlaneFlag = false;
+    
+    m_A = m_normalVector[0];
+    m_B = m_normalVector[1];
+    m_C = m_normalVector[2];
+    m_D = 0.0;
+}
+
+/**
  * Construct a plane from three points that are on the plane.
  * These points should be in counter-clockwise order.
  *
@@ -239,6 +263,33 @@ Plane::getPlane(double& aOut,
     dOut = m_D;
 }
 
+/**
+ * Get the plane's normal vector.
+ *
+ * @param normalVectorOut
+ *   On exit, contains the plane's normal vector.
+ */
+void
+Plane::getNormalVector(double normalVectorOut[3]) const
+{
+    normalVectorOut[0] = m_normalVector[0];
+    normalVectorOut[1] = m_normalVector[1];
+    normalVectorOut[2] = m_normalVector[2];
+}
+
+/**
+ * Get the plane's normal vector.
+ *
+ * @param normalVectorOut
+ *   On exit, contains the plane's normal vector.
+ */
+void
+Plane::getNormalVector(float normalVectorOut[3]) const
+{
+    normalVectorOut[0] = m_normalVector[0];
+    normalVectorOut[1] = m_normalVector[1];
+    normalVectorOut[2] = m_normalVector[2];
+}
 
 /**
  * Get absolute distance of point from the plane.
