@@ -359,19 +359,19 @@ namespace caret {
         void resetColumnsToTimepoints(const float& timestep, const int& numTimepoints, const float& timestart = 0.0f);
         
         ///set rows to be of type scalars
-        void resetRowsToScalars(const int& numMaps);
+        void resetRowsToScalars(const int64_t& numMaps);
         
         ///set columns to be of type scalars
-        void resetColumnsToScalars(const int& numMaps);
+        void resetColumnsToScalars(const int64_t& numMaps);
         
         ///set a direction to scalars
-        void resetDirectionToScalars(const int& direction, const int& numMaps);
+        void resetDirectionToScalars(const int& direction, const int64_t& numMaps);
         
         ///set rows to be of type labels
-        void resetRowsToLabels(const int& numMaps);
+        void resetRowsToLabels(const int64_t& numMaps);
         
         ///set columns to be of type labels
-        void resetColumnsToLabels(const int& numMaps);
+        void resetColumnsToLabels(const int64_t& numMaps);
         
         ///set rows to be of type parcels
         void resetRowsToParcels();
@@ -383,40 +383,43 @@ namespace caret {
         void resetDirectionToParcels(const int& direction);
         
         ///get the map name for an index along a column
-        AString getMapNameForColumnIndex(const int& index) const;
+        AString getMapNameForColumnIndex(const int64_t& index) const;
         
         ///get the map name for an index along a row
-        AString getMapNameForRowIndex(const int& index) const;
+        AString getMapNameForRowIndex(const int64_t& index) const;
         
         ///get the map name for an index
-        AString getMapName(const int& direction, const int& index) const;
+        AString getMapName(const int& direction, const int64_t& index) const;
+        
+        ///get the index for a map number/name - NOTE: returns -1 if mapping type doesn't support names
+        int64_t getMapIndexFromNameOrNumber(const int& direction, const AString& numberOrName) const;
 
         //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index along a column
-        GiftiLabelTable* getLabelTableForColumnIndex(const int& index) const;
+        GiftiLabelTable* getLabelTableForColumnIndex(const int64_t& index) const;
         
         //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index along a row
-        GiftiLabelTable* getLabelTableForRowIndex(const int& index) const;
+        GiftiLabelTable* getLabelTableForRowIndex(const int64_t& index) const;
         
         //HACK: const method returns non-const GiftiLabelTable pointer because getCiftiXML MUST return a const CiftiXML&, but we need to be able to change the label table
         ///get the label table for an index
-        GiftiLabelTable* getMapLabelTable(const int& direction, const int& myMapIndex) const;
+        GiftiLabelTable* getMapLabelTable(const int& direction, const int64_t& myMapIndex) const;
 
         ///set the map name for an index along a column
-        bool setMapNameForColumnIndex(const int& index, const AString& name) const;
+        bool setMapNameForColumnIndex(const int64_t& index, const AString& name) const;
         
         ///set the map name for an index along a row
-        bool setMapNameForRowIndex(const int& index, const AString& name) const;
+        bool setMapNameForRowIndex(const int64_t& index, const AString& name) const;
         
         ///set the map name for an index
-        bool setMapNameForIndex(const int& direction, const int& index, const AString& name) const;
+        bool setMapNameForIndex(const int& direction, const int64_t& index, const AString& name) const;
         
         ///set the label table for an index along a column
-        bool setLabelTableForColumnIndex(const int& index, const GiftiLabelTable& labelTable);
+        bool setLabelTableForColumnIndex(const int64_t& index, const GiftiLabelTable& labelTable);
         
         ///set the label table for an index along a row
-        bool setLabelTableForRowIndex(const int& index, const GiftiLabelTable& labelTable);
+        bool setLabelTableForRowIndex(const int64_t& index, const GiftiLabelTable& labelTable);
         
         ///set the column map to also apply to rows
         void applyColumnMapToRows();
@@ -425,10 +428,13 @@ namespace caret {
         void applyRowMapToColumns();
         
         ///get the number of rows (column length)
-        int getNumberOfRows() const;
+        int64_t getNumberOfRows() const;
         
         ///get the number of columns (row length)
-        int getNumberOfColumns() const;
+        int64_t getNumberOfColumns() const;
+        
+        ///get the length of a dimension
+        int64_t getDimensionLength(const int& direction) const;
         
         ///get what mapping type the rows use
         IndicesMapToDataType getRowMappingType() const;
@@ -507,7 +513,7 @@ namespace caret {
         bool getTimestart(float& seconds, const int& myMapIndex) const;
         bool setTimestep(const float& seconds, const int& myMapIndex);
         bool setTimestart(const float& seconds, const int& myMapIndex);
-        bool setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
+        bool setLabelTable(const int64_t& index, const GiftiLabelTable& labelTable, const int& myMapIndex);
         
         ///some boilerplate to retrieve mappings
         bool getVolumeModelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
@@ -516,7 +522,7 @@ namespace caret {
         bool checkVolumeIndices(const std::vector<voxelIndexType>& ijkList) const;
         bool checkSurfaceNodes(const std::vector<int64_t>& nodeList, const int& numberOfNodes) const;
         void applyDimensionHelper(const int& from, const int& to);
-        int getNewRangeStart(const int& myMapIndex) const;
+        int64_t getNewRangeStart(const int& myMapIndex) const;
         void separateMaps();
         int createMap(int dimension);
     };

@@ -1048,34 +1048,71 @@ bool CiftiXML::getVolumeSpace(VolumeSpace& volSpaceOut) const
     return true;
 }
 
-AString CiftiXML::getMapName(const int& direction, const int& index) const
+AString CiftiXML::getMapName(const int& direction, const int64_t& index) const
 {
     if (m_dimToMapLookup[direction] == -1 || m_root.m_matrices.size() == 0)
     {
-        return "#" + AString::number(index);
+        return "";
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
     const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]];
     if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS &&
         myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS)
     {
-        return "#" + AString::number(index);
+        return "";
     }
     CaretAssertVectorIndex(myMap.m_namedMaps, index);
     return myMap.m_namedMaps[index].m_mapName;
 }
 
-AString CiftiXML::getMapNameForColumnIndex(const int& index) const
+int64_t CiftiXML::getMapIndexFromNameOrNumber(const int& direction, const AString& numberOrName) const
+{
+    if (m_dimToMapLookup[direction] == -1 || m_root.m_matrices.size() == 0)
+    {
+        return -1;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
+    const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]];
+    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS &&
+        myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS)
+    {
+        return -1;
+    }
+    bool ok = false;
+    int32_t ret = numberOrName.toInt(&ok) - 1;//compensate for 1-indexing that command line parsing uses
+    if (ok)
+    {
+        if (ret < 0 || ret >= getDimensionLength(direction))
+        {
+            ret = -1;
+        }
+    } else {//DO NOT search by name if the string was parsed as an integer correctly, or some idiot who names their maps as integers will get confused
+            //when getting map "12" out of a file after the file expands to more than 12 elements suddenly does something different
+        int64_t numMaps = getDimensionLength(direction);
+        ret = -1;
+        for (int64_t i = 0; i < numMaps; ++i)
+        {
+            if (getMapName(direction, i) == numberOrName)
+            {
+                ret = i;
+                break;
+            }
+        }
+    }
+    return ret;
+}
+
+AString CiftiXML::getMapNameForColumnIndex(const int64_t& index) const
 {
     return getMapName(ALONG_COLUMN, index);
 }
 
-AString CiftiXML::getMapNameForRowIndex(const int& index) const
+AString CiftiXML::getMapNameForRowIndex(const int64_t& index) const
 {
     return getMapName(ALONG_ROW, index);
 }
 
-bool CiftiXML::setMapNameForIndex(const int& direction, const int& index, const AString& name) const
+bool CiftiXML::setMapNameForIndex(const int& direction, const int64_t& index, const AString& name) const
 {
     if (direction < 0 || direction >= (int)m_dimToMapLookup.size())
     {
@@ -1097,17 +1134,17 @@ bool CiftiXML::setMapNameForIndex(const int& direction, const int& index, const 
     return true;
 }
 
-bool CiftiXML::setMapNameForColumnIndex(const int& index, const AString& name) const
+bool CiftiXML::setMapNameForColumnIndex(const int64_t& index, const AString& name) const
 {
     return setMapNameForIndex(ALONG_COLUMN, index, name);
 }
 
-bool CiftiXML::setMapNameForRowIndex(const int& index, const AString& name) const
+bool CiftiXML::setMapNameForRowIndex(const int64_t& index, const AString& name) const
 {
     return setMapNameForIndex(ALONG_ROW, index, name);
 }
 
-GiftiLabelTable* CiftiXML::getMapLabelTable(const int& direction, const int& index) const
+GiftiLabelTable* CiftiXML::getMapLabelTable(const int& direction, const int64_t& index) const
 {
     if (m_dimToMapLookup[direction] == -1 || m_root.m_matrices.size() == 0)
     {
@@ -1123,17 +1160,17 @@ GiftiLabelTable* CiftiXML::getMapLabelTable(const int& direction, const int& ind
     return myMap.m_namedMaps[index].m_labelTable;
 }
 
-GiftiLabelTable* CiftiXML::getLabelTableForColumnIndex(const int& index) const
+GiftiLabelTable* CiftiXML::getLabelTableForColumnIndex(const int64_t& index) const
 {
     return getMapLabelTable(ALONG_COLUMN, index);
 }
 
-GiftiLabelTable* CiftiXML::getLabelTableForRowIndex(const int& index) const
+GiftiLabelTable* CiftiXML::getLabelTableForRowIndex(const int64_t& index) const
 {
     return getMapLabelTable(ALONG_ROW, index);
 }
 
-bool CiftiXML::setLabelTable(const int& index, const GiftiLabelTable& labelTable, const int& myMapIndex)
+bool CiftiXML::setLabelTable(const int64_t& index, const GiftiLabelTable& labelTable, const int& myMapIndex)
 {
     if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
     {
@@ -1155,12 +1192,12 @@ bool CiftiXML::setLabelTable(const int& index, const GiftiLabelTable& labelTable
     return true;
 }
 
-bool CiftiXML::setLabelTableForColumnIndex(const int& index, const GiftiLabelTable& labelTable)
+bool CiftiXML::setLabelTableForColumnIndex(const int64_t& index, const GiftiLabelTable& labelTable)
 {
     return setLabelTable(index, labelTable, m_dimToMapLookup[1]);
 }
 
-bool CiftiXML::setLabelTableForRowIndex(const int& index, const GiftiLabelTable& labelTable)
+bool CiftiXML::setLabelTableForRowIndex(const int64_t& index, const GiftiLabelTable& labelTable)
 {
     return setLabelTable(index, labelTable, m_dimToMapLookup[0]);
 }
@@ -1627,17 +1664,17 @@ void CiftiXML::resetRowsToTimepoints(const float& timestep, const int& timepoint
     m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] = myMap;
 }
 
-void CiftiXML::resetColumnsToScalars(const int& numMaps)
+void CiftiXML::resetColumnsToScalars(const int64_t& numMaps)
 {
     resetDirectionToScalars(ALONG_COLUMN, numMaps);
 }
 
-void CiftiXML::resetRowsToScalars(const int& numMaps)
+void CiftiXML::resetRowsToScalars(const int64_t& numMaps)
 {
     resetDirectionToScalars(ALONG_ROW, numMaps);
 }
 
-void CiftiXML::resetDirectionToScalars(const int& direction, const int& numMaps)
+void CiftiXML::resetDirectionToScalars(const int& direction, const int64_t& numMaps)
 {
     if (m_dimToMapLookup[direction] == -1)
     {
@@ -1652,7 +1689,7 @@ void CiftiXML::resetDirectionToScalars(const int& direction, const int& numMaps)
     m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] = myMap;
 }
 
-void CiftiXML::resetColumnsToLabels(const int& numMaps)
+void CiftiXML::resetColumnsToLabels(const int64_t& numMaps)
 {
     if (m_dimToMapLookup[1] == -1)
     {
@@ -1664,14 +1701,14 @@ void CiftiXML::resetColumnsToLabels(const int& numMaps)
     myMap.m_appliesToMatrixDimension.push_back(1);
     myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_LABELS;
     myMap.m_namedMaps.resize(numMaps);
-    for (int i = 0; i < numMaps; ++i)
+    for (int64_t i = 0; i < numMaps; ++i)
     {
         myMap.m_namedMaps[i].m_labelTable.grabNew(new GiftiLabelTable());
     }
     m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]] = myMap;
 }
 
-void CiftiXML::resetRowsToLabels(const int& numMaps)
+void CiftiXML::resetRowsToLabels(const int64_t& numMaps)
 {
     if (m_dimToMapLookup[0] == -1)
     {
@@ -1683,7 +1720,7 @@ void CiftiXML::resetRowsToLabels(const int& numMaps)
     myMap.m_appliesToMatrixDimension.push_back(0);
     myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_LABELS;
     myMap.m_namedMaps.resize(numMaps);
-    for (int i = 0; i < numMaps; ++i)
+    for (int64_t i = 0; i < numMaps; ++i)
     {
         myMap.m_namedMaps[i].m_labelTable.grabNew(new GiftiLabelTable());
     }
@@ -1750,7 +1787,7 @@ void CiftiXML::separateMaps()
     }
 }
 
-int CiftiXML::getNewRangeStart(const int& myMapIndex) const
+int64_t CiftiXML::getNewRangeStart(const int& myMapIndex) const
 {
     if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
     {
@@ -1760,10 +1797,10 @@ int CiftiXML::getNewRangeStart(const int& myMapIndex) const
     const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
     CaretAssert(myMap != NULL && myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS);
     int numModels = (int)myMap->m_brainModels.size();
-    int curRet = 0;
+    int64_t curRet = 0;
     for (int i = 0; i < numModels; ++i)
     {
-        int thisEnd = myMap->m_brainModels[i].m_indexOffset + myMap->m_brainModels[i].m_indexCount;
+        int64_t thisEnd = myMap->m_brainModels[i].m_indexOffset + myMap->m_brainModels[i].m_indexCount;
         if (thisEnd > curRet)
         {
             curRet = thisEnd;
@@ -1772,58 +1809,41 @@ int CiftiXML::getNewRangeStart(const int& myMapIndex) const
     return curRet;
 }
 
-int CiftiXML::getNumberOfColumns() const
-{//number of columns is LENGTH OF A ROW
-    if (m_dimToMapLookup[0] == -1)
+int64_t CiftiXML::getDimensionLength(const int& direction) const
+{
+    if (direction < 0 || direction >= (int)m_dimToMapLookup.size())
     {
-        return 0;//unspecified should be an error, probably, but be permissive
+        throw CiftiFileException("getDimensionLength called on nonexistant dimension");
+    }
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        throw CiftiFileException("getDimensionLength called on nonexistant dimension");
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return myMap->m_numTimeSteps;
+    } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS) {
+        return getNewRangeStart(m_dimToMapLookup[direction]);
+    } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS || myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) {
+        return myMap->m_namedMaps.size();
+    } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
+        return myMap->m_parcels.size();
     } else {
-        if (m_root.m_matrices.size() == 0)
-        {
-            return 0;
-        }
-        CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[0]);
-        const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]]);
-        if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS)
-        {
-            return myMap->m_numTimeSteps;
-        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS) {
-            return getNewRangeStart(m_dimToMapLookup[0]);
-        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS || myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) {
-            return myMap->m_namedMaps.size();
-        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
-            return myMap->m_parcels.size();
-        } else {
-            throw CiftiFileException("unknown cifti mapping type");
-        }
+        throw CiftiFileException("unknown cifti mapping type");
     }
 }
 
-int CiftiXML::getNumberOfRows() const
+int64_t CiftiXML::getNumberOfColumns() const
+{//number of columns is LENGTH OF A ROW
+    return getDimensionLength(ALONG_ROW);
+}
+
+int64_t CiftiXML::getNumberOfRows() const
 {
-    if (m_dimToMapLookup[1] == -1)
-    {
-        return 0;//unspecified should be an error, probably, but be permissive
-    } else {
-        if (m_root.m_matrices.size() == 0)
-        {
-            return 0;
-        }
-        CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[1]);
-        const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]]);
-        if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS)
-        {
-            return myMap->m_numTimeSteps;
-        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS) {
-            return getNewRangeStart(m_dimToMapLookup[1]);
-        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_SCALARS || myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_LABELS) {
-            return myMap->m_namedMaps.size();
-        } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
-            return myMap->m_parcels.size();
-        } else {
-            throw CiftiFileException("unknown cifti mapping type");
-        }
-    }
+    return getDimensionLength(ALONG_COLUMN);
 }
 
 IndicesMapToDataType CiftiXML::getColumnMappingType() const
