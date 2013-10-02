@@ -214,8 +214,9 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                 };
                 
                 glLoadIdentity();
-                drawSlicesForAllSlicesView(allVP,
-                                     DRAW_MODE_VOLUME_VIEW_SLICE_3D);
+                drawAllThreeSlicesForVolumeSliceView(allVP);
+//                drawSlicesForAllSlicesView(allVP,
+//                                     DRAW_MODE_VOLUME_VIEW_SLICE_3D);
                 //            drawSurfaces(fixedPipelineDrawing,
                 //                         browserTabContent,
                 //                         allVP);
@@ -227,7 +228,8 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     vpHalfY - gap
                 };
                 drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                      paraVP);
+                                         DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
+                                         paraVP);
                 
                 
                 const int coronalVP[4] = {
@@ -237,6 +239,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     vpHalfY - gap
                 };
                 drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::CORONAL,
+                                         DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
                                       coronalVP);
                 
                 
@@ -247,6 +250,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     vpHalfY - gap
                 };
                 drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::AXIAL,
+                                         DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
                                       axialVP);
             }
                 break;
@@ -254,6 +258,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
             case VolumeSliceViewPlaneEnum::CORONAL:
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                 drawSliceForSliceViewNEW(slicePlane,
+                                         DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
                                              viewport);
                 break;
         }
@@ -396,6 +401,30 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllSlicesView(const int viewport
     
     glPopMatrix();
 }
+
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawAllThreeSlicesForVolumeSliceView(const int viewport[4])
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+
+    setOrthographicProjection(VolumeSliceViewPlaneEnum::ALL, viewport);
+
+    drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::AXIAL,
+                             DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
+                             viewport);
+
+    drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::CORONAL,
+                             DRAW_MODE_VOLUME_VIEW_SLICE_3D,
+                             viewport);
+    
+    drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                             DRAW_MODE_VOLUME_VIEW_SLICE_3D,
+                             viewport);
+    
+    glPopMatrix();
+}
+
 
 /**
  * Draw a volume slice for a volume slice view.
@@ -570,9 +599,24 @@ BrainOpenGLFPVolumeObliqueDrawing::setOrthographicProjection(const VolumeSliceVi
 
 void
 BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                       const DRAW_MODE drawMode,
                                                                        Plane& planeOut,
                                                                        Matrix4x4& obliqueTransformationMatrixOut)
 {
+    bool isSetViewTranform = false;
+    bool isSetZoom = false;
+    switch (drawMode) {
+        case DRAW_MODE_ALL_VIEW:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            isSetViewTranform = true;
+            isSetZoom = true;
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            isSetZoom = true;
+            break;
+    }
+    
     BoundingBox boundingBox;
     m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
     
@@ -724,11 +768,14 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
     m_lookAtCenter[1] = centerY;
     m_lookAtCenter[2] = centerZ;
     
-    gluLookAt(eyeX, eyeY, eyeZ,
-              centerX, centerY, centerZ,
-              upX, upY, upZ);
-    
-    glScalef(zoom, zoom, zoom);
+    if (isSetViewTranform) {
+        gluLookAt(eyeX, eyeY, eyeZ,
+                  centerX, centerY, centerZ,
+                  upX, upY, upZ);
+    }
+    if (isSetZoom) {
+        glScalef(zoom, zoom, zoom);
+    }
     
     planeOut = plane;
 } // obliqueSliceOffset
@@ -737,8 +784,6 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 /**
  * Draw a volume slice for the given slice plane.
  *
- * @param orthoBounds
- *   Bounds of the orthographic projection.
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param drawMode
@@ -3104,27 +3149,52 @@ BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::allocateColors()
  *
  * @param sliceViewPlane
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
+ * @param drawMode
+ *   The drawing mode
  * @param viewport
  *   Viewport in which drawing takes place.
  */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                            const DRAW_MODE drawMode,
                                                             const int viewport[4])
 {
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+    bool isDrawing2D = false;
+    bool isSetViewport = false;
+    switch (drawMode) {
+        case DRAW_MODE_ALL_VIEW:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            //isSetViewport = true;
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            isDrawing2D = true;
+            isSetViewport = true;
+            break;
+    }
     
-    glViewport(viewport[0],
-               viewport[1],
-               viewport[2],
-               viewport[3]);
+    bool needToPopMatrix = false;
+    if (isDrawing2D) {
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        needToPopMatrix = true;
+    }
     
-    /*
-     * Set the orthographic projection to fit the slice axis
-     */
-    setOrthographicProjection(sliceViewPlane,
-                              viewport);
+    if (isSetViewport) {
+        glViewport(viewport[0],
+                   viewport[1],
+                   viewport[2],
+                   viewport[3]);
+    }
+    
+    if (isDrawing2D) {
+        /*
+         * Set the orthographic projection to fit the slice axis
+         */
+        setOrthographicProjection(sliceViewPlane,
+                                  viewport);
+    }
     
     /*
      * Set the viewing transformation to look at the slice
@@ -3132,6 +3202,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
     Plane slicePlane;
     Matrix4x4 obliqueTransformationMatrix;
     setVolumeSliceViewingTransformation(sliceViewPlane,
+                                        drawMode,
                                         slicePlane,
                                         obliqueTransformationMatrix);
     CaretAssert(slicePlane.isValidPlane());
@@ -3278,7 +3349,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
         glEnable(GL_CULL_FACE);
     }
     
-    glPopMatrix();
+    if (needToPopMatrix) {
+        glPopMatrix();
+    }
 }
 
 /**

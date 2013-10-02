@@ -208,8 +208,8 @@ namespace caret {
         void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                        const DRAW_MODE drawMode);
         
-        void drawSliceNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                       const DRAW_MODE drawMode);
+//        void drawSliceNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+//                       const DRAW_MODE drawMode);
         
         void drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           std::vector<int32_t>& identificationIndices,
@@ -253,11 +253,14 @@ namespace caret {
         
         void drawSlicesForAllSlicesView(const int viewport[4],
                                   const DRAW_MODE drawMode);
+
+        void drawAllThreeSlicesForVolumeSliceView(const int viewport[4]);
         
         void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                    const int viewport[4]);
         
         void drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                      const DRAW_MODE drawMode,
                                       const int viewport[4]);
         
         void drawQuads(const std::vector<float>& coordinates,
@@ -294,6 +297,7 @@ namespace caret {
                                        const int viewport[4]);
         
         void setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                 const DRAW_MODE drawMode,
                                                   Plane& planeOut,
                                                   Matrix4x4& obliqueTransformationMatrixOut);
 
