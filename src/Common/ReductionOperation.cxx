@@ -92,6 +92,34 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
             for (int64_t i = 1; i < numElems; ++i) if (data[i] < min) min = data[i];
             return min;
         }
+        case ReductionEnum::INDEXMAX:
+        {
+            float max = data[0];
+            int64_t index = 0;
+            for (int64_t i = 1; i < numElems; ++i)
+            {
+                if (data[i] > max)
+                {
+                    max = data[i];
+                    index = i;
+                }
+            }
+            return index + 1;//1-based, to match gui and column arguments
+        }
+        case ReductionEnum::INDEXMIN:
+        {
+            float min = data[0];
+            int64_t index = 0;
+            for (int64_t i = 1; i < numElems; ++i)
+            {
+                if (data[i] < min)
+                {
+                    min = data[i];
+                    index = i;
+                }
+            }
+            return index + 1;
+        }
         case ReductionEnum::MEDIAN:
         {
             vector<float> dataCopy(numElems);

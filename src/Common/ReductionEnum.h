@@ -47,6 +47,8 @@ public:
             INVALID,
             MAX,
             MIN,
+            INDEXMAX,
+            INDEXMIN,
             SUM,
             MEAN,
             STDEV,

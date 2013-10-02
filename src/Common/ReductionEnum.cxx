@@ -75,6 +75,8 @@ ReductionEnum::initialize()
 
     enumData.push_back(ReductionEnum(MAX, "MAX", "the maximum value"));
     enumData.push_back(ReductionEnum(MIN, "MIN", "the minimum value"));
+    enumData.push_back(ReductionEnum(INDEXMAX, "INDEXMAX", "the 1-based index of the maximum value"));
+    enumData.push_back(ReductionEnum(INDEXMIN, "INDEXMIN", "the 1-based index of the minimum value"));
     enumData.push_back(ReductionEnum(SUM, "SUM", "add all values"));
     enumData.push_back(ReductionEnum(MEAN, "MEAN", "the mean of the data"));
     enumData.push_back(ReductionEnum(STDEV, "STDEV", "the standard deviation (N denominator)"));
