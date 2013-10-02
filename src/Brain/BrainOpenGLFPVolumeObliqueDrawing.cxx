@@ -226,7 +226,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     vpHalfX - gap,
                     vpHalfY - gap
                 };
-                drawSliceForSliceView(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                       paraVP);
                 
                 
@@ -236,7 +236,7 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     vpHalfX - gap,
                     vpHalfY - gap
                 };
-                drawSliceForSliceView(VolumeSliceViewPlaneEnum::CORONAL,
+                drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::CORONAL,
                                       coronalVP);
                 
                 
@@ -246,23 +246,15 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     vpHalfX - gap,
                     vpHalfY - gap
                 };
-                drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
+                drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::AXIAL,
                                       axialVP);
             }
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
             case VolumeSliceViewPlaneEnum::CORONAL:
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                if (sliceViewMode == VolumeSliceViewModeEnum::ORTHOGONAL) {
-                    drawSliceForSliceViewNEW(slicePlane,
+                drawSliceForSliceViewNEW(slicePlane,
                                              viewport);
-                }
-                else {
-                    drawSliceForSliceViewNEW(slicePlane,
-                                          viewport);
-//                    drawSliceForSliceView(slicePlane,
-//                                          viewport);
-                }
                 break;
         }
     }
@@ -693,13 +685,13 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
     const double eyeY = centerY + (sliceNormalVector[1] * distanceEyeToCenter);
     const double eyeZ = centerZ + (sliceNormalVector[2] * distanceEyeToCenter);
     
-    const float pointOnPlane[3] = {
-        sliceX,
-        sliceY,
-        sliceZ
-    };
+//    const float pointOnPlane[3] = {
+//        sliceX,
+//        sliceY,
+//        sliceZ
+//    };
     Plane plane(sliceNormalVector,
-                pointOnPlane);
+                obliqueSliceOffset); //pointOnPlane);
     
     const AString msg = ("New View Transform center for "
                          + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
@@ -739,7 +731,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
     glScalef(zoom, zoom, zoom);
     
     planeOut = plane;
-}
+} // obliqueSliceOffset
 
 
 /**
@@ -1819,6 +1811,10 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSurfaceOutline(const Plane& plane)
     if ( ! plane.isValidPlane()) {
         return;
     }
+    
+    std::cout << qPrintable("\nSurface Outline Plane: "
+                            + plane.toString()
+                            + "\n\n") << std::endl;
     
     float intersectionPoint1[3];
     float intersectionPoint2[3];
@@ -3119,6 +3115,11 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
     glPushMatrix();
     glLoadIdentity();
     
+    glViewport(viewport[0],
+               viewport[1],
+               viewport[2],
+               viewport[3]);
+    
     /*
      * Set the orthographic projection to fit the slice axis
      */
@@ -3874,7 +3875,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceVi
                   voxelQuadNormals,
                   voxelQuadRgba);
     }
-    drawDebugSquare();
+    //drawDebugSquare();
 }
 
 
@@ -4025,9 +4026,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
     {
         std::cout
         << qPrintable("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
-                      + "BR: " + AString::fromNumbers(bottomRight, 3, ",")
-                      + "TR: " + AString::fromNumbers(topRight, 3, ",")
-                      + "TL: " + AString::fromNumbers(topLeft, 3, ","))
+                      + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
+                      + " TR: " + AString::fromNumbers(topRight, 3, ",")
+                      + " TL: " + AString::fromNumbers(topLeft, 3, ","))
         << std::endl;
         m_fixedPipelineDrawing->setLineWidth(3.0);
         glColor3f(1.0, 0.0, 0.0);
@@ -4554,8 +4555,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
         glPopMatrix();
     }
     
-    drawDebugSquare();
-}
+    //drawDebugSquare();
+} // plane
 
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawDebugSquare()
