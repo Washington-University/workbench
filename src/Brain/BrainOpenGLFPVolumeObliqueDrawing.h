@@ -222,9 +222,10 @@ namespace caret {
                                           const bool isSelectionMode);
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       std::vector<int32_t>& identificationIndices,
-                                       const int32_t idPerVoxelCount,
-                                       const bool isSelectionMode);
+                                 const Plane& plane,
+                                 std::vector<int32_t>& identificationIndices,
+                                 const int32_t idPerVoxelCount,
+                                 const bool isSelectionMode);
         
         void drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const float sliceNormalVector[3],
@@ -241,7 +242,15 @@ namespace caret {
                                        std::vector<int32_t>& identificationIndices,
                                         const int32_t idPerVoxelCount,
                                        const bool isIdentificationMode);
-                                       
+        
+        void drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                              const Plane& plane,
+                             std::vector<int32_t>& identificationIndices,
+                             const int32_t idPerVoxelCount,
+                             const Matrix4x4& transformationMatrix,
+                             const float zoom,
+                             const bool isIdentificationMode);
+        
         void drawSlicesForAllSlicesView(const int viewport[4],
                                   const DRAW_MODE drawMode);
         
@@ -284,8 +293,14 @@ namespace caret {
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
-        Plane setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+        void setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                  Plane& planeOut,
+                                                  Matrix4x4& obliqueTransformationMatrixOut);
 
+        void drawDebugSquare();
+        
+        void printViewportCorners();
+        
         // ADD_NEW_MEMBERS_HERE
 
         Brain* m_brain;
@@ -304,11 +319,11 @@ namespace caret {
         
         int32_t m_tabIndex;
         
+        double m_lookAtCenter[3];
+        
         double m_orthographicBounds[6];
         
         VolumeSliceViewModeEnum::Enum m_sliceViewMode;
-
-        
     };
     
 #ifdef __BRAIN_OPEN_G_L_F_P_VOLUME_OBLIQUE_DRAWING_DECLARE__
