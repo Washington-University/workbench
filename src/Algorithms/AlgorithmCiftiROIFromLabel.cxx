@@ -48,11 +48,11 @@ AString AlgorithmCiftiROIFromLabel::getShortDescription()
 OperationParameters* AlgorithmCiftiROIFromLabel::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addCiftiParameter(1, "label-in", "input cifti label file");
+    ret->addCiftiParameter(1, "label-in", "the input cifti label file");
     
     ret->addStringParameter(2, "label-name", "the label name that you want an roi of");
     
-    ret->addCiftiOutputParameter(3, "scalar-out", "output cifti scalar file");
+    ret->addCiftiOutputParameter(3, "scalar-out", "the output cifti scalar file");
     
     OptionalParameter* mapOpt = ret->createOptionalParameter(4, "-map", "select a single label map to use");
     mapOpt->addStringParameter(1, "map", "the map number or name");

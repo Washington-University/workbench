@@ -58,6 +58,7 @@ AlgorithmMetricReduce.h
 AlgorithmMetricRegression.h
 AlgorithmMetricRemoveIslands.h
 AlgorithmMetricResample.h
+AlgorithmMetricROIFromLabel.h
 AlgorithmMetricROIsFromExtrema.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
@@ -137,6 +138,7 @@ AlgorithmMetricReduce.cxx
 AlgorithmMetricRegression.cxx
 AlgorithmMetricRemoveIslands.cxx
 AlgorithmMetricResample.cxx
+AlgorithmMetricROIFromLabel.cxx
 AlgorithmMetricROIsFromExtrema.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx

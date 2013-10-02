@@ -67,6 +67,7 @@
 #include "AlgorithmMetricRegression.h"
 #include "AlgorithmMetricRemoveIslands.h"
 #include "AlgorithmMetricResample.h"
+#include "AlgorithmMetricROIFromLabel.h"
 #include "AlgorithmMetricROIsFromExtrema.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
@@ -247,6 +248,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRegression()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricResample()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIFromLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
