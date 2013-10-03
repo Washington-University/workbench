@@ -205,21 +205,21 @@ namespace caret {
 //        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
 //                      const Matrix4x4& rotationMatrix);
         
-        void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                       const DRAW_MODE drawMode);
+//        void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+//                       const DRAW_MODE drawMode);
         
 //        void drawSliceNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
 //                       const DRAW_MODE drawMode);
         
-        void drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          std::vector<int32_t>& identificationIndices,
-                                          const int32_t idPerVoxelCount,
-                                          const Matrix4x4& transformationMatrix,
-                                          const float screenBounds[4],
-                                          const float sliceNormalVector[3],
-                                          const float voxelSize,
-                                                    const float zoom,
-                                          const bool isSelectionMode);
+//        void drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                                          std::vector<int32_t>& identificationIndices,
+//                                          const int32_t idPerVoxelCount,
+//                                          const Matrix4x4& transformationMatrix,
+//                                          const float screenBounds[4],
+//                                          const float sliceNormalVector[3],
+//                                          const float voxelSize,
+//                                                    const float zoom,
+//                                          const bool isSelectionMode);
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const Plane& plane,
@@ -251,33 +251,19 @@ namespace caret {
                              const float zoom,
                              const bool isIdentificationMode);
         
-        void drawSlicesForAllSlicesView(const int viewport[4],
-                                  const DRAW_MODE drawMode);
+//        void drawSlicesForAllSlicesView(const int viewport[4],
+//                                  const DRAW_MODE drawMode);
 
+        void drawSlicesForAllStructuresView(const int viewport[4]);
+        
         void drawAllThreeSlicesForVolumeSliceView(const int viewport[4]);
         
-        void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-                                   const int viewport[4]);
+//        void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+//                                   const int viewport[4]);
         
         void drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const DRAW_MODE drawMode,
                                       const int viewport[4]);
-        
-        void drawQuads(const std::vector<float>& coordinates,
-                       const std::vector<float>& normals,
-                       const std::vector<uint8_t>& rgbaColors);
-        
-        void drawQuadsImmediateMode(const std::vector<float>& coordinates,
-                       const std::vector<float>& normals,
-                       const std::vector<uint8_t>& rgbaColors);
-        
-        void drawQuadsVertexArrays(const std::vector<float>& coordinates,
-                       const std::vector<float>& normals,
-                       const std::vector<uint8_t>& rgbaColors);
-        
-        void drawQuadsVertexBuffers(const std::vector<float>& coordinates,
-                                    const std::vector<float>& normals,
-                                    const std::vector<uint8_t>& rgbaColors);
         
         void drawLines(const std::vector<float>& coordinates,
                        const std::vector<uint8_t>& rgbaColors,
@@ -291,7 +277,7 @@ namespace caret {
         
         void drawVolumeSliceFoci(const Plane& plane);
         
-        void setOrthographicBounds(const DRAW_MODE drawMode);
+//        void setOrthographicBounds(const DRAW_MODE drawMode);
 
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
@@ -303,7 +289,17 @@ namespace caret {
 
         void drawDebugSquare();
         
-        void printViewportCorners();
+        void drawAxesCrosshairs(const VolumeMappableInterface* volume,
+                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                const VolumeSliceViewModeEnum::Enum sliceViewMode);
+        
+        void drawAxesLabels(const VolumeMappableInterface* volume,
+                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                            const VolumeSliceViewModeEnum::Enum sliceViewMode,
+                            const int32_t viewport[4]);
+        
+        void getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                          float rgbaOut[4]) const;
         
         // ADD_NEW_MEMBERS_HERE
 

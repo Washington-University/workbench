@@ -52,9 +52,11 @@ Brain.h
 BrainOpenGL.h
 BrainOpenGLFPVolumeObliqueDrawing.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
 BrainOpenGLShapeCone.h
 BrainOpenGLShapeCube.h
+BrainOpenGLShapeCylinder.h
 BrainOpenGLShapeRing.h
 BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
@@ -144,9 +146,11 @@ Brain.cxx
 BrainOpenGL.cxx
 BrainOpenGLFPVolumeObliqueDrawing.cxx
 BrainOpenGLFixedPipeline.cxx
+BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx
 BrainOpenGLShapeCone.cxx
 BrainOpenGLShapeCube.cxx
+BrainOpenGLShapeCylinder.cxx
 BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeSphere.cxx
 BrainOpenGLViewportContent.cxx

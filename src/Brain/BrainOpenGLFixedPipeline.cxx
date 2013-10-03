@@ -52,8 +52,9 @@
 #include "Brain.h"
 #include "BrainOpenGLFPVolumeObliqueDrawing.h"
 #include "BrainOpenGLShapeCone.h"
-#include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLShapeCube.h"
+#include "BrainOpenGLShapeCylinder.h"
+#include "BrainOpenGLShapeSphere.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -143,6 +144,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->colorIdentification   = new IdentificationWithColor();
     m_shapeSphere = NULL;
     m_shapeCone   = NULL;
+    m_shapeCylinder = NULL;
     m_shapeCube   = NULL;
     m_shapeCubeRounded = NULL;
     this->surfaceNodeColoring = new SurfaceNodeColoring();
@@ -161,6 +163,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (m_shapeCone != NULL) {
         delete m_shapeCone;
         m_shapeCone = NULL;
+    }
+    if (m_shapeCylinder != NULL) {
+        delete m_shapeCylinder;
+        m_shapeCylinder;
     }
     if (m_shapeCube != NULL) {
         delete m_shapeCube;
@@ -994,6 +1000,10 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     }
     if (m_shapeCone == NULL) {
         m_shapeCone = new BrainOpenGLShapeCone(8);
+    }
+    
+    if (m_shapeCylinder == NULL) {
+        m_shapeCylinder = new BrainOpenGLShapeCylinder(8);
     }
     
     if (m_shapeCube == NULL) {
@@ -6855,8 +6865,76 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     m_shapeCone->draw();
     glPopMatrix();
     glPopMatrix();
-
 }
+
+/**
+ * Draw a cone with an elliptical shape.
+ * @param bottomXYZ
+ *    Location of the bottom of the cylinder.
+ * @param topXYZ
+ *    Location of the top of the cylinder.
+ * @param radius
+ *    Radius of the cylinder.
+ */
+void
+BrainOpenGLFixedPipeline::drawCylinder(const float bottomXYZ[3],
+                                       const float topXYZ[3],
+                                       const float radius)
+{
+    float x1 = topXYZ[0];
+    float y1 = topXYZ[1];
+    float z1 = topXYZ[2];
+    float vx = bottomXYZ[0] - x1;
+    float vy = bottomXYZ[1] - y1;
+    float vz = bottomXYZ[2] - z1;
+    
+    float z = (float)std::sqrt( vx*vx + vy*vy + vz*vz );
+    double ax = 0.0f;
+    
+    double zero = 1.0e-3;
+    
+    if (std::abs(vz) < zero) {
+        ax = 57.2957795*std::acos( vx/z ); // rotation angle in x-y plane
+        if ( vx <= 0.0f ) ax = -ax;
+    }
+    else {
+        ax = 57.2957795*std::acos( vz/z ); // rotation angle
+        if ( vz <= 0.0f ) ax = -ax;
+    }
+    
+    glPushMatrix();
+    glTranslatef( x1, y1, z1 );
+    
+    float rx = -vy*vz;
+    float ry = vx*vz;
+    
+    if ((std::abs(vx) < zero) && (std::fabs(vz) < zero)) {
+        if (vy > 0) {
+            ax = 90;
+        }
+    }
+    
+    if (std::abs(vz) < zero)  {
+        glRotated(90.0, 0.0, 1.0, 0.0); // Rotate & align with x axis
+        glRotated(ax, -1.0, 0.0, 0.0); // Rotate to point 2 in x-y plane
+    }
+    else {
+        glRotated(ax, rx, ry, 0.0); // Rotate about rotation vector
+    }
+    
+    glPushMatrix();
+    
+    /*
+     * Draw the cone
+     */
+    glScalef(radius * 2.0,
+             radius * 2.0,
+             z);
+    m_shapeCylinder->draw();
+    glPopMatrix();
+    glPopMatrix();    
+}
+
 
 /**
  * Draw fiber orientations on surface models.

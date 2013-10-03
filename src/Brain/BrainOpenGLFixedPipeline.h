@@ -53,6 +53,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLShapeCone;
     class BrainOpenGLShapeCube;
+    class BrainOpenGLShapeCylinder;
     class BrainOpenGLShapeSphere;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
@@ -343,6 +344,10 @@ namespace caret {
                         const double sizeY,
                         const double sizeZ);
         
+        void drawCylinder(const float bottomXYZ[3],
+                          const float topXYZ[3],
+                          const float radius);
+        
         void drawEllipticalCone(const float baseXYZ[3],
                                 const float apexXYZ[3],
                                 const float baseRadiusScaling,
@@ -450,6 +455,9 @@ namespace caret {
         
         /** Rounded Cube symbol */
         BrainOpenGLShapeCube* m_shapeCubeRounded;
+        
+        /** Cylinder symbol */
+        BrainOpenGLShapeCylinder* m_shapeCylinder;
         
         std::list<FiberOrientation*> m_fiberOrientationsForDrawing;
         
