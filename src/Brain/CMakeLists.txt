@@ -64,6 +64,7 @@ BrainOpenGLViewportContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
+CaretOpenGLInclude.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h

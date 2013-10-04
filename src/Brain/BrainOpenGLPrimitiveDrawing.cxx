@@ -36,16 +36,7 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #undef __BRAIN_OPEN_G_L_PRIMITIVE_DRAWING_DECLARE__
 
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
-#endif
-#ifdef CARET_OS_MACOSX
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include "CaretOpenGLInclude.h"
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"

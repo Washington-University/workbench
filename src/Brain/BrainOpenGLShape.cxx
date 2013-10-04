@@ -110,9 +110,12 @@ BrainOpenGLShape::setImmediateModeOverride(const bool override)
 
 /**
  * Draw the shape.
+ *
+ * @param rgba
+ *    Color for shape.
  */
 void
-BrainOpenGLShape::draw()
+BrainOpenGLShape::draw(const uint8_t rgba[4])
 {
     if (m_shapeSetupComplete == false) {
         setupShape(s_drawMode);
@@ -120,10 +123,36 @@ BrainOpenGLShape::draw()
     }
     
     if (s_immediateModeOverride) {
-        drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE);
+        drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
+                  rgba);
     }
     else {
-        drawShape(s_drawMode);
+        drawShape(s_drawMode,
+                  rgba);
+    }
+}
+
+/**
+ * Draw the shape.
+ *
+ * @param rgba
+ *    Color for shape.
+ */
+void
+BrainOpenGLShape::draw(const float rgba[4])
+{
+    if (m_shapeSetupComplete == false) {
+        setupShape(s_drawMode);
+        m_shapeSetupComplete = true;
+    }
+    
+    if (s_immediateModeOverride) {
+        drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
+                  rgba);
+    }
+    else {
+        drawShape(s_drawMode,
+                  rgba);
     }
 }
 

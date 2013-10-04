@@ -28,14 +28,7 @@
 
 #include <stdint.h>
 
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
-#endif
-#ifdef CARET_OS_MACOSX
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "CaretOpenGLInclude.h"
 
 #include "CaretObject.h"
 

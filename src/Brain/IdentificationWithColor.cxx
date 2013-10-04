@@ -67,7 +67,7 @@ IdentificationWithColor::~IdentificationWithColor()
 /**
  * Gets an RGB color that is associated with the
  * specified indices.
- * @param rgbOut
+ * @param rgb
  *    Output color components.
  * @param dataType
  *    Type of data.
@@ -79,7 +79,7 @@ IdentificationWithColor::~IdentificationWithColor()
  *    Optional third index of item.
  */
 void 
-IdentificationWithColor::addItem(uint8_t rgbOut[3],
+IdentificationWithColor::addItem(uint8_t rgbOut[4],
                                  const SelectionItemDataTypeEnum::Enum dataType,
              const int32_t index1,
              const int32_t index2,
@@ -90,6 +90,7 @@ IdentificationWithColor::addItem(uint8_t rgbOut[3],
     }
     IdentificationWithColor::encodeIntegerIntoRGB(this->itemCounter, 
                                                   rgbOut);
+    rgbOut[3] = 255;
     
     Item& item = this->items[this->itemCounter];
     item.dataType = dataType;
@@ -119,7 +120,7 @@ IdentificationWithColor::addItem(uint8_t rgbOut[3],
  *    may be NULL;
  */
 void 
-IdentificationWithColor::getItem(const uint8_t rgb[3],
+IdentificationWithColor::getItem(const uint8_t rgb[4],
                                  const SelectionItemDataTypeEnum::Enum dataType,
              int32_t* index1Out,
              int32_t* index2Out,

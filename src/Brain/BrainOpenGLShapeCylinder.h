@@ -52,7 +52,12 @@ namespace caret {
         BrainOpenGLShapeCylinder& operator=(const BrainOpenGLShapeCylinder&);
         
     protected:
-        void drawShape(const BrainOpenGL::DrawMode drawMode);
+        void drawShape(const BrainOpenGL::DrawMode drawMode,
+                       const uint8_t rgba[4]);
+        
+        void drawShape(const BrainOpenGL::DrawMode drawMode,
+                       const float rgba[4]);
+        
         
         void setupShape(const BrainOpenGL::DrawMode drawMode);
         
@@ -68,33 +73,23 @@ namespace caret {
         const int32_t m_numberOfSides;
         
         GLuint m_coordinatesBufferID;
-        GLuint m_coordinatesRGBABufferID;
         
-        GLuint m_sidesNormalBufferID;
-        GLuint m_sidesTriangleStripBufferID;
+        GLuint m_coordinatesRgbaByteBufferID;
+        GLuint m_coordinatesRgbaFloatBufferID;
         
-        GLuint m_topCapNormalBufferID;
-        GLuint m_topCapTriangleFanBufferID;
-        
-        GLuint m_bottomCapNormalBufferID;
-        GLuint m_bottomCapTriangleFanBufferID;
+        GLuint m_normalsBufferID;
+        GLuint m_triangleStripBufferID;
         
         GLuint m_displayList;
         
         std::vector<GLfloat> m_coordinates;
-        std::vector<GLfloat> m_coordinatesRGBA;
+        std::vector<GLubyte> m_rgbaByte;
+        std::vector<GLfloat> m_rgbaFloat;
         
-        std::vector<GLfloat> m_sidesNormals;
-        std::vector<GLuint> m_sidesTriangleStrip;
+        std::vector<GLfloat> m_normals;
+        std::vector<GLuint> m_triangleStrip;
         
-        std::vector<GLuint>  m_capTriangleFan;
-        std::vector<GLfloat> m_capNormals;
-        
-        std::vector<GLuint>  m_topTriangleFan;
-        std::vector<GLfloat> m_topNormals;
-        
-        std::vector<GLuint>  m_bottomTriangleFan;
-        std::vector<GLfloat> m_bottomNormals;
+        bool m_isApplyColoring;
     };
     
 #ifdef __BRAIN_OPEN_G_L_SHAPE_CYLINDER_DECLARE__

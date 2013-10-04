@@ -328,27 +328,41 @@ namespace caret {
         
         void drawSurfaceAxes();
         
-        void drawSphereWithDiameter(const double diameter);
+        void drawSphereWithDiameter(const uint8_t rgba[4],
+                                    const double diameter);
         
-        void drawSquare(const float size);
+        void drawSphereWithDiameter(const float rgba[4],
+                                    const double diameter);
         
-        void drawCube(const double cubeSize);
+        void drawSquare(const float rgba[4],
+                        const float size);
         
-        void drawCuboid(const double sizeX,
+        void drawSquare(const uint8_t rgba[4],
+                        const float size);
+        
+        void drawCube(const float rgba[4],
+                      const double cubeSize);
+        
+        void drawCuboid(const uint8_t rgba[4],
+                        const double sizeX,
                         const double sizeY,
                         const double sizeZ);
         
-        void drawRoundedCube(const double cubeSize);
+        void drawRoundedCube(const float rgba[4],
+                             const double cubeSize);
         
-        void drawRoundedCuboid(const double sizeX,
+        void drawRoundedCuboid(const uint8_t rgba[4],
+                               const double sizeX,
                         const double sizeY,
                         const double sizeZ);
         
-        void drawCylinder(const float bottomXYZ[3],
+        void drawCylinder(const float rgba[4],
+                          const float bottomXYZ[3],
                           const float topXYZ[3],
                           const float radius);
         
-        void drawEllipticalCone(const float baseXYZ[3],
+        void drawEllipticalCone(const float rgba[4],
+                                const float baseXYZ[3],
                                 const float apexXYZ[3],
                                 const float baseRadiusScaling,
                                 const float baseMajorAngle,

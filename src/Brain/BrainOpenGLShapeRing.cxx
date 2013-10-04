@@ -68,6 +68,7 @@ BrainOpenGLShapeRing::BrainOpenGLShapeRing(const int32_t numberOfSides,
     m_coordinatesBufferID = 0;
     m_normalBufferID = 0;
     m_triangleStripBufferID = 0;
+    m_isApplyColoring = true;
 }
 
 /**
@@ -166,7 +167,11 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
             if (m_displayList > 0) {
                 glNewList(m_displayList,
                           GL_COMPILE);
-                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE);
+                uint8_t rgbaUnused[4] = { 0.0, 0.0, 0.0, 0.0 };
+                m_isApplyColoring = false;
+                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
+                          rgbaUnused);
+                m_isApplyColoring = true;
                 glEndList();
             }
         }
@@ -231,13 +236,44 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
 }
 
 /**
- * Draw the ring.
+ * Draw the shape.
+ *
  * @param drawMode
  *   How to draw the shape.
+ * @param rgba
+ *   RGBA coloring ranging 0.0 to 1.0
  */
 void
-BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode)
+BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
+                                const float rgba[4])
 {
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    drawShape(drawMode,
+              rgbaByte);
+}
+
+/**
+ * Draw the shape.
+ *
+ * @param drawMode
+ *   How to draw the shape.
+ * @param rgba
+ *   RGBA coloring ranging 0 to 255.
+ */
+void
+BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
+                                const uint8_t rgba[4])
+{
+    if (m_isApplyColoring) {
+        glColor4ubv(rgba);
+    }
+    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {

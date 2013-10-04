@@ -26,16 +26,7 @@
 
 #include <cstdlib>
 
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
-#endif
-#ifdef CARET_OS_MACOSX
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
+#include "CaretOpenGLInclude.h"
 
 #define __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 #include "BrainOpenGLFixedPipeline.h"
@@ -1306,7 +1297,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
-    uint8_t rgb[3];
+    uint8_t rgba[4];
     
     glBegin(GL_TRIANGLES);
     for (int32_t i = 0; i < numTriangles; i++) {
@@ -1316,8 +1307,8 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
         const int32_t n3 = triangles[i3+2];
         
         if (isSelect) {
-            this->colorIdentification->addItem(rgb, SelectionItemDataTypeEnum::SURFACE_TRIANGLE, i);
-            glColor3ubv(rgb);
+            this->colorIdentification->addItem(rgba, SelectionItemDataTypeEnum::SURFACE_TRIANGLE, i);
+            glColor3ubv(rgba);
             glNormal3fv(&normals[n1*3]);
             glVertex3fv(&coordinates[n1*3]);
             glNormal3fv(&normals[n2*3]);
@@ -1655,7 +1646,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
             break;
     }
     
-    uint8_t rgb[3];
+    uint8_t rgba[4];
 
     float pointSize = dps->getNodeSize();
     if (isSelect) {
@@ -1670,8 +1661,8 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
         const int32_t i3 = i * 3;
         
         if (isSelect) {
-            this->colorIdentification->addItem(rgb, SelectionItemDataTypeEnum::SURFACE_NODE, i);
-            glColor3ubv(rgb);
+            this->colorIdentification->addItem(rgba, SelectionItemDataTypeEnum::SURFACE_NODE, i);
+            glColor3ubv(rgba);
             glNormal3fv(&normals[i3]);
             glVertex3fv(&coordinates[i3]);
         }
@@ -1837,7 +1828,8 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     
     const std::vector<IdentifiedItemNode> identifiedNodes = idManager->getNodeIdentifiedItemsForSurface(structure,
                                                                                                         numNodes);
-    uint8_t idRGB[4];
+    uint8_t idRGBA[4];
+    
     for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
          iter != identifiedNodes.end();
          iter++) {
@@ -1847,24 +1839,25 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         const float symbolDiameter = nodeID.getSymbolSize();
         
         if (isSelect) {
-            this->colorIdentification->addItem(idRGB,
+            this->colorIdentification->addItem(idRGBA,
                                                SelectionItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL,
                                                nodeIndex);
-            glColor3ubv(idRGB);
         }
         else {
             if (structure == nodeID.getStructure()) {
-                glColor3fv(nodeID.getSymbolRGB());
+                nodeID.getSymbolRGBA(idRGBA);
             }
             else {
-                glColor3fv(nodeID.getContralateralSymbolRGB());
+                nodeID.getContralateralSymbolRGB(idRGBA);
             }
         }
+        idRGBA[3] = 255;
         
         const int32_t i3 = nodeIndex * 3;
         glPushMatrix();
         glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
-        this->drawSphereWithDiameter(symbolDiameter);
+        this->drawSphereWithDiameter(idRGBA,
+                                     symbolDiameter);
         glPopMatrix();
     }
     
@@ -2002,18 +1995,29 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         || drawSquarePoints) {
         for (int32_t i = 0; i < numPointsToDraw; i++) {
             const int32_t i3 = i * 3;
+            
+            const float* xyz = &pointXYZ[i3];
+            glPushMatrix();
+            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            
             if (borderDrawInfo.isSelect) {
-                uint8_t idRGB[3];
-                this->colorIdentification->addItem(idRGB, 
+                uint8_t idRGBA[4];
+                this->colorIdentification->addItem(idRGBA,
                                                    SelectionItemDataTypeEnum::BORDER_SURFACE, 
                                                    borderDrawInfo.borderFileIndex,
                                                    borderDrawInfo.borderIndex,
                                                    pointIndex[i]);
-                glColor3ubv(idRGB);
+                idRGBA[3] = 255;
+                if (drawSphericalPoints) {
+                    this->drawSphereWithDiameter(idRGBA,
+                                                 pointDiameter);
+                }
+                else {
+                    this->drawSquare(idRGBA,
+                                     pointDiameter);
+                }
             }
             else {
-                glColor3fv(borderDrawInfo.rgba);
-                
                 if (isHighlightEndPoints) {
                     if (i == 0) {
                         glColor3f(0.0, 1.0, 0.0);
@@ -2022,17 +2026,16 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                         glColor3f(0.0, 1.0, 0.0);
                     }
                 }
+                if (drawSphericalPoints) {
+                    this->drawSphereWithDiameter(borderDrawInfo.rgba,
+                                                 pointDiameter);
+                }
+                else {
+                    this->drawSquare(borderDrawInfo.rgba,
+                                     pointDiameter);
+                }
             }
             
-            const float* xyz = &pointXYZ[i3];
-            glPushMatrix();
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
-            if (drawSphericalPoints) {
-                this->drawSphereWithDiameter(pointDiameter);
-            }
-            else {
-                this->drawSquare(pointDiameter);
-            }
             glPopMatrix();
         }
     }
@@ -2053,13 +2056,13 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
              */
             for (int32_t i = 1; i < numPointsToDraw; i++) {
                 const int32_t i3 = i * 3;
-                uint8_t idRGB[3];
-                this->colorIdentification->addItem(idRGB, 
+                uint8_t idRGBA[4];
+                this->colorIdentification->addItem(idRGBA,
                                                    SelectionItemDataTypeEnum::BORDER_SURFACE, 
                                                    borderDrawInfo.borderFileIndex,
                                                    borderDrawInfo.borderIndex,
                                                    pointIndex[i]);
-                glColor3ubv(idRGB);
+                glColor3ubv(idRGBA);
                 
                 const float* xyz1 = &pointXYZ[i3 - 3];
                 const float* xyz2 = &pointXYZ[i3];
@@ -2264,24 +2267,37 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     }
                     
                     if (drawIt) {
+                        glPushMatrix();
+                        glTranslatef(xyz[0], xyz[1], xyz[2]);
+                        
                         if (isSelect) {
-                            uint8_t idRGB[3];
-                            this->colorIdentification->addItem(idRGB, 
+                            uint8_t idRGBA[4];
+                            this->colorIdentification->addItem(idRGBA,
                                                                SelectionItemDataTypeEnum::FOCUS_SURFACE, 
                                                                i, // file index
                                                                j, // focus index
                                                                k);// projection index
-                            glColor3ubv(idRGB);
-                        }
-                        
-                        glPushMatrix();
-                        glTranslatef(xyz[0], xyz[1], xyz[2]);
-                        if (drawAsSpheres) {
-                            this->drawSphereWithDiameter(focusDiameter);
+                            idRGBA[3] = 255;
+                            if (drawAsSpheres) {
+                                this->drawSphereWithDiameter(idRGBA,
+                                                             focusDiameter);
+                            }
+                            else {
+                                this->drawSquare(idRGBA,
+                                                 focusDiameter);
+                            }
                         }
                         else {
-                            this->drawSquare(focusDiameter);
+                            if (drawAsSpheres) {
+                                this->drawSphereWithDiameter(rgba,
+                                                             focusDiameter);
+                            }
+                            else {
+                                this->drawSquare(rgba,
+                                                 focusDiameter);
+                            }
                         }
+                        
                         glPopMatrix();
                     }
                 }                
@@ -2619,6 +2635,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                               brain,
                               volumeDrawInfo);
     
+    const bool useNewVolumeDrawingFlag = true;
+    
     if (volumeDrawInfo.empty() == false) {
         //VolumeSliceCoordinateSelection* selectedSlices = volumeController->getSelectedVolumeSlices(tabNumber);
         
@@ -2636,7 +2654,15 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
         const VolumeSliceViewModeEnum::Enum sliceViewMode = browserTabContent->getSliceViewMode();
         switch (sliceViewMode) {
             case VolumeSliceViewModeEnum::MONTAGE:
-            {
+            if (useNewVolumeDrawingFlag) {
+                BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                obliqueDrawing.draw(this,
+                                    browserTabContent,
+                                    volumeDrawInfo,
+                                    sliceViewMode,
+                                    viewport);
+            }
+            else {
                 const int numRows = browserTabContent->getMontageNumberOfRows();
                 CaretAssert(numRows > 0);
                 const int numCols = browserTabContent->getMontageNumberOfColumns();
@@ -2796,12 +2822,19 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 break;
             case VolumeSliceViewModeEnum::ORTHOGONAL:
             {
-                const bool useNewVolumeDrawingFlag = true;
-                
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = browserTabContent->getSliceViewPlane();
                 switch (slicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
-                    {
+                    if (useNewVolumeDrawingFlag) {
+                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            obliqueDrawing.draw(this,
+                                                browserTabContent,
+                                                volumeDrawInfo,
+                                                sliceViewMode,
+                                                viewport);
+                            
+                    }
+                    else {
                         const int halfX = viewport[2] / 2;
                         const int halfY = viewport[3] / 2;
                         
@@ -3604,7 +3637,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                 }
             }
             else {
-                uint8_t rgb[3];
+                uint8_t rgba[4];
                 std::vector<float> idVoxelCoordinates;
                 int64_t idVoxelCounter = 0;
                 if (isSelect) {
@@ -3627,10 +3660,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 const float y1 = minVoxelY + (voxelStepY * j);
                                 const float y2 = y1 + voxelStepY;
                                 if (isSelect) {
-                                    this->colorIdentification->addItem(rgb,
+                                    this->colorIdentification->addItem(rgba,
                                                                        SelectionItemDataTypeEnum::VOXEL,
                                                                        idVoxelCounter);
-                                    glColor3ubv(rgb);
+                                    glColor3ubv(rgba);
                                     
                                     idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
                                     idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
@@ -3660,10 +3693,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 const float z1 = minVoxelZ + (voxelStepZ * k);
                                 const float z2 = z1 + voxelStepZ;
                                 if (isSelect) {
-                                    this->colorIdentification->addItem(rgb,
+                                    this->colorIdentification->addItem(rgba,
                                                                        SelectionItemDataTypeEnum::VOXEL,
                                                                        idVoxelCounter);
-                                    glColor3ubv(rgb);
+                                    glColor3ubv(rgba);
                                     
                                     idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
                                     idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
@@ -3693,10 +3726,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 const float z1 = minVoxelZ + (voxelStepZ * k);
                                 const float z2 = z1 + voxelStepZ;
                                 if (isSelect) {
-                                    this->colorIdentification->addItem(rgb,
+                                    this->colorIdentification->addItem(rgba,
                                                                        SelectionItemDataTypeEnum::VOXEL,
                                                                        idVoxelCounter);
-                                    glColor3ubv(rgb);
+                                    glColor3ubv(rgba);
                                     
                                     idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
                                     idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
@@ -3947,11 +3980,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                 identificationIndices.push_back(iVoxel);
                                 identificationIndices.push_back(jVoxel);
                                 identificationIndices.push_back(kVoxel);
-
-                                glColor3ubv(rgba);
-                            }
-                            else {
-                                glColor4ubv(rgba);
                             }
                             
                             const float x = iVoxel * dx + originX;
@@ -3961,10 +3989,10 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                             glTranslatef(x, y, z);
                             switch (volInfo.wholeBrainVoxelDrawingMode) {
                                 case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
-                                    drawCuboid(dx, dy, dz);
+                                    drawCuboid(rgba, dx, dy, dz);
                                     break;
                                 case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
-                                    drawRoundedCuboid(dx, dy, dz);
+                                    drawRoundedCuboid(rgba, dx, dy, dz);
                                     break;
                                 case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
                                     break;
@@ -4411,7 +4439,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
 //        }
 //    }
 //    else {
-//        uint8_t rgb[3];
+//        uint8_t rgb[4];
 //        std::vector<float> idVoxelCoordinates;
 //        int64_t idVoxelCounter = 0;
 //        if (isSelect) {
@@ -5087,7 +5115,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
         }
     }
     else {
-        uint8_t rgb[3];
+        uint8_t rgba[4];
         std::vector<float> idVoxelCoordinates;
         int64_t idVoxelCounter = 0;
         if (isSelect) {
@@ -5114,10 +5142,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                             const float y1 = minVoxelY + (voxelStepY * j);
                             const float y2 = y1 + voxelStepY;
                             if (isSelect) {
-                                this->colorIdentification->addItem(rgb,
+                                this->colorIdentification->addItem(rgba,
                                                                    SelectionItemDataTypeEnum::VOXEL,
                                                                    idVoxelCounter);
-                                glColor3ubv(rgb);
+                                glColor3ubv(rgba);
                                 
                                 idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
                                 idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
@@ -5150,10 +5178,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                             const float z1 = minVoxelZ + (voxelStepZ * k);
                             const float z2 = z1 + voxelStepZ;
                             if (isSelect) {
-                                this->colorIdentification->addItem(rgb,
+                                this->colorIdentification->addItem(rgba,
                                                                    SelectionItemDataTypeEnum::VOXEL,
                                                                    idVoxelCounter);
-                                glColor3ubv(rgb);
+                                glColor3ubv(rgba);
                                 
                                 idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
                                 idVoxelCoordinates.push_back(y1); // coord of slice is not offset by half voxel
@@ -5185,10 +5213,10 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceWholeBrain(const VolumeSliceV
                             const float z1 = minVoxelZ + (voxelStepZ * k);
                             const float z2 = z1 + voxelStepZ;
                             if (isSelect) {
-                                this->colorIdentification->addItem(rgb,
+                                this->colorIdentification->addItem(rgba,
                                                                    SelectionItemDataTypeEnum::VOXEL,
                                                                    idVoxelCounter);
-                                glColor3ubv(rgb);
+                                glColor3ubv(rgba);
                                 
                                 idVoxelCoordinates.push_back(x1); // coord of slice is not offset by half voxel
                                 idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
@@ -5666,23 +5694,35 @@ BrainOpenGLFixedPipeline::drawVolumeFoci(Brain* brain,
                     }
                     
                     if (drawIt) {
+                        glPushMatrix();
+                        glTranslatef(xyz[0], xyz[1], xyz[2]);
+                        
                         if (isSelect) {
-                            uint8_t idRGB[3];
-                            this->colorIdentification->addItem(idRGB,
+                            uint8_t idRGBA[4];
+                            this->colorIdentification->addItem(idRGBA,
                                                                SelectionItemDataTypeEnum::FOCUS_VOLUME,
                                                                iFile, // file index
                                                                j, // focus index
                                                                k);// projection index
-                            glColor3ubv(idRGB);
-                        }
-                        
-                        glPushMatrix();
-                        glTranslatef(xyz[0], xyz[1], xyz[2]);
-                        if (drawAsSpheres) {
-                            this->drawSphereWithDiameter(focusDiameter);
+                            idRGBA[3] = 255;
+                            if (drawAsSpheres) {
+                                this->drawSphereWithDiameter(idRGBA,
+                                                             focusDiameter);
+                            }
+                            else {
+                                this->drawSquare(idRGBA,
+                                                 focusDiameter);
+                            }
                         }
                         else {
-                            this->drawSquare(focusDiameter);
+                            if (drawAsSpheres) {
+                                this->drawSphereWithDiameter(rgba,
+                                                             focusDiameter);
+                            }
+                            else {
+                                this->drawSquare(rgba,
+                                                 focusDiameter);
+                            }
                         }
                         glPopMatrix();
                     }
@@ -6355,6 +6395,8 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                         break;
                 }
                 
+                float fiberRGBA[4] = { 0.0, 0.0, 0.0, 0.0 };
+                
                 /*
                  * Color of fiber
                  */
@@ -6395,6 +6437,10 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                                           fiber->m_directionUnitVectorRGB[1],
                                           fiber->m_directionUnitVectorRGB[2],
                                           alpha);
+                                fiberRGBA[0] = fiber->m_directionUnitVectorRGB[0];
+                                fiberRGBA[1] = fiber->m_directionUnitVectorRGB[1];
+                                fiberRGBA[2] = fiber->m_directionUnitVectorRGB[2];
+                                fiberRGBA[3] = alpha;
                                 break;
                         }
                         break;
@@ -6406,6 +6452,10 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                                   rgb[1],
                                   rgb[2],
                                   alpha);
+                        fiberRGBA[0] = rgb[0];
+                        fiberRGBA[1] = rgb[1];
+                        fiberRGBA[2] = rgb[2];
+                        fiberRGBA[3] = alpha;
                     }
                         break;
                 }
@@ -6440,7 +6490,7 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                         glScalef(majorAxis * 2.0,
                                  minorAxis * 2.0,
                                  vectorLength);
-                        m_shapeCone->draw();
+                        m_shapeCone->draw(fiberRGBA);
                         glPopMatrix();
                         
                         /*
@@ -6454,7 +6504,7 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                         glScalef(majorAxis * 2.0,
                                  minorAxis * 2.0,
                                  vectorLength);
-                        m_shapeCone->draw();
+                        m_shapeCone->draw(fiberRGBA);
                         glPopMatrix();
                         
                     }
@@ -6757,6 +6807,8 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
 
 /**
  * Draw a cone with an elliptical shape.
+ * @param rgba
+ *    Color of cone.
  * @param baseXYZ
  *    Location of the base (flat wide) part of the cone
  * @param apexXYZ
@@ -6775,7 +6827,8 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
  *    If true, draw the cone backwards (rotated 180 degrees).
  */
 void
-BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
+BrainOpenGLFixedPipeline::drawEllipticalCone(const float rgba[4],
+                                             const float baseXYZ[3],
                                              const float apexXYZ[3],
                                              const float baseRadiusScaling,
                                              const float baseMajorAngleIn,
@@ -6862,13 +6915,15 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
     glScalef(majorAxis * 2.0,
              minorAxis * 2.0,
              z);
-    m_shapeCone->draw();
+    m_shapeCone->draw(rgba);
     glPopMatrix();
     glPopMatrix();
 }
 
 /**
  * Draw a cone with an elliptical shape.
+ * @param rgba
+ *    Color of cone.
  * @param bottomXYZ
  *    Location of the bottom of the cylinder.
  * @param topXYZ
@@ -6877,7 +6932,8 @@ BrainOpenGLFixedPipeline::drawEllipticalCone(const float baseXYZ[3],
  *    Radius of the cylinder.
  */
 void
-BrainOpenGLFixedPipeline::drawCylinder(const float bottomXYZ[3],
+BrainOpenGLFixedPipeline::drawCylinder(const float rgba[4],
+                                       const float bottomXYZ[3],
                                        const float topXYZ[3],
                                        const float radius)
 {
@@ -6930,7 +6986,7 @@ BrainOpenGLFixedPipeline::drawCylinder(const float bottomXYZ[3],
     glScalef(radius * 2.0,
              radius * 2.0,
              z);
-    m_shapeCylinder->draw();
+    m_shapeCylinder->draw(rgba);
     glPopMatrix();
     glPopMatrix();    
 }
@@ -7752,36 +7808,62 @@ BrainOpenGLFixedPipeline::setSelectedItemScreenXYZ(SelectionItem* item,
 /**
  * Draw sphere.
  *
+ * @param rgba
+ *    Color for drawing.
  * @param diameter
  *    Diameter of the sphere.
  */
 void 
-BrainOpenGLFixedPipeline::drawSphereWithDiameter(const double diameter)
+BrainOpenGLFixedPipeline::drawSphereWithDiameter(const float rgba[4],
+                                                 const double diameter)
 {
     glPushMatrix();
     glScaled(diameter, diameter, diameter);
-    m_shapeSphere->draw();
+    m_shapeSphere->draw(rgba);
+    glPopMatrix();
+}
+
+/**
+ * Draw sphere.
+ *
+ * @param rgba
+ *    Color for drawing.
+ * @param diameter
+ *    Diameter of the sphere.
+ */
+void
+BrainOpenGLFixedPipeline::drawSphereWithDiameter(const uint8_t rgba[4],
+                                                 const double diameter)
+{
+    glPushMatrix();
+    glScaled(diameter, diameter, diameter);
+    m_shapeSphere->draw(rgba);
     glPopMatrix();
 }
 
 /**
  * Draw cube.
  *
+ * @param rgba
+ *    Color for drawing.
  * @param cubeSize
  *    Size of the cube (distance from one face to its opposite face).
  */
 void
-BrainOpenGLFixedPipeline::drawCube(const double cubeSize)
+BrainOpenGLFixedPipeline::drawCube(const float rgba[4],
+                                   const double cubeSize)
 {
     glPushMatrix();
     glScaled(cubeSize, cubeSize, cubeSize);
-    m_shapeCube->draw();
+    m_shapeCube->draw(rgba);
     glPopMatrix();
 }
 
 /**
  * Draw a cuboid (3D Box)
  *
+ * @param rgba
+ *    Color for drawing.
  * @param sizeX
  *    X-Size of the cube (distance from -X face to its +X face).
  * @param sizeY
@@ -7790,34 +7872,40 @@ BrainOpenGLFixedPipeline::drawCube(const double cubeSize)
  *    Z-Size of the cube (distance from -Z face to its +X face).
  */
 void
-BrainOpenGLFixedPipeline::drawCuboid(const double sizeX,
+BrainOpenGLFixedPipeline::drawCuboid(const uint8_t rgba[4],
+                                     const double sizeX,
                                      const double sizeY,
                                      const double sizeZ)
 {
     glPushMatrix();
     glScaled(sizeX, sizeY, sizeZ);
-    m_shapeCube->draw();
+    m_shapeCube->draw(rgba);
     glPopMatrix();
 }
 
 /**
  * Draw cube.
  *
+ * @param rgba
+ *    Color for drawing.
  * @param cubeSize
  *    Size of the cube (distance from one face to its opposite face).
  */
 void
-BrainOpenGLFixedPipeline::drawRoundedCube(const double cubeSize)
+BrainOpenGLFixedPipeline::drawRoundedCube(const float rgba[4],
+                                          const double cubeSize)
 {
     glPushMatrix();
     glScaled(cubeSize, cubeSize, cubeSize);
-    m_shapeCubeRounded->draw();
+    m_shapeCubeRounded->draw(rgba);
     glPopMatrix();
 }
 
 /**
  * Draw a cuboid (3D Box)
  *
+ * @param rgba
+ *    Color for drawing.
  * @param sizeX
  *    X-Size of the cube (distance from -X face to its +X face).
  * @param sizeY
@@ -7826,13 +7914,14 @@ BrainOpenGLFixedPipeline::drawRoundedCube(const double cubeSize)
  *    Z-Size of the cube (distance from -Z face to its +X face).
  */
 void
-BrainOpenGLFixedPipeline::drawRoundedCuboid(const double sizeX,
+BrainOpenGLFixedPipeline::drawRoundedCuboid(const uint8_t rgba[4],
+                                            const double sizeX,
                                      const double sizeY,
                                      const double sizeZ)
 {
     glPushMatrix();
     glScaled(sizeX, sizeY, sizeZ);
-    m_shapeCubeRounded->draw();
+    m_shapeCubeRounded->draw(rgba);
     glPopMatrix();
 }
 
@@ -7843,18 +7932,69 @@ BrainOpenGLFixedPipeline::drawRoundedCuboid(const double sizeX,
  * to enclose the call to this method within
  * glPushMatrix() and glPopMatrix().
  *
+ * @param rgba
+ *     RGBA coloring ranging 0.0 to 1.0.
  * @param size
  *     Size of square.
  */
 void 
-BrainOpenGLFixedPipeline::drawSquare(const float size)
+BrainOpenGLFixedPipeline::drawSquare(const float rgba[4],
+                                     const float size)
 {
     if (this->inverseRotationMatrixValid) {
+        glColor4fv(rgba);
+        
         /*
          * Remove any rotation 
          */
         glMultMatrixd(this->inverseRotationMatrix);
 
+        glScalef(size, size, size);
+        
+        /*
+         * Draw both front and back side since in some instances,
+         * such as surface montage, we are viweing from the far
+         * side (from back of monitor)
+         */
+        glBegin(GL_QUADS);
+        glNormal3f(0.0, 0.0, 1.0);
+        glVertex3f(-0.5, -0.5, 0.0);
+        glVertex3f( 0.5, -0.5, 0.0);
+        glVertex3f( 0.5,  0.5, 0.0);
+        glVertex3f(-0.5,  0.5, 0.0);
+        glNormal3f(0.0, 0.0, -1.0);
+        glVertex3f(-0.5, -0.5, 0.0);
+        glVertex3f(-0.5,  0.5, 0.0);
+        glVertex3f( 0.5,  0.5, 0.0);
+        glVertex3f( 0.5, -0.5, 0.0);
+        glEnd();
+    }
+}
+
+/**
+ * Draw a one millimeter square facing the user.
+ * NOTE: This method will alter the current
+ * modelviewing matrices so caller may need
+ * to enclose the call to this method within
+ * glPushMatrix() and glPopMatrix().
+ *
+ * @param rgba
+ *     RGBA coloring ranging 0 to 255.
+ * @param size
+ *     Size of square.
+ */
+void
+BrainOpenGLFixedPipeline::drawSquare(const uint8_t rgba[4],
+                                     const float size)
+{
+    if (this->inverseRotationMatrixValid) {
+        glColor4ubv(rgba);
+        
+        /*
+         * Remove any rotation
+         */
+        glMultMatrixd(this->inverseRotationMatrix);
+        
         glScalef(size, size, size);
         
         /*

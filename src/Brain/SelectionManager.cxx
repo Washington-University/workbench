@@ -23,15 +23,7 @@
  * 
  */ 
 
-#ifdef CARET_OS_WINDOWS
-#include <Windows.h>
-#endif
-
-#ifdef CARET_OS_MACOSX
-#include <OpenGL/glu.h>
-#else
-#include <GL/glu.h>
-#endif
+#include "CaretOpenGLInclude.h"
 #include <cmath>
 #include <limits>
 

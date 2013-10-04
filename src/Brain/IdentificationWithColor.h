@@ -38,13 +38,13 @@ namespace caret {
         
         virtual ~IdentificationWithColor();
         
-        void addItem(uint8_t rgbOut[3],
+        void addItem(uint8_t rgbOut[4],
                      const SelectionItemDataTypeEnum::Enum dataType,
                      const int32_t index1,
                      const int32_t index2 = -1,
                      const int32_t index3 = -1);
         
-        void getItem(const uint8_t rgb[3],
+        void getItem(const uint8_t rgb[4],
                      const SelectionItemDataTypeEnum::Enum dataType,
                      int32_t* index1Out,
                      int32_t* index2Out = NULL,

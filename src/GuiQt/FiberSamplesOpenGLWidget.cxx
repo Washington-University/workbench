@@ -311,11 +311,17 @@ FiberSamplesOpenGLWidget::paintGL()
     /*
      * Sphere
      */
-    glColor3f(0.7,
-              0.7,
-              0.7);
+//    glColor3f(0.7,
+//              0.7,
+//              0.7);
 
-    m_sphereBig->draw();
+    const float rgba[4] = {
+        0.7,
+        0.7,
+        0.7,
+        1.0
+    };
+    m_sphereBig->draw(rgba);
     
     glDisable(GL_LIGHTING);
     glDisable(GL_COLOR_MATERIAL);
@@ -370,23 +376,27 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 xVectors[i].direction[2] * s_sphereBigRadius
             };
             
+            float rgba[4] = { 0.0, 0.0, 0.0, 255.0 };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                    glColor3f(1.0, 0.0, 0.0);
-
+                    //glColor3f(1.0, 0.0, 0.0);
+                    rgba[0] = 1.0;
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                    glColor3fv(xVectors[i].rgb);
+                    //glColor3fv(xVectors[i].rgb);
+                    rgba[0] = xVectors[i].rgb[0];
+                    rgba[1] = xVectors[i].rgb[1];
+                    rgba[2] = xVectors[i].rgb[2];
                     break;
             }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_sphereSmall->draw();
+            m_sphereSmall->draw(rgba);
             glPopMatrix();
             
             glPushMatrix();
             glTranslatef(-xyz[0], -xyz[1], -xyz[2]);
-            m_sphereSmall->draw();
+            m_sphereSmall->draw(rgba);
             glPopMatrix();
         }
         
@@ -403,23 +413,27 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 yVectors[i].direction[1] * s_sphereBigRadius,
                 yVectors[i].direction[2] * s_sphereBigRadius
             };
+            float rgba[4] = { 0.0, 0.0, 0.0, 255.0 };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                    glColor3f(0.0, 0.0, 1.0);  // BLUE (RBG!)
-                    
+                    //glColor3f(0.0, 0.0, 1.0);  // BLUE (RBG!)
+                    rgba[2] = 1.0;
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                    glColor3fv(yVectors[i].rgb);
+                    //glColor3fv(yVectors[i].rgb);
+                    rgba[0] = yVectors[i].rgb[0];
+                    rgba[1] = yVectors[i].rgb[1];
+                    rgba[2] = yVectors[i].rgb[2];
                     break;
             }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_sphereSmall->draw();
+            m_sphereSmall->draw(rgba);
             glPopMatrix();
             
             glPushMatrix();
             glTranslatef(-xyz[0], -xyz[1], -xyz[2]);
-            m_sphereSmall->draw();
+            m_sphereSmall->draw(rgba);
             glPopMatrix();
         }
         
@@ -436,23 +450,27 @@ FiberSamplesOpenGLWidget::drawOrientations()
                 zVectors[i].direction[1] * s_sphereBigRadius,
                 zVectors[i].direction[2] * s_sphereBigRadius
             };
+            float rgba[4] = { 0.0, 0.0, 0.0, 255.0 };
             switch (coloringType) {
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
-                    glColor3f(0.0, 1.0, 0.0);  // GREEN (RBG!)
-                    
+                    //glColor3f(0.0, 1.0, 0.0);  // GREEN (RBG!)
+                    rgba[1] = 1.0;
                     break;
                 case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                    glColor3fv(zVectors[i].rgb);
+                    //glColor3fv(zVectors[i].rgb);
+                    rgba[0] = zVectors[i].rgb[0];
+                    rgba[1] = zVectors[i].rgb[1];
+                    rgba[2] = zVectors[i].rgb[2];
                     break;
             }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
-            m_sphereSmall->draw();
+            m_sphereSmall->draw(rgba);
             glPopMatrix();
             
             glPushMatrix();
             glTranslatef(-xyz[0], -xyz[1], -xyz[2]);
-            m_sphereSmall->draw();
+            m_sphereSmall->draw(rgba);
             glPopMatrix();
         }
         
@@ -488,25 +506,32 @@ FiberSamplesOpenGLWidget::drawOrientations()
                         continue;
                     }
 
+                    float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
                     switch (coloringType) {
                         case FiberOrientationColoringTypeEnum::FIBER_COLORING_FIBER_INDEX_AS_RGB:
                         {
                             const int32_t colorIndex = j % 3;
                             switch (colorIndex) {
                                 case 0:
-                                    glColor3f(1.0, 0.0, 0.0);
+                                    rgba[0] = 1.0;
+                                    //glColor3f(1.0, 0.0, 0.0);
                                     break;
                                 case 1:
-                                    glColor3f(0.0, 0.0, 1.0);
+                                    rgba[2] = 1.0;
+                                    //glColor3f(0.0, 0.0, 1.0);
                                     break;
                                 case 2:
-                                    glColor3f(0.0, 1.0, 0.0);
+                                    rgba[1] = 1.0;
+                                    //glColor3f(0.0, 1.0, 0.0);
                                     break;
                             }
                         }
                             break;
                         case FiberOrientationColoringTypeEnum::FIBER_COLORING_XYZ_AS_RGB:
-                            glColor3fv(fiber->m_directionUnitVectorRGB);
+                            //glColor3fv(fiber->m_directionUnitVectorRGB);
+                            rgba[0] = fiber->m_directionUnitVectorRGB[0];
+                            rgba[1] = fiber->m_directionUnitVectorRGB[1];
+                            rgba[2] = fiber->m_directionUnitVectorRGB[2];
                             break;
                     }
                     
@@ -538,7 +563,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
                     glScalef(majorAxis * 4.0,
                              minorAxis * 4.0,
                              1.0);
-                    m_ring->draw();
+                    m_ring->draw(rgba);
                     glPopMatrix();
                     
                     glPushMatrix();
@@ -546,7 +571,7 @@ FiberSamplesOpenGLWidget::drawOrientations()
                     glScalef(majorAxis * 4.0,
                              minorAxis * 4.0,
                              1.0);
-                    m_ring->draw();
+                    m_ring->draw(rgba);
                     glPopMatrix();
                     
                     glPopMatrix();

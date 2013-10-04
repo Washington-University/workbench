@@ -59,7 +59,12 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     protected:
-        void drawShape(const BrainOpenGL::DrawMode drawMode);
+        void drawShape(const BrainOpenGL::DrawMode drawMode,
+                       const uint8_t rgba[4]);
+        
+        void drawShape(const BrainOpenGL::DrawMode drawMode,
+                       const float rgba[4]);
+        
         
         void setupShape(const BrainOpenGL::DrawMode drawMode);
         
@@ -83,6 +88,8 @@ namespace caret {
         std::vector<GLfloat> m_normals;
         
         std::vector<GLuint> m_triangleStrip;        
+
+        bool m_isApplyColoring;
     };
     
 #ifdef __BRAIN_OPEN_GL_SHAPE_RING_DECLARE__

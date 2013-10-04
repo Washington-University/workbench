@@ -223,6 +223,7 @@ namespace caret {
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const Plane& plane,
+                                 const int32_t montageSliceIndex,
                                  std::vector<int32_t>& identificationIndices,
                                  const int32_t idPerVoxelCount,
                                  const bool isSelectionMode);
@@ -263,7 +264,9 @@ namespace caret {
         
         void drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const DRAW_MODE drawMode,
+                                      const int32_t montageSliceIndex,
                                       const int viewport[4]);
+        void drawSliceMontage(const int viewport[4]);
         
         void drawLines(const std::vector<float>& coordinates,
                        const std::vector<uint8_t>& rgbaColors,
@@ -285,21 +288,24 @@ namespace caret {
         void setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                  const DRAW_MODE drawMode,
                                                   Plane& planeOut,
+                                                 const int32_t montageSliceIndex,
                                                   Matrix4x4& obliqueTransformationMatrixOut);
 
         void drawDebugSquare();
         
-        void drawAxesCrosshairs(const VolumeMappableInterface* volume,
+        void drawAxesCrosshairs(const Matrix4x4& transformationMatrix,
+                                const VolumeMappableInterface* volume,
                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                const VolumeSliceViewModeEnum::Enum sliceViewMode);
-        
-        void drawAxesLabels(const VolumeMappableInterface* volume,
-                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                            const VolumeSliceViewModeEnum::Enum sliceViewMode,
-                            const int32_t viewport[4]);
+                                const DRAW_MODE drawMode);
         
         void getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                           float rgbaOut[4]) const;
+        
+        void getAxesTextLabelsXYZ(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                  const float axesStartXYZ[3],
+                                  const float axesEndXYZ[3],
+                                  float axesTextStartXYZ[3],
+                                  float axesTextEndXYZ[3]) const;
         
         // ADD_NEW_MEMBERS_HERE
 

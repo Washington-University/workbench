@@ -49,10 +49,9 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-        /**
-         * Draw the shape.
-         */
-        void draw();
+        void draw(const uint8_t rgba[4]);
+        
+        void draw(const float rgba[4]);
         
         static void setImmediateModeOverride(const bool override);
         
@@ -79,8 +78,22 @@ namespace caret {
          *
          * @param drawMode
          *    How the shape will be drawn.
+         * @param rgba
+         *    RGBA coloring ranging 0 to 255.
          */
-        virtual void drawShape(const BrainOpenGL::DrawMode drawMode) = 0;
+        virtual void drawShape(const BrainOpenGL::DrawMode drawMode,
+                               const uint8_t rgba[4]) = 0;
+        
+        /**
+         * Draw the shape using the given drawing mode.
+         *
+         * @param drawMode
+         *    How the shape will be drawn.
+         * @param rgba
+         *    RGBA coloring ranging 0.0 to 1.0.
+         */
+        virtual void drawShape(const BrainOpenGL::DrawMode drawMode,
+                               const float rgba[4]) = 0;
         
         GLuint createBufferID();
         

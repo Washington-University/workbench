@@ -62,6 +62,7 @@ BrainOpenGLShapeSphere::BrainOpenGLShapeSphere(const int32_t numberOfLatitudeAnd
 {
     m_displayList    = 0;
     m_vertexBufferID = 0;
+    m_isApplyColoring = true;
 }
 
 /**
@@ -194,7 +195,11 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             if (m_displayList > 0) {
                 glNewList(m_displayList,
                           GL_COMPILE);
-                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE);
+                uint8_t rgbaUnused[4] = { 0.0, 0.0, 0.0, 0.0 };
+                m_isApplyColoring = false;
+                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
+                          rgbaUnused);
+                m_isApplyColoring = true;
                 glEndList();
             }
         }
@@ -259,13 +264,45 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
 }
 
 /**
- * Draw the sphere.
+ * Draw the shape.
+ *
  * @param drawMode
  *   How to draw the shape.
+ * @param rgba
+ *   RGBA coloring ranging 0.0 to 1.0
  */
 void
-BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode)
+BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode,
+                                const float rgba[4])
 {
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    drawShape(drawMode,
+              rgbaByte);
+}
+
+/**
+ * Draw the shape.
+ *
+ * @param drawMode
+ *   How to draw the shape.
+ * @param rgba
+ *   RGBA coloring ranging 0 to 255.
+ */
+void
+BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode,
+                                  const uint8_t rgba[4])
+{
+    if (m_isApplyColoring) {
+        glColor4ubv(rgba);
+    }
+    
+    
     bool useOneTriangleStrip = true;
     
     switch (drawMode) {

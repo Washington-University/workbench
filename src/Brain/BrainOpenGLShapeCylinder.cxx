@@ -59,13 +59,13 @@ m_numberOfSides(numberOfSides)
     m_displayList    = 0;
     
     m_coordinatesBufferID = 0;
-    m_coordinatesRGBABufferID =0;
-    m_sidesNormalBufferID = 0;
-    m_sidesTriangleStripBufferID = 0;
-    m_topCapNormalBufferID = 0;
-    m_topCapTriangleFanBufferID = 0;
-    m_bottomCapNormalBufferID = 0;
-    m_bottomCapTriangleFanBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
+    m_coordinatesRgbaFloatBufferID = 0;
+    
+    m_normalsBufferID = 0;
+    m_triangleStripBufferID = 0;
+    
+    m_isApplyColoring = true;
 }
 
 /**
@@ -78,7 +78,7 @@ BrainOpenGLShapeCylinder::~BrainOpenGLShapeCylinder()
 void
 BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
-    bool debugFlag = false;
+//    bool debugFlag = false;
     
     
     /*
@@ -93,18 +93,30 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
     const float zTop =     1.0;
     const float zBottom =  0.0;
     
+    std::vector<GLuint> topTriangleStripVertices;
+    std::vector<GLuint> bottomTriangleStripVertices;
+    std::vector<GLuint> sideTriangleStripVertices;
+    
     /*
      * Counts vertices
      */
-    int32_t vertexCounter = 0;
+    GLuint vertexCounter = 0;
     
-    const float topNormalX = 0.0;
-    const float topNormalY = 0.0;
-    const float topNormalZ = 1.0;
-    
-    const float bottomNormalX =  0.0;
-    const float bottomNormalY =  0.0;
-    const float bottomNormalZ = -1.0;
+//    const float topCenterNormalX = 0.0;
+//    const float topCenterNormalY = 0.0;
+//    const float topCenterNormalZ = 1.0;
+//    
+//    const float topCenterX = 0.0;
+//    const float topCenterY = 0.0;
+//    const float topCenterZ = 1.0;
+//    
+//    const float bottomCenterNormalX =  0.0;
+//    const float bottomCenterNormalY =  0.0;
+//    const float bottomCenterNormalZ = -1.0;
+//    
+//    const float bottomCenterX =  0.0;
+//    const float bottomCenterY =  0.0;
+//    const float bottomCenterZ = -1.0;
     
 //    /*
 //     * Center of top
@@ -112,10 +124,10 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
 //    m_coordinates.push_back(0.0);
 //    m_coordinates.push_back(0.0);
 //    m_coordinates.push_back(1.0);
-//    m_topNormals.push_back(topNormalX);
-//    m_topNormals.push_back(topNormalY);
-//    m_topNormals.push_back(topNormalZ);
-//    m_topTriangleFan.push_back(vertexCounter);
+//    m_normals.push_back(topCenterNormalX);
+//    m_normals.push_back(topCenterNormalY);
+//    m_normals.push_back(topCenterNormalZ);
+//    m_normals.push_back(vertexCounter);
 //    vertexCounter++;
 //    
 //    /*
@@ -124,13 +136,13 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
 //    m_coordinates.push_back(0.0);
 //    m_coordinates.push_back(0.0);
 //    m_coordinates.push_back(-1.0);
-//    m_bottomNormals.push_back(bottomNormalX);
-//    m_bottomNormals.push_back(bottomNormalY);
-//    m_bottomNormals.push_back(bottomNormalZ);
-//    m_bottomTriangleFan.push_back(vertexCounter);
+//    m_normals.push_back(bottomCenterNormalX);
+//    m_normals.push_back(bottomCenterNormalY);
+//    m_normals.push_back(bottomCenterNormalZ);
+//    m_normals.push_back(vertexCounter);
 //    vertexCounter++;
     
-    const int32_t firstSideVertex = vertexCounter;
+    const GLuint firstSideVertex = vertexCounter;
     
     /*
      * Generate points around cylinder
@@ -142,77 +154,105 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
         const float x = radius * std::cos(t);
         const float y = radius * std::sin(t);
 
+        /*
+         * Top of slice
+         */
         m_coordinates.push_back(x);
         m_coordinates.push_back(y);
         m_coordinates.push_back(zTop);
-        
-        m_sidesNormals.push_back(x);
-        m_sidesNormals.push_back(y);
-        m_sidesNormals.push_back(0.0);
-        m_sidesTriangleStrip.push_back(vertexCounter);
-
-        m_topNormals.push_back(topNormalX);
-        m_topNormals.push_back(topNormalY);
-        m_topNormals.push_back(topNormalZ);
-        m_topTriangleFan.push_back(vertexCounter);
-
+        m_normals.push_back(x);
+        m_normals.push_back(y);
+        m_normals.push_back(0.0);
+        sideTriangleStripVertices.push_back(vertexCounter);
         vertexCounter++;
+        
+        
+//        m_normals.push_back(topCenterNormalX);
+//        m_normals.push_back(topCenterNormalY);
+//        m_normals.push_back(topCenterNormalZ);
+//        m_topTriangleFan.push_back(vertexCounter);
         
         m_coordinates.push_back(x);
         m_coordinates.push_back(y);
         m_coordinates.push_back(zBottom);
-        
-        m_sidesNormals.push_back(x);
-        m_sidesNormals.push_back(y);
-        m_sidesNormals.push_back(0.0);
-        m_sidesTriangleStrip.push_back(vertexCounter);
-        
-        m_bottomNormals.push_back(bottomNormalX);
-        m_bottomNormals.push_back(bottomNormalY);
-        m_bottomNormals.push_back(bottomNormalZ);
-        m_bottomTriangleFan.push_back(vertexCounter);
-        
+        m_normals.push_back(x);
+        m_normals.push_back(y);
+        m_normals.push_back(0.0);
+        sideTriangleStripVertices.push_back(vertexCounter);
         vertexCounter++;
+        
+//        m_bottomNormals.push_back(bottomCenterNormalX);
+//        m_bottomNormals.push_back(bottomCenterNormalY);
+//        m_bottomNormals.push_back(bottomCenterNormalZ);
+//        m_bottomTriangleFan.push_back(vertexCounter);
+//        vertexCounter++;
     }
 
-    CaretAssert((vertexCounter * 3) == static_cast<int32_t>(m_coordinates.size()));
     /*
      * Finish cylinder by specifying first two coordinates again
      */
-    m_sidesTriangleStrip.push_back(firstSideVertex);
-    m_sidesTriangleStrip.push_back(firstSideVertex + 1);
+    const GLuint firstVertexIndex = firstSideVertex * 3;
+    m_coordinates.push_back(m_coordinates[firstVertexIndex]);
+    m_coordinates.push_back(m_coordinates[firstVertexIndex+1]);
+    m_coordinates.push_back(m_coordinates[firstVertexIndex+2]);
+    m_normals.push_back(m_normals[firstVertexIndex]);
+    m_normals.push_back(m_normals[firstVertexIndex+1]);
+    m_normals.push_back(m_normals[firstVertexIndex+2]);
+    sideTriangleStripVertices.push_back(vertexCounter);
+    vertexCounter++;
     
-    /*
-     * Finish top and bottom
-     * Note bottom vertices need to be reverse so that 
-     * that the vertices are counter clockwise when pointing down.
-     */
-    m_topNormals.push_back(m_topNormals[0]);
-    m_topNormals.push_back(m_topNormals[1]);
-    m_topNormals.push_back(m_topNormals[2]);
-    m_topTriangleFan.push_back(firstSideVertex);
-
-    m_bottomNormals.push_back(m_bottomNormals[0]);
-    m_bottomNormals.push_back(m_bottomNormals[1]);
-    m_bottomNormals.push_back(m_bottomNormals[2]);
-    m_bottomTriangleFan.push_back(firstSideVertex + 1);
-    std::reverse(m_bottomTriangleFan.begin(),
-                 m_bottomTriangleFan.end());
-
-    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
-    CaretAssert(m_sidesNormals.size() == ((m_sidesTriangleStrip.size() - 2) * 3));
-    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
+    m_coordinates.push_back(m_coordinates[firstVertexIndex+3]);
+    m_coordinates.push_back(m_coordinates[firstVertexIndex+4]);
+    m_coordinates.push_back(m_coordinates[firstVertexIndex+5]);
+    m_normals.push_back(m_normals[firstVertexIndex+3]);
+    m_normals.push_back(m_normals[firstVertexIndex+4]);
+    m_normals.push_back(m_normals[firstVertexIndex+5]);
+    sideTriangleStripVertices.push_back(vertexCounter);
+    vertexCounter++;
+    
+    CaretAssert((vertexCounter * 3) == static_cast<GLuint>(m_coordinates.size()));
+    CaretAssert((vertexCounter * 3) == static_cast<GLuint>(m_normals.size()));
+    
+    m_triangleStrip = sideTriangleStripVertices;
+    
+//    /*
+//     * Finish top and bottom
+//     * Note bottom vertices need to be reverse so that 
+//     * that the vertices are counter clockwise when pointing down.
+//     */
+//    m_topNormals.push_back(m_topNormals[0]);
+//    m_topNormals.push_back(m_topNormals[1]);
+//    m_topNormals.push_back(m_topNormals[2]);
+//    m_topTriangleFan.push_back(firstSideVertex);
+//
+//    m_bottomNormals.push_back(m_bottomNormals[0]);
+//    m_bottomNormals.push_back(m_bottomNormals[1]);
+//    m_bottomNormals.push_back(m_bottomNormals[2]);
+//    m_bottomTriangleFan.push_back(firstSideVertex + 1);
+//    std::reverse(m_bottomTriangleFan.begin(),
+//                 m_bottomTriangleFan.end());
+//
+//    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
+//    CaretAssert(m_sidesNormals.size() == ((m_sidesTriangleStrip.size() - 2) * 3));
+//    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
 
     /*
      * Create storage for colors
      */
-    m_coordinatesRGBA.resize(vertexCounter * 4, 0.0);
-    for (int32_t i = 0; i < vertexCounter; i++) {
+    m_rgbaByte.resize(vertexCounter * 4, 0);
+    m_rgbaFloat.resize(vertexCounter * 4, 0.0);
+    for (GLuint i = 0; i < vertexCounter; i++) {
         const int32_t i4 = i * 4;
-        m_coordinatesRGBA[i4] = 0.0;
-        m_coordinatesRGBA[i4+1] = 0.0;
-        m_coordinatesRGBA[i4+2] = 1.0;
-        m_coordinatesRGBA[i4+3] = 1.0;
+
+        m_rgbaFloat[i4]   = 0.0;
+        m_rgbaFloat[i4+1] = 0.0;
+        m_rgbaFloat[i4+2] = 0.0;
+        m_rgbaFloat[i4+3] = 1.0;
+        
+        m_rgbaByte[i4]   = 0;
+        m_rgbaByte[i4+1] = 0;
+        m_rgbaByte[i4+2] = 0;
+        m_rgbaByte[i4+3] = 255;
     }
         
     switch (drawMode) {
@@ -223,7 +263,11 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
             if (m_displayList > 0) {
                 glNewList(m_displayList,
                           GL_COMPILE);
-                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE);
+                uint8_t rgbaUnused[4] = { 0.0, 0.0, 0.0, 0.0 };
+                m_isApplyColoring = false;
+                drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
+                          rgbaUnused);
+                m_isApplyColoring = true;
                 glEndList();
             }
         }
@@ -253,81 +297,48 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
                              GL_STATIC_DRAW);
                 
                 /*
-                 * Put colors into its buffer
+                 * Put BYTE colors into its buffer
                  */
-                m_coordinatesRGBABufferID = createBufferID();
+                m_coordinatesRgbaByteBufferID = createBufferID();
                 glBindBuffer(GL_ARRAY_BUFFER,
-                             m_coordinatesRGBABufferID);
+                             m_coordinatesRgbaByteBufferID);
                 glBufferData(GL_ARRAY_BUFFER,
-                             m_coordinatesRGBA.size() * sizeof(GLfloat),
-                             &m_coordinatesRGBA[0],
+                             m_rgbaByte.size() * sizeof(GLubyte),
+                             &m_rgbaByte[0],
+                             GL_DYNAMIC_DRAW);
+                
+                /*
+                 * Put FLOAT colors into its buffer
+                 */
+                m_coordinatesRgbaFloatBufferID = createBufferID();
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             m_coordinatesRgbaFloatBufferID);
+                glBufferData(GL_ARRAY_BUFFER,
+                             m_rgbaFloat.size() * sizeof(GLfloat),
+                             &m_rgbaFloat[0],
                              GL_DYNAMIC_DRAW);
                 
                 
                 /*
                  * Put side normals into its buffer.
                  */
-                m_sidesNormalBufferID = createBufferID();
+                m_normalsBufferID = createBufferID();
                 glBindBuffer(GL_ARRAY_BUFFER,
-                             m_sidesNormalBufferID);
+                             m_normalsBufferID);
                 glBufferData(GL_ARRAY_BUFFER,
-                             m_sidesNormals.size() * sizeof(GLfloat),
-                             &m_sidesNormals[0],
+                             m_normals.size() * sizeof(GLfloat),
+                             &m_normals[0],
                              GL_STATIC_DRAW);
                 
                 /*
                  * Put sides triangle strip for sides into its buffer.
                  */
-                m_sidesTriangleStripBufferID = createBufferID();
+                m_triangleStripBufferID = createBufferID();
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                             m_sidesTriangleStripBufferID);
+                             m_triangleStripBufferID);
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                             m_sidesTriangleStrip.size() * sizeof(GLuint),
-                             &m_sidesTriangleStrip[0],
-                             GL_STATIC_DRAW);
-                
-                /*
-                 * Put top cap normals into its buffer.
-                 */
-                m_topCapNormalBufferID = createBufferID();
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             m_topCapNormalBufferID);
-                glBufferData(GL_ARRAY_BUFFER,
-                             m_topNormals.size() * sizeof(GLfloat),
-                             &m_topNormals[0],
-                             GL_STATIC_DRAW);
-                
-                /*
-                 * Put top cap triangle fan for cap into its buffer.
-                 */
-                m_topCapTriangleFanBufferID = createBufferID();
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                             m_topCapTriangleFanBufferID);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                             m_topTriangleFan.size() * sizeof(GLuint),
-                             &m_topTriangleFan[0],
-                             GL_STATIC_DRAW);
-                
-                /*
-                 * Put bottom cap normals into its buffer.
-                 */
-                m_bottomCapNormalBufferID = createBufferID();
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             m_bottomCapNormalBufferID);
-                glBufferData(GL_ARRAY_BUFFER,
-                             m_bottomNormals.size() * sizeof(GLfloat),
-                             &m_bottomNormals[0],
-                             GL_STATIC_DRAW);
-                
-                /*
-                 * Put bottom cap triangle fan for cap into its buffer.
-                 */
-                m_bottomCapTriangleFanBufferID = createBufferID();
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                             m_bottomCapTriangleFanBufferID);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                             m_bottomTriangleFan.size() * sizeof(GLuint),
-                             &m_bottomTriangleFan[0],
+                             m_triangleStrip.size() * sizeof(GLuint),
+                             &m_triangleStrip[0],
                              GL_STATIC_DRAW);
                 
                 /*
@@ -344,13 +355,49 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
 }
 
 /**
+ * Draw the shape.
+ *
+ * @param drawMode
+ *   How to draw the shape.
+ * @param rgba
+ *   RGBA coloring ranging 0.0 to 1.0
+ */
+void
+BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode,
+                                const float rgba[4])
+{
+    const uint8_t rgbaByte[4] = {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        static_cast<uint8_t>(rgba[3] * 255.0)
+    };
+    
+    drawShape(drawMode,
+              rgbaByte);
+}
+
+/**
+ * Draw the shape.
+ *
+ * @param drawMode
+ *   How to draw the shape.
+ * @param rgba
+ *   RGBA coloring ranging 0 to 255.
+ */
+/**
  * Draw the cone.
  * @param drawMode
  *   How to draw the shape.
  */
 void
-BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode)
+BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode,
+                                    const uint8_t rgba[4])
 {
+    if (m_isApplyColoring) {
+        glColor4ubv(rgba);
+    }
+    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
@@ -408,21 +455,21 @@ BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode)
             /*
              * Draw the sides
              */
-            const int32_t numSideVertices = static_cast<int32_t>(m_sidesTriangleStrip.size());
+            const int32_t numSideVertices = static_cast<int32_t>(m_triangleStrip.size());
             glBegin(GL_TRIANGLE_STRIP);
             for (int32_t i = 0; i < numSideVertices; i++) {
-                CaretAssertVectorIndex(m_sidesTriangleStrip, i);
-                const int32_t stripIndex = m_sidesTriangleStrip[i];
+                CaretAssertVectorIndex(m_triangleStrip, i);
+                const int32_t stripIndex = m_triangleStrip[i];
                 const int32_t coordinateOffset = stripIndex * 3;
-                const int32_t colorOffset = stripIndex * 4;
+                //const int32_t colorOffset = stripIndex * 4;
                 const int32_t normalOffset = stripIndex * 3;
                 
                 CaretAssertVectorIndex(m_coordinates, coordinateOffset + 2);
-                CaretAssertVectorIndex(m_sidesNormals, normalOffset + 2);
-                CaretAssertVectorIndex(m_coordinatesRGBA, colorOffset + 3);
+                CaretAssertVectorIndex(m_normals, normalOffset + 2);
+                //CaretAssertVectorIndex(m_rgba, colorOffset + 3);
                 
-                glColor4fv(&m_coordinatesRGBA[colorOffset]);
-                glNormal3fv(&m_sidesNormals[normalOffset]);
+                //glColor4ubv(&m_rgba[colorOffset]);
+                glNormal3fv(&m_normals[normalOffset]);
                 glVertex3fv(&m_coordinates[coordinateOffset]);
             }
             glEnd();
@@ -454,20 +501,30 @@ BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode)
                                 (GLvoid*)0);
                 
                 /*
-                 * Set color components for drawing
+                 * Set BYTE color components for drawing
                  */
                 glBindBuffer(GL_ARRAY_BUFFER,
-                             m_coordinatesRGBABufferID);
+                             m_coordinatesRgbaByteBufferID);
                 glColorPointer(4,
-                                GL_FLOAT,
+                                GL_UNSIGNED_BYTE,
                                 0,
                                 (GLvoid*)0);
+                
+                /*
+                 * Set FLOAT color components for drawing
+                 */
+                glBindBuffer(GL_ARRAY_BUFFER,
+                             m_coordinatesRgbaFloatBufferID);
+                glColorPointer(4,
+                               GL_FLOAT,
+                               0,
+                               (GLvoid*)0);
                 
                 /*
                  * Set the side normal vectors for drawing.
                  */
                 glBindBuffer(GL_ARRAY_BUFFER,
-                             m_sidesNormalBufferID);
+                             m_normalsBufferID);
                 glNormalPointer(GL_FLOAT,
                                 0,
                                 (GLvoid*)0);
@@ -476,46 +533,18 @@ BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode)
                  * Draw the side triangle strip.
                  */
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                             m_sidesTriangleStripBufferID);
+                             m_triangleStripBufferID);
                 glDrawElements(GL_TRIANGLE_STRIP,
-                               m_sidesTriangleStrip.size(),
+                               m_triangleStrip.size(),
                                GL_UNSIGNED_INT,
                                (GLvoid*)0);
-                /*
-                 * Set the top cap normal vectors for drawing.
-                 */
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             m_topCapNormalBufferID);
-                glNormalPointer(GL_FLOAT,
-                                0,
-                                (GLvoid*)0);
-                
-                /*
-                 * Draw the top cap triangle fans.
-                 */
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                             m_topCapTriangleFanBufferID);
-                glDrawElements(GL_TRIANGLE_FAN,
-                               m_topTriangleFan.size(),
-                               GL_UNSIGNED_INT,
-                               (GLvoid*)0);
-                
-                /*
-                 * Set the bottom cap normal vectors for drawing.
-                 */
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             m_bottomCapNormalBufferID);
-                glNormalPointer(GL_FLOAT,
-                                0,
-                                (GLvoid*)0);
-                
                 /*
                  * Draw the bottom cap triangle fans.
                  */
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                             m_bottomCapTriangleFanBufferID);
-                glDrawElements(GL_TRIANGLE_FAN,
-                               m_bottomTriangleFan.size(),
+                             m_triangleStripBufferID);
+                glDrawElements(GL_TRIANGLE_STRIP,
+                               m_triangleStrip.size(),
                                GL_UNSIGNED_INT,
                                (GLvoid*)0);
                 

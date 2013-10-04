@@ -76,6 +76,10 @@ namespace caret {
         
         const float* getContralateralSymbolRGB() const;
         
+        void getSymbolRGBA(uint8_t rgbaOut[4]) const;
+        
+        void getContralateralSymbolRGB(uint8_t rgbaOut[4]) const;
+        
         float getSymbolSize() const;
         
         void setSymbolRGB(const float* rgb);

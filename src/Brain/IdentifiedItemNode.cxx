@@ -266,6 +266,36 @@ IdentifiedItemNode::getContralateralSymbolRGB() const
 }
 
 /**
+ * Get color for the identification symbol.
+ *
+ * @param rgbaOut
+ *    RGBA ranging 0 to 255.
+ */
+void
+IdentifiedItemNode::getSymbolRGBA(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_symbolRGB[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_symbolRGB[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_symbolRGB[2] * 255.0);
+    rgbaOut[3] = 255;
+}
+
+/**
+ * Get color for the contralateral identification symbol.
+ *
+ * @param rgbaOut
+ *    RGBA ranging 0 to 255.
+ */
+void
+IdentifiedItemNode::getContralateralSymbolRGB(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_contralateralSymbolRGB[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_contralateralSymbolRGB[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_contralateralSymbolRGB[2] * 255.0);
+    rgbaOut[3] = 255;
+}
+
+/**
  * @return  The size of the symbol.
  */
 float
