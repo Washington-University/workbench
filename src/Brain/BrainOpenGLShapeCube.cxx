@@ -99,12 +99,12 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
         {  0.5,  0.5, -0.5 }  // 7: right, far, bottom
     };
     
-    const GLfloat halfCubeSize = m_cubeSize * 0.5;
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 3; j++) {
-            cubeVertices[i][j] *= halfCubeSize;
-        }
-    }
+//    const GLfloat halfCubeSize = m_cubeSize * 0.5;
+//    for (int i = 0; i < 8; i++) {
+//        for (int j = 0; j < 3; j++) {
+//            cubeVertices[i][j] *= halfCubeSize;
+//        }
+//    }
     
     const GLint lnt = 0;
     const GLint rnt = 1;

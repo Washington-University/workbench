@@ -3933,6 +3933,14 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
         const float dy = y1 - originY;
         const float dz = z1 - originZ;
         
+        /*
+         * Cube size for voxel drawing.  Some volumes may have a right to left
+         * orientation in which case dx may be negative.
+         */
+        const float cubeSizeDX = std::fabs(dx);
+        const float cubeSizeDY = std::fabs(dy);
+        const float cubeSizeDZ = std::fabs(dz);
+        
         std::vector<float> labelMapData;
         const CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<const CiftiBrainordinateLabelFile*>(volumeFile);
         if (ciftiLabelFile != NULL) {
@@ -3989,10 +3997,10 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                             glTranslatef(x, y, z);
                             switch (volInfo.wholeBrainVoxelDrawingMode) {
                                 case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_THREE_D_CUBES:
-                                    drawCuboid(rgba, dx, dy, dz);
+                                    drawCuboid(rgba, cubeSizeDX, cubeSizeDY, cubeSizeDZ);
                                     break;
                                 case WholeBrainVoxelDrawingMode::DRAW_VOXELS_AS_ROUNDED_THREE_D_CUBES:
-                                    drawRoundedCuboid(rgba, dx, dy, dz);
+                                    drawRoundedCuboid(rgba, cubeSizeDX, cubeSizeDY, cubeSizeDZ);
                                     break;
                                 case WholeBrainVoxelDrawingMode::DRAW_VOXELS_ON_TWO_D_SLICES:
                                     break;
