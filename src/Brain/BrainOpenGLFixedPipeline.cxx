@@ -157,7 +157,7 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     }
     if (m_shapeCylinder != NULL) {
         delete m_shapeCylinder;
-        m_shapeCylinder;
+        m_shapeCylinder = NULL;
     }
     if (m_shapeCube != NULL) {
         delete m_shapeCube;
