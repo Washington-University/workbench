@@ -5038,25 +5038,26 @@ BrainOpenGLFPVolumeObliqueDrawing::getAxesTextLabelsXYZ(const VolumeSliceViewPla
                           float axesTextStartXYZ[3],
                           float axesTextEndXYZ[3]) const
 {
-    const float labelsOffset = 5.0;
-    
     float startOffset[3] = { 0.0, 0.0, 0.0 };
     float endOffset[3] = { 0.0, 0.0, 0.0 };
     
-    int32_t axesIndex = -1;
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            axesIndex = 2;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            axesIndex = 1;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            axesIndex = 0;
-            break;
-    }
+//    const float labelsOffset = 5.0;
+//
+//
+//    int32_t axesIndex = -1;
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            axesIndex = 2;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            axesIndex = 1;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            axesIndex = 0;
+//            break;
+//    }
     
 //    if (axesStartXYZ[axesIndex] > axesEndXYZ[axesIndex]) {
 //        startOffset[axesIndex] =  labelsOffset;
@@ -5067,9 +5068,10 @@ BrainOpenGLFPVolumeObliqueDrawing::getAxesTextLabelsXYZ(const VolumeSliceViewPla
 //        endOffset[axesIndex]   =  labelsOffset;
 //    }
     
+    const float offsetScale = 0.04;
     for (int32_t i = 0; i < 3; i++) {
-        startOffset[i] = 0.1 * axesStartXYZ[i];
-        endOffset[i]   = 0.1 * axesEndXYZ[i];
+        startOffset[i] = offsetScale * axesStartXYZ[i];
+        endOffset[i]   = offsetScale * axesEndXYZ[i];
     }
     
     axesTextStartXYZ[0] = axesStartXYZ[0] + startOffset[0];
