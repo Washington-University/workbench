@@ -61,7 +61,7 @@ namespace caret {
                   const int viewport[4]);
     private:
         enum DRAW_MODE {
-            DRAW_MODE_ALL_VIEW,
+            DRAW_MODE_ALL_STRUCTURES_VIEW,
             DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
             DRAW_MODE_VOLUME_VIEW_SLICE_3D
         };
@@ -223,10 +223,7 @@ namespace caret {
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const Plane& plane,
-                                 const int32_t montageSliceIndex,
-                                 std::vector<int32_t>& identificationIndices,
-                                 const int32_t idPerVoxelCount,
-                                 const bool isSelectionMode);
+                                 const int32_t montageSliceIndex);
         
         void drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const float sliceNormalVector[3],
@@ -239,18 +236,13 @@ namespace caret {
                                        const std::vector<uint8_t>& sliceRGBA,
                                        const int32_t volumeIndex,
                                        const int32_t mapIndex,
-                                       const uint8_t sliceOpacity,
-                                       std::vector<int32_t>& identificationIndices,
-                                        const int32_t idPerVoxelCount,
-                                       const bool isIdentificationMode);
+                                       const uint8_t sliceOpacity);
         
         void drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                               const Plane& plane,
-                             std::vector<int32_t>& identificationIndices,
-                             const int32_t idPerVoxelCount,
+                              const DRAW_MODE drawMode,
                              const Matrix4x4& transformationMatrix,
-                             const float zoom,
-                             const bool isIdentificationMode);
+                             const float zoom);
         
 //        void drawSlicesForAllSlicesView(const int viewport[4],
 //                                  const DRAW_MODE drawMode);
@@ -293,6 +285,12 @@ namespace caret {
 
         void drawDebugSquare();
         
+        void drawLayers(const Plane& slicePlane,
+                        const Matrix4x4& transformationMatrix,
+                        const VolumeMappableInterface* volume,
+                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                        const DRAW_MODE drawMode);
+        
         void drawAxesCrosshairs(const Matrix4x4& transformationMatrix,
                                 const VolumeMappableInterface* volume,
                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -306,6 +304,17 @@ namespace caret {
                                   const float axesEndXYZ[3],
                                   float axesTextStartXYZ[3],
                                   float axesTextEndXYZ[3]) const;
+        
+        void resetIdentification(const int32_t estimatedNumberOfItems);
+        
+        void addVoxelToIdentification(const int32_t volumeIndex,
+                                      const int32_t mapIndex,
+                                      const int32_t voxelI,
+                                      const int32_t voxelJ,
+                                      const int32_t voxelK,
+                                      uint8_t rgbaForColorIdentificationOut[4]);
+        
+        void processIdentification();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -330,10 +339,16 @@ namespace caret {
         double m_orthographicBounds[6];
         
         VolumeSliceViewModeEnum::Enum m_sliceViewMode;
+        
+        std::vector<int32_t> m_identificationIndices;
+        
+        bool m_identificationModeFlag;
+        
+        static const int32_t IDENTIFICATION_INDICES_PER_VOXEL;
     };
     
 #ifdef __BRAIN_OPEN_G_L_F_P_VOLUME_OBLIQUE_DRAWING_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t BrainOpenGLFPVolumeObliqueDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 5;
 #endif // __BRAIN_OPEN_G_L_F_P_VOLUME_OBLIQUE_DRAWING_DECLARE__
 
 } // namespace

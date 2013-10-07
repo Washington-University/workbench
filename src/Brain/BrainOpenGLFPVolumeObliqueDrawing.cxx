@@ -115,6 +115,8 @@ BrainOpenGLFPVolumeObliqueDrawing::~BrainOpenGLFPVolumeObliqueDrawing()
  *   Content of the browser tab being drawn.
  * @param volumeDrawInfo
  *   Vector containing about volumes selected as overlays for drawing.
+ * @param sliceViewMode
+ *   Slice viewing mode.
  * @param viewport
  *   Viewport in which drawing takes place.
  */
@@ -182,11 +184,13 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     
     if (browserTabContent->getDisplayedVolumeModel() != NULL) {
         bool drawMontageView = false;
+        bool drawThreeSliceView = false;
         switch (sliceViewMode) {
             case VolumeSliceViewModeEnum::MONTAGE:
                 drawMontageView = true;
                 break;
             case VolumeSliceViewModeEnum::OBLIQUE:
+                drawThreeSliceView = true;
                 break;
             case VolumeSliceViewModeEnum::ORTHOGONAL:
                 break;
@@ -255,13 +259,15 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     };
                     
                     
-                    glLoadIdentity();
-                    drawAllThreeSlicesForVolumeSliceView(allVP);
-                    //                drawSlicesForAllSlicesView(allVP,
-                    //                                     DRAW_MODE_VOLUME_VIEW_SLICE_3D);
-                    //            drawSurfaces(fixedPipelineDrawing,
-                    //                         browserTabContent,
-                    //                         allVP);
+                    if (drawThreeSliceView) {
+                        //glLoadIdentity();
+                        drawAllThreeSlicesForVolumeSliceView(allVP);
+                        //                drawSlicesForAllSlicesView(allVP,
+                        //                                     DRAW_MODE_VOLUME_VIEW_SLICE_3D);
+                        //            drawSurfaces(fixedPipelineDrawing,
+                        //                         browserTabContent,
+                        //                         allVP);
+                    }
                     
                 }
                     break;
@@ -282,25 +288,25 @@ BrainOpenGLFPVolumeObliqueDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
     if (browserTabContent->getDisplayedWholeBrainModel() != NULL) {
         drawSlicesForAllStructuresView(viewport);
 
-//        setOrthographicBounds(DRAW_MODE_ALL_VIEW);
+//        setOrthographicBounds(DRAW_MODE_ALL_STRUCTURES_VIEW);
 //        if (m_browserTabContent->isSliceAxialEnabled()) {
 //            glPushMatrix();
 //            drawSlice(VolumeSliceViewPlaneEnum::AXIAL,
-//                      DRAW_MODE_ALL_VIEW);
+//                      DRAW_MODE_ALL_STRUCTURES_VIEW);
 //            glPopMatrix();
 //        }
 //        
 //        if (m_browserTabContent->isSliceCoronalEnabled()) {
 //            glPushMatrix();
 //            drawSlice(VolumeSliceViewPlaneEnum::CORONAL,
-//                      DRAW_MODE_ALL_VIEW);
+//                      DRAW_MODE_ALL_STRUCTURES_VIEW);
 //            glPopMatrix();
 //        }
 //        
 //        if (m_browserTabContent->isSliceParasagittalEnabled()) {
 //            glPushMatrix();
 //            drawSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-//                      DRAW_MODE_ALL_VIEW);
+//                      DRAW_MODE_ALL_STRUCTURES_VIEW);
 //            glPopMatrix();
 //        }
         
@@ -416,34 +422,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceMontage(const int viewport[4])
                                          DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
                                          sliceIndex,
                                          vp);
-//                this->setViewportAndOrthographicProjection(vp,
-//                                                           ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
-//                this->applyViewingTransformationsVolumeSlice(volumeController,
-//                                                             this->windowTabIndex,
-//                                                             slicePlane);
-//                this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane,
-//                                                            sliceIndex,
-//                                                            volumeDrawInfo);
-//                this->drawVolumeSurfaceOutlines(brain,
-//                                                volumeController,
-//                                                browserTabContent,
-//                                                slicePlane,
-//                                                sliceIndex,
-//                                                underlayVolumeFile);
-//                this->drawVolumeFoci(brain,
-//                                     volumeController,
-//                                     browserTabContent,
-//                                     slicePlane,
-//                                     sliceIndex,
-//                                     underlayVolumeFile);
-//                this->drawVolumeFibers(brain,
-//                                       volumeController,
-//                                       browserTabContent,
-//                                       slicePlane,
-//                                       sliceIndex,
-//                                       underlayVolumeFile);
-//                this->drawVolumeAxesCrosshairs(slicePlane,
-//                                               selectedVoxelXYZ);
                 const float sliceCoord = (sliceOrigin
                                           + sliceThickness * sliceIndex);
                 if (showCoordinates) {
@@ -519,6 +497,12 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceMontage(const int viewport[4])
 //    }
 //}
 
+/**
+ * Draw slices for the all structures view.
+ *
+ * @param viewport
+ *    The viewport.
+ */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllStructuresView(const int viewport[4])
 {
@@ -534,7 +518,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllStructuresView(const int view
     if (m_browserTabContent->isSliceAxialEnabled()) {
         glPushMatrix();
         drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::AXIAL,
-                                 DRAW_MODE_ALL_VIEW,
+                                 DRAW_MODE_ALL_STRUCTURES_VIEW,
                                  invalidSliceIndex,
                                  viewport);
         glPopMatrix();
@@ -543,7 +527,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllStructuresView(const int view
     if (m_browserTabContent->isSliceCoronalEnabled()) {
         glPushMatrix();
         drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::CORONAL,
-                                 DRAW_MODE_ALL_VIEW,
+                                 DRAW_MODE_ALL_STRUCTURES_VIEW,
                                  invalidSliceIndex,
                                  viewport);
         glPopMatrix();
@@ -552,7 +536,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllStructuresView(const int view
     if (m_browserTabContent->isSliceParasagittalEnabled()) {
         glPushMatrix();
         drawSliceForSliceViewNEW(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                 DRAW_MODE_ALL_VIEW,
+                                 DRAW_MODE_ALL_STRUCTURES_VIEW,
                                  invalidSliceIndex,
                                  viewport);
         glPopMatrix();
@@ -589,6 +573,12 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSlicesForAllStructuresView(const int view
 //    glPopMatrix();
 //}
 
+/**
+ * Draw volume view's three slice mode for oblique drawing.
+ *
+ * @param viewport
+ *    The viewport.
+ */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawAllThreeSlicesForVolumeSliceView(const int viewport[4])
 {
@@ -696,7 +686,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawAllThreeSlicesForVolumeSliceView(const in
 //    bool updateBoundsForSliceView = false;
 //    
 //    switch (drawMode) {
-//        case DRAW_MODE_ALL_VIEW:
+//        case DRAW_MODE_ALL_STRUCTURES_VIEW:
 //            break;
 //        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
 //            updateBoundsForSliceView = true;
@@ -752,6 +742,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawAllThreeSlicesForVolumeSliceView(const in
 //    }
 //}
 
+/**
+ * Set the orthographic projection.
+ *
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param viewport
+ *    The viewport.
+ */
 void
 BrainOpenGLFPVolumeObliqueDrawing::setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                              const int viewport[4])
@@ -824,6 +822,20 @@ BrainOpenGLFPVolumeObliqueDrawing::setOrthographicProjection(const VolumeSliceVi
     glMatrixMode(GL_MODELVIEW);
 }
 
+/**
+ * Set the volume slice viewing transformation.
+ *
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param drawMode
+ *    The drawing mode for slices.
+ * @param planeOut
+ *    Plane of slice after transforms (OUTPUT)
+ * @param montageSliceIndex
+ *    For mongtage drawing, indicates slice being drawn.
+ * @param obliqueTransformationMatrixOut
+ *    Output transformation matrix for oblique viewing.
+ */
 void
 BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                        const DRAW_MODE drawMode,
@@ -834,7 +846,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
     bool isSetViewTranform = false;
     bool isSetZoom = false;
     switch (drawMode) {
-        case DRAW_MODE_ALL_VIEW:
+        case DRAW_MODE_ALL_STRUCTURES_VIEW:
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
             isSetViewTranform = true;
@@ -862,7 +874,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
     const float sliceY = m_browserTabContent->getSliceCoordinateCoronal();
     const float sliceZ = m_browserTabContent->getSliceCoordinateAxial();
     
-    float obliqueSliceOffset[3] = {
+    float sliceOffset[3] = {
         0.0,
         0.0,
         0.0
@@ -874,19 +886,19 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
             sliceNormalVector[2] = 1.0;
             upY = 1.0;
             centerZ = sliceZ;
-            obliqueSliceOffset[2] = sliceZ;
+            sliceOffset[2] = sliceZ;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             sliceNormalVector[1] = -1.0;
             upZ = 1.0;
             centerY = sliceY;
-            obliqueSliceOffset[1] = sliceY;
+            sliceOffset[1] = sliceY;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             sliceNormalVector[0] = -1.0;
             upZ = 1.0;
             centerX = sliceX;
-            obliqueSliceOffset[0] = sliceX;
+            sliceOffset[0] = sliceX;
             break;
     }
     
@@ -909,12 +921,15 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                 case VolumeSliceViewPlaneEnum::AXIAL:
+                    sliceOffset[2] = montXYZ[2];
                     centerZ = montXYZ[2];
                     break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
+                    sliceOffset[1] = montXYZ[1];
                     centerY = montXYZ[1];
                     break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    sliceOffset[0] = montXYZ[0];
                     centerX = montXYZ[0];
                     break;
             }
@@ -935,9 +950,9 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
             /*
              * Translate for selected slice
              */
-            obliqueTransformationMatrixOut.translate(obliqueSliceOffset[0],
-                                           obliqueSliceOffset[1],
-                                           obliqueSliceOffset[2]);
+            obliqueTransformationMatrixOut.translate(sliceOffset[0],
+                                           sliceOffset[1],
+                                           sliceOffset[2]);
             /*
              * Transform the slice normal vector so that it
              * points orthogonal to the slice by rotating the
@@ -988,7 +1003,15 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 //        sliceZ
 //    };
     Plane plane(sliceNormalVector,
-                obliqueSliceOffset); //pointOnPlane);
+                sliceOffset); //pointOnPlane);
+    if (montageSliceIndex >= 0) {
+        std::cout << ("Montage slice: "
+                      + AString::number(montageSliceIndex)
+                      + " Plane: "
+                      + plane.toString()
+                      + " slice offset: "
+                      + AString::fromNumbers(sliceOffset, 3, ",")) << std::endl;
+    }
     
 //    const AString msg = ("New View Transform center for "
 //                         + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
@@ -1031,7 +1054,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
     }
     
     planeOut = plane;
-} // obliqueSliceOffset
+} // montageSliceIndex
 
 
 ///**
@@ -1106,7 +1129,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 //    glPushMatrix();
 //    
 //    switch (drawMode) {
-//        case DRAW_MODE_ALL_VIEW:
+//        case DRAW_MODE_ALL_STRUCTURES_VIEW:
 //            break;
 //        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
 //            break;
@@ -1293,7 +1316,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 //
 //    bool setEyePositionFlag = false;
 //    switch (drawMode) {
-//        case DRAW_MODE_ALL_VIEW:
+//        case DRAW_MODE_ALL_STRUCTURES_VIEW:
 //            break;
 //        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
 //            setEyePositionFlag = true;
@@ -1383,7 +1406,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 //     */
 //    bool allowTransformationsFlag = false;
 //    switch (drawMode) {
-//        case DRAW_MODE_ALL_VIEW:
+//        case DRAW_MODE_ALL_STRUCTURES_VIEW:
 //            break;
 //        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
 //            allowTransformationsFlag = true;
@@ -1419,7 +1442,7 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 //    if ( ! isSelect) {
 //        bool isDrawLayers = false;
 //        switch (drawMode) {
-//            case DRAW_MODE_ALL_VIEW:
+//            case DRAW_MODE_ALL_STRUCTURES_VIEW:
 //                break;
 //            case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
 //                isDrawLayers = true;
@@ -1503,10 +1526,6 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 // *
 // * @param sliceViewPlane
 // *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
-// * @param identificationIndices
-// *   Indices into with identification information may be added.
-// * @param idPerVoxelCount
-// *   Number of items per voxel identification for identificationIndices
 // * @param transformationMatrix
 // *   Transformation matrix for screen to model.
 // * @param screenBounds
@@ -1515,8 +1534,6 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 // *   Unit normal vector of slice being drawn.
 // * @param voxelSize
 // *   Size of voxels.
-// * @param isSelectionMode
-// *   True if performing selection.
 // */
 //void
 //BrainOpenGLFPVolumeObliqueDrawing::drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -2537,6 +2554,12 @@ BrainOpenGLFPVolumeObliqueDrawing::getVoxelCoordinateBoundsAndSpacing(float boun
     return valid;
 }
 
+/**
+ * Draw surfaces in 3D.
+ *
+ * @param viewport
+ *    Viewport of drawing region.
+ */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawSurfaces(const int viewport[4])
 {
@@ -3032,72 +3055,6 @@ BrainOpenGLFPVolumeObliqueDrawing::VoxelToDraw::addVolumeValue(const int64_t sli
 }
 
 
-/* ======================================================================= */
-
-/**
- * Constructor
- *
- * @param volumeMappableInterface
- *   Volume that contains the data values.
- */
-BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
-            const int32_t mapIndex)
-{
-    m_volumeMappableInterface = volumeMappableInterface;
-    m_volumeFile = dynamic_cast<VolumeFile*>(m_volumeMappableInterface);
-    m_ciftiMappableDataFile = dynamic_cast<CiftiMappableDataFile*>(m_volumeMappableInterface);
-    
-    CaretAssert(m_volumeMappableInterface);
-    m_mapIndex = mapIndex;
-    CaretAssert(m_mapIndex >= 0);
-    
-    const int64_t sliceDim = 300;
-    const int64_t numVoxels = sliceDim * sliceDim;
-    m_values.reserve(numVoxels);
-}
-
-/**
- * Add a value and return its index.
- *
- * @param value
- *     Value that is added.
- * @return
- *     The index for the value.
- */
-int64_t
-BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::addValue(const float value)
-{
-    const int64_t indx = static_cast<int64_t>(m_values.size());
-    m_values.push_back(value);
-    return indx;
-}
-
-/**
- * Return RGBA colors for value using the value's index
- * returned by addValue().
- *
- * @param indx
- *    Index of the value.
- * @return
- *    RGBA coloring for value.
- */
-uint8_t*
-BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::getRgbaForValueByIndex(const int64_t indx)
-{
-    CaretAssertVectorIndex(m_rgba, indx * 4);
-    return &m_rgba[indx*4];
-}
-
-/**
- * Allocate colors for the voxel values
- */
-void
-BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::allocateColors()
-{
-    m_rgba.resize(m_values.size() * 4);
-}
-
-
 
 
 
@@ -3124,7 +3081,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
     bool isDrawingSlice2D = false;
     bool isSetViewport = false;
     switch (drawMode) {
-        case DRAW_MODE_ALL_VIEW:
+        case DRAW_MODE_ALL_STRUCTURES_VIEW:
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
             break;
@@ -3174,13 +3131,13 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
     /*
      * Check for a 'selection' type mode
      */
-    bool isSelect = false;
+    m_identificationModeFlag = false;
     switch (m_fixedPipelineDrawing->mode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
             if (voxelID->isEnabledForSelection()) {
-                isSelect = true;
+                m_identificationModeFlag = true;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
             else {
@@ -3200,11 +3157,12 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
      * 4) index J
      * 5) index K
      */
-    const int32_t idPerVoxelCount = 5;
-    std::vector<int32_t> identificationIndices;
-    if (isSelect) {
-        identificationIndices.reserve(10000 * idPerVoxelCount);
-    }
+    resetIdentification(10000);
+//    const int32_t idPerVoxelCount = 5;
+//    std::vector<int32_t> identificationIndices;
+//    if (isSelect) {
+//        identificationIndices.reserve(10000 * idPerVoxelCount);
+//    }
     
     /*
      * Disable culling so that both sides of the triangles/quads are drawn.
@@ -3216,53 +3174,55 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
         case VolumeSliceViewModeEnum::OBLIQUE:
             drawObliqueSlice(sliceViewPlane,
                              slicePlane,
-                             identificationIndices,
-                             idPerVoxelCount,
+                             drawMode,
                              obliqueTransformationMatrix,
-                             1.0,
-                             isSelect);
+                             1.0);
             break;
         case VolumeSliceViewModeEnum::MONTAGE:
         case VolumeSliceViewModeEnum::ORTHOGONAL:
             drawOrthogonalSlice(sliceViewPlane,
                                 slicePlane,
-                                montageSliceIndex,
-                                identificationIndices,
-                                idPerVoxelCount,
-                                isSelect);
+                                montageSliceIndex);
             break;
     }
     
     
     
     
-    if ( ! isSelect) {
+        if ( ! m_identificationModeFlag) {
             if (slicePlane.isValidPlane()) {
-                glPushMatrix();
+                drawLayers(slicePlane,
+                           obliqueTransformationMatrix,
+                           m_volumeDrawInfo[0].volumeFile,
+                           sliceViewPlane,
+                           drawMode);
                 
-                drawAxesCrosshairs(obliqueTransformationMatrix,
-                                   m_volumeDrawInfo[0].volumeFile,
-                                   sliceViewPlane,
-                                   drawMode);
                 
-                /*
-                 * Use some polygon offset that will adjust the depth values of the
-                 * foci so that the foci depth values place the foci in front of
-                 * the volume slice.
-                 */
-                glEnable(GL_POLYGON_OFFSET_FILL);
-                glPolygonOffset(0.0, 1.0);
-                
-                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
-                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
-                drawVolumeSliceFoci(slicePlane);
-                drawSurfaceOutline(slicePlane);
-                
-                glEnable(GL_POLYGON_OFFSET_FILL);
-                
-                glPopMatrix();
+//                glPushMatrix();
+//                
+//                drawAxesCrosshairs(obliqueTransformationMatrix,
+//                                   m_volumeDrawInfo[0].volumeFile,
+//                                   sliceViewPlane,
+//                                   drawMode);
+//                
+//                /*
+//                 * Use some polygon offset that will adjust the depth values of the
+//                 * foci so that the foci depth values place the foci in front of
+//                 * the volume slice.
+//                 */
+//                glEnable(GL_POLYGON_OFFSET_FILL);
+//                glPolygonOffset(0.0, 1.0);
+//                
+//                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
+//                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+//                drawVolumeSliceFoci(slicePlane);
+//                drawSurfaceOutline(slicePlane);
+//                
+//                glEnable(GL_POLYGON_OFFSET_FILL);
+//                
+//                glPopMatrix();
             }
-    }
+        }
     
     
 
@@ -3271,40 +3231,41 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
     /*
      * Process selection
      */
-    if (isSelect) {
-        int32_t identifiedItemIndex;
-        float depth = -1.0;
-        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
-                                                           m_fixedPipelineDrawing->mouseX,
-                                                           m_fixedPipelineDrawing->mouseY,
-                                                           identifiedItemIndex,
-                                                           depth);
-        if (identifiedItemIndex >= 0) {
-            const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
-            const int32_t volDrawInfoIndex = identificationIndices[idIndex];
-            CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
-            VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
-            //const int32_t mapIndex = identificationIndices[idIndex + 1];
-            const int64_t voxelIndices[3] = {
-                identificationIndices[idIndex + 2],
-                identificationIndices[idIndex + 3],
-                identificationIndices[idIndex + 4]
-            };
-            
-            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVolumeFile(vf);
-                voxelID->setVoxelIJK(voxelIndices);
-                voxelID->setScreenDepth(depth);
-                
-                float voxelCoordinates[3];
-                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                
-                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
-                                                                 voxelCoordinates);
-                CaretLogSevere("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
-            }
-        }
+    if (m_identificationModeFlag) {
+        processIdentification();
+//        int32_t identifiedItemIndex;
+//        float depth = -1.0;
+//        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+//                                                           m_fixedPipelineDrawing->mouseX,
+//                                                           m_fixedPipelineDrawing->mouseY,
+//                                                           identifiedItemIndex,
+//                                                           depth);
+//        if (identifiedItemIndex >= 0) {
+//            const int32_t idIndex = identifiedItemIndex * idPerVoxelCount;
+//            const int32_t volDrawInfoIndex = identificationIndices[idIndex];
+//            CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
+//            VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
+//            //const int32_t mapIndex = identificationIndices[idIndex + 1];
+//            const int64_t voxelIndices[3] = {
+//                identificationIndices[idIndex + 2],
+//                identificationIndices[idIndex + 3],
+//                identificationIndices[idIndex + 4]
+//            };
+//            
+//            if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+//                voxelID->setVolumeFile(vf);
+//                voxelID->setVoxelIJK(voxelIndices);
+//                voxelID->setScreenDepth(depth);
+//                
+//                float voxelCoordinates[3];
+//                vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+//                                 voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+//                
+//                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+//                                                                 voxelCoordinates);
+//                CaretLogSevere("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+//            }
+//        }
     }
     
     
@@ -3312,6 +3273,93 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
         glEnable(GL_CULL_FACE);
     }
 }
+//montageSliceIndex
+/**
+ * Draw the layers type data.
+ *
+ * @param slicePlane
+ *    Plane of the slice.
+ * @param transformationMatrix
+ *    The transformation matrix used for oblique viewing.
+ * @param volume
+ *    The underlay volume.
+ * @param sliceViewPlane
+ *    The slice view plane.
+ * @param drawMode
+ *    The slice drawing mode.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::drawLayers(const Plane& slicePlane,
+                                              const Matrix4x4& transformationMatrix,
+                                              const VolumeMappableInterface* volume,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const DRAW_MODE drawMode)
+{
+    bool drawCrosshairsFlag = true;
+    bool drawFibersFlag     = true;
+    bool drawFociFlag       = true;
+    bool drawOutlineFlag    = true;
+    
+    switch (drawMode) {
+        case DRAW_MODE_ALL_STRUCTURES_VIEW:
+            drawCrosshairsFlag = false;
+            drawFibersFlag = false;
+            drawFociFlag = false;
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            break;
+    }
+    
+    if ( ! m_identificationModeFlag) {
+        if (slicePlane.isValidPlane()) {
+            /*
+             * Disable culling so that both sides of the triangles/quads are drawn.
+             */
+            GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
+            glDisable(GL_CULL_FACE);
+            
+            glPushMatrix();
+            
+            if (drawCrosshairsFlag) {
+                drawAxesCrosshairs(transformationMatrix,
+                                   volume,
+                                   sliceViewPlane,
+                                   drawMode);
+            }
+            
+            /*
+             * Use some polygon offset that will adjust the depth values of the
+             * foci so that the foci depth values place the foci in front of
+             * the volume slice.
+             */
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(0.0, 1.0);
+            
+            if (drawFibersFlag) {
+                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
+                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+            }
+            if (drawFociFlag) {
+                drawVolumeSliceFoci(slicePlane);
+            }
+            if (drawOutlineFlag) {
+                drawSurfaceOutline(slicePlane);
+            }
+            
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            
+            glPopMatrix();
+            
+            if (cullFaceOn) {
+                glEnable(GL_CULL_FACE);
+            }
+        }
+    }
+    
+}
+
 
 /**
  * Draw an orthogonal slice.
@@ -3322,20 +3370,11 @@ BrainOpenGLFPVolumeObliqueDrawing::drawSliceForSliceViewNEW(const VolumeSliceVie
  *    The plane equation for the slice.
  * @param montageSliceIndex
  *    The montage slice for drawing in montage mode.
- * @param identificationIndices
- *    Indices used for identification.
- * @param idPerVoxelCount
- *    Number of identification items per voxel.
- * @param isIdentificationMode
- *    True if identification mode.
  */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                        const Plane& plane,
-                                                       const int32_t montageSliceIndex,
-                                                       std::vector<int32_t>& identificationIndices,
-                                                       const int32_t idPerVoxelCount,
-                                                       const bool isIdentificationMode)
+                                                       const int32_t montageSliceIndex)
 {
     
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
@@ -3673,10 +3712,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSlice(const VolumeSliceViewPlan
                                   sliceVoxelsRgbaVector,
                                   iVol,
                                   mapIndex,
-                                  volumeDrawingOpacity,
-                                  identificationIndices,
-                                  idPerVoxelCount,
-                                  isIdentificationMode);
+                                  volumeDrawingOpacity);
     }
     glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);
@@ -3709,12 +3745,6 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSlice(const VolumeSliceViewPlan
  *    Selected map in the volume being drawn.
  * @param sliceOpacity
  *    Opacity from the overlay.
- * @param identificationIndices
- *    Indices used for identification.
- * @param idPerVoxelCount
- *    Number of identification items per voxel.
- * @param isIdentificationMode
- *    True if identification mode.
  */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -3728,10 +3758,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceVi
                                                              const std::vector<uint8_t>& sliceRGBA,
                                                              const int32_t volumeIndex,
                                                              const int32_t mapIndex,
-                                                             const uint8_t sliceOpacity,
-                                                             std::vector<int32_t>& identificationIndices,
-                                                             const int32_t idPerVoxelCount,
-                                                             const bool isIdentificationMode)
+                                                             const uint8_t sliceOpacity)
 {
     const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
         
@@ -3869,7 +3896,7 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceVi
              * Draw voxel based upon opacity
              */
             if (rgba[3] > 0) {
-                if (isIdentificationMode) {
+                if (m_identificationModeFlag) {
                     /*
                      * Add info about voxel for identication.
                      */
@@ -3896,17 +3923,18 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceVi
                             voxelK = jRow;
                             break;
                     }
-                    const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-                    m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
-                                                                         SelectionItemDataTypeEnum::VOXEL,
-                                                                         idIndex);
-                    rgba[3] = 255;
-                    
-                    identificationIndices.push_back(volumeIndex);
-                    identificationIndices.push_back(mapIndex);
-                    identificationIndices.push_back(voxelI);
-                    identificationIndices.push_back(voxelJ);
-                    identificationIndices.push_back(voxelK);
+                    addVoxelToIdentification(volumeIndex, mapIndex, voxelI, voxelJ, voxelK, rgba);
+//                    const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+//                    m_fixedPipelineDrawing->colorIdentification->addItem(rgba,
+//                                                                         SelectionItemDataTypeEnum::VOXEL,
+//                                                                         idIndex);
+//                    rgba[3] = 255;
+//                    
+//                    identificationIndices.push_back(volumeIndex);
+//                    identificationIndices.push_back(mapIndex);
+//                    identificationIndices.push_back(voxelI);
+//                    identificationIndices.push_back(voxelJ);
+//                    identificationIndices.push_back(voxelK);
                 }
                 
                 /*
@@ -3986,25 +4014,19 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceVi
  *   View plane (eg axial) of slice being drawn relative to the slice's normal vector.
  * @param plane
  *   The plane equation.
- * @param identificationIndices
- *   Indices into with identification information may be added.
- * @param idPerVoxelCount
- *   Number of items per voxel identification for identificationIndices
+ * @param drawMode
+ *   The drawing mode.
  * @param transformationMatrix
  *   Transformation matrix for screen to model.
  * @param zoom
  *   The slice zooming.
- * @param isSelectionMode
- *   True if performing selection.
  */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                     const Plane& plane,
-                                                    std::vector<int32_t>& identificationIndices,
-                                                    const int32_t idPerVoxelCount,
+                                                    const DRAW_MODE drawMode,
                                                     const Matrix4x4& transformationMatrix,
-                                                    const float zoom,
-                                                    const bool isIdentificationMode)
+                                                    const float zoom)
 {
     float m[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, m);
@@ -4026,10 +4048,23 @@ BrainOpenGLFPVolumeObliqueDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
                                                     voxelSpacing)) {
         return;
     }
-    const float voxelSize = 3.0;
-//    const float voxelSize = std::min(voxelSpacing[0],
-//                                     std::min(voxelSpacing[1],
-//                                              voxelSpacing[2])); // / 5.0;
+    float voxelSize = std::min(voxelSpacing[0],
+                                     std::min(voxelSpacing[1],
+                                              voxelSpacing[2])); // / 5.0;
+    
+    /*
+     * Use a larger voxel size for the 3D view in volume slice viewing
+     * since it draws all three slices and this takes time
+     */
+    switch (drawMode) {
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            voxelSize *= 3.0;
+            break;
+        case DRAW_MODE_ALL_STRUCTURES_VIEW:
+            break;
+    }
 
     
     /*
@@ -4510,27 +4545,28 @@ BrainOpenGLFPVolumeObliqueDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
                 voxelRGBA[2] = rgba[2];
                 voxelRGBA[3] = rgba[3];
                 
-                if (isIdentificationMode) {
+                if (m_identificationModeFlag) {
                     VolumeMappableInterface* volMap = volumeSlices[sliceIndex].m_volumeMappableInterface;
                     int64_t voxelI, voxelJ, voxelK;
                     volMap->enclosingVoxel(vtd->m_center[0], vtd->m_center[1], vtd->m_center[2],
                                            voxelI, voxelJ, voxelK);
                     
                     if (volMap->indexValid(voxelI, voxelJ, voxelK)) {
-                        /*
-                         * Performing a selection?
-                         */
-                        const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
-                        m_fixedPipelineDrawing->colorIdentification->addItem(voxelRGBA,
-                                                                             SelectionItemDataTypeEnum::VOXEL,
-                                                                             idIndex);
-                        voxelRGBA[3] = 255;
-                        
-                        identificationIndices.push_back(sliceIndex);
-                        identificationIndices.push_back(volumeSlices[sliceIndex].m_mapIndex);
-                        identificationIndices.push_back(voxelI);
-                        identificationIndices.push_back(voxelJ);
-                        identificationIndices.push_back(voxelK);
+                        addVoxelToIdentification(sliceIndex, volumeSlices[sliceIndex].m_mapIndex, voxelI, voxelJ, voxelK, voxelRGBA);
+//                        /*
+//                         * Performing a selection?
+//                         */
+//                        const int32_t idIndex = identificationIndices.size() / idPerVoxelCount;
+//                        m_fixedPipelineDrawing->colorIdentification->addItem(voxelRGBA,
+//                                                                             SelectionItemDataTypeEnum::VOXEL,
+//                                                                             idIndex);
+//                        voxelRGBA[3] = 255;
+//                        
+//                        identificationIndices.push_back(sliceIndex);
+//                        identificationIndices.push_back(volumeSlices[sliceIndex].m_mapIndex);
+//                        identificationIndices.push_back(voxelI);
+//                        identificationIndices.push_back(voxelJ);
+//                        identificationIndices.push_back(voxelK);
                     }
                 }
             }
@@ -4667,6 +4703,9 @@ BrainOpenGLFPVolumeObliqueDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEn
     //drawDebugSquare();
 } // plane
 
+/**
+ * Draw a square for debugging.
+ */
 void
 BrainOpenGLFPVolumeObliqueDrawing::drawDebugSquare()
 {
@@ -4682,6 +4721,8 @@ BrainOpenGLFPVolumeObliqueDrawing::drawDebugSquare()
 /**
  * Draw the axes crosshairs.
  *
+ * @param transformationMatrix
+ *    The transformation matrix used for oblique viewing.
  * @param volume
  *    The underlay volume.
  * @param sliceViewPlane
@@ -4698,10 +4739,17 @@ BrainOpenGLFPVolumeObliqueDrawing::drawAxesCrosshairs(const Matrix4x4& transform
     bool isThreeSliceView = false;
     bool applyTransformationMatrixToAxes = false;
     switch (drawMode) {
-        case DRAW_MODE_ALL_VIEW:
+        case DRAW_MODE_ALL_STRUCTURES_VIEW:
             return;
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            if (sliceViewPlane != VolumeSliceViewPlaneEnum::AXIAL) {
+                /*
+                 * This gets called three times (once for each slice)
+                 * in this view but we only need to draw the axes once!
+                 */
+                return;
+            }
             isThreeSliceView = true;
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
@@ -4761,14 +4809,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawAxesCrosshairs(const Matrix4x4& transform
         isDrawParasagittalLabels = true;
         
         if (isThreeSliceView) {
-            if (sliceViewPlane == VolumeSliceViewPlaneEnum::PARASAGITTAL) {
+//            if (sliceViewPlane == VolumeSliceViewPlaneEnum::PARASAGITTAL) {
                 applyTransformationMatrixToAxes = true;
-            }
-            else {
-                isDrawAxialLabels = false;
-                isDrawCoronalLabels = false;
-                isDrawParasagittalLabels = false;
-            }
+//            }
+//            else {
+//                isDrawAxialLabels = false;
+//                isDrawCoronalLabels = false;
+//                isDrawParasagittalLabels = false;
+//            }
         }
         else if (isMontageView) {
             isDrawAxialLabels = false;
@@ -5077,5 +5125,178 @@ BrainOpenGLFPVolumeObliqueDrawing::getAxesColor(const VolumeSliceViewPlaneEnum::
             break;
     }
 }
+
+/**
+ * Reset for volume identification.
+ *
+ * @param estimatedNumberOfItems
+ *    Estimated number of items for identification.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::resetIdentification(const int32_t estimatedNumberOfItems)
+{
+    if (estimatedNumberOfItems > static_cast<int32_t>(m_identificationIndices.size())) {
+        m_identificationIndices.resize(estimatedNumberOfItems * IDENTIFICATION_INDICES_PER_VOXEL,
+                                       0);
+    }
+    else {
+        std::fill(m_identificationIndices.begin(),
+                  m_identificationIndices.end(),
+                  0);
+    }
+}
+
+/**
+ * Add a voxel to the identification indices.
+ *
+ * @param volumeIndex
+ *    Index of the volume.
+ * @param mapIndex
+ *    Index of the volume map.
+ * @param voxelI
+ *    Voxel Index I
+ * @param voxelJ
+ *    Voxel Index J
+ * @param voxelK
+ *    Voxel Index K
+ * @param rgbaForColorIdentificationOut
+ *    Encoded identification in RGBA color OUTPUT
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::addVoxelToIdentification(const int32_t volumeIndex,
+                                                            const int32_t mapIndex,
+                                                            const int32_t voxelI,
+                                                            const int32_t voxelJ,
+                                                            const int32_t voxelK,
+                                                            uint8_t rgbaForColorIdentificationOut[4])
+{
+    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_VOXEL;
+    
+    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
+                                                         SelectionItemDataTypeEnum::VOXEL,
+                                                         idIndex);
+    rgbaForColorIdentificationOut[3] = 255;
+    
+    /*
+     * If these items change, need to update reset and
+     * processing of identification.
+     */
+    m_identificationIndices.push_back(volumeIndex);
+    m_identificationIndices.push_back(mapIndex);
+    m_identificationIndices.push_back(voxelI);
+    m_identificationIndices.push_back(voxelJ);
+    m_identificationIndices.push_back(voxelK);
+}
+
+/**
+ * Process voxel identification.
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::processIdentification()
+{
+    int32_t identifiedItemIndex;
+    float depth = -1.0;
+    m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
+                                                       m_fixedPipelineDrawing->mouseX,
+                                                       m_fixedPipelineDrawing->mouseY,
+                                                       identifiedItemIndex,
+                                                       depth);
+    if (identifiedItemIndex >= 0) {
+        const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_VOXEL;
+        const int32_t volDrawInfoIndex = m_identificationIndices[idIndex];
+        CaretAssertVectorIndex(m_volumeDrawInfo, volDrawInfoIndex);
+        VolumeMappableInterface* vf = m_volumeDrawInfo[volDrawInfoIndex].volumeFile;
+        //const int32_t mapIndex = identificationIndices[idIndex + 1];
+        const int64_t voxelIndices[3] = {
+            m_identificationIndices[idIndex + 2],
+            m_identificationIndices[idIndex + 3],
+            m_identificationIndices[idIndex + 4]
+        };
+        
+        SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+        if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+            voxelID->setVolumeFile(vf);
+            voxelID->setVoxelIJK(voxelIndices);
+            voxelID->setScreenDepth(depth);
+            
+            float voxelCoordinates[3];
+            vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+            
+            m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                             voxelCoordinates);
+            CaretLogSevere("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+        }
+    }
+}
+
+/* ======================================================================= */
+
+/**
+ * Constructor
+ *
+ * @param volumeMappableInterface
+ *   Volume that contains the data values.
+ * @param mapIndex
+ *   Index of selected map.
+ */
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::VolumeSlice(VolumeMappableInterface* volumeMappableInterface,
+                                                            const int32_t mapIndex)
+{
+    m_volumeMappableInterface = volumeMappableInterface;
+    m_volumeFile = dynamic_cast<VolumeFile*>(m_volumeMappableInterface);
+    m_ciftiMappableDataFile = dynamic_cast<CiftiMappableDataFile*>(m_volumeMappableInterface);
+    
+    CaretAssert(m_volumeMappableInterface);
+    m_mapIndex = mapIndex;
+    CaretAssert(m_mapIndex >= 0);
+    
+    const int64_t sliceDim = 300;
+    const int64_t numVoxels = sliceDim * sliceDim;
+    m_values.reserve(numVoxels);
+}
+
+/**
+ * Add a value and return its index.
+ *
+ * @param value
+ *     Value that is added.
+ * @return
+ *     The index for the value.
+ */
+int64_t
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::addValue(const float value)
+{
+    const int64_t indx = static_cast<int64_t>(m_values.size());
+    m_values.push_back(value);
+    return indx;
+}
+
+/**
+ * Return RGBA colors for value using the value's index
+ * returned by addValue().
+ *
+ * @param indx
+ *    Index of the value.
+ * @return
+ *    RGBA coloring for value.
+ */
+uint8_t*
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::getRgbaForValueByIndex(const int64_t indx)
+{
+    CaretAssertVectorIndex(m_rgba, indx * 4);
+    return &m_rgba[indx*4];
+}
+
+/**
+ * Allocate colors for the voxel values
+ */
+void
+BrainOpenGLFPVolumeObliqueDrawing::VolumeSlice::allocateColors()
+{
+    m_rgba.resize(m_values.size() * 4);
+}
+
+
 
 
