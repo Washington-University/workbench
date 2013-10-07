@@ -1004,14 +1004,14 @@ BrainOpenGLFPVolumeObliqueDrawing::setVolumeSliceViewingTransformation(const Vol
 //    };
     Plane plane(sliceNormalVector,
                 sliceOffset); //pointOnPlane);
-    if (montageSliceIndex >= 0) {
-        std::cout << ("Montage slice: "
-                      + AString::number(montageSliceIndex)
-                      + " Plane: "
-                      + plane.toString()
-                      + " slice offset: "
-                      + AString::fromNumbers(sliceOffset, 3, ",")) << std::endl;
-    }
+//    if (montageSliceIndex >= 0) {
+//        std::cout << ("Montage slice: "
+//                      + AString::number(montageSliceIndex)
+//                      + " Plane: "
+//                      + plane.toString()
+//                      + " slice offset: "
+//                      + AString::fromNumbers(sliceOffset, 3, ",")) << std::endl;
+//    }
     
 //    const AString msg = ("New View Transform center for "
 //                         + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
@@ -3762,54 +3762,34 @@ BrainOpenGLFPVolumeObliqueDrawing::drawOrthogonalSliceVoxels(const VolumeSliceVi
 {
     const int64_t numVoxelsInSlice = numberOfColumns * numberOfRows;
         
-    if (volumeIndex == 0) {
-        const float c2[3] = {
-            coordinate[0] + columnStep[0] * numberOfColumns,
-            coordinate[1] + columnStep[1] * numberOfColumns,
-            coordinate[2] + columnStep[2] * numberOfColumns
-        };
-        
-        const float c3[3] = {
-            coordinate[0] + columnStep[0] * numberOfColumns + rowStep[0] * numberOfRows,
-            coordinate[1] + columnStep[1] * numberOfColumns + rowStep[1] * numberOfRows,
-            coordinate[2] + columnStep[2] * numberOfColumns + rowStep[2] * numberOfRows
-        };
-        
-        const float c4[3] = {
-            coordinate[0] + rowStep[0] * numberOfRows,
-            coordinate[1] + rowStep[1] * numberOfRows,
-            coordinate[2] + rowStep[2] * numberOfRows
-        };
-        
-        m_fixedPipelineDrawing->setLineWidth(3.0);
-        glColor3f(0.0, 0.0, 1.0);
-        glBegin(GL_LINE_LOOP);
-        glVertex3fv(coordinate);
-        glVertex3fv(c2);
-        glVertex3fv(c3);
-        glVertex3fv(c4);
-        glEnd();
-        
-//        /*
-//         * For debugging, draw box around oblique drawing region
-//         */
-//        {
-//            GLdouble modelMatrix[16];
-//            GLdouble projMatrix[16];
-//            double objCoord[3];
-//            GLint viewport[4];
-//            
-//            glGetIntegerv(GL_VIEWPORT, viewport);
-//            glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-//            glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-//            
-//            if (gluUnProject(0, 0, 0,
-//                             modelMatrix, projMatrix, viewport,
-//                             &objCoord[0], &objCoord[1], &objCoord[2]) == GL_TRUE) {
-//                std::cout << "Orthogonal Bottom Corner: " << qPrintable(AString::fromNumbers(objCoord, 3, ",")) << std::endl;
-//            }
-//        }
-    }
+//    if (volumeIndex == 0) {
+//        const float c2[3] = {
+//            coordinate[0] + columnStep[0] * numberOfColumns,
+//            coordinate[1] + columnStep[1] * numberOfColumns,
+//            coordinate[2] + columnStep[2] * numberOfColumns
+//        };
+//        
+//        const float c3[3] = {
+//            coordinate[0] + columnStep[0] * numberOfColumns + rowStep[0] * numberOfRows,
+//            coordinate[1] + columnStep[1] * numberOfColumns + rowStep[1] * numberOfRows,
+//            coordinate[2] + columnStep[2] * numberOfColumns + rowStep[2] * numberOfRows
+//        };
+//        
+//        const float c4[3] = {
+//            coordinate[0] + rowStep[0] * numberOfRows,
+//            coordinate[1] + rowStep[1] * numberOfRows,
+//            coordinate[2] + rowStep[2] * numberOfRows
+//        };
+//        
+//        m_fixedPipelineDrawing->setLineWidth(3.0);
+//        glColor3f(0.0, 0.0, 1.0);
+//        glBegin(GL_LINE_LOOP);
+//        glVertex3fv(coordinate);
+//        glVertex3fv(c2);
+//        glVertex3fv(c3);
+//        glVertex3fv(c4);
+//        glEnd();
+//    }
     
     /*
      * Allocate for quadrilateral drawing
@@ -4771,7 +4751,14 @@ BrainOpenGLFPVolumeObliqueDrawing::drawAxesCrosshairs(const Matrix4x4& transform
     
     CaretAssert(volume);
     
-    const float axesCrosshairRadius = 0.5;
+    float bounds[6];
+    float spacing[3];
+    getVoxelCoordinateBoundsAndSpacing(bounds, spacing);
+    const float minVoxelSize = std::min(std::min(spacing[0],
+                                                 spacing[1]),
+                                        spacing[2]);
+    
+    const float axesCrosshairRadius = 1.0 * minVoxelSize;
     
     /*
      * Ends of crosshairs
@@ -5071,13 +5058,18 @@ BrainOpenGLFPVolumeObliqueDrawing::getAxesTextLabelsXYZ(const VolumeSliceViewPla
             break;
     }
     
-    if (axesStartXYZ[axesIndex] > axesEndXYZ[axesIndex]) {
-        startOffset[axesIndex] =  labelsOffset;
-        endOffset[axesIndex]   = -labelsOffset;
-    }
-    else {
-        startOffset[axesIndex] = -labelsOffset;
-        endOffset[axesIndex]   =  labelsOffset;
+//    if (axesStartXYZ[axesIndex] > axesEndXYZ[axesIndex]) {
+//        startOffset[axesIndex] =  labelsOffset;
+//        endOffset[axesIndex]   = -labelsOffset;
+//    }
+//    else {
+//        startOffset[axesIndex] = -labelsOffset;
+//        endOffset[axesIndex]   =  labelsOffset;
+//    }
+    
+    for (int32_t i = 0; i < 3; i++) {
+        startOffset[i] = 0.1 * axesStartXYZ[i];
+        endOffset[i]   = 0.1 * axesEndXYZ[i];
     }
     
     axesTextStartXYZ[0] = axesStartXYZ[0] + startOffset[0];
@@ -5225,7 +5217,7 @@ BrainOpenGLFPVolumeObliqueDrawing::processIdentification()
             
             m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                              voxelCoordinates);
-            CaretLogSevere("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
+            CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));
         }
     }
 }
