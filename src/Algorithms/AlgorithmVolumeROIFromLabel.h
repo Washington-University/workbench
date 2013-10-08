@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_METRIC_ROI_FROM_LABEL_H__
-#define __ALGORITHM_METRIC_ROI_FROM_LABEL_H__
+#ifndef __ALGORITHM_VOLUME_ROI_FROM_LABEL_H__
+#define __ALGORITHM_VOLUME_ROI_FROM_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -29,23 +29,23 @@
 
 namespace caret {
     
-    class AlgorithmMetricROIFromLabel : public AbstractAlgorithm
+    class AlgorithmVolumeROIFromLabel : public AbstractAlgorithm
     {
-        AlgorithmMetricROIFromLabel();
+        AlgorithmVolumeROIFromLabel();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricROIFromLabel(ProgressObject* myProgObj, const LabelFile* myLabel, const AString& labelName, MetricFile* myMetricOut, const int& whichMap = -1);
-        AlgorithmMetricROIFromLabel(ProgressObject* myProgObj, const LabelFile* myLabel, const int32_t& labelKey, MetricFile* myMetricOut, const int& whichMap = -1);
+        AlgorithmVolumeROIFromLabel(ProgressObject* myProgObj, const VolumeFile* myLabel, const AString& labelName, VolumeFile* myVolumeOut, const int& whichMap = -1);
+        AlgorithmVolumeROIFromLabel(ProgressObject* myProgObj, const VolumeFile* myLabel, const int32_t& labelKey, VolumeFile* myVolumeOut, const int& whichMap = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricROIFromLabel> AutoAlgorithmMetricROIFromLabel;
+    typedef TemplateAutoOperation<AlgorithmVolumeROIFromLabel> AutoAlgorithmVolumeROIFromLabel;
 
 }
 
-#endif //__ALGORITHM_METRIC_ROI_FROM_LABEL_H__
+#endif //__ALGORITHM_VOLUME_ROI_FROM_LABEL_H__

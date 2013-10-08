@@ -39,6 +39,7 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiROIFromLabel(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
+        AlgorithmCiftiROIFromLabel(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
