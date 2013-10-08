@@ -499,6 +499,7 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
             this->m_treeWidgetItems.push_back(modelItem);
             m_modelTreeWidget->addTopLevelItem(modelItem);
         }
+        
     }
     else {
         for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
@@ -511,6 +512,10 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     m_previousBrowserTabIndex = browserTabIndex;
     m_previousDisplayGroup = m_displayGroup;
     m_modelTreeWidget->blockSignals(false);
+    
+    if (needUpdate) {
+        m_modelTreeWidget->resizeToFitContent();
+    }
 }
 
 /**
