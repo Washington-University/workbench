@@ -242,7 +242,7 @@ ImageCaptureDialog::createImageDimensionsSection()
     QLabel* pixelDimensionsLabel = new QLabel("Pixel Dimensions");
     m_pixelWidthSpinBox = new QSpinBox();
     m_pixelWidthSpinBox->setFixedWidth(pixelSpinBoxWidth);
-    m_pixelWidthSpinBox->setRange(1, 10000000);
+    m_pixelWidthSpinBox->setRange(100, 10000000);
     m_pixelWidthSpinBox->setSingleStep(1);
     m_pixelWidthSpinBox->setValue(2560);
     QObject::connect(m_pixelWidthSpinBox, SIGNAL(valueChanged(int)),
@@ -250,7 +250,7 @@ ImageCaptureDialog::createImageDimensionsSection()
     
     m_pixelHeightSpinBox = new QSpinBox();
     m_pixelHeightSpinBox->setFixedWidth(pixelSpinBoxWidth);
-    m_pixelHeightSpinBox->setRange(1, 10000000);
+    m_pixelHeightSpinBox->setRange(100, 10000000);
     m_pixelHeightSpinBox->setSingleStep(1);
     m_pixelHeightSpinBox->setValue(2048);
     QObject::connect(m_pixelHeightSpinBox, SIGNAL(valueChanged(int)),
@@ -765,9 +765,8 @@ ImageCaptureDialog::applyButtonPressed()
     const float pixelsPerCentimeter = m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(ImagePixelsPerSpatialUnitsEnum::PIXEL_PER_CENTIMETER);
     const float pixelsPerMeter = pixelsPerCentimeter * 100;
     
-    QImage* qImage = imageFile.getAsQImage();
-    qImage->setDotsPerMeterX(pixelsPerMeter);
-    qImage->setDotsPerMeterY(pixelsPerMeter);
+    imageFile.setDotsPerMeter(pixelsPerMeter,
+                              pixelsPerMeter);
     
     if (m_imageAutoCropCheckBox->isChecked()) {
         const int marginSize = m_imageAutoCropMarginSpinBox->value();
@@ -780,7 +779,7 @@ ImageCaptureDialog::applyButtonPressed()
     bool errorFlag = false;
     
     if (m_copyImageToClipboardCheckBox->isChecked()) {
-        QApplication::clipboard()->setImage(*qImage,
+        QApplication::clipboard()->setImage(*imageFile.getAsQImage(),
                                             QClipboard::Clipboard);
     }
 

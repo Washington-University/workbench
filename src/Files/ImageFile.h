@@ -66,7 +66,7 @@ public:
     
     bool isEmpty() const;
     
-    QImage* getAsQImage();
+    //QImage* getAsQImage();
     
     const QImage* getAsQImage() const;
     
@@ -88,6 +88,9 @@ public:
     void addMargin(const int marginSizeX,
                    const int marginSizeY,
                    const uint8_t backgroundColor[3]);
+    
+    void setDotsPerMeter(const int x,
+                         const int y);
     
     void combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>& imageFiles,
                                                 const int numImagesPerRow,
