@@ -47,12 +47,12 @@ namespace caret {
     class CiftiMappableDataFile;
     class Matrix4x4;
     
-    class BrainOpenGLFPVolumeObliqueDrawing : public CaretObject {
+    class BrainOpenGLVolumeSliceDrawing : public CaretObject {
         
     public:
-        BrainOpenGLFPVolumeObliqueDrawing();
+        BrainOpenGLVolumeSliceDrawing();
         
-        virtual ~BrainOpenGLFPVolumeObliqueDrawing();
+        virtual ~BrainOpenGLVolumeSliceDrawing();
         
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   BrowserTabContent* browserTabContent,
@@ -195,31 +195,16 @@ namespace caret {
             std::vector<int64_t> m_sliceOffsets;
         };
         
-        BrainOpenGLFPVolumeObliqueDrawing(const BrainOpenGLFPVolumeObliqueDrawing&);
+        BrainOpenGLVolumeSliceDrawing(const BrainOpenGLVolumeSliceDrawing&);
 
-        BrainOpenGLFPVolumeObliqueDrawing& operator=(const BrainOpenGLFPVolumeObliqueDrawing&);
+        BrainOpenGLVolumeSliceDrawing& operator=(const BrainOpenGLVolumeSliceDrawing&);
         
         bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
                                                 float spacingOut[3]);
         
-//        void drawAxis(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-//                      const Matrix4x4& rotationMatrix);
-        
-//        void drawSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-//                       const DRAW_MODE drawMode);
-        
-//        void drawSliceNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-//                       const DRAW_MODE drawMode);
-        
-//        void drawSliceVoxels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-//                                          std::vector<int32_t>& identificationIndices,
-//                                          const int32_t idPerVoxelCount,
-//                                          const Matrix4x4& transformationMatrix,
-//                                          const float screenBounds[4],
-//                                          const float sliceNormalVector[3],
-//                                          const float voxelSize,
-//                                                    const float zoom,
-//                                          const bool isSelectionMode);
+        bool getMinMaxVoxelSpacing(const VolumeMappableInterface* volume,
+                                   float& minSpacingOut,
+                                   float& maxSpacingOut) const;
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const Plane& plane,
@@ -244,17 +229,11 @@ namespace caret {
                              const Matrix4x4& transformationMatrix,
                              const float zoom);
         
-//        void drawSlicesForAllSlicesView(const int viewport[4],
-//                                  const DRAW_MODE drawMode);
-
         void drawSlicesForAllStructuresView(const int viewport[4]);
         
         void drawAllThreeSlicesForVolumeSliceView(const int viewport[4]);
         
-//        void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-//                                   const int viewport[4]);
-        
-        void drawSliceForSliceViewNEW(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        void drawSliceForSliceView(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const DRAW_MODE drawMode,
                                       const int32_t montageSliceIndex,
                                       const int viewport[4]);
@@ -272,8 +251,6 @@ namespace caret {
         
         void drawVolumeSliceFoci(const Plane& plane);
         
-//        void setOrthographicBounds(const DRAW_MODE drawMode);
-
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
@@ -299,8 +276,7 @@ namespace caret {
         void getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                           float rgbaOut[4]) const;
         
-        void getAxesTextLabelsXYZ(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                  const float axesStartXYZ[3],
+        void getAxesTextLabelsXYZ(const float axesStartXYZ[3],
                                   const float axesEndXYZ[3],
                                   float axesTextStartXYZ[3],
                                   float axesTextEndXYZ[3]) const;
@@ -348,7 +324,7 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPEN_G_L_F_P_VOLUME_OBLIQUE_DRAWING_DECLARE__
-    const int32_t BrainOpenGLFPVolumeObliqueDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 5;
+    const int32_t BrainOpenGLVolumeSliceDrawing::IDENTIFICATION_INDICES_PER_VOXEL = 5;
 #endif // __BRAIN_OPEN_G_L_F_P_VOLUME_OBLIQUE_DRAWING_DECLARE__
 
 } // namespace

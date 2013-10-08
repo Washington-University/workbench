@@ -41,7 +41,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
-#include "BrainOpenGLFPVolumeObliqueDrawing.h"
+#include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeCube.h"
 #include "BrainOpenGLShapeCylinder.h"
@@ -2655,7 +2655,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
         switch (sliceViewMode) {
             case VolumeSliceViewModeEnum::MONTAGE:
             if (useNewVolumeDrawingFlag) {
-                BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                 obliqueDrawing.draw(this,
                                     browserTabContent,
                                     volumeDrawInfo,
@@ -2812,7 +2812,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 break;
             case VolumeSliceViewModeEnum::OBLIQUE:
             {
-                BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                 obliqueDrawing.draw(this,
                                     browserTabContent,
                                     volumeDrawInfo,
@@ -2826,7 +2826,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                 switch (slicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
                     if (useNewVolumeDrawingFlag) {
-                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                             obliqueDrawing.draw(this,
                                                 browserTabContent,
                                                 volumeDrawInfo,
@@ -2938,7 +2938,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                         if (useNewVolumeDrawingFlag) {
-                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                             obliqueDrawing.draw(this,
                                                 browserTabContent,
                                                 volumeDrawInfo,
@@ -2981,7 +2981,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         if (useNewVolumeDrawingFlag) {
-                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                             obliqueDrawing.draw(this,
                                                 browserTabContent,
                                                 volumeDrawInfo,
@@ -3024,7 +3024,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         if (useNewVolumeDrawingFlag) {
-                            BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                            BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                             obliqueDrawing.draw(this,
                                                 browserTabContent,
                                                 volumeDrawInfo,
@@ -7391,7 +7391,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
             const bool doObliqueDrawing = (browserTabContent->getSliceViewMode() == VolumeSliceViewModeEnum::OBLIQUE);
             if (doObliqueDrawing) {
                 
-                BrainOpenGLFPVolumeObliqueDrawing obliqueDrawing;
+                BrainOpenGLVolumeSliceDrawing obliqueDrawing;
                 obliqueDrawing.draw(this,
                                     browserTabContent,
                                     twoDimSliceDrawVolumeDrawInfo,
@@ -7399,7 +7399,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                     viewport);
             }
             else {
-                BrainOpenGLFPVolumeObliqueDrawing sliceDrawing;
+                BrainOpenGLVolumeSliceDrawing sliceDrawing;
                 sliceDrawing.draw(this,
                                     browserTabContent,
                                     twoDimSliceDrawVolumeDrawInfo,
