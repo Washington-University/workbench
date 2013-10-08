@@ -2555,6 +2555,12 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     float minScreenY = m_orthographicBounds[2] + screenOffsetY;
     float maxScreenY = m_orthographicBounds[3] + screenOffsetY;
     
+    const float screenScale = 2.0;
+    minScreenX *= screenScale;
+    maxScreenX *= screenScale;
+    minScreenY *= screenScale;
+    maxScreenY *= screenScale;
+    
     /*
      * Set the corners of the screen for the respective view
      */
@@ -2610,6 +2616,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
             break;
     }
     
+    
     /*
      * Transform the corners of the screen into model coordinates
      */
@@ -2618,40 +2625,40 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     transformationMatrix.multiplyPoint3(topRight);
     transformationMatrix.multiplyPoint3(topLeft);
     
-//    /*
-//     * For debugging, draw box around oblique drawing region
-//     */
-//    {
-//        std::cout
-//        << qPrintable("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
-//                      + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
-//                      + " TR: " + AString::fromNumbers(topRight, 3, ",")
-//                      + " TL: " + AString::fromNumbers(topLeft, 3, ","))
-//        << std::endl;
-//        m_fixedPipelineDrawing->setLineWidth(3.0);
-//        glColor3f(1.0, 0.0, 0.0);
-//        glBegin(GL_LINE_LOOP);
-//        glVertex3fv(bottomLeft);
-//        glVertex3fv(bottomRight);
-//        glVertex3fv(topRight);
-//        glVertex3fv(topLeft);
-//        glEnd();
-//        
-//        GLdouble modelMatrix[16];
-//        GLdouble projMatrix[16];
-//        double objCoord[3];
-//        GLint viewport[4];
-//        
-//        glGetIntegerv(GL_VIEWPORT, viewport);
-//        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-//        glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-//        
-//        if (gluUnProject(0, 0, 0,
-//                     modelMatrix, projMatrix, viewport,
-//                         &objCoord[0], &objCoord[1], &objCoord[2]) == GL_TRUE) {
-//            std::cout << "Oblique Bottom Corner: " << qPrintable(AString::fromNumbers(objCoord, 3, ",")) << std::endl;
-//        }
-//    }
+    /*
+     * For debugging, draw box around oblique drawing region
+     */
+    {
+        std::cout
+        << qPrintable("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
+                      + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
+                      + " TR: " + AString::fromNumbers(topRight, 3, ",")
+                      + " TL: " + AString::fromNumbers(topLeft, 3, ","))
+        << std::endl;
+        m_fixedPipelineDrawing->setLineWidth(3.0);
+        glColor3f(1.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex3fv(bottomLeft);
+        glVertex3fv(bottomRight);
+        glVertex3fv(topRight);
+        glVertex3fv(topLeft);
+        glEnd();
+        
+        GLdouble modelMatrix[16];
+        GLdouble projMatrix[16];
+        double objCoord[3];
+        GLint viewport[4];
+        
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
+        glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
+        
+        if (gluUnProject(0, 0, 0,
+                     modelMatrix, projMatrix, viewport,
+                         &objCoord[0], &objCoord[1], &objCoord[2]) == GL_TRUE) {
+            std::cout << "Oblique Bottom Corner: " << qPrintable(AString::fromNumbers(objCoord, 3, ",")) << std::endl;
+        }
+    }
     
     /*
      * Unit vector and distance in model coords along left side of screen
