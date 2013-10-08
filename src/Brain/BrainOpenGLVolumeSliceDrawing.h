@@ -239,13 +239,7 @@ namespace caret {
                                       const int viewport[4]);
         void drawSliceMontage(const int viewport[4]);
         
-        void drawLines(const std::vector<float>& coordinates,
-                       const std::vector<uint8_t>& rgbaColors,
-                       const float thickness);
-        
         void drawSquare(const float size);
-        
-        void drawSurfaces(const int viewport[4]);
         
         void drawSurfaceOutline(const Plane& plane);
         
