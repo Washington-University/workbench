@@ -420,7 +420,7 @@ ImageFile::cropImageRemoveBackground(const int marginSize,
     int leftTopRightBottom[4];
     this->findImageObject(backgroundColor,
                           leftTopRightBottom);
-    CaretLogSevere("cropping: "
+    CaretLogFine("cropping: "
                    + AString::fromNumbers(leftTopRightBottom, 4, " "));
     
     const int currentWidth = this->image->width();
