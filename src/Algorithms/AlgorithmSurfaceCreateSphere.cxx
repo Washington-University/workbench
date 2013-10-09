@@ -52,7 +52,8 @@ OperationParameters* AlgorithmSurfaceCreateSphere::getParameters()
     ret->addSurfaceOutputParameter(2, "sphere-out", "the output sphere");
     
     ret->setHelpText(
-        AString("Generates a sphere by regularly dividing the triangles of an icosahedron, to come as close to the desired number of vertices as possible.  ") +
+        AString("Generates a sphere by regularly dividing the triangles of an icosahedron, to come as close to the desired number of vertices as possible, ") +
+        "and modifying it to have very similar vertex areas for all vertices.  " +
         "To generate a pair of vertex-matched left and right spheres, use this command, then -surface-flip-lr to generate the other sphere, then -set-structure on each.  " +
         "For example:\n\n" +
         "$ wb_command -surface-create-sphere 6000 Sphere.6k.R.surf.gii\n" + 
