@@ -75,6 +75,7 @@ namespace caret {
     class Palette;
     class PaletteColorMapping;
     class PaletteFile;
+    class SurfaceFile;
     class VolumeFile;
     class VolumeMappableInterface;
     
@@ -282,6 +283,14 @@ namespace caret {
         void setOrthographicProjection(const int32_t viewport[4],
                                        const ProjectionViewTypeEnum::Enum projectionType);
         
+        void setOrthographicProjectionForWithBoundingBox(const int32_t viewport[4],
+                                                         const ProjectionViewTypeEnum::Enum projectionType,
+                                                          const BoundingBox* boundingBox);
+        
+        void setOrthographicProjectionWithHeight(const int32_t viewport[4],
+                                                 const ProjectionViewTypeEnum::Enum projectionType,
+                                                 const float halfWindowHeight);
+        
         void checkForOpenGLError(const Model* modelController,
                                  const AString& msg);
         
@@ -318,6 +327,14 @@ namespace caret {
 
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
                                                   const  ProjectionViewTypeEnum::Enum projectionType);
+        
+        void setViewportAndOrthographicProjectionForVolume(const int32_t viewport[4],
+                                                           const  ProjectionViewTypeEnum::Enum projectionType,
+                                                           const VolumeMappableInterface* volume);
+        
+        void setViewportAndOrthographicProjectionForSurfaceFile(const int32_t viewport[4],
+                                                                const  ProjectionViewTypeEnum::Enum projectionType,
+                                                                const SurfaceFile* surfaceFile);
         
         void applyViewingTransformations(const float objectCenterXYZ[3],
                                          const ProjectionViewTypeEnum::Enum projectionViewType);

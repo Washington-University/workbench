@@ -114,6 +114,7 @@
 #include "SurfaceSelectionModel.h"
 #include "TopologyHelper.h"
 #include "VolumeFile.h"
+#include "VolumeMappableInterface.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
@@ -462,6 +463,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
 
 /**
  * Set the viewport.
+ *
  * @param viewport
  *   Values for viewport (x, y, x-size, y-size)
  * @param projectionType
@@ -482,6 +484,67 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t vie
                                     projectionType);
     glMatrixMode(GL_MODELVIEW);
 }
+
+/**
+ * Set the viewport for a volume.
+ *
+ * @param viewport
+ *   Values for viewport (x, y, x-size, y-size)
+ * @param projectionType
+ *    Type of view projection.
+ * @param volume
+ *    Volume for use in setting orthographic projection.
+ */
+void
+BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForVolume(const int32_t viewport[4],
+                                                                        const  ProjectionViewTypeEnum::Enum projectionType,
+                                                                        const VolumeMappableInterface* volume)
+{
+    CaretAssert(volume);
+    glViewport(viewport[0],
+               viewport[1],
+               viewport[2],
+               viewport[3]);
+    
+    BoundingBox boundingBox;
+    volume->getVoxelSpaceBoundingBox(boundingBox);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    setOrthographicProjectionForWithBoundingBox(viewport,
+                                                projectionType,
+                                                &boundingBox);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+/**
+ * Set the viewport for a surface file.
+ *
+ * @param viewport
+ *   Values for viewport (x, y, x-size, y-size)
+ * @param projectionType
+ *    Type of view projection.
+ * @param surfaceFile
+ *    Surface file for use in setting orthographic projection.
+ */
+void
+BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForSurfaceFile(const int32_t viewport[4],
+                                                                             const  ProjectionViewTypeEnum::Enum projectionType,
+                                                                             const SurfaceFile* surfaceFile)
+{
+    CaretAssert(surfaceFile);
+    glViewport(viewport[0],
+               viewport[1],
+               viewport[2],
+               viewport[3]);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    setOrthographicProjectionForWithBoundingBox(viewport,
+                                            projectionType,
+                                            surfaceFile->getBoundingBox());
+    glMatrixMode(GL_MODELVIEW);
+}
+
 
 /**
  * Apply the clipping planes.
@@ -1097,9 +1160,9 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
     float center[3];
     surface->getBoundingBox()->getCenter(center);
 
-    
-    this->setViewportAndOrthographicProjection(viewport,
-                                               browserTabContent->getProjectionViewType());
+    this->setViewportAndOrthographicProjectionForSurfaceFile(viewport,
+                                                             browserTabContent->getProjectionViewType(),
+                                                             surface);
     
     this->applyViewingTransformations(center,
                                       browserTabContent->getProjectionViewType());
@@ -7210,12 +7273,10 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                                                                      this->windowTabIndex);
         float center[3];
         mvp.surface->getBoundingBox()->getCenter(center);
-        
-        /*
-         * Left surface view
-         */
-        this->setViewportAndOrthographicProjection(mvp.viewport,
-                                                   mvp.projectionViewType);
+
+        this->setViewportAndOrthographicProjectionForSurfaceFile(mvp.viewport,
+                                                                 mvp.projectionViewType,
+                                                                 mvp.surface);
         
         this->applyViewingTransformations(center,
                                           mvp.projectionViewType);
@@ -7251,6 +7312,10 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
 {
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     
+    Surface* leftSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_LEFT,
+                                                                    tabNumberIndex);
+    Surface* rightSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
+                                                                     tabNumberIndex);
     /*
      * Center using volume, if it is available
      * Otherwise, see if surface is available, but a surface is offset
@@ -7263,25 +7328,44 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
         underlayVolumeFile->getVoxelSpaceBoundingBox(volumeBoundingBox);
         volumeBoundingBox.getCenter(center);
     }
-    else {
-        Surface* leftSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_LEFT,
-                                                                       tabNumberIndex);
+//    else {
         if (leftSurface != NULL) {
             leftSurface->getBoundingBox()->getCenter(center);
             center[0] = 0.0;
         }
         else {
-            Surface* rightSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
-                                                                            tabNumberIndex);
             if (rightSurface != NULL) {
                 rightSurface->getBoundingBox()->getCenter(center);
                 center[0] = 0.0;
             }
         }
+//    }
+
+    /*
+     * Use a surface (if available) to set the orthographic projection size
+     */
+    Surface* anySurface = NULL;
+    if (leftSurface != NULL) {
+        anySurface = leftSurface;
+    }
+    else if (rightSurface != NULL) {
+        anySurface = rightSurface;
     }
     
-    this->setViewportAndOrthographicProjection(viewport,
-                                               ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+    if (anySurface != NULL) {
+        this->setViewportAndOrthographicProjectionForSurfaceFile(viewport,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL,
+                                                                 anySurface);
+    }
+    else if (underlayVolumeFile != NULL) {
+        this->setViewportAndOrthographicProjectionForVolume(viewport,
+                                                            ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL,
+                                                            underlayVolumeFile);
+    }
+    else {
+        this->setViewportAndOrthographicProjection(viewport,
+                                                   ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+    }
     this->applyViewingTransformations(center,
                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
     
@@ -7517,16 +7601,127 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
  */
 void
 BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
-                               const ProjectionViewTypeEnum::Enum projectionType)
+                                                    const ProjectionViewTypeEnum::Enum projectionType)
 {
-    double defaultOrthoWindowSize = BrainOpenGLFixedPipeline::getModelViewingHalfWindowHeight();
+    setOrthographicProjectionWithHeight(viewport,
+                                        projectionType,
+                                        getModelViewingHalfWindowHeight());
+    
+//    const BoundingBox* boundingBox = m_brain->getSpatialFilesBoundingBox();
+//    std::cout << ("Spatial: "
+//                  + boundingBox->toString()) << std::endl;
+//    float bounds[6];
+//    boundingBox->getBounds(bounds);
+//    
+//    const float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
+//                                                    boundingBox->getDifferenceY()),
+//                                           boundingBox->getDifferenceZ()) / 2.0;
+//    const float orthoHeight = modelHalfHeight * 1.02;
+//
+//    
+////    double defaultOrthoWindowSize = BrainOpenGLFixedPipeline::getModelViewingHalfWindowHeight();
+//    double defaultOrthoWindowSize = orthoHeight;
+//    double width = viewport[2];
+//    double height = viewport[3];
+//    double aspectRatio = (width / height);
+//    this->orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
+//    this->orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
+//    this->orthographicTop    =    defaultOrthoWindowSize;
+//    this->orthographicBottom =   -defaultOrthoWindowSize;
+//    this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
+//    this->orthographicFar    =  1000.0; //500.0; // 10000.0;
+//    
+//    switch (projectionType) {
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+//            glOrtho(this->orthographicLeft, this->orthographicRight,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicNear, this->orthographicFar);
+//            break;
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+//            glOrtho(this->orthographicRight, this->orthographicLeft,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicFar, this->orthographicNear);
+//            break;
+//    }
+}
+
+/**
+ * Setup the orthographic projection for the given surface file.
+ *
+ * @param viewport
+ *    The viewport (x, y, width, height)
+ * @param projectionType
+ *    Type of view projection.
+ * @param boundingBox
+ *    The bounding box used for maximum spatial extent.
+ */
+void
+BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int32_t viewport[4],
+                                                 const ProjectionViewTypeEnum::Enum projectionType,
+                                                 const BoundingBox* boundingBox)
+{
+    CaretAssert(boundingBox);
+    
+    const float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
+                                                    boundingBox->getDifferenceY()),
+                                           boundingBox->getDifferenceZ()) / 2.0;
+    const float orthoHeight = modelHalfHeight * 1.02;
+    
+    setOrthographicProjectionWithHeight(viewport,
+                                        projectionType,
+                                        orthoHeight);
+}
+
+///**
+// * Setup the orthographic projection for the given surface file.
+// *
+// * @param viewport
+// *    The viewport (x, y, width, height)
+// * @param projectionType
+// *    Type of view projection.
+// */
+//void
+//BrainOpenGLFixedPipeline::setOrthographicProjectionForSurfaceFile(const int32_t viewport[4],
+//                                             const ProjectionViewTypeEnum::Enum projectionType,
+//                                             const SurfaceFile* surfaceFile)
+//{
+//    const BoundingBox* boundingBox = surfaceFile->getBoundingBox();
+//    const float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
+//                                                    boundingBox->getDifferenceY()),
+//                                           boundingBox->getDifferenceZ()) / 2.0;
+//    const float orthoHeight = modelHalfHeight * 1.02;
+//    
+//    setOrthographicProjectionWithHeight(viewport,
+//                                        projectionType,
+//                                        orthoHeight);
+//}
+
+/**
+ * Setup the orthographic projection with the given window height.
+ *
+ * @param viewport
+ *    The viewport (x, y, width, height)
+ * @param projectionType
+ *    Type of view projection.
+ * @param halfWindowHeight
+ *    Half of window height for model.
+ */
+void
+BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t viewport[4],
+                                                              const ProjectionViewTypeEnum::Enum projectionType,
+                                                              const float halfWindowHeight)
+{
     double width = viewport[2];
     double height = viewport[3];
     double aspectRatio = (width / height);
-    this->orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
-    this->orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
-    this->orthographicTop    =    defaultOrthoWindowSize;
-    this->orthographicBottom =   -defaultOrthoWindowSize;
+    this->orthographicRight  =    halfWindowHeight * aspectRatio;
+    this->orthographicLeft   =   -halfWindowHeight * aspectRatio;
+    this->orthographicTop    =    halfWindowHeight;
+    this->orthographicBottom =   -halfWindowHeight;
     this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
     this->orthographicFar    =  1000.0; //500.0; // 10000.0;
     
@@ -7552,7 +7747,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
 /**
  * check for an OpenGL Error.
  */
-void 
+void
 BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* modelController,
                                       const AString& msgIn)
 {
