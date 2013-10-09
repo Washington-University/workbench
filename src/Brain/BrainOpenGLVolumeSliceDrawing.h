@@ -275,7 +275,7 @@ namespace caret {
                                   float axesTextStartXYZ[3],
                                   float axesTextEndXYZ[3]) const;
         
-        void resetIdentification(const int32_t estimatedNumberOfItems);
+        void resetIdentification();
         
         void addVoxelToIdentification(const int32_t volumeIndex,
                                       const int32_t mapIndex,

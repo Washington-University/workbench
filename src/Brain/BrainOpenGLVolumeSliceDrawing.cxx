@@ -1476,7 +1476,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
             break;
     }
 
-    resetIdentification(10000);
+    resetIdentification();
     
     /*
      * Disable culling so that both sides of the triangles/quads are drawn.
@@ -3248,20 +3248,26 @@ BrainOpenGLVolumeSliceDrawing::getAxesColor(const VolumeSliceViewPlaneEnum::Enum
 /**
  * Reset for volume identification.
  *
- * @param estimatedNumberOfItems
- *    Estimated number of items for identification.
+ * Clear identification indices and if identification is enabled,
+ * reserve a reasonable amount of space for the indices.
  */
 void
-BrainOpenGLVolumeSliceDrawing::resetIdentification(const int32_t estimatedNumberOfItems)
+BrainOpenGLVolumeSliceDrawing::resetIdentification()
 {
-    if (estimatedNumberOfItems > static_cast<int32_t>(m_identificationIndices.size())) {
-        m_identificationIndices.resize(estimatedNumberOfItems * IDENTIFICATION_INDICES_PER_VOXEL,
-                                       0);
-    }
-    else {
-        std::fill(m_identificationIndices.begin(),
-                  m_identificationIndices.end(),
-                  0);
+    m_identificationIndices.clear();
+    
+    if (m_identificationModeFlag) {
+        int64_t estimatedNumberOfItems = 0;
+        
+        std::vector<int64_t> volumeDims;
+        m_volumeDrawInfo[0].volumeFile->getDimensions(volumeDims);
+        if (volumeDims.size() >= 3) {
+            const int64_t maxDim = std::max(volumeDims[0],
+                                            std::max(volumeDims[1], volumeDims[2]));
+            estimatedNumberOfItems = maxDim * maxDim * IDENTIFICATION_INDICES_PER_VOXEL;
+        }
+        
+        m_identificationIndices.reserve(estimatedNumberOfItems);
     }
 }
 
