@@ -366,46 +366,105 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
     const int numSlicesViewed = (numCols * numRows);
     const int sliceOffset = ((numSlicesViewed / 2)
                              * sliceStep);
-    sliceIndex -= sliceOffset;
     
-    for (int i = 0; i < numRows; i++) {
-        for (int j = 0; j < numCols; j++) {
-            if ((sliceIndex >= 0)
-                && (sliceIndex < maximumSliceIndex)) {
-                const int vpX = (j * (vpSizeX + montageMargin));
-                const int vpY = (i * (vpSizeY + montageMargin));
-                int vp[4] = {
-                    viewport[0] + vpX,
-                    viewport[1] + vpY,
-                    vpSizeX,
-                    vpSizeY
-                };
-                
-                if ((vp[2] <= 0)
-                    || (vp[3] <= 0)) {
-                    continue;
-                }
-                
-                drawSliceForSliceView(slicePlane,
-                                         DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                         sliceIndex,
-                                         vp);
-                const float sliceCoord = (sliceOrigin
-                                          + sliceThickness * sliceIndex);
-                if (showCoordinates) {
-                    const AString coordText = (axisLetter
-                                               + "="
-                                               + AString::number(sliceCoord, 'f', 0)
-                                               + "mm");
-                    glColor3ubv(foregroundRGB);
-                    m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
-                                               5,
-                                               coordText,
-                                               BrainOpenGLTextRenderInterface::X_RIGHT,
-                                               BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    const bool startAtTopLeftToRight = true;
+    if (startAtTopLeftToRight) {
+        sliceIndex += sliceOffset;
+        
+        /*
+         * Find first valid slice for montage
+         */
+        while (sliceIndex >= 0) {
+            if (sliceIndex < maximumSliceIndex) {
+                break;
+            }
+            sliceIndex -= sliceStep;
+        }
+        
+        if (sliceIndex >= 0) {
+            for (int i = 0; i < numRows; i++) {
+                for (int j = 0; j < numCols; j++) {
+                    if ((sliceIndex >= 0)
+                        && (sliceIndex < maximumSliceIndex)) {
+                        const int vpX = (j * (vpSizeX + montageMargin));
+                        const int vpY = ((numRows - i - 1) * (vpSizeY + montageMargin));
+                        int vp[4] = {
+                            viewport[0] + vpX,
+                            viewport[1] + vpY,
+                            vpSizeX,
+                            vpSizeY
+                        };
+                        
+                        if ((vp[2] <= 0)
+                            || (vp[3] <= 0)) {
+                            continue;
+                        }
+                        
+                        drawSliceForSliceView(slicePlane,
+                                              DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
+                                              sliceIndex,
+                                              vp);
+                        const float sliceCoord = (sliceOrigin
+                                                  + sliceThickness * sliceIndex);
+                        if (showCoordinates) {
+                            const AString coordText = (axisLetter
+                                                       + "="
+                                                       + AString::number(sliceCoord, 'f', 0)
+                                                       + "mm");
+                            glColor3ubv(foregroundRGB);
+                            m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
+                                                                         5,
+                                                                         coordText,
+                                                                         BrainOpenGLTextRenderInterface::X_RIGHT,
+                                                                         BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                        }
+                    }
+                    sliceIndex -= sliceStep;
                 }
             }
-            sliceIndex += sliceStep;
+        }
+    }
+    else {
+        sliceIndex -= sliceOffset;
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                if ((sliceIndex >= 0)
+                    && (sliceIndex < maximumSliceIndex)) {
+                    const int vpX = (j * (vpSizeX + montageMargin));
+                    const int vpY = (i * (vpSizeY + montageMargin));
+                    int vp[4] = {
+                        viewport[0] + vpX,
+                        viewport[1] + vpY,
+                        vpSizeX,
+                        vpSizeY
+                    };
+                    
+                    if ((vp[2] <= 0)
+                        || (vp[3] <= 0)) {
+                        continue;
+                    }
+                    
+                    drawSliceForSliceView(slicePlane,
+                                          DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
+                                          sliceIndex,
+                                          vp);
+                    const float sliceCoord = (sliceOrigin
+                                              + sliceThickness * sliceIndex);
+                    if (showCoordinates) {
+                        const AString coordText = (axisLetter
+                                                   + "="
+                                                   + AString::number(sliceCoord, 'f', 0)
+                                                   + "mm");
+                        glColor3ubv(foregroundRGB);
+                        m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
+                                                                     5,
+                                                                     coordText,
+                                                                     BrainOpenGLTextRenderInterface::X_RIGHT,
+                                                                     BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                    }
+                }
+                sliceIndex += sliceStep;
+            }
         }
     }
 }
