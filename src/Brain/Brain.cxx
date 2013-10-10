@@ -23,6 +23,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include "CaretAssert.h"
@@ -1586,12 +1587,17 @@ Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNu
     if (m_connectivityFiberOrientationFiles.empty()) {
         float voxelSizes[3];
         cfof->getVolumeSpacing(voxelSizes);
-        if (voxelSizes[2] > 0.0) {
-            const float aboveLimit =  voxelSizes[2] * 0.5;
-            const float belowLimit = -voxelSizes[2] * 0.5;
-            m_displayPropertiesFiberOrientation->setAboveAndBelowLimitsForAll(aboveLimit,
-                                                                              belowLimit);
+        float maxVoxelSize = std::max(std::fabs(voxelSizes[0]),
+                                            std::max(std::fabs(voxelSizes[1]),
+                                                     std::fabs(voxelSizes[2])));
+        if (maxVoxelSize <= 0.0) {
+            maxVoxelSize = 1.0;
         }
+        
+        const float aboveLimit =  maxVoxelSize;
+        const float belowLimit = -maxVoxelSize;
+        m_displayPropertiesFiberOrientation->setAboveAndBelowLimitsForAll(aboveLimit,
+                                                                          belowLimit);
     }
     
     if (reloadThisFileIfNotNull == NULL) {
