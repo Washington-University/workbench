@@ -2991,7 +2991,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                                  spacing[1]),
                                         spacing[2]);
     
-    const float axesCrosshairRadius = 1.0 * minVoxelSize;
+    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
     
     /*
      * Ends of crosshairs

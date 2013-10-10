@@ -8873,6 +8873,28 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
     return pixelSize;
 }
 
+/**
+ * Convert pixels into model size.
+ * 
+ * @param pixelSize
+ *    The pixel size
+ * @return
+ *    Model size coordinate space value
+ */
+float
+BrainOpenGLFixedPipeline::pixelSizeToModelSize(const float pixelSize)
+{
+    float modelSize = 1.0;
+    
+    const float value = modelSizeToPixelSize(pixelSize);
+    if (value > 0) {
+        modelSize /= value;
+    }
+    
+    return modelSize;
+}
+
+
 //============================================================================
 /**
  * Constructor.

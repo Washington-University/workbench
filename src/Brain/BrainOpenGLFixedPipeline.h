@@ -420,6 +420,8 @@ namespace caret {
         
         float modelSizeToPixelSize(const float modelSize);
         
+        float pixelSizeToModelSize(const float pixelSize);
+        
         void setProjectionModeData(const float screenDepth,
                                           const float xyz[3],
                                           const StructureEnum::Enum structure,
