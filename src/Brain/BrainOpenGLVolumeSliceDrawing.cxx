@@ -662,6 +662,9 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
             m_orthographicBounds[4],
             m_orthographicBounds[5]);
     glMatrixMode(GL_MODELVIEW);
+    
+    CaretLogFine("Orthographic Bounds: "
+                   + AString::fromNumbers(m_orthographicBounds, 6, ","));
 }
 
 /**
@@ -2369,6 +2372,65 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     float minScreenY = m_orthographicBounds[2] + screenOffsetY;
     float maxScreenY = m_orthographicBounds[3] + screenOffsetY;
     
+    
+//    const int64_t alignSliceI = m_browserTabContent->getSliceIndexAxial(m_volumeDrawInfo[0].volumeFile);
+//    const int64_t alignSliceJ = m_browserTabContent->getSliceIndexAxial(m_volumeDrawInfo[0].volumeFile);
+//    const int64_t alignSliceK = m_browserTabContent->getSliceIndexAxial(m_volumeDrawInfo[0].volumeFile);
+//    const float alignSliceX = m_browserTabContent->getSliceIndexParasagittal(m_volumeDrawInfo[0].volumeFile);
+//    const float alignSliceY = m_browserTabContent->getSliceIndexCoronal(m_volumeDrawInfo[0].volumeFile);
+//    const float alignSliceZ = m_browserTabContent->getSliceIndexAxial(m_volumeDrawInfo[0].volumeFile);
+    
+    /*
+     * Get origin voxel IJK
+     */
+    const float originXYZ[3] = { 0.0, 0.0, 0.0 };
+    int64_t originIJK[3];
+    m_volumeDrawInfo[0].volumeFile->enclosingVoxel(originXYZ[0], originXYZ[1], originXYZ[2],
+                                                   originIJK[0], originIJK[1], originIJK[2]);
+    
+    /*
+     * Get XYZ center of origin Voxel
+     */
+    float originVoxelXYZ[3];
+    m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, originVoxelXYZ);
+    
+    const bool alignVoxelsFlag = true;
+    if (alignVoxelsFlag) {
+        CaretLogFine("Oblique Screen MinX: "
+                       + AString::number(minScreenX) + " MaxX: "
+                       + AString::number(maxScreenX) + " MinY: "
+                       + AString::number(minScreenY) + " MaxY: "
+                       + AString::number(maxScreenY));
+        
+//        const float halfVoxelSize = voxelSize / 2.0;
+        const float quarterVoxelSize = voxelSize / 4.0;
+        float newMinScreenX = (static_cast<int64_t>(minScreenX / voxelSize) * voxelSize) + quarterVoxelSize;
+        float newMaxScreenX = (static_cast<int64_t>(maxScreenX / voxelSize) * voxelSize) - quarterVoxelSize;
+        float newMinScreenY = (static_cast<int64_t>(minScreenY / voxelSize) * voxelSize) + quarterVoxelSize;
+        float newMaxScreenY = (static_cast<int64_t>(maxScreenY / voxelSize) * voxelSize) - quarterVoxelSize;
+        
+//        newMinScreenX += voxelSize;
+//        newMaxScreenX -= voxelSize;
+//        newMinScreenY += voxelSize;
+//        newMaxScreenY -= voxelSize;
+        
+        CaretLogFine("NEW Oblique Screen MinX: "
+                       + AString::number(newMinScreenX) + " MaxX: "
+                       + AString::number(newMaxScreenX) + " MinY: "
+                       + AString::number(newMinScreenY) + " MaxY: "
+                       + AString::number(newMaxScreenY));
+        
+        minScreenX = newMinScreenX;
+        maxScreenX = newMaxScreenX;
+        minScreenY = newMinScreenY;
+        maxScreenY = newMaxScreenY;
+    }
+    
+    
+    
+    
+    
+    
     const float screenScale = 2.0;
     minScreenX *= screenScale;
     maxScreenX *= screenScale;
@@ -2439,6 +2501,10 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     transformationMatrix.multiplyPoint3(topRight);
     transformationMatrix.multiplyPoint3(topLeft);
     
+    CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
+                   + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
+                   + " TR: " + AString::fromNumbers(topRight, 3, ",")
+                   + " TL: " + AString::fromNumbers(topLeft, 3, ","));
 //    /*
 //     * For debugging, draw box around oblique drawing region
 //     */
@@ -2694,6 +2760,34 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                                                                topRightVoxelCoord,
                                                                topLeftVoxelCoord);
                             voxelsToDraw.push_back(voxelDrawingInfo);
+                            
+                            
+                            
+                            
+                            
+//                            int64_t voxelIJK[5];
+//                            volumeFile->enclosingVoxel(voxelCenter, voxelIJK);
+//                            if ((originIJK[0] == voxelIJK[0])
+//                                & (originIJK[1] == voxelIJK[1])) {
+////                            if ((alignSliceX >= bottomLeftVoxelCoord[0]
+////                                 && (alignSliceX <= topRightVoxelCoord[0])
+////                                 && (alignSliceY >= bottomLeftVoxelCoord[1])
+////                                 && (alignSliceY <= topRightVoxelCoord[1]))) {
+//                                std::cout << qPrintable("Voxel ("
+//                                                        + AString::number(originIJK[0])
+//                                                        + ", "
+//                                                        + AString::number(originIJK[1])
+//                                                        + ", "
+//                                                        + AString::number(originIJK[2])
+//                                                        + ") Voxel Coord: ("
+//                                                        + AString::fromNumbers(originVoxelXYZ, 3, ",")
+//                                                        + ") Interp Coord ("
+//                                                        + AString::fromNumbers(voxelCenter, 3, ",")
+//                                                        + " Corners: ("
+//                                                        + AString::fromNumbers(bottomLeftVoxelCoord, 3, ",")
+//                                                        + " "
+//                                                        + AString::fromNumbers(topRightVoxelCoord, 3, ",")) << std::endl;
+//                            }
                         }
                         
                         const int64_t offset = volumeSlices[iVol].addValue(value);
