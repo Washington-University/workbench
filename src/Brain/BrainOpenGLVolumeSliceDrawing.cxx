@@ -3044,7 +3044,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                                       const DRAW_MODE drawMode)
 {
     bool isThreeSliceView = false;
-    bool applyTransformationMatrixToAxes = false;
     switch (drawMode) {
         case DRAW_MODE_ALL_STRUCTURES_VIEW:
             return;
@@ -3061,6 +3060,11 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
             break;
+    }
+    
+    bool applyTransformationMatrixToAxes = false;
+    if (isThreeSliceView) {
+        applyTransformationMatrixToAxes = true;
     }
     
     bool isMontageView = false;
@@ -3100,42 +3104,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
     const float zMin = boundingBox.getMinZ() * scaler;
     const float zMax = boundingBox.getMaxZ() * scaler;
     
-    /*
-     * Determine which axes labels are drawn
-     */
-    bool isDrawAxialLabels = false;
-    bool isDrawCoronalLabels = false;
-    bool isDrawParasagittalLabels = false;
-    if (prefs->isVolumeAxesLabelsDisplayed()) {
-        isDrawAxialLabels = true;
-        isDrawCoronalLabels = true;
-        isDrawParasagittalLabels = true;
-        
-        if (isThreeSliceView) {
-            applyTransformationMatrixToAxes = true;
-        }
-        else if (isMontageView) {
-            isDrawAxialLabels = false;
-            isDrawCoronalLabels = false;
-            isDrawParasagittalLabels = false;
-        }
-        else {
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    isDrawAxialLabels = false;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    isDrawCoronalLabels = false;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    isDrawParasagittalLabels = false;
-                    break;
-            }
-        }
-    }
-    
     const float centerXYZ[3] = {
         m_browserTabContent->getSliceCoordinateParasagittal(),
         m_browserTabContent->getSliceCoordinateCoronal(),
@@ -3143,19 +3111,110 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
     };
     
     /*
-     * Axial axis and labels
+     * Initialize axes end points to the center
      */
-    const float axialStartXYZ[3] = {
+    float axialStartXYZ[3] = {
         centerXYZ[0],
         centerXYZ[1],
-        centerXYZ[2] + zMin
+        centerXYZ[2]
     };
     
-    const float axialEndXYZ[3] = {
+    float axialEndXYZ[3] = {
         centerXYZ[0],
         centerXYZ[1],
-        centerXYZ[2] + zMax
+        centerXYZ[2]
     };
+    float coronalStartXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    
+    float coronalEndXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    float paraStartXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    
+    float paraEndXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    
+    AString axialPlaneStartLabel = "";
+    AString axialPlaneEndLabel = "";
+    AString coronalPlaneStartLabel = "";
+    AString coronalPlaneEndLabel = "";
+    AString paraPlaneStartLabel = "";
+    AString paraPlaneEndLabel = "";
+    
+    /*
+     * Determine which axes labels are drawn
+     */
+    if (prefs->isVolumeAxesLabelsDisplayed()) {
+        if (isMontageView) {
+            /* Nothing */
+        }
+        else {
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    axialPlaneStartLabel   = "L";
+                    axialPlaneEndLabel     = "R";
+                    axialStartXYZ[0] += xMin;
+                    axialEndXYZ[0]   += xMax;
+                    coronalPlaneStartLabel = "V";
+                    coronalPlaneEndLabel   = "D";
+                    coronalStartXYZ[1] += yMin;
+                    coronalEndXYZ[1]   += yMax;
+                    paraPlaneStartLabel    = "P";
+                    paraPlaneEndLabel      = "A";
+                    paraStartXYZ[2] += zMin;
+                    paraEndXYZ[2]   += zMax;
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    coronalPlaneStartLabel = "L";
+                    coronalPlaneEndLabel   = "R";
+                    coronalStartXYZ[0] += xMin;
+                    coronalEndXYZ[0]   += xMax;
+                    paraPlaneStartLabel    = "P";
+                    paraPlaneEndLabel      = "A";
+                    paraStartXYZ[1] += yMin;
+                    paraEndXYZ[1]   += yMax;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    axialPlaneStartLabel = "L";
+                    axialPlaneEndLabel   = "R";
+                    axialStartXYZ[0] += xMin;
+                    axialEndXYZ[0]   += xMax;
+                    paraPlaneStartLabel  = "V";
+                    paraPlaneEndLabel    = "D";
+                    paraStartXYZ[2] += zMin;
+                    paraEndXYZ[2]   += zMax;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    axialPlaneStartLabel   = "P";
+                    axialPlaneEndLabel     = "A";
+                    axialStartXYZ[1] += yMin;
+                    axialEndXYZ[1]   += yMax;
+                    coronalPlaneStartLabel = "V";
+                    coronalPlaneEndLabel   = "D";
+                    coronalStartXYZ[2] += zMin;
+                    coronalEndXYZ[2]   += zMax;
+                    break;
+            }
+        }
+    }
+    
+    
+    /*
+     * Axial slice and labels
+     */
     float rgba[4];
     getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
                  rgba);
@@ -3181,7 +3240,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                              endXYZ,
                                              axesCrosshairRadius);
     }
-    if (isDrawAxialLabels) {
+    
+    if ( ! axialPlaneStartLabel.isEmpty()) {
         float startTextXYZ[3];
         float endTextXYZ[3];
         getAxesTextLabelsXYZ(axialStartXYZ,
@@ -3197,27 +3257,13 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
                                                     endTextXYZ[1],
                                                     endTextXYZ[2],
-                                                    "D");
+                                                    axialPlaneEndLabel);
         m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
                                                     startTextXYZ[1],
                                                     startTextXYZ[2],
-                                                    "V");
+                                                    axialPlaneStartLabel);
     }
     
-    /*
-     * Coronal axis and labels
-     */
-    const float coronalStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1] + yMin,
-        centerXYZ[2]
-    };
-    
-    const float coronalEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1] + yMax,
-        centerXYZ[2]
-    };
     getAxesColor(VolumeSliceViewPlaneEnum::CORONAL,
                  rgba);
     if (prefs->isVolumeAxesCrosshairsDisplayed()) {
@@ -3241,7 +3287,10 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                              endXYZ,
                                              axesCrosshairRadius);
     }
-    if (isDrawCoronalLabels) {
+    if ( ! coronalPlaneStartLabel.isEmpty()) {
+        /*
+         * Coronal axis and labels
+         */
         float startTextXYZ[3];
         float endTextXYZ[3];
         getAxesTextLabelsXYZ(coronalStartXYZ,
@@ -3256,27 +3305,16 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
                                                     startTextXYZ[1],
                                                     startTextXYZ[2],
-                                                    "P");
+                                                    coronalPlaneStartLabel);
         m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
                                                     endTextXYZ[1],
                                                     endTextXYZ[2],
-                                                    "A");
+                                                    coronalPlaneEndLabel);
     }
     
     /*
      * Parasagittal axis and labels
      */
-    const float paraStartXYZ[3] = {
-        centerXYZ[0] + xMin,
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    const float paraEndXYZ[3] = {
-        centerXYZ[0] + xMax,
-        centerXYZ[1],
-        centerXYZ[2]
-    };
     getAxesColor(VolumeSliceViewPlaneEnum::PARASAGITTAL,
                  rgba);
     if (prefs->isVolumeAxesCrosshairsDisplayed()) {
@@ -3300,7 +3338,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                              endXYZ,
                                              axesCrosshairRadius);
     }
-    if (isDrawParasagittalLabels) {
+    if ( ! paraPlaneStartLabel.isEmpty()) {
         float startTextXYZ[3];
         float endTextXYZ[3];
         getAxesTextLabelsXYZ(paraStartXYZ,
@@ -3315,11 +3353,11 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
                                                     endTextXYZ[1],
                                                     endTextXYZ[2],
-                                                    "R");
+                                                    paraPlaneStartLabel);
         m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
                                                     startTextXYZ[1],
                                                     startTextXYZ[2],
-                                                    "L");
+                                                    paraPlaneEndLabel);
     }
 }
 
