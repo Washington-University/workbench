@@ -22,7 +22,7 @@
  *
  */
 
-#include "AlgorithmVolumeROIFromLabel.h"
+#include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
@@ -36,17 +36,17 @@
 using namespace caret;
 using namespace std;
 
-AString AlgorithmVolumeROIFromLabel::getCommandSwitch()
+AString AlgorithmVolumeLabelToROI::getCommandSwitch()
 {
-    return "-volume-roi-from-label";
+    return "-volume-label-to-roi";
 }
 
-AString AlgorithmVolumeROIFromLabel::getShortDescription()
+AString AlgorithmVolumeLabelToROI::getShortDescription()
 {
-    return "MAKE AN ROI VOLUME FROM A LABEL VOLUME";
+    return "MAKE A VOLUME LABEL INTO AN ROI VOLUME";
 }
 
-OperationParameters* AlgorithmVolumeROIFromLabel::getParameters()
+OperationParameters* AlgorithmVolumeLabelToROI::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
@@ -64,13 +64,14 @@ OperationParameters* AlgorithmVolumeROIFromLabel::getParameters()
     mapOpt->addStringParameter(1, "map", "the map number or name");
     
     ret->setHelpText(
-        AString("For each map in <label-in>, a map is created in <volume-out> where the all locations labeled with <label-name> are given a value of 1, and all other locations are given 0.  ") +
+        AString("For each map in <label-in>, a map is created in <volume-out> where the all locations labeled with <label-name> or with a key of <label-key> are given a value of 1, and all other locations are given 0.  ") +
+        "Exactly one of -name and -key must be specified.  " +
         "Specify -map to use only one map from <label-in>."
     );
     return ret;
 }
 
-void AlgorithmVolumeROIFromLabel::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmVolumeLabelToROI::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     VolumeFile* myLabel = myParams->getVolume(1);
     VolumeFile* myVolumeOut = myParams->getOutputVolume(2);
@@ -104,13 +105,13 @@ void AlgorithmVolumeROIFromLabel::useParameters(OperationParameters* myParams, P
     }
     if (nameMode)
     {
-        AlgorithmVolumeROIFromLabel(myProgObj, myLabel, labelName, myVolumeOut, whichMap);
+        AlgorithmVolumeLabelToROI(myProgObj, myLabel, labelName, myVolumeOut, whichMap);
     } else {
-        AlgorithmVolumeROIFromLabel(myProgObj, myLabel, labelKey, myVolumeOut, whichMap);
+        AlgorithmVolumeLabelToROI(myProgObj, myLabel, labelKey, myVolumeOut, whichMap);
     }
 }
 
-AlgorithmVolumeROIFromLabel::AlgorithmVolumeROIFromLabel(ProgressObject* myProgObj, const VolumeFile* myLabel, const AString& labelName, VolumeFile* myVolumeOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeLabelToROI::AlgorithmVolumeLabelToROI(ProgressObject* myProgObj, const VolumeFile* myLabel, const AString& labelName, VolumeFile* myVolumeOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numMaps = myLabel->getNumberOfMaps();
@@ -195,7 +196,7 @@ AlgorithmVolumeROIFromLabel::AlgorithmVolumeROIFromLabel(ProgressObject* myProgO
     }
 }
 
-AlgorithmVolumeROIFromLabel::AlgorithmVolumeROIFromLabel(ProgressObject* myProgObj, const VolumeFile* myLabel, const int32_t& labelKey, VolumeFile* myVolumeOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeLabelToROI::AlgorithmVolumeLabelToROI(ProgressObject* myProgObj, const VolumeFile* myLabel, const int32_t& labelKey, VolumeFile* myVolumeOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numMaps = myLabel->getNumberOfMaps();
@@ -273,12 +274,12 @@ AlgorithmVolumeROIFromLabel::AlgorithmVolumeROIFromLabel(ProgressObject* myProgO
     }
 }
 
-float AlgorithmVolumeROIFromLabel::getAlgorithmInternalWeight()
+float AlgorithmVolumeLabelToROI::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmVolumeROIFromLabel::getSubAlgorithmWeight()
+float AlgorithmVolumeLabelToROI::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

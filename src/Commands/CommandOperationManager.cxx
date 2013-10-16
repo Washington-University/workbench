@@ -40,6 +40,7 @@
 #include "AlgorithmCiftiExtrema.h"
 #include "AlgorithmCiftiFalseCorrelation.h"
 #include "AlgorithmCiftiGradient.h"
+#include "AlgorithmCiftiLabelToROI.h"
 #include "AlgorithmCiftiMerge.h"
 #include "AlgorithmCiftiMergeDense.h"
 #include "AlgorithmCiftiPairwiseCorrelation.h"
@@ -48,13 +49,13 @@
 #include "AlgorithmCiftiReorder.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 #include "AlgorithmCiftiResample.h"
-#include "AlgorithmCiftiROIFromLabel.h"
 #include "AlgorithmCiftiROIsFromExtrema.h"
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiSmoothing.h"
 #include "AlgorithmCiftiTranspose.h"
 #include "AlgorithmCreateSignedDistanceVolume.h"
 #include "AlgorithmFiberDotProducts.h"
+#include "AlgorithmGiftiLabelToROI.h"
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmLabelMerge.h"
 #include "AlgorithmLabelResample.h"
@@ -67,7 +68,6 @@
 #include "AlgorithmMetricRegression.h"
 #include "AlgorithmMetricRemoveIslands.h"
 #include "AlgorithmMetricResample.h"
-#include "AlgorithmMetricROIFromLabel.h"
 #include "AlgorithmMetricROIsFromExtrema.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmSignedDistanceToSurface.h"
@@ -92,6 +92,7 @@
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeFillHoles.h"
 #include "AlgorithmVolumeGradient.h"
+#include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
 #include "AlgorithmVolumeMerge.h"
 #include "AlgorithmVolumeParcelResampling.h"
@@ -99,7 +100,6 @@
 #include "AlgorithmVolumeParcelSmoothing.h"
 #include "AlgorithmVolumeReduce.h"
 #include "AlgorithmVolumeRemoveIslands.h"
-#include "AlgorithmVolumeROIFromLabel.h"
 #include "AlgorithmVolumeROIsFromExtrema.h"
 #include "AlgorithmVolumeSmoothing.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
@@ -222,6 +222,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiPairwiseCorrelation()));
@@ -230,13 +231,13 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReorder()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiResample()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiROIFromLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSeparate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiTranspose()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmFiberDotProducts()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
@@ -249,7 +250,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRegression()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRemoveIslands()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricResample()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIFromLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSignedDistanceToSurface()));
@@ -274,6 +274,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
@@ -281,7 +282,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeRemoveIslands()));
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeROIFromLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeROIsFromExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));

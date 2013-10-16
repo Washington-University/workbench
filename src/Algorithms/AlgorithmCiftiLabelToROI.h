@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_METRIC_ROI_FROM_LABEL_H__
-#define __ALGORITHM_METRIC_ROI_FROM_LABEL_H__
+#ifndef __ALGORITHM_CIFTI_LABEL_TO_ROI_H__
+#define __ALGORITHM_CIFTI_LABEL_TO_ROI_H__
 
 /*LICENSE_START*/
 /*
@@ -29,23 +29,25 @@
 
 namespace caret {
     
-    class AlgorithmMetricROIFromLabel : public AbstractAlgorithm
+    class CiftiInterface;
+    
+    class AlgorithmCiftiLabelToROI : public AbstractAlgorithm
     {
-        AlgorithmMetricROIFromLabel();
+        AlgorithmCiftiLabelToROI();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricROIFromLabel(ProgressObject* myProgObj, const LabelFile* myLabel, const AString& labelName, MetricFile* myMetricOut, const int& whichMap = -1);
-        AlgorithmMetricROIFromLabel(ProgressObject* myProgObj, const LabelFile* myLabel, const int32_t& labelKey, MetricFile* myMetricOut, const int& whichMap = -1);
+        AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
+        AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricROIFromLabel> AutoAlgorithmMetricROIFromLabel;
+    typedef TemplateAutoOperation<AlgorithmCiftiLabelToROI> AutoAlgorithmCiftiLabelToROI;
 
 }
 
-#endif //__ALGORITHM_METRIC_ROI_FROM_LABEL_H__
+#endif //__ALGORITHM_CIFTI_LABEL_TO_ROI_H__

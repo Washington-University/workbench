@@ -22,7 +22,7 @@
  *
  */
 
-#include "AlgorithmMetricROIFromLabel.h"
+#include "AlgorithmGiftiLabelToROI.h"
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
@@ -37,17 +37,17 @@
 using namespace caret;
 using namespace std;
 
-AString AlgorithmMetricROIFromLabel::getCommandSwitch()
+AString AlgorithmGiftiLabelToROI::getCommandSwitch()
 {
-    return "-metric-roi-from-label";
+    return "-gifti-label-to-roi";
 }
 
-AString AlgorithmMetricROIFromLabel::getShortDescription()
+AString AlgorithmGiftiLabelToROI::getShortDescription()
 {
-    return "MAKE AN ROI METRIC FROM A GIFTI LABEL FILE";
+    return "MAKE A GIFTI LABEL INTO AN ROI METRIC";
 }
 
-OperationParameters* AlgorithmMetricROIFromLabel::getParameters()
+OperationParameters* AlgorithmGiftiLabelToROI::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
@@ -65,13 +65,14 @@ OperationParameters* AlgorithmMetricROIFromLabel::getParameters()
     mapOpt->addStringParameter(1, "map", "the map number or name");
     
     ret->setHelpText(
-        AString("For each map in <label-in>, a map is created in <metric-out> where the all locations labeled with <label-name> are given a value of 1, and all other locations are given 0.  ") +
+        AString("For each map in <label-in>, a map is created in <metric-out> where the all locations labeled with <label-name> or with a key of <label-key> are given a value of 1, and all other locations are given 0.  ") +
+        "Exactly one of -name and -key must be specified.  " +
         "Specify -map to use only one map from <label-in>."
     );
     return ret;
 }
 
-void AlgorithmMetricROIFromLabel::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmGiftiLabelToROI::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LabelFile* myLabel = myParams->getLabel(1);
     MetricFile* myMetricOut = myParams->getOutputMetric(2);
@@ -105,13 +106,13 @@ void AlgorithmMetricROIFromLabel::useParameters(OperationParameters* myParams, P
     }
     if (nameMode)
     {
-        AlgorithmMetricROIFromLabel(myProgObj, myLabel, labelName, myMetricOut, whichMap);
+        AlgorithmGiftiLabelToROI(myProgObj, myLabel, labelName, myMetricOut, whichMap);
     } else {
-        AlgorithmMetricROIFromLabel(myProgObj, myLabel, labelKey, myMetricOut, whichMap);
+        AlgorithmGiftiLabelToROI(myProgObj, myLabel, labelKey, myMetricOut, whichMap);
     }
 }
 
-AlgorithmMetricROIFromLabel::AlgorithmMetricROIFromLabel(ProgressObject* myProgObj, const LabelFile* myLabel, const AString& labelName, MetricFile* myMetricOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmGiftiLabelToROI::AlgorithmGiftiLabelToROI(ProgressObject* myProgObj, const LabelFile* myLabel, const AString& labelName, MetricFile* myMetricOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int64_t numNodes = myLabel->getNumberOfNodes();
@@ -176,7 +177,7 @@ AlgorithmMetricROIFromLabel::AlgorithmMetricROIFromLabel(ProgressObject* myProgO
     }
 }
 
-AlgorithmMetricROIFromLabel::AlgorithmMetricROIFromLabel(ProgressObject* myProgObj, const LabelFile* myLabel, const int32_t& labelKey, MetricFile* myMetricOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmGiftiLabelToROI::AlgorithmGiftiLabelToROI(ProgressObject* myProgObj, const LabelFile* myLabel, const int32_t& labelKey, MetricFile* myMetricOut, const int& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int64_t numNodes = myLabel->getNumberOfNodes();
@@ -239,12 +240,12 @@ AlgorithmMetricROIFromLabel::AlgorithmMetricROIFromLabel(ProgressObject* myProgO
     }
 }
 
-float AlgorithmMetricROIFromLabel::getAlgorithmInternalWeight()
+float AlgorithmGiftiLabelToROI::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmMetricROIFromLabel::getSubAlgorithmWeight()
+float AlgorithmGiftiLabelToROI::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

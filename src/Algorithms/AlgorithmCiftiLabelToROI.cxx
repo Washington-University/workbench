@@ -22,7 +22,7 @@
  *
  */
 
-#include "AlgorithmCiftiROIFromLabel.h"
+#include "AlgorithmCiftiLabelToROI.h"
 #include "AlgorithmException.h"
 
 #include "CaretLogger.h"
@@ -35,17 +35,17 @@
 using namespace caret;
 using namespace std;
 
-AString AlgorithmCiftiROIFromLabel::getCommandSwitch()
+AString AlgorithmCiftiLabelToROI::getCommandSwitch()
 {
-    return "-cifti-roi-from-label";
+    return "-cifti-label-to-roi";
 }
 
-AString AlgorithmCiftiROIFromLabel::getShortDescription()
+AString AlgorithmCiftiLabelToROI::getShortDescription()
 {
-    return "MAKE A DSCALAR ROI FROM A DLABEL FILE";
+    return "MAKE A CIFTI LABEL INTO AN ROI";
 }
 
-OperationParameters* AlgorithmCiftiROIFromLabel::getParameters()
+OperationParameters* AlgorithmCiftiLabelToROI::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "label-in", "the input cifti label file");
@@ -62,14 +62,14 @@ OperationParameters* AlgorithmCiftiROIFromLabel::getParameters()
     mapOpt->addStringParameter(1, "map", "the map number or name");
     
     ret->setHelpText(
-        AString("For each map in <label-in>, a map is created in <scalar-out> where the all locations labeled with <label-name> are given a value of 1, and all other locations are given 0.  ") +
+        AString("For each map in <label-in>, a map is created in <scalar-out> where the all locations labeled with <label-name> or with a key of <label-key> are given a value of 1, and all other locations are given 0.  ") +
         "Exactly one of -name and -key must be specified.  " +
         "Specify -map to use only one map from <label-in>."
     );
     return ret;
 }
 
-void AlgorithmCiftiROIFromLabel::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmCiftiLabelToROI::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     CiftiFile* myCifti = myParams->getCifti(1);
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
@@ -103,13 +103,13 @@ void AlgorithmCiftiROIFromLabel::useParameters(OperationParameters* myParams, Pr
     }
     if (nameMode)
     {
-        AlgorithmCiftiROIFromLabel(myProgObj, myCifti, labelName, myCiftiOut, whichMap);
+        AlgorithmCiftiLabelToROI(myProgObj, myCifti, labelName, myCiftiOut, whichMap);
     } else {
-        AlgorithmCiftiROIFromLabel(myProgObj, myCifti, labelKey, myCiftiOut, whichMap);
+        AlgorithmCiftiLabelToROI(myProgObj, myCifti, labelKey, myCiftiOut, whichMap);
     }
 }
 
-AlgorithmCiftiROIFromLabel::AlgorithmCiftiROIFromLabel(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXml = myCifti->getCiftiXML();
@@ -208,7 +208,7 @@ AlgorithmCiftiROIFromLabel::AlgorithmCiftiROIFromLabel(ProgressObject* myProgObj
     }
 }
 
-AlgorithmCiftiROIFromLabel::AlgorithmCiftiROIFromLabel(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXml = myCifti->getCiftiXML();
@@ -289,12 +289,12 @@ AlgorithmCiftiROIFromLabel::AlgorithmCiftiROIFromLabel(ProgressObject* myProgObj
     }
 }
 
-float AlgorithmCiftiROIFromLabel::getAlgorithmInternalWeight()
+float AlgorithmCiftiLabelToROI::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmCiftiROIFromLabel::getSubAlgorithmWeight()
+float AlgorithmCiftiLabelToROI::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

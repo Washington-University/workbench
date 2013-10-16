@@ -30,6 +30,7 @@ AlgorithmCiftiDilate.h
 AlgorithmCiftiExtrema.h
 AlgorithmCiftiFalseCorrelation.h
 AlgorithmCiftiGradient.h
+AlgorithmCiftiLabelToROI.h
 AlgorithmCiftiMerge.h
 AlgorithmCiftiMergeDense.h
 AlgorithmCiftiPairwiseCorrelation.h
@@ -38,7 +39,6 @@ AlgorithmCiftiReduce.h
 AlgorithmCiftiReorder.h
 AlgorithmCiftiReplaceStructure.h
 AlgorithmCiftiResample.h
-AlgorithmCiftiROIFromLabel.h
 AlgorithmCiftiROIsFromExtrema.h
 AlgorithmCiftiSeparate.h
 AlgorithmCiftiSmoothing.h
@@ -46,6 +46,7 @@ AlgorithmCiftiTranspose.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmFiberDotProducts.h
+AlgorithmGiftiLabelToROI.h
 AlgorithmLabelDilate.h
 AlgorithmLabelMerge.h
 AlgorithmLabelResample.h
@@ -58,7 +59,6 @@ AlgorithmMetricReduce.h
 AlgorithmMetricRegression.h
 AlgorithmMetricRemoveIslands.h
 AlgorithmMetricResample.h
-AlgorithmMetricROIFromLabel.h
 AlgorithmMetricROIsFromExtrema.h
 AlgorithmMetricSmoothing.h
 AlgorithmNodesInsideBorder.h
@@ -84,6 +84,7 @@ AlgorithmVolumeDilate.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
 AlgorithmVolumeGradient.h
+AlgorithmVolumeLabelToROI.h
 AlgorithmVolumeLabelToSurfaceMapping.h
 AlgorithmVolumeMerge.h
 AlgorithmVolumeParcelResampling.h
@@ -91,7 +92,6 @@ AlgorithmVolumeParcelResamplingGeneric.h
 AlgorithmVolumeParcelSmoothing.h
 AlgorithmVolumeReduce.h
 AlgorithmVolumeRemoveIslands.h
-AlgorithmVolumeROIFromLabel.h
 AlgorithmVolumeROIsFromExtrema.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
@@ -111,6 +111,7 @@ AlgorithmCiftiDilate.cxx
 AlgorithmCiftiExtrema.cxx
 AlgorithmCiftiFalseCorrelation.cxx
 AlgorithmCiftiGradient.cxx
+AlgorithmCiftiLabelToROI.cxx
 AlgorithmCiftiMerge.cxx
 AlgorithmCiftiMergeDense.cxx
 AlgorithmCiftiPairwiseCorrelation.cxx
@@ -119,7 +120,6 @@ AlgorithmCiftiReduce.cxx
 AlgorithmCiftiReorder.cxx
 AlgorithmCiftiReplaceStructure.cxx
 AlgorithmCiftiResample.cxx
-AlgorithmCiftiROIFromLabel.cxx
 AlgorithmCiftiROIsFromExtrema.cxx
 AlgorithmCiftiSeparate.cxx
 AlgorithmCiftiSmoothing.cxx
@@ -127,6 +127,7 @@ AlgorithmCiftiTranspose.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmFiberDotProducts.cxx
+AlgorithmGiftiLabelToROI.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmLabelMerge.cxx
 AlgorithmLabelResample.cxx
@@ -139,7 +140,6 @@ AlgorithmMetricReduce.cxx
 AlgorithmMetricRegression.cxx
 AlgorithmMetricRemoveIslands.cxx
 AlgorithmMetricResample.cxx
-AlgorithmMetricROIFromLabel.cxx
 AlgorithmMetricROIsFromExtrema.cxx
 AlgorithmMetricSmoothing.cxx
 AlgorithmNodesInsideBorder.cxx
@@ -165,6 +165,7 @@ AlgorithmVolumeDilate.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx
 AlgorithmVolumeGradient.cxx
+AlgorithmVolumeLabelToROI.cxx
 AlgorithmVolumeLabelToSurfaceMapping.cxx
 AlgorithmVolumeMerge.cxx
 AlgorithmVolumeParcelResampling.cxx
@@ -172,7 +173,6 @@ AlgorithmVolumeParcelResamplingGeneric.cxx
 AlgorithmVolumeParcelSmoothing.cxx
 AlgorithmVolumeReduce.cxx
 AlgorithmVolumeRemoveIslands.cxx
-AlgorithmVolumeROIFromLabel.cxx
 AlgorithmVolumeROIsFromExtrema.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeToSurfaceMapping.cxx
