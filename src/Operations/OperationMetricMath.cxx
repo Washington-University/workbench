@@ -21,6 +21,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+
 #include "OperationMetricMath.h"
 #include "OperationException.h"
 
@@ -65,7 +66,7 @@ OperationParameters* OperationMetricMath::getParameters()
                         "All metrics must have the same number of vertices.  " +
                         "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
                         "If the -column option is given to any -var option, only one column is used from that file.  " +
-                        "If -repeat is specified, the file must either be a single column, or have the -column option specified.  " +
+                        "If -repeat is specified, the file must either have only one column, or have the -column option specified.  " +
                         "All files that don't use -repeat must have the same number of columns requested to be used.  " +
                         "The format of <expression> is as follows:\n\n";
     myText += CaretMathExpression::getExpressionHelpInfo();
@@ -97,7 +98,6 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     int numNodes = myVarOpts[0]->getMetric(2)->getNumberOfNodes();
     StructureEnum::Enum myStructure = myVarOpts[0]->getMetric(2)->getStructure();
     int numColumns = -1;
-    bool firstNonrepeat = true;
     for (int i = 0; i < numInputs; ++i)
     {
         AString varName = myVarOpts[i]->getString(1);
@@ -130,10 +130,9 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
             }
             if (useColumn == -1) useColumn = 0;//-1 means use same input column as current output column, so we need to fix the special case of -repeat on single column file without -column
         } else {
-            if (firstNonrepeat)
+            if (numColumns == -1)//then this is the first one that doesn't use -repeat
             {
                 numColumns = thisColumns;
-                firstNonrepeat = false;
             } else {
                 if (numColumns != thisColumns)
                 {
@@ -165,7 +164,10 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
             CaretLogWarning("variable '" + varName + "' not used in expression");
         }
     }
-    CaretAssert(numColumns != -1);
+    if (numColumns == -1)
+    {
+        throw OperationException("all -var options used -repeat, there is no file to get number of desired output columns from");
+    }
     if (numVars > 0 && varMetrics[0] != NULL) numNodes = varMetrics[0]->getNumberOfNodes();//in case the first -var is unused, and has a different number of nodes
     for (int i = 0; i < numVars; ++i)
     {
