@@ -168,7 +168,6 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     {
         throw OperationException("all -var options used -repeat, there is no file to get number of desired output columns from");
     }
-    if (numVars > 0 && varMetrics[0] != NULL) numNodes = varMetrics[0]->getNumberOfNodes();//in case the first -var is unused, and has a different number of nodes
     for (int i = 0; i < numVars; ++i)
     {
         if (varMetrics[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
