@@ -21,10 +21,13 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#include "CaretMathExpression.h"
-#include "MetricFile.h"
 #include "OperationMetricMath.h"
 #include "OperationException.h"
+
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CaretMathExpression.h"
+#include "MetricFile.h"
 
 using namespace caret;
 using namespace std;
@@ -52,16 +55,18 @@ OperationParameters* OperationMetricMath::getParameters()
     varOpt->addMetricParameter(2, "metric", "the metric file to use as this variable");
     OptionalParameter* columnSelect = varOpt->createOptionalParameter(3, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
+    varOpt->createOptionalParameter(4, "-repeat", "reuse a single column for each column of calculation");
     
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
     
     AString myText = AString("This command evaluates <expression> at each surface vertex independently.  ") +
-                        "There must be at least one -var option (to get the structure and number of vertices from), even if the <name> specified in it isn't used in <expression>.  " +
+                        "There must be at least one -var option (to get the structure, number of vertices, and number of columns from), even if the <name> specified in it isn't used in <expression>.  " +
                         "All metrics must have the same number of vertices.  " +
                         "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
-                        "If the -column option is given to any -var option, all -var options must specify single column metric files, or have the -column option specified.  " +
-                        "If no -var option is given the -column option, all metric files specified must have the same number of columns.  " +
+                        "If the -column option is given to any -var option, only one column is used from that file.  " +
+                        "If -repeat is specified, the file must either be a single column, or have the -column option specified.  " +
+                        "All files that don't use -repeat must have the same number of columns requested to be used.  " +
                         "The format of <expression> is as follows:\n\n";
     myText += CaretMathExpression::getExpressionHelpInfo();
     ret->setHelpText(myText);
@@ -88,10 +93,11 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
     int numVars = myVarNames.size();
     vector<MetricFile*> varMetrics(numVars, (MetricFile*)NULL);
     vector<int> metricColumns(numVars, -1);
-    bool allColumnsMode = true;
     if (numInputs == 0) throw OperationException("you must specify at least one input metric (-var), even if the expression doesn't use a variable");
     int numNodes = myVarOpts[0]->getMetric(2)->getNumberOfNodes();
     StructureEnum::Enum myStructure = myVarOpts[0]->getMetric(2)->getStructure();
+    int numColumns = -1;
+    bool firstNonrepeat = true;
     for (int i = 0; i < numInputs; ++i)
     {
         AString varName = myVarOpts[i]->getString(1);
@@ -100,84 +106,85 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
         {
             throw OperationException("'" + varName + "' is a named constant equal to " + AString::number(constVal, 'g', 15) + ", please use a different variable name");
         }
+        MetricFile* thisMetric = myVarOpts[i]->getMetric(2);
+        int thisColumns = thisMetric->getNumberOfColumns();
+        OptionalParameter* columnSelect = myVarOpts[i]->getOptionalParameter(3);
+        int useColumn = -1;
+        if (columnSelect->m_present)
+        {
+            thisColumns = 1;
+            useColumn = thisMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
+            if (useColumn == -1) throw OperationException("could not find map '" + columnSelect->getString(1) +
+                                                                "' in metric file for '" + varName + "'");
+        }
+        bool repeat = myVarOpts[i]->getOptionalParameter(4)->m_present;
+        if (thisMetric->getNumberOfNodes() != numNodes)
+        {
+            throw OperationException("metric file for variable '" + varName + "' has different number of vertices than the first metric file");
+        }
+        if (repeat)
+        {
+            if (thisColumns != 1)
+            {
+                throw OperationException("-repeat specified without -column for variable '" + varName + "', but metric file has " + AString::number(thisColumns) + " columns");
+            }
+            if (useColumn == -1) useColumn = 0;//-1 means use same input column as current output column, so we need to fix the special case of -repeat on single column file without -column
+        } else {
+            if (firstNonrepeat)
+            {
+                numColumns = thisColumns;
+                firstNonrepeat = false;
+            } else {
+                if (numColumns != thisColumns)
+                {
+                    if (useColumn == -1)
+                    {
+                        throw OperationException("metric file for variable '" + varName + "' has " + AString::number(thisColumns) + " column(s), but previous metric files have " +
+                                                 AString::number(numColumns) + " column(s) requested to be used");
+                    } else {
+                        throw OperationException("-column specified without -repeat for variable '" + varName + "', but previous metric files have have " +
+                                                 AString::number(numColumns) + " columns requested to be used");
+                    }
+                }
+            }
+        }
+        bool found = false;
         for (int j = 0; j < numVars; ++j)
         {
             if (varName == myVarNames[j])
             {
                 if (varMetrics[j] != NULL) throw OperationException("variable '" + varName + "' specified more than once");
-                varMetrics[j] = myVarOpts[i]->getMetric(2);
-                OptionalParameter* columnSelect = myVarOpts[i]->getOptionalParameter(3);
-                if (columnSelect->m_present)
-                {
-                    allColumnsMode = false;
-                    metricColumns[j] = varMetrics[j]->getMapIndexFromNameOrNumber(columnSelect->getString(1));
-                    if (metricColumns[j] == -1) throw OperationException("could not find map '" + columnSelect->getString(1) +
-                                                                        "' in metric file for '" + varName + "'");
-                }
+                varMetrics[j] = thisMetric;
+                metricColumns[j] = useColumn;
+                found = true;
                 break;
             }
         }
+        if (!found && (numVars != 0 || numInputs != 1))//supress warning when a single -var is used with a constant expression, as required per help
+        {
+            CaretLogWarning("variable '" + varName + "' not used in expression");
+        }
     }
-    int numColumns = 1;
+    CaretAssert(numColumns != -1);
     if (numVars > 0 && varMetrics[0] != NULL) numNodes = varMetrics[0]->getNumberOfNodes();//in case the first -var is unused, and has a different number of nodes
     for (int i = 0; i < numVars; ++i)
     {
         if (varMetrics[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
-        if (varMetrics[i]->getNumberOfNodes() != numNodes) throw OperationException("metric file for '" + myVarNames[i] + "' has a different number of vertices than " +
-                                                                                    "the metric file for '" + myVarNames[0] + "'");
-        if (allColumnsMode)
-        {
-            if (i == 0)
-            {
-                numColumns = varMetrics[i]->getNumberOfColumns();
-            } else {
-                if (varMetrics[i]->getNumberOfColumns() != numColumns) throw OperationException("metric file for '" + myVarNames[i] + "' has a different number of columns than " +
-                                                                                                "the metric file for '" + myVarNames[0] + "'");
-            }
-        } else {
-            if (metricColumns[i] == -1)
-            {
-                if (varMetrics[i]->getNumberOfColumns() == 1)
-                {
-                    metricColumns[i] = 0;
-                } else {
-                    throw OperationException("metric file for '" + myVarNames[i] + "' has more than one column, and -column was not specified for it");
-                }
-            }
-        }
     }
-    vector<float> values(numVars), rowScratch(numNodes);
+    vector<float> values(numVars), colScratch(numNodes);
     vector<const float*> columnPointers(numVars);
-    if (allColumnsMode)
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
+    myMetricOut->setStructure(myStructure);
+    for (int j = 0; j < numColumns; ++j)
     {
-        myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
-        myMetricOut->setStructure(myStructure);
-        for (int j = 0; j < numColumns; ++j)
-        {
-            for (int v = 0; v < numVars; ++v)
-            {
-                columnPointers[v] = varMetrics[v]->getValuePointerForColumn(j);
-            }
-            for (int i = 0; i < numNodes; ++i)
-            {
-                for (int v = 0; v < numVars; ++v)
-                {
-                    values[v] = columnPointers[v][i];
-                }
-                rowScratch[i] = (float)myExpr.evaluate(values);
-                if (nanfix && rowScratch[i] != rowScratch[i])
-                {
-                    rowScratch[i] = nanfixval;
-                }
-            }
-            myMetricOut->setValuesForColumn(j, rowScratch.data());
-        }
-    } else {
-        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
-        myMetricOut->setStructure(myStructure);
         for (int v = 0; v < numVars; ++v)
         {
-            columnPointers[v] = varMetrics[v]->getValuePointerForColumn(metricColumns[v]);
+            if (metricColumns[v] == -1)
+            {
+                columnPointers[v] = varMetrics[v]->getValuePointerForColumn(j);
+            } else {
+                columnPointers[v] = varMetrics[v]->getValuePointerForColumn(metricColumns[v]);
+            }
         }
         for (int i = 0; i < numNodes; ++i)
         {
@@ -185,12 +192,12 @@ void OperationMetricMath::useParameters(OperationParameters* myParams, ProgressO
             {
                 values[v] = columnPointers[v][i];
             }
-            rowScratch[i] = (float)myExpr.evaluate(values);
-            if (nanfix && rowScratch[i] != rowScratch[i])
+            colScratch[i] = (float)myExpr.evaluate(values);
+            if (nanfix && colScratch[i] != colScratch[i])
             {
-                rowScratch[i] = nanfixval;
+                colScratch[i] = nanfixval;
             }
         }
-        myMetricOut->setValuesForColumn(0, rowScratch.data());
+        myMetricOut->setValuesForColumn(j, colScratch.data());
     }
 }
