@@ -254,6 +254,12 @@ namespace caret {
                                                  const int32_t montageSliceIndex,
                                                   Matrix4x4& obliqueTransformationMatrixOut);
 
+        void setVolumeSliceModelingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                 const DRAW_MODE drawMode,
+                                                 Plane& planeOut,
+                                                 const int32_t montageSliceIndex,
+                                                 Matrix4x4& obliqueTransformationMatrixOut);
+        
         void drawDebugSquare();
         
         void drawLayers(const Plane& slicePlane,

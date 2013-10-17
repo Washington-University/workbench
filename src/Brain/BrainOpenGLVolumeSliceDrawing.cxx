@@ -602,23 +602,56 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
      */
     BoundingBox boundingBox;
     m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-    double modelViewRangeY = 100.0;
+    double modelViewRangeY = std::max(boundingBox.getDifferenceY(),
+                                      boundingBox.getDifferenceZ());
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            modelViewRangeY = std::max(boundingBox.getDifferenceX(),
+//                                       std::max(boundingBox.getDifferenceY(),
+//                                                boundingBox.getDifferenceZ()));
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            modelViewRangeY = boundingBox.getDifferenceY();
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            modelViewRangeY = boundingBox.getDifferenceZ();
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            modelViewRangeY = boundingBox.getDifferenceZ();
+//            break;
+//    }
+
+    /*
+     * Set top and bottom to the min/max coordinate
+     * that runs vertically on the screen
+     */
+    double modelTop = 200.0;
+    double modelBottom = -200.0;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            modelViewRangeY = std::max(boundingBox.getDifferenceX(),
-                                       std::max(boundingBox.getDifferenceY(),
-                                                boundingBox.getDifferenceZ()));
+            modelTop = boundingBox.getMaxY();
+            modelBottom = boundingBox.getMinY();
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            modelViewRangeY = boundingBox.getDifferenceY();
+            modelTop = boundingBox.getMaxY();
+            modelBottom = boundingBox.getMinY();
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            modelViewRangeY = boundingBox.getDifferenceZ();
+            modelTop = boundingBox.getMaxZ();
+            modelBottom = boundingBox.getMinZ();
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            modelViewRangeY = boundingBox.getDifferenceZ();
+            modelTop = boundingBox.getMaxZ();
+            modelBottom = boundingBox.getMinZ();
             break;
     }
+    
+    /*
+     * Scale ratio makes region slightly larger than model
+     */
+    const double scaleRatio = 1.0 / 0.98;
+    modelTop *= scaleRatio;
+    modelBottom *= scaleRatio;
     
     /*
      * Determine aspect ratio of viewport
@@ -629,19 +662,19 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
                                 / viewportHeight);
     
     /*
-     * Scale ratio makes region slightly larger than model
-     */
-    const double scaleRatio = 1.0 / 0.98;
- 
-    /*
      * Set bounds of orthographic projection
      */
-    const double orthoSize = modelViewRangeY * scaleRatio;
-    const double halfOrthoSize = orthoSize / 2.0;
-    const double orthoBottom = -halfOrthoSize;
-    const double orthoTop    =  halfOrthoSize;
-    const double orthoRight  =  halfOrthoSize * aspectRatio;
-    const double orthoLeft   = -halfOrthoSize * aspectRatio;
+//    const double orthoSize = modelViewRangeY * scaleRatio;
+//    const double halfOrthoSize = orthoSize / 2.0;
+//    const double orthoBottom = -halfOrthoSize;
+//    const double orthoTop    =  halfOrthoSize;
+//    const double orthoRight  =  halfOrthoSize * aspectRatio;
+//    const double orthoLeft   = -halfOrthoSize * aspectRatio;
+    const double halfModelY = ((modelTop - modelBottom) / 2.0);
+    const double orthoBottom = modelBottom;
+    const double orthoTop    = modelTop;
+    const double orthoRight  =  halfModelY * aspectRatio;
+    const double orthoLeft   = -halfModelY * aspectRatio;
     const double nearDepth = -1000.0;
     const double farDepth  =  1000.0;
     m_orthographicBounds[0] = orthoLeft;
@@ -668,7 +701,222 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
 }
 
 /**
- * Set the volume slice viewing transformation.
+ * Set the volume slice modeling transformation which sets the position
+ * and orientation of the model.
+ *
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param drawMode
+ *    The drawing mode for slices.
+ * @param planeOut
+ *    Plane of slice after transforms (OUTPUT)
+ * @param montageSliceIndex
+ *    For mongtage drawing, indicates slice being drawn.
+ * @param obliqueTransformationMatrixOut
+ *    Output transformation matrix for oblique viewing.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::setVolumeSliceModelingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                         const DRAW_MODE drawMode,
+                                         Plane& planeOut,
+                                         const int32_t montageSliceIndex,
+                                         Matrix4x4& obliqueTransformationMatrixOut)
+{
+    bool isSetViewTranform = false;
+    bool isSetZoom = false;
+    switch (drawMode) {
+        case DRAW_MODE_ALL_STRUCTURES_VIEW:
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            isSetViewTranform = true;
+            isSetZoom = true;
+            break;
+        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+            break;
+    }
+    
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    
+    double centerX = boundingBox.getCenterX();
+    double centerY = boundingBox.getCenterY();
+    double centerZ = boundingBox.getCenterZ();
+    
+    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
+    
+    double upX = 0.0;
+    double upY = 0.0;
+    double upZ = 0.0;
+    
+    const float sliceX = m_browserTabContent->getSliceCoordinateParasagittal();
+    const float sliceY = m_browserTabContent->getSliceCoordinateCoronal();
+    const float sliceZ = m_browserTabContent->getSliceCoordinateAxial();
+    
+    float sliceOffset[3] = {
+        0.0,
+        0.0,
+        0.0
+    };
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceNormalVector[2] = 1.0;
+            upY = 1.0;
+            centerZ = sliceZ;
+            sliceOffset[2] = sliceZ;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceNormalVector[1] = -1.0;
+            upZ = 1.0;
+            centerY = sliceY;
+            sliceOffset[1] = sliceY;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceNormalVector[0] = -1.0;
+            upZ = 1.0;
+            centerX = sliceX;
+            sliceOffset[0] = sliceX;
+            break;
+    }
+    
+    obliqueTransformationMatrixOut.identity();
+    
+    switch (m_sliceViewMode) {
+        case VolumeSliceViewModeEnum::MONTAGE:
+            if (montageSliceIndex >= 0) {
+                /*
+                 * Montage overrides the selected coordinate of the viewing axis
+                 */
+                const int64_t montIJK[3] = {
+                    montageSliceIndex,
+                    montageSliceIndex,
+                    montageSliceIndex
+                };
+                float montXYZ[3];
+                m_volumeDrawInfo[0].volumeFile->indexToSpace(montIJK, montXYZ);
+                
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        sliceOffset[2] = montXYZ[2];
+                        centerZ = montXYZ[2];
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        sliceOffset[1] = montXYZ[1];
+                        centerY = montXYZ[1];
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        sliceOffset[0] = montXYZ[0];
+                        centerX = montXYZ[0];
+                        break;
+                }
+            }
+            break;
+        case VolumeSliceViewModeEnum::OBLIQUE:
+        {
+            /*
+             * Get the rotation matrix
+             */
+            Matrix4x4 rotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix(); //  m_browserTabContent->getRotationMatrix();
+            
+            /*
+             * Create the transformation matrix
+             */
+            obliqueTransformationMatrixOut.postmultiply(rotationMatrix);
+            
+            /*
+             * Translate for selected slice
+             */
+            obliqueTransformationMatrixOut.translate(sliceOffset[0],
+                                                     sliceOffset[1],
+                                                     sliceOffset[2]);
+            /*
+             * Transform the slice normal vector so that it
+             * points orthogonal to the slice by rotating the
+             * vector with the rotation matrix.
+             */
+            rotationMatrix.multiplyPoint3(sliceNormalVector);
+            MathFunctions::normalizeVector(sliceNormalVector);
+            
+            /*
+             * Need to rotate up vector
+             */
+            float upVector[3] = {
+                upX,
+                upY,
+                upZ
+            };
+            rotationMatrix.multiplyPoint3(upVector);
+            upX = upVector[0];
+            upY = upVector[1];
+            upZ = upVector[2];
+        }
+            break;
+        case VolumeSliceViewModeEnum::ORTHOGONAL:
+            break;
+    }
+    
+    const float* translation = m_browserTabContent->getTranslation();
+    const float zoom = m_browserTabContent->getScaling();
+    
+    centerX -= (translation[0]);
+    centerY -= (translation[1]);
+    centerZ -= (translation[2]);
+    
+    const double distanceEyeToCenter = 100.0;
+    const double eyeX = centerX + (sliceNormalVector[0] * distanceEyeToCenter);
+    const double eyeY = centerY + (sliceNormalVector[1] * distanceEyeToCenter);
+    const double eyeZ = centerZ + (sliceNormalVector[2] * distanceEyeToCenter);
+    
+    Plane plane(sliceNormalVector,
+                sliceOffset); //pointOnPlane);
+    
+    CaretLogFine("New View Transform center for "
+                 + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
+                 + "\nCenter:"
+                 + AString::number(centerX)
+                 + ", "
+                 + AString::number(centerY)
+                 + ", "
+                 + AString::number(centerZ)
+                 + "\nEye: "
+                 + AString::number(eyeX)
+                 + ", "
+                 + AString::number(eyeY)
+                 + ", "
+                 + AString::number(eyeZ)
+                 + "\nUp: "
+                 + AString::number(upX)
+                 + ", "
+                 + AString::number(upY)
+                 + ", "
+                 + AString::number(upZ)
+                 + "\nSlice Plane: "
+                 + plane.toString());
+    
+    m_lookAtCenter[0] = centerX;
+    m_lookAtCenter[1] = centerY;
+    m_lookAtCenter[2] = centerZ;
+    
+    if (isSetViewTranform) {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(eyeX, eyeY, eyeZ,
+                  centerX, centerY, centerZ,
+                  upX, upY, upZ);
+    }
+    if (isSetZoom) {
+        glScalef(zoom, zoom, zoom);
+    }
+    
+    planeOut = plane;    
+}
+
+
+/**
+ * Set the volume slice viewing transformation.  This sets the position and
+ * orientation of the camera.
  *
  * @param sliceViewPlane
  *    View plane that is displayed.
@@ -868,9 +1116,36 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingTransformation(const VolumeS
     if (isSetViewTranform) {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        gluLookAt(eyeX, eyeY, eyeZ,
-                  centerX, centerY, centerZ,
-                  upX, upY, upZ);
+        
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                /*
+                 * Nothing to do.  The default view is the camera at the
+                 * origin, pointing down the negative-Z axis, with the up
+                 * vector set to (0, 1, 0).  This is an axial view.
+                 */
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                /*
+                 * Rotate about X-axis to view from posterior (coronal view)
+                 */
+                glRotatef(-90.0, 1.0, 0.0, 0.0);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                /*
+                 * Rotate about X-axis (to a coronal view) and then about
+                 * the Z-axis to produce a view from the left (parasagittal
+                 * view).
+                 */
+                glRotatef(-90.0, 1.0, 0.0, 0.0);
+                glRotatef(90.0, 0.0, 0.0, 1.0);
+                break;
+        }
+        
+//        gluLookAt(eyeX, eyeY, eyeZ,
+//                  centerX, centerY, centerZ,
+//                  upX, upY, upZ);
     }
     if (isSetZoom) {
         glScalef(zoom, zoom, zoom);
@@ -878,6 +1153,219 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingTransformation(const VolumeS
     
     planeOut = plane;
 }
+
+///**
+// * Set the volume slice viewing transformation.  This sets the position and
+// * orientation of the camera.
+// *
+// * @param sliceViewPlane
+// *    View plane that is displayed.
+// * @param drawMode
+// *    The drawing mode for slices.
+// * @param planeOut
+// *    Plane of slice after transforms (OUTPUT)
+// * @param montageSliceIndex
+// *    For mongtage drawing, indicates slice being drawn.
+// * @param obliqueTransformationMatrixOut
+// *    Output transformation matrix for oblique viewing.
+// */
+//void
+//BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                                                                   const DRAW_MODE drawMode,
+//                                                                   Plane& planeOut,
+//                                                                   const int32_t montageSliceIndex,
+//                                                                   Matrix4x4& obliqueTransformationMatrixOut)
+//{
+//    bool isSetViewTranform = false;
+//    bool isSetZoom = false;
+//    switch (drawMode) {
+//        case DRAW_MODE_ALL_STRUCTURES_VIEW:
+//            break;
+//        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+//            isSetViewTranform = true;
+//            isSetZoom = true;
+//            break;
+//        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+//            break;
+//    }
+//    
+//    BoundingBox boundingBox;
+//    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+//    
+//    double centerX = boundingBox.getCenterX();
+//    double centerY = boundingBox.getCenterY();
+//    double centerZ = boundingBox.getCenterZ();
+//    
+//    float sliceNormalVector[3] = { 0.0, 0.0, 0.0 };
+//    
+//    double upX = 0.0;
+//    double upY = 0.0;
+//    double upZ = 0.0;
+//    
+//    const float sliceX = m_browserTabContent->getSliceCoordinateParasagittal();
+//    const float sliceY = m_browserTabContent->getSliceCoordinateCoronal();
+//    const float sliceZ = m_browserTabContent->getSliceCoordinateAxial();
+//    
+//    float sliceOffset[3] = {
+//        0.0,
+//        0.0,
+//        0.0
+//    };
+//    
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            sliceNormalVector[2] = 1.0;
+//            upY = 1.0;
+//            centerZ = sliceZ;
+//            sliceOffset[2] = sliceZ;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            sliceNormalVector[1] = -1.0;
+//            upZ = 1.0;
+//            centerY = sliceY;
+//            sliceOffset[1] = sliceY;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            sliceNormalVector[0] = -1.0;
+//            upZ = 1.0;
+//            centerX = sliceX;
+//            sliceOffset[0] = sliceX;
+//            break;
+//    }
+//    
+//    obliqueTransformationMatrixOut.identity();
+//    
+//    switch (m_sliceViewMode) {
+//        case VolumeSliceViewModeEnum::MONTAGE:
+//            if (montageSliceIndex >= 0) {
+//                /*
+//                 * Montage overrides the selected coordinate of the viewing axis
+//                 */
+//                const int64_t montIJK[3] = {
+//                    montageSliceIndex,
+//                    montageSliceIndex,
+//                    montageSliceIndex
+//                };
+//                float montXYZ[3];
+//                m_volumeDrawInfo[0].volumeFile->indexToSpace(montIJK, montXYZ);
+//                
+//                switch (sliceViewPlane) {
+//                    case VolumeSliceViewPlaneEnum::ALL:
+//                    case VolumeSliceViewPlaneEnum::AXIAL:
+//                        sliceOffset[2] = montXYZ[2];
+//                        centerZ = montXYZ[2];
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::CORONAL:
+//                        sliceOffset[1] = montXYZ[1];
+//                        centerY = montXYZ[1];
+//                        break;
+//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                        sliceOffset[0] = montXYZ[0];
+//                        centerX = montXYZ[0];
+//                        break;
+//                }
+//            }
+//            break;
+//        case VolumeSliceViewModeEnum::OBLIQUE:
+//        {
+//            /*
+//             * Get the rotation matrix
+//             */
+//            Matrix4x4 rotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix(); //  m_browserTabContent->getRotationMatrix();
+//            
+//            /*
+//             * Create the transformation matrix
+//             */
+//            obliqueTransformationMatrixOut.postmultiply(rotationMatrix);
+//            
+//            /*
+//             * Translate for selected slice
+//             */
+//            obliqueTransformationMatrixOut.translate(sliceOffset[0],
+//                                                     sliceOffset[1],
+//                                                     sliceOffset[2]);
+//            /*
+//             * Transform the slice normal vector so that it
+//             * points orthogonal to the slice by rotating the
+//             * vector with the rotation matrix.
+//             */
+//            rotationMatrix.multiplyPoint3(sliceNormalVector);
+//            MathFunctions::normalizeVector(sliceNormalVector);
+//            
+//            /*
+//             * Need to rotate up vector
+//             */
+//            float upVector[3] = {
+//                upX,
+//                upY,
+//                upZ
+//            };
+//            rotationMatrix.multiplyPoint3(upVector);
+//            upX = upVector[0];
+//            upY = upVector[1];
+//            upZ = upVector[2];
+//        }
+//            break;
+//        case VolumeSliceViewModeEnum::ORTHOGONAL:
+//            break;
+//    }
+//    
+//    const float* translation = m_browserTabContent->getTranslation();
+//    const float zoom = m_browserTabContent->getScaling();
+//    
+//    centerX -= (translation[0]);
+//    centerY -= (translation[1]);
+//    centerZ -= (translation[2]);
+//    
+//    const double distanceEyeToCenter = 100.0;
+//    const double eyeX = centerX + (sliceNormalVector[0] * distanceEyeToCenter);
+//    const double eyeY = centerY + (sliceNormalVector[1] * distanceEyeToCenter);
+//    const double eyeZ = centerZ + (sliceNormalVector[2] * distanceEyeToCenter);
+//    
+//    Plane plane(sliceNormalVector,
+//                sliceOffset); //pointOnPlane);
+//    
+//    CaretLogFine("New View Transform center for "
+//                 + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
+//                 + "\nCenter:"
+//                 + AString::number(centerX)
+//                 + ", "
+//                 + AString::number(centerY)
+//                 + ", "
+//                 + AString::number(centerZ)
+//                 + "\nEye: "
+//                 + AString::number(eyeX)
+//                 + ", "
+//                 + AString::number(eyeY)
+//                 + ", "
+//                 + AString::number(eyeZ)
+//                 + "\nUp: "
+//                 + AString::number(upX)
+//                 + ", "
+//                 + AString::number(upY)
+//                 + ", "
+//                 + AString::number(upZ)
+//                 + "\nSlice Plane: "
+//                 + plane.toString());
+//    
+//    m_lookAtCenter[0] = centerX;
+//    m_lookAtCenter[1] = centerY;
+//    m_lookAtCenter[2] = centerZ;
+//    
+//    if (isSetViewTranform) {
+//        glMatrixMode(GL_MODELVIEW);
+//        glLoadIdentity();
+//        gluLookAt(eyeX, eyeY, eyeZ,
+//                  centerX, centerY, centerZ,
+//                  upX, upY, upZ);
+//    }
+//    if (isSetZoom) {
+//        glScalef(zoom, zoom, zoom);
+//    }
+//    
+//    planeOut = plane;
+//}
 
 /**
  * Draw surface outlines on the volume slices
