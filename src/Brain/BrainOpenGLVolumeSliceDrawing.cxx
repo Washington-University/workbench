@@ -95,6 +95,10 @@ BrainOpenGLVolumeSliceDrawing::BrainOpenGLVolumeSliceDrawing()
     m_lookAtCenter[0] = 0.0;
     m_lookAtCenter[1] = 0.0;
     m_lookAtCenter[2] = 0.0;
+    
+    Matrix4x4 identity;
+    identity.identity();
+    identity.getMatrixForOpenGL(m_viewingMatrix);
 }
 
 /**
@@ -1345,6 +1349,16 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
                  viewTranslationY,
                  viewTranslationZ);
     
+
+    
+    
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 m_viewingMatrix);
+
+    
+    
+    
+    
 //    /*
 //     * Move the camera with the user's translation
 //     */
@@ -1478,6 +1492,8 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
      */
         const float zoom = m_browserTabContent->getScaling();
         glScalef(zoom, zoom, zoom);
+
+
 }
 
 ///**
@@ -2473,10 +2489,21 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             glPushMatrix();
             
             if (drawCrosshairsFlag) {
+                GLboolean depthBufferEnabled = false;
+                glGetBooleanv(GL_DEPTH_TEST,
+                              &depthBufferEnabled);
+                glPushMatrix();
                 drawAxesCrosshairs(transformationMatrix,
                                    volume,
                                    sliceViewPlane,
                                    drawMode);
+                glPopMatrix();
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
             }
             
             /*
@@ -2507,7 +2534,6 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             }
         }
     }
-    
 }
 
 
@@ -3881,6 +3907,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                                       const DRAW_MODE drawMode)
 {
     bool isThreeSliceView = false;
+    bool applyViewingMatrix = false;
     switch (drawMode) {
         case DRAW_MODE_ALL_STRUCTURES_VIEW:
             return;
@@ -3894,8 +3921,10 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                 return;
             }
             isThreeSliceView = true;
+            //applyViewingMatrix = true;
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+            applyViewingMatrix = true;
             break;
     }
     
@@ -3941,11 +3970,27 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
     const float zMin = boundingBox.getMinZ() * scaler;
     const float zMax = boundingBox.getMaxZ() * scaler;
     
+//    const float centerXYZ[3] = {
+//        m_browserTabContent->getSliceCoordinateParasagittal(),
+//        m_browserTabContent->getSliceCoordinateCoronal(),
+//        m_browserTabContent->getSliceCoordinateAxial()
+//    };
+    
     const float centerXYZ[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
+        0.0,
+        0.0,
+        0.0,
     };
+    
+    /*
+     * Use the viewing matrix to set the drawing region
+     */
+    if (applyViewingMatrix) {
+        glLoadIdentity();
+        glMultMatrixd(m_viewingMatrix);
+        const float zoom = m_browserTabContent->getScaling();
+        glScalef(zoom, zoom, zoom);
+    }
     
     /*
      * Initialize axes end points to the center
@@ -3998,6 +4043,20 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         if (isMontageView) {
             /* Nothing */
         }
+        else if (isThreeSliceView) {
+            axialPlaneStartLabel   = "L";
+            axialPlaneEndLabel     = "R";
+            axialStartXYZ[0] += xMin;
+            axialEndXYZ[0]   += xMax;
+            coronalPlaneStartLabel = "V";
+            coronalPlaneEndLabel   = "D";
+            coronalStartXYZ[1] += yMin;
+            coronalEndXYZ[1]   += yMax;
+            paraPlaneStartLabel    = "P";
+            paraPlaneEndLabel      = "A";
+            paraStartXYZ[2] += zMin;
+            paraEndXYZ[2]   += zMax;
+        }
         else {
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
@@ -4031,23 +4090,28 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                     axialEndXYZ[0]   += xMax;
                     paraPlaneStartLabel  = "V";
                     paraPlaneEndLabel    = "D";
-                    paraStartXYZ[2] += zMin;
-                    paraEndXYZ[2]   += zMax;
+//                    paraStartXYZ[2] += zMin;
+//                    paraEndXYZ[2]   += zMax;
+                    paraStartXYZ[1] += zMin;
+                    paraEndXYZ[1]   += zMax;
                     break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                     axialPlaneStartLabel   = "P";
                     axialPlaneEndLabel     = "A";
-                    axialStartXYZ[1] += yMin;
-                    axialEndXYZ[1]   += yMax;
+//                    axialStartXYZ[1] += yMin;
+//                    axialEndXYZ[1]   += yMax;
+                    axialStartXYZ[0] += yMax;
+                    axialEndXYZ[0]   += yMin;
                     coronalPlaneStartLabel = "V";
                     coronalPlaneEndLabel   = "D";
-                    coronalStartXYZ[2] += zMin;
-                    coronalEndXYZ[2]   += zMax;
+//                    coronalStartXYZ[2] += zMin;
+//                    coronalEndXYZ[2]   += zMax;
+                    coronalStartXYZ[1] += zMin;
+                    coronalEndXYZ[1]   += zMax;
                     break;
             }
         }
     }
-    
     
     /*
      * Axial slice and labels
@@ -4139,6 +4203,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
             transformationMatrix.multiplyPoint3(startTextXYZ);
             transformationMatrix.multiplyPoint3(endTextXYZ);
         }
+        
         m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
                                                     startTextXYZ[1],
                                                     startTextXYZ[2],
@@ -4190,11 +4255,11 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
                                                     endTextXYZ[1],
                                                     endTextXYZ[2],
-                                                    paraPlaneStartLabel);
+                                                    paraPlaneEndLabel);
         m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
                                                     startTextXYZ[1],
                                                     startTextXYZ[2],
-                                                    paraPlaneEndLabel);
+                                                    paraPlaneStartLabel);
     }
 }
 

@@ -318,6 +318,8 @@ namespace caret {
         
         double m_lookAtCenter[3];
         
+        double m_viewingMatrix[16];
+        
         double m_orthographicBounds[6];
         
         VolumeSliceViewModeEnum::Enum m_sliceViewMode;
