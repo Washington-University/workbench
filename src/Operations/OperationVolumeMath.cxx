@@ -22,9 +22,12 @@
  *
  */
 
-#include "CaretMathExpression.h"
 #include "OperationVolumeMath.h"
 #include "OperationException.h"
+
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CaretMathExpression.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -53,6 +56,7 @@ OperationParameters* OperationVolumeMath::getParameters()
     varOpt->addVolumeParameter(2, "volume", "the volume file to use as this variable");
     OptionalParameter* subvolSelect = varOpt->createOptionalParameter(3, "-subvolume", "select a single subvolume");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
+    varOpt->createOptionalParameter(4, "-repeat", "reuse a single subvolume for each subvolume of calculation");
     
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
     fixNanOpt->addDoubleParameter(1, "replace", "value to replace NaN with");
@@ -61,8 +65,9 @@ OperationParameters* OperationVolumeMath::getParameters()
                         "There must be at least one -var option (to get the volume space from), even if the <name> specified in it isn't used in <expression>.  " +
                         "All volumes must have the same volume space.  " +
                         "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
-                        "If the -subvolume option is given to any -var option, all -var options must specify single single subvolume volume files, or have the -subvolume option specified.  " +
-                        "If no -var option is given the -subvolume option, all volume files specified must have the same number of subvolumes.  " +
+                        "If the -subvolume option is given to any -var option, only one subvolume is used from that file.  " +
+                        "If -repeat is specified, the file must either have only one subvolume, or have the -subvolume option specified.  " +
+                        "All files that don't use -repeat must have the same number of subvolumes requested to be used.  " +
                         "The format of <expression> is as follows:\n\n";
     myText += CaretMathExpression::getExpressionHelpInfo();
     ret->setHelpText(myText);
@@ -89,9 +94,11 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
     int numVars = myVarNames.size();
     vector<VolumeFile*> varVolumes(numVars, (VolumeFile*)NULL);
     vector<int> varSubvolumes(numVars, -1);
-    bool allSubvolsMode = true;
     if (numInputs == 0) throw OperationException("you must specify at least one input volume (-var), even if the expression doesn't use a variable");
     VolumeFile* first = myVarOpts[0]->getVolume(2);
+    const VolumeSpace& mySpace = first->getVolumeSpace();
+    vector<int64_t> outDims;
+    int numSubvols = -1;
     for (int i = 0; i < numInputs; ++i)
     {
         AString varName = myVarOpts[i]->getString(1);
@@ -100,100 +107,109 @@ void OperationVolumeMath::useParameters(OperationParameters* myParams, ProgressO
         {
             throw OperationException("'" + varName + "' is a named constant equal to " + AString::number(constVal, 'g', 15) + ", please use a different variable name");
         }
+        VolumeFile* thisVolume = myVarOpts[i]->getVolume(2);
+        if (thisVolume->getNumberOfComponents() != 1)
+        {
+            throw OperationException("volume file for variable '" + varName + "' has multiple components, this is not currently supported in -volume-math");
+        }
+        int thisSubvols = thisVolume->getNumberOfMaps();
+        OptionalParameter* subvolSelect = myVarOpts[i]->getOptionalParameter(3);
+        int useSubvolume = -1;
+        if (subvolSelect->m_present)
+        {
+            thisSubvols = 1;
+            useSubvolume = thisVolume->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
+            if (useSubvolume == -1) throw OperationException("could not find map '" + subvolSelect->getString(1) +
+                                                                "' in volume file for '" + varName + "'");
+        }
+        bool repeat = myVarOpts[i]->getOptionalParameter(4)->m_present;
+        if (!thisVolume->matchesVolumeSpace(mySpace))
+        {
+            throw OperationException("volume file for variable '" + varName + "' has different volume space than the first volume file");
+        }
+        if (repeat)
+        {
+            if (thisSubvols != 1)
+            {
+                throw OperationException("-repeat specified without -subvolume for variable '" + varName + "', but volume file has " + AString::number(thisSubvols) + " subvolumes");
+            }
+            if (useSubvolume == -1) useSubvolume = 0;//-1 means use same input subvolume as current output subvolume, so we need to fix the special case of -repeat on single subvolume file without -subvolume
+        } else {
+            if (numSubvols == -1)//then this is the first one that doesn't use -repeat
+            {
+                numSubvols = thisSubvols;
+                outDims = thisVolume->getOriginalDimensions();
+                if (useSubvolume != -1)
+                {
+                    outDims.resize(3);//change to output only one subvolume in the simplest way
+                }
+            } else {
+                if (numSubvols != thisSubvols)
+                {
+                    if (useSubvolume == -1)
+                    {
+                        throw OperationException("volume file for variable '" + varName + "' has " + AString::number(thisSubvols) + " subvolume(s), but previous volume files have " +
+                                                 AString::number(numSubvols) + " subvolume(s) requested to be used");
+                    } else {
+                        throw OperationException("-subvolume specified without -repeat for variable '" + varName + "', but previous volume files have have " +
+                                                 AString::number(numSubvols) + " subvolumes requested to be used");
+                    }
+                }
+            }
+        }
+        bool found = false;
         for (int j = 0; j < numVars; ++j)
         {
             if (varName == myVarNames[j])
             {
                 if (varVolumes[j] != NULL) throw OperationException("variable '" + varName + "' specified more than once");
-                varVolumes[j] = myVarOpts[i]->getVolume(2);
-                OptionalParameter* subvolSelect = myVarOpts[i]->getOptionalParameter(3);
-                if (subvolSelect->m_present)
-                {
-                    allSubvolsMode = false;
-                    varSubvolumes[j] = varVolumes[j]->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
-                    if (varSubvolumes[j] == -1) throw OperationException("could not find map '" + subvolSelect->getString(1) +
-                                                                        "' in volume file for '" + varName + "'");
-                }
+                varVolumes[j] = thisVolume;
+                varSubvolumes[j] = useSubvolume;
+                found = true;
                 break;
             }
         }
+        if (!found && (numVars != 0 || numInputs != 1))//supress warning when a single -var is used with a constant expression, as required per help
+        {
+            CaretLogWarning("variable '" + varName + "' not used in expression");
+        }
     }
-    int numSubvols = 1;
-    if (numVars > 0) first = varVolumes[0];
+    if (numSubvols == -1)
+    {
+        throw OperationException("all -var options used -repeat, there is no file to get number of desired output subvolumes from");
+    }
     for (int i = 0; i < numVars; ++i)
     {
         if (varVolumes[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
-        if (!varVolumes[i]->matchesVolumeSpace(first)) throw OperationException("volume file for '" + myVarNames[i] + "' has a different volume space than " +
-                                                                                    "the volume file for '" + myVarNames[0] + "'");
-        if (allSubvolsMode)
-        {
-            if (i == 0)
-            {
-                numSubvols = varVolumes[i]->getNumberOfMaps();
-            } else {
-                if (varVolumes[i]->getNumberOfMaps() != numSubvols) throw OperationException("volume file for '" + myVarNames[i] + "' has a different number of subvolumes than " +
-                                                                                                "the volume file for '" + myVarNames[0] + "'");
-            }
-        } else {
-            if (varSubvolumes[i] == -1)
-            {
-                if (varVolumes[i]->getNumberOfMaps() == 1)
-                {
-                    varSubvolumes[i] = 0;
-                } else {
-                    throw OperationException("volume file for '" + myVarNames[i] + "' has more than one subvolume, and -subvolume was not specified for it");
-                }
-            }
-        }
     }
-    vector<float> values(numVars);
-    vector<int64_t> origDims = first->getOriginalDimensions();
-    if (allSubvolsMode)
+    int64_t frameSize = outDims[0] * outDims[1] * outDims[2];
+    vector<float> values(numVars), outFrame(frameSize);
+    vector<const float*> inputFrames(numVars);
+    myVolOut->reinitialize(outDims, first->getSform(), 1, first->getType());
+    for (int s = 0; s < numSubvols; ++s)
     {
-        myVolOut->reinitialize(origDims, first->getSform(), 1, first->getType());
-        for (int s = 0; s < numSubvols; ++s)
+        for (int v = 0; v < numVars; ++v)
         {
-            for (int k = 0; k < origDims[2]; ++k)
+            if (varSubvolumes[v] == -1)
             {
-                for (int j = 0; j < origDims[1]; ++j)
-                {
-                    for (int i = 0; i < origDims[0]; ++i)
-                    {
-                        for (int v = 0; v < numVars; ++v)
-                        {
-                            values[v] = varVolumes[v]->getValue(i, j, k, s);
-                        }
-                        float tempf = (float)myExpr.evaluate(values);
-                        if (nanfix && tempf != tempf)
-                        {
-                            tempf = nanfixval;
-                        }
-                        myVolOut->setValue(tempf, i, j, k, s);
-                    }
-                }
+                inputFrames[v] = varVolumes[v]->getFrame(s);
+            } else {
+                inputFrames[v] = varVolumes[v]->getFrame(varSubvolumes[v]);
             }
         }
-    } else {
-        origDims.resize(3);
-        myVolOut->reinitialize(origDims, first->getSform(), 1, first->getType());
-        for (int k = 0; k < origDims[2]; ++k)
+        for (int64_t i = 0; i < frameSize; ++i)
         {
-            for (int j = 0; j < origDims[1]; ++j)
+            for (int v = 0; v < numVars; ++v)
             {
-                for (int i = 0; i < origDims[0]; ++i)
-                {
-                    for (int v = 0; v < numVars; ++v)
-                    {
-                        values[v] = varVolumes[v]->getValue(i, j, k, varSubvolumes[v]);
-                    }
-                    float tempf = (float)myExpr.evaluate(values);
-                    if (nanfix && tempf != tempf)
-                    {
-                        tempf = nanfixval;
-                    }
-                    myVolOut->setValue(tempf, i, j, k);
-                }
+                values[v] = inputFrames[v][i];
             }
+            float tempf = (float)myExpr.evaluate(values);
+            if (nanfix && tempf != tempf)
+            {
+                tempf = nanfixval;
+            }
+            outFrame[i] = tempf;
         }
+        myVolOut->setFrame(outFrame.data(), s);
     }
 }
