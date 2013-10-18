@@ -248,17 +248,23 @@ namespace caret {
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);
         
-        void setVolumeSliceViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void createObliqueTransformationMatrix(Matrix4x4& obliqueTransformationMatrixOut);
+        
+        void createSlicePlaneEquation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                      const int32_t montageSliceIndex,
+                                      Plane& planeOut);
+        
+        void setVolumeSliceViewingAndModelingTransformations(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                  const DRAW_MODE drawMode,
-                                                  Plane& planeOut,
+                                                 const Plane& plane,
                                                  const int32_t montageSliceIndex,
-                                                  Matrix4x4& obliqueTransformationMatrixOut);
-
-        void setVolumeSliceModelingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                 const DRAW_MODE drawMode,
-                                                 Plane& planeOut,
-                                                 const int32_t montageSliceIndex,
-                                                 Matrix4x4& obliqueTransformationMatrixOut);
+                                                 const Matrix4x4& obliqueTransformationMatrix);
+        
+//        void setVolumeSliceModelingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                                                  const DRAW_MODE drawMode,
+//                                                  Plane& planeOut,
+//                                                  const int32_t montageSliceIndex,
+//                                                  Matrix4x4& obliqueTransformationMatrixOut);
         
         void drawDebugSquare();
         
