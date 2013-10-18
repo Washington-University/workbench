@@ -3913,15 +3913,16 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
             return;
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-            if (sliceViewPlane != VolumeSliceViewPlaneEnum::AXIAL) {
-                /*
-                 * This gets called three times (once for each slice)
-                 * in this view but we only need to draw the axes once!
-                 */
-                return;
-            }
-            isThreeSliceView = true;
-            //applyViewingMatrix = true;
+//            if (sliceViewPlane != VolumeSliceViewPlaneEnum::AXIAL) {
+//                /*
+//                 * This gets called three times (once for each slice)
+//                 * in this view but we only need to draw the axes once!
+//                 */
+//                return;
+//            }
+//            isThreeSliceView = true;
+//            //applyViewingMatrix = true;
+            return;
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
             applyViewingMatrix = true;
