@@ -790,7 +790,7 @@ BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceViewPla
                 selectedSliceCoordinate);
     planeOut = plane;
     
-    CaretLogSevere("Setting plane "
+    CaretLogFine("Setting plane "
                    + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
                    + "\n   Selected Coordinate:"
                    + AString::number(selectedSliceCoordinate[0])
@@ -2079,7 +2079,8 @@ BrainOpenGLVolumeSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappableInterfa
  * @param boundsOut
  *    Bounds of the volumes.
  * @param spacingOut
- *    Minimum voxel spacing from the volumes.
+ *    Minimum voxel spacing from the volumes.  Always positive values (even if
+ *    volumes is oriented right to left).
  *
  */
 bool
@@ -3230,11 +3231,28 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
             break;
     }
     
-    float minScreenX = m_orthographicBounds[0] + screenOffsetX;
-    float maxScreenX = m_orthographicBounds[1] + screenOffsetX;
-    float minScreenY = m_orthographicBounds[2] + screenOffsetY;
-    float maxScreenY = m_orthographicBounds[3] + screenOffsetY;
+    float minScreenX = m_orthographicBounds[0] - screenOffsetX;
+    float maxScreenX = m_orthographicBounds[1] - screenOffsetX;
+    float minScreenY = m_orthographicBounds[2] - screenOffsetY;
+    float maxScreenY = m_orthographicBounds[3] - screenOffsetY;
     
+    /*
+     * Scale to fix clipping when selected slices are not origin
+     * May be able to fix by not scaling and adjusting the screen X & Y
+     */
+//    const float dxScreen = maxScreenX - minScreenX;
+//    const float dxHalfScreen = dxScreen / 2.0;
+//    const float dyScreen = maxScreenY - minScreenY;
+//    const float dyHalfScreen = dyScreen / 2.0;
+//    minScreenX -= dxHalfScreen;
+//    maxScreenX += dxHalfScreen;
+//    minScreenY -= dyHalfScreen;
+//    maxScreenY += dyHalfScreen;
+//    const float screenScale = 2.0;
+//    minScreenX *= screenScale;
+//    maxScreenX *= screenScale;
+//    minScreenY *= screenScale;
+//    maxScreenY *= screenScale;
     
 //    const int64_t alignSliceI = m_browserTabContent->getSliceIndexAxial(m_volumeDrawInfo[0].volumeFile);
 //    const int64_t alignSliceJ = m_browserTabContent->getSliceIndexAxial(m_volumeDrawInfo[0].volumeFile);
@@ -3246,24 +3264,107 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     /*
      * Get origin voxel IJK
      */
-    const float originXYZ[3] = { 0.0, 0.0, 0.0 };
+    const float zeroXYZ[3] = { 0.0, 0.0, 0.0 };
     int64_t originIJK[3];
-    m_volumeDrawInfo[0].volumeFile->enclosingVoxel(originXYZ[0], originXYZ[1], originXYZ[2],
+    m_volumeDrawInfo[0].volumeFile->enclosingVoxel(zeroXYZ[0], zeroXYZ[1], zeroXYZ[2],
                                                    originIJK[0], originIJK[1], originIJK[2]);
-    
+
+
     /*
      * Get XYZ center of origin Voxel
      */
     float originVoxelXYZ[3];
     m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, originVoxelXYZ);
+    float actualOrigin[3];
+    m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, actualOrigin);
     
-    const bool alignVoxelsFlag = true;
-    if (alignVoxelsFlag) {
-        CaretLogFine("Oblique Screen MinX: "
-                       + AString::number(minScreenX) + " MaxX: "
-                       + AString::number(maxScreenX) + " MinY: "
-                       + AString::number(minScreenY) + " MaxY: "
-                       + AString::number(maxScreenY));
+    float originOffsetX = 0.0;
+    float originOffsetY = 0.0;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            screenOffsetX = m_lookAtCenter[0];
+            screenOffsetY = m_lookAtCenter[1];
+            originOffsetX = actualOrigin[0];
+            originOffsetY = actualOrigin[1];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            screenOffsetX = m_lookAtCenter[0];
+            screenOffsetY = m_lookAtCenter[2];
+            originOffsetX = actualOrigin[0];
+            originOffsetY = actualOrigin[2];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            screenOffsetX = m_lookAtCenter[1];
+            screenOffsetY = m_lookAtCenter[2];
+            originOffsetX = actualOrigin[1];
+            originOffsetY = actualOrigin[2];
+            break;
+    }
+    
+    const int32_t alignVoxelsFlag = 1;
+    if (alignVoxelsFlag == 1) {
+        const int64_t numVoxelsToLeft = static_cast<int64_t>((minScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToRight = static_cast<int64_t>((maxScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToBottom = static_cast<int64_t>((minScreenY + originOffsetY) / voxelSize);
+        const int64_t numVoxelsToTop = static_cast<int64_t>((maxScreenY + originOffsetY)/ voxelSize);
+        
+        const float halfVoxel = voxelSize / 2.0;
+        
+        const float firstVoxelCenterX = (numVoxelsToLeft * voxelSize) + originOffsetX;
+        const float lastVoxelCenterX = (numVoxelsToRight * voxelSize) + originOffsetX;
+        
+        const float firstVoxelCenterY = (numVoxelsToBottom * voxelSize) + originOffsetY;
+        const float lastVoxelCenterY = (numVoxelsToTop * voxelSize) + originOffsetY;
+        
+        float newMinScreenX = firstVoxelCenterX - halfVoxel;
+        float newMaxScreenX = lastVoxelCenterX + halfVoxel;
+        float newMinScreenY = firstVoxelCenterY - halfVoxel;
+        float newMaxScreenY = lastVoxelCenterY + halfVoxel;
+        
+        const AString msg2 = ("Origin Voxel Coordinate: ("
+                              + AString::fromNumbers(actualOrigin, 3, ",")
+                              + "\n   Oblique Screen X: ("
+                              + AString::number(minScreenX)
+                              + ","
+                              + AString::number(maxScreenX)
+                              + ") Y: ("
+                              + AString::number(minScreenY)
+                              + ","
+                              + AString::number(maxScreenY)
+                              + ")\nNew X: ("
+                              + AString::number(newMinScreenX)
+                              + ","
+                              + AString::number(newMaxScreenX)
+                              + ") Y: ("
+                              + AString::number(newMinScreenY)
+                              + ","
+                              + AString::number(newMaxScreenY)
+                              + ") Diff: ("
+                              + AString::number((newMaxScreenX - newMinScreenX) / voxelSize)
+                              + ","
+                              + AString::number((newMaxScreenY - newMinScreenY) / voxelSize)
+                              + ")");
+        std::cout << qPrintable(msg2) << std::endl;
+        
+        minScreenX = newMinScreenX;
+        maxScreenX = newMaxScreenX;
+        minScreenY = newMinScreenY;
+        maxScreenY = newMaxScreenY;
+    }
+    
+    
+    if (alignVoxelsFlag == 2) {
+        CaretLogFine("Oblique Screen X: ("
+                       + AString::number(minScreenX)
+                     + ","
+                       + AString::number(maxScreenX)
+                     + ") Y: ("
+                       + AString::number(minScreenY) + ","
+                       + AString::number(maxScreenY)
+                     + ")");
         
 //        const float halfVoxelSize = voxelSize / 2.0;
         const float quarterVoxelSize = voxelSize / 4.0;
@@ -3293,12 +3394,12 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     
     
     
-    
-    const float screenScale = 2.0;
-    minScreenX *= screenScale;
-    maxScreenX *= screenScale;
-    minScreenY *= screenScale;
-    maxScreenY *= screenScale;
+//  IF SCALING IS NEEDED, DO IT WHEN SCREEN X,Y START END IS FIRST SET
+//    const float screenScale = 1.0;
+//    minScreenX *= screenScale;
+//    maxScreenX *= screenScale;
+//    minScreenY *= screenScale;
+//    maxScreenY *= screenScale;
     
     /*
      * Set the corners of the screen for the respective view
@@ -3314,42 +3415,42 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         case VolumeSliceViewPlaneEnum::AXIAL:
             bottomLeft[0] = minScreenX;
             bottomLeft[1] = minScreenY;
-            bottomLeft[2] = 0;
+            bottomLeft[2] = originVoxelXYZ[2]; // 0;
             bottomRight[0] = maxScreenX;
             bottomRight[1] = minScreenY;
-            bottomRight[2] = 0;
+            bottomRight[2] = originVoxelXYZ[2]; //;
             topRight[0] = maxScreenX;
             topRight[1] = maxScreenY;
-            topRight[2] = 0;
+            topRight[2] = originVoxelXYZ[2]; //;
             topLeft[0] = minScreenX;
             topLeft[1] = maxScreenY;
-            topLeft[2] = 0;
+            topLeft[2] = originVoxelXYZ[2]; //;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             bottomLeft[0] = minScreenX;
-            bottomLeft[1] = 0;
+            bottomLeft[1] = originVoxelXYZ[1]; //0;
             bottomLeft[2] = minScreenY;
             bottomRight[0] = maxScreenX;
-            bottomRight[1] = 0;
+            bottomRight[1] = originVoxelXYZ[1]; //0;
             bottomRight[2] = minScreenY;
             topRight[0] = maxScreenX;
-            topRight[1] = 0;
+            topRight[1] = originVoxelXYZ[1]; //0;
             topRight[2] = maxScreenY;
             topLeft[0] = minScreenX;
-            topLeft[1] = 0;
+            topLeft[1] = originVoxelXYZ[1]; //0;
             topLeft[2] = maxScreenY;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            bottomLeft[0] = 0;
+            bottomLeft[0] = originVoxelXYZ[0]; //   0;
             bottomLeft[1] = minScreenX;
             bottomLeft[2] = minScreenY;
-            bottomRight[0] = 0;
+            bottomRight[0] = originVoxelXYZ[0]; //0
             bottomRight[1] = maxScreenX;
             bottomRight[2] = minScreenY;
-            topRight[0] = 0;
+            topRight[0] = originVoxelXYZ[0]; //0
             topRight[1] = maxScreenX;
             topRight[2] = maxScreenY;
-            topLeft[0] = 0;
+            topLeft[0] = originVoxelXYZ[0]; //0
             topLeft[1] = minScreenX;
             topLeft[2] = maxScreenY;
             break;
@@ -3359,10 +3460,12 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     /*
      * Transform the corners of the screen into model coordinates
      */
+    std::cout << "Bottom Left before multiply: " << qPrintable(AString::fromNumbers(bottomLeft, 3, ",")) << std::endl;
     transformationMatrix.multiplyPoint3(bottomLeft);
     transformationMatrix.multiplyPoint3(bottomRight);
     transformationMatrix.multiplyPoint3(topRight);
     transformationMatrix.multiplyPoint3(topLeft);
+    std::cout << "Bottom Left after multiply: " << qPrintable(AString::fromNumbers(bottomLeft, 3, ",")) << std::endl;
     
     CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
                    + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
@@ -3435,6 +3538,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                                            m_volumeDrawInfo[i].mapIndex));
         
     }
+    bool showFirstVoxelCoordFlag = true;
     
     /*
      * Track voxels that will be drawn
@@ -3498,7 +3602,8 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                                                                              rightEdgeBottomCoord);
             double bottomEdgeUnitVector[3];
             MathFunctions::createUnitVector(leftEdgeBottomCoord, rightEdgeBottomCoord, bottomEdgeUnitVector);
-            const int64_t numVoxelsInRow = bottomVoxelEdgeDistance / voxelSize;
+            const double numVoxelsInRowFloat = bottomVoxelEdgeDistance / voxelSize;
+            const int64_t numVoxelsInRow = round(numVoxelsInRowFloat); //bottomVoxelEdgeDistance / voxelSize;
             const double bottomEdgeVoxelSize = bottomVoxelEdgeDistance / numVoxelsInRow;
             const double bottomVoxelEdgeDX = bottomEdgeVoxelSize * bottomEdgeUnitVector[0];
             const double bottomVoxelEdgeDY = bottomEdgeVoxelSize * bottomEdgeUnitVector[1];
@@ -3551,6 +3656,84 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                     (bottomLeftVoxelCoord[2] + topRightVoxelCoord[2]) * 0.5
                 };
                 
+                
+                bool printOriginVoxelInfo = false;
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        if (showFirstVoxelCoordFlag) {
+                            const float dist = voxelCenter[0] - actualOrigin[0];
+                            const AString msg = ("First Voxel Center: "
+                                                 + AString::fromNumbers(voxelCenter, 3, ",")
+                                                 + " Dist from origin voxel in X: "
+                                                 + AString::number(dist)
+                                                 + " Number of voxels between: "
+                                                 + AString::number(dist / voxelSize));
+                            std::cout << qPrintable(msg) << std::endl;
+                            showFirstVoxelCoordFlag = false;
+                        }
+                        if ((bottomLeftVoxelCoord[0] < actualOrigin[0])
+                            && (topRightVoxelCoord[0] > actualOrigin[0])) {
+                            if ((bottomLeftVoxelCoord[1] < actualOrigin[1])
+                                && (topRightVoxelCoord[1] > actualOrigin[1])) {
+                                printOriginVoxelInfo = true;
+                            }
+                        }
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        if (showFirstVoxelCoordFlag) {
+                            const float dist = voxelCenter[0] - actualOrigin[0];
+                            const AString msg = ("First Voxel Center: "
+                                                 + AString::fromNumbers(voxelCenter, 3, ",")
+                                                 + " Dist from origin voxel in X: "
+                                                 + AString::number(dist)
+                                                 + " Number of voxels between: "
+                                                 + AString::number(dist / voxelSize));
+                            std::cout << qPrintable(msg) << std::endl;
+                            showFirstVoxelCoordFlag = false;
+                        }
+                        if ((bottomLeftVoxelCoord[0] < actualOrigin[0])
+                            && (topRightVoxelCoord[0] > actualOrigin[0])) {
+                            if ((bottomLeftVoxelCoord[2] < actualOrigin[2])
+                                && (topRightVoxelCoord[2] > actualOrigin[2])) {
+                                printOriginVoxelInfo = true;
+                            }
+                        }
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        if (showFirstVoxelCoordFlag) {
+                            const float dist = voxelCenter[1] - actualOrigin[1];
+                            const AString msg = ("First Voxel Center: "
+                                                 + AString::fromNumbers(voxelCenter, 3, ",")
+                                                 + " Dist from origin voxel in Y: "
+                                                 + AString::number(dist)
+                                                 + " Number of voxels between: "
+                                                 + AString::number(dist / voxelSize));
+                            std::cout << qPrintable(msg) << std::endl;
+                            showFirstVoxelCoordFlag = false;
+                        }
+                        if ((bottomLeftVoxelCoord[1] < actualOrigin[1])
+                            && (topRightVoxelCoord[1] > actualOrigin[1])) {
+                            if ((bottomLeftVoxelCoord[2] < actualOrigin[2])
+                                && (topRightVoxelCoord[2] > actualOrigin[2])) {
+                                printOriginVoxelInfo = true;
+                            }
+                        }
+                        break;
+                }
+                if (printOriginVoxelInfo) {
+                    const AString msg = ("Origin voxel center when drawn is "
+                                         + AString::fromNumbers(voxelCenter, 3, ",")
+                                         + " but should be "
+                                         + AString::fromNumbers(actualOrigin, 3, ",")
+                                         + " Voxel Corners: ("
+                                         + AString::fromNumbers(bottomLeftVoxelCoord, 3, ",")
+                                         + ") ("
+                                         + AString::fromNumbers(topRightVoxelCoord, 3, ",")
+                                         + ")");
+                    std::cout << qPrintable(msg) << std::endl;
+                }
                 
                 /*
                  * Loop through the volumes selected as overlays.
