@@ -88,6 +88,7 @@
 #include "AlgorithmSurfaceSphereProjectUnproject.h"
 #include "AlgorithmSurfaceWedgeVolume.h"
 #include "AlgorithmVolumeAffineResample.h"
+#include "AlgorithmVolumeAllLabelsToROIs.h"
 #include "AlgorithmVolumeDilate.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeFillHoles.h"
@@ -270,6 +271,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSphereProjectUnproject()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
