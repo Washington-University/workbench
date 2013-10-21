@@ -22,11 +22,12 @@
  *
  */
 
-#include "AlgorithmVolumeAllLabelsToROIs.h"
+#include "AlgorithmGiftiAllLabelsToROIs.h"
 #include "AlgorithmException.h"
 
 #include "GiftiLabelTable.h"
-#include "VolumeFile.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
 
 #include <cmath>
 #include <map>
@@ -35,52 +36,48 @@
 using namespace caret;
 using namespace std;
 
-AString AlgorithmVolumeAllLabelsToROIs::getCommandSwitch()
+AString AlgorithmGiftiAllLabelsToROIs::getCommandSwitch()
 {
-    return "-volume-all-labels-to-rois";
+    return "-gifti-all-labels-to-rois";
 }
 
-AString AlgorithmVolumeAllLabelsToROIs::getShortDescription()
+AString AlgorithmGiftiAllLabelsToROIs::getShortDescription()
 {
-    return "MAKE ROIS FROM ALL LABELS IN A VOLUME FRAME";
+    return "MAKE ROIS FROM ALL LABELS IN A GIFTI COLUMN";
 }
 
-OperationParameters* AlgorithmVolumeAllLabelsToROIs::getParameters()
+OperationParameters* AlgorithmGiftiAllLabelsToROIs::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addVolumeParameter(1, "label-in", "the input volume label file");
+    ret->addLabelParameter(1, "label-in", "the input gifti label file");
     
     ret->addStringParameter(2, "map", "the number or name of the label map to use");
     
-    ret->addVolumeOutputParameter(3, "volume-out", "the output volume file");
-    
+    ret->addMetricOutputParameter(3, "metric-out", "the output metric file");
+        
     ret->setHelpText(
-        AString("The output volume has a frame for each label in the specified input frame, other than the ??? label, ") +
-        "each of which contains an ROI of all voxels that are set to the corresponding label."
+        AString("The output metric file has a column for each label in the specified input map, other than the ??? label, ") +
+        "each of which contains an ROI of all vertices that are set to the corresponding label."
     );
     return ret;
 }
 
-void AlgorithmVolumeAllLabelsToROIs::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmGiftiAllLabelsToROIs::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
-    VolumeFile* myLabel = myParams->getVolume(1);
+    LabelFile* myLabel = myParams->getLabel(1);
     AString mapID = myParams->getString(2);
     int whichMap = myLabel->getMapIndexFromNameOrNumber(mapID);
     if (whichMap == -1)
     {
         throw AlgorithmException("invalid map number or name specified");
     }
-    VolumeFile* myVolOut = myParams->getOutputVolume(3);
-    AlgorithmVolumeAllLabelsToROIs(myProgObj, myLabel, whichMap, myVolOut);
+    MetricFile* myMetricOut = myParams->getOutputMetric(3);
+    AlgorithmGiftiAllLabelsToROIs(myProgObj, myLabel, whichMap, myMetricOut);
 }
 
-AlgorithmVolumeAllLabelsToROIs::AlgorithmVolumeAllLabelsToROIs(ProgressObject* myProgObj, const VolumeFile* myLabel, const int& whichMap, VolumeFile* myVolOut) : AbstractAlgorithm(myProgObj)
+AlgorithmGiftiAllLabelsToROIs::AlgorithmGiftiAllLabelsToROIs(ProgressObject* myProgObj, const LabelFile* myLabel, const int& whichMap, MetricFile* myMetricOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (myLabel->getType() != SubvolumeAttributes::LABEL)
-    {
-        throw AlgorithmException("input volume must be a label volume");
-    }
     if (whichMap < 0 || whichMap >= myLabel->getNumberOfMaps())
     {
         throw AlgorithmException("invalid map index specified");
@@ -93,43 +90,39 @@ AlgorithmVolumeAllLabelsToROIs::AlgorithmVolumeAllLabelsToROIs(ProgressObject* m
     {
         throw AlgorithmException("label table doesn't contain any keys besides the ??? key");
     }
-    map<int32_t, int> keyToMap;//lookup from keys to subvolume
-    vector<int64_t> outDims = myLabel->getOriginalDimensions();
-    outDims.resize(4);
-    outDims[3] = numKeys - 1;//don't include the ??? key
-    myVolOut->reinitialize(outDims, myLabel->getSform());
-    myVolOut->setValueAllVoxels(0.0f);
+    int numNodes = myLabel->getNumberOfNodes();
+    map<int32_t, int> keyToMap;//lookup from keys to column
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numKeys - 1);//skip the ??? label
+    myMetricOut->setStructure(myLabel->getStructure());
+    for (int i = 0; i < numKeys - 1; ++i)
+    {
+        myMetricOut->initializeColumn(i, 0.0f);
+    }
     int counter = 0;
     for (set<int32_t>::iterator iter = myKeys.begin(); iter != myKeys.end(); ++iter)
     {
         if (*iter == unusedKey) continue;//skip the ??? key
         keyToMap[*iter] = counter;
-        myVolOut->setMapName(counter, myTable->getLabelName(*iter));
+        myMetricOut->setMapName(counter, myTable->getLabelName(*iter));
         ++counter;
     }
-    for (int64_t k = 0; k < outDims[2]; ++k)//because we need to set voxels in the output, rather than in a temporary frame, for single pass without duplicating the memory
+    const int32_t* myColumn = myLabel->getLabelKeyPointerForColumn(whichMap);
+    for (int i = 0; i < numNodes; ++i)
     {
-        for (int64_t j = 0; j < outDims[1]; ++j)
+        map<int32_t, int>::iterator iter = keyToMap.find(myColumn[i]);
+        if (iter != keyToMap.end())
         {
-            for (int64_t i = 0; i < outDims[0]; ++i)
-            {
-                int32_t thisKey = (int32_t)floor(myLabel->getValue(i, j, k, whichMap) + 0.5f);
-                map<int32_t, int>::iterator iter = keyToMap.find(thisKey);
-                if (iter != keyToMap.end())
-                {
-                    myVolOut->setValue(1.0f, i, j, k, iter->second);
-                }
-            }
+            myMetricOut->setValue(i, iter->second, 1.0f);
         }
     }
 }
 
-float AlgorithmVolumeAllLabelsToROIs::getAlgorithmInternalWeight()
+float AlgorithmGiftiAllLabelsToROIs::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmVolumeAllLabelsToROIs::getSubAlgorithmWeight()
+float AlgorithmGiftiAllLabelsToROIs::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

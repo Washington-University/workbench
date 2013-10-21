@@ -46,6 +46,7 @@ AlgorithmCiftiTranspose.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmFiberDotProducts.h
+AlgorithmGiftiAllLabelsToROIs.h
 AlgorithmGiftiLabelToROI.h
 AlgorithmLabelDilate.h
 AlgorithmLabelMerge.h
@@ -128,6 +129,7 @@ AlgorithmCiftiTranspose.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmFiberDotProducts.cxx
+AlgorithmGiftiAllLabelsToROIs.cxx
 AlgorithmGiftiLabelToROI.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmLabelMerge.cxx
