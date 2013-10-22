@@ -1813,12 +1813,13 @@ MathFunctions::remainder(const double numerator,
                         const double denominator)
 {
     if (denominator == 0.0) {
-        return NAN;
+        return 0.0;
     }
     double integralPart = 0.0;
     double quotient = numerator / denominator;
     double fractionalPart = std::modf(quotient, &integralPart);
-    return fractionalPart;
+    double remainderValue = numerator - fractionalPart * denominator;
+    return remainderValue;
 }
 
 /**
