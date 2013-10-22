@@ -79,7 +79,8 @@
 
 using namespace caret;
 
-const bool debugFlag = true;
+static const bool debugFlag = false;
+static const bool showAxesInAllSlicesViewFlag = true;
 
 /**
  * \class caret::BrainOpenGLVolumeSliceDrawing 
@@ -266,7 +267,12 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
                     
                     
                     if (drawThreeSliceView) {
-                        drawAllThreeSlicesForVolumeSliceView(allVP);
+                        if (showAxesInAllSlicesViewFlag) {
+                            drawOrientationAxes(allVP);
+                        }
+                        else {
+                            drawAllThreeSlicesForVolumeSliceView(allVP);
+                        }
                     }
                 }
                     break;
@@ -635,8 +641,10 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
     double modelBottom = -200.0;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            modelTop = boundingBox.getMaxY();
-            modelBottom = boundingBox.getMinY();
+            if ( ! showAxesInAllSlicesViewFlag) {
+                modelTop = boundingBox.getMaxY();
+                modelBottom = boundingBox.getMinY();
+            }
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             modelTop = boundingBox.getMaxY();
@@ -3487,14 +3495,19 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     
     
     /*
-     * Because coordinates are adjusted to 
+     * Because coordinates are adjusted here, the plane equation 
+     * must be updated so layers (volume surface outline, etc)
+     * is drawn properly.
      */
     Plane newPlane(bottomLeft, bottomRight, topRight);
-    const AString msg = ("Original Plane: "
+    
+    if (debugFlag) {
+        const AString msg = ("Original Plane: "
                          + plane.toString()
                          + "\nNew Plane: "
                          + newPlane.toString());
-    std::cout << qPrintable(msg) << std::endl;
+        std::cout << qPrintable(msg) << std::endl;
+    }
     plane = newPlane;
     
     
@@ -3705,69 +3718,71 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                 
                 
                 bool printOriginVoxelInfo = false;
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        if (showFirstVoxelCoordFlag) {
-                            const float dist = voxelCenter[0] - actualOrigin[0];
-                            const AString msg = ("First Voxel Center: "
-                                                 + AString::fromNumbers(voxelCenter, 3, ",")
-                                                 + " Dist from origin voxel in X: "
-                                                 + AString::number(dist)
-                                                 + " Number of voxels between: "
-                                                 + AString::number(dist / voxelSize));
-                            std::cout << qPrintable(msg) << std::endl;
-                            showFirstVoxelCoordFlag = false;
-                        }
-                        if ((bottomLeftVoxelCoord[0] < actualOrigin[0])
-                            && (topRightVoxelCoord[0] > actualOrigin[0])) {
+                if (debugFlag) {
+                    switch (sliceViewPlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            if (showFirstVoxelCoordFlag) {
+                                const float dist = voxelCenter[0] - actualOrigin[0];
+                                const AString msg = ("First Voxel Center: "
+                                                     + AString::fromNumbers(voxelCenter, 3, ",")
+                                                     + " Dist from origin voxel in X: "
+                                                     + AString::number(dist)
+                                                     + " Number of voxels between: "
+                                                     + AString::number(dist / voxelSize));
+                                std::cout << qPrintable(msg) << std::endl;
+                                showFirstVoxelCoordFlag = false;
+                            }
+                            if ((bottomLeftVoxelCoord[0] < actualOrigin[0])
+                                && (topRightVoxelCoord[0] > actualOrigin[0])) {
+                                if ((bottomLeftVoxelCoord[1] < actualOrigin[1])
+                                    && (topRightVoxelCoord[1] > actualOrigin[1])) {
+                                    printOriginVoxelInfo = true;
+                                }
+                            }
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            if (showFirstVoxelCoordFlag) {
+                                const float dist = voxelCenter[0] - actualOrigin[0];
+                                const AString msg = ("First Voxel Center: "
+                                                     + AString::fromNumbers(voxelCenter, 3, ",")
+                                                     + " Dist from origin voxel in X: "
+                                                     + AString::number(dist)
+                                                     + " Number of voxels between: "
+                                                     + AString::number(dist / voxelSize));
+                                std::cout << qPrintable(msg) << std::endl;
+                                showFirstVoxelCoordFlag = false;
+                            }
+                            if ((bottomLeftVoxelCoord[0] < actualOrigin[0])
+                                && (topRightVoxelCoord[0] > actualOrigin[0])) {
+                                if ((bottomLeftVoxelCoord[2] < actualOrigin[2])
+                                    && (topRightVoxelCoord[2] > actualOrigin[2])) {
+                                    printOriginVoxelInfo = true;
+                                }
+                            }
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            if (showFirstVoxelCoordFlag) {
+                                const float dist = voxelCenter[1] - actualOrigin[1];
+                                const AString msg = ("First Voxel Center: "
+                                                     + AString::fromNumbers(voxelCenter, 3, ",")
+                                                     + " Dist from origin voxel in Y: "
+                                                     + AString::number(dist)
+                                                     + " Number of voxels between: "
+                                                     + AString::number(dist / voxelSize));
+                                std::cout << qPrintable(msg) << std::endl;
+                                showFirstVoxelCoordFlag = false;
+                            }
                             if ((bottomLeftVoxelCoord[1] < actualOrigin[1])
                                 && (topRightVoxelCoord[1] > actualOrigin[1])) {
-                                printOriginVoxelInfo = true;
+                                if ((bottomLeftVoxelCoord[2] < actualOrigin[2])
+                                    && (topRightVoxelCoord[2] > actualOrigin[2])) {
+                                    printOriginVoxelInfo = true;
+                                }
                             }
-                        }
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        if (showFirstVoxelCoordFlag) {
-                            const float dist = voxelCenter[0] - actualOrigin[0];
-                            const AString msg = ("First Voxel Center: "
-                                                 + AString::fromNumbers(voxelCenter, 3, ",")
-                                                 + " Dist from origin voxel in X: "
-                                                 + AString::number(dist)
-                                                 + " Number of voxels between: "
-                                                 + AString::number(dist / voxelSize));
-                            std::cout << qPrintable(msg) << std::endl;
-                            showFirstVoxelCoordFlag = false;
-                        }
-                        if ((bottomLeftVoxelCoord[0] < actualOrigin[0])
-                            && (topRightVoxelCoord[0] > actualOrigin[0])) {
-                            if ((bottomLeftVoxelCoord[2] < actualOrigin[2])
-                                && (topRightVoxelCoord[2] > actualOrigin[2])) {
-                                printOriginVoxelInfo = true;
-                            }
-                        }
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        if (showFirstVoxelCoordFlag) {
-                            const float dist = voxelCenter[1] - actualOrigin[1];
-                            const AString msg = ("First Voxel Center: "
-                                                 + AString::fromNumbers(voxelCenter, 3, ",")
-                                                 + " Dist from origin voxel in Y: "
-                                                 + AString::number(dist)
-                                                 + " Number of voxels between: "
-                                                 + AString::number(dist / voxelSize));
-                            std::cout << qPrintable(msg) << std::endl;
-                            showFirstVoxelCoordFlag = false;
-                        }
-                        if ((bottomLeftVoxelCoord[1] < actualOrigin[1])
-                            && (topRightVoxelCoord[1] > actualOrigin[1])) {
-                            if ((bottomLeftVoxelCoord[2] < actualOrigin[2])
-                                && (topRightVoxelCoord[2] > actualOrigin[2])) {
-                                printOriginVoxelInfo = true;
-                            }
-                        }
-                        break;
+                            break;
+                    }
                 }
                 if (printOriginVoxelInfo) {
                     const AString msg = ("Origin voxel center when drawn is "
@@ -4138,6 +4153,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
 {
     bool isThreeSliceView = false;
     bool applyViewingMatrix = false;
+    bool applyTransformationMatrixToAxes = false;
     switch (drawMode) {
         case DRAW_MODE_ALL_STRUCTURES_VIEW:
             return;
@@ -4152,17 +4168,21 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
 //            }
 //            isThreeSliceView = true;
 //            //applyViewingMatrix = true;
-            return;
+            if (showAxesInAllSlicesViewFlag) {
+                applyTransformationMatrixToAxes = true;
+            }
+            else {
+                return;
+            }
             break;
         case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
             applyViewingMatrix = true;
             break;
     }
     
-    bool applyTransformationMatrixToAxes = false;
-    if (isThreeSliceView) {
-        applyTransformationMatrixToAxes = true;
-    }
+//    if (applyTransformationMatrixToAxes) {
+//        applyTransformationMatrixToAxes = true;
+//    }
     
     bool isMontageView = false;
     switch (m_sliceViewMode) {
@@ -4745,6 +4765,88 @@ BrainOpenGLVolumeSliceDrawing::VolumeSlice::allocateColors()
 {
     m_rgba.resize(m_values.size() * 4);
 }
+
+void
+BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
+{
+    const int32_t invalidSliceIndex = -1;
+    
+    /*
+     * Set the viewport
+     */
+    glViewport(viewport[0],
+               viewport[1],
+               viewport[2],
+               viewport[3]);
+    
+    /*
+     * Set the orthographic projection
+     */
+    setOrthographicProjection(VolumeSliceViewPlaneEnum::ALL, viewport);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    /*
+     * Need to set to an axial/all view, then draw slices
+     * Add method getIdentStuff() and processIdentStuff()
+     * Then set viewing transform and draw oblique or orthogonal
+     */
+    const double eyeX = 0;
+    const double eyeY = 0;
+    const double eyeZ = 100;
+    const double centerX = 0;
+    const double centerY = 0;
+    const double centerZ = 0;
+    const double upX = 0;
+    const double upY = 1;
+    const double upZ = 0;
+    gluLookAt(eyeX, eyeY, eyeZ,
+              centerX, centerY, centerZ,
+              upX, upY, upZ);
+    
+    const float zoom = m_browserTabContent->getScaling();
+    glScalef(zoom, zoom, zoom);
+    
+    /*
+     * Create the plane equation for the slice
+     */
+    Plane slicePlane;
+    createSlicePlaneEquation(VolumeSliceViewPlaneEnum::AXIAL,
+                             invalidSliceIndex,
+                             slicePlane);
+    CaretAssert(slicePlane.isValidPlane());
+    if (slicePlane.isValidPlane() == false) {
+        return;
+    }
+    
+    /*
+     * Create the oblique slice transformation matrix
+     */
+    Matrix4x4 obliqueTransformationMatrix;
+    createObliqueTransformationMatrix(obliqueTransformationMatrix);
+    
+    GLboolean depthBufferEnabled = false;
+    glGetBooleanv(GL_DEPTH_TEST,
+                  &depthBufferEnabled);
+    glPushMatrix();
+    drawAxesCrosshairs(obliqueTransformationMatrix,
+                       m_volumeDrawInfo[0].volumeFile,
+                       VolumeSliceViewPlaneEnum::ALL,
+                       DRAW_MODE_VOLUME_VIEW_SLICE_3D);
+    glPopMatrix();
+    if (depthBufferEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+    else {
+        glDisable(GL_DEPTH_TEST);
+    }
+    
+    glPopMatrix();
+    
+}
+
 
 
 

@@ -296,6 +296,8 @@ namespace caret {
                                       const int32_t voxelK,
                                       uint8_t rgbaForColorIdentificationOut[4]);
         
+        void drawOrientationAxes(const int viewport[4]);
+        
         void processIdentification();
         
         // ADD_NEW_MEMBERS_HERE
