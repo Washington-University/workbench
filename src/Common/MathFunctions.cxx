@@ -1798,3 +1798,43 @@ bool MathFunctions::matrixToQuatern(const double matrix[3][3], double cijk[4])
     return true;
 }
 
+/**
+ * Return the remainder from the resulting division using the given values.
+ *
+ * @param numerator
+ *    The numerator.
+ * @param denominator
+ *    The denominator.
+ * @return
+ *    The remainder from numerator divided by denominator.
+ */
+double
+MathFunctions::remainder(const double numerator,
+                        const double denominator)
+{
+    if (denominator == 0.0) {
+        return NAN;
+    }
+    double integralPart = 0.0;
+    double quotient = numerator / denominator;
+    double fractionalPart = std::modf(quotient, &integralPart);
+    return fractionalPart;
+}
+
+/**
+ * Return the value rounded to the nearest integral (integer) value.
+ * 
+ * @param value
+ *    Value that is rounded.
+ * @return
+ *    Value rounded to nearest integral value.
+ */
+double
+MathFunctions::round(const double value)
+{
+    if (value < 0.0) {
+        return std::ceil(value - 0.5f);
+    }
+    return std::floor(value + 0.5f);
+}
+

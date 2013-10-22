@@ -353,6 +353,12 @@ public:
 
     ///try to convert 3x3 matrix to quaternion (return false if not a rotation matrix)
     static bool matrixToQuatern(const double matrix[3][3], double cijk[4]);
+    
+    static double remainder(const double numerator,
+                            const double denominator);
+    
+    static double round(const double value);
+    
 };
 
 } // namespace
