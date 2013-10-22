@@ -224,7 +224,7 @@ namespace caret {
                                        const uint8_t sliceOpacity);
         
         void drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                              const Plane& plane,
+                              Plane& plane,
                               const DRAW_MODE drawMode,
                              const Matrix4x4& transformationMatrix,
                              const float zoom);

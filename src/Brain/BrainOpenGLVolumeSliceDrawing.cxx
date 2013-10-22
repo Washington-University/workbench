@@ -78,7 +78,9 @@
 #include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
-    
+
+const bool debugFlag = true;
+
 /**
  * \class caret::BrainOpenGLVolumeSliceDrawing 
  * \brief Performs oblique volume slice drawing.
@@ -3164,7 +3166,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const VolumeSliceViewPl
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                    const Plane& plane,
+                                                    Plane& plane,
                                                     const DRAW_MODE drawMode,
                                                     const Matrix4x4& transformationMatrix,
                                                     const float zoom)
@@ -3306,10 +3308,18 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     
     const int32_t alignVoxelsFlag = 1;
     if (alignVoxelsFlag == 1) {
-        const int64_t numVoxelsToLeft = static_cast<int64_t>((minScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToRight = static_cast<int64_t>((maxScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToBottom = static_cast<int64_t>((minScreenY + originOffsetY) / voxelSize);
-        const int64_t numVoxelsToTop = static_cast<int64_t>((maxScreenY + originOffsetY)/ voxelSize);
+        /*
+         * Adjust for when selected slices are not at the origin
+         */
+        const float xOffset = remainderf(screenOffsetX, voxelSize);
+        const float yOffset = remainderf(screenOffsetY, voxelSize);
+        originOffsetX -= xOffset;
+        originOffsetY -= yOffset;
+        
+        const int64_t numVoxelsToLeft = static_cast<int64_t>(round(minScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToRight = static_cast<int64_t>(round(maxScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToBottom = static_cast<int64_t>(round(minScreenY + originOffsetY) / voxelSize);
+        const int64_t numVoxelsToTop = static_cast<int64_t>(round(maxScreenY + originOffsetY)/ voxelSize);
         
         const float halfVoxel = voxelSize / 2.0;
         
@@ -3324,30 +3334,39 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         float newMinScreenY = firstVoxelCenterY - halfVoxel;
         float newMaxScreenY = lastVoxelCenterY + halfVoxel;
         
-        const AString msg2 = ("Origin Voxel Coordinate: ("
-                              + AString::fromNumbers(actualOrigin, 3, ",")
-                              + "\n   Oblique Screen X: ("
-                              + AString::number(minScreenX)
-                              + ","
-                              + AString::number(maxScreenX)
-                              + ") Y: ("
-                              + AString::number(minScreenY)
-                              + ","
-                              + AString::number(maxScreenY)
-                              + ")\nNew X: ("
-                              + AString::number(newMinScreenX)
-                              + ","
-                              + AString::number(newMaxScreenX)
-                              + ") Y: ("
-                              + AString::number(newMinScreenY)
-                              + ","
-                              + AString::number(newMaxScreenY)
-                              + ") Diff: ("
-                              + AString::number((newMaxScreenX - newMinScreenX) / voxelSize)
-                              + ","
-                              + AString::number((newMaxScreenY - newMinScreenY) / voxelSize)
-                              + ")");
-        std::cout << qPrintable(msg2) << std::endl;
+//        if (sliceViewPlane == VolumeSliceViewPlaneEnum::PARASAGITTAL) {
+//            newMinScreenX = firstVoxelCenterX + halfVoxel;
+//            newMaxScreenX = lastVoxelCenterX - halfVoxel;
+//            newMinScreenY = firstVoxelCenterY - halfVoxel;
+//            newMaxScreenY = lastVoxelCenterY + halfVoxel;
+//        }
+        
+        if (debugFlag) {
+            const AString msg2 = ("Origin Voxel Coordinate: ("
+                                  + AString::fromNumbers(actualOrigin, 3, ",")
+                                  + "\n   Oblique Screen X: ("
+                                  + AString::number(minScreenX)
+                                  + ","
+                                  + AString::number(maxScreenX)
+                                  + ") Y: ("
+                                  + AString::number(minScreenY)
+                                  + ","
+                                  + AString::number(maxScreenY)
+                                  + ")\nNew X: ("
+                                  + AString::number(newMinScreenX)
+                                  + ","
+                                  + AString::number(newMaxScreenX)
+                                  + ") Y: ("
+                                  + AString::number(newMinScreenY)
+                                  + ","
+                                  + AString::number(newMaxScreenY)
+                                  + ") Diff: ("
+                                  + AString::number((newMaxScreenX - newMinScreenX) / voxelSize)
+                                  + ","
+                                  + AString::number((newMaxScreenY - newMinScreenY) / voxelSize)
+                                  + ")");
+            std::cout << qPrintable(msg2) << std::endl;
+        }
         
         minScreenX = newMinScreenX;
         maxScreenX = newMaxScreenX;
@@ -3460,12 +3479,40 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     /*
      * Transform the corners of the screen into model coordinates
      */
-    std::cout << "Bottom Left before multiply: " << qPrintable(AString::fromNumbers(bottomLeft, 3, ",")) << std::endl;
     transformationMatrix.multiplyPoint3(bottomLeft);
     transformationMatrix.multiplyPoint3(bottomRight);
     transformationMatrix.multiplyPoint3(topRight);
     transformationMatrix.multiplyPoint3(topLeft);
-    std::cout << "Bottom Left after multiply: " << qPrintable(AString::fromNumbers(bottomLeft, 3, ",")) << std::endl;
+    
+    
+    
+    /*
+     * Because coordinates are adjusted to 
+     */
+    Plane newPlane(bottomLeft, bottomRight, topRight);
+    const AString msg = ("Original Plane: "
+                         + plane.toString()
+                         + "\nNew Plane: "
+                         + newPlane.toString());
+    std::cout << qPrintable(msg) << std::endl;
+    plane = newPlane;
+    
+    
+    if (debugFlag) {
+        const double bottomDist = MathFunctions::distance3D(bottomLeft, bottomRight);
+        const double topDist = MathFunctions::distance3D(topLeft, topRight);
+        const double bottomVoxels = bottomDist / voxelSize;
+        const double topVoxels = topDist / voxelSize;
+        const AString msg = ("Bottom Dist: "
+                             + AString::number(bottomDist)
+                             + " voxel size: "
+                             + AString::number(bottomVoxels)
+                             + " Top Dist: "
+                             + AString::number(bottomDist)
+                             + " voxel size: "
+                             + AString::number(topVoxels));
+        std::cout << qPrintable(msg) << std::endl;
+    }
     
     CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
                    + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
@@ -3538,7 +3585,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
                                            m_volumeDrawInfo[i].mapIndex));
         
     }
-    bool showFirstVoxelCoordFlag = true;
+    bool showFirstVoxelCoordFlag = debugFlag;
     
     /*
      * Track voxels that will be drawn
