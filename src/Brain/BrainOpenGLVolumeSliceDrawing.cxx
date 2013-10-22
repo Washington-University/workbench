@@ -80,7 +80,7 @@
 using namespace caret;
 
 static const bool debugFlag = false;
-static const bool showAxesInAllSlicesViewFlag = true;
+static const bool showAxesInAllSlicesViewBottomLeftFlag = false;
 
 /**
  * \class caret::BrainOpenGLVolumeSliceDrawing 
@@ -267,7 +267,7 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
                     
                     
                     if (drawThreeSliceView) {
-                        if (showAxesInAllSlicesViewFlag) {
+                        if (showAxesInAllSlicesViewBottomLeftFlag) {
                             drawOrientationAxes(allVP);
                         }
                         else {
@@ -279,12 +279,40 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
                 case VolumeSliceViewPlaneEnum::AXIAL:
                 case VolumeSliceViewPlaneEnum::CORONAL:
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                {
                     glPushMatrix();
                     drawSliceForSliceView(slicePlane,
-                                             DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
-                                             invalidSliceIndex,
-                                             viewport);
+                                          DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE,
+                                          invalidSliceIndex,
+                                          viewport);
                     glPopMatrix();
+                    
+                    if (showAxesInAllSlicesViewBottomLeftFlag) {
+                        if (sliceViewMode == VolumeSliceViewModeEnum::OBLIQUE) {
+                            glPushMatrix();
+                            
+                            /*
+                             * Draw axes in bottom right corner
+                             */
+                            const float percentage = 0.2;
+                            const int vpSmallX = viewport[2] * percentage;
+                            const int vpSmallY = viewport[3] * percentage;
+                            if ((vpSmallX > 20)
+                                && (vpSmallY > 20)) {
+                                const int smallVP[4] = {
+                                    viewport[0] + viewport[2] - vpSmallX,
+                                    viewport[1],
+                                    vpSmallX,
+                                    vpSmallY
+                                };
+                                
+                                drawOrientationAxes(smallVP);
+                            }
+                            
+                            glPopMatrix();
+                        }
+                    }
+                }
                     break;
             }
         }
@@ -641,7 +669,7 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
     double modelBottom = -200.0;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            if ( ! showAxesInAllSlicesViewFlag) {
+            if ( ! showAxesInAllSlicesViewBottomLeftFlag) {
                 modelTop = boundingBox.getMaxY();
                 modelBottom = boundingBox.getMinY();
             }
@@ -4168,7 +4196,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
 //            }
 //            isThreeSliceView = true;
 //            //applyViewingMatrix = true;
-            if (showAxesInAllSlicesViewFlag) {
+            if (showAxesInAllSlicesViewBottomLeftFlag) {
                 applyTransformationMatrixToAxes = true;
             }
             else {
@@ -4806,8 +4834,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
               centerX, centerY, centerZ,
               upX, upY, upZ);
     
-    const float zoom = m_browserTabContent->getScaling();
-    glScalef(zoom, zoom, zoom);
+    //const float zoom = m_browserTabContent->getScaling();
+    //glScalef(zoom, zoom, zoom);
     
     /*
      * Create the plane equation for the slice
@@ -4830,6 +4858,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
     GLboolean depthBufferEnabled = false;
     glGetBooleanv(GL_DEPTH_TEST,
                   &depthBufferEnabled);
+    glDisable(GL_DEPTH_TEST);
     glPushMatrix();
     drawAxesCrosshairs(obliqueTransformationMatrix,
                        m_volumeDrawInfo[0].volumeFile,
