@@ -1073,14 +1073,9 @@ int64_t CiftiXML::getMapIndexFromNameOrNumber(const int& direction, const AStrin
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, m_dimToMapLookup[direction]);
     const CiftiMatrixIndicesMapElement& myMap = m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]];
-    if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS &&
-        myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS)
-    {
-        return -1;
-    }
     bool ok = false;
     int32_t ret = numberOrName.toInt(&ok) - 1;//compensate for 1-indexing that command line parsing uses
-    if (ok)
+    if (ok)//always work for integers, even when it is something like brain models or parcels, code that cares can check the mapping type
     {
         if (ret < 0 || ret >= getDimensionLength(direction))
         {
@@ -1088,6 +1083,11 @@ int64_t CiftiXML::getMapIndexFromNameOrNumber(const int& direction, const AStrin
         }
     } else {//DO NOT search by name if the string was parsed as an integer correctly, or some idiot who names their maps as integers will get confused
             //when getting map "12" out of a file after the file expands to more than 12 elements suddenly does something different
+        if (myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_SCALARS &&
+            myMap.m_indicesMapToDataType != CIFTI_INDEX_TYPE_LABELS)
+        {
+            return -1;//if we don't have map names to look at, return early rather than repeatedly trying to match against "" (which would be incorrect anyway)
+        }
         int64_t numMaps = getDimensionLength(direction);
         ret = -1;
         for (int64_t i = 0; i < numMaps; ++i)
@@ -1676,6 +1676,7 @@ void CiftiXML::resetRowsToScalars(const int64_t& numMaps)
 
 void CiftiXML::resetDirectionToScalars(const int& direction, const int64_t& numMaps)
 {
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
     if (m_dimToMapLookup[direction] == -1)
     {
         m_dimToMapLookup[direction] = createMap(direction);
@@ -1691,40 +1692,32 @@ void CiftiXML::resetDirectionToScalars(const int& direction, const int64_t& numM
 
 void CiftiXML::resetColumnsToLabels(const int64_t& numMaps)
 {
-    if (m_dimToMapLookup[1] == -1)
-    {
-        m_dimToMapLookup[1] = createMap(1);
-    } else {
-        separateMaps();
-    }
-    CiftiMatrixIndicesMapElement myMap;
-    myMap.m_appliesToMatrixDimension.push_back(1);
-    myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_LABELS;
-    myMap.m_namedMaps.resize(numMaps);
-    for (int64_t i = 0; i < numMaps; ++i)
-    {
-        myMap.m_namedMaps[i].m_labelTable.grabNew(new GiftiLabelTable());
-    }
-    m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]] = myMap;
+    resetDirectionToLabels(ALONG_COLUMN, numMaps);
 }
 
 void CiftiXML::resetRowsToLabels(const int64_t& numMaps)
 {
-    if (m_dimToMapLookup[0] == -1)
+    resetDirectionToLabels(ALONG_ROW, numMaps);
+}
+
+void CiftiXML::resetDirectionToLabels(const int& direction, const int64_t& numMaps)
+{
+    CaretAssertVectorIndex(m_dimToMapLookup, direction);
+    if (m_dimToMapLookup[direction] == -1)
     {
-        m_dimToMapLookup[0] = createMap(0);
+        m_dimToMapLookup[direction] = createMap(direction);
     } else {
         separateMaps();
     }
     CiftiMatrixIndicesMapElement myMap;
-    myMap.m_appliesToMatrixDimension.push_back(0);
+    myMap.m_appliesToMatrixDimension.push_back(direction);
     myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_LABELS;
     myMap.m_namedMaps.resize(numMaps);
     for (int64_t i = 0; i < numMaps; ++i)
     {
         myMap.m_namedMaps[i].m_labelTable.grabNew(new GiftiLabelTable());
     }
-    m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] = myMap;
+    m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] = myMap;
 }
 
 void CiftiXML::resetColumnsToParcels()

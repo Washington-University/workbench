@@ -29,9 +29,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 
-#include <cmath>
 #include <map>
-#include <vector>
 
 using namespace caret;
 using namespace std;

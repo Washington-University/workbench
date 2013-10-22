@@ -373,6 +373,9 @@ namespace caret {
         ///set columns to be of type labels
         void resetColumnsToLabels(const int64_t& numMaps);
         
+        ///set a direction to labels
+        void resetDirectionToLabels(const int& direction, const int64_t& numMaps);
+        
         ///set rows to be of type parcels
         void resetRowsToParcels();
         
