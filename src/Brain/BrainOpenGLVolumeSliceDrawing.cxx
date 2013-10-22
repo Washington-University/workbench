@@ -627,7 +627,7 @@ BrainOpenGLVolumeSliceDrawing::drawAllThreeSlicesForVolumeSliceView(const int vi
 /**
  * Set the orthographic projection.
  *
- * @param sliceViewPlane
+ * @param sliceViewPlane 
  *    View plane that is displayed.
  * @param viewport
  *    The viewport.
