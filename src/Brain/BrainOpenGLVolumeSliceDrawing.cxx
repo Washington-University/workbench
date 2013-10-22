@@ -3347,27 +3347,15 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         /*
          * Adjust for when selected slices are not at the origin
          */
-#ifdef CARET_OS_WINDOWS
-        const float xOffset = std::remainder(screenOffsetX, voxelSize);
-        const float yOffset = std::remainder(screenOffsetY, voxelSize);
-#else // CARET_OS_WINDOWS
-        const float xOffset = remainder(screenOffsetX, voxelSize);
-        const float yOffset = remainder(screenOffsetY, voxelSize);
-#endif // CARET_OS_WINDOWS
+        const float xOffset = MathFunctions::remainder(screenOffsetX, voxelSize);
+        const float yOffset = MathFunctions::remainder(screenOffsetY, voxelSize);
         originOffsetX -= xOffset;
         originOffsetY -= yOffset;
         
-#ifdef CARET_OS_WINDOWS
-        const int64_t numVoxelsToLeft = static_cast<int64_t>(std::round(minScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToRight = static_cast<int64_t>(std::round(maxScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToBottom = static_cast<int64_t>(std::round(minScreenY + originOffsetY) / voxelSize);
-        const int64_t numVoxelsToTop = static_cast<int64_t>(std::round(maxScreenY + originOffsetY)/ voxelSize);
-#else // CARET_OS_WINDOWS
-        const int64_t numVoxelsToLeft = static_cast<int64_t>(round(minScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToRight = static_cast<int64_t>(round(maxScreenX + originOffsetX) / voxelSize);
-        const int64_t numVoxelsToBottom = static_cast<int64_t>(round(minScreenY + originOffsetY) / voxelSize);
-        const int64_t numVoxelsToTop = static_cast<int64_t>(round(maxScreenY + originOffsetY)/ voxelSize);
-#endif // CARET_OS_WINDOWS
+        const int64_t numVoxelsToLeft = static_cast<int64_t>(MathFunctions::round(minScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToRight = static_cast<int64_t>(MathFunctions::round(maxScreenX + originOffsetX) / voxelSize);
+        const int64_t numVoxelsToBottom = static_cast<int64_t>(MathFunctions::round(minScreenY + originOffsetY) / voxelSize);
+        const int64_t numVoxelsToTop = static_cast<int64_t>(MathFunctions::round(maxScreenY + originOffsetY)/ voxelSize);
         
         const float halfVoxel = voxelSize / 2.0;
         
@@ -3703,11 +3691,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
             double bottomEdgeUnitVector[3];
             MathFunctions::createUnitVector(leftEdgeBottomCoord, rightEdgeBottomCoord, bottomEdgeUnitVector);
             const double numVoxelsInRowFloat = bottomVoxelEdgeDistance / voxelSize;
-#ifdef CARET_OS_WINDOWS
-            const int64_t numVoxelsInRow = std::round(numVoxelsInRowFloat); //bottomVoxelEdgeDistance / voxelSize;
-#else // 
-            const int64_t numVoxelsInRow = round(numVoxelsInRowFloat); //bottomVoxelEdgeDistance / voxelSize;
-#endif //
+            const int64_t numVoxelsInRow = MathFunctions::round(numVoxelsInRowFloat); //bottomVoxelEdgeDistance / voxelSize;
             const double bottomEdgeVoxelSize = bottomVoxelEdgeDistance / numVoxelsInRow;
             const double bottomVoxelEdgeDX = bottomEdgeVoxelSize * bottomEdgeUnitVector[0];
             const double bottomVoxelEdgeDY = bottomEdgeVoxelSize * bottomEdgeUnitVector[1];
