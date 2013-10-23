@@ -255,10 +255,7 @@ namespace caret {
                                       Plane& planeOut);
         
         void setVolumeSliceViewingAndModelingTransformations(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                 const DRAW_MODE drawMode,
-                                                 const Plane& plane,
-                                                 const int32_t montageSliceIndex,
-                                                 const Matrix4x4& obliqueTransformationMatrix);
+                                                 const Plane& plane);
         
 //        void setVolumeSliceModelingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
 //                                                  const DRAW_MODE drawMode,

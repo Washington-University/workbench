@@ -642,8 +642,8 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
      */
     BoundingBox boundingBox;
     m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-    double modelViewRangeY = std::max(boundingBox.getDifferenceY(),
-                                      boundingBox.getDifferenceZ());
+//    double modelViewRangeY = std::max(boundingBox.getDifferenceY(),
+//                                      boundingBox.getDifferenceZ());
 //    switch (sliceViewPlane) {
 //        case VolumeSliceViewPlaneEnum::ALL:
 //            modelViewRangeY = std::max(boundingBox.getDifferenceX(),
@@ -1158,10 +1158,7 @@ BrainOpenGLVolumeSliceDrawing::createObliqueTransformationMatrix(Matrix4x4& obli
  */
 void
 BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                               const DRAW_MODE drawMode,
-                                                                               const Plane& plane,
-                                                                               const int32_t montageSliceIndex,
-                                                                               const Matrix4x4& obliqueTransformationMatrix)
+                                                                               const Plane& plane)
 {
 //    bool isSetViewTranform = false;
 //    bool isSetZoom = false;
@@ -2392,10 +2389,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
          * Set the viewing transformation (camera position)
          */
         setVolumeSliceViewingAndModelingTransformations(sliceViewPlane,
-                                            drawMode,
-                                            slicePlane,
-                                            montageSliceIndex,
-                                            obliqueTransformationMatrix);
+                                            slicePlane);
         
 //        /*
 //         * Set the modeling transforms
@@ -4235,9 +4229,9 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
     float bounds[6];
     float spacing[3];
     getVoxelCoordinateBoundsAndSpacing(bounds, spacing);
-    const float minVoxelSize = std::min(std::min(spacing[0],
-                                                 spacing[1]),
-                                        spacing[2]);
+//    const float minVoxelSize = std::min(std::min(spacing[0],
+//                                                 spacing[1]),
+//                                        spacing[2]);
     
     const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
     
