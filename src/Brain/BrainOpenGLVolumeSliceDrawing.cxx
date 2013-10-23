@@ -3352,6 +3352,11 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         originOffsetX -= xOffset;
         originOffsetY -= yOffset;
         
+//        std::cout << "Remainder1(" << screenOffsetX << "," << voxelSize << "): "
+//        << xOffset << " should be: " << remainder(screenOffsetX, voxelSize) << std::endl;
+//        std::cout << "Remainder2(" << screenOffsetY << "," << voxelSize << "): "
+//        << yOffset << " should be: " << remainder(screenOffsetY, voxelSize) << std::endl;
+        
         const int64_t numVoxelsToLeft = static_cast<int64_t>(MathFunctions::round(minScreenX + originOffsetX) / voxelSize);
         const int64_t numVoxelsToRight = static_cast<int64_t>(MathFunctions::round(maxScreenX + originOffsetX) / voxelSize);
         const int64_t numVoxelsToBottom = static_cast<int64_t>(MathFunctions::round(minScreenY + originOffsetY) / voxelSize);
