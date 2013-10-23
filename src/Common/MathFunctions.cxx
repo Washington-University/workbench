@@ -1800,6 +1800,20 @@ bool MathFunctions::matrixToQuatern(const double matrix[3][3], double cijk[4])
 
 /**
  * Return the remainder from the resulting division using the given values.
+ * 
+ * This method is written to match the result produced by the remainder() 
+ * function that is part of C99 but not supported on all platforms.
+ *
+ * Code may appear verbose but it avoid functions calls to fabs(), ceil(),
+ * and floor().
+ *
+ *     Note: X is the numerator.
+ *           Y is the denominator.
+ *
+ *     The remainder() functions compute the value r such that r = x - n*y,
+ *     where n is the integer nearest the exact value of x/y.
+ *     
+ *     If there are two integers closest to x/y, n shall be the even one. 
  *
  * @param numerator
  *    The numerator.
@@ -1810,15 +1824,63 @@ bool MathFunctions::matrixToQuatern(const double matrix[3][3], double cijk[4])
  */
 double
 MathFunctions::remainder(const double numerator,
-                        const double denominator)
+                         const double denominator)
 {
     if (denominator == 0.0) {
         return 0.0;
     }
-    double integralPart = 0.0;
-    double quotient = numerator / denominator;
-    double fractionalPart = std::modf(quotient, &integralPart);
-    double remainderValue = numerator - fractionalPart * denominator;
+    
+    const double quotient = numerator / denominator;
+    
+    /*
+     * Integer value greater than or equal to the quotient
+     * and its difference with the quotient (ceiling)
+     */
+    const int64_t nearestIntegerOne = static_cast<int64_t>(quotient + 0.5);
+    double diffOne = quotient - nearestIntegerOne;
+    if (diffOne < 0.0) diffOne = -diffOne;
+
+    /*
+     * Integer value less than or equal to the quotient
+     * and its difference with the quotient (floor)
+     */
+    const int64_t nearestIntegerTwo = static_cast<int64_t>(quotient - 0.5);
+    double diffTwo = quotient - nearestIntegerTwo;
+    if (diffTwo < 0.0) diffTwo = -diffTwo;
+
+    /*
+     * Helps determine if the two integer value are the same
+     * distance from the quotient (value will be very close
+     * to zero).
+     */
+    double diffOneTwo = diffOne - diffTwo;
+    if (diffOneTwo < 0.0) diffOneTwo = -diffOneTwo;
+
+    int64_t nearestInteger = 0;
+    
+    /*
+     * If the two integer values are the same distance from zero
+     */
+    if (diffOneTwo < 0.000001) {
+        /*
+         * Use the integer that is even.
+         * Note that if an integer is even, first bit is zero.
+         */
+        if ((nearestIntegerOne & 1) == 0) {
+            nearestInteger = nearestIntegerOne;
+        }
+        else {
+            nearestInteger = nearestIntegerTwo;
+        }
+    }
+    else if (diffOne < diffTwo) {
+        nearestInteger = nearestIntegerOne;
+    }
+    else {
+        nearestInteger = nearestIntegerTwo;
+    }
+    
+    const double remainderValue = numerator - nearestInteger * denominator;
     return remainderValue;
 }
 
