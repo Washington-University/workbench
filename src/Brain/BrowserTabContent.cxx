@@ -754,12 +754,13 @@ BrowserTabContent::receiveEvent(Event* event)
                 };
                 
                 /*
-                 * If volume montage viewing, do not change the
-                 * slice in the plane that is being viewed.
+                 * If othogonal/montage viewing, do not alter the slice
+                 * coordinate in the axis being viewed
                  */
                 if (getDisplayedVolumeModel() != NULL) {
                     switch (m_volumeSliceSettings->getSliceViewMode()) {
                         case VolumeSliceViewModeEnum::MONTAGE:
+                        case VolumeSliceViewModeEnum::OBLIQUE:
                             switch (getSliceViewPlane()) {
                                 case VolumeSliceViewPlaneEnum::ALL:
                                     break;
@@ -773,8 +774,6 @@ BrowserTabContent::receiveEvent(Event* event)
                                     volumeSliceXYZ[2] = getSliceCoordinateAxial();
                                     break;
                             }
-                            break;
-                        case VolumeSliceViewModeEnum::OBLIQUE:
                             break;
                         case VolumeSliceViewModeEnum::ORTHOGONAL:
                             break;
