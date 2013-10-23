@@ -4795,10 +4795,22 @@ BrainOpenGLVolumeSliceDrawing::VolumeSlice::allocateColors()
     m_rgba.resize(m_values.size() * 4);
 }
 
+/**
+ * Draw orientation axes
+ *
+ * @param viewport
+ *    The viewport region for the orientation axes.
+ * @param sliceViewPlane
+ *    Slice plane that is viewed.
+ */
 void
 BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
-                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
+                                                   const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/)
 {
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const bool drawCylindersFlag = prefs->isVolumeAxesCrosshairsDisplayed();
+    const bool drawLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+    
     /*
      * Set the viewport
      */
@@ -4842,7 +4854,6 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
 //                  << right << " "
 //                  << bottom << " "
 //                  << top << std::endl;
-    
     
     /*
      * Set the orthographic projection
@@ -4940,31 +4951,46 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
         
         const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
         
-        m_fixedPipelineDrawing->drawCylinder(blue,
-                                             axialPlaneMin,
-                                             axialPlaneMax,
-                                             axesCrosshairRadius);
-        glColor3fv(blue);
-        m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "V");
-        m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "D");
+        if (drawCylindersFlag) {
+            m_fixedPipelineDrawing->drawCylinder(blue,
+                                                 axialPlaneMin,
+                                                 axialPlaneMax,
+                                                 axesCrosshairRadius);
+        }
+        
+        if (drawLabelsFlag) {
+            glColor3fv(blue);
+            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "V");
+            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "D");
+        }
         
         
-        m_fixedPipelineDrawing->drawCylinder(green,
-                                             coronalPlaneMin,
-                                             coronalPlaneMax,
-                                             axesCrosshairRadius);
-        glColor3fv(green);
-        m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMin, "L");
-        m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMax, "R");
+        if (drawCylindersFlag) {
+            m_fixedPipelineDrawing->drawCylinder(green,
+                                                 coronalPlaneMin,
+                                                 coronalPlaneMax,
+                                                 axesCrosshairRadius);
+        }
+        
+        if (drawLabelsFlag) {
+            glColor3fv(green);
+            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMin, "L");
+            m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMax, "R");
+        }
         
         
-        m_fixedPipelineDrawing->drawCylinder(red,
-                                             paraPlaneMin,
-                                             paraPlaneMax,
-                                             axesCrosshairRadius);
-        glColor3fv(red);
-        m_fixedPipelineDrawing->drawTextModelCoords(paraTextMin, "P");
-        m_fixedPipelineDrawing->drawTextModelCoords(paraTextMax, "A");
+        if (drawCylindersFlag) {
+            m_fixedPipelineDrawing->drawCylinder(red,
+                                                 paraPlaneMin,
+                                                 paraPlaneMax,
+                                                 axesCrosshairRadius);
+        }
+        
+        if (drawLabelsFlag) {
+            glColor3fv(red);
+            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMin, "P");
+            m_fixedPipelineDrawing->drawTextModelCoords(paraTextMax, "A");
+        }
         
 //        if (depthBufferEnabled) {
 //            glEnable(GL_DEPTH_TEST);
