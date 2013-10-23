@@ -8318,8 +8318,6 @@ BrainOpenGLFixedPipeline::drawBoldTextWindowCoords(const int windowX,
  *    Model Z-coordinate.
  * @param text
  *    Text that is to be drawn.
- * @param alignment
- *    Alignment of text.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
@@ -8333,6 +8331,23 @@ BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
                                                   modelZ,
                                                   text.trimmed());
     }
+}
+
+/**
+ * Draw text at the given window coordinates.
+ * @param modelXYZ
+ *    Model XYZ coordinate.
+ * @param text
+ *    Text that is to be drawn.
+ */
+void
+BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelXYZ[3],
+                                              const QString& text)
+{
+    drawTextModelCoords(modelXYZ[0],
+                        modelXYZ[1],
+                        modelXYZ[2],
+                        text);
 }
 
 /**

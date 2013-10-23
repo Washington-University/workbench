@@ -406,6 +406,9 @@ namespace caret {
                                  const double modelZ,
                                  const QString& text);
         
+        void drawTextModelCoords(const double modelXYZ[3],
+                                 const QString& text);
+        
         void drawAllPalettes(Brain* brain);
         
 //        void drawPalette(const Palette* palette,

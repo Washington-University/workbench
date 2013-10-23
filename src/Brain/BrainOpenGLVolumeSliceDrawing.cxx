@@ -80,7 +80,7 @@
 using namespace caret;
 
 static const bool debugFlag = false;
-static const bool showAxesInAllSlicesViewBottomLeftFlag = false;
+static const bool showAxesInAllSlicesViewBottomLeftFlag = true;
 
 /**
  * \class caret::BrainOpenGLVolumeSliceDrawing 
@@ -268,7 +268,8 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
                     
                     if (drawThreeSliceView) {
                         if (showAxesInAllSlicesViewBottomLeftFlag) {
-                            drawOrientationAxes(allVP);
+                            drawOrientationAxes(allVP,
+                                                VolumeSliceViewPlaneEnum::ALL);
                         }
                         else {
                             drawAllThreeSlicesForVolumeSliceView(allVP);
@@ -306,7 +307,8 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
                                     vpSmallY
                                 };
                                 
-                                drawOrientationAxes(smallVP);
+                                drawOrientationAxes(smallVP,
+                                                    slicePlane);
                             }
                             
                             glPopMatrix();
@@ -4338,18 +4340,18 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         else {
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
-                    axialPlaneStartLabel   = "L";
-                    axialPlaneEndLabel     = "R";
-                    axialStartXYZ[0] += xMin;
-                    axialEndXYZ[0]   += xMax;
-                    coronalPlaneStartLabel = "V";
-                    coronalPlaneEndLabel   = "D";
-                    coronalStartXYZ[1] += yMin;
-                    coronalEndXYZ[1]   += yMax;
+                    axialPlaneStartLabel   = "V";
+                    axialPlaneEndLabel     = "D";
+                    axialStartXYZ[2] += zMin;
+                    axialEndXYZ[2]   += zMax;
+                    coronalPlaneStartLabel = "L";
+                    coronalPlaneEndLabel   = "R";
+                    coronalStartXYZ[0] += xMin;
+                    coronalEndXYZ[0]   += xMax;
                     paraPlaneStartLabel    = "P";
                     paraPlaneEndLabel      = "A";
-                    paraStartXYZ[2] += zMin;
-                    paraEndXYZ[2]   += zMax;
+                    paraStartXYZ[1] += yMin;
+                    paraEndXYZ[1]   += yMax;
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
                     coronalPlaneStartLabel = "L";
@@ -4794,10 +4796,9 @@ BrainOpenGLVolumeSliceDrawing::VolumeSlice::allocateColors()
 }
 
 void
-BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
+BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
+                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
 {
-    const int32_t invalidSliceIndex = -1;
-    
     /*
      * Set the viewport
      */
@@ -4805,74 +4806,179 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
                viewport[1],
                viewport[2],
                viewport[3]);
+    const double viewportWidth  = viewport[2];
+    const double viewportHeight = viewport[3];
+    
+    /*
+     * Determine bounds for orthographic projection
+     */
+    const double maxCoord = 100.0;
+    const double minCoord = -maxCoord;
+    double left   = 0.0;
+    double right  = 0.0;
+    double top    = 0.0;
+    double bottom = 0.0;
+    const double nearDepth = -1000.0;
+    const double farDepth  =  1000.0;
+    if (viewportHeight > viewportWidth) {
+        left  = minCoord;
+        right = maxCoord;
+        const double aspectRatio = (viewportHeight
+                                    / viewportWidth);
+        top   = maxCoord * aspectRatio;
+        bottom = minCoord * aspectRatio;
+    }
+    else {
+        const double aspectRatio = (viewportWidth
+                                    / viewportHeight);
+        top   = maxCoord;
+        bottom = minCoord;
+        left  = minCoord * aspectRatio;
+        right = maxCoord * aspectRatio;
+    }
+    
+//    std::cout << "L/R/B/T: "
+//                  << left << " "
+//                  << right << " "
+//                  << bottom << " "
+//                  << top << std::endl;
+    
     
     /*
      * Set the orthographic projection
      */
-    setOrthographicProjection(VolumeSliceViewPlaneEnum::ALL, viewport);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(left, right,
+            bottom, top,
+            nearDepth, farDepth);
+    
     
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
-    /*
-     * Need to set to an axial/all view, then draw slices
-     * Add method getIdentStuff() and processIdentStuff()
-     * Then set viewing transform and draw oblique or orthogonal
-     */
-    const double eyeX = 0;
-    const double eyeY = 0;
-    const double eyeZ = 100;
-    const double centerX = 0;
-    const double centerY = 0;
-    const double centerZ = 0;
-    const double upX = 0;
-    const double upY = 1;
-    const double upZ = 0;
-    gluLookAt(eyeX, eyeY, eyeZ,
-              centerX, centerY, centerZ,
-              upX, upY, upZ);
-    
-    //const float zoom = m_browserTabContent->getScaling();
-    //glScalef(zoom, zoom, zoom);
-    
-    /*
-     * Create the plane equation for the slice
-     */
-    Plane slicePlane;
-    createSlicePlaneEquation(VolumeSliceViewPlaneEnum::AXIAL,
-                             invalidSliceIndex,
-                             slicePlane);
-    CaretAssert(slicePlane.isValidPlane());
-    if (slicePlane.isValidPlane() == false) {
-        return;
-    }
-    
-    /*
-     * Create the oblique slice transformation matrix
-     */
-    Matrix4x4 obliqueTransformationMatrix;
-    createObliqueTransformationMatrix(obliqueTransformationMatrix);
-    
-    GLboolean depthBufferEnabled = false;
-    glGetBooleanv(GL_DEPTH_TEST,
-                  &depthBufferEnabled);
-    glDisable(GL_DEPTH_TEST);
-    glPushMatrix();
-    drawAxesCrosshairs(obliqueTransformationMatrix,
-                       m_volumeDrawInfo[0].volumeFile,
-                       VolumeSliceViewPlaneEnum::ALL,
-                       DRAW_MODE_VOLUME_VIEW_SLICE_3D);
-    glPopMatrix();
-    if (depthBufferEnabled) {
-        glEnable(GL_DEPTH_TEST);
-    }
-    else {
+    {
+        /*
+         * Set the viewing transformation, places 'eye' so that it looks
+         * at the 'model' which is, in this case, the axes
+         */
+        double eyeX = 0.0;
+        double eyeY = 0.0;
+        double eyeZ = 100.0;
+//        switch (sliceViewPlane) {
+//            case VolumeSliceViewPlaneEnum::ALL:
+//                eyeZ = 100.0;
+//                break;
+//            case VolumeSliceViewPlaneEnum::AXIAL:
+//                eyeZ = 100.0;
+//                break;
+//            case VolumeSliceViewPlaneEnum::CORONAL:
+//                eyeY = -100.0;
+//                break;
+//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                eyeX = -100.0;
+//                break;
+//        }
+        const double centerX = 0;
+        const double centerY = 0;
+        const double centerZ = 0;
+        const double upX = 0;
+        const double upY = 1;
+        const double upZ = 0;
+        gluLookAt(eyeX, eyeY, eyeZ,
+                  centerX, centerY, centerZ,
+                  upX, upY, upZ);
+        
+        /*
+         * Set the modeling transformation
+         */
+        const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+        double rotationMatrix[16];
+        obliqueRotationMatrix.getMatrixForOpenGL(rotationMatrix);
+        glMultMatrixd(rotationMatrix);
+        
+        /*
+         * Disable depth buffer.  Otherwise, when volume slices are drawn
+         * black regions of the slices may set depth buffer and the occlude
+         * the axes from display.
+         */
+        GLboolean depthBufferEnabled = false;
+        glGetBooleanv(GL_DEPTH_TEST,
+                      &depthBufferEnabled);
         glDisable(GL_DEPTH_TEST);
+        const float red[4] = {
+            1.0, 0.0, 0.0, 1.0
+        };
+        const float green[4] = {
+            0.0, 1.0, 0.0, 1.0
+        };
+        const float blue[4] = {
+            0.0, 0.0, 1.0, 1.0
+        };
+        
+        const double axisMaxCoord = maxCoord * 0.8;
+        const double axisMinCoord = -axisMaxCoord;
+        const double textMaxCoord = maxCoord * 0.9;
+        const double textMinCoord = -textMaxCoord;
+        
+        
+        const float axialPlaneMin[3] = { 0.0, 0.0, axisMinCoord };
+        const float axialPlaneMax[3] = { 0.0, 0.0, axisMaxCoord };
+        const double axialTextMin[3]  = { 0.0, 0.0, textMinCoord };
+        const double axialTextMax[3]  = { 0.0, 0.0, textMaxCoord };
+        
+        const float coronalPlaneMin[3] = { axisMinCoord, 0.0, 0.0 };
+        const float coronalPlaneMax[3] = { axisMaxCoord, 0.0, 0.0 };
+        const double coronalTextMin[3]  = { textMinCoord, 0.0, 0.0 };
+        const double coronalTextMax[3]  = { textMaxCoord, 0.0, 0.0 };
+        
+        const float paraPlaneMin[3] = { 0.0, axisMinCoord, 0.0 };
+        const float paraPlaneMax[3] = { 0.0, axisMaxCoord, 0.0 };
+        const double paraTextMin[3]  = { 0.0, textMinCoord, 0.0 };
+        const double paraTextMax[3]  = { 0.0, textMaxCoord, 0.0 };
+        
+        const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+        
+        m_fixedPipelineDrawing->drawCylinder(blue,
+                                             axialPlaneMin,
+                                             axialPlaneMax,
+                                             axesCrosshairRadius);
+        glColor3fv(blue);
+        m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "V");
+        m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "D");
+        
+        
+        m_fixedPipelineDrawing->drawCylinder(green,
+                                             coronalPlaneMin,
+                                             coronalPlaneMax,
+                                             axesCrosshairRadius);
+        glColor3fv(green);
+        m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMin, "L");
+        m_fixedPipelineDrawing->drawTextModelCoords(coronalTextMax, "R");
+        
+        
+        m_fixedPipelineDrawing->drawCylinder(red,
+                                             paraPlaneMin,
+                                             paraPlaneMax,
+                                             axesCrosshairRadius);
+        glColor3fv(red);
+        m_fixedPipelineDrawing->drawTextModelCoords(paraTextMin, "P");
+        m_fixedPipelineDrawing->drawTextModelCoords(paraTextMax, "A");
+        
+//        if (depthBufferEnabled) {
+//            glEnable(GL_DEPTH_TEST);
+//        }
+//        else {
+//            glDisable(GL_DEPTH_TEST);
+//        }
     }
-    
     glPopMatrix();
     
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
 }
 
 
