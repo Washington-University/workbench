@@ -220,15 +220,9 @@ void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* curr
     reverse_gather.resize(numNewNodes);
     for (int oldNode = 0; oldNode < numOldNodes; ++oldNode)//this loop can't be parallelized
     {
-        for (map<int, float>::iterator iter = reverse[oldNode].begin(); iter != reverse[oldNode].end(); ++iter)
+        for (map<int, float>::iterator iter = reverse[oldNode].begin(); iter != reverse[oldNode].end(); ++iter)//convert scattering weights to gathering weights
         {
-            map<int, float>::iterator search = reverse_gather[iter->first].find(oldNode);//convert scattering weights to gathering weights
-            if (search == reverse_gather[iter->first].end())
-            {
-                reverse_gather[iter->first][oldNode] = iter->second;
-            } else {
-                search->second += iter->second;
-            }
+            reverse_gather[iter->first][oldNode] = iter->second;
         }
     }
     vector<map<int, float> > adap_gather(numNewNodes);
@@ -246,7 +240,7 @@ void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* curr
         bool useforward = true;
         for (map<int, float>::iterator iter = reverse_gather[newNode].begin(); iter != reverse_gather[newNode].end(); ++iter)
         {
-            if (forwardused.find(iter->first) != forwardused.end())
+            if (forwardused.find(iter->first) == forwardused.end())
             {
                 useforward = false;//if the reverse scatter weights include something the forward gather weights don't, use reverse scatter
                 break;
