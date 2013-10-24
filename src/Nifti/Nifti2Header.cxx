@@ -339,7 +339,7 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
     header.srow_z[2] = 1.0;
     header.srow_z[3] = 0.0;
     header.slice_code = 0;
-    header.xyzt_units = 0;//TODO
+    header.xyzt_units = SPACE_TIME_TO_XYZT(NIFTI_UNITS_MM, NIFTI_UNITS_SEC);//TODO
     header.intent_code = NIFTI_INTENT_NONE;
     memset(header.intent_name,0x00,16);
     header.dim_info = 0;
