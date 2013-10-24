@@ -89,6 +89,10 @@ namespace caret {
         
         void setVolumeMontageGap(const int32_t volumeMontageGap);
         
+        int32_t getVolumeMontageCoordinatePrecision() const;
+        
+        void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
+        
         void setAnimationStartTime(const double &time);
         
         void getAnimationStartTime(double &time);
@@ -229,6 +233,8 @@ namespace caret {
         
         int32_t volumeMontageGap;
         
+        int32_t volumeMontageCoordinatePrecision;
+        
         bool splashScreenEnabled;
         
         bool developMenuEnabled;
@@ -248,6 +254,7 @@ namespace caret {
         static const AString NAME_VOLUME_AXES_LABELS;
         static const AString NAME_VOLUME_AXES_COORDINATE;
         static const AString NAME_VOLUME_MONTAGE_GAP;
+        static const AString NAME_VOLUME_MONTAGE_COORDINATE_PRECISION;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
         static const AString NAME_DEVELOP_MENU;
@@ -271,6 +278,7 @@ namespace caret {
     const AString CaretPreferences::NAME_VOLUME_AXES_LABELS     = "volumeAxesLabels";
     const AString CaretPreferences::NAME_VOLUME_AXES_COORDINATE     = "volumeAxesCoordinates";
     const AString CaretPreferences::NAME_VOLUME_MONTAGE_GAP     = "volumeMontageGap";
+    const AString CaretPreferences::NAME_VOLUME_MONTAGE_COORDINATE_PRECISION     = "volumeMontageCoordinatePrecision";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";

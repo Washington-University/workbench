@@ -2712,7 +2712,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
         };
 
         const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
-        const int montageMargin = caretPreferences->getVolumeMontageGap();
+        const int32_t montageMargin = caretPreferences->getVolumeMontageGap();
+        const int32_t montageCoordTextPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
         
         const VolumeSliceViewModeEnum::Enum sliceViewMode = browserTabContent->getSliceViewMode();
         switch (sliceViewMode) {
@@ -2851,7 +2852,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                 if (showCoordinates) {
                                     const AString coordText = (axisLetter
                                                                + "="
-                                                               + AString::number(sliceCoord, 'f', 0)
+                                                               + AString::number(sliceCoord,
+                                                                                 'f',
+                                                                                 montageCoordTextPrecision)
                                                                + "mm");
                                     glColor3ubv(foregroundRGB);
                                     this->drawTextWindowCoords((vpSizeX - 5),

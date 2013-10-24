@@ -1186,6 +1186,30 @@ CaretPreferences::setVolumeMontageGap(const int32_t volumeMontageGap)
 }
 
 /**
+ * @return The volume montage coordinate precision
+ */
+int32_t
+CaretPreferences::getVolumeMontageCoordinatePrecision() const
+{
+    return this->volumeMontageCoordinatePrecision;
+}
+
+/**
+ * Set the volume montage coordinate precision
+ *
+ * @param volumeMontageCoordinatePrecision
+ *     New value for montage coordinate precision
+ */
+void
+CaretPreferences::setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision)
+{
+    this->volumeMontageCoordinatePrecision = volumeMontageCoordinatePrecision;
+    this->setInteger(CaretPreferences::NAME_VOLUME_MONTAGE_COORDINATE_PRECISION,
+                     this->volumeMontageCoordinatePrecision);
+    this->qSettings->sync();
+}
+
+/**
  * @return The toolbox type.
  */
 int32_t 
@@ -1344,6 +1368,9 @@ CaretPreferences::readPreferences()
     
     this->volumeMontageGap = this->getInteger(CaretPreferences::NAME_VOLUME_MONTAGE_GAP,
                                               3);
+    
+    this->volumeMontageCoordinatePrecision = this->getInteger(CaretPreferences::NAME_VOLUME_MONTAGE_COORDINATE_PRECISION,
+                                                              0);
     
     this->animationStartTime = 0.0;//this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 

@@ -185,6 +185,7 @@ PreferencesDialog::updateDialog()
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
     this->volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
+    this->volumeMontageCoordinatePrecisionSpinBox->setValue(prefs->getVolumeMontageCoordinatePrecision());
     this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
     this->developMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
     
@@ -369,10 +370,18 @@ PreferencesDialog::addVolumeItems()
                                                                                   1,
                                                                                   this,
                                                                                   SLOT(volumeMontageGapValueChanged(int)));
+
+    this->volumeMontageCoordinatePrecisionSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
+                                                                                  5,
+                                                                                  1,
+                                                                                  this,
+                                                                                  SLOT(volumeMontageCoordinatePrecisionChanged(int)));
+    
     this->allWidgets->add(this->volumeAxesCrosshairsComboBox);
     this->allWidgets->add(this->volumeAxesLabelsComboBox);
     this->allWidgets->add(this->volumeAxesMontageCoordinatesComboBox);
     this->allWidgets->add(this->volumeMontageGapSpinBox);
+    this->allWidgets->add(this->volumeMontageCoordinatePrecisionSpinBox);
     
     this->addWidgetToLayout("Volume Axes Crosshairs: ", 
                             this->volumeAxesCrosshairsComboBox->getWidget());
@@ -382,6 +391,8 @@ PreferencesDialog::addVolumeItems()
                             this->volumeAxesMontageCoordinatesComboBox->getWidget());
     this->addWidgetToLayout("Volume Montage Gap: ",
                              this->volumeMontageGapSpinBox);
+    this->addWidgetToLayout("Volume Montage Precision: ",
+                            this->volumeMontageCoordinatePrecisionSpinBox);
 }
 
 /**
@@ -431,6 +442,17 @@ PreferencesDialog::volumeMontageGapValueChanged(int value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeMontageGap(value);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when volume montage coordinate precision value is changed.
+ */
+void
+PreferencesDialog::volumeMontageCoordinatePrecisionChanged(int value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeMontageCoordinatePrecision(value);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

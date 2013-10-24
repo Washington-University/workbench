@@ -340,6 +340,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
     
     const CaretPreferences* caretPreferences = SessionManager::get()->getCaretPreferences();
     const int montageMargin = caretPreferences->getVolumeMontageGap();
+    const int montageCoordPrecision = caretPreferences->getVolumeMontageCoordinatePrecision();
     
     const int totalGapX = montageMargin * (numCols - 1);
     const int vpSizeX = (viewport[2] - totalGapX) / numCols;
@@ -451,7 +452,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
                         if (showCoordinates) {
                             const AString coordText = (axisLetter
                                                        + "="
-                                                       + AString::number(sliceCoord, 'f', 0)
+                                                       + AString::number(sliceCoord, 'f', montageCoordPrecision)
                                                        + "mm");
                             glColor3ubv(foregroundRGB);
                             m_fixedPipelineDrawing->drawTextWindowCoords((vpSizeX - 5),
