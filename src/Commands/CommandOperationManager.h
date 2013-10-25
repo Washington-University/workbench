@@ -59,6 +59,8 @@ namespace caret {
 
         void printAllCommands();
         
+        void printAllCommandsMatching(const AString& partialSwitch);
+        
         void printAllCommandsHelpInfo(const AString& programName);
         
         void printHelpInfo();

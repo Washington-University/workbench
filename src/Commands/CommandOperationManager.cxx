@@ -418,14 +418,14 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
             }
             
             if (operation == NULL) {
-                throw CommandException("Command \"" + commandSwitch + "\" not found.");
-            }
-
-            if (!parameters.hasNext() && operation->takesParameters())
-            {
-                cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
+                printAllCommandsMatching(commandSwitch);
             } else {
-                operation->execute(parameters, preventProvenance);
+                if (!parameters.hasNext() && operation->takesParameters())
+                {
+                    cout << operation->getHelpInformation(parameters.getProgramName()) << endl;
+                } else {
+                    operation->execute(parameters, preventProvenance);
+                }
             }
         }
     }
@@ -500,6 +500,53 @@ CommandOperationManager::printAllCommands()
         AString description = iter->second;
         
         cout << qPrintable(cmdSwitch) << qPrintable(description) << endl;
+    }
+}
+
+/**
+ * Print all of the commands matching a partial switch.
+ */
+void
+CommandOperationManager::printAllCommandsMatching(const AString& partialSwitch)
+{
+    map<AString, AString> cmdMap;
+    
+    int64_t longestSwitch = 0;
+    
+    const uint64_t numberOfCommands = this->commandOperations.size();
+    for (uint64_t i = 0; i < numberOfCommands; i++) {
+        CommandOperation* op = this->commandOperations[i];
+        
+        const AString cmdSwitch = op->getCommandLineSwitch();
+        if (cmdSwitch.startsWith(partialSwitch))
+        {
+            const int64_t switchLength = cmdSwitch.length();
+            if (switchLength > longestSwitch) {
+                longestSwitch = switchLength;
+            }
+            
+            cmdMap.insert(make_pair(cmdSwitch,
+                                        op->getOperationShortDescription()));
+#ifndef NDEBUG
+            const AString helpInfo = op->getHelpInformation("");//TSC: generating help info takes a little processing (populating and walking an OperationParameters tree for each command)
+            if (helpInfo.isEmpty()) {//So, test the same define as for asserts and skip this check in release
+                CaretLogSevere("Command has no help info: " + cmdSwitch);
+            }
+#endif
+        }
+    }
+
+    for (map<AString, AString>::iterator iter = cmdMap.begin();
+         iter != cmdMap.end();
+         iter++) {
+        AString cmdSwitch = iter->first;
+        if (cmdSwitch.startsWith(partialSwitch))
+        {
+            cmdSwitch = cmdSwitch.leftJustified(longestSwitch + 2, ' ');
+            AString description = iter->second;
+            
+            cout << qPrintable(cmdSwitch) << qPrintable(description) << endl;
+        }
     }
 }
 
