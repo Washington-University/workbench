@@ -511,7 +511,7 @@ CommandOperationManager::printAllCommandsMatching(const AString& partialSwitch)
 {
     map<AString, AString> cmdMap;
     
-    int64_t longestSwitch = 0;
+    int64_t longestSwitch = -1;
     
     const uint64_t numberOfCommands = this->commandOperations.size();
     for (uint64_t i = 0; i < numberOfCommands; i++) {
@@ -534,6 +534,10 @@ CommandOperationManager::printAllCommandsMatching(const AString& partialSwitch)
             }
 #endif
         }
+    }
+    if (longestSwitch == -1)//no command found
+    {
+        throw CommandException("the switch '" + partialSwitch + "' does not match any processing commands");
     }
 
     for (map<AString, AString>::iterator iter = cmdMap.begin();
@@ -575,6 +579,8 @@ void CommandOperationManager::printHelpInfo()
     cout << "                            their help info - VERY LONG" << endl;
     cout << endl << "Global options (can be added to any command):" << endl;
     cout << "   -disable-provenance   don't generate provenance info in output files" << endl;
+    cout << endl;
+    cout << "If the first argument is not recognized, all processing commands that start with the argument are displayed" << endl;
     cout << endl;
 }
 
