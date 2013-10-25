@@ -66,7 +66,8 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fgresetTimeOpt = fromGiftiExt->createOptionalParameter(3, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the gifti file");
     fgresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     fgresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
-    OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(4, "-replace-binary", "replace data with a binary file");
+    fromGiftiExt->createOptionalParameter(4, "-reset-scalars", "reset mapping along rows to scalars");
+    OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(5, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     fromGiftiReplace->createOptionalParameter(3, "-transpose", "transpose the binary file");
@@ -82,6 +83,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fnresetTimeOpt = fromNifti->createOptionalParameter(4, "-reset-timepoints", "reset the mapping along rows to timepoints, taking length from the nifti file");
     fnresetTimeOpt->addDoubleParameter(1, "timestep", "the desired time between frames");
     fnresetTimeOpt->addDoubleParameter(2, "timestart", "the desired time offset of the initial frame");
+    fromNifti->createOptionalParameter(5, "-reset-scalars", "reset mapping along rows to scalars");
     
     ret->setHelpText(
         AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
@@ -164,14 +166,19 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             {
                 myXML.setRowNumberOfTimepoints(numCols);
             }
-            if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
-            {
-                myXML.setColumnNumberOfTimepoints(numRows);
-            }
+        }
+        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        {
+            myXML.setColumnNumberOfTimepoints(numRows);
+        }
+        if (fromGiftiExt->getOptionalParameter(4)->m_present)
+        {
+            if (fgresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
+            myXML.resetRowsToScalars(numCols);
         }
         if (myXML.getNumberOfColumns() != numCols || myXML.getNumberOfRows() != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
         myOutFile->setCiftiXML(myXML);
-        OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(4);
+        OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(5);
         if (fromGiftiReplace->m_present)
         {
             AString replaceFileName = fromGiftiReplace->getString(1);
@@ -291,6 +298,11 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         if (fnresetTimeOpt->m_present)
         {
             outXML.resetRowsToTimepoints(fnresetTimeOpt->getDouble(1), myDims[3], fnresetTimeOpt->getDouble(2));
+        }
+        if (fromNifti->getOptionalParameter(5)->m_present)
+        {
+            if (fnresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
+            outXML.resetRowsToScalars(myDims[3]);
         }
         int64_t numRows = outXML.getNumberOfRows(), numCols = outXML.getNumberOfColumns();
         if (myDims[3] != numCols) throw OperationException("input nifti has the wrong size for row length");
