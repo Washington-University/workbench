@@ -407,9 +407,9 @@ Plane::projectPointToPlane(const float pointIn[3],
     
     float t = MathFunctions::dotProduct(m_normalVector, xo);
     
-    pointProjectedOut[0] = m_pointOnPlane[0] - t * m_normalVector[0];
-    pointProjectedOut[1] = m_pointOnPlane[1] - t * m_normalVector[1];
-    pointProjectedOut[2] = m_pointOnPlane[2] - t * m_normalVector[2];
+    pointProjectedOut[0] = pointIn[0] - (t * m_normalVector[0]);
+    pointProjectedOut[1] = pointIn[1] - (t * m_normalVector[1]);
+    pointProjectedOut[2] = pointIn[2] - (t * m_normalVector[2]);
 }
 
 /**
