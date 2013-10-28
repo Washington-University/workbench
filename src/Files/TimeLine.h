@@ -27,7 +27,6 @@
 #include "stdint.h"
 #include "AString.h"
 #include "vector"
-#include "TimeLine.h"
 #include "ColorManager.h"
 #include "StructureEnum.h"
 #include "QVector"
