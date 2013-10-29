@@ -413,6 +413,50 @@ Plane::projectPointToPlane(const float pointIn[3],
 }
 
 /**
+ * Determine if and where a ray intersects the plane.
+ *
+ * @param rayOrigin
+ *     Origin of the ray
+ * @param rayVector
+ *     Vector defining the ray.
+ * @param intersectionXYZandDistance
+ *     Coordinate of where the ray intersects the plane (XYZ) and the
+ *     distance of the ray origin from the plane.
+ * @return
+ *     True if the ray intersects the plane, else false.
+ */
+bool
+Plane::rayIntersection(const float rayOrigin[3],
+                       const float rayVector[3],
+                       float intersectionXYZandDistance[4])
+{
+    /* Convert the ray into a unit vector
+     *
+     */
+    double ray[3] = { rayVector[0], rayVector[1], rayVector[2] };
+    MathFunctions::normalizeVector(ray);
+    
+    /*
+     * Parametric coordinate of where ray intersects plane
+     */
+    double denom = m_A * ray[0] + m_B * ray[1] + m_C * ray[2];
+    if (denom != 0) {
+        const double t = -(m_A * rayOrigin[0] + m_B * rayOrigin[1] + m_C * rayOrigin[2] + m_D) / denom;
+        
+        intersectionXYZandDistance[0] = (float)(rayOrigin[0] + ray[0] * t);
+        intersectionXYZandDistance[1] = (float)(rayOrigin[1] + ray[1] * t);
+        intersectionXYZandDistance[2] = (float)(rayOrigin[2] + ray[2] * t);
+        
+        intersectionXYZandDistance[3] = (float)t;
+        
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
  * @return String describing the plane.
  *
  */

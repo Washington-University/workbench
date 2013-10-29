@@ -80,6 +80,10 @@ namespace caret {
         
         void getNormalVector(float normalVectorOut[3]) const;
         
+        bool rayIntersection(const float rayOrigin[3],
+                             const float rayVector[3],
+                             float intersectionXYZandDistance[4]);
+        
         virtual AString toString() const;
         
         static void unitTest(std::ostream& stream,
