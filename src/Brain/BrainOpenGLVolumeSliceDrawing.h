@@ -271,10 +271,21 @@ namespace caret {
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const DRAW_MODE drawMode);
         
-        void drawAxesCrosshairs(const Matrix4x4& transformationMatrix,
+        void drawAxesCrosshairs(const Plane& slicePlane,
+                                const Matrix4x4& transformationMatrix,
                                 const VolumeMappableInterface* volume,
                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                 const DRAW_MODE drawMode);
+        
+        void drawAxesCrosshairsOblique(const Plane& slicePlane,
+                                       const Matrix4x4& transformationMatrix,
+                                const VolumeMappableInterface* volume,
+                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                const DRAW_MODE drawMode);
+        
+        void drawAxesCrosshairsOrthogonal(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                          const bool drawCrosshairsFlag,
+                                          const bool drawCrosshairLabelsFlag);
         
         void getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                           float rgbaOut[4]) const;

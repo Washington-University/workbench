@@ -510,6 +510,14 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
             }
         }
     }
+    
+    /*
+     * Draw the axes labels for the montage view
+     */
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    drawAxesCrosshairsOrthogonal(slicePlane,
+                                 false,
+                                 true);
 }
 
 /**
@@ -2529,7 +2537,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
                 glGetBooleanv(GL_DEPTH_TEST,
                               &depthBufferEnabled);
                 glPushMatrix();
-                drawAxesCrosshairs(transformationMatrix,
+                drawAxesCrosshairs(slicePlane,
+                                   transformationMatrix,
                                    volume,
                                    sliceViewPlane,
                                    drawMode);
@@ -4166,6 +4175,8 @@ BrainOpenGLVolumeSliceDrawing::drawDebugSquare()
 /**
  * Draw the axes crosshairs.
  *
+ * @param slicePlane
+ *    The equation of the slice plane.
  * @param transformationMatrix
  *    The transformation matrix used for oblique viewing.
  * @param volume
@@ -4176,11 +4187,33 @@ BrainOpenGLVolumeSliceDrawing::drawDebugSquare()
  *    The slice drawing mode.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformationMatrix,
+BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
+                                                  const Matrix4x4& transformationMatrix,
                                                       const VolumeMappableInterface* volume,
                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                       const DRAW_MODE drawMode)
 {
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
+    const bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+    
+    switch (m_sliceViewMode) {
+        case VolumeSliceViewModeEnum::OBLIQUE:
+            break;
+        case VolumeSliceViewModeEnum::MONTAGE:
+            drawAxesCrosshairsOrthogonal(sliceViewPlane,
+                                         drawCrosshairsFlag,
+                                         false);
+            return;
+            break;
+        case VolumeSliceViewModeEnum::ORTHOGONAL:
+            drawAxesCrosshairsOrthogonal(sliceViewPlane,
+                                         drawCrosshairsFlag,
+                                         drawCrosshairLabelsFlag);
+            return;
+            break;
+    }
+
     bool isThreeSliceView = false;
     bool applyViewingMatrix = false;
     bool applyTransformationMatrixToAxes = false;
@@ -4224,8 +4257,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
         case VolumeSliceViewModeEnum::ORTHOGONAL:
             break;
     }
-    
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
     CaretAssert(volume);
     
@@ -4543,6 +4574,332 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Matrix4x4& transformatio
                                                     paraPlaneStartLabel);
     }
 }
+
+
+/**
+ * Draw the axes crosshairs for an oblique slice.
+ *
+ * @param slicePlane
+ *    The equation of the slice plane.
+ * @param transformationMatrix
+ *    The transformation matrix used for oblique viewing.
+ * @param volume
+ *    The underlay volume.
+ * @param sliceViewPlane
+ *    The slice view plane.
+ * @param drawMode
+ *    The slice drawing mode.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOblique(const Plane& slicePlane,
+                               const Matrix4x4& transformationMatrix,
+                               const VolumeMappableInterface* volume,
+                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                               const DRAW_MODE drawMode)
+{
+    
+}
+
+/**
+ * Draw the axes crosshairs for an orthogonal slice.
+ *
+ * @param sliceViewPlane
+ *    The slice plane view.
+ * @param drawCrosshairsFlag
+ *    If true, draw the crosshairs.
+ * @param drawCrosshairLabelsFlag
+ *    If true, draw the crosshair labels.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthogonal(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                            const bool drawCrosshairsFlag,
+                                                            const bool drawCrosshairLabelsFlag)
+{
+    GLboolean depthEnabled = GL_FALSE;
+    glGetBooleanv(GL_DEPTH_TEST,
+                  &depthEnabled);
+    glDisable(GL_DEPTH_TEST);
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    
+    const VolumeMappableInterface* volume = m_volumeDrawInfo[0].volumeFile;
+    CaretAssert(volume);
+    
+    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+    
+    const float centerXYZ[3] = {
+        m_browserTabContent->getSliceCoordinateParasagittal(),
+        m_browserTabContent->getSliceCoordinateCoronal(),
+        m_browserTabContent->getSliceCoordinateAxial()
+    };
+    
+    const float bigValue = 10000.0;
+    
+    float horizontalAxisStartXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    float horizontalAxisEndXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    
+    float verticalAxisStartXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    float verticalAxisEndXYZ[3] = {
+        centerXYZ[0],
+        centerXYZ[1],
+        centerXYZ[2]
+    };
+    
+    float axialRGBA[4];
+    getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
+                 axialRGBA);
+    
+    float coronalRGBA[4];
+    getAxesColor(VolumeSliceViewPlaneEnum::CORONAL,
+                 coronalRGBA);
+    
+    float paraRGBA[4];
+    getAxesColor(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                 paraRGBA);
+    
+    AString horizontalLeftText  = "";
+    AString horizontalRightText = "";
+    AString verticalBottomText  = "";
+    AString verticalTopText     = "";
+    
+    float* horizontalAxisRGBA   = axialRGBA;
+    float* verticalAxisRGBA     = axialRGBA;
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            horizontalLeftText   = "L";
+            horizontalRightText  = "R";
+            horizontalAxisRGBA = coronalRGBA;
+            horizontalAxisStartXYZ[0] -= bigValue;
+            horizontalAxisEndXYZ[0]   += bigValue;
+            
+            verticalBottomText = "P";
+            verticalTopText    = "A";
+            verticalAxisRGBA = paraRGBA;
+            verticalAxisStartXYZ[1] -= bigValue;
+            verticalAxisEndXYZ[1]   += bigValue;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            horizontalLeftText   = "L";
+            horizontalRightText  = "R";
+            horizontalAxisRGBA = axialRGBA;
+            horizontalAxisStartXYZ[0] -= bigValue;
+            horizontalAxisEndXYZ[0]   += bigValue;
+            
+            verticalBottomText = "D";
+            verticalTopText    = "V";
+            verticalAxisRGBA = paraRGBA;
+            verticalAxisStartXYZ[2] -= bigValue;
+            verticalAxisEndXYZ[2]   += bigValue;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            horizontalLeftText   = "A";
+            horizontalRightText  = "P";
+            horizontalAxisRGBA = axialRGBA;
+            horizontalAxisStartXYZ[1] -= bigValue;
+            horizontalAxisEndXYZ[1]   += bigValue;
+            
+            verticalBottomText = "D";
+            verticalTopText    = "V";
+            verticalAxisRGBA = coronalRGBA;
+            verticalAxisStartXYZ[2] -= bigValue;
+            verticalAxisEndXYZ[2]   += bigValue;
+            break;
+    }
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    const int textOffset = 15;
+    const int textLeftWindowXY[2] = {
+        viewport[0] + textOffset,
+        viewport[1] + (viewport[3] / 2)
+    };
+    const int textRightWindowXY[2] = {
+        viewport[0] + viewport[2] - textOffset,
+        viewport[1] + (viewport[3] / 2)
+    };
+    const int textBottomWindowXY[2] = {
+        viewport[0] + viewport[2] / 2,
+        viewport[1] + textOffset
+    };
+    const int textTopWindowXY[2] = {
+        viewport[0] + (viewport[2] / 2),
+        viewport[1] + viewport[3] - textOffset
+    };
+    
+    /*
+     * Crosshairs
+     */
+    if (drawCrosshairsFlag) {
+        m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
+                                             horizontalAxisStartXYZ,
+                                             horizontalAxisEndXYZ,
+                                             axesCrosshairRadius);
+        
+        m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
+                                             verticalAxisStartXYZ,
+                                             verticalAxisEndXYZ,
+                                             axesCrosshairRadius);
+    }
+    
+    if (drawCrosshairLabelsFlag) {
+        const int fontHeight = 18;
+        
+        const int textCenter[2] = {
+            textLeftWindowXY[0],
+            textLeftWindowXY[1]
+        };
+        const int halfFontSize = fontHeight / 2;
+        
+        uint8_t backgroundRGBA[4];
+        prefs->getColorBackground(backgroundRGBA);
+        backgroundRGBA[3] = 255;
+        
+        GLint savedViewport[4];
+        glGetIntegerv(GL_VIEWPORT, savedViewport);
+        
+        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
+        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
+        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
+        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
+        MathFunctions::limitRange(vpLeftX,
+                                  savedViewport[0],
+                                  savedViewport[0] + savedViewport[2]);
+        MathFunctions::limitRange(vpRightX,
+                                  savedViewport[0],
+                                  savedViewport[0] + savedViewport[2]);
+        MathFunctions::limitRange(vpBottomY,
+                                  savedViewport[1],
+                                  savedViewport[1] + savedViewport[3]);
+        MathFunctions::limitRange(vpTopY,
+                                  savedViewport[1],
+                                  savedViewport[1] + savedViewport[3]);
+        
+        const int vpSizeX = vpRightX - vpLeftX;
+        const int vpSizeY = vpTopY - vpBottomY;
+        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
+        
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        std::vector<uint8_t> rgba;
+        std::vector<float> coords, normals;
+        
+        coords.push_back(-1.0);
+        coords.push_back(-1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        coords.push_back( 1.0);
+        coords.push_back(-1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        coords.push_back( 1.0);
+        coords.push_back( 1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        coords.push_back(-1.0);
+        coords.push_back( 1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        
+        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
+                                               normals,
+                                               rgba);
+        
+        glPopMatrix();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        
+        glViewport(savedViewport[0],
+                   savedViewport[1],
+                   savedViewport[2],
+                   savedViewport[3]);
+        
+        glColor4fv(horizontalAxisRGBA);
+        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textLeftWindowXY[0],
+                                                                   textLeftWindowXY[1],
+                                                                   horizontalLeftText,
+                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   fontHeight);
+        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textRightWindowXY[0],
+                                                                   textRightWindowXY[1],
+                                                                   horizontalRightText,
+                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   fontHeight);
+        
+        glColor4fv(verticalAxisRGBA);
+        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textBottomWindowXY[0],
+                                                                   textBottomWindowXY[1],
+                                                                   verticalBottomText,
+                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   fontHeight);
+        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textTopWindowXY[0],
+                                                                   textTopWindowXY[1],
+                                                                   verticalTopText,
+                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   fontHeight);
+    }
+    
+    if (depthEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
+}
+
 
 /**
  * Get the location of the axes labels for the given slice plane.
