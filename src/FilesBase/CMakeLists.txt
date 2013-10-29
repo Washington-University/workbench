@@ -45,6 +45,7 @@ GiftiXmlElements.cxx
 NiftiEnums.cxx
 NiftiException.cxx
 VolumeBase.cxx
+VolumeMappableInterface.cxx
 VolumeSliceViewPlaneEnum.cxx
 VolumeSpace.cxx
 )

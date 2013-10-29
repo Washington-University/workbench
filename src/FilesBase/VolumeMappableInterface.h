@@ -249,6 +249,20 @@ namespace caret {
         virtual void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const = 0;
         
         /**
+         * Get the voxel spacing for each of the spatial dimensions.
+         *
+         * @param spacingOut1
+         *    Spacing for the first dimension (typically X).
+         * @param spacingOut2
+         *    Spacing for the first dimension (typically Y).
+         * @param spacingOut3
+         *    Spacing for the first dimension (typically Z).
+         */
+        void getVoxelSpacing(float& spacingOut1,
+                             float& spacingOut2,
+                             float& spacingOut3) const;
+        
+        /**
          * Get the voxel colors for a slice in the map.
          *
          * @param paletteFile
