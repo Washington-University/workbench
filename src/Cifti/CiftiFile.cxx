@@ -110,7 +110,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
             {
                 throw CiftiFileException("unable to open cifti file");//so permissions problems result in an exception, not an abort later
             }
-            inputFile.seek(NIFTI2_HEADER_SIZE);
+            inputFile.seek(sizeof(nifti_2_header));
             char extensions[4];
             inputFile.read(extensions,4);
             unsigned int length;

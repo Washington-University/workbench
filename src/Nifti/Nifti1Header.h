@@ -34,8 +34,6 @@
 
 #include "nifti1.h"
 
-#define NIFTI1_HEADER_SIZE 348
-
 namespace caret {
 
 /// Simple Container class for storing Nifti1Header data

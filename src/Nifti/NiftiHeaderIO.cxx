@@ -124,9 +124,9 @@ void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
     nifti_1_header n1header;
     nifti_2_header n2header;
     
-    bytes_read = file.read((char *)bytes, NIFTI1_HEADER_SIZE);
-    memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
-    if(bytes_read < NIFTI1_HEADER_SIZE)
+    bytes_read = file.read((char *)bytes, sizeof(nifti_1_header));
+    memcpy((char *)&n1header, bytes, sizeof(nifti_1_header));
+    if(bytes_read < (int)sizeof(nifti_1_header))
     {
         throw NiftiException("Error reading Nifti header, file is too short.");
     }
@@ -138,8 +138,8 @@ void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
     {
         niftiVersion=2;
         //read the rest of the bytes
-        file.read((char *)&bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
-        memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
+        file.read((char *)&bytes[sizeof(nifti_1_header)], sizeof(nifti_2_header) - sizeof(nifti_1_header));
+        memcpy((char *)&n2header, bytes, sizeof(nifti_2_header));
     }
     else throw NiftiException("Unrecognized Nifti Version.");
 
@@ -205,9 +205,9 @@ void NiftiHeaderIO::readFile(gzFile file) throw (NiftiException)
     nifti_1_header n1header;
     nifti_2_header n2header;
 
-    bytes_read = gzread(file,(char *)bytes, NIFTI1_HEADER_SIZE);
-    memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
-    if(bytes_read < NIFTI1_HEADER_SIZE)
+    bytes_read = gzread(file,(char *)bytes, sizeof(nifti_1_header));
+    memcpy((char *)&n1header, bytes, sizeof(nifti_1_header));
+    if(bytes_read < (int)sizeof(nifti_1_header))
     {
         throw NiftiException("Error reading Nifti header, file is too short.");
     }
@@ -220,8 +220,8 @@ void NiftiHeaderIO::readFile(gzFile file) throw (NiftiException)
     {
         niftiVersion=2;
         //read the rest of the bytes
-        gzread(file,(char *)(bytes + NIFTI1_HEADER_SIZE),NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
-        memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
+        gzread(file,(char *)(bytes + sizeof(nifti_1_header)), sizeof(nifti_2_header) - sizeof(nifti_1_header));
+        memcpy((char *)&n2header, bytes, sizeof(nifti_2_header));
         fixDimensions(n2header);
     }
     else throw NiftiException("Unrecognized Nifti Version.");

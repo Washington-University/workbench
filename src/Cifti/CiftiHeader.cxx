@@ -24,6 +24,8 @@
 
 #include "CiftiHeader.h"
 
+#include "CaretAssert.h"
+
 using namespace caret;
 
 CiftiHeader::CiftiHeader()
@@ -44,7 +46,8 @@ void CiftiHeader::initHeaderStruct()
  */
 void CiftiHeader::initHeaderStruct(nifti_2_header &header)
 {
-    header.sizeof_hdr = NIFTI2_HEADER_SIZE;
+    CaretAssert(sizeof(nifti_2_header) == 540);
+    header.sizeof_hdr = sizeof(nifti_2_header);
     memcpy(header.magic, "n+2\0\r\n\032\n",8);
     header.datatype = NIFTI_TYPE_FLOAT32;
     header.bitpix = 32;//TODO

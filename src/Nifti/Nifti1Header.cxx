@@ -21,6 +21,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Nifti1Header.h"
@@ -42,7 +43,7 @@ using namespace caret;
  */
 Nifti1Header::Nifti1Header(const nifti_1_header &header) throw (NiftiException)
 {
-    if(header.sizeof_hdr != NIFTI1_HEADER_SIZE) throw NiftiException( "Invalid Nifti Header.");
+    if(header.sizeof_hdr != sizeof(nifti_1_header)) throw NiftiException( "Invalid Nifti Header.");
     memcpy((void *)&m_header,&header,sizeof(m_header));
 }
 
@@ -172,7 +173,8 @@ void Nifti1Header::initHeaderStruct()
 void Nifti1Header::initHeaderStruct(nifti_1_header &header)
 {
     memset(&header, 0x00, sizeof(nifti_1_header));
-    header.sizeof_hdr = NIFTI1_HEADER_SIZE;
+    CaretAssert(sizeof(nifti_1_header) == 348);
+    header.sizeof_hdr = sizeof(nifti_1_header);
     memcpy(header.magic, "n+1\0",4);
     header.datatype = 0;
     header.bitpix = 0;//TODO

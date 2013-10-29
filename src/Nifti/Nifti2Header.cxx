@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <cmath>
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Nifti2Header.h"
@@ -59,7 +60,8 @@ Nifti2Header::Nifti2Header(const Nifti1Header &n1header) throw (NiftiException)
 {
     nifti_1_header header;
     n1header.getHeaderStruct(header);
-    m_header.sizeof_hdr = NIFTI2_HEADER_SIZE;
+    CaretAssert(sizeof(nifti_2_header) == 540);
+    m_header.sizeof_hdr = sizeof(nifti_2_header);
     //m_header magic?
     m_header.datatype = header.datatype;
     m_header.bitpix = header.bitpix;
@@ -112,7 +114,8 @@ void Nifti2Header::operator=(const Nifti1Header &n1header) throw (NiftiException
 {
     nifti_1_header header;
     n1header.getHeaderStruct(header);
-    m_header.sizeof_hdr = NIFTI2_HEADER_SIZE;
+    CaretAssert(sizeof(nifti_2_header) == 540);
+    m_header.sizeof_hdr = sizeof(nifti_2_header);
     //m_header magic?
     m_header.datatype = header.datatype;
     m_header.bitpix = header.bitpix;
@@ -163,7 +166,7 @@ void Nifti2Header::operator=(const Nifti1Header &n1header) throw (NiftiException
 
 void Nifti2Header::operator=(const Nifti2Header &n2header) throw (NiftiException)
 {
-    memcpy(&(this->m_header),&n2header,NIFTI2_HEADER_SIZE);    
+    memcpy(&(this->m_header),&n2header,sizeof(nifti_2_header));    
     n2header.getNeedsSwapping(needsSwapping);
 }
 
@@ -291,7 +294,8 @@ void Nifti2Header::initHeaderStruct()
 void Nifti2Header::initHeaderStruct(nifti_2_header &header)
 {
     memset(&header, 0x00, sizeof(nifti_2_header));
-    header.sizeof_hdr = NIFTI2_HEADER_SIZE;
+    CaretAssert(sizeof(nifti_2_header) == 540);
+    header.sizeof_hdr = sizeof(nifti_2_header);
     memcpy(header.magic, "n+2\0\r\n\032\n",8);
     header.datatype = 0;
     header.bitpix = 0;//TODO

@@ -19,26 +19,18 @@ const int32_t NIFTI_INTENT_CONNECTIVITY_DENSE_TIME=3002;
 const int32_t NIFTI_INTENT_CONNECTIVITY_PARCELLATED=3003;
 const int32_t NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME=3004;
 const int32_t NIFTI_INTENT_CONNECTIVITY_TRAJECTORY=3005;
-//const int32_t NIFTI_INTENT_COMPRESSED_SPARSE_CRS=3006
-//const int32_t NIFTI_INTENT_COMPRESSED_GZIP_ROWS=300
+
 const int32_t NIFTI_ECODE_CIFTI=32;
-const int32_t NIFTI2_HEADER_SIZE=540;
 
 #define NIFTI2_VERSION(h) \
-    (h).sizeof_hdr == 348 ? 1 : \
-    (h).sizeof_hdr == 1543569408? 1 : \
-    (h).sizeof_hdr == 540 ? 2 : \
-    (h).sizeof_hdr == 469893120 ? 2 : 0
+    (h).sizeof_hdr == 348 ? 1 : (\
+    (h).sizeof_hdr == 1543569408? 1 : (\
+    (h).sizeof_hdr == 540 ? 2 : (\
+    (h).sizeof_hdr == 469893120 ? 2 : 0)))
 
 #define NIFTI2_NEEDS_SWAP(h) \
-    (h).sizeof_hdr == 469893120 ? 1 : \
-    (h).sizeof_hdr == 1543569408 ? 1 : 0
-
-/*#define NIFTI_VERSION(h)                               \
- ( ( (h).magic[0]=='n' && (h).magic[3]=='\0'    &&     \
-     ( (h).magic[1]=='i' || (h).magic[1]=='+' ) &&     \
-     ( (h).magic[2]>='1' && (h).magic[2]<='9' )   )    \
-? (h).magic[2]-'0' : 0 )*/
+    (h).sizeof_hdr == 469893120 ? 1 : (\
+    (h).sizeof_hdr == 1543569408 ? 1 : 0)
 
 //hopefully cross-platform solution to byte padding added by some compilers
 #pragma pack(push)
