@@ -384,6 +384,9 @@ void Nifti2Header::getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const
 void Nifti2Header::setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn)
 {
     m_header.datatype = NiftiDataTypeEnum::toIntegerCode(enumIn);
+    int32_t myByteSize;
+    getValueByteSize(myByteSize);
+    m_header.bitpix = 8 * myByteSize;
 }
 
 void Nifti2Header::getComponentDimensions(int32_t &componentDimensionsOut) const
