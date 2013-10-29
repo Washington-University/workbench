@@ -284,7 +284,6 @@ namespace caret {
                                 const DRAW_MODE drawMode);
         
         void drawAxesCrosshairsOrthogonal(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                          const VolumeMappableInterface* volume,
                                           const bool drawCrosshairsFlag,
                                           const bool drawCrosshairLabelsFlag);
         
