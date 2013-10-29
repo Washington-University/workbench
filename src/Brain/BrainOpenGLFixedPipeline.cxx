@@ -41,6 +41,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
 #include "BrainOpenGLShapeCube.h"
@@ -7582,6 +7583,144 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
                                                    alignmentY,
                                                    BrainOpenGLTextRenderInterface::NORMAL,
                                                    fontHeight);
+    }
+}
+
+/**
+ * Draw text at the given window coordinates and occlude anything under
+ * the text by drawing the text region with a background.
+ * @param windowX
+ *    Window X-coordinate.
+ * @param windowY
+ *    Window Y-coordinate.
+ * @param text
+ *    Text that is to be drawn.
+ * @param alignment
+ *    Alignment of text.
+ * @param fontHeight
+ *    Height of font.  If negative, default is used.
+ */
+void
+BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
+                                               const int windowY,
+                                               const QString& text,
+                                               const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
+                                               const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
+                                               const int fontHeight)
+{
+    if (this->textRenderer != NULL) {
+        const int textCenter[2] = {
+            windowX,
+            windowY
+        };
+        const int halfFontSize = fontHeight / 2;
+        
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        uint8_t backgroundRGBA[4];
+        prefs->getColorBackground(backgroundRGBA);
+        backgroundRGBA[3] = 255;
+        
+        GLint savedViewport[4];
+        glGetIntegerv(GL_VIEWPORT, savedViewport);
+        
+        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
+        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
+        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
+        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
+        MathFunctions::limitRange(vpLeftX,
+                                  savedViewport[0],
+                                  savedViewport[0] + savedViewport[2]);
+        MathFunctions::limitRange(vpRightX,
+                                  savedViewport[0],
+                                  savedViewport[0] + savedViewport[2]);
+        MathFunctions::limitRange(vpBottomY,
+                                  savedViewport[1],
+                                  savedViewport[1] + savedViewport[3]);
+        MathFunctions::limitRange(vpTopY,
+                                  savedViewport[1],
+                                  savedViewport[1] + savedViewport[3]);
+        
+        const int vpSizeX = vpRightX - vpLeftX;
+        const int vpSizeY = vpTopY - vpBottomY;
+        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
+        
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        
+        std::vector<uint8_t> rgba;
+        std::vector<float> coords, normals;
+        
+        coords.push_back(-1.0);
+        coords.push_back(-1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        coords.push_back( 1.0);
+        coords.push_back(-1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        coords.push_back( 1.0);
+        coords.push_back( 1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        coords.push_back(-1.0);
+        coords.push_back( 1.0);
+        coords.push_back( 0.0);
+        normals.push_back(0.0);
+        normals.push_back(0.0);
+        normals.push_back(1.0);
+        rgba.push_back(backgroundRGBA[0]);
+        rgba.push_back(backgroundRGBA[1]);
+        rgba.push_back(backgroundRGBA[2]);
+        rgba.push_back(backgroundRGBA[3]);
+        
+        
+        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
+                                               normals,
+                                               rgba);
+        
+        glPopMatrix();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
+        
+        glViewport(savedViewport[0],
+                   savedViewport[1],
+                   savedViewport[2],
+                   savedViewport[3]);
+        drawTextWindowCoords(windowX,
+                             windowY,
+                             text,
+                             alignmentX,
+                             alignmentY,
+                             fontHeight);
     }
 }
 
