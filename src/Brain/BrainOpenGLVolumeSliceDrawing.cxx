@@ -4239,7 +4239,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
 //                                             drawCrosshairsFlag,
 //                                             drawCrosshairLabelsFlag);
             drawAxesCrosshairsOrthoAndOblique(sliceViewPlane,
-                                              m_sliceViewMode,
+                                              VolumeSliceViewModeEnum::OBLIQUE,
                                               volume,
                                               drawCrosshairsFlag,
                                               drawCrosshairLabelsFlag);
@@ -4248,16 +4248,26 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
         }
             break;
         case VolumeSliceViewModeEnum::MONTAGE:
-            drawAxesCrosshairsOrthogonal(sliceViewPlane,
-                                         volume,
-                                         drawCrosshairsFlag,
-                                         false);
+            drawAxesCrosshairsOrthoAndOblique(sliceViewPlane,
+                                              VolumeSliceViewModeEnum::ORTHOGONAL, // drawing an orthogonal slice
+                                              volume,
+                                              drawCrosshairsFlag,
+                                              drawCrosshairLabelsFlag);
+//            drawAxesCrosshairsOrthogonal(sliceViewPlane,
+//                                         volume,
+//                                         drawCrosshairsFlag,
+//                                         false);
             break;
         case VolumeSliceViewModeEnum::ORTHOGONAL:
-            drawAxesCrosshairsOrthogonal(sliceViewPlane,
-                                         volume,
-                                         drawCrosshairsFlag,
-                                         drawCrosshairLabelsFlag);
+            drawAxesCrosshairsOrthoAndOblique(sliceViewPlane,
+                                              VolumeSliceViewModeEnum::ORTHOGONAL,
+                                              volume,
+                                              drawCrosshairsFlag,
+                                              drawCrosshairLabelsFlag);
+//            drawAxesCrosshairsOrthogonal(sliceViewPlane,
+//                                         volume,
+//                                         drawCrosshairsFlag,
+//                                         drawCrosshairLabelsFlag);
             break;
     }
 
@@ -5481,8 +5491,14 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
             horizontalLeftText   = "A";
             horizontalRightText  = "P";
             horizontalAxisRGBA = axialRGBA;
-            horizontalAxisStartXYZ[0] -= bigValue;
-            horizontalAxisEndXYZ[0]   += bigValue;
+            if (obliqueModeFlag) {
+                horizontalAxisStartXYZ[0] -= bigValue;
+                horizontalAxisEndXYZ[0]   += bigValue;
+            }
+            else {
+                horizontalAxisStartXYZ[1] -= bigValue;
+                horizontalAxisEndXYZ[1]   += bigValue;
+            }
             
             verticalBottomText = "D";
             verticalTopText    = "V";
