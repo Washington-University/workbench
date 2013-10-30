@@ -44,9 +44,9 @@ AString AlgorithmSignedDistanceToSurface::getShortDescription()
 OperationParameters* AlgorithmSignedDistanceToSurface::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addSurfaceParameter(1, "surface-from", "the surface to measure the signed distance on");
+    ret->addSurfaceParameter(1, "surface-comp", "the comparison surface to measure the signed distance on");
     
-    ret->addSurfaceParameter(2, "surface-to", "the surface that defines the signed distance function");
+    ret->addSurfaceParameter(2, "surface-ref", "the reference surface that defines the signed distance function");
     
     ret->addMetricOutputParameter(3, "metric", "the output metric");
     
@@ -54,9 +54,9 @@ OperationParameters* AlgorithmSignedDistanceToSurface::getParameters()
     windingMethodOpt->addStringParameter(1, "method", "name of the method (default EVEN_ODD)");
     
     ret->setHelpText(
-        AString("Compute the signed distance function of a surface at every vertex on another surface.  ") +
-        "NOTE: this relation is NOT symmetric, the line from a vertex to the closest point on the 'to' surface " +
-        "(the one that defines the signed distance function) will only align with the normal of the 'to' surface.  Valid specifiers for winding methods are as follows:\n\n" + 
+        AString("Compute the signed distance function of the reference surface at every vertex on the comparison surface.  ") +
+        "NOTE: this relation is NOT symmetric, the line from a vertex to the closest point on the 'ref' surface " +
+        "(the one that defines the signed distance function) will only align with the normal of the 'ref' surface.  Valid specifiers for winding methods are as follows:\n\n" + 
         "EVEN_ODD (default)\nNEGATIVE\nNONZERO\nNORMALS\n\nThe NORMALS method uses the normals of triangles and edges, or the closest triangle hit by a ray from the point.  " +
         "This method may be slightly faster, but is only reliable for a closed surface that does not cross through itself.  All other methods count entry (positive) and " +
         "exit (negative) crossings of a vertical ray from the point, then counts as inside if the total is odd, negative, or nonzero, respectively."

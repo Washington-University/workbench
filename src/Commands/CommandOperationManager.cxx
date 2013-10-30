@@ -88,6 +88,7 @@
 #include "AlgorithmSurfaceResample.h"
 #include "AlgorithmSurfaceSmoothing.h"
 #include "AlgorithmSurfaceSphereProjectUnproject.h"
+#include "AlgorithmSurfaceToSurface3dDistance.h"
 #include "AlgorithmSurfaceWedgeVolume.h"
 #include "AlgorithmVolumeAffineResample.h"
 #include "AlgorithmVolumeAllLabelsToROIs.h"
@@ -273,6 +274,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceSphereProjectUnproject()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceToSurface3dDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmSurfaceWedgeVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAllLabelsToROIs()));

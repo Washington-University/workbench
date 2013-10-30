@@ -80,6 +80,7 @@ AlgorithmSurfaceModifySphere.h
 AlgorithmSurfaceResample.h
 AlgorithmSurfaceSmoothing.h
 AlgorithmSurfaceSphereProjectUnproject.h
+AlgorithmSurfaceToSurface3dDistance.h
 AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
 AlgorithmVolumeAllLabelsToROIs.h
@@ -164,6 +165,7 @@ AlgorithmSurfaceModifySphere.cxx
 AlgorithmSurfaceResample.cxx
 AlgorithmSurfaceSmoothing.cxx
 AlgorithmSurfaceSphereProjectUnproject.cxx
+AlgorithmSurfaceToSurface3dDistance.cxx
 AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
 AlgorithmVolumeAllLabelsToROIs.cxx
