@@ -288,6 +288,12 @@ namespace caret {
                                           const bool drawCrosshairsFlag,
                                           const bool drawCrosshairLabelsFlag);
         
+        void drawAxesCrosshairsOrthoAndOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                          const VolumeSliceViewModeEnum::Enum sliceViewMode,
+                                          const VolumeMappableInterface* volume,
+                                          const bool drawCrosshairsFlag,
+                                          const bool drawCrosshairLabelsFlag);
+        
         void getAxesColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                           float rgbaOut[4]) const;
         
