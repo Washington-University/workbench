@@ -546,6 +546,33 @@ BrainOpenGLVolumeSliceDrawing::drawSlicesForAllStructuresView(const int viewport
     m_orthographicBounds[4] = m_fixedPipelineDrawing->orthographicNear;
     m_orthographicBounds[5] = m_fixedPipelineDrawing->orthographicFar;
     
+    /*
+     * Enlarge the region
+     */
+    {
+        const float left   = m_fixedPipelineDrawing->orthographicLeft;
+        const float right  = m_fixedPipelineDrawing->orthographicRight;
+        const float bottom = m_fixedPipelineDrawing->orthographicBottom;
+        const float top    = m_fixedPipelineDrawing->orthographicTop;
+        
+        const float scale = 2.0;
+        
+        const float centerX  = (left + right) / 2.0;
+        const float dx       = (right - left) / 2.0;
+        const float newLeft  = centerX - (dx * scale);
+        const float newRight = centerX + (dx * scale);
+        
+        const float centerY    = (bottom + top) / 2.0;
+        const float dy         = (top - bottom) / 2.0;
+        const float newBottom  = centerY - (dy * scale);
+        const float newTop     = centerY + (dy * scale);
+        
+        m_orthographicBounds[0] = newLeft;
+        m_orthographicBounds[1] = newRight;
+        m_orthographicBounds[2] = newBottom;
+        m_orthographicBounds[3] = newTop;
+    }
+    
     if (m_browserTabContent->isSliceAxialEnabled()) {
         glPushMatrix();
         drawSliceForSliceView(VolumeSliceViewPlaneEnum::AXIAL,
