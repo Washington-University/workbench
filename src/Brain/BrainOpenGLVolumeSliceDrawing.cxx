@@ -3624,6 +3624,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
 //                      + " TR: " + AString::fromNumbers(topRight, 3, ",")
 //                      + " TL: " + AString::fromNumbers(topLeft, 3, ","))
 //        << std::endl;
+    if (debugFlag) {
         m_fixedPipelineDrawing->setLineWidth(3.0);
         glColor3f(1.0, 0.0, 0.0);
         glBegin(GL_LINE_LOOP);
@@ -3632,6 +3633,7 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         glVertex3fv(topRight);
         glVertex3fv(topLeft);
         glEnd();
+    }
 //
 //        GLdouble modelMatrix[16];
 //        GLdouble projMatrix[16];
