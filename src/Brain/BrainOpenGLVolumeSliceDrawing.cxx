@@ -703,7 +703,11 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
     /*
      * Scale ratio makes region slightly larger than model
      */
-    const double scaleRatio = 1.0 / 0.98;
+    const double zoom = m_browserTabContent->getScaling(); // JWH
+    double scaleRatio = (1.0 / 0.98);
+    if (zoom > 0.0) {
+        scaleRatio /= zoom;
+    }
     modelTop *= scaleRatio;
     modelBottom *= scaleRatio;
     
@@ -1538,7 +1542,7 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
      * the user's zooming.
      */
         const float zoom = m_browserTabContent->getScaling();
-        glScalef(zoom, zoom, zoom);
+//JWH        glScalef(zoom, zoom, zoom);
 
 
 }
@@ -3256,30 +3260,33 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     /*
      * Look at point is in center of volume
      */
-    float screenOffsetX = 0.0;
-    float screenOffsetY = 0.0;
+    float translation[3];
+    m_browserTabContent->getTranslation(translation);
+    float viewOffsetX = 0.0;
+    float viewOffsetY = 0.0;
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            screenOffsetX = m_lookAtCenter[0];
-            screenOffsetY = m_lookAtCenter[1];
+            viewOffsetX = (m_lookAtCenter[0] + translation[0]);
+            viewOffsetY = (m_lookAtCenter[1] + translation[1]);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            screenOffsetX = m_lookAtCenter[0];
-            screenOffsetY = m_lookAtCenter[2];
+            viewOffsetX = (m_lookAtCenter[0] + translation[0]);
+            viewOffsetY = (m_lookAtCenter[2] + translation[2]);
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            screenOffsetX = m_lookAtCenter[1];
-            screenOffsetY = m_lookAtCenter[2];
+            viewOffsetX = (m_lookAtCenter[1] + translation[1]);
+            viewOffsetY = (m_lookAtCenter[2] + translation[2]);
             break;
     }
     
-    float minScreenX = m_orthographicBounds[0] - screenOffsetX;
-    float maxScreenX = m_orthographicBounds[1] - screenOffsetX;
-    float minScreenY = m_orthographicBounds[2] - screenOffsetY;
-    float maxScreenY = m_orthographicBounds[3] - screenOffsetY;
+    float minScreenX = m_orthographicBounds[0] - viewOffsetX;
+    float maxScreenX = m_orthographicBounds[1] - viewOffsetX;
+    float minScreenY = m_orthographicBounds[2] - viewOffsetY;
+    float maxScreenY = m_orthographicBounds[3] - viewOffsetY;
+    
     
     /*
      * Scale to fix clipping when selected slices are not origin
@@ -3323,6 +3330,8 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     float actualOrigin[3];
     m_volumeDrawInfo[0].volumeFile->indexToSpace(originIJK, actualOrigin);
     
+    float screenOffsetX = 0.0;
+    float screenOffsetY = 0.0;
     float originOffsetX = 0.0;
     float originOffsetY = 0.0;
     switch (sliceViewPlane) {
@@ -3581,15 +3590,15 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
 //                      + " TR: " + AString::fromNumbers(topRight, 3, ",")
 //                      + " TL: " + AString::fromNumbers(topLeft, 3, ","))
 //        << std::endl;
-//        m_fixedPipelineDrawing->setLineWidth(3.0);
-//        glColor3f(1.0, 0.0, 0.0);
-//        glBegin(GL_LINE_LOOP);
-//        glVertex3fv(bottomLeft);
-//        glVertex3fv(bottomRight);
-//        glVertex3fv(topRight);
-//        glVertex3fv(topLeft);
-//        glEnd();
-//        
+        m_fixedPipelineDrawing->setLineWidth(3.0);
+        glColor3f(1.0, 0.0, 0.0);
+        glBegin(GL_LINE_LOOP);
+        glVertex3fv(bottomLeft);
+        glVertex3fv(bottomRight);
+        glVertex3fv(topRight);
+        glVertex3fv(topLeft);
+        glEnd();
+//
 //        GLdouble modelMatrix[16];
 //        GLdouble projMatrix[16];
 //        double objCoord[3];
@@ -4205,6 +4214,10 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
                                       volume,
                                       sliceViewPlane,
                                       drawMode);
+            drawAxesCrosshairsOrthogonal(sliceViewPlane,
+                                         volume,
+                                         drawCrosshairsFlag,
+                                         false);
             break;
         case VolumeSliceViewModeEnum::MONTAGE:
             drawAxesCrosshairsOrthogonal(sliceViewPlane,
@@ -4604,7 +4617,29 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOblique(const Plane& slicePlane
                                const DRAW_MODE drawMode)
 {
     CaretAssert(volume);
+
+    {
+        /*
+         * Draw a sphere at the selected coordinate
+         */
+        const float centerXYZ[3] = {
+            m_browserTabContent->getSliceCoordinateParasagittal(),
+            m_browserTabContent->getSliceCoordinateCoronal(),
+            m_browserTabContent->getSliceCoordinateAxial()
+        };
+        
+        const uint8_t rgba[4] = { 255, 0, 0, 255 };
+        glPushMatrix();
+        glTranslatef(centerXYZ[0], centerXYZ[1], centerXYZ[2]);
+        m_fixedPipelineDrawing->drawSphereWithDiameter(rgba, 8.0);
+        
+        
+        glPopMatrix();
+        
+        return;
+    }
     
+
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
     const bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
