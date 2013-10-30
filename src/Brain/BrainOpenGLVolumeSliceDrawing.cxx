@@ -515,10 +515,17 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
      * Draw the axes labels for the montage view
      */
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
-    drawAxesCrosshairsOrthogonal(slicePlane,
-                                 underlayVolume,
-                                 false,
-                                 true);
+//    drawAxesCrosshairsOrthogonal(slicePlane,
+//                                 underlayVolume,
+//                                 false,
+//                                 true);
+    if (prefs->isVolumeAxesLabelsDisplayed()) {
+        drawAxesCrosshairsOrthoAndOblique(slicePlane,
+                                          VolumeSliceViewModeEnum::ORTHOGONAL, // drawing an orthogonal slice
+                                          underlayVolume,
+                                          false,
+                                          true);
+    }
 }
 
 /**
@@ -4211,11 +4218,11 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
     
     switch (m_sliceViewMode) {
         case VolumeSliceViewModeEnum::OBLIQUE:
-            drawAxesCrosshairsOblique(slicePlane,
-                                      transformationMatrix,
-                                      volume,
-                                      sliceViewPlane,
-                                      drawMode);
+//            drawAxesCrosshairsOblique(slicePlane,
+//                                      transformationMatrix,
+//                                      volume,
+//                                      sliceViewPlane,
+//                                      drawMode);
         {
             glPushMatrix();
             glLoadIdentity();
@@ -4252,7 +4259,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
                                               VolumeSliceViewModeEnum::ORTHOGONAL, // drawing an orthogonal slice
                                               volume,
                                               drawCrosshairsFlag,
-                                              drawCrosshairLabelsFlag);
+                                              false);
 //            drawAxesCrosshairsOrthogonal(sliceViewPlane,
 //                                         volume,
 //                                         drawCrosshairsFlag,
@@ -4633,401 +4640,707 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
 }
 
 
-/**
- * Draw the axes crosshairs for an oblique slice.
- *
- * @param slicePlane
- *    The equation of the slice plane.
- * @param transformationMatrix
- *    The transformation matrix used for oblique viewing.
- * @param volume
- *    The underlay volume.
- * @param sliceViewPlane
- *    The slice view plane.
- * @param drawMode
- *    The slice drawing mode.
- */
-void
-BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOblique(const Plane& slicePlane,
-                               const Matrix4x4& transformationMatrix,
-                               const VolumeMappableInterface* volume,
-                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                               const DRAW_MODE drawMode)
-{
-    CaretAssert(volume);
+///**
+// * Draw the axes crosshairs for an oblique slice.
+// *
+// * @param slicePlane
+// *    The equation of the slice plane.
+// * @param transformationMatrix
+// *    The transformation matrix used for oblique viewing.
+// * @param volume
+// *    The underlay volume.
+// * @param sliceViewPlane
+// *    The slice view plane.
+// * @param drawMode
+// *    The slice drawing mode.
+// */
+//void
+//BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOblique(const Plane& slicePlane,
+//                               const Matrix4x4& transformationMatrix,
+//                               const VolumeMappableInterface* volume,
+//                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                               const DRAW_MODE drawMode)
+//{
+//    CaretAssert(volume);
+//
+//    {
+//        /*
+//         * Draw a sphere at the selected coordinate
+//         */
+//        const float centerXYZ[3] = {
+//            m_browserTabContent->getSliceCoordinateParasagittal(),
+//            m_browserTabContent->getSliceCoordinateCoronal(),
+//            m_browserTabContent->getSliceCoordinateAxial()
+//        };
+//        
+//        const uint8_t rgba[4] = { 255, 0, 0, 255 };
+//        glPushMatrix();
+//        glTranslatef(centerXYZ[0], centerXYZ[1], centerXYZ[2]);
+//        m_fixedPipelineDrawing->drawSphereWithDiameter(rgba, 8.0);
+//        
+//        
+//        glPopMatrix();
+//        
+//        return;
+//    }
+//    
+//
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
+//    const bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
+//    
+//    bool isThreeSliceView = false;
+//    bool applyViewingMatrix = false;
+//    bool applyTransformationMatrixToAxes = false;
+//    switch (drawMode) {
+//        case DRAW_MODE_ALL_STRUCTURES_VIEW:
+//            return;
+//            break;
+//        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
+//            //            if (sliceViewPlane != VolumeSliceViewPlaneEnum::AXIAL) {
+//            //                /*
+//            //                 * This gets called three times (once for each slice)
+//            //                 * in this view but we only need to draw the axes once!
+//            //                 */
+//            //                return;
+//            //            }
+//            //            isThreeSliceView = true;
+//            //            //applyViewingMatrix = true;
+//            if (showAxesInAllSlicesViewBottomLeftFlag) {
+//                applyTransformationMatrixToAxes = true;
+//            }
+//            else {
+//                return;
+//            }
+//            break;
+//        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
+//            applyViewingMatrix = true;
+//            break;
+//    }
+//    
+//    float bounds[6];
+//    float spacing[3];
+//    getVoxelCoordinateBoundsAndSpacing(bounds, spacing);
+//    //    const float minVoxelSize = std::min(std::min(spacing[0],
+//    //                                                 spacing[1]),
+//    //                                        spacing[2]);
+//    
+//    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+//    
+//    /*
+//     * Ends of crosshairs
+//     */
+//    BoundingBox boundingBox;
+//    volume->getVoxelSpaceBoundingBox(boundingBox);
+//    const float scaler = 1.02;
+//    const float xMin = boundingBox.getMinX() * scaler;
+//    const float xMax = boundingBox.getMaxX() * scaler;
+//    const float yMin = boundingBox.getMinY() * scaler;
+//    const float yMax = boundingBox.getMaxY() * scaler;
+//    const float zMin = boundingBox.getMinZ() * scaler;
+//    const float zMax = boundingBox.getMaxZ() * scaler;
+//    
+//    //    const float centerXYZ[3] = {
+//    //        m_browserTabContent->getSliceCoordinateParasagittal(),
+//    //        m_browserTabContent->getSliceCoordinateCoronal(),
+//    //        m_browserTabContent->getSliceCoordinateAxial()
+//    //    };
+//    
+//    const float centerXYZ[3] = {
+//        0.0,
+//        0.0,
+//        0.0,
+//    };
+//    
+//    /*
+//     * Use the viewing matrix to set the drawing region
+//     */
+//    if (applyViewingMatrix) {
+//        glLoadIdentity();
+//        glMultMatrixd(m_viewingMatrix);
+//        const float zoom = m_browserTabContent->getScaling();
+//        glScalef(zoom, zoom, zoom);
+//    }
+//    
+//    /*
+//     * Initialize axes end points to the center
+//     */
+//    float axialStartXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    
+//    float axialEndXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    float coronalStartXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    
+//    float coronalEndXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    float paraStartXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    
+//    float paraEndXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    
+//    AString axialPlaneStartLabel = "";
+//    AString axialPlaneEndLabel = "";
+//    AString coronalPlaneStartLabel = "";
+//    AString coronalPlaneEndLabel = "";
+//    AString paraPlaneStartLabel = "";
+//    AString paraPlaneEndLabel = "";
+//    
+//    /*
+//     * Determine which axes labels are drawn
+//     */
+//    if (prefs->isVolumeAxesLabelsDisplayed()) {
+//        if (isThreeSliceView) {
+//            axialPlaneStartLabel   = "L";
+//            axialPlaneEndLabel     = "R";
+//            axialStartXYZ[0] += xMin;
+//            axialEndXYZ[0]   += xMax;
+//            coronalPlaneStartLabel = "V";
+//            coronalPlaneEndLabel   = "D";
+//            coronalStartXYZ[1] += yMin;
+//            coronalEndXYZ[1]   += yMax;
+//            paraPlaneStartLabel    = "P";
+//            paraPlaneEndLabel      = "A";
+//            paraStartXYZ[2] += zMin;
+//            paraEndXYZ[2]   += zMax;
+//        }
+//        else {
+//            switch (sliceViewPlane) {
+//                case VolumeSliceViewPlaneEnum::ALL:
+//                    axialPlaneStartLabel   = "V";
+//                    axialPlaneEndLabel     = "D";
+//                    axialStartXYZ[2] += zMin;
+//                    axialEndXYZ[2]   += zMax;
+//                    coronalPlaneStartLabel = "L";
+//                    coronalPlaneEndLabel   = "R";
+//                    coronalStartXYZ[0] += xMin;
+//                    coronalEndXYZ[0]   += xMax;
+//                    paraPlaneStartLabel    = "P";
+//                    paraPlaneEndLabel      = "A";
+//                    paraStartXYZ[1] += yMin;
+//                    paraEndXYZ[1]   += yMax;
+//                    break;
+//                case VolumeSliceViewPlaneEnum::AXIAL:
+//                    coronalPlaneStartLabel = "L";
+//                    coronalPlaneEndLabel   = "R";
+//                    coronalStartXYZ[0] += xMin;
+//                    coronalEndXYZ[0]   += xMax;
+//                    paraPlaneStartLabel    = "P";
+//                    paraPlaneEndLabel      = "A";
+//                    paraStartXYZ[1] += yMin;
+//                    paraEndXYZ[1]   += yMax;
+//                    break;
+//                case VolumeSliceViewPlaneEnum::CORONAL:
+//                    axialPlaneStartLabel = "L";
+//                    axialPlaneEndLabel   = "R";
+//                    axialStartXYZ[0] += xMin;
+//                    axialEndXYZ[0]   += xMax;
+//                    paraPlaneStartLabel  = "V";
+//                    paraPlaneEndLabel    = "D";
+//                    //                    paraStartXYZ[2] += zMin;
+//                    //                    paraEndXYZ[2]   += zMax;
+//                    paraStartXYZ[1] += zMin;
+//                    paraEndXYZ[1]   += zMax;
+//                    break;
+//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                    axialPlaneStartLabel   = "P";
+//                    axialPlaneEndLabel     = "A";
+//                    //                    axialStartXYZ[1] += yMin;
+//                    //                    axialEndXYZ[1]   += yMax;
+//                    axialStartXYZ[0] += yMax;
+//                    axialEndXYZ[0]   += yMin;
+//                    coronalPlaneStartLabel = "V";
+//                    coronalPlaneEndLabel   = "D";
+//                    //                    coronalStartXYZ[2] += zMin;
+//                    //                    coronalEndXYZ[2]   += zMax;
+//                    coronalStartXYZ[1] += zMin;
+//                    coronalEndXYZ[1]   += zMax;
+//                    break;
+//            }
+//        }
+//    }
+//    
+//    /*
+//     * Axial slice and labels
+//     */
+//    float rgba[4];
+//    getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
+//                 rgba);
+//    if (prefs->isVolumeAxesCrosshairsDisplayed()) {
+//        float startXYZ[3] = {
+//            axialStartXYZ[0],
+//            axialStartXYZ[1],
+//            axialStartXYZ[2]
+//        };
+//        float endXYZ[3] = {
+//            axialEndXYZ[0],
+//            axialEndXYZ[1],
+//            axialEndXYZ[2]
+//        };
+//        
+//        if (applyTransformationMatrixToAxes) {
+//            transformationMatrix.multiplyPoint3(startXYZ);
+//            transformationMatrix.multiplyPoint3(endXYZ);
+//        }
+//        
+//        m_fixedPipelineDrawing->drawCylinder(rgba,
+//                                             startXYZ,
+//                                             endXYZ,
+//                                             axesCrosshairRadius);
+//    }
+//    
+//    if ( ! axialPlaneStartLabel.isEmpty()) {
+//        float startTextXYZ[3];
+//        float endTextXYZ[3];
+//        getAxesTextLabelsXYZ(axialStartXYZ,
+//                             axialEndXYZ,
+//                             startTextXYZ,
+//                             endTextXYZ);
+//        glColor4fv(rgba);
+//        
+//        if (applyTransformationMatrixToAxes) {
+//            transformationMatrix.multiplyPoint3(startTextXYZ);
+//            transformationMatrix.multiplyPoint3(endTextXYZ);
+//        }
+//        m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
+//                                                    endTextXYZ[1],
+//                                                    endTextXYZ[2],
+//                                                    axialPlaneEndLabel);
+//        m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
+//                                                    startTextXYZ[1],
+//                                                    startTextXYZ[2],
+//                                                    axialPlaneStartLabel);
+//    }
+//    
+//    getAxesColor(VolumeSliceViewPlaneEnum::CORONAL,
+//                 rgba);
+//    if (prefs->isVolumeAxesCrosshairsDisplayed()) {
+//        float startXYZ[3] = {
+//            coronalStartXYZ[0],
+//            coronalStartXYZ[1],
+//            coronalStartXYZ[2]
+//        };
+//        float endXYZ[3] = {
+//            coronalEndXYZ[0],
+//            coronalEndXYZ[1],
+//            coronalEndXYZ[2]
+//        };
+//        
+//        if (applyTransformationMatrixToAxes) {
+//            transformationMatrix.multiplyPoint3(startXYZ);
+//            transformationMatrix.multiplyPoint3(endXYZ);
+//        }
+//        m_fixedPipelineDrawing->drawCylinder(rgba,
+//                                             startXYZ,
+//                                             endXYZ,
+//                                             axesCrosshairRadius);
+//    }
+//    if ( ! coronalPlaneStartLabel.isEmpty()) {
+//        /*
+//         * Coronal axis and labels
+//         */
+//        float startTextXYZ[3];
+//        float endTextXYZ[3];
+//        getAxesTextLabelsXYZ(coronalStartXYZ,
+//                             coronalEndXYZ,
+//                             startTextXYZ,
+//                             endTextXYZ);
+//        glColor4fv(rgba);
+//        if (applyTransformationMatrixToAxes) {
+//            transformationMatrix.multiplyPoint3(startTextXYZ);
+//            transformationMatrix.multiplyPoint3(endTextXYZ);
+//        }
+//        
+//        m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
+//                                                    startTextXYZ[1],
+//                                                    startTextXYZ[2],
+//                                                    coronalPlaneStartLabel);
+//        m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
+//                                                    endTextXYZ[1],
+//                                                    endTextXYZ[2],
+//                                                    coronalPlaneEndLabel);
+//    }
+//    
+//    /*
+//     * Parasagittal axis and labels
+//     */
+//    getAxesColor(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+//                 rgba);
+//    if (prefs->isVolumeAxesCrosshairsDisplayed()) {
+//        float startXYZ[3] = {
+//            paraStartXYZ[0],
+//            paraStartXYZ[1],
+//            paraStartXYZ[2]
+//        };
+//        float endXYZ[3] = {
+//            paraEndXYZ[0],
+//            paraEndXYZ[1],
+//            paraEndXYZ[2]
+//        };
+//        
+//        if (applyTransformationMatrixToAxes) {
+//            transformationMatrix.multiplyPoint3(startXYZ);
+//            transformationMatrix.multiplyPoint3(endXYZ);
+//        }
+//        m_fixedPipelineDrawing->drawCylinder(rgba,
+//                                             startXYZ,
+//                                             endXYZ,
+//                                             axesCrosshairRadius);
+//    }
+//    if ( ! paraPlaneStartLabel.isEmpty()) {
+//        float startTextXYZ[3];
+//        float endTextXYZ[3];
+//        getAxesTextLabelsXYZ(paraStartXYZ,
+//                             paraEndXYZ,
+//                             startTextXYZ,
+//                             endTextXYZ);
+//        glColor4fv(rgba);
+//        if (applyTransformationMatrixToAxes) {
+//            transformationMatrix.multiplyPoint3(startTextXYZ);
+//            transformationMatrix.multiplyPoint3(endTextXYZ);
+//        }
+//        m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
+//                                                    endTextXYZ[1],
+//                                                    endTextXYZ[2],
+//                                                    paraPlaneEndLabel);
+//        m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
+//                                                    startTextXYZ[1],
+//                                                    startTextXYZ[2],
+//                                                    paraPlaneStartLabel);
+//    }
+//}
 
-    {
-        /*
-         * Draw a sphere at the selected coordinate
-         */
-        const float centerXYZ[3] = {
-            m_browserTabContent->getSliceCoordinateParasagittal(),
-            m_browserTabContent->getSliceCoordinateCoronal(),
-            m_browserTabContent->getSliceCoordinateAxial()
-        };
-        
-        const uint8_t rgba[4] = { 255, 0, 0, 255 };
-        glPushMatrix();
-        glTranslatef(centerXYZ[0], centerXYZ[1], centerXYZ[2]);
-        m_fixedPipelineDrawing->drawSphereWithDiameter(rgba, 8.0);
-        
-        
-        glPopMatrix();
-        
-        return;
-    }
-    
+///**
+// * Draw the axes crosshairs for an orthogonal slice.
+// *
+// * @param sliceViewPlane
+// *    The slice plane view.
+// * @param volume
+// *    The underlay volume.
+// * @param drawCrosshairsFlag
+// *    If true, draw the crosshairs.
+// * @param drawCrosshairLabelsFlag
+// *    If true, draw the crosshair labels.
+// */
+//void
+//BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthogonal(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+//                                                            const VolumeMappableInterface* volume,
+//                                                            const bool drawCrosshairsFlag,
+//                                                            const bool drawCrosshairLabelsFlag)
+//{
+//    CaretAssert(volume);
+//    
+//    GLboolean depthEnabled = GL_FALSE;
+//    glGetBooleanv(GL_DEPTH_TEST,
+//                  &depthEnabled);
+//    glDisable(GL_DEPTH_TEST);
+//    
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    
+//    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+//    
+//    const float centerXYZ[3] = {
+//        m_browserTabContent->getSliceCoordinateParasagittal(),
+//        m_browserTabContent->getSliceCoordinateCoronal(),
+//        m_browserTabContent->getSliceCoordinateAxial()
+//    };
+//    
+//    const float bigValue = 10000.0;
+//    
+//    float horizontalAxisStartXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    float horizontalAxisEndXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    
+//    float verticalAxisStartXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    float verticalAxisEndXYZ[3] = {
+//        centerXYZ[0],
+//        centerXYZ[1],
+//        centerXYZ[2]
+//    };
+//    
+//    float axialRGBA[4];
+//    getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
+//                 axialRGBA);
+//    
+//    float coronalRGBA[4];
+//    getAxesColor(VolumeSliceViewPlaneEnum::CORONAL,
+//                 coronalRGBA);
+//    
+//    float paraRGBA[4];
+//    getAxesColor(VolumeSliceViewPlaneEnum::PARASAGITTAL,
+//                 paraRGBA);
+//    
+//    AString horizontalLeftText  = "";
+//    AString horizontalRightText = "";
+//    AString verticalBottomText  = "";
+//    AString verticalTopText     = "";
+//    
+//    float* horizontalAxisRGBA   = axialRGBA;
+//    float* verticalAxisRGBA     = axialRGBA;
+//    
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            horizontalLeftText   = "L";
+//            horizontalRightText  = "R";
+//            horizontalAxisRGBA = coronalRGBA;
+//            horizontalAxisStartXYZ[0] -= bigValue;
+//            horizontalAxisEndXYZ[0]   += bigValue;
+//            
+//            verticalBottomText = "P";
+//            verticalTopText    = "A";
+//            verticalAxisRGBA = paraRGBA;
+//            verticalAxisStartXYZ[1] -= bigValue;
+//            verticalAxisEndXYZ[1]   += bigValue;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            horizontalLeftText   = "L";
+//            horizontalRightText  = "R";
+//            horizontalAxisRGBA = axialRGBA;
+//            horizontalAxisStartXYZ[0] -= bigValue;
+//            horizontalAxisEndXYZ[0]   += bigValue;
+//            
+//            verticalBottomText = "D";
+//            verticalTopText    = "V";
+//            verticalAxisRGBA = paraRGBA;
+//            verticalAxisStartXYZ[2] -= bigValue;
+//            verticalAxisEndXYZ[2]   += bigValue;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            horizontalLeftText   = "A";
+//            horizontalRightText  = "P";
+//            horizontalAxisRGBA = axialRGBA;
+//            horizontalAxisStartXYZ[1] -= bigValue;
+//            horizontalAxisEndXYZ[1]   += bigValue;
+//            
+//            verticalBottomText = "D";
+//            verticalTopText    = "V";
+//            verticalAxisRGBA = coronalRGBA;
+//            verticalAxisStartXYZ[2] -= bigValue;
+//            verticalAxisEndXYZ[2]   += bigValue;
+//            break;
+//    }
+//    
+//    GLint viewport[4];
+//    glGetIntegerv(GL_VIEWPORT,
+//                  viewport);
+//    const int textOffset = 15;
+//    const int textLeftWindowXY[2] = {
+//        viewport[0] + textOffset,
+//        viewport[1] + (viewport[3] / 2)
+//    };
+//    const int textRightWindowXY[2] = {
+//        viewport[0] + viewport[2] - textOffset,
+//        viewport[1] + (viewport[3] / 2)
+//    };
+//    const int textBottomWindowXY[2] = {
+//        viewport[0] + viewport[2] / 2,
+//        viewport[1] + textOffset
+//    };
+//    const int textTopWindowXY[2] = {
+//        viewport[0] + (viewport[2] / 2),
+//        viewport[1] + viewport[3] - textOffset
+//    };
+//    
+//    /*
+//     * Crosshairs
+//     */
+//    if (drawCrosshairsFlag) {
+//        m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
+//                                             horizontalAxisStartXYZ,
+//                                             horizontalAxisEndXYZ,
+//                                             axesCrosshairRadius);
+//        
+//        m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
+//                                             verticalAxisStartXYZ,
+//                                             verticalAxisEndXYZ,
+//                                             axesCrosshairRadius);
+//    }
+//    
+//    if (drawCrosshairLabelsFlag) {
+//        const int fontHeight = 18;
+//        
+//        const int textCenter[2] = {
+//            textLeftWindowXY[0],
+//            textLeftWindowXY[1]
+//        };
+//        const int halfFontSize = fontHeight / 2;
+//        
+//        uint8_t backgroundRGBA[4];
+//        prefs->getColorBackground(backgroundRGBA);
+//        backgroundRGBA[3] = 255;
+//        
+//        GLint savedViewport[4];
+//        glGetIntegerv(GL_VIEWPORT, savedViewport);
+//        
+//        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
+//        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
+//        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
+//        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
+//        MathFunctions::limitRange(vpLeftX,
+//                                  savedViewport[0],
+//                                  savedViewport[0] + savedViewport[2]);
+//        MathFunctions::limitRange(vpRightX,
+//                                  savedViewport[0],
+//                                  savedViewport[0] + savedViewport[2]);
+//        MathFunctions::limitRange(vpBottomY,
+//                                  savedViewport[1],
+//                                  savedViewport[1] + savedViewport[3]);
+//        MathFunctions::limitRange(vpTopY,
+//                                  savedViewport[1],
+//                                  savedViewport[1] + savedViewport[3]);
+//        
+//        const int vpSizeX = vpRightX - vpLeftX;
+//        const int vpSizeY = vpTopY - vpBottomY;
+//        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
+//        
+//        glMatrixMode(GL_PROJECTION);
+//        glPushMatrix();
+//        glLoadIdentity();
+//        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+//        
+//        glMatrixMode(GL_MODELVIEW);
+//        glPushMatrix();
+//        glLoadIdentity();
+//        
+//        std::vector<uint8_t> rgba;
+//        std::vector<float> coords, normals;
+//        
+//        coords.push_back(-1.0);
+//        coords.push_back(-1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        coords.push_back( 1.0);
+//        coords.push_back(-1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        coords.push_back( 1.0);
+//        coords.push_back( 1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        coords.push_back(-1.0);
+//        coords.push_back( 1.0);
+//        coords.push_back( 0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(0.0);
+//        normals.push_back(1.0);
+//        rgba.push_back(backgroundRGBA[0]);
+//        rgba.push_back(backgroundRGBA[1]);
+//        rgba.push_back(backgroundRGBA[2]);
+//        rgba.push_back(backgroundRGBA[3]);
+//        
+//        
+//        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
+//                                               normals,
+//                                               rgba);
+//        
+//        glPopMatrix();
+//        
+//        glMatrixMode(GL_PROJECTION);
+//        glPopMatrix();
+//        glMatrixMode(GL_MODELVIEW);
+//        
+//        glViewport(savedViewport[0],
+//                   savedViewport[1],
+//                   savedViewport[2],
+//                   savedViewport[3]);
+//        
+//        glColor4fv(horizontalAxisRGBA);
+//        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textLeftWindowXY[0],
+//                                                                   textLeftWindowXY[1],
+//                                                                   horizontalLeftText,
+//                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+//                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+//                                                                   fontHeight);
+//        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textRightWindowXY[0],
+//                                                                   textRightWindowXY[1],
+//                                                                   horizontalRightText,
+//                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+//                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+//                                                                   fontHeight);
+//        
+//        glColor4fv(verticalAxisRGBA);
+//        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textBottomWindowXY[0],
+//                                                                   textBottomWindowXY[1],
+//                                                                   verticalBottomText,
+//                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+//                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+//                                                                   fontHeight);
+//        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textTopWindowXY[0],
+//                                                                   textTopWindowXY[1],
+//                                                                   verticalTopText,
+//                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
+//                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
+//                                                                   fontHeight);
+//    }
+//    
+//    if (depthEnabled) {
+//        glEnable(GL_DEPTH_TEST);
+//    }
+//}
 
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
-    const bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();
-    
-    bool isThreeSliceView = false;
-    bool applyViewingMatrix = false;
-    bool applyTransformationMatrixToAxes = false;
-    switch (drawMode) {
-        case DRAW_MODE_ALL_STRUCTURES_VIEW:
-            return;
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_3D:
-            //            if (sliceViewPlane != VolumeSliceViewPlaneEnum::AXIAL) {
-            //                /*
-            //                 * This gets called three times (once for each slice)
-            //                 * in this view but we only need to draw the axes once!
-            //                 */
-            //                return;
-            //            }
-            //            isThreeSliceView = true;
-            //            //applyViewingMatrix = true;
-            if (showAxesInAllSlicesViewBottomLeftFlag) {
-                applyTransformationMatrixToAxes = true;
-            }
-            else {
-                return;
-            }
-            break;
-        case DRAW_MODE_VOLUME_VIEW_SLICE_SINGLE:
-            applyViewingMatrix = true;
-            break;
-    }
-    
-    float bounds[6];
-    float spacing[3];
-    getVoxelCoordinateBoundsAndSpacing(bounds, spacing);
-    //    const float minVoxelSize = std::min(std::min(spacing[0],
-    //                                                 spacing[1]),
-    //                                        spacing[2]);
-    
-    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
-    
-    /*
-     * Ends of crosshairs
-     */
-    BoundingBox boundingBox;
-    volume->getVoxelSpaceBoundingBox(boundingBox);
-    const float scaler = 1.02;
-    const float xMin = boundingBox.getMinX() * scaler;
-    const float xMax = boundingBox.getMaxX() * scaler;
-    const float yMin = boundingBox.getMinY() * scaler;
-    const float yMax = boundingBox.getMaxY() * scaler;
-    const float zMin = boundingBox.getMinZ() * scaler;
-    const float zMax = boundingBox.getMaxZ() * scaler;
-    
-    //    const float centerXYZ[3] = {
-    //        m_browserTabContent->getSliceCoordinateParasagittal(),
-    //        m_browserTabContent->getSliceCoordinateCoronal(),
-    //        m_browserTabContent->getSliceCoordinateAxial()
-    //    };
-    
-    const float centerXYZ[3] = {
-        0.0,
-        0.0,
-        0.0,
-    };
-    
-    /*
-     * Use the viewing matrix to set the drawing region
-     */
-    if (applyViewingMatrix) {
-        glLoadIdentity();
-        glMultMatrixd(m_viewingMatrix);
-        const float zoom = m_browserTabContent->getScaling();
-        glScalef(zoom, zoom, zoom);
-    }
-    
-    /*
-     * Initialize axes end points to the center
-     */
-    float axialStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    float axialEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    float coronalStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    float coronalEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    float paraStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    float paraEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    AString axialPlaneStartLabel = "";
-    AString axialPlaneEndLabel = "";
-    AString coronalPlaneStartLabel = "";
-    AString coronalPlaneEndLabel = "";
-    AString paraPlaneStartLabel = "";
-    AString paraPlaneEndLabel = "";
-    
-    /*
-     * Determine which axes labels are drawn
-     */
-    if (prefs->isVolumeAxesLabelsDisplayed()) {
-        if (isThreeSliceView) {
-            axialPlaneStartLabel   = "L";
-            axialPlaneEndLabel     = "R";
-            axialStartXYZ[0] += xMin;
-            axialEndXYZ[0]   += xMax;
-            coronalPlaneStartLabel = "V";
-            coronalPlaneEndLabel   = "D";
-            coronalStartXYZ[1] += yMin;
-            coronalEndXYZ[1]   += yMax;
-            paraPlaneStartLabel    = "P";
-            paraPlaneEndLabel      = "A";
-            paraStartXYZ[2] += zMin;
-            paraEndXYZ[2]   += zMax;
-        }
-        else {
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    axialPlaneStartLabel   = "V";
-                    axialPlaneEndLabel     = "D";
-                    axialStartXYZ[2] += zMin;
-                    axialEndXYZ[2]   += zMax;
-                    coronalPlaneStartLabel = "L";
-                    coronalPlaneEndLabel   = "R";
-                    coronalStartXYZ[0] += xMin;
-                    coronalEndXYZ[0]   += xMax;
-                    paraPlaneStartLabel    = "P";
-                    paraPlaneEndLabel      = "A";
-                    paraStartXYZ[1] += yMin;
-                    paraEndXYZ[1]   += yMax;
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    coronalPlaneStartLabel = "L";
-                    coronalPlaneEndLabel   = "R";
-                    coronalStartXYZ[0] += xMin;
-                    coronalEndXYZ[0]   += xMax;
-                    paraPlaneStartLabel    = "P";
-                    paraPlaneEndLabel      = "A";
-                    paraStartXYZ[1] += yMin;
-                    paraEndXYZ[1]   += yMax;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    axialPlaneStartLabel = "L";
-                    axialPlaneEndLabel   = "R";
-                    axialStartXYZ[0] += xMin;
-                    axialEndXYZ[0]   += xMax;
-                    paraPlaneStartLabel  = "V";
-                    paraPlaneEndLabel    = "D";
-                    //                    paraStartXYZ[2] += zMin;
-                    //                    paraEndXYZ[2]   += zMax;
-                    paraStartXYZ[1] += zMin;
-                    paraEndXYZ[1]   += zMax;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    axialPlaneStartLabel   = "P";
-                    axialPlaneEndLabel     = "A";
-                    //                    axialStartXYZ[1] += yMin;
-                    //                    axialEndXYZ[1]   += yMax;
-                    axialStartXYZ[0] += yMax;
-                    axialEndXYZ[0]   += yMin;
-                    coronalPlaneStartLabel = "V";
-                    coronalPlaneEndLabel   = "D";
-                    //                    coronalStartXYZ[2] += zMin;
-                    //                    coronalEndXYZ[2]   += zMax;
-                    coronalStartXYZ[1] += zMin;
-                    coronalEndXYZ[1]   += zMax;
-                    break;
-            }
-        }
-    }
-    
-    /*
-     * Axial slice and labels
-     */
-    float rgba[4];
-    getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
-                 rgba);
-    if (prefs->isVolumeAxesCrosshairsDisplayed()) {
-        float startXYZ[3] = {
-            axialStartXYZ[0],
-            axialStartXYZ[1],
-            axialStartXYZ[2]
-        };
-        float endXYZ[3] = {
-            axialEndXYZ[0],
-            axialEndXYZ[1],
-            axialEndXYZ[2]
-        };
-        
-        if (applyTransformationMatrixToAxes) {
-            transformationMatrix.multiplyPoint3(startXYZ);
-            transformationMatrix.multiplyPoint3(endXYZ);
-        }
-        
-        m_fixedPipelineDrawing->drawCylinder(rgba,
-                                             startXYZ,
-                                             endXYZ,
-                                             axesCrosshairRadius);
-    }
-    
-    if ( ! axialPlaneStartLabel.isEmpty()) {
-        float startTextXYZ[3];
-        float endTextXYZ[3];
-        getAxesTextLabelsXYZ(axialStartXYZ,
-                             axialEndXYZ,
-                             startTextXYZ,
-                             endTextXYZ);
-        glColor4fv(rgba);
-        
-        if (applyTransformationMatrixToAxes) {
-            transformationMatrix.multiplyPoint3(startTextXYZ);
-            transformationMatrix.multiplyPoint3(endTextXYZ);
-        }
-        m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
-                                                    endTextXYZ[1],
-                                                    endTextXYZ[2],
-                                                    axialPlaneEndLabel);
-        m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
-                                                    startTextXYZ[1],
-                                                    startTextXYZ[2],
-                                                    axialPlaneStartLabel);
-    }
-    
-    getAxesColor(VolumeSliceViewPlaneEnum::CORONAL,
-                 rgba);
-    if (prefs->isVolumeAxesCrosshairsDisplayed()) {
-        float startXYZ[3] = {
-            coronalStartXYZ[0],
-            coronalStartXYZ[1],
-            coronalStartXYZ[2]
-        };
-        float endXYZ[3] = {
-            coronalEndXYZ[0],
-            coronalEndXYZ[1],
-            coronalEndXYZ[2]
-        };
-        
-        if (applyTransformationMatrixToAxes) {
-            transformationMatrix.multiplyPoint3(startXYZ);
-            transformationMatrix.multiplyPoint3(endXYZ);
-        }
-        m_fixedPipelineDrawing->drawCylinder(rgba,
-                                             startXYZ,
-                                             endXYZ,
-                                             axesCrosshairRadius);
-    }
-    if ( ! coronalPlaneStartLabel.isEmpty()) {
-        /*
-         * Coronal axis and labels
-         */
-        float startTextXYZ[3];
-        float endTextXYZ[3];
-        getAxesTextLabelsXYZ(coronalStartXYZ,
-                             coronalEndXYZ,
-                             startTextXYZ,
-                             endTextXYZ);
-        glColor4fv(rgba);
-        if (applyTransformationMatrixToAxes) {
-            transformationMatrix.multiplyPoint3(startTextXYZ);
-            transformationMatrix.multiplyPoint3(endTextXYZ);
-        }
-        
-        m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
-                                                    startTextXYZ[1],
-                                                    startTextXYZ[2],
-                                                    coronalPlaneStartLabel);
-        m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
-                                                    endTextXYZ[1],
-                                                    endTextXYZ[2],
-                                                    coronalPlaneEndLabel);
-    }
-    
-    /*
-     * Parasagittal axis and labels
-     */
-    getAxesColor(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                 rgba);
-    if (prefs->isVolumeAxesCrosshairsDisplayed()) {
-        float startXYZ[3] = {
-            paraStartXYZ[0],
-            paraStartXYZ[1],
-            paraStartXYZ[2]
-        };
-        float endXYZ[3] = {
-            paraEndXYZ[0],
-            paraEndXYZ[1],
-            paraEndXYZ[2]
-        };
-        
-        if (applyTransformationMatrixToAxes) {
-            transformationMatrix.multiplyPoint3(startXYZ);
-            transformationMatrix.multiplyPoint3(endXYZ);
-        }
-        m_fixedPipelineDrawing->drawCylinder(rgba,
-                                             startXYZ,
-                                             endXYZ,
-                                             axesCrosshairRadius);
-    }
-    if ( ! paraPlaneStartLabel.isEmpty()) {
-        float startTextXYZ[3];
-        float endTextXYZ[3];
-        getAxesTextLabelsXYZ(paraStartXYZ,
-                             paraEndXYZ,
-                             startTextXYZ,
-                             endTextXYZ);
-        glColor4fv(rgba);
-        if (applyTransformationMatrixToAxes) {
-            transformationMatrix.multiplyPoint3(startTextXYZ);
-            transformationMatrix.multiplyPoint3(endTextXYZ);
-        }
-        m_fixedPipelineDrawing->drawTextModelCoords(endTextXYZ[0],
-                                                    endTextXYZ[1],
-                                                    endTextXYZ[2],
-                                                    paraPlaneEndLabel);
-        m_fixedPipelineDrawing->drawTextModelCoords(startTextXYZ[0],
-                                                    startTextXYZ[1],
-                                                    startTextXYZ[2],
-                                                    paraPlaneStartLabel);
-    }
-}
+
 
 /**
  * Draw the axes crosshairs for an orthogonal slice.
  *
  * @param sliceViewPlane
  *    The slice plane view.
+ * @param sliceViewMode
+ *    The slice viewing mode.
  * @param volume
  *    The underlay volume.
  * @param drawCrosshairsFlag
@@ -5035,298 +5348,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOblique(const Plane& slicePlane
  * @param drawCrosshairLabelsFlag
  *    If true, draw the crosshair labels.
  */
-void
-BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthogonal(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                            const VolumeMappableInterface* volume,
-                                                            const bool drawCrosshairsFlag,
-                                                            const bool drawCrosshairLabelsFlag)
-{
-    CaretAssert(volume);
-    
-    GLboolean depthEnabled = GL_FALSE;
-    glGetBooleanv(GL_DEPTH_TEST,
-                  &depthEnabled);
-    glDisable(GL_DEPTH_TEST);
-    
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
-    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
-    
-    const float centerXYZ[3] = {
-        m_browserTabContent->getSliceCoordinateParasagittal(),
-        m_browserTabContent->getSliceCoordinateCoronal(),
-        m_browserTabContent->getSliceCoordinateAxial()
-    };
-    
-    const float bigValue = 10000.0;
-    
-    float horizontalAxisStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    float horizontalAxisEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    float verticalAxisStartXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    float verticalAxisEndXYZ[3] = {
-        centerXYZ[0],
-        centerXYZ[1],
-        centerXYZ[2]
-    };
-    
-    float axialRGBA[4];
-    getAxesColor(VolumeSliceViewPlaneEnum::AXIAL,
-                 axialRGBA);
-    
-    float coronalRGBA[4];
-    getAxesColor(VolumeSliceViewPlaneEnum::CORONAL,
-                 coronalRGBA);
-    
-    float paraRGBA[4];
-    getAxesColor(VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                 paraRGBA);
-    
-    AString horizontalLeftText  = "";
-    AString horizontalRightText = "";
-    AString verticalBottomText  = "";
-    AString verticalTopText     = "";
-    
-    float* horizontalAxisRGBA   = axialRGBA;
-    float* verticalAxisRGBA     = axialRGBA;
-    
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            horizontalLeftText   = "L";
-            horizontalRightText  = "R";
-            horizontalAxisRGBA = coronalRGBA;
-            horizontalAxisStartXYZ[0] -= bigValue;
-            horizontalAxisEndXYZ[0]   += bigValue;
-            
-            verticalBottomText = "P";
-            verticalTopText    = "A";
-            verticalAxisRGBA = paraRGBA;
-            verticalAxisStartXYZ[1] -= bigValue;
-            verticalAxisEndXYZ[1]   += bigValue;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            horizontalLeftText   = "L";
-            horizontalRightText  = "R";
-            horizontalAxisRGBA = axialRGBA;
-            horizontalAxisStartXYZ[0] -= bigValue;
-            horizontalAxisEndXYZ[0]   += bigValue;
-            
-            verticalBottomText = "D";
-            verticalTopText    = "V";
-            verticalAxisRGBA = paraRGBA;
-            verticalAxisStartXYZ[2] -= bigValue;
-            verticalAxisEndXYZ[2]   += bigValue;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            horizontalLeftText   = "A";
-            horizontalRightText  = "P";
-            horizontalAxisRGBA = axialRGBA;
-            horizontalAxisStartXYZ[1] -= bigValue;
-            horizontalAxisEndXYZ[1]   += bigValue;
-            
-            verticalBottomText = "D";
-            verticalTopText    = "V";
-            verticalAxisRGBA = coronalRGBA;
-            verticalAxisStartXYZ[2] -= bigValue;
-            verticalAxisEndXYZ[2]   += bigValue;
-            break;
-    }
-    
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT,
-                  viewport);
-    const int textOffset = 15;
-    const int textLeftWindowXY[2] = {
-        viewport[0] + textOffset,
-        viewport[1] + (viewport[3] / 2)
-    };
-    const int textRightWindowXY[2] = {
-        viewport[0] + viewport[2] - textOffset,
-        viewport[1] + (viewport[3] / 2)
-    };
-    const int textBottomWindowXY[2] = {
-        viewport[0] + viewport[2] / 2,
-        viewport[1] + textOffset
-    };
-    const int textTopWindowXY[2] = {
-        viewport[0] + (viewport[2] / 2),
-        viewport[1] + viewport[3] - textOffset
-    };
-    
-    /*
-     * Crosshairs
-     */
-    if (drawCrosshairsFlag) {
-        m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
-                                             horizontalAxisStartXYZ,
-                                             horizontalAxisEndXYZ,
-                                             axesCrosshairRadius);
-        
-        m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
-                                             verticalAxisStartXYZ,
-                                             verticalAxisEndXYZ,
-                                             axesCrosshairRadius);
-    }
-    
-    if (drawCrosshairLabelsFlag) {
-        const int fontHeight = 18;
-        
-        const int textCenter[2] = {
-            textLeftWindowXY[0],
-            textLeftWindowXY[1]
-        };
-        const int halfFontSize = fontHeight / 2;
-        
-        uint8_t backgroundRGBA[4];
-        prefs->getColorBackground(backgroundRGBA);
-        backgroundRGBA[3] = 255;
-        
-        GLint savedViewport[4];
-        glGetIntegerv(GL_VIEWPORT, savedViewport);
-        
-        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
-        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
-        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
-        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
-        MathFunctions::limitRange(vpLeftX,
-                                  savedViewport[0],
-                                  savedViewport[0] + savedViewport[2]);
-        MathFunctions::limitRange(vpRightX,
-                                  savedViewport[0],
-                                  savedViewport[0] + savedViewport[2]);
-        MathFunctions::limitRange(vpBottomY,
-                                  savedViewport[1],
-                                  savedViewport[1] + savedViewport[3]);
-        MathFunctions::limitRange(vpTopY,
-                                  savedViewport[1],
-                                  savedViewport[1] + savedViewport[3]);
-        
-        const int vpSizeX = vpRightX - vpLeftX;
-        const int vpSizeY = vpTopY - vpBottomY;
-        glViewport(vpLeftX, vpBottomY, vpSizeX, vpSizeY);
-        
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-        
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        std::vector<uint8_t> rgba;
-        std::vector<float> coords, normals;
-        
-        coords.push_back(-1.0);
-        coords.push_back(-1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        coords.push_back( 1.0);
-        coords.push_back(-1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        coords.push_back( 1.0);
-        coords.push_back( 1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        coords.push_back(-1.0);
-        coords.push_back( 1.0);
-        coords.push_back( 0.0);
-        normals.push_back(0.0);
-        normals.push_back(0.0);
-        normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
-        
-        
-        BrainOpenGLPrimitiveDrawing::drawQuads(coords,
-                                               normals,
-                                               rgba);
-        
-        glPopMatrix();
-        
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        
-        glViewport(savedViewport[0],
-                   savedViewport[1],
-                   savedViewport[2],
-                   savedViewport[3]);
-        
-        glColor4fv(horizontalAxisRGBA);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textLeftWindowXY[0],
-                                                                   textLeftWindowXY[1],
-                                                                   horizontalLeftText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   fontHeight);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textRightWindowXY[0],
-                                                                   textRightWindowXY[1],
-                                                                   horizontalRightText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   fontHeight);
-        
-        glColor4fv(verticalAxisRGBA);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textBottomWindowXY[0],
-                                                                   textBottomWindowXY[1],
-                                                                   verticalBottomText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   fontHeight);
-        m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textTopWindowXY[0],
-                                                                   textTopWindowXY[1],
-                                                                   verticalTopText,
-                                                                   BrainOpenGLTextRenderInterface::X_CENTER,
-                                                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-                                                                   fontHeight);
-    }
-    
-    if (depthEnabled) {
-        glEnable(GL_DEPTH_TEST);
-    }
-}
-
-
-
 void
 BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const VolumeSliceViewModeEnum::Enum sliceViewMode,
