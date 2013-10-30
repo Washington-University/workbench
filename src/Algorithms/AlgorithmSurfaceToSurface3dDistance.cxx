@@ -25,8 +25,8 @@
 #include "AlgorithmSurfaceToSurface3dDistance.h"
 #include "AlgorithmException.h"
 
-#include "SurfaceFile.h"
 #include "MetricFile.h"
+#include "SurfaceFile.h"
 #include "Vector3D.h"
 
 using namespace caret;

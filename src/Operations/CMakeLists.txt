@@ -53,6 +53,7 @@ OperationSetStructure.h
 OperationShowScene.h
 OperationSpecFileMerge.h
 OperationSurfaceClosestVertex.h
+OperationSurfaceCoordinatesToMetric.h
 OperationSurfaceFlipNormals.h
 OperationSurfaceGeodesicDistance.h
 OperationSurfaceGeodesicROIs.h
@@ -102,6 +103,7 @@ OperationSetStructure.cxx
 OperationShowScene.cxx
 OperationSpecFileMerge.cxx
 OperationSurfaceClosestVertex.cxx
+OperationSurfaceCoordinatesToMetric.cxx
 OperationSurfaceFlipNormals.cxx
 OperationSurfaceGeodesicDistance.cxx
 OperationSurfaceGeodesicROIs.cxx
