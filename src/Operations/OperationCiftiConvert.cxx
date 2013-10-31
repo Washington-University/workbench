@@ -118,14 +118,8 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
-        NiftiIntentEnum::Enum myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE;
-        const CiftiXML& myXML = myInFile->getCiftiXML();
-        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS ||
-            myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
-        {
-            myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE_TIME;
-        }
-        GiftiDataArray* myArray = new GiftiDataArray(myIntent, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
+        const CiftiXML& myXML = myInFile->getCiftiXML();//soft of hack - metric files use "normal" when they really mean none, using the same thing as metric files means it should just work
+        GiftiDataArray* myArray = new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         float* myOutData = myArray->getDataPointerFloat();
         for (int i = 0; i < myInFile->getNumberOfRows(); ++i)
         {
