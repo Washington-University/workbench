@@ -5570,20 +5570,20 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                   viewport);
     const int textOffset = 15;
     const int textLeftWindowXY[2] = {
-        viewport[0] + textOffset,
-        viewport[1] + (viewport[3] / 2)
+        textOffset,
+        (viewport[3] / 2)
     };
     const int textRightWindowXY[2] = {
-        viewport[0] + viewport[2] - textOffset,
-        viewport[1] + (viewport[3] / 2)
+        viewport[2] - textOffset,
+        (viewport[3] / 2)
     };
     const int textBottomWindowXY[2] = {
-        viewport[0] + viewport[2] / 2,
-        viewport[1] + textOffset
+        viewport[2] / 2,
+        textOffset
     };
     const int textTopWindowXY[2] = {
-        viewport[0] + (viewport[2] / 2),
-        viewport[1] + viewport[3] - textOffset
+        (viewport[2] / 2),
+        viewport[3] - textOffset
     };
     
     /*
