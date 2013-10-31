@@ -3579,9 +3579,6 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     transformationMatrix.multiplyPoint3(topRight);
     transformationMatrix.multiplyPoint3(topLeft);
     
-    
-    std::cout << qPrintable(plane.toString()) << std::endl;
-    
 //    /*
 //     * Because coordinates are adjusted here, the plane equation 
 //     * must be updated so layers (volume surface outline, etc)
