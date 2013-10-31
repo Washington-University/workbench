@@ -2453,6 +2453,8 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
         
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     
+    m_fixedPipelineDrawing->applyClippingPlanes();
+    
     /*
      * Check for a 'selection' type mode
      */
@@ -2501,16 +2503,18 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
     
     
     
-        if ( ! m_identificationModeFlag) {
-            if (slicePlane.isValidPlane()) {
-                drawLayers(slicePlane,
-                           obliqueTransformationMatrix,
-                           m_volumeDrawInfo[0].volumeFile,
-                           sliceViewPlane,
-                           drawMode);
-            }
+    if ( ! m_identificationModeFlag) {
+        if (slicePlane.isValidPlane()) {
+            drawLayers(slicePlane,
+                       obliqueTransformationMatrix,
+                       m_volumeDrawInfo[0].volumeFile,
+                       sliceViewPlane,
+                       drawMode);
         }
-        
+    }
+    
+    m_fixedPipelineDrawing->disableClippingPlanes();
+    
     /*
      * Process selection
      */

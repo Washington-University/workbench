@@ -445,6 +445,8 @@ namespace caret {
         
         void applyClippingPlanes();
         
+        void disableClippingPlanes();
+        
         void getVolumeFitToWindowScalingAndTranslation(const VolumeMappableInterface* volume,
                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                        const double orthographicExtent[6],

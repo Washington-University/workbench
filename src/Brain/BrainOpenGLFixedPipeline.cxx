@@ -546,12 +546,11 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForSurfaceFile(con
     glMatrixMode(GL_MODELVIEW);
 }
 
-
 /**
- * Apply the clipping planes.
+ * Disable clipping planes.
  */
 void
-BrainOpenGLFixedPipeline::applyClippingPlanes()
+BrainOpenGLFixedPipeline::disableClippingPlanes()
 {
     glDisable(GL_CLIP_PLANE0);
     glDisable(GL_CLIP_PLANE1);
@@ -559,6 +558,16 @@ BrainOpenGLFixedPipeline::applyClippingPlanes()
     glDisable(GL_CLIP_PLANE3);
     glDisable(GL_CLIP_PLANE4);
     glDisable(GL_CLIP_PLANE5);
+}
+
+
+/**
+ * Apply the clipping planes.
+ */
+void
+BrainOpenGLFixedPipeline::applyClippingPlanes()
+{
+    disableClippingPlanes();
     
     if (browserTabContent != NULL) {
         /*
