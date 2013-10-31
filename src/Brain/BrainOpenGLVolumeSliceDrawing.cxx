@@ -1575,7 +1575,7 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
      * This is the only modeling transform needed and apply
      * the user's zooming.
      */
-        const float zoom = m_browserTabContent->getScaling();
+//        const float zoom = m_browserTabContent->getScaling();
 //JWH        glScalef(zoom, zoom, zoom);
 
 
@@ -2506,7 +2506,6 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
             drawLayers(slicePlane,
-                       obliqueTransformationMatrix,
                        m_volumeDrawInfo[0].volumeFile,
                        sliceViewPlane,
                        drawMode);
@@ -2543,7 +2542,6 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
-                                              const Matrix4x4& transformationMatrix,
                                               const VolumeMappableInterface* volume,
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                               const DRAW_MODE drawMode)
@@ -2580,11 +2578,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
                 glGetBooleanv(GL_DEPTH_TEST,
                               &depthBufferEnabled);
                 glPushMatrix();
-                drawAxesCrosshairs(slicePlane,
-                                   transformationMatrix,
-                                   volume,
-                                   sliceViewPlane,
-                                   drawMode);
+                drawAxesCrosshairs(volume,
+                                   sliceViewPlane);
                 glPopMatrix();
                 if (depthBufferEnabled) {
                     glEnable(GL_DEPTH_TEST);
@@ -4223,23 +4218,14 @@ BrainOpenGLVolumeSliceDrawing::drawDebugSquare()
 /**
  * Draw the axes crosshairs.
  *
- * @param slicePlane
- *    The equation of the slice plane.
- * @param transformationMatrix
- *    The transformation matrix used for oblique viewing.
  * @param volume
  *    The underlay volume.
  * @param sliceViewPlane
  *    The slice view plane.
- * @param drawMode
- *    The slice drawing mode.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const Plane& slicePlane,
-                                                  const Matrix4x4& transformationMatrix,
-                                                      const VolumeMappableInterface* volume,
-                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                      const DRAW_MODE drawMode)
+BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeMappableInterface* volume,
+                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
 {
     CaretAssert(volume);
     
