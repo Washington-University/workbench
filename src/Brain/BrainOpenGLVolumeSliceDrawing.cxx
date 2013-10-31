@@ -3247,7 +3247,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const VolumeSliceViewPl
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                    Plane& plane,
+                                                    const Plane& plane,
                                                     const DRAW_MODE drawMode,
                                                     const Matrix4x4& transformationMatrix,
                                                     const float zoom)
@@ -3525,42 +3525,42 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         case VolumeSliceViewPlaneEnum::AXIAL:
             bottomLeft[0] = minScreenX;
             bottomLeft[1] = minScreenY;
-            bottomLeft[2] = originVoxelXYZ[2]; // 0;
+            bottomLeft[2] = 0.0; //originVoxelXYZ[2]; // 0;
             bottomRight[0] = maxScreenX;
             bottomRight[1] = minScreenY;
-            bottomRight[2] = originVoxelXYZ[2]; //;
+            bottomRight[2] = 0.0; //originVoxelXYZ[2]; //;
             topRight[0] = maxScreenX;
             topRight[1] = maxScreenY;
-            topRight[2] = originVoxelXYZ[2]; //;
+            topRight[2] = 0.0; //originVoxelXYZ[2]; //;
             topLeft[0] = minScreenX;
             topLeft[1] = maxScreenY;
-            topLeft[2] = originVoxelXYZ[2]; //;
+            topLeft[2] = 0.0; //originVoxelXYZ[2]; //;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             bottomLeft[0] = minScreenX;
-            bottomLeft[1] = originVoxelXYZ[1]; //0;
+            bottomLeft[1] = 0.0; //originVoxelXYZ[1]; //0;
             bottomLeft[2] = minScreenY;
             bottomRight[0] = maxScreenX;
-            bottomRight[1] = originVoxelXYZ[1]; //0;
+            bottomRight[1] = 0.0; //originVoxelXYZ[1]; //0;
             bottomRight[2] = minScreenY;
             topRight[0] = maxScreenX;
-            topRight[1] = originVoxelXYZ[1]; //0;
+            topRight[1] = 0.0; //originVoxelXYZ[1]; //0;
             topRight[2] = maxScreenY;
             topLeft[0] = minScreenX;
-            topLeft[1] = originVoxelXYZ[1]; //0;
+            topLeft[1] = 0.0; //originVoxelXYZ[1]; //0;
             topLeft[2] = maxScreenY;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            bottomLeft[0] = originVoxelXYZ[0]; //   0;
+            bottomLeft[0] = 0.0; // originVoxelXYZ[0]; //   0;
             bottomLeft[1] = minScreenX;
             bottomLeft[2] = minScreenY;
-            bottomRight[0] = originVoxelXYZ[0]; //0
+            bottomRight[0] = 0.0; // originVoxelXYZ[0]; //0
             bottomRight[1] = maxScreenX;
             bottomRight[2] = minScreenY;
-            topRight[0] = originVoxelXYZ[0]; //0
+            topRight[0] = 0.0; // originVoxelXYZ[0]; //0
             topRight[1] = maxScreenX;
             topRight[2] = maxScreenY;
-            topLeft[0] = originVoxelXYZ[0]; //0
+            topLeft[0] = 0.0; // originVoxelXYZ[0]; //0
             topLeft[1] = minScreenX;
             topLeft[2] = maxScreenY;
             break;
@@ -3576,22 +3576,23 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     transformationMatrix.multiplyPoint3(topLeft);
     
     
+    std::cout << qPrintable(plane.toString()) << std::endl;
     
-    /*
-     * Because coordinates are adjusted here, the plane equation 
-     * must be updated so layers (volume surface outline, etc)
-     * is drawn properly.
-     */
-    Plane newPlane(bottomLeft, bottomRight, topRight);
-    
-    if (debugFlag) {
-        const AString msg = ("Original Plane: "
-                         + plane.toString()
-                         + "\nNew Plane: "
-                         + newPlane.toString());
-        std::cout << qPrintable(msg) << std::endl;
-    }
-    plane = newPlane;
+//    /*
+//     * Because coordinates are adjusted here, the plane equation 
+//     * must be updated so layers (volume surface outline, etc)
+//     * is drawn properly.
+//     */
+//    Plane newPlane(bottomLeft, bottomRight, topRight);
+//    
+////    if (debugFlag) {
+//        const AString msg = ("Original Plane: "
+//                         + plane.toString()
+//                         + "\nNew Plane: "
+//                         + newPlane.toString());
+//        std::cout << qPrintable(msg) << std::endl;
+////    }
+//    plane = newPlane;
     
     
     if (debugFlag) {
