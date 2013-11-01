@@ -127,7 +127,6 @@ BrainOpenGLPrimitiveDrawing::drawQuads(const std::vector<float>& coordinates,
                                normals,
                                rgbaColors);
         wasDrawnWithVertexBuffers = true;
-        std::cout << "Using vertex buffers!!" << std::endl;
     }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     

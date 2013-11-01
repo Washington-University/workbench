@@ -1966,13 +1966,13 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
             break;
     }
     
-    /*
-     * Use some polygon offset that will adjust the depth values of the 
-     * foci so that the foci depth values place the foci in front of
-     * the volume slice.
-     */
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(0.0, -1.0);
+//    /*
+//     * Use some polygon offset that will adjust the depth values of the 
+//     * foci so that the foci depth values place the foci in front of
+//     * the volume slice.
+//     */
+//    glEnable(GL_POLYGON_OFFSET_FILL);
+//    glPolygonOffset(0.0, -1.0);
     
     /*
      * Process each foci file
@@ -2080,10 +2080,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
         }
     }
     
-    /*
-     * Disable the polygon offset
-     */
-    glDisable(GL_POLYGON_OFFSET_FILL);
+//    /*
+//     * Disable the polygon offset
+//     */
+//    glDisable(GL_POLYGON_OFFSET_FILL);
 
     if (isSelect) {
         int32_t fociFileIndex = -1;
@@ -2494,7 +2494,8 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
             break;
         case VolumeSliceViewModeEnum::MONTAGE:
         case VolumeSliceViewModeEnum::ORTHOGONAL:
-            drawOrthogonalSlice(sliceViewPlane,
+            drawOrthogonalSlice(drawMode,
+                                sliceViewPlane,
                                 slicePlane,
                                 montageSliceIndex);
             break;
@@ -2608,7 +2609,7 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
                 drawSurfaceOutline(slicePlane);
             }
             
-            glEnable(GL_POLYGON_OFFSET_FILL);
+            glDisable(GL_POLYGON_OFFSET_FILL);
             
             glPopMatrix();
             
@@ -2623,6 +2624,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
 /**
  * Draw an orthogonal slice.
  *
+ * @param drawMode
+ *    The drawing mode.
  * @param sliceViewPlane
  *    The slice plane being viewed.
  * @param plane
@@ -2631,7 +2634,8 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
  *    The montage slice for drawing in montage mode.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const DRAW_MODE drawMode,
+                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                        const Plane& plane,
                                                        const int32_t montageSliceIndex)
 {
@@ -2953,6 +2957,20 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
         }
         
         /*
+         * For second and subsequent layers, polygon offset is needed to 
+         * prevent the previous and current layers from having similar 
+         * depth values.  If not, when a slice is rotated (particularly in
+         * in All Structure View, the under layer will sometimes be 
+         * displayed.
+         */
+        if (drawMode == DRAW_MODE_ALL_STRUCTURES_VIEW) {
+            if (iVol > 0) {
+                glEnable(GL_POLYGON_OFFSET_FILL);
+                glPolygonOffset(-1.0, -1.0);
+            }
+        }
+        
+        /*
          * Draw the voxels in the slice.
          */
         drawOrthogonalSliceVoxels(sliceViewPlane,
@@ -2967,6 +2985,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                   iVol,
                                   mapIndex,
                                   volumeDrawingOpacity);
+        
+        glDisable(GL_POLYGON_OFFSET_FILL);
     }
     glDisable(GL_BLEND);
     glShadeModel(GL_SMOOTH);

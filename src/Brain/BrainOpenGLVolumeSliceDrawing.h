@@ -206,7 +206,8 @@ namespace caret {
                                    float& minSpacingOut,
                                    float& maxSpacingOut) const;
         
-        void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawOrthogonalSlice(const DRAW_MODE drawMode,
+                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const Plane& plane,
                                  const int32_t montageSliceIndex);
         
