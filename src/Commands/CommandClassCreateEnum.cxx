@@ -73,6 +73,15 @@ CommandClassCreateEnum::getHelpInformation(const AString& /*programName*/)
                         "        to the enumerated values.  Value for this parameter\n"
                         "        are \"true\" and \"false\".\n"
                         "    \n"
+                        "    [enum-name-1] [enum-name-2]...[enum-name-N]\n"
+                        "        Optional names for the enumerated values.  \n"
+                        "        \n"
+                        "        If the number of names listed is greater than\n"
+                        "        the \"number-of-values\" parameter, the \"number-of-values\"\n"
+                        "        will become the number of names.  If the number\n"
+                        "        of names is is less than the \"number-of-values\",\n"
+                        "        empty entries will be created.\n"
+                        "        \n"
                         );
     return helpInfo; 
 }
@@ -92,8 +101,19 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
                                                                ProgramParametersException)
 {
     const AString enumClassName = parameters.nextString("Enum Class Name");
-    const int32_t numberOfEnumValues = parameters.nextInt("Number of Enum Values");
+    int32_t numberOfEnumValues = parameters.nextInt("Number of Enum Values");
     const bool isAutoNumber = parameters.nextBoolean("Auto Number (true/false)");
+    
+    std::vector<AString> enumValueNames;
+    while (parameters.hasNext()) {
+        enumValueNames.push_back(parameters.nextString("Enum Value"));
+    }
+    const int32_t numEnumValueNames = static_cast<int32_t>(enumValueNames.size());
+    if (numEnumValueNames > 0) {
+        if (numEnumValueNames > numberOfEnumValues) {
+            numberOfEnumValues = numEnumValueNames;
+        }
+    }
     
     if (enumClassName.isEmpty()) {
         throw CommandException("Enum class name is empty.");
@@ -134,12 +154,14 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
                            ifndefName, 
                            ifdefNameStaticDeclarations, 
                            numberOfEnumValues,
+                           enumValueNames,
                            isAutoNumber);
     
     this->createImplementationFile(implementationFileName,
                                    enumClassName, 
                                    ifdefNameStaticDeclarations, 
                                    numberOfEnumValues,
+                                   enumValueNames,
                                    isAutoNumber);
 }
 
@@ -156,6 +178,10 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
  *    Name for "infdef" of static declarations.
  * @param numberOfEnumValues
  *    Number of enumerated type values.
+ * @param enumValueNames
+ *    Names for the enumerated values.
+ * @param isAutoNumber
+ *    Automatically assign numers/indices to the enumerated values.
  */
 void 
 CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
@@ -163,6 +189,7 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
                                          const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
                                          const int32_t numberOfEnumValues,
+                                         const std::vector<AString>& enumValueNames,
                                          const bool isAutoNumber)
 {
     AString t;
@@ -188,11 +215,17 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     
     for (int indx = 0; indx < numberOfEnumValues; indx++) {
         t += ("        /** */\n");
+        
+        t += ("        ");
+        if (indx < static_cast<int32_t>(enumValueNames.size())) {
+            t +=enumValueNames[indx];
+        }
+        
         if (indx < (numberOfEnumValues - 1)) {
-            t += ("        ,\n");
+            t += (",\n");
         }
         else {
-            t += ("        \n");
+            t += ("\n");
         }
     }
     
@@ -290,12 +323,17 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
  *    Name for "infdef" of static declarations.
  * @param numberOfEnumValues
  *    Number of enumerated type values.
+ * @param enumValueNames
+ *    Names for the enumerated values.
+ * @param isAutoNumber
+ *    Automatically assign numers/indices to the enumerated values.
  */
 void 
 CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
                                                  const AString& enumClassName,
                                                  const AString& ifdefNameStaticDeclaration,
                                                  const int32_t numberOfEnumValues,
+                                                 const std::vector<AString>& enumValueNames,
                                                  const bool isAutoNumber)
 {
     AString t;
@@ -379,11 +417,15 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("\n");
     
     for (int32_t indx = 0; indx < numberOfEnumValues; indx++) {
-        t += ("    enumData.push_back(" + enumClassName + "(, \n");
+        AString name = "";
+        if (indx < static_cast<int32_t>(enumValueNames.size())) {
+            name = enumValueNames[indx];
+        }
+        t += ("    enumData.push_back(" + enumClassName + "(" + name + ", \n");
         if (isAutoNumber == false) {
             t += ("                                    " + AString::number(indx) + ", \n");
         }
-        t += ("                                    \"\", \n");
+        t += ("                                    \"" + name + "\", \n");
         t += ("                                    \"\"));\n");
         t += ("    \n");
     }

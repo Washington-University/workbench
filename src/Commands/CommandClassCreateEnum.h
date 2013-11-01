@@ -55,12 +55,14 @@ namespace caret {
                               const AString& ifdefName,
                               const AString& ifdefNameStaticDeclaration,
                               const int32_t numberOfEnumValues,
+                              const std::vector<AString>& enumValueNames,
                               const bool isAutoNumber);
         
         void createImplementationFile(const AString& outputFileName,
                                       const AString& enumClassName,
                                       const AString& ifdefNameStaticDeclaration,
                                       const int32_t numberOfEnumValues,
+                                      const std::vector<AString>& enumValueNames,
                                       const bool isAutoNumber);
         
         AString getEnumComboBoxTemplateHelpInfo(const AString& enumClassName) const;
