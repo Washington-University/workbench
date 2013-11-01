@@ -77,6 +77,7 @@ namespace caret {
         const float m_outerRadius;
         
         GLuint m_coordinatesBufferID;
+        GLuint m_coordinatesRgbaByteBufferID;
         GLuint m_normalBufferID;
         GLuint m_triangleStripBufferID;
         
@@ -84,6 +85,8 @@ namespace caret {
         GLuint m_displayList;
         
         std::vector<GLfloat> m_coordinates;
+        
+        std::vector<GLubyte> m_rgbaByte;
         
         std::vector<GLfloat> m_normals;
         

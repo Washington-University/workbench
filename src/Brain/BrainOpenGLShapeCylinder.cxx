@@ -284,7 +284,6 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Put coordinates into its buffer.
                  */
@@ -296,9 +295,6 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
                              &m_coordinates[0],
                              GL_STATIC_DRAW);
                 
-                /*
-                 * Put BYTE colors into its buffer
-                 */
                 m_coordinatesRgbaByteBufferID = createBufferID();
                 glBindBuffer(GL_ARRAY_BUFFER,
                              m_coordinatesRgbaByteBufferID);
@@ -348,7 +344,6 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
                              0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                              0);
-            }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
@@ -482,7 +477,6 @@ BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode,
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Enable vertices and normals for buffers
                  */
@@ -501,24 +495,36 @@ BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode,
                                 (GLvoid*)0);
                 
                 /*
-                 * Set BYTE color components for drawing
+                 * Put BYTE colors into its buffer
                  */
+                const int64_t numRGBA = static_cast<int64_t>(m_rgbaByte.size()) / 4;
+                for (int64_t ir = 0; ir < numRGBA; ir++) {
+                    const int64_t ir4 = ir * 4;
+                    m_rgbaByte[ir4]   = rgba[0];
+                    m_rgbaByte[ir4+1] = rgba[1];
+                    m_rgbaByte[ir4+2] = rgba[2];
+                    m_rgbaByte[ir4+3] = rgba[3];
+                }
                 glBindBuffer(GL_ARRAY_BUFFER,
                              m_coordinatesRgbaByteBufferID);
+                glBufferData(GL_ARRAY_BUFFER,
+                             m_rgbaByte.size() * sizeof(GLubyte),
+                             &m_rgbaByte[0],
+                             GL_DYNAMIC_DRAW);
                 glColorPointer(4,
                                 GL_UNSIGNED_BYTE,
                                 0,
                                 (GLvoid*)0);
                 
-                /*
-                 * Set FLOAT color components for drawing
-                 */
-                glBindBuffer(GL_ARRAY_BUFFER,
-                             m_coordinatesRgbaFloatBufferID);
-                glColorPointer(4,
-                               GL_FLOAT,
-                               0,
-                               (GLvoid*)0);
+//                /*
+//                 * Set FLOAT color components for drawing
+//                 */
+//                glBindBuffer(GL_ARRAY_BUFFER,
+//                             m_coordinatesRgbaFloatBufferID);
+//                glColorPointer(4,
+//                               GL_FLOAT,
+//                               0,
+//                               (GLvoid*)0);
                 
                 /*
                  * Set the side normal vectors for drawing.
@@ -563,7 +569,6 @@ BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode,
                 glDisableClientState(GL_VERTEX_ARRAY);
                 glDisableClientState(GL_NORMAL_ARRAY);
                 glDisableClientState(GL_COLOR_ARRAY);
-            }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }

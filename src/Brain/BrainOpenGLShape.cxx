@@ -166,7 +166,6 @@ BrainOpenGLShape::createBufferID()
 {
     GLuint id = 0;
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::isVertexBuffersSupported()) {
         glGenBuffers(1, &id);
         
         if (id > 0) {
@@ -175,7 +174,6 @@ BrainOpenGLShape::createBufferID()
         else {
             CaretLogSevere("Failed to create a new OpenGL Vertex Buffer");
         }
-    }
 #else // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     CaretLogSevere("PROGRAM ERROR: Creating OpenGL vertex buffer but vertex buffers not supported.");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
@@ -205,7 +203,6 @@ void
 BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID)
 {
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::isVertexBuffersSupported()) {
         if (glIsBuffer(bufferID)) {
             glDeleteBuffers(1, &bufferID);
             
@@ -215,7 +212,6 @@ BrainOpenGLShape::releaseBufferIDInternal(const GLuint bufferID)
             CaretLogSevere("PROGRAM ERROR: Attempting to delete invalid OpenGL BufferID="
                            + AString::number(bufferID));
         }
-    }
 #else  // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     CaretLogSevere("PROGRAM ERROR: Releasing OpenGL vertex buffer #" + AString::number(bufferID) + " but vertex buffers not supported.");
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS

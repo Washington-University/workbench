@@ -34,6 +34,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -158,18 +160,29 @@ BrainOpenGL::getRuntimeLibraryVersionOfOpenGL()
 bool
 BrainOpenGL::testForVersionOfOpenGLSupported(const AString& versionOfOpenGL)
 {
-    AString majorVersion;
-    AString minorVersion;
+    AString desiredMajorVersion;
+    AString desiredMinorVersion;
     getOpenGLMajorMinorVersions(versionOfOpenGL,
-                                majorVersion,
-                                minorVersion);
+                                desiredMajorVersion,
+                                desiredMinorVersion);
 
-    if (majorVersion.toInt() < s_runtimeLibraryMajorVersionOfOpenGL.toInt()) {
+    /*
+     * If desired MAJOR version is LESS THAN the runtime MAJOR version
+     * then is it supported.
+     */
+    if (desiredMajorVersion.toInt() < s_runtimeLibraryMajorVersionOfOpenGL.toInt()) {
         return true;
     }
     
-    if (s_runtimeLibraryMajorVersionOfOpenGL.toInt() == majorVersion.toInt()) {
-        if (minorVersion.toInt() < s_runtimeLibraryMinorVersionOfOpenGL.toInt()) {
+    /*
+     * Is the desired MAJOR version THE SAME as the runtime MAJOR version
+     */
+    if (s_runtimeLibraryMajorVersionOfOpenGL.toInt() == desiredMajorVersion.toInt()) {
+        /*
+         * If the desired MINOR version is LESS THAN OR EQUAL to the 
+         * runtime MINOR version, then it is supported.
+         */
+        if (desiredMinorVersion.toInt() <= s_runtimeLibraryMinorVersionOfOpenGL.toInt()) {
             return true;
         }
     }
@@ -380,7 +393,7 @@ BrainOpenGL::initializeOpenGL()
                            "OpenGL may fail.");
         }
     }
-    
+
 #if BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE
     s_drawingMode = DRAW_MODE_IMMEDIATE;
     s_supportsImmediateMode = true;
@@ -392,9 +405,19 @@ BrainOpenGL::initializeOpenGL()
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::isRuntimeVersionOfOpenGLSupported("2.1")) {
-        s_drawingMode = DRAW_MODE_VERTEX_BUFFERS;
-        s_supportsVertexBuffers = true;
+    if (BrainOpenGL::testForVersionOfOpenGLSupported("2.1")) {
+        /*
+         * See if user wants to use OpenGL Buffers
+         */
+        const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        switch (prefs->getOpenDrawingMethod()) {
+            case OpenGLDrawingMethodEnum::DRAW_IMMEDIATE_MODE:
+                break;
+            case OpenGLDrawingMethodEnum::DRAW_WITH_BUFFERS:
+                s_drawingMode = DRAW_MODE_VERTEX_BUFFERS;
+                s_supportsVertexBuffers = true;
+                break;
+        }
     }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     

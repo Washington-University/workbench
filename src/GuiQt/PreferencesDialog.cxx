@@ -42,10 +42,12 @@
 #include "Brain.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventUpdateAnimationStartTime.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "OpenGLDrawingMethodEnum.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
 #include "WuQFactory.h"
@@ -93,6 +95,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     this->addColorItems();
     this->addLoggingItems();
+    this->addOpenGLItems();
     this->addSplashItems();
     this->addTimeCourseItems();
     this->addVolumeItems();
@@ -180,7 +183,10 @@ PreferencesDialog::updateDialog()
     if (indx >= 0) {
         this->loggingLevelComboBox->setCurrentIndex(indx);
     }
-        
+
+    const OpenGLDrawingMethodEnum::Enum drawingMethod = prefs->getOpenDrawingMethod();
+    m_openGLDrawingMethodEnumComboBox->setSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>(drawingMethod);
+
     this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
@@ -288,6 +294,32 @@ PreferencesDialog::addColorItems()
                              this->foregroundColorWidget);
 }
 
+/**
+ * Called when the OpenGL drawing method is changed.
+ */
+void
+PreferencesDialog::openGLDrawingMethodEnumComboBoxItemActivated()
+{
+    const OpenGLDrawingMethodEnum::Enum drawingMethod = m_openGLDrawingMethodEnumComboBox->getSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setOpenGLDrawingMethod(drawingMethod);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Creates OpenGL Items.
+ */
+void
+PreferencesDialog::addOpenGLItems()
+{
+    m_openGLDrawingMethodEnumComboBox = new EnumComboBoxTemplate(this);
+    m_openGLDrawingMethodEnumComboBox->setup<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>();
+    QObject::connect(m_openGLDrawingMethodEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(openGLDrawingMethodEnumComboBoxItemActivated()));
+    
+    this->addWidgetToLayout("OpenGL Drawing",
+                            m_openGLDrawingMethodEnumComboBox->getWidget());
+}
 /**
  * Creates time course widget.
  */

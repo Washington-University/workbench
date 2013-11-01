@@ -36,6 +36,7 @@
 #include "BrainOpenGLPrimitiveDrawing.h"
 #undef __BRAIN_OPEN_G_L_PRIMITIVE_DRAWING_DECLARE__
 
+#include "BrainOpenGL.h"
 #include "CaretOpenGLInclude.h"
 
 #include "CaretAssert.h"
@@ -121,7 +122,7 @@ BrainOpenGLPrimitiveDrawing::drawQuads(const std::vector<float>& coordinates,
     
     bool wasDrawnWithVertexBuffers = false;
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::isVertexBuffersSupported()) {
+    if (BrainOpenGL::getBestDrawingMode() == BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS) {
         drawQuadsVertexBuffers(coordinates,
                                normals,
                                rgbaColors);
@@ -257,7 +258,6 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexBuffers(const std::vector<float>& co
     const uint64_t numCoords  = coordinates.size() / 3;
     
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::isVertexBuffersSupported()) {
         /*
          * Put vertices (coordinates) into its buffer.
          */
@@ -369,12 +369,12 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexBuffers(const std::vector<float>& co
                      0);
         
         glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
         glDisableClientState(GL_NORMAL_ARRAY);
         
         glDeleteBuffers(1, &vertexBufferID);
         glDeleteBuffers(1, &normalBufferID);
         glDeleteBuffers(1, &colorBufferID);
-    }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
 }
 

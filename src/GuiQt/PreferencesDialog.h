@@ -36,6 +36,7 @@ class QSpinBox;
 
 namespace caret {
     
+    class EnumComboBoxTemplate;
     class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
     
@@ -56,6 +57,7 @@ namespace caret {
         void backgroundColorPushButtonPressed();
         void foregroundColorPushButtonPressed();
         void loggingLevelComboBoxChanged(int);
+        void openGLDrawingMethodEnumComboBoxItemActivated();
         
         void volumeAxesCrosshairsComboBoxToggled(bool value);
         void volumeAxesLabelsComboBoxToggled(bool value);
@@ -73,6 +75,7 @@ namespace caret {
         void addColorItems();
         void addDevelopItems();
         void addLoggingItems();
+        void addOpenGLItems();
         void addSplashItems();
         void addVolumeItems();
         void addTimeCourseItems();
@@ -91,6 +94,8 @@ namespace caret {
         QWidget* backgroundColorWidget;
 
         QComboBox* loggingLevelComboBox;
+        
+        EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
         
         WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* volumeAxesLabelsComboBox;

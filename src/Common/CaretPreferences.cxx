@@ -1029,6 +1029,29 @@ CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
 }
 
 /**
+ * @return The OpenGL Drawing method.
+ */
+OpenGLDrawingMethodEnum::Enum
+CaretPreferences::getOpenDrawingMethod() const
+{
+    return this->openGLDrawingMethod;
+}
+
+/**
+ * Set the OpenGL Drawing method.
+ *
+ * @param openGLDrawingMethod
+ *    New value for OpenGL Drawing method.
+ */
+void
+CaretPreferences::setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod)
+{
+    this->openGLDrawingMethod = openGLDrawingMethod;
+    this->setString(NAME_OPENGL_DRAWING_METHOD,
+                    OpenGLDrawingMethodEnum::toName(this->openGLDrawingMethod));
+}
+
+/**
  * @return Save remote login to preferences.
  */
 bool
@@ -1358,6 +1381,11 @@ CaretPreferences::readPreferences()
         logLevel = LogLevelEnum::INFO;
     }
     this->setLoggingLevel(logLevel);
+    
+    AString openGLDrawingMethodName = this->qSettings->value(NAME_OPENGL_DRAWING_METHOD,
+                                                             OpenGLDrawingMethodEnum::toName(OpenGLDrawingMethodEnum::DRAW_IMMEDIATE_MODE)).toString();
+    this->openGLDrawingMethod = OpenGLDrawingMethodEnum::fromName(openGLDrawingMethodName,
+                                                                  NULL);
     
     this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS,
                                                      true);

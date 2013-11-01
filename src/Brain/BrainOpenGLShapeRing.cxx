@@ -66,6 +66,7 @@ BrainOpenGLShapeRing::BrainOpenGLShapeRing(const int32_t numberOfSides,
     m_displayList    = 0;
     
     m_coordinatesBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
     m_normalBufferID = 0;
     m_triangleStripBufferID = 0;
     m_isApplyColoring = true;
@@ -157,6 +158,22 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
 //    }
 //    glEnd();
     
+    /*
+     * Create storage for colors
+     */
+    const int64_t numCoords = static_cast<int64_t>(m_coordinates.size()) / 3;
+    const int64_t numRGBA = numCoords * 4;
+    m_rgbaByte.resize(numRGBA * 4, 0);
+    for (GLuint i = 0; i < numCoords; i++) {
+        const int32_t i4 = i * 4;
+        
+        CaretAssertVectorIndex(m_rgbaByte, i4+3);
+        m_rgbaByte[i4]   = 0;
+        m_rgbaByte[i4+1] = 0;
+        m_rgbaByte[i4+2] = 0;
+        m_rgbaByte[i4+3] = 255;
+    }
+    
 
     
     switch (drawMode) {
@@ -188,7 +205,6 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Put coordinates into its buffer.
                  */
@@ -199,7 +215,18 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
                              m_coordinates.size() * sizeof(GLfloat),
                              &m_coordinates[0],
                              GL_STATIC_DRAW);
-                
+            
+            /*
+             * For RGBA coloring
+             */
+            m_coordinatesRgbaByteBufferID = createBufferID();
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         m_coordinatesRgbaByteBufferID);
+            glBufferData(GL_ARRAY_BUFFER,
+                         m_rgbaByte.size() * sizeof(GLubyte),
+                         &m_rgbaByte[0],
+                         GL_DYNAMIC_DRAW);
+            
                 /*
                  * Put side normals into its buffer.
                  */
@@ -229,7 +256,6 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
                              0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                              0);
-            }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
@@ -305,13 +331,13 @@ BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Enable vertices and normals for buffers
                  */
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glEnableClientState(GL_NORMAL_ARRAY);
-                
+            glEnableClientState(GL_COLOR_ARRAY);
+            
                 /*
                  * Set the vertices for drawing.
                  */
@@ -322,6 +348,30 @@ BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
                                 0,
                                 (GLvoid*)0);
                 
+            /*
+             * Put BYTE colors into its buffer
+             */
+            const int64_t numRGBA = static_cast<int64_t>(m_rgbaByte.size()) / 4;
+            for (int64_t ir = 0; ir < numRGBA; ir++) {
+                const int64_t ir4 = ir * 4;
+                CaretAssertVectorIndex(m_rgbaByte, ir4+3);
+                m_rgbaByte[ir4]   = rgba[0];
+                m_rgbaByte[ir4+1] = rgba[1];
+                m_rgbaByte[ir4+2] = rgba[2];
+                m_rgbaByte[ir4+3] = rgba[3];
+            }
+            CaretAssert(glIsBuffer(m_coordinatesRgbaByteBufferID) == GL_TRUE);
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         m_coordinatesRgbaByteBufferID);
+            glBufferData(GL_ARRAY_BUFFER,
+                         m_rgbaByte.size() * sizeof(GLubyte),
+                         &m_rgbaByte[0],
+                         GL_DYNAMIC_DRAW);
+            glColorPointer(4,
+                           GL_UNSIGNED_BYTE,
+                           0,
+                           (GLvoid*)0);
+            
                 /*
                  * Set the side normal vectors for drawing.
                  */
@@ -336,7 +386,7 @@ BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
                  */
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                              m_triangleStripBufferID);
-                glDrawElements(GL_TRIANGLE_FAN,
+                glDrawElements(GL_TRIANGLE_STRIP,
                                m_triangleStrip.size(),
                                GL_UNSIGNED_INT,
                                (GLvoid*)0);
@@ -354,7 +404,7 @@ BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
                  */
                 glDisableClientState(GL_VERTEX_ARRAY);
                 glDisableClientState(GL_NORMAL_ARRAY);
-            }
+            glDisableClientState(GL_COLOR_ARRAY);
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }

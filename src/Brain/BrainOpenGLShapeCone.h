@@ -73,6 +73,8 @@ namespace caret {
         
         GLuint m_coordinatesBufferID;
         
+        GLuint m_coordinatesRgbaByteBufferID;
+
         GLuint m_sidesNormalBufferID;
         GLuint m_sidesTriangleFanBufferID;
         
@@ -82,6 +84,7 @@ namespace caret {
         GLuint m_displayList;
         
         std::vector<GLfloat> m_coordinates;
+        std::vector<GLubyte> m_rgbaByte;
         
         std::vector<GLfloat> m_sideNormals;
         std::vector<GLuint> m_sidesTriangleFan;

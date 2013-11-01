@@ -84,6 +84,7 @@ ModelTransform.h
 NameIndexSort.h
 NetworkException.h
 OctTree.h
+OpenGLDrawingMethodEnum.h
 Plane.h
 ProgramParameters.h
 ProgramParametersException.h
@@ -149,6 +150,7 @@ MathFunctions.cxx
 ModelTransform.cxx
 NameIndexSort.cxx
 NetworkException.cxx
+OpenGLDrawingMethodEnum.cxx
 Plane.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx

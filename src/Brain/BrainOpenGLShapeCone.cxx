@@ -62,6 +62,7 @@ BrainOpenGLShapeCone::BrainOpenGLShapeCone(const int32_t numberOfSides)
     m_displayList    = 0;
     
     m_coordinatesBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
     m_sidesNormalBufferID = 0;
     m_sidesTriangleFanBufferID = 0;
     m_capNormalBufferID = 0;
@@ -80,7 +81,7 @@ BrainOpenGLShapeCone::~BrainOpenGLShapeCone()
 void
 BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
 {
-    bool debugFlag = false;
+    bool debugFlag = true;
     
     
     /*
@@ -126,7 +127,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
         
         m_sideNormals.push_back(0.0);
         m_sideNormals.push_back(0.0);
-        m_sideNormals.push_back(0.0);
+        m_sideNormals.push_back(1.0);
         
         m_capNormals.push_back(0.0);
         m_capNormals.push_back(0.0);
@@ -169,10 +170,12 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
                                     &m_coordinates[i3],
                                     &m_coordinates[next3],
                                     triangleNormal);
+        CaretAssertVectorIndex(m_sideNormals, i3+2);
         m_sideNormals[i3]   += triangleNormal[0];
         m_sideNormals[i3+1] += triangleNormal[1];
         m_sideNormals[i3+2] += triangleNormal[2];
         
+        CaretAssertVectorIndex(m_sideNormals, next3+2);
         m_sideNormals[next3]   += triangleNormal[0];
         m_sideNormals[next3+1] += triangleNormal[1];
         m_sideNormals[next3+2] += triangleNormal[2];
@@ -183,6 +186,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
      */
     for (int32_t i = 1; i <= m_numberOfSides; i++) {
         const int32_t i3 = i * 3;
+        CaretAssertVectorIndex(m_sideNormals, i3+2);
         m_sideNormals[i3]   /= 2.0; // vertices are shared by two triangles
         m_sideNormals[i3+1] /= 2.0;
         m_sideNormals[i3+2] /= 2.0;
@@ -196,7 +200,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
     for (int32_t i = m_numberOfSides; i > 0; i--) {
         m_sidesTriangleFan.push_back(i);
     }
-    m_sidesTriangleFan.push_back(m_numberOfSides);
+    m_sidesTriangleFan.push_back(m_numberOfSides); // closes
     
     m_capTriangleFan.push_back(capCenterIndex);
     for (int32_t i = 1; i <= m_numberOfSides; i++) {
@@ -211,10 +215,13 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
         const int32_t numPoints = static_cast<int32_t>(m_coordinates.size() / 3);
         for (int32_t i = 0; i < numPoints; i++) {
             const int32_t i3 = i * 3;
+            CaretAssertVectorIndex(m_coordinates, i3+2);
             std::cout << "points[" << i << "]=(" << AString::fromNumbers(&m_coordinates[i3], 3, ",")
             << ")" << std::endl;
+            CaretAssertVectorIndex(m_sideNormals, i3+2);
             std::cout << "side normal[" << i << "]=(" << AString::fromNumbers(&m_sideNormals[i3], 3, ",")
             << ")" << std::endl;
+            CaretAssertVectorIndex(m_capNormals, i3+2);
             std::cout << "cap normal[" << i << "]=(" << AString::fromNumbers(&m_capNormals[i3], 3, ",")
             << ")" << std::endl;
         }
@@ -238,6 +245,21 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
 //    }
 //    glEnd();
     
+    /*
+     * Create storage for colors
+     */
+    const int64_t numCoords = static_cast<int64_t>(m_coordinates.size()) / 3;
+    const int64_t numRGBA = numCoords * 4;
+    m_rgbaByte.resize(numRGBA * 4, 0);
+    for (GLuint i = 0; i < numCoords; i++) {
+        const int32_t i4 = i * 4;
+
+        CaretAssertVectorIndex(m_rgbaByte, i4+3);
+        m_rgbaByte[i4]   = 0;
+        m_rgbaByte[i4+1] = 0;
+        m_rgbaByte[i4+2] = 0;
+        m_rgbaByte[i4+3] = 255;
+    }
 
     
     switch (drawMode) {
@@ -269,7 +291,6 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Put coordinates into its buffer.
                  */
@@ -280,7 +301,18 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
                              m_coordinates.size() * sizeof(GLfloat),
                              &m_coordinates[0],
                              GL_STATIC_DRAW);
-                
+            
+            /*
+             * For RGBA coloring
+             */
+            m_coordinatesRgbaByteBufferID = createBufferID();
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         m_coordinatesRgbaByteBufferID);
+            glBufferData(GL_ARRAY_BUFFER,
+                         m_rgbaByte.size() * sizeof(GLubyte),
+                         &m_rgbaByte[0],
+                         GL_DYNAMIC_DRAW);
+            
                 /*
                  * Put side normals into its buffer.
                  */
@@ -324,7 +356,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
                              m_capTriangleFan.size() * sizeof(GLuint),
                              &m_capTriangleFan[0],
                              GL_STATIC_DRAW);
-                
+            
                 /*
                  * Deselect active buffer.
                  */
@@ -332,7 +364,6 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
                              0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                              0);
-            }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
@@ -392,8 +423,8 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
             for (int32_t j = 0; j < numSideVertices; j++) {
                 const int32_t vertexIndex = m_sidesTriangleFan[j] * 3;
                 
-                CaretAssertVectorIndex(m_sideNormals, vertexIndex);
-                CaretAssertVectorIndex(m_coordinates, vertexIndex);
+                CaretAssertVectorIndex(m_sideNormals, vertexIndex+2);
+                CaretAssertVectorIndex(m_coordinates, vertexIndex+2);
                 
                 glNormal3fv(&m_sideNormals[vertexIndex]);
                 glVertex3fv(&m_coordinates[vertexIndex]);
@@ -405,8 +436,8 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
             for (int32_t j = 0; j < numCapVertices; j++) {
                 const int32_t vertexIndex = m_capTriangleFan[j] * 3;
                 
-                CaretAssertVectorIndex(m_capNormals, vertexIndex);
-                CaretAssertVectorIndex(m_coordinates, vertexIndex);
+                CaretAssertVectorIndex(m_capNormals, vertexIndex+2);
+                CaretAssertVectorIndex(m_coordinates, vertexIndex+2);
                 
                 glNormal3fv(&m_capNormals[vertexIndex]);
                 glVertex3fv(&m_coordinates[vertexIndex]);
@@ -421,16 +452,17 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Enable vertices and normals for buffers
                  */
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glEnableClientState(GL_NORMAL_ARRAY);
-                
+            glEnableClientState(GL_COLOR_ARRAY);
+            
                 /*
                  * Set the vertices for drawing.
                  */
+            CaretAssert(glIsBuffer(m_coordinatesBufferID) == GL_TRUE);
                 glBindBuffer(GL_ARRAY_BUFFER,
                              m_coordinatesBufferID);
                 glVertexPointer(3,
@@ -438,9 +470,33 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
                                 0,
                                 (GLvoid*)0);
                 
+            /*
+             * Put BYTE colors into its buffer
+             */
+            const int64_t numRGBA = static_cast<int64_t>(m_rgbaByte.size()) / 4;
+            for (int64_t ir = 0; ir < numRGBA; ir++) {
+                const int64_t ir4 = ir * 4;
+                m_rgbaByte[ir4]   = rgba[0];
+                m_rgbaByte[ir4+1] = rgba[1];
+                m_rgbaByte[ir4+2] = rgba[2];
+                m_rgbaByte[ir4+3] = rgba[3];
+            }
+            CaretAssert(glIsBuffer(m_coordinatesRgbaByteBufferID) == GL_TRUE);
+            glBindBuffer(GL_ARRAY_BUFFER,
+                         m_coordinatesRgbaByteBufferID);
+            glBufferData(GL_ARRAY_BUFFER,
+                         m_rgbaByte.size() * sizeof(GLubyte),
+                         &m_rgbaByte[0],
+                         GL_DYNAMIC_DRAW);
+            glColorPointer(4,
+                           GL_UNSIGNED_BYTE,
+                           0,
+                           (GLvoid*)0);
+            
                 /*
                  * Set the side normal vectors for drawing.
                  */
+            CaretAssert(glIsBuffer(m_sidesNormalBufferID) == GL_TRUE);
                 glBindBuffer(GL_ARRAY_BUFFER,
                              m_sidesNormalBufferID);
                 glNormalPointer(GL_FLOAT,
@@ -450,12 +506,14 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
                 /*
                  * Draw the side triangle fans.
                  */
+            CaretAssert(glIsBuffer(m_sidesTriangleFanBufferID) == GL_TRUE);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                              m_sidesTriangleFanBufferID);
                 glDrawElements(GL_TRIANGLE_FAN,
                                m_sidesTriangleFan.size(),
                                GL_UNSIGNED_INT,
                                (GLvoid*)0);
+            
                 /*
                  * Set the cap normal vectors for drawing.
                  */
@@ -474,6 +532,7 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
                                m_capTriangleFan.size(),
                                GL_UNSIGNED_INT,
                                (GLvoid*)0);
+            
                 /*
                  * Deselect active buffer.
                  */
@@ -488,7 +547,7 @@ BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
                  */
                 glDisableClientState(GL_VERTEX_ARRAY);
                 glDisableClientState(GL_NORMAL_ARRAY);
-            }
+            glDisableClientState(GL_COLOR_ARRAY);
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }

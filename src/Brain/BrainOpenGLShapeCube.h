@@ -92,12 +92,16 @@ namespace caret {
         const CUBE_TYPE m_cubeType;
         
         GLuint m_vertexBufferID;
+        GLuint m_coordinatesRgbaByteBufferID;
         GLuint m_normalBufferID;
+        GLuint m_trianglesBufferID;
 
         GLuint m_displayList;
         
         std::vector<GLfloat> m_coordinates;
+        std::vector<GLubyte> m_rgbaByte;
         std::vector<GLfloat> m_normals;
+        std::vector<GLuint> m_triangles;
         
         bool m_isApplyColoring;
     };

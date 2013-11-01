@@ -29,6 +29,7 @@
 
 #include "CaretObject.h"
 #include "LogLevelEnum.h"
+#include "OpenGLDrawingMethodEnum.h"
 
 class QSettings;
 class QStringList;
@@ -72,6 +73,10 @@ namespace caret {
         LogLevelEnum::Enum getLoggingLevel() const;
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);
+        
+        OpenGLDrawingMethodEnum::Enum getOpenDrawingMethod() const;
+        
+        void setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum openGLDrawingMethod);
         
         bool isVolumeAxesCrosshairsDisplayed() const;
         
@@ -221,6 +226,8 @@ namespace caret {
         
         LogLevelEnum::Enum loggingLevel;
         
+        OpenGLDrawingMethodEnum::Enum openGLDrawingMethod;
+        
         std::vector<ModelTransform*> customViews;
 
         std::vector<TileTabsConfiguration*> tileTabsConfigurations;
@@ -260,6 +267,7 @@ namespace caret {
         static const AString NAME_DEVELOP_MENU;
 //        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
         static const AString NAME_LOGGING_LEVEL;
+        static const AString NAME_OPENGL_DRAWING_METHOD;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
@@ -284,6 +292,7 @@ namespace caret {
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
+    const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";

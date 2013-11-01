@@ -216,7 +216,6 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 /*
                  * Put vertices (coordinates) into its buffer.
                  */
@@ -257,7 +256,6 @@ BrainOpenGLShapeSphere::setupShape(const BrainOpenGL::DrawMode drawMode)
                              0);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                              0);
-            }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
@@ -354,7 +352,6 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode,
             break;
         case BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS:
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-            if (BrainOpenGL::isVertexBuffersSupported()) {
                 glEnableClientState(GL_VERTEX_ARRAY);
                 glEnableClientState(GL_NORMAL_ARRAY);
                 
@@ -396,7 +393,6 @@ BrainOpenGLShapeSphere::drawShape(const BrainOpenGL::DrawMode drawMode,
                 
                 glDisableClientState(GL_VERTEX_ARRAY);
                 glDisableClientState(GL_NORMAL_ARRAY);
-            }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
             break;
     }
