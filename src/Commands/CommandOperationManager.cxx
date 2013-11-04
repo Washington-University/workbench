@@ -34,6 +34,7 @@
 #include "AlgorithmCiftiAverageROICorrelation.h"
 #include "AlgorithmCiftiCorrelation.h"
 #include "AlgorithmCiftiCorrelationGradient.h"
+#include "AlgorithmCiftiCreateDenseScalar.h"
 #include "AlgorithmCiftiCreateDenseTimeseries.h"
 #include "AlgorithmCiftiCreateLabel.h"
 #include "AlgorithmCiftiCrossCorrelation.h"
@@ -221,6 +222,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverageROICorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelationGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateDenseScalar()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateDenseTimeseries()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateLabel()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCrossCorrelation()));

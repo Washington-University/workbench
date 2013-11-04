@@ -311,6 +311,9 @@ namespace caret {
         ///set columns to be brain models, and clear the list of brain models for columns
         void resetColumnsToBrainModels();
         
+        ///set direction to be brain models, and clear it
+        void resetDirectionToBrainModels(const int& direction);
+        
         ///add a surface brain model to the list of brain models for rows
         bool addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi = NULL);
         
@@ -330,7 +333,7 @@ namespace caret {
         bool addVolumeModelToColumns(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         
         ///add surface or volume model by direction
-        bool addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
+        bool addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi = NULL);
         bool addSurfaceModel(const int& direction, const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
         bool addVolumeModel(const int& direction, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         

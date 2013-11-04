@@ -154,21 +154,11 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
     CiftiXML myXML;
-    myXML.resetColumnsToBrainModels();
+    makeDenseMapping(myXML, CiftiXML::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     int numMaps = -1;
     if (leftData != NULL)
     {
         numMaps = leftData->getNumberOfMaps();
-        if (leftRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
-        } else {
-            if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
-            {
-                throw AlgorithmException("left surface ROI and data have different vertex counts");
-            }
-            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
-        }
     }
     if (rightData != NULL)
     {
@@ -180,16 +170,6 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
             {
                 throw AlgorithmException("right and left surface data have a different number of maps");
             }
-        }
-        if (rightRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
-        } else {
-            if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
-            {
-                throw AlgorithmException("right surface ROI and data have different vertex counts");
-            }
-            myXML.addSurfaceModelToColumns(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
         }
     }
     if (cerebData != NULL)
@@ -203,28 +183,9 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
                 throw AlgorithmException("cerebellum surface data has a different number of maps");
             }
         }
-        if (cerebRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
-        } else {
-            if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
-            {
-                throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
-            }
-            myXML.addSurfaceModelToColumns(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
-        }
     }
     if (myVol != NULL)
     {
-        CaretAssert(myVolLabel != NULL);
-        if (!myVol->matchesVolumeSpace(myVolLabel))
-        {
-            throw AlgorithmException("label volume has a different volume space than data volume");
-        }
-        if (myVolLabel->getType() != SubvolumeAttributes::LABEL)
-        {
-            throw AlgorithmException("parcel volume is not of type label");
-        }
         if (numMaps == -1)
         {
             numMaps = myVol->getNumberOfMaps();
@@ -233,57 +194,6 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
             {
                 throw AlgorithmException("volume data has a different number of maps");
             }
-        }
-        map<int, StructureEnum::Enum> labelMap;//maps label values to structures
-        vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component
-        map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
-        const GiftiLabelTable* myLabelTable = myVolLabel->getMapLabelTable(0);
-        vector<int32_t> labelKeys;
-        myLabelTable->getKeys(labelKeys);
-        int count = 0;
-        for (int i = 0; i < (int)labelKeys.size(); ++i)
-        {
-            bool ok = false;
-            StructureEnum::Enum thisStructure = StructureEnum::fromName(myLabelTable->getLabelName(labelKeys[i]), &ok);
-            if (ok)
-            {
-                labelMap[labelKeys[i]] = thisStructure;
-                if (componentMap.find(thisStructure) == componentMap.end())//make sure we don't already have this structure from another label
-                {
-                    componentMap[thisStructure] = count;
-                    ++count;
-                }
-            }
-        }
-        voxelLists.resize(count);
-        vector<int64_t> mydims;
-        myVolLabel->getDimensions(mydims);
-        for (int64_t k = 0; k < mydims[2]; ++k)
-        {
-            for (int64_t j = 0; j < mydims[1]; ++j)
-            {
-                for (int64_t i = 0; i < mydims[0]; ++i)
-                {
-                    int myval = (int)floor(myVolLabel->getValue(i, j, k) + 0.5f);
-                    map<int, StructureEnum::Enum>::iterator myiter = labelMap.find(myval);
-                    if (myiter != labelMap.end())
-                    {
-                        int whichList = componentMap.find(myiter->second)->second;//this should always find one, so we don't need to check for being end
-                        voxelLists[whichList].push_back(i);
-                        voxelLists[whichList].push_back(j);
-                        voxelLists[whichList].push_back(k);
-                    }
-                }
-            }
-        }
-        int64_t ciftiVolDims[3];
-        ciftiVolDims[0] = mydims[0];
-        ciftiVolDims[1] = mydims[1];
-        ciftiVolDims[2] = mydims[2];
-        myXML.setVolumeDimsAndSForm(ciftiVolDims, myVol->getSform());
-        for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
-        {
-            myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);
         }
     }
     if (numMaps == -1)
@@ -340,6 +250,131 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         }
     }
 }
+
+void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXML& toModify, const int& direction,
+                                                           const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                           const MetricFile* leftData, const MetricFile* leftRoi,
+                                                           const MetricFile* rightData, const MetricFile* rightRoi,
+                                                           const MetricFile* cerebData, const MetricFile* cerebRoi)
+{
+    bool noData = true;
+    toModify.resetDirectionToBrainModels(direction);
+    if (leftData != NULL)
+    {
+        noData = false;
+        if (leftRoi == NULL)
+        {
+            toModify.addSurfaceModel(direction, leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
+        } else {
+            if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
+            {
+                throw AlgorithmException("left surface ROI and data have different vertex counts");
+            }
+            toModify.addSurfaceModel(direction, leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
+        }
+    }
+    if (rightData != NULL)
+    {
+        noData = false;
+        if (rightRoi == NULL)
+        {
+            toModify.addSurfaceModel(direction, rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
+        } else {
+            if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
+            {
+                throw AlgorithmException("right surface ROI and data have different vertex counts");
+            }
+            toModify.addSurfaceModel(direction, rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
+        }
+    }
+    if (cerebData != NULL)
+    {
+        noData = false;
+        if (cerebRoi == NULL)
+        {
+            toModify.addSurfaceModel(direction, cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
+        } else {
+            if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
+            {
+                throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
+            }
+            toModify.addSurfaceModel(direction, cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
+        }
+    }
+    if (myVol != NULL)
+    {
+        CaretAssert(myVolLabel != NULL);
+        if (myVolLabel == NULL)
+        {
+            throw AlgorithmException("making a dense mapping with voxels requires a label volume");
+        }
+        if (!myVol->matchesVolumeSpace(myVolLabel))
+        {
+            throw AlgorithmException("label volume has a different volume space than data volume");
+        }
+        if (myVolLabel->getType() != SubvolumeAttributes::LABEL)
+        {
+            throw AlgorithmException("parcel volume is not of type label");
+        }
+        noData = false;
+        map<int, StructureEnum::Enum> labelMap;//maps label values to structures
+        vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component
+        map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
+        const GiftiLabelTable* myLabelTable = myVolLabel->getMapLabelTable(0);
+        vector<int32_t> labelKeys;
+        myLabelTable->getKeys(labelKeys);
+        int count = 0;
+        for (int i = 0; i < (int)labelKeys.size(); ++i)
+        {
+            bool ok = false;
+            StructureEnum::Enum thisStructure = StructureEnum::fromName(myLabelTable->getLabelName(labelKeys[i]), &ok);
+            if (ok)
+            {
+                labelMap[labelKeys[i]] = thisStructure;
+                if (componentMap.find(thisStructure) == componentMap.end())//make sure we don't already have this structure from another label
+                {
+                    componentMap[thisStructure] = count;
+                    ++count;
+                }
+            }
+        }
+        voxelLists.resize(count);
+        vector<int64_t> mydims;
+        myVolLabel->getDimensions(mydims);
+        for (int64_t k = 0; k < mydims[2]; ++k)
+        {
+            for (int64_t j = 0; j < mydims[1]; ++j)
+            {
+                for (int64_t i = 0; i < mydims[0]; ++i)
+                {
+                    int myval = (int)floor(myVolLabel->getValue(i, j, k) + 0.5f);
+                    map<int, StructureEnum::Enum>::iterator myiter = labelMap.find(myval);
+                    if (myiter != labelMap.end())
+                    {
+                        int whichList = componentMap.find(myiter->second)->second;//this should always find one, so we don't need to check for being end
+                        voxelLists[whichList].push_back(i);
+                        voxelLists[whichList].push_back(j);
+                        voxelLists[whichList].push_back(k);
+                    }
+                }
+            }
+        }
+        int64_t ciftiVolDims[3];
+        ciftiVolDims[0] = mydims[0];
+        ciftiVolDims[1] = mydims[1];
+        ciftiVolDims[2] = mydims[2];
+        toModify.setVolumeDimsAndSForm(ciftiVolDims, myVol->getSform());
+        for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)
+        {
+            toModify.addVolumeModel(direction, voxelLists[myiter->second], myiter->first);
+        }
+    }
+    if (noData)
+    {
+        throw AlgorithmException("no models specified");
+    }
+}
+
 
 float AlgorithmCiftiCreateDenseTimeseries::getAlgorithmInternalWeight()
 {

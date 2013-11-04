@@ -1600,30 +1600,26 @@ void CiftiXML::applyDimensionHelper(const int& from, const int& to)
 
 void CiftiXML::resetColumnsToBrainModels()
 {
-    if (m_dimToMapLookup[1] == -1)
-    {
-        m_dimToMapLookup[1] = createMap(1);
-    } else {
-        separateMaps();
-    }
-    CiftiMatrixIndicesMapElement myMap;
-    myMap.m_appliesToMatrixDimension.push_back(1);
-    myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_BRAIN_MODELS;
-    m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[1]] = myMap;
+    resetDirectionToBrainModels(ALONG_COLUMN);
 }
 
 void CiftiXML::resetRowsToBrainModels()
 {
-    if (m_dimToMapLookup[0] == -1)
+    resetDirectionToBrainModels(ALONG_ROW);
+}
+
+void CiftiXML::resetDirectionToBrainModels(const int& direction)
+{
+    if (m_dimToMapLookup[direction] == -1)
     {
-        m_dimToMapLookup[0] = createMap(0);
+        m_dimToMapLookup[direction] = createMap(direction);
     } else {
         separateMaps();
     }
     CiftiMatrixIndicesMapElement myMap;
-    myMap.m_appliesToMatrixDimension.push_back(0);
+    myMap.m_appliesToMatrixDimension.push_back(direction);
     myMap.m_indicesMapToDataType = CIFTI_INDEX_TYPE_BRAIN_MODELS;
-    m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[0]] = myMap;
+    m_root.m_matrices[0].m_matrixIndicesMap[m_dimToMapLookup[direction]] = myMap;
 }
 
 void CiftiXML::resetColumnsToTimepoints(const float& timestep, const int& timepoints, const float& timestart)

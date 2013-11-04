@@ -24,6 +24,7 @@ AlgorithmCiftiAverageDenseROI.h
 AlgorithmCiftiAverageROICorrelation.h
 AlgorithmCiftiCorrelation.h
 AlgorithmCiftiCorrelationGradient.h
+AlgorithmCiftiCreateDenseScalar.h
 AlgorithmCiftiCreateDenseTimeseries.h
 AlgorithmCiftiCreateLabel.h
 AlgorithmCiftiCrossCorrelation.h
@@ -109,6 +110,7 @@ AlgorithmCiftiAverageDenseROI.cxx
 AlgorithmCiftiAverageROICorrelation.cxx
 AlgorithmCiftiCorrelation.cxx
 AlgorithmCiftiCorrelationGradient.cxx
+AlgorithmCiftiCreateDenseScalar.cxx
 AlgorithmCiftiCreateDenseTimeseries.cxx
 AlgorithmCiftiCreateLabel.cxx
 AlgorithmCiftiCrossCorrelation.cxx
