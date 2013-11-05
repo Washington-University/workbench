@@ -1542,7 +1542,7 @@ BrainBrowserWindow::processNewWindow()
 void 
 BrainBrowserWindow::processAboutWorkbench()
 {
-    AboutWorkbenchDialog awd(this);
+    AboutWorkbenchDialog awd(this->m_openGLWidget);
     awd.exec();
 }
 

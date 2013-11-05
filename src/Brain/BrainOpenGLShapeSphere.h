@@ -65,7 +65,7 @@ namespace caret {
                        const float rgba[4]);
         
         
-        void setupShape(const BrainOpenGL::DrawMode drawMode);
+        void setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode);
         
     private:
 
@@ -75,6 +75,8 @@ namespace caret {
         const float   m_radius;
         
         GLuint m_vertexBufferID;
+        GLuint m_vertexRgbaByteBufferID;
+
         GLuint m_normalBufferID;
         GLuint m_triangleStripBufferID;
 
@@ -82,6 +84,7 @@ namespace caret {
         
         std::vector<GLfloat> m_coordinates;
         std::vector<GLfloat> m_normals;
+        std::vector<GLubyte> m_rgbaByte;
         
         std::vector<std::vector<GLuint> > m_triangleStrips;
         std::vector<GLuint> m_singleTriangleStrip;

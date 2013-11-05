@@ -63,7 +63,7 @@ namespace caret {
         void drawShape(const BrainOpenGL::DrawMode drawMode,
                        const float rgba[4]);
         
-        void setupShape(const BrainOpenGL::DrawMode drawMode);
+        void setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode);
         
     private:
 

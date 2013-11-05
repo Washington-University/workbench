@@ -65,33 +65,8 @@ BrainOpenGLShapeCube::BrainOpenGLShapeCube(const float cubeSize,
   m_cubeSize(cubeSize),
   m_cubeType(cubeType)
 {
-    m_displayList    = 0;
-    
-    m_vertexBufferID = 0;
-    m_coordinatesRgbaByteBufferID = 0;
-    m_normalBufferID = 0;
-    m_trianglesBufferID = 0;
-    
     m_isApplyColoring = true;
-}
 
-/**
- * Destructor.
- */
-BrainOpenGLShapeCube::~BrainOpenGLShapeCube()
-{
-    
-}
-
-/**
- * Setup the shape for drawing.
- * 
- * @param drawMode
- *    The drawing mode.
- */
-void
-BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
-{
     GLfloat cubeVertices[8][3] = {
         { -0.5, -0.5,  0.5 }, // 0: left, near, top
         {  0.5, -0.5,  0.5 }, // 1: right, near, top
@@ -128,21 +103,20 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
     const GLint normalIndexTopFace    = 4;
     const GLint normalIndexBottomFace = 5;
     
-
     /*
      * Near Face
      */
     addFace(cubeVertices,
             lnt, lnb, rnb, rnt,
             cubeNormals[normalIndexNearFace]);
-
+    
     /*
      * Far Face
      */
     addFace(cubeVertices,
             rfb, lfb, lft, rft,
             cubeNormals[normalIndexFarFace]);
-    
+
     /*
      * Left Face
      */
@@ -171,8 +145,53 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
             lnt, rnt, rft, lft,
             cubeNormals[normalIndexTopFace]);
     
+    
+    
+    
+//    /*
+//     * Near Face
+//     */
+//    addFace(cubeVertices,
+//            lnt, lnb, rnb, rnt,
+//            cubeNormals[normalIndexNearFace]);
+//    
+//    /*
+//     * Far Face
+//     */
+//    addFace(cubeVertices,
+//            rfb, lfb, lft, rft,
+//            cubeNormals[normalIndexFarFace]);
+//    
+//    /*
+//     * Left Face
+//     */
+//    addFace(cubeVertices,
+//            lfb, lnb, lnt, lft,
+//            cubeNormals[normalIndexLeftFace]);
+//    
+//    /*
+//     * Right Face
+//     */
+//    addFace(cubeVertices,
+//            rnb, rfb, rft, rnt,
+//            cubeNormals[normalIndexRightFace]);
+//    
+//    /*
+//     * Bottom Face
+//     */
+//    addFace(cubeVertices,
+//            rnb, lnb, lfb, rfb,
+//            cubeNormals[normalIndexBottomFace]);
+//    
+//    /*
+//     * Top Face
+//     */
+//    addFace(cubeVertices,
+//            lnt, rnt, rft, lft,
+//            cubeNormals[normalIndexTopFace]);
+    
     CaretAssert(m_coordinates.size() == m_normals.size());
-   
+    
     /*
      * Create storage for colors
      */
@@ -205,7 +224,32 @@ BrainOpenGLShapeCube::setupShape(const BrainOpenGL::DrawMode drawMode)
             }
         }
             break;
-    }
+    }    
+}
+
+/**
+ * Destructor.
+ */
+BrainOpenGLShapeCube::~BrainOpenGLShapeCube()
+{
+    
+}
+
+/**
+ * Setup the shape for drawing.
+ * 
+ * @param drawMode
+ *    The drawing mode.
+ */
+void
+BrainOpenGLShapeCube::setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode)
+{
+    m_displayList    = 0;
+    
+    m_vertexBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
+    m_normalBufferID = 0;
+    m_trianglesBufferID = 0;
     
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
@@ -323,7 +367,7 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
-    m_triangles.push_back(m_coordinates.size() / 3);
+    m_triangles.push_back(m_coordinates.size() / 3 - 1);
 
     m_coordinates.push_back(coordinates[v2][0]);
     m_coordinates.push_back(coordinates[v2][1]);
@@ -331,7 +375,7 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
-    m_triangles.push_back(m_coordinates.size() / 3);
+    m_triangles.push_back(m_coordinates.size() / 3 - 1);
     
     m_coordinates.push_back(coordinates[v3][0]);
     m_coordinates.push_back(coordinates[v3][1]);
@@ -339,7 +383,7 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
-    m_triangles.push_back(m_coordinates.size() / 3);
+    m_triangles.push_back(m_coordinates.size() / 3 - 1);
 
     
     m_coordinates.push_back(coordinates[v3][0]);
@@ -348,7 +392,7 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
-    m_triangles.push_back(m_coordinates.size() / 3);
+    m_triangles.push_back(m_coordinates.size() / 3 - 1);
 
     m_coordinates.push_back(coordinates[v4][0]);
     m_coordinates.push_back(coordinates[v4][1]);
@@ -356,7 +400,7 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
-    m_triangles.push_back(m_coordinates.size() / 3);
+    m_triangles.push_back(m_coordinates.size() / 3 - 1);
 
     m_coordinates.push_back(coordinates[v1][0]);
     m_coordinates.push_back(coordinates[v1][1]);
@@ -364,7 +408,7 @@ BrainOpenGLShapeCube::addFace(const GLfloat coordinates[][3],
     m_normals.push_back(normalVector[0]);
     m_normals.push_back(normalVector[1]);
     m_normals.push_back(normalVector[2]);
-    m_triangles.push_back(m_coordinates.size() / 3);    
+    m_triangles.push_back(m_coordinates.size() / 3 - 1);
 }
 
 /**
@@ -402,20 +446,22 @@ void
 BrainOpenGLShapeCube::drawShape(const BrainOpenGL::DrawMode drawMode,
                                 const uint8_t rgba[4])
 {
-    if (m_isApplyColoring) {
-        glColor4ubv(rgba);
-    }
-    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
             if (m_displayList > 0) {
+                if (m_isApplyColoring) {
+                    glColor4ubv(rgba);
+                }
                 glCallList(m_displayList);
             }
         }
             break;
         case BrainOpenGL::DRAW_MODE_IMMEDIATE:
         {
+            if (m_isApplyColoring) {
+                glColor4ubv(rgba);
+            }
             const int32_t numVertices = static_cast<int32_t>(m_coordinates.size() / 3);
             glBegin(GL_TRIANGLES);
             for (int32_t j = 0; j < numVertices; j++) {
@@ -487,9 +533,10 @@ BrainOpenGLShapeCube::drawShape(const BrainOpenGL::DrawMode drawMode,
                 /*
                  * Draw the triangles.
                  */
+            CaretAssert(m_triangles.size() == (m_coordinates.size() / 3));
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
                          m_trianglesBufferID);
-            glDrawElements(GL_TRIANGLE_STRIP,
+            glDrawElements(GL_TRIANGLES,
                            m_triangles.size(),
                            GL_UNSIGNED_INT,
                            (GLvoid*)0);

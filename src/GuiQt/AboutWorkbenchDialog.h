@@ -41,11 +41,13 @@ class QPushButton;
 
 namespace caret {
 
+    class BrainOpenGLWidget;
+    
     class AboutWorkbenchDialog : public WuQDialogModal {
         Q_OBJECT
         
     public:
-        AboutWorkbenchDialog(QWidget* parent);
+        AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget);
         
         virtual ~AboutWorkbenchDialog();
         
@@ -61,6 +63,7 @@ namespace caret {
         
         QPushButton* m_openGLPushButton;
         
+        BrainOpenGLWidget* m_openGLParentWidget;
     };
     
 #ifdef __ABOUT_WORKBENCH_DIALOG_DECLARE__

@@ -56,29 +56,10 @@ BrainOpenGLShapeCylinder::BrainOpenGLShapeCylinder(const int32_t numberOfSides)
 : BrainOpenGLShape(),
 m_numberOfSides(numberOfSides)
 {
-    m_displayList    = 0;
-    
-    m_coordinatesBufferID = 0;
-    m_coordinatesRgbaByteBufferID = 0;
-    m_coordinatesRgbaFloatBufferID = 0;
-    
-    m_normalsBufferID = 0;
-    m_triangleStripBufferID = 0;
-    
     m_isApplyColoring = true;
-}
 
-/**
- * Destructor.
- */
-BrainOpenGLShapeCylinder::~BrainOpenGLShapeCylinder()
-{
-}
-
-void
-BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
-{
-//    bool debugFlag = false;
+    
+    //    bool debugFlag = false;
     
     
     /*
@@ -102,45 +83,45 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
      */
     GLuint vertexCounter = 0;
     
-//    const float topCenterNormalX = 0.0;
-//    const float topCenterNormalY = 0.0;
-//    const float topCenterNormalZ = 1.0;
-//    
-//    const float topCenterX = 0.0;
-//    const float topCenterY = 0.0;
-//    const float topCenterZ = 1.0;
-//    
-//    const float bottomCenterNormalX =  0.0;
-//    const float bottomCenterNormalY =  0.0;
-//    const float bottomCenterNormalZ = -1.0;
-//    
-//    const float bottomCenterX =  0.0;
-//    const float bottomCenterY =  0.0;
-//    const float bottomCenterZ = -1.0;
+    //    const float topCenterNormalX = 0.0;
+    //    const float topCenterNormalY = 0.0;
+    //    const float topCenterNormalZ = 1.0;
+    //
+    //    const float topCenterX = 0.0;
+    //    const float topCenterY = 0.0;
+    //    const float topCenterZ = 1.0;
+    //
+    //    const float bottomCenterNormalX =  0.0;
+    //    const float bottomCenterNormalY =  0.0;
+    //    const float bottomCenterNormalZ = -1.0;
+    //
+    //    const float bottomCenterX =  0.0;
+    //    const float bottomCenterY =  0.0;
+    //    const float bottomCenterZ = -1.0;
     
-//    /*
-//     * Center of top
-//     */
-//    m_coordinates.push_back(0.0);
-//    m_coordinates.push_back(0.0);
-//    m_coordinates.push_back(1.0);
-//    m_normals.push_back(topCenterNormalX);
-//    m_normals.push_back(topCenterNormalY);
-//    m_normals.push_back(topCenterNormalZ);
-//    m_normals.push_back(vertexCounter);
-//    vertexCounter++;
-//    
-//    /*
-//     * Center of bottom
-//     */
-//    m_coordinates.push_back(0.0);
-//    m_coordinates.push_back(0.0);
-//    m_coordinates.push_back(-1.0);
-//    m_normals.push_back(bottomCenterNormalX);
-//    m_normals.push_back(bottomCenterNormalY);
-//    m_normals.push_back(bottomCenterNormalZ);
-//    m_normals.push_back(vertexCounter);
-//    vertexCounter++;
+    //    /*
+    //     * Center of top
+    //     */
+    //    m_coordinates.push_back(0.0);
+    //    m_coordinates.push_back(0.0);
+    //    m_coordinates.push_back(1.0);
+    //    m_normals.push_back(topCenterNormalX);
+    //    m_normals.push_back(topCenterNormalY);
+    //    m_normals.push_back(topCenterNormalZ);
+    //    m_normals.push_back(vertexCounter);
+    //    vertexCounter++;
+    //
+    //    /*
+    //     * Center of bottom
+    //     */
+    //    m_coordinates.push_back(0.0);
+    //    m_coordinates.push_back(0.0);
+    //    m_coordinates.push_back(-1.0);
+    //    m_normals.push_back(bottomCenterNormalX);
+    //    m_normals.push_back(bottomCenterNormalY);
+    //    m_normals.push_back(bottomCenterNormalZ);
+    //    m_normals.push_back(vertexCounter);
+    //    vertexCounter++;
     
     const GLuint firstSideVertex = vertexCounter;
     
@@ -153,7 +134,7 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
         
         const float x = radius * std::cos(t);
         const float y = radius * std::sin(t);
-
+        
         /*
          * Top of slice
          */
@@ -167,10 +148,10 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
         vertexCounter++;
         
         
-//        m_normals.push_back(topCenterNormalX);
-//        m_normals.push_back(topCenterNormalY);
-//        m_normals.push_back(topCenterNormalZ);
-//        m_topTriangleFan.push_back(vertexCounter);
+        //        m_normals.push_back(topCenterNormalX);
+        //        m_normals.push_back(topCenterNormalY);
+        //        m_normals.push_back(topCenterNormalZ);
+        //        m_topTriangleFan.push_back(vertexCounter);
         
         m_coordinates.push_back(x);
         m_coordinates.push_back(y);
@@ -181,13 +162,13 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
         sideTriangleStripVertices.push_back(vertexCounter);
         vertexCounter++;
         
-//        m_bottomNormals.push_back(bottomCenterNormalX);
-//        m_bottomNormals.push_back(bottomCenterNormalY);
-//        m_bottomNormals.push_back(bottomCenterNormalZ);
-//        m_bottomTriangleFan.push_back(vertexCounter);
-//        vertexCounter++;
+        //        m_bottomNormals.push_back(bottomCenterNormalX);
+        //        m_bottomNormals.push_back(bottomCenterNormalY);
+        //        m_bottomNormals.push_back(bottomCenterNormalZ);
+        //        m_bottomTriangleFan.push_back(vertexCounter);
+        //        vertexCounter++;
     }
-
+    
     /*
      * Finish cylinder by specifying first two coordinates again
      */
@@ -215,27 +196,27 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
     
     m_triangleStrip = sideTriangleStripVertices;
     
-//    /*
-//     * Finish top and bottom
-//     * Note bottom vertices need to be reverse so that 
-//     * that the vertices are counter clockwise when pointing down.
-//     */
-//    m_topNormals.push_back(m_topNormals[0]);
-//    m_topNormals.push_back(m_topNormals[1]);
-//    m_topNormals.push_back(m_topNormals[2]);
-//    m_topTriangleFan.push_back(firstSideVertex);
-//
-//    m_bottomNormals.push_back(m_bottomNormals[0]);
-//    m_bottomNormals.push_back(m_bottomNormals[1]);
-//    m_bottomNormals.push_back(m_bottomNormals[2]);
-//    m_bottomTriangleFan.push_back(firstSideVertex + 1);
-//    std::reverse(m_bottomTriangleFan.begin(),
-//                 m_bottomTriangleFan.end());
-//
-//    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
-//    CaretAssert(m_sidesNormals.size() == ((m_sidesTriangleStrip.size() - 2) * 3));
-//    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
-
+    //    /*
+    //     * Finish top and bottom
+    //     * Note bottom vertices need to be reverse so that
+    //     * that the vertices are counter clockwise when pointing down.
+    //     */
+    //    m_topNormals.push_back(m_topNormals[0]);
+    //    m_topNormals.push_back(m_topNormals[1]);
+    //    m_topNormals.push_back(m_topNormals[2]);
+    //    m_topTriangleFan.push_back(firstSideVertex);
+    //
+    //    m_bottomNormals.push_back(m_bottomNormals[0]);
+    //    m_bottomNormals.push_back(m_bottomNormals[1]);
+    //    m_bottomNormals.push_back(m_bottomNormals[2]);
+    //    m_bottomTriangleFan.push_back(firstSideVertex + 1);
+    //    std::reverse(m_bottomTriangleFan.begin(),
+    //                 m_bottomTriangleFan.end());
+    //
+    //    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
+    //    CaretAssert(m_sidesNormals.size() == ((m_sidesTriangleStrip.size() - 2) * 3));
+    //    CaretAssert(m_topNormals.size() == (m_topTriangleFan.size() * 3));
+    
     /*
      * Create storage for colors
      */
@@ -243,7 +224,7 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
     m_rgbaFloat.resize(vertexCounter * 4, 0.0);
     for (GLuint i = 0; i < vertexCounter; i++) {
         const int32_t i4 = i * 4;
-
+        
         m_rgbaFloat[i4]   = 0.0;
         m_rgbaFloat[i4+1] = 0.0;
         m_rgbaFloat[i4+2] = 0.0;
@@ -254,7 +235,26 @@ BrainOpenGLShapeCylinder::setupShape(const BrainOpenGL::DrawMode drawMode)
         m_rgbaByte[i4+2] = 0;
         m_rgbaByte[i4+3] = 255;
     }
-        
+}
+
+/**
+ * Destructor.
+ */
+BrainOpenGLShapeCylinder::~BrainOpenGLShapeCylinder()
+{
+}
+
+void
+BrainOpenGLShapeCylinder::setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode)
+{
+    m_displayList    = 0;
+    
+    m_coordinatesBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
+    m_coordinatesRgbaFloatBufferID = 0;
+    
+    m_normalsBufferID = 0;
+    m_triangleStripBufferID = 0;
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
@@ -389,20 +389,22 @@ void
 BrainOpenGLShapeCylinder::drawShape(const BrainOpenGL::DrawMode drawMode,
                                     const uint8_t rgba[4])
 {
-    if (m_isApplyColoring) {
-        glColor4ubv(rgba);
-    }
-    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
             if (m_displayList > 0) {
+                if (m_isApplyColoring) {
+                    glColor4ubv(rgba);
+                }
                 glCallList(m_displayList);
             }
         }
             break;
         case BrainOpenGL::DRAW_MODE_IMMEDIATE:
         {
+            if (m_isApplyColoring) {
+                glColor4ubv(rgba);
+            }
 //            /*
 //             * Draw the top
 //             */

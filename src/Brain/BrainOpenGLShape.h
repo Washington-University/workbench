@@ -66,12 +66,15 @@ namespace caret {
         
     protected:
         /**
-         * Setup for drawing the shape.
+         * Setup for drawing the shape with OpenGL.  This may include
+         * creating display lists, allocating buffers, and other calls
+         * to the OpenGL API.  The base class handles alllocation and
+         * deallocation of OpenGL display lists and buffers.
          *
          * @param drawMode
          *    How the shape will be drawn.
          */
-        virtual void setupShape(const BrainOpenGL::DrawMode drawMode) = 0;
+        virtual void setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode) = 0;
         
         /**
          * Draw the shape using the given drawing mode.
@@ -116,6 +119,9 @@ namespace caret {
                                        std::vector<GLuint>& triangleStripOut) const;
         
     private:
+        void createShapeIfNeeded();
+        
+        void releaseOpenGLAllocations();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -125,16 +131,12 @@ namespace caret {
         
         bool m_shapeSetupComplete;
         
-        static BrainOpenGL::DrawMode s_drawMode;
-        
-        static bool s_drawModeInitialized;
+        BrainOpenGL::DrawMode m_drawMode;
         
         static bool s_immediateModeOverride;
     };
     
 #ifdef __BRAIN_OPEN_GL_SHAPE_DECLARE__
-    BrainOpenGL::DrawMode BrainOpenGLShape::s_drawMode = BrainOpenGL::DRAW_MODE_INVALID;
-    bool BrainOpenGLShape::s_drawModeInitialized = false;
     bool BrainOpenGLShape::s_immediateModeOverride = false;
 #endif // __BRAIN_OPEN_GL_SHAPE_DECLARE__
 

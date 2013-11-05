@@ -26,6 +26,7 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 #include <stdint.h>
 
 #include "CaretOpenGLInclude.h"
@@ -158,22 +159,13 @@ namespace caret {
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
         
-        static AString getRuntimeLibraryVersionOfOpenGL();
-        
         static bool testForVersionOfOpenGLSupported(const AString& versionOfOpenGL);
         
         static QString getBestDrawingModeName();
         
-        static AString getOpenGLInformation();
+        AString getOpenGLInformation();
         
-        /**
-         * @return The best drawing mode given the limitations of
-         * the compile and run-time systems.
-         */
-        static DrawMode getBestDrawingMode() {
-            return s_drawingMode;
-        }
-        
+        static DrawMode getBestDrawingMode();
         /**
          * @return True if display list drawing is supported.
          */
@@ -234,15 +226,13 @@ namespace caret {
         /** runtime library minor version number of OpenGL */
         static AString s_runtimeLibraryMinorVersionOfOpenGL;
         
-        static DrawMode s_drawingMode;
-        
         static bool s_supportsDisplayLists;
         
         static bool s_supportsImmediateMode;
         
         static bool s_supportsVertexBuffers;
         
-        static AString s_openGLInformation;
+        AString m_openGLInformation;
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H
@@ -253,11 +243,9 @@ namespace caret {
     float BrainOpenGL::s_maxPointSize = 10.0f;
     float BrainOpenGL::s_minLineWidth = 1.0f;
     float BrainOpenGL::s_maxLineWidth = 10.0f;
-    BrainOpenGL::DrawMode BrainOpenGL::s_drawingMode = BrainOpenGL::DRAW_MODE_INVALID;
     bool BrainOpenGL::s_supportsDisplayLists  = false;
     bool BrainOpenGL::s_supportsImmediateMode = false;
     bool BrainOpenGL::s_supportsVertexBuffers = false;
-    AString BrainOpenGL::s_openGLInformation = "";
 #endif //__BRAIN_OPENGL_DEFINE_H
 
 } // namespace

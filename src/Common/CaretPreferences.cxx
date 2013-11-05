@@ -1383,9 +1383,13 @@ CaretPreferences::readPreferences()
     this->setLoggingLevel(logLevel);
     
     AString openGLDrawingMethodName = this->qSettings->value(NAME_OPENGL_DRAWING_METHOD,
-                                                             OpenGLDrawingMethodEnum::toName(OpenGLDrawingMethodEnum::DRAW_IMMEDIATE_MODE)).toString();
+                                                             OpenGLDrawingMethodEnum::toName(OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_OFF)).toString();
+    bool validDrawingMethod = false;
     this->openGLDrawingMethod = OpenGLDrawingMethodEnum::fromName(openGLDrawingMethodName,
-                                                                  NULL);
+                                                                  &validDrawingMethod);
+    if ( ! validDrawingMethod) {
+        this->openGLDrawingMethod = OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_OFF;
+    }
     
     this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS,
                                                      true);

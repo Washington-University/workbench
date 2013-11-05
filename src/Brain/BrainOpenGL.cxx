@@ -120,17 +120,6 @@ BrainOpenGL::setDrawHighlightedEndPoints(const bool drawHighlightedEndPoints)
     m_drawHighlightedEndPoints = drawHighlightedEndPoints;
 }
 
-
-
-/**
- * @return The runtime library version of OpenGL (e.g. 1.0, 2.1, etc.)
- */
-AString
-BrainOpenGL::getRuntimeLibraryVersionOfOpenGL()
-{
-    return s_runtimeLibraryVersionOfOpenGL;
-}
-
 /**
  * Determine if the given version of OpenGL is supported at runtime.
  * OpenGL is continually updated and this method is used to test for 
@@ -365,7 +354,6 @@ BrainOpenGL::initializeOpenGL()
     s_minLineWidth = sizes[0];
     s_maxLineWidth = sizes[1];
     
-    s_drawingMode = DRAW_MODE_INVALID;
     s_supportsDisplayLists = false;
     s_supportsImmediateMode = false;
     s_supportsVertexBuffers = false;
@@ -395,30 +383,15 @@ BrainOpenGL::initializeOpenGL()
     }
 
 #if BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE
-    s_drawingMode = DRAW_MODE_IMMEDIATE;
     s_supportsImmediateMode = true;
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_IMMEDIATE
     
 #if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-    s_drawingMode = DRAW_MODE_DISPLAY_LISTS;
     s_supportsDisplayLists = true;
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
     
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::testForVersionOfOpenGLSupported("2.1")) {
-        /*
-         * See if user wants to use OpenGL Buffers
-         */
-        const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        switch (prefs->getOpenDrawingMethod()) {
-            case OpenGLDrawingMethodEnum::DRAW_IMMEDIATE_MODE:
-                break;
-            case OpenGLDrawingMethodEnum::DRAW_WITH_BUFFERS:
-                s_drawingMode = DRAW_MODE_VERTEX_BUFFERS;
-                s_supportsVertexBuffers = true;
-                break;
-        }
-    }
+    s_supportsVertexBuffers = true;
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
     
     lineInfo += ("\n\nBest Drawing Mode: "
@@ -434,11 +407,12 @@ BrainOpenGL::initializeOpenGL()
     
     CaretLogConfig(lineInfo);
     
-    if (s_drawingMode == DRAW_MODE_INVALID) {
-        CaretAssert(0);
-    }
+    m_openGLInformation = lineInfo;
     
-    s_openGLInformation = lineInfo;
+    /*
+     * Call to validate the draw mode selection logic.
+     */
+    getBestDrawingMode();
 }
 
 /**
@@ -447,9 +421,51 @@ BrainOpenGL::initializeOpenGL()
 AString
 BrainOpenGL::getOpenGLInformation()
 {
-    return s_openGLInformation;
+    return m_openGLInformation;
 }
 
+/**
+ * @return The best drawing mode given the limitations of
+ * the compile and run-time systems.
+ */
+BrainOpenGL::DrawMode
+BrainOpenGL::getBestDrawingMode() {
+    BrainOpenGL::DrawMode drawMode = BrainOpenGL::DRAW_MODE_INVALID;
+    
+    const OpenGLDrawingMethodEnum::Enum userPrefDrawMode = SessionManager::get()->getCaretPreferences()->getOpenDrawingMethod();
+    
+    bool useVertexBuffersFlag = false;
+    switch (userPrefDrawMode) {
+        case OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_OFF:
+            break;
+        case OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_ON:
+            if (s_supportsVertexBuffers) {
+                useVertexBuffersFlag = true;
+            }
+            break;
+    }
+    
+    if (s_supportsVertexBuffers
+        && useVertexBuffersFlag) {
+        drawMode = DRAW_MODE_VERTEX_BUFFERS;
+    }
+    else if (s_supportsDisplayLists) {
+        drawMode = DRAW_MODE_DISPLAY_LISTS;
+    }
+    else if (s_supportsImmediateMode) {
+        drawMode = DRAW_MODE_IMMEDIATE;
+    }
+    else if (s_supportsVertexBuffers) {
+        drawMode = DRAW_MODE_VERTEX_BUFFERS;
+    }
+    else {
+        CaretAssertMessage(0,
+                           "OpenGL does not appear to support any valid drawing modes, should never occur."
+                           "  Or, OpenGL was not initialized (failed to call BrainOpenGL::initializeOpenGL()).");
+    }
+    
+    return drawMode;
+}
 
 /**
  * @return Text string describing the drawing mode for shapes.
@@ -459,7 +475,7 @@ BrainOpenGL::getBestDrawingModeName()
 {
     QString modeName = "Invalid";
     
-    switch (s_drawingMode) {
+    switch (getBestDrawingMode()) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
             modeName = "Display Lists";
             break;

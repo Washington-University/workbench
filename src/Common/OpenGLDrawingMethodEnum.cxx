@@ -121,13 +121,13 @@ OpenGLDrawingMethodEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(OpenGLDrawingMethodEnum(DRAW_IMMEDIATE_MODE, 
-                                    "DRAW_IMMEDIATE_MODE", 
-                                    "Draw Using Immediate Mode"));
+    enumData.push_back(OpenGLDrawingMethodEnum(DRAW_WITH_VERTEX_BUFFERS_OFF, 
+                                    "DRAW_WITH_VERTEX_BUFFERS_OFF", 
+                                    "Off"));
     
-    enumData.push_back(OpenGLDrawingMethodEnum(DRAW_WITH_BUFFERS, 
-                                    "DRAW_WITH_BUFFERS", 
-                                    "Draw With Buffers"));
+    enumData.push_back(OpenGLDrawingMethodEnum(DRAW_WITH_VERTEX_BUFFERS_ON,
+                                    "DRAW_WITH_VERTEX_BUFFERS_ON", 
+                                    "On"));
     
 }
 

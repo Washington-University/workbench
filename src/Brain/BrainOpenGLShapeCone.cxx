@@ -59,28 +59,9 @@ BrainOpenGLShapeCone::BrainOpenGLShapeCone(const int32_t numberOfSides)
 : BrainOpenGLShape(),
   m_numberOfSides(numberOfSides)
 {
-    m_displayList    = 0;
-    
-    m_coordinatesBufferID = 0;
-    m_coordinatesRgbaByteBufferID = 0;
-    m_sidesNormalBufferID = 0;
-    m_sidesTriangleFanBufferID = 0;
-    m_capNormalBufferID = 0;
-    m_capTriangleFanBufferID = 0;
     m_isApplyColoring = true;
-}
-
-/**
- * Destructor.
- */
-BrainOpenGLShapeCone::~BrainOpenGLShapeCone()
-{
     
-}
-
-void
-BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
-{
+    
     bool debugFlag = true;
     
     
@@ -105,7 +86,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
     /*
      * Setup step size based upon number of points around circle
      */
-//    const int32_t numberOfPoints = 8;
+    //    const int32_t numberOfPoints = 8;
     const float step = (2.0 * M_PI) / m_numberOfSides;
     
     /*
@@ -145,7 +126,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
     m_sideNormals.push_back(0.0);
     m_sideNormals.push_back(0.0);
     m_sideNormals.push_back(1.0);
-
+    
     m_capNormals.push_back(0.0);
     m_capNormals.push_back(0.0);
     m_capNormals.push_back(1.0);
@@ -208,7 +189,7 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
     }
     m_capTriangleFan.push_back(1);
     
-
+    
     if (debugFlag) {
         CaretAssert(m_coordinates.size() == m_sideNormals.size());
         CaretAssert(m_coordinates.size() == m_capNormals.size());
@@ -234,16 +215,16 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
         std::cout << std::endl;
     }
     
-//    /*
-//     * End Cap
-//     */
-//    glBegin(GL_POLYGON);
-//    glNormal3f(0.0, 0.0, 1.0);
-//    for (int32_t i = 0; i < m_numberOfSides; i++) {
-//        const int32_t i3 = i * 3;
-//        glVertex3fv(&m_coordinates[i3]);
-//    }
-//    glEnd();
+    //    /*
+    //     * End Cap
+    //     */
+    //    glBegin(GL_POLYGON);
+    //    glNormal3f(0.0, 0.0, 1.0);
+    //    for (int32_t i = 0; i < m_numberOfSides; i++) {
+    //        const int32_t i3 = i * 3;
+    //        glVertex3fv(&m_coordinates[i3]);
+    //    }
+    //    glEnd();
     
     /*
      * Create storage for colors
@@ -253,14 +234,34 @@ BrainOpenGLShapeCone::setupShape(const BrainOpenGL::DrawMode drawMode)
     m_rgbaByte.resize(numRGBA * 4, 0);
     for (GLuint i = 0; i < numCoords; i++) {
         const int32_t i4 = i * 4;
-
+        
         CaretAssertVectorIndex(m_rgbaByte, i4+3);
         m_rgbaByte[i4]   = 0;
         m_rgbaByte[i4+1] = 0;
         m_rgbaByte[i4+2] = 0;
         m_rgbaByte[i4+3] = 255;
     }
+}
 
+/**
+ * Destructor.
+ */
+BrainOpenGLShapeCone::~BrainOpenGLShapeCone()
+{
+    
+}
+
+void
+BrainOpenGLShapeCone::setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode)
+{
+    m_displayList    = 0;
+    
+    m_coordinatesBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
+    m_sidesNormalBufferID = 0;
+    m_sidesTriangleFanBufferID = 0;
+    m_capNormalBufferID = 0;
+    m_capTriangleFanBufferID = 0;
     
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
@@ -404,20 +405,24 @@ void
 BrainOpenGLShapeCone::drawShape(const BrainOpenGL::DrawMode drawMode,
                                 const uint8_t rgba[4])
 {
-    if (m_isApplyColoring) {
-        glColor4ubv(rgba);
-    }
-    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
             if (m_displayList > 0) {
+                if (m_isApplyColoring) {
+                    glColor4ubv(rgba);
+                }
+                
                 glCallList(m_displayList);
             }
         }
             break;
         case BrainOpenGL::DRAW_MODE_IMMEDIATE:
         {
+            if (m_isApplyColoring) {
+                glColor4ubv(rgba);
+            }
+            
             const int32_t numSideVertices = static_cast<int32_t>(m_sidesTriangleFan.size());
             glBegin(GL_TRIANGLE_FAN);
             for (int32_t j = 0; j < numSideVertices; j++) {

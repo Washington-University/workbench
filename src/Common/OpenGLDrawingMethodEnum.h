@@ -48,10 +48,10 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Use Immediate Mode Commands */
-        DRAW_IMMEDIATE_MODE,
-        /** Draw with OpenGL Buffers */
-        DRAW_WITH_BUFFERS
+        /** OpenGL Vertex Buffers Off */
+        DRAW_WITH_VERTEX_BUFFERS_OFF,
+        /** OpenGL Vertex Buffers On */
+        DRAW_WITH_VERTEX_BUFFERS_ON
     };
 
 

@@ -63,32 +63,14 @@ BrainOpenGLShapeRing::BrainOpenGLShapeRing(const int32_t numberOfSides,
   m_innerRadius(innerRadius),
   m_outerRadius(outerRadius)
 {
-    m_displayList    = 0;
-    
-    m_coordinatesBufferID = 0;
-    m_coordinatesRgbaByteBufferID = 0;
-    m_normalBufferID = 0;
-    m_triangleStripBufferID = 0;
     m_isApplyColoring = true;
-}
 
-/**
- * Destructor.
- */
-BrainOpenGLShapeRing::~BrainOpenGLShapeRing()
-{
-    
-}
-
-void
-BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
-{
     bool debugFlag = false;
     
     /*
      * Setup step size based upon number of points around circle
      */
-//    const int32_t numberOfPoints = 8;
+    //    const int32_t numberOfPoints = 8;
     const float step = (2.0 * M_PI) / m_numberOfSides;
     
     /*
@@ -147,16 +129,16 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
         std::cout << std::endl;
     }
     
-//    /*
-//     * End Cap
-//     */
-//    glBegin(GL_POLYGON);
-//    glNormal3f(0.0, 0.0, 1.0);
-//    for (int32_t i = 0; i < m_numberOfSides; i++) {
-//        const int32_t i3 = i * 3;
-//        glVertex3fv(&m_coordinates[i3]);
-//    }
-//    glEnd();
+    //    /*
+    //     * End Cap
+    //     */
+    //    glBegin(GL_POLYGON);
+    //    glNormal3f(0.0, 0.0, 1.0);
+    //    for (int32_t i = 0; i < m_numberOfSides; i++) {
+    //        const int32_t i3 = i * 3;
+    //        glVertex3fv(&m_coordinates[i3]);
+    //    }
+    //    glEnd();
     
     /*
      * Create storage for colors
@@ -173,9 +155,25 @@ BrainOpenGLShapeRing::setupShape(const BrainOpenGL::DrawMode drawMode)
         m_rgbaByte[i4+2] = 0;
         m_rgbaByte[i4+3] = 255;
     }
-    
+}
 
+/**
+ * Destructor.
+ */
+BrainOpenGLShapeRing::~BrainOpenGLShapeRing()
+{
     
+}
+
+void
+BrainOpenGLShapeRing::setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode)
+{
+    m_displayList    = 0;
+    
+    m_coordinatesBufferID = 0;
+    m_coordinatesRgbaByteBufferID = 0;
+    m_normalBufferID = 0;
+    m_triangleStripBufferID = 0;
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
@@ -296,20 +294,22 @@ void
 BrainOpenGLShapeRing::drawShape(const BrainOpenGL::DrawMode drawMode,
                                 const uint8_t rgba[4])
 {
-    if (m_isApplyColoring) {
-        glColor4ubv(rgba);
-    }
-    
     switch (drawMode) {
         case BrainOpenGL::DRAW_MODE_DISPLAY_LISTS:
         {
             if (m_displayList > 0) {
+                if (m_isApplyColoring) {
+                    glColor4ubv(rgba);
+                }
                 glCallList(m_displayList);
             }
         }
             break;
         case BrainOpenGL::DRAW_MODE_IMMEDIATE:
         {
+            if (m_isApplyColoring) {
+                glColor4ubv(rgba);
+            }
             const int32_t numVertices = static_cast<int32_t>(m_triangleStrip.size());
             glBegin(GL_TRIANGLE_STRIP);
             for (int32_t j = 0; j < numVertices; j++) {

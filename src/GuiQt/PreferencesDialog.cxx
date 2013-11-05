@@ -317,7 +317,7 @@ PreferencesDialog::addOpenGLItems()
     QObject::connect(m_openGLDrawingMethodEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(openGLDrawingMethodEnumComboBoxItemActivated()));
     
-    this->addWidgetToLayout("OpenGL Drawing",
+    this->addWidgetToLayout("OpenGL Vertex Buffers",
                             m_openGLDrawingMethodEnumComboBox->getWidget());
 }
 /**

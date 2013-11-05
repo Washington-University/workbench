@@ -79,7 +79,7 @@ namespace caret {
         
         static void initializeDefaultGLFormat();
         
-        static QString getOpenGLInformation();
+        QString getOpenGLInformation();
 
         void getViewPortSize(int &w, int &h);
         
@@ -152,13 +152,12 @@ namespace caret {
         
         static bool s_defaultGLFormatInitialized;
         
-        static QString s_openGLVersionInformation;
+        QString m_openGLVersionInformation;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
     const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 2;
     bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
-    QString BrainOpenGLWidget::s_openGLVersionInformation = "";
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
 } // namespace

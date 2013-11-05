@@ -164,12 +164,12 @@ BrainOpenGLWidget::initializeGL()
                    + "\n   Major Version: " + AString::number(format.majorVersion())
                    + "\n   Minor Version: " + AString::number(format.minorVersion()));
             
-    msg += ("\n\n" + BrainOpenGL::getOpenGLInformation());
+    msg += ("\n\n" + this->openGL->getOpenGLInformation());
 
     CaretLogConfig(msg);
     
-    if (s_openGLVersionInformation.isEmpty()) {
-        s_openGLVersionInformation = msg;
+    if (m_openGLVersionInformation.isEmpty()) {
+        m_openGLVersionInformation = msg;
     }
     
     if (s_defaultGLFormatInitialized == false) {
@@ -185,7 +185,32 @@ BrainOpenGLWidget::initializeGL()
 QString
 BrainOpenGLWidget::getOpenGLInformation()
 {
-    return s_openGLVersionInformation;
+    AString info = m_openGLVersionInformation;
+    
+#if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+    int32_t numDisplayLists = 0;
+    for (GLuint iList = 1; iList < 1000; iList++) {
+        if (glIsList(iList)) {
+            numDisplayLists++;
+        }
+    }
+    info += ("\nAt least "
+             + AString::number(numDisplayLists)
+             + " display lists are allocated in first OpenGL context.");
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+#ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    int32_t numVertexBuffers = 0;
+    for (GLuint iBuff = 1; iBuff < 1000; iBuff++) {
+        if (glIsBuffer(iBuff)) {
+            numVertexBuffers++;
+        }
+    }
+    info += ("\nAt least "
+             + AString::number(numVertexBuffers)
+             + " vertex buffers are allocated");
+#endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
+    
+    return info;
 }
 
 /**

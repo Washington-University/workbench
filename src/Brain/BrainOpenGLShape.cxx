@@ -47,6 +47,8 @@ using namespace caret;
 /**
  * \class caret::BrainOpenGLShape 
  * \brief Abstract class for shapes drawn in OpenGL.
+ *
+ * Subclasses should allocate the 
  */
 
 /**
@@ -55,10 +57,7 @@ using namespace caret;
 BrainOpenGLShape::BrainOpenGLShape()
 : CaretObject()
 {
-    if (s_drawModeInitialized == false) {
-        s_drawMode = BrainOpenGL::getBestDrawingMode();
-        s_drawModeInitialized = true;
-    }
+    m_drawMode = BrainOpenGL::DRAW_MODE_INVALID;
     
     m_shapeSetupComplete = false;
 }
@@ -67,6 +66,12 @@ BrainOpenGLShape::BrainOpenGLShape()
  * Destructor.
  */
 BrainOpenGLShape::~BrainOpenGLShape()
+{
+    releaseOpenGLAllocations();
+}
+
+void
+BrainOpenGLShape::releaseOpenGLAllocations()
 {
     /*
      * Since 'releaseBufferIDInternal()' will alter 'm_bufferIDs'
@@ -92,8 +97,9 @@ BrainOpenGLShape::~BrainOpenGLShape()
          iter++) {
         releaseDisplayListInternal(*iter);
     }
-    m_displayLists.clear();
+    m_displayLists.clear();    
 }
+
 
 /**
  * Force drawing mode to immediate mode since display lists
@@ -117,18 +123,36 @@ BrainOpenGLShape::setImmediateModeOverride(const bool override)
 void
 BrainOpenGLShape::draw(const uint8_t rgba[4])
 {
-    if (m_shapeSetupComplete == false) {
-        setupShape(s_drawMode);
-        m_shapeSetupComplete = true;
-    }
+    createShapeIfNeeded();
     
     if (s_immediateModeOverride) {
         drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
                   rgba);
     }
     else {
-        drawShape(s_drawMode,
+        drawShape(m_drawMode,
                   rgba);
+    }
+}
+
+/**
+ * Create the shape or recreate it if drawing mode changed.
+ */
+void
+BrainOpenGLShape::createShapeIfNeeded()
+{
+    if (m_drawMode == BrainOpenGL::DRAW_MODE_INVALID) {
+        m_shapeSetupComplete = false;
+    }
+    if (m_drawMode != BrainOpenGL::getBestDrawingMode()) {
+        m_shapeSetupComplete = false;
+    }
+    
+    if (m_shapeSetupComplete == false) {
+        releaseOpenGLAllocations();
+        m_drawMode = BrainOpenGL::getBestDrawingMode();
+        setupOpenGLForShape(m_drawMode);
+        m_shapeSetupComplete = true;
     }
 }
 
@@ -141,17 +165,14 @@ BrainOpenGLShape::draw(const uint8_t rgba[4])
 void
 BrainOpenGLShape::draw(const float rgba[4])
 {
-    if (m_shapeSetupComplete == false) {
-        setupShape(s_drawMode);
-        m_shapeSetupComplete = true;
-    }
-    
+    createShapeIfNeeded();
+
     if (s_immediateModeOverride) {
         drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
                   rgba);
     }
     else {
-        drawShape(s_drawMode,
+        drawShape(m_drawMode,
                   rgba);
     }
 }

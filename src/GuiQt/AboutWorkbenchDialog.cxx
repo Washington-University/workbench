@@ -56,11 +56,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param openGLParentWidget
+ *    The parent OpenGL Widget for which information is provided.
  */
-AboutWorkbenchDialog::AboutWorkbenchDialog(QWidget* parent)
+AboutWorkbenchDialog::AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget)
 : WuQDialogModal("About Workbench",
-                 parent)
+                 openGLParentWidget)
 {
+    m_openGLParentWidget = openGLParentWidget;
+    
     this->setCancelButtonText("");
     
     std::vector<AString> informationData;
@@ -113,7 +118,7 @@ AboutWorkbenchDialog::displayOpenGLInformation()
                            this,
                            true);
     ded.addTextEdit("",
-                    BrainOpenGLWidget::getOpenGLInformation(),
+                    m_openGLParentWidget->getOpenGLInformation(),
                     true);
     ded.resize(600, 600);
     ded.setCancelButtonText("");
