@@ -799,6 +799,11 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     bool found = false;
 
     /*
+     * Is used when the file is found but a map is not matched
+     */
+    CaretMappableDataFile* matchedMapFile = NULL;
+    
+    /*
      * First try to find file by filename INCLUDING path and map by unique ID
      */
     if (selectedMapFileNameWithPath.isEmpty() == false) {
@@ -810,6 +815,8 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 const AString fileName = mapFile->getFileName();
                 if (fileName == selectedMapFileNameWithPath) {
                     CaretMappableDataFile* mapFile = *iter;
+                    matchedMapFile = mapFile;
+                    
                     const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
                     if (mapIndex >= 0) {
                         setSelectionData(mapFile, 
@@ -834,6 +841,8 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 const AString fileName = mapFile->getFileNameNoPath();
                 if (fileName == selectedMapFileName) {
                     CaretMappableDataFile* mapFile = *iter;
+                    matchedMapFile = mapFile;
+                    
                     const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
                     if (mapIndex >= 0) {
                         setSelectionData(mapFile,
@@ -858,6 +867,8 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                 const AString fileName = mapFile->getFileNameNoPath();
                 if (fileName == selectedMapFileName) {
                     CaretMappableDataFile* mapFile = *iter;
+                    matchedMapFile = mapFile;
+                    
                     const int32_t mapIndex = mapFile->getMapIndexFromName(selectedMapName);
                     if (mapIndex >= 0) {
                         setSelectionData(mapFile,
@@ -866,6 +877,18 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    /*
+     * If file found but not matching map, use first map from the file.
+     * This may occur when the map does not have a name.
+     */
+    if (found == false) {
+        if (matchedMapFile != NULL) {
+            if (matchedMapFile->getNumberOfMaps() > 0) {
+                setSelectionData(matchedMapFile, 0);
             }
         }
     }
