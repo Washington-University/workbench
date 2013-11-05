@@ -267,7 +267,25 @@ Overlay::getName() const
 AString 
 Overlay::toString() const
 {
-    return "Overlay";
+    Overlay* me = const_cast<Overlay*>(this);
+    if (me != NULL) {
+        CaretMappableDataFile* mapFile = NULL;
+        int32_t mapIndex = 0;
+        me->getSelectionData(mapFile,
+                             mapIndex);
+        AString msg = ("MapFile=");
+        if (mapFile != NULL) {
+            msg += (mapFile->getFileNameNoPath()
+                    + ", mapIndex="
+                    + AString::number(mapIndex));
+        }
+        else {
+            msg += "NONE";
+        }
+        
+        return msg;
+    }
+    return "INVALID";
 }
 
 /**

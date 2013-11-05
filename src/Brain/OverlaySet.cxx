@@ -342,7 +342,15 @@ OverlaySet::getOverlay(const int32_t overlayNumber)
 AString 
 OverlaySet::toString() const
 {
-    return "OverlaySet";
+    AString msg = "Overlay Set:";
+    const int numOverlays = getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numOverlays; i++) {
+        msg += ("\n   Overlay "
+                + AString::number(i)
+                + ": "
+                + getOverlay(i)->toString());
+    }
+    return msg;
 }
 
 /**
