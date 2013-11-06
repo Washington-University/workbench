@@ -463,8 +463,6 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
 
             const int32_t numberOfNodes = this->brainStructure->getNumberOfNodes();
 
-            int32_t fileIndex = 0;
-            
             switch (dataFileType) {
                 case DataFileTypeEnum::LABEL:
                 {
@@ -474,16 +472,6 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     labelFile->setStructure(this->brainStructure->getStructure());
                     labelFile->setFileName(mapFileName);
                     brain->addDataFile(labelFile);
-//                    this->brainStructure->addLabelFile(labelFile,
-//                                                       false);
-//                    fileIndex = this->brainStructure->getNumberOfLabelFiles() - 1;
-//                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(labelFile);
-//                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
-//                                            brainStructure->getStructure(),
-//                                            mapFileName,
-//                                            true,
-//                                            true,
-//                                            false);
                 }
                     break;
                 case DataFileTypeEnum::METRIC:
@@ -494,16 +482,6 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     metricFile->setStructure(this->brainStructure->getStructure());
                     metricFile->setFileName(mapFileName);
                     brain->addDataFile(metricFile);
-//                    this->brainStructure->addMetricFile(metricFile,
-//                                                        false);
-//                    fileIndex = this->brainStructure->getNumberOfMetricFiles() - 1;
-//                    brainStructure->getBrain()->getSpecFile()->addCaretDataFile(metricFile);//TSC: I stole this code out of Brain::readOrReloadDataFile and added some includes to get it working
-//                    brainStructure->getBrain()->getSpecFile()->addDataFile(dataFileType,
-//                                            brainStructure->getStructure(),
-//                                            mapFileName,
-//                                            true,
-//                                            true,
-//                                            false);
                 }
                     break;
                 default:
