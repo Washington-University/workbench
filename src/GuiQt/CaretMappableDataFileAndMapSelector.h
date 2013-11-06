@@ -167,7 +167,7 @@ namespace caret {
             float metricValue;
             
             Selections() {
-                this->dataFileType = DataFileTypeEnum::UNKNOWN;
+                this->dataFileType = DataFileTypeEnum::METRIC;
                 
                 this->labelFile = NULL;
                 this->labelMapName = "";
