@@ -47,6 +47,7 @@
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #include <GL/glu.h>
 #endif

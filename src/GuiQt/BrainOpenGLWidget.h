@@ -26,6 +26,8 @@
 */
 /*LICENSE_END*/
 
+#include "CaretOpenGLInclude.h"
+
 #include <QGLWidget>
 #include <QImage>
 
