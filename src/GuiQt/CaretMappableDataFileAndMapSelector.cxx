@@ -515,8 +515,11 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
             }
             
             
-            this->loadMapFileComboBox(fileIndex);
-            this->setMapFileComboBoxCurrentIndex(fileIndex);
+            this->loadMapFileComboBox(0);
+            const int numMapFiles = this->mapFileComboBox->count();
+            if (numMapFiles > 0) {
+                this->setMapFileComboBoxCurrentIndex(numMapFiles - 1);
+            }
             this->setMapNameComboBoxCurrentIndex(0);
             
             emit selectionChanged(this);
