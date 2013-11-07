@@ -141,3 +141,8 @@ bool VolumeSpace::matchesVolumeSpace(const VolumeSpace& right) const
     }
     return true;
 }
+
+void VolumeSpace::getSpacingVectors(Vector3D& iStep, Vector3D& jStep, Vector3D& kStep, Vector3D& origin) const
+{
+    FloatMatrix(m_sform).getAffineVectors(iStep, jStep, kStep, origin);
+}
