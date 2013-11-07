@@ -113,6 +113,8 @@ namespace caret {
         
         void initializeOpenGL();
         
+        virtual AString getStateOfOpenGL() const;
+        
     private:
         class VolumeDrawInfo {
         public:

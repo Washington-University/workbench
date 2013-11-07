@@ -187,12 +187,26 @@ namespace caret {
             return s_supportsVertexBuffers;
         }
         
+        virtual AString getStateOfOpenGL() const;
+        
     private:
         BrainOpenGL(const BrainOpenGL&);
         BrainOpenGL& operator=(const BrainOpenGL&);
         
         
     protected:
+        AString getOpenGLEnumAsText(const AString& enumName,
+                                    const GLenum enumValue) const;
+        
+        AString getOpenGLFloatAsText(const AString& enumName,
+                                     const GLenum enumValue,
+                                     const int32_t numberOfValues) const;
+        
+        AString getOpenGLLightAsText(const AString& enumName,
+                                     const GLenum lightEnum,
+                                     const GLenum enumValue,
+                                     const int32_t numberOfValues) const;
+        
         /** Optional text rendering (if not null) */
         BrainOpenGLTextRenderInterface* textRenderer;
         

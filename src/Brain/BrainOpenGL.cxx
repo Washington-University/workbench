@@ -493,3 +493,161 @@ BrainOpenGL::getBestDrawingModeName()
     return modeName;
 }
 
+/**
+ * @return A string containing the state of OpenGL (depth testing, lighting, etc.)
+ */
+AString
+BrainOpenGL::getStateOfOpenGL() const
+{
+    AString s;
+    
+    return s;
+}
+
+/**
+ * Get the status of an OpenGL enum (enabled/disabled) as text in form
+ * "name=true/false".
+ *
+ * @param enumName
+ *     Text name of the enumerated value.
+ * @param enumValue
+ *     The OpenGl enum value.
+ * @return
+ *     String with "enumName=true/false".
+ */
+AString BrainOpenGL::getOpenGLEnumAsText(const AString& enumName,
+                            const GLenum enumValue) const
+{
+    /*
+     * Reset error status
+     */
+    glGetError();
+    
+    GLboolean boolValue = GL_FALSE;
+    glGetBooleanv(enumValue, &boolValue);
+    
+    AString errorText;
+    const GLenum errorCode = glGetError();
+    if (errorCode != GL_NO_ERROR) {
+        const GLubyte* errorChars = gluErrorString(errorCode);
+        if (errorChars != NULL) {
+            errorText = ("ERROR = "
+                         + AString((char*)errorChars));
+        }
+    }
+    
+    const AString s = (enumName
+                       + "="
+                       + ((boolValue == GL_TRUE) ? "true" : "false")
+                       + " "
+                       + errorText);
+    return s;
+}
+
+/**
+ * Get the status of an OpenGL enum (enabled/disabled) as text in form
+ * "name=true/false".
+ *
+ * @param enumName
+ *     Text name of the enumerated value.
+ * @param enumValue
+ *     The OpenGl enum value.
+ * @param numberOfValues
+ *     Number of floating pointer values associated with enumName.
+ * @return
+ *     String with "enumName=(1, 2, 3,..)".
+ */
+AString BrainOpenGL::getOpenGLFloatAsText(const AString& enumName,
+                                          const GLenum enumValue,
+                                          const int32_t numberOfValues) const
+{
+    /*
+     * Reset error status
+     */
+    glGetError();
+    
+    AString valuesString;
+    
+    if (numberOfValues > 0) {
+        std::vector<GLfloat> valuesVector(numberOfValues,
+                                          0.0);
+        GLfloat* values = &valuesVector[0];
+        glGetFloatv(enumValue, values);
+
+        const GLenum errorCode = glGetError();
+        if (errorCode != GL_NO_ERROR) {
+            const GLubyte* errorChars = gluErrorString(errorCode);
+            if (errorChars != NULL) {
+                valuesString = ("ERROR = "
+                             + AString((char*)errorChars));
+            }
+        }
+        else {
+            valuesString = ("("
+                            + AString::fromNumbers(valuesVector, ",")
+                            + ")");
+        }
+    }
+    
+    const AString s = (enumName
+                       + "="
+                       + valuesString);
+    return s;
+}
+
+/**
+ * Get the status of an OpenGL enum (enabled/disabled) as text in form
+ * "name=true/false".
+ *
+ * @param enumName
+ *     Text name of the enumerated value.
+ * @param enumValue
+ *     The OpenGl enum value.
+ * @param enumValue
+ *     The OpenGl enum value.
+ * @param numberOfValues
+ *     Number of floating pointer values associated with enumName.
+ * @return
+ *     String with "enumName=(1, 2, 3,..)".
+ */
+AString BrainOpenGL::getOpenGLLightAsText(const AString& enumName,
+                                          const GLenum lightEnum,
+                                          const GLenum enumValue,
+                                          const int32_t numberOfValues) const
+{
+    /*
+     * Reset error status
+     */
+    glGetError();
+    
+    AString valuesString;
+    
+    if (numberOfValues > 0) {
+        std::vector<GLfloat> valuesVector(numberOfValues,
+                                          0.0);
+        GLfloat* values = &valuesVector[0];
+        glGetLightfv(lightEnum,
+                     enumValue,
+                     values);
+        
+        const GLenum errorCode = glGetError();
+        if (errorCode != GL_NO_ERROR) {
+            const GLubyte* errorChars = gluErrorString(errorCode);
+            if (errorChars != NULL) {
+                valuesString = ("ERROR = "
+                                + AString((char*)errorChars));
+            }
+        }
+        else {
+            valuesString = ("("
+                            + AString::fromNumbers(valuesVector, ",")
+                            + ")");
+        }
+    }
+    
+    const AString s = (enumName
+                       + "="
+                       + valuesString);
+    return s;
+}
+
