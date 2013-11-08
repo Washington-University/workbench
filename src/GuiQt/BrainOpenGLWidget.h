@@ -33,7 +33,9 @@
 
 #include <stdint.h>
 #include "BrainConstants.h"
+#include "EventImageCapture.h"
 #include "EventListenerInterface.h"
+#include "ImageCaptureMethodEnum.h"
 
 class QMouseEvent;
 
@@ -74,9 +76,6 @@ namespace caret {
                                const int y,
                                SurfaceProjectedItem& projectionOut);
  
-        QImage  captureImage(const int32_t imageSizeX,
-                             const int32_t imageSizeY);
-        
         Border* getBorderBeingDrawn();
         
         static void initializeDefaultGLFormat();
@@ -112,6 +111,8 @@ namespace caret {
                                        Qt::MouseButton& button,
                                        Qt::KeyboardModifiers& keyModifiers,
                                        const bool isMouseMoving);
+        
+        void captureImage(EventImageCapture* imageCaptureEvent);
         
         BrainOpenGL* openGL;
         

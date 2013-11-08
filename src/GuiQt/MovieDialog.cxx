@@ -45,6 +45,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventImageCapture.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
@@ -623,17 +624,36 @@ void MovieDialog::captureFrame(AString filename)
 
     ImageFile imageFile;
     QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(m_browserWindowIndex,
-        imageX,
-        imageY,
-        imageFile,
-        false);
+//    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(m_browserWindowIndex,
+//        imageX,
+//        imageY,
+//        imageFile,
+//        false);
+    EventImageCapture imageCaptureEvent(ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP,
+                                        m_browserWindowIndex,
+                                        imageX,
+                                        imageY);
+    EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
+    
+    bool valid = true;
+    AString errorMessage;
+    if (imageCaptureEvent.getEventProcessCount() <= 0) {
+        errorMessage = "Invalid window selected";
+        valid = false;
+    }
+    else if (imageCaptureEvent.isError()) {
+        errorMessage = imageCaptureEvent.getErrorMessage();
+        valid = false;
+    }
+    
+    imageFile.setFromQImage(imageCaptureEvent.getImage());
     QApplication::restoreOverrideCursor();
 
 
     if (valid == false) {
-        WuQMessageBox::errorOk(this, 
-            "Invalid window selected");
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+//            "Invalid window selected");
         ui->recordButton->setChecked(false);
         return;
     }

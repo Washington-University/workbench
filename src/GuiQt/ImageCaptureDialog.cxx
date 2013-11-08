@@ -50,10 +50,13 @@
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
+#include "EventGraphicsUpdateOneWindow.h"
+#include "EventImageCapture.h"
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "ImageCaptureMethodEnum.h"
 #include "ImageDimensionsModel.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
@@ -207,10 +210,28 @@ ImageCaptureDialog::createImageOptionsSection()
     cropMarginLayout->addWidget(m_imageAutoCropMarginSpinBox);
     cropMarginLayout->addStretch();
     
+    const AString captureMethodToolTip = ("Sometimes, the default image capture method fails to "
+                                          "function correctly and the captured image does not match "
+                                          "the content of the graphics window.  If this occurs, "
+                                          "try changing the Capture Method to Grab Frame Buffer.");
+    QLabel* imageCaptureLabel = new QLabel("Capture Method (Advanced)");
+    WuQtUtilities::setWordWrappedToolTip(imageCaptureLabel,
+                                         captureMethodToolTip);
+    m_imageCaptureMethodEnumComboBox = new EnumComboBoxTemplate(this);
+    m_imageCaptureMethodEnumComboBox->setup<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
+    WuQtUtilities::setWordWrappedToolTip(m_imageCaptureMethodEnumComboBox->getWidget(),
+                                         captureMethodToolTip);
+    QHBoxLayout* captureMethodLayout = new QHBoxLayout();
+    captureMethodLayout->addWidget(imageCaptureLabel);
+    captureMethodLayout->addWidget(m_imageCaptureMethodEnumComboBox->getWidget());
+    captureMethodLayout->addStretch();
+    
     QGroupBox* groupBox = new QGroupBox("Image Options");
-    QVBoxLayout* gridLayout = new QVBoxLayout(groupBox);
-    gridLayout->addWidget(m_imageAutoCropCheckBox);
-    gridLayout->addLayout(cropMarginLayout);
+    QVBoxLayout* layout = new QVBoxLayout(groupBox);
+    layout->addWidget(m_imageAutoCropCheckBox);
+    layout->addLayout(cropMarginLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(captureMethodLayout);
     
     return groupBox;
 }
@@ -741,6 +762,8 @@ ImageCaptureDialog::applyButtonPressed()
 {
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
+    const ImageCaptureMethodEnum::Enum imageCaptureMethod = m_imageCaptureMethodEnumComboBox->getSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
+    
     /*
      * Zero for width/height means capture image in size of window
      */
@@ -750,69 +773,79 @@ ImageCaptureDialog::applyButtonPressed()
         imageX = m_pixelWidthSpinBox->value();
         imageY = m_pixelHeightSpinBox->value();
     }
-    ImageFile imageFile;
-    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
-                                                                            imageX,
-                                                                            imageY,
-                                                                            imageFile);
     
-    if (valid == false) {
-        WuQMessageBox::errorOk(this, 
-                               "Invalid window selected");
-        return;
-    }
-    
-    const float pixelsPerCentimeter = m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(ImagePixelsPerSpatialUnitsEnum::PIXEL_PER_CENTIMETER);
-    const float pixelsPerMeter = pixelsPerCentimeter * 100;
-    
-    imageFile.setDotsPerMeter(pixelsPerMeter,
-                              pixelsPerMeter);
-    
-    if (m_imageAutoCropCheckBox->isChecked()) {
-        const int marginSize = m_imageAutoCropMarginSpinBox->value();
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        uint8_t backgroundColor[3];
-        prefs->getColorBackground(backgroundColor);
-        imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
-    }
+    EventImageCapture imageCaptureEvent(imageCaptureMethod,
+                                        browserWindowIndex,
+                                        imageX,
+                                        imageY);
+    EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
     
     bool errorFlag = false;
-    
-    if (m_copyImageToClipboardCheckBox->isChecked()) {
-        QApplication::clipboard()->setImage(*imageFile.getAsQImage(),
-                                            QClipboard::Clipboard);
+    if (imageCaptureEvent.getEventProcessCount() <= 0) {
+        WuQMessageBox::errorOk(this,
+                               "Invalid window selected");
+        errorFlag = true;
     }
-
-    if (m_saveImageToFileCheckBox->isChecked()) {
-        std::vector<AString> imageFileExtensions;
-        AString defaultFileExtension;
-        ImageFile::getImageFileExtensions(imageFileExtensions, 
-                                          defaultFileExtension);
+    else if (imageCaptureEvent.isError()) {
+        WuQMessageBox::errorOk(this,
+                               imageCaptureEvent.getErrorMessage());
+        errorFlag = true;
+    }
+    
+    if ( ! errorFlag) {
+        ImageFile imageFile;
+        imageFile.setFromQImage(imageCaptureEvent.getImage());
         
-        AString filename = m_imageFileNameLineEdit->text().trimmed();
+        const float pixelsPerCentimeter = m_imageDimensionsModel->getNumberOfPixelsPerSpatialUnit(ImagePixelsPerSpatialUnitsEnum::PIXEL_PER_CENTIMETER);
+        const float pixelsPerMeter = pixelsPerCentimeter * 100;
         
-        bool validExtension = false;
-        for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
-             extensionIterator != imageFileExtensions.end();
-             extensionIterator++) {
-            if (filename.endsWith(*extensionIterator)) {
-                validExtension = true;
+        imageFile.setDotsPerMeter(pixelsPerMeter,
+                                  pixelsPerMeter);
+        
+        if (m_imageAutoCropCheckBox->isChecked()) {
+            const int marginSize = m_imageAutoCropMarginSpinBox->value();
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            uint8_t backgroundColor[3];
+            prefs->getColorBackground(backgroundColor);
+            imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
+        }
+        
+        if (m_copyImageToClipboardCheckBox->isChecked()) {
+            QApplication::clipboard()->setImage(*imageFile.getAsQImage(),
+                                                QClipboard::Clipboard);
+        }
+        
+        if (m_saveImageToFileCheckBox->isChecked()) {
+            std::vector<AString> imageFileExtensions;
+            AString defaultFileExtension;
+            ImageFile::getImageFileExtensions(imageFileExtensions,
+                                              defaultFileExtension);
+            
+            AString filename = m_imageFileNameLineEdit->text().trimmed();
+            
+            bool validExtension = false;
+            for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
+                 extensionIterator != imageFileExtensions.end();
+                 extensionIterator++) {
+                if (filename.endsWith(*extensionIterator)) {
+                    validExtension = true;
+                }
             }
-        }
-        
-        if (validExtension == false) {
-            if (defaultFileExtension.isEmpty() == false) {
-                filename += ("." + defaultFileExtension);
+            
+            if (validExtension == false) {
+                if (defaultFileExtension.isEmpty() == false) {
+                    filename += ("." + defaultFileExtension);
+                }
             }
-        }
-        
-        try {
-            imageFile.writeFile(filename);
-        }
-        catch (const DataFileException& /*e*/) {
-            QString msg("Unable to save: " + filename);
-            WuQMessageBox::errorOk(this, msg);
-            errorFlag = true;
+            
+            try {
+                imageFile.writeFile(filename);
+            }
+            catch (const DataFileException& /*e*/) {
+                QString msg("Unable to save: " + filename);
+                WuQMessageBox::errorOk(this, msg);
+                errorFlag = true;
+            }
         }
     }
     
@@ -828,6 +861,8 @@ ImageCaptureDialog::applyButtonPressed()
                                      2.0,
                                      "Image captured");
     }
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
 }
 
 

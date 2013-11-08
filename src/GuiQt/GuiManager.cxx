@@ -1559,51 +1559,6 @@ void GuiManager::updateAnimationStartTime(double /*value*/)
 }
 
 /**
- * Capture an image of the browser window's graphics area.
- * If either of the image dimensions
- * is zero, the image will be the size of the graphcis 
- * area.
- *
- * @param browserWindowIndex
- *    Index of the browser window.
- * @param imageSizeX
- *    Desired X size of image.
- * @param imageSizeY
- *    Desired X size of image.
- * @param imageFileOut
- *    ImageFile that will contain the captured image.
- * @return 
- *    true if the browser window index was valid, else false.
- */
-bool 
-GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
-                                                    const int32_t imageSizeX,
-                                                    const int32_t imageSizeY,
-                                                    ImageFile& imageFileOut,
-                                                    bool updateWindow    )
-{
-    bool valid = false;
-    
-    const int32_t numBrowserWindows = static_cast<int32_t>(m_brainBrowserWindows.size());
-    if ((browserWindowIndex >= 0) 
-        && (browserWindowIndex < numBrowserWindows)) {
-        BrainBrowserWindow* bbw = m_brainBrowserWindows[browserWindowIndex];
-        if (bbw != NULL) {
-            QImage image = bbw->captureImageOfGraphicsArea(imageSizeX, imageSizeY);
-            imageFileOut.setFromQImage(image);
-            valid = true;
-        }
-    }
-
-    /*
-     * Image capture sometimes messes up window so redraw it.
-     */
-    if(updateWindow) EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
-
-    return valid;
-}
-
-/**
  * @return The cursor manager.
  */
 const 

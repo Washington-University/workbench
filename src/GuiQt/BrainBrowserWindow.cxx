@@ -2647,29 +2647,6 @@ BrainBrowserWindow::createPopupMenu()
 }
 
 /**
- * Capture an image of the window's graphics area using 
- * the given image size.  If either of the image dimensions
- * is zero, the image will be the size of the graphcis 
- * area.
- *
- * @param imageSizeX
- *    Desired X size of image.
- * @param imageSizeY
- *    Desired X size of image.
- * @return
- *    An image of the graphics area.
- */
-QImage 
-BrainBrowserWindow::captureImageOfGraphicsArea(const int32_t imageSizeX,
-                                               const int32_t imageSizeY)
-{
-    QImage image = m_openGLWidget->captureImage(imageSizeX, 
-                                                    imageSizeY);
-    
-    return image;
-}
-
-/**
  * Open a connection to the allen brain institute database.
  */
 void 

@@ -93,6 +93,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
 }
 
 /**
@@ -978,30 +979,38 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             inputModeEvent->setEventProcessed();
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_IMAGE_CAPTURE) {
+        EventImageCapture* imageCaptureEvent = dynamic_cast<EventImageCapture*>(event);
+        CaretAssert(imageCaptureEvent);
+        
+        if (imageCaptureEvent->getBrowserWindowIndex() == this->windowIndex) {
+            captureImage(imageCaptureEvent);
+            imageCaptureEvent->setEventProcessed();
+        }
+    }
     else {
         
     }
 }
 
 /**
- * Capture an image of the window's graphics area using 
- * the given image size.  If either of the image dimensions
- * is zero, the image will be the size of the graphcis 
- * area.
+ * Capture an image using the parameters from the event.
  *
- * @param imageSizeX
- *    Desired X size of image.
- * @param imageSizeY
- *    Desired X size of image.
- * @return
- *    An image of the graphics area.
+ * @param imageCaptureEvent
+ *    The image capture event.
  */
-QImage 
-BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
-                                const int32_t imageSizeY)
+void
+BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
 {
     const int oldSizeX = this->windowWidth[this->windowIndex];
     const int oldSizeY = this->windowHeight[this->windowIndex];
+
+    /*
+     * Note that a size of zero indicates capture graphics in its
+     * current size.
+     */
+    const int imageSizeX = imageCaptureEvent->getImageSizeX();
+    const int imageSizeY = imageCaptureEvent->getImageSizeY();
     
     /*
      * Force immediate mode since problems with display lists
@@ -1009,15 +1018,36 @@ BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
      */
     BrainOpenGLShape::setImmediateModeOverride(true);
     
-    QPixmap pixmap = this->renderPixmap(imageSizeX,
-                                        imageSizeY);
-    QImage image = pixmap.toImage();
+    QImage image;
+    
+    switch (imageCaptureEvent->getImageCaptureMethod()) {
+        case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER:
+        {
+            image = grabFrameBuffer();
+        }
+            break;
+        case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
+        {
+            QPixmap pixmap = this->renderPixmap(imageSizeX,
+                                                imageSizeY);
+            image = pixmap.toImage();
+        }
+            break;
+    }
+    
+    if ((image.size().width() <= 0)
+        || (image.size().height() <= 0)) {
+        imageCaptureEvent->setErrorMessage("Image capture appears to have failed (invalid size).");
+        return;
+    }
+    
+    imageCaptureEvent->setImage(image);
+    
     BrainOpenGLShape::setImmediateModeOverride(false);
     
     this->resizeGL(oldSizeX, oldSizeY);
-    
-    return image;
 }
+
 
 /**
  * Initialize the OpenGL format.  This must be called

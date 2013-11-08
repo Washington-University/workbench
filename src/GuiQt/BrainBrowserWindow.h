@@ -72,9 +72,6 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
 
-        QImage captureImageOfGraphicsArea(const int32_t imageSizeX,
-                                          const int32_t imageSizeY);
-        
         bool isTileTabsSelected() const;
         
         /**

@@ -138,6 +138,10 @@ EventTypeEnum::initialize()
                                      "EVENT_IDENTIFICATION_SYMBOL_REMOVAL", 
                                      "Remove all identification symbols"));
     
+    enumData.push_back(EventTypeEnum(EVENT_IMAGE_CAPTURE,
+                                     "EVENT_IMAGE_CAPTURE",
+                                     "Capture an Image of Browser Window Graphics Region"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
                                      "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW",
                                      "Request display of map scalar data color mapping editor"));

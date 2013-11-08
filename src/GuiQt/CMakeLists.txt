@@ -164,6 +164,7 @@ EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
+EventImageCapture.h
 EventMapSettingsEditorDialogRequest.h
 EventOperatingSystemRequestOpenDataFile.h
 EventUpdateAnimationStartTime.h
@@ -184,6 +185,7 @@ GuiManager.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
+ImageCaptureMethodEnum.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
@@ -286,6 +288,7 @@ EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
+EventImageCapture.cxx
 EventMapSettingsEditorDialogRequest.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
 EventUpdateAnimationStartTime.cxx
@@ -306,6 +309,7 @@ GuiManager.cxx
 HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
+ImageCaptureMethodEnum.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx

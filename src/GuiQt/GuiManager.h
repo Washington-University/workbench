@@ -34,6 +34,7 @@
 #include <QObject>
 
 #include "EventListenerInterface.h"
+#include "ImageCaptureMethodEnum.h"
 #include "SceneableInterface.h"
 #include "TimeCourseDialog.h"
 #include "WuQWebView.h"
@@ -136,11 +137,6 @@ namespace caret {
         void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
         void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
         
-        bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
-                                                     const int32_t imageSizeX,
-                                                     const int32_t imageSizeY,
-                                                     ImageFile& imageFileOut,
-                                                     bool updateWindow = true);
         void processUpdateTimeCourseDialogs();
         TimeCourseDialog *getTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
         ChartingDialog *getChartingDialog(ChartableInterface *id);

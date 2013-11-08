@@ -76,6 +76,8 @@ public:
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
         /** Remove all identification symbols */
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
+        /** Browser window image capture */
+        EVENT_IMAGE_CAPTURE,
         /** request display of map scalar color data mapping editor */
         EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
         /** model display controllers - ADD */
