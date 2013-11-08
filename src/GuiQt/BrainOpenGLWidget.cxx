@@ -1024,6 +1024,25 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER:
         {
             image = grabFrameBuffer();
+            
+            /*
+             * If image was captured successfully and the caller has 
+             * requested that the image be a specific size, scale
+             * the image to the requested size.
+             */
+            if ((image.width() > 0)
+                && (image.height() > 0)) {
+                if ((imageSizeX > 0)
+                    && (imageSizeY > 0)) {
+                    if ((image.width() != imageSizeX)
+                        || (image.height() != imageSizeY)) {
+                        image = image.scaled(imageSizeX,
+                                             imageSizeY,
+                                             Qt::IgnoreAspectRatio,
+                                             Qt::SmoothTransformation);
+                    }
+                }
+            }
         }
             break;
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP:
