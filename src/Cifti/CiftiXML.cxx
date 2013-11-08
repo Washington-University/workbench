@@ -828,94 +828,15 @@ bool CiftiXML::setRowTimestart(const float& seconds)
     return setTimestart(seconds, m_dimToMapLookup[0]);
 }
 
-bool CiftiXML::getVolumeAttributesForPlumb(VolumeBase::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
+bool CiftiXML::getVolumeAttributesForPlumb(VolumeSpace::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
 {
-    if (m_root.m_matrices.size() == 0)
-    {
-        return false;
-    }
-    if (m_root.m_matrices[0].m_volume.size() == 0)
-    {
-        return false;
-    }
-    const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
-    if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
-    {
-        return false;
-    }
-    const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
-    FloatMatrix myMatrix = FloatMatrix::zeros(3, 4);//no fourth row
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 4; ++j)
-        {
-            myMatrix[i][j] = myTrans.m_transform[i * 4 + j];
-        }
-    }
-    switch (myTrans.m_unitsXYZ)
-    {
-        case NIFTI_UNITS_MM:
-            break;
-        case NIFTI_UNITS_METER:
-            myMatrix *= 1000.0f;
-            break;
-        case NIFTI_UNITS_MICRON:
-            myMatrix *= 0.001f;
-            break;
-        default:
-            return false;
-    };
-    dimensionsOut[0] = myVol.m_volumeDimensions[0];
-    dimensionsOut[1] = myVol.m_volumeDimensions[1];
-    dimensionsOut[2] = myVol.m_volumeDimensions[2];
-    char axisUsed = 0;
-    char indexUsed = 0;
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            if (myMatrix[i][j] != 0.0f)
-            {
-                if (axisUsed & (1<<i))
-                {
-                    return false;
-                }
-                if (indexUsed & (1<<j))
-                {
-                    return false;
-                }
-                axisUsed &= (1<<i);
-                indexUsed &= (1<<j);
-                spacingOut[j] = myMatrix[i][j];
-                originOut[j] = myMatrix[i][3];
-                bool negative;
-                if (myMatrix[i][j] > 0.0f)
-                {
-                    negative = true;
-                } else {
-                    negative = false;
-                }
-                switch (i)
-                {
-                case 0:
-                    //left/right
-                    orientOut[j] = (negative ? VolumeBase::RIGHT_TO_LEFT : VolumeBase::LEFT_TO_RIGHT);
-                    break;
-                case 1:
-                    //forward/back
-                    orientOut[j] = (negative ? VolumeBase::ANTERIOR_TO_POSTERIOR : VolumeBase::POSTERIOR_TO_ANTERIOR);
-                    break;
-                case 2:
-                    //up/down
-                    orientOut[j] = (negative ? VolumeBase::SUPERIOR_TO_INFERIOR : VolumeBase::INFERIOR_TO_SUPERIOR);
-                    break;
-                default:
-                    //will never get called
-                    break;
-                };
-            }
-        }
-    }
+    VolumeSpace mySpace;
+    if (!getVolumeSpace(mySpace)) return false;
+    const int64_t* myDims = mySpace.getDims();
+    dimensionsOut[0] = myDims[0];
+    dimensionsOut[1] = myDims[1];
+    dimensionsOut[2] = myDims[2];
+    mySpace.getOrientAndSpacingForPlumb(orientOut, spacingOut, originOut);
     return true;
 }
 

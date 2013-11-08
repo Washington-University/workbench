@@ -64,7 +64,7 @@ void OperationVolumeReorient::useParameters(OperationParameters* myParams, Progr
         throw OperationException("orient-string must have 3 characters");
     }
     bool used[3] = {false, false, false};
-    VolumeBase::OrientTypes orient[3];
+    VolumeSpace::OrientTypes orient[3];
     for (int i = 0; i < 3; ++i)
     {
         char id = orientString[i].toAscii();
@@ -74,37 +74,37 @@ void OperationVolumeReorient::useParameters(OperationParameters* myParams, Progr
             case 'l':
                 if (used[0]) throw OperationException("X axis (L, R) specified more than once");
                 used[0] = true;
-                orient[i] = VolumeBase::LEFT_TO_RIGHT;
+                orient[i] = VolumeSpace::LEFT_TO_RIGHT;
                 break;
             case 'R':
             case 'r':
                 if (used[0]) throw OperationException("X axis (L, R) specified more than once");
                 used[0] = true;
-                orient[i] = VolumeBase::RIGHT_TO_LEFT;
+                orient[i] = VolumeSpace::RIGHT_TO_LEFT;
                 break;
             case 'P':
             case 'p':
                 if (used[1]) throw OperationException("Y axis (P, A) specified more than once");
                 used[1] = true;
-                orient[i] = VolumeBase::POSTERIOR_TO_ANTERIOR;
+                orient[i] = VolumeSpace::POSTERIOR_TO_ANTERIOR;
                 break;
             case 'A':
             case 'a':
                 if (used[1]) throw OperationException("Y axis (P, A) specified more than once");
                 used[1] = true;
-                orient[i] = VolumeBase::ANTERIOR_TO_POSTERIOR;
+                orient[i] = VolumeSpace::ANTERIOR_TO_POSTERIOR;
                 break;
             case 'I':
             case 'i':
                 if (used[2]) throw OperationException("Z axis (I, S) specified more than once");
                 used[2] = true;
-                orient[i] = VolumeBase::INFERIOR_TO_SUPERIOR;
+                orient[i] = VolumeSpace::INFERIOR_TO_SUPERIOR;
                 break;
             case 'S':
             case 's':
                 if (used[2]) throw OperationException("Z axis (I, S) specified more than once");
                 used[2] = true;
-                orient[i] = VolumeBase::SUPERIOR_TO_INFERIOR;
+                orient[i] = VolumeSpace::SUPERIOR_TO_INFERIOR;
                 break;
             default:
                 throw OperationException(AString("unrecognized character '") + id + "'");

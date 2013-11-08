@@ -481,7 +481,7 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         if (m_voxelIndicesToOffset->isValid()) {
             m_containsVolumeData = true;
             
-            VolumeBase::OrientTypes orient[3];
+            VolumeSpace::OrientTypes orient[3];
             int64_t dimensions[3];
             float origin[3];
             float spacing[3];

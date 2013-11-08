@@ -41,6 +41,15 @@ namespace caret
         std::vector<std::vector<float> > m_sform, m_inverse;
         void computeInverse();
     public:
+        enum OrientTypes
+        {
+            LEFT_TO_RIGHT = 0,
+            RIGHT_TO_LEFT = 4,
+            POSTERIOR_TO_ANTERIOR = 1,
+            ANTERIOR_TO_POSTERIOR = 5,
+            INFERIOR_TO_SUPERIOR = 2,
+            SUPERIOR_TO_INFERIOR = 6
+        };
         VolumeSpace();
         VolumeSpace(const int64_t dims[3], const std::vector<std::vector<float> >& sform);
         VolumeSpace(const int64_t dims[3], const float sform[12]);
@@ -51,6 +60,15 @@ namespace caret
         void getSpacingVectors(Vector3D& iStep, Vector3D& jStep, Vector3D& kStep, Vector3D& origin) const;
         bool matchesVolumeSpace(const VolumeSpace& right) const;//should this be used in an operator==?  it allows slight mismatches...
 
+        ///returns true if volume space is not skew, and each axis and index is separate
+        bool isPlumb() const;
+
+        ///returns orientation, spacing, and center (spacing/center can be negative, spacing/center is LPI rearranged to ijk (first dimension uses first element), will assert false if isOblique is true)
+        void getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* originOut) const;
+        
+        ///get just orientation, even for non-plumb volumes
+        void getOrientation(OrientTypes orientOut[3]) const;
+        
         ///returns coordinate triplet of an index triplet
         template <typename T>
         inline void indexToSpace(const T* indexIn, float* coordOut) const

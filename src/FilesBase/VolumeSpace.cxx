@@ -146,3 +146,139 @@ void VolumeSpace::getSpacingVectors(Vector3D& iStep, Vector3D& jStep, Vector3D& 
 {
     FloatMatrix(m_sform).getAffineVectors(iStep, jStep, kStep, origin);
 }
+
+void VolumeSpace::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* originOut) const
+{
+    CaretAssert(isPlumb());
+    if (!isPlumb())
+    {
+        throw CaretException("orientation and spacing asked for on non-plumb volume space");//this will fail MISERABLY on non-plumb volumes, so throw otherwise
+    }
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            if (m_sform[i][j] != 0.0f)
+            {
+                spacingOut[j] = m_sform[i][j];
+                originOut[j] = m_sform[i][3];
+                bool negative;
+                if (m_sform[i][j] > 0.0f)
+                {
+                    negative = true;
+                } else {
+                    negative = false;
+                }
+                switch (i)
+                {
+                case 0:
+                    //left/right
+                    orientOut[j] = (negative ? RIGHT_TO_LEFT : LEFT_TO_RIGHT);
+                    break;
+                case 1:
+                    //forward/back
+                    orientOut[j] = (negative ? ANTERIOR_TO_POSTERIOR : POSTERIOR_TO_ANTERIOR);
+                    break;
+                case 2:
+                    //up/down
+                    orientOut[j] = (negative ? SUPERIOR_TO_INFERIOR : INFERIOR_TO_SUPERIOR);
+                    break;
+                default:
+                    //will never get called
+                    break;
+                };
+            }
+        }
+    }
+}
+
+void VolumeSpace::getOrientation(VolumeSpace::OrientTypes orientOut[3]) const
+{
+    Vector3D ivec, jvec, kvec, origin;
+    getSpacingVectors(ivec, jvec, kvec, origin);
+    int next = 1, bestarray[3] = {0, 0, 0};
+    float bestVal = -1.0f;//make sure at least the first test trips true, if there is a zero spacing vector it will default to report LPI
+    for (int first = 0; first < 3; ++first)//brute force search for best fit - only 6 to try
+    {
+        int third = 3 - first - next;
+        float testVal = abs(ivec[first] * jvec[next] * kvec[third]);
+        if (testVal > bestVal)
+        {
+            bestVal = testVal;
+            bestarray[0] = first;
+            bestarray[1] = next;
+        }
+        testVal = abs(ivec[first] * jvec[third] * kvec[next]);
+        if (testVal > bestVal)
+        {
+            bestVal = testVal;
+            bestarray[0] = first;
+            bestarray[1] = third;
+        }
+        next = 0;
+    }
+    bestarray[2] = 3 - bestarray[0] - bestarray[1];
+    Vector3D spaceHats[3];//to translate into enums without casting
+    spaceHats[0] = ivec;
+    spaceHats[1] = jvec;
+    spaceHats[2] = kvec;
+    for (int i = 0; i < 3; ++i)
+    {
+        bool neg = (spaceHats[i][bestarray[i]] < 0.0f);
+        switch (bestarray[i])
+        {
+            case 0:
+                if (neg)
+                {
+                    orientOut[i] = RIGHT_TO_LEFT;
+                } else {
+                    orientOut[i] = LEFT_TO_RIGHT;
+                }
+                break;
+            case 1:
+                if (neg)
+                {
+                    orientOut[i] = ANTERIOR_TO_POSTERIOR;
+                } else {
+                    orientOut[i] = POSTERIOR_TO_ANTERIOR;
+                }
+                break;
+            case 2:
+                if (neg)
+                {
+                    orientOut[i] = SUPERIOR_TO_INFERIOR;
+                } else {
+                    orientOut[i] = INFERIOR_TO_SUPERIOR;
+                }
+                break;
+            default:
+                CaretAssert(0);
+        }
+    }
+}
+
+bool VolumeSpace::isPlumb() const
+{
+    char axisUsed = 0;
+    char indexUsed = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            if (m_sform[i][j] != 0.0f)
+            {
+                if (axisUsed & (1<<i))
+                {
+                    return false;
+                }
+                if (indexUsed & (1<<j))
+                {
+                    return false;
+                }
+                axisUsed |= (1<<i);
+                indexUsed |= (1<<j);
+            }
+        }
+    }
+    return true;
+}

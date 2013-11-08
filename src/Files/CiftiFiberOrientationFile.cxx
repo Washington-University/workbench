@@ -489,7 +489,7 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
         
         const CiftiXML& ciftiXML = ciftiFile.getCiftiXML();
         m_ciftiXML = new CiftiXML(ciftiXML);
-        VolumeBase::OrientTypes orient[3];
+        VolumeSpace::OrientTypes orient[3];
         int64_t dims[3];
         float origin[3];
         ciftiXML.getVolumeAttributesForPlumb(orient,

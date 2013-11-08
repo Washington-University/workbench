@@ -77,18 +77,6 @@ namespace caret {
         void setupIndexing();//sets up the magic
         bool m_ModifiedFlag;
         
-    public:
-        enum OrientTypes
-        {
-            LEFT_TO_RIGHT = 0,
-            RIGHT_TO_LEFT = 4,
-            POSTERIOR_TO_ANTERIOR = 1,
-            ANTERIOR_TO_POSTERIOR = 5,
-            INFERIOR_TO_SUPERIOR = 2,
-            SUPERIOR_TO_INFERIOR = 6
-        };
-        
-    protected:
         VolumeBase();
         VolumeBase(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
         //convenience method for unsigned
@@ -132,13 +120,13 @@ namespace caret {
         bool isPlumb() const;
 
         ///returns orientation, spacing, and center (spacing/center can be negative, spacing/center is LPI rearranged to ijk (first dimension uses first element), will assert false if isOblique is true)
-        void getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const;
+        void getOrientAndSpacingForPlumb(VolumeSpace::OrientTypes* orientOut, float* spacingOut, float* centerOut) const;
         
         ///get just orientation, even for non-plumb volumes
-        void getOrientation(OrientTypes orientOut[3]) const;
+        void getOrientation(VolumeSpace::OrientTypes orientOut[3]) const;
         
         ///reorient this volume
-        void reorient(const OrientTypes newOrient[3]);
+        void reorient(const VolumeSpace::OrientTypes newOrient[3]);
 
         //not to worry, simple passthrough convenience functions like these get partially optimized to the main one by even -O1, and completely optimized together by -O2 or -O3
 

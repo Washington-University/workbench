@@ -149,120 +149,19 @@ VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_ModifiedFlag = true;
 }
 
-void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const
+void VolumeBase::getOrientAndSpacingForPlumb(VolumeSpace::OrientTypes* orientOut, float* spacingOut, float* centerOut) const
 {
-    CaretAssert(isPlumb());
-    if (!isPlumb())
-    {
-        throw DataFileException("orientation and spacing asked for on non-plumb volume");//this will fail MISERABLY on non-plumb volumes, so throw otherwise
-    }
-    const vector<vector<float> >& indexToSpace = m_volSpace.getSform();
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            if (indexToSpace[i][j] != 0.0f)
-            {
-                spacingOut[j] = indexToSpace[i][j];
-                centerOut[j] = indexToSpace[i][3];
-                bool negative;
-                if (indexToSpace[i][j] > 0.0f)
-                {
-                    negative = true;
-                } else {
-                    negative = false;
-                }
-                switch (i)
-                {
-                case 0:
-                    //left/right
-                    orientOut[j] = (negative ? RIGHT_TO_LEFT : LEFT_TO_RIGHT);
-                    break;
-                case 1:
-                    //forward/back
-                    orientOut[j] = (negative ? ANTERIOR_TO_POSTERIOR : POSTERIOR_TO_ANTERIOR);
-                    break;
-                case 2:
-                    //up/down
-                    orientOut[j] = (negative ? SUPERIOR_TO_INFERIOR : INFERIOR_TO_SUPERIOR);
-                    break;
-                default:
-                    //will never get called
-                    break;
-                };
-            }
-        }
-    }
+    m_volSpace.getOrientAndSpacingForPlumb(orientOut, spacingOut, centerOut);
 }
 
-void VolumeBase::getOrientation(OrientTypes orientOut[3]) const
+void VolumeBase::getOrientation(VolumeSpace::OrientTypes orientOut[3]) const
 {
-    Vector3D ivec, jvec, kvec, offset;
-    FloatMatrix(m_volSpace.getSform()).getAffineVectors(ivec, jvec, kvec, offset);
-    int next = 1, bestarray[3] = {0, 0, 0};
-    float bestVal = -1.0f;//make sure at least the first test trips true, if there is a zero spacing vector it will default to report LPI
-    for (int first = 0; first < 3; ++first)//brute force search for best fit - only 6 to try
-    {
-        int third = 3 - first - next;
-        float testVal = abs(ivec[first] * jvec[next] * kvec[third]);
-        if (testVal > bestVal)
-        {
-            bestVal = testVal;
-            bestarray[0] = first;
-            bestarray[1] = next;
-        }
-        testVal = abs(ivec[first] * jvec[third] * kvec[next]);
-        if (testVal > bestVal)
-        {
-            bestVal = testVal;
-            bestarray[0] = first;
-            bestarray[1] = third;
-        }
-        next = 0;
-    }
-    bestarray[2] = 3 - bestarray[0] - bestarray[1];
-    Vector3D spaceHats[3];//to translate into enums without casting
-    spaceHats[0] = ivec;
-    spaceHats[1] = jvec;
-    spaceHats[2] = kvec;
-    for (int i = 0; i < 3; ++i)
-    {
-        bool neg = (spaceHats[i][bestarray[i]] < 0.0f);
-        switch (bestarray[i])
-        {
-            case 0:
-                if (neg)
-                {
-                    orientOut[i] = RIGHT_TO_LEFT;
-                } else {
-                    orientOut[i] = LEFT_TO_RIGHT;
-                }
-                break;
-            case 1:
-                if (neg)
-                {
-                    orientOut[i] = ANTERIOR_TO_POSTERIOR;
-                } else {
-                    orientOut[i] = POSTERIOR_TO_ANTERIOR;
-                }
-                break;
-            case 2:
-                if (neg)
-                {
-                    orientOut[i] = SUPERIOR_TO_INFERIOR;
-                } else {
-                    orientOut[i] = INFERIOR_TO_SUPERIOR;
-                }
-                break;
-            default:
-                CaretAssert(0);
-        }
-    }
+    m_volSpace.getOrientation(orientOut);
 }
 
-void VolumeBase::reorient(const OrientTypes newOrient[3])
+void VolumeBase::reorient(const VolumeSpace::OrientTypes newOrient[3])
 {
-    OrientTypes curOrient[3];
+    VolumeSpace::OrientTypes curOrient[3];
     getOrientation(curOrient);
     int curReverse[3];//for each spatial axis, which index currently goes that direction
     bool curReverseNeg[3];
@@ -457,29 +356,7 @@ void VolumeBase::indexToSpace(const float& indexIn1, const float& indexIn2, cons
 
 bool VolumeBase::isPlumb() const
 {
-    char axisUsed = 0;
-    char indexUsed = 0;
-    const vector<vector<float> >& indexToSpace = m_volSpace.getSform();
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            if (indexToSpace[i][j] != 0.0f)
-            {
-                if (axisUsed & (1<<i))
-                {
-                    return false;
-                }
-                if (indexUsed & (1<<j))
-                {
-                    return false;
-                }
-                axisUsed &= (1<<i);
-                indexUsed &= (1<<j);
-            }
-        }
-    }
-    return true;
+    return m_volSpace.isPlumb();
 }
 
 void VolumeBase::spaceToIndex(const float* coordIn, float* indexOut) const

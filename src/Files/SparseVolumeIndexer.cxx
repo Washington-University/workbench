@@ -86,7 +86,7 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
     /*
      * Get volume attributes and make sure orthogonal
      */
-    VolumeBase::OrientTypes ciftiOrientation[3];
+    VolumeSpace::OrientTypes ciftiOrientation[3];
     int64_t ciftiDimensions[3];
     float ciftiOrigin[3];
     float ciftiSpacing[3];
