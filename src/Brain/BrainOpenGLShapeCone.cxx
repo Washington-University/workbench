@@ -62,7 +62,7 @@ BrainOpenGLShapeCone::BrainOpenGLShapeCone(const int32_t numberOfSides)
     m_isApplyColoring = true;
     
     
-    bool debugFlag = true;
+    bool debugFlag = false;
     
     
     /*
