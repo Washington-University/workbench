@@ -195,8 +195,11 @@ namespace caret {
         
         
     protected:
-        AString getOpenGLEnumAsText(const AString& enumName,
+        AString getOpenGLEnabledEnumAsText(const AString& enumName,
                                     const GLenum enumValue) const;
+        
+        AString getOpenGLBooleanAsText(const AString& enumName,
+                                           const GLenum enumValue) const;
         
         AString getOpenGLFloatAsText(const AString& enumName,
                                      const GLenum enumValue,

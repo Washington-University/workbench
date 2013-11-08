@@ -515,8 +515,47 @@ BrainOpenGL::getStateOfOpenGL() const
  * @return
  *     String with "enumName=true/false".
  */
-AString BrainOpenGL::getOpenGLEnumAsText(const AString& enumName,
+AString BrainOpenGL::getOpenGLEnabledEnumAsText(const AString& enumName,
                             const GLenum enumValue) const
+{
+    /*
+     * Reset error status
+     */
+    glGetError();
+    
+    GLboolean boolValue= glIsEnabled(enumValue);
+    
+    AString errorText;
+    const GLenum errorCode = glGetError();
+    if (errorCode != GL_NO_ERROR) {
+        const GLubyte* errorChars = gluErrorString(errorCode);
+        if (errorChars != NULL) {
+            errorText = ("ERROR = "
+                         + AString((char*)errorChars));
+        }
+    }
+    
+    const AString s = (enumName
+                       + "="
+                       + ((boolValue == GL_TRUE) ? "true" : "false")
+                       + " "
+                       + errorText);
+    return s;
+}
+
+/**
+ * Get the status of an OpenGL boolean as text in form
+ * "name=true/false".
+ *
+ * @param enumName
+ *     Text name of the enumerated value.
+ * @param enumValue
+ *     The OpenGl enum value.
+ * @return
+ *     String with "enumName=true/false".
+ */
+AString BrainOpenGL::getOpenGLBooleanAsText(const AString& enumName,
+                                                const GLenum enumValue) const
 {
     /*
      * Reset error status

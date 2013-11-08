@@ -1272,6 +1272,9 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     glGetBooleanv(GL_BLEND, &blendingEnabled);
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//                    std::cout << "Surface " << surface->getFileNameNoPath() << std::endl;
+//                    std::cout << qPrintable(getStateOfOpenGL()) << std::endl;
+                    
                     this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                                nodeColoringRGBA);
                     if (blendingEnabled == false) {
@@ -8384,33 +8387,68 @@ BrainOpenGLFixedPipeline::getStateOfOpenGL() const
     AString s = BrainOpenGL::getStateOfOpenGL();
     
     s.appendWithNewLine("Fixed Pipeline State:");
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_BLEND", GL_BLEND));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CLIP_PLANE0", GL_CLIP_PLANE0));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CLIP_PLANE1", GL_CLIP_PLANE1));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CLIP_PLANE2", GL_CLIP_PLANE2));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CLIP_PLANE3", GL_CLIP_PLANE3));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CLIP_PLANE4", GL_CLIP_PLANE4));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CLIP_PLANE5", GL_CLIP_PLANE5));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_COLOR_MATERIAL", GL_COLOR_MATERIAL));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_CULL_FACE", GL_CULL_FACE));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_DEPTH_TEST", GL_DEPTH_TEST));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT_MODEL_LOCAL_VIEWER", GL_LIGHT0));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT1", GL_LIGHT1));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT0", GL_LIGHT0));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT1", GL_LIGHT1));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT2", GL_LIGHT2));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT3", GL_LIGHT3));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT4", GL_LIGHT4));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHT5", GL_LIGHT5));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LIGHTING", GL_LIGHTING));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_BLEND", GL_BLEND));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CLIP_PLANE0", GL_CLIP_PLANE0));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CLIP_PLANE1", GL_CLIP_PLANE1));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CLIP_PLANE2", GL_CLIP_PLANE2));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CLIP_PLANE3", GL_CLIP_PLANE3));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CLIP_PLANE4", GL_CLIP_PLANE4));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CLIP_PLANE5", GL_CLIP_PLANE5));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_COLOR_MATERIAL", GL_COLOR_MATERIAL));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_CULL_FACE", GL_CULL_FACE));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_DEPTH_TEST", GL_DEPTH_TEST));
+    s.appendWithNewLine("   " + getOpenGLBooleanAsText("GL_LIGHT_MODEL_LOCAL_VIEWER", GL_LIGHT_MODEL_LOCAL_VIEWER));
+    s.appendWithNewLine("   " + getOpenGLBooleanAsText("GL_LIGHT_MODEL_TWO_SIDE", GL_LIGHT_MODEL_TWO_SIDE));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHTING", GL_LIGHTING));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHT0", GL_LIGHT0));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHT1", GL_LIGHT1));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHT2", GL_LIGHT2));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHT3", GL_LIGHT3));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHT4", GL_LIGHT4));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LIGHT5", GL_LIGHT5));
     s.appendWithNewLine("   " + getOpenGLLightAsText("GL_LIGHT0, GL_DIFFUSE", GL_LIGHT0, GL_DIFFUSE, 4));
     s.appendWithNewLine("   " + getOpenGLLightAsText("GL_LIGHT0, GL_POSITION", GL_LIGHT0, GL_POSITION, 4));
     s.appendWithNewLine("   " + getOpenGLLightAsText("GL_LIGHT1, GL_DIFFUSE", GL_LIGHT1, GL_DIFFUSE, 4));
     s.appendWithNewLine("   " + getOpenGLLightAsText("GL_LIGHT1, GL_POSITION", GL_LIGHT1, GL_POSITION, 4));
     s.appendWithNewLine("   " + getOpenGLFloatAsText("GL_LIGHT_MODEL_AMBIENT", GL_LIGHT_MODEL_AMBIENT, 4));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_LINE_SMOOTH", GL_LINE_SMOOTH));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_NORMALIZE", GL_NORMALIZE));
-    s.appendWithNewLine("   " + getOpenGLEnumAsText("GL_POLYGON_OFFSET_FILL", GL_POLYGON_OFFSET_FILL));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_LINE_SMOOTH", GL_LINE_SMOOTH));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_NORMALIZE", GL_NORMALIZE));
+    s.appendWithNewLine("   " + getOpenGLEnabledEnumAsText("GL_POLYGON_OFFSET_FILL", GL_POLYGON_OFFSET_FILL));
+    
+    GLint frontFace;
+    glGetIntegerv(GL_FRONT_FACE, &frontFace);
+    AString frontFaceValue;
+    switch (frontFace) {
+        case GL_CW:
+            frontFaceValue = "GL_CW";
+            break;
+        case GL_CCW:
+            frontFaceValue = "GL_CCW";
+            break;
+        default:
+            frontFaceValue = "INVALID";
+            break;
+    }
+    s.appendWithNewLine("   Front Face " + frontFaceValue);
+    
+    GLint cullFace;
+    glGetIntegerv(GL_FRONT_FACE, &cullFace);
+    AString cullFaceValue;
+    switch (cullFace) {
+        case GL_FRONT:
+            cullFaceValue = "GL_FRONT";
+            break;
+        case GL_BACK:
+            cullFaceValue = "GL_BACK";
+            break;
+        case GL_FRONT_AND_BACK:
+            cullFaceValue = "GL_FRONT_AND_BACK";
+            break;
+        default:
+            cullFaceValue = "INVALID";
+            break;
+    }
+    s.appendWithNewLine("   Cull Face " + cullFaceValue);
     
     return s;
 }
