@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cstdlib>
+
 #define __WU_Q_IMAGE_LABEL_DECLARE__
 #include "WuQImageLabel.h"
 #undef __WU_Q_IMAGE_LABEL_DECLARE__
