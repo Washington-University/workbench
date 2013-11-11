@@ -54,6 +54,8 @@ namespace caret {
     class SceneClassAssistant;
     class Surface;
     class ViewingTransformations;
+    class ViewingTransformationsCerebellum;
+    class ViewingTransformationsVolume;
     class VolumeMappableInterface;
     class VolumeSliceSettings;
     class VolumeSurfaceOutlineSetModel;
@@ -106,6 +108,8 @@ namespace caret {
         const std::vector<ModelSurface*> getAllSurfaceModels() const;
         
         ModelSurfaceSelector* getSurfaceModelSelector();
+        
+        bool isCerebellumDisplayed() const;
         
         bool isVolumeSlicesDisplayed() const;
         
@@ -382,11 +386,14 @@ namespace caret {
         /** Assists with creating/restoring scenes */
         SceneClassAssistant* m_sceneClassAssistant;
         
+        /** Transformation for cerebellum viewing */
+        ViewingTransformationsCerebellum* m_cerebellumViewingTransformation;
+        
         /** Transformation for surface/all viewing */
         ViewingTransformations* m_viewingTransformation;
         
         /** Transformation for volume slices viewing */
-        ViewingTransformations* m_volumeSliceViewingTransformation;
+        ViewingTransformationsVolume* m_volumeSliceViewingTransformation;
 
         /** Volume slice settings for volume slices */
         VolumeSliceSettings* m_volumeSliceSettings;

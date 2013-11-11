@@ -222,17 +222,6 @@ ViewingTransformations::setRotationMatrix(const Matrix4x4& rotationMatrix)
 }
 
 /**
- * Reset the view to the default view for a VOLUME.
- */
-void
-ViewingTransformations::resetVolumeView()
-{
-    setTranslation(0.0, 0.0, 0.0);
-    m_rotationMatrix->identity();
-    setScaling(1.0);
-}
-
-/**
  * Reset the view to the default view for a SURFACE
  */
 void
@@ -334,7 +323,7 @@ ViewingTransformations::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "VolumeSliceSettings",
+                                            "ViewingTransformations",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);

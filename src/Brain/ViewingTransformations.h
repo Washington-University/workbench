@@ -71,21 +71,19 @@ namespace caret {
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);
         
-        void resetVolumeView();
+        virtual void resetView();
         
-        void resetView();
+        virtual void rightView();
         
-        void rightView();
+        virtual void leftView();
         
-        void leftView();
+        virtual void anteriorView();
         
-        void anteriorView();
+        virtual void posteriorView();
         
-        void posteriorView();
+        virtual void dorsalView();
         
-        void dorsalView();
-        
-        void ventralView();
+        virtual void ventralView();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -96,10 +94,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
-        
-    private:
-        void copyHelperViewingTransformations(const ViewingTransformations& obj);
 
+    protected:
         /** Rotation matrix. */
         Matrix4x4* m_rotationMatrix;
         
@@ -108,7 +104,11 @@ namespace caret {
         
         /** Scaling. */
         float m_scaling;
-                        
+        
+        
+    private:
+        void copyHelperViewingTransformations(const ViewingTransformations& obj);
+
         SceneClassAssistant* m_sceneAssistant;
         // ADD_NEW_MEMBERS_HERE
 

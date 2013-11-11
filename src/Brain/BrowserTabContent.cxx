@@ -65,6 +65,8 @@
 #include "StructureEnum.h"
 #include "VolumeFile.h"
 #include "ViewingTransformations.h"
+#include "ViewingTransformationsCerebellum.h"
+#include "ViewingTransformationsVolume.h"
 #include "VolumeSliceSettings.h"
 #include "VolumeSurfaceOutlineModel.h"
 #include "VolumeSurfaceOutlineSetModel.h"
@@ -93,9 +95,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
 
-    m_viewingTransformation = new ViewingTransformations();
-    m_volumeSliceViewingTransformation = new ViewingTransformations();
-    m_wholeBrainSurfaceSettings = new WholeBrainSurfaceSettings();
+    m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
+    m_viewingTransformation            = new ViewingTransformations();
+    m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
+    
+    m_wholeBrainSurfaceSettings        = new WholeBrainSurfaceSettings();
     
     m_obliqueVolumeRotationMatrix = new Matrix4x4();
     
@@ -141,6 +145,10 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                     3,
                                     false);
     
+    m_sceneClassAssistant->add("m_cerebellumViewingTransformation",
+                               "ViewingTransformations",
+                               m_cerebellumViewingTransformation);
+    
     m_sceneClassAssistant->add("m_viewingTransformation",
                                "ViewingTransformations",
                                m_viewingTransformation);
@@ -173,6 +181,7 @@ BrowserTabContent::~BrowserTabContent()
  
     s_allBrowserTabContent.erase(this);
     
+    delete m_cerebellumViewingTransformation;
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
     delete m_obliqueVolumeRotationMatrix;
@@ -209,6 +218,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
     m_yokingGroup = tabToClone->m_yokingGroup;
     
+    *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
     *m_viewingTransformation = *tabToClone->m_viewingTransformation;
     *m_volumeSliceViewingTransformation = *tabToClone->m_volumeSliceViewingTransformation;
     *m_volumeSliceSettings = *tabToClone->m_volumeSliceSettings;
@@ -453,6 +463,23 @@ BrowserTabContent::getDisplayedVolumeModel()
         dynamic_cast<ModelVolume*>(getModelControllerForDisplay());
     return mdcv;
 }
+
+/**
+ * @return True if the displayed model is a cerebellum surface.
+ */
+bool
+BrowserTabContent::isCerebellumDisplayed() const
+{
+    const ModelSurface* surfaceModel = getDisplayedSurfaceModel();
+    if (surfaceModel != NULL) {
+        if (surfaceModel->getSurface()->getStructure() == StructureEnum::CEREBELLUM) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * @return Is the displayed model a volume slice model?
@@ -999,6 +1026,9 @@ BrowserTabContent::getTranslation() const
     if (isVolumeSlicesDisplayed()) {
         return m_volumeSliceViewingTransformation->getTranslation();
     }
+    else if (isCerebellumDisplayed()) {
+        return m_cerebellumViewingTransformation->getTranslation();
+    }
     else {
         return m_viewingTransformation->getTranslation();
     }
@@ -1016,6 +1046,9 @@ BrowserTabContent::getTranslation(float translationOut[3]) const
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceViewingTransformation->getTranslation(translationOut);
     }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->getTranslation(translationOut);
+    }
     else {
         m_viewingTransformation->getTranslation(translationOut);
     }
@@ -1032,6 +1065,9 @@ BrowserTabContent::setTranslation( const float translation[3])
 {
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceViewingTransformation->setTranslation(translation);
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->setTranslation(translation);
     }
     else {
         m_viewingTransformation->setTranslation(translation);
@@ -1059,6 +1095,11 @@ BrowserTabContent::setTranslation(const float translationX,
                                                            translationY,
                                                            translationZ);
     }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->setTranslation(translationX,
+                                                          translationY,
+                                                          translationZ);
+    }
     else {
         m_viewingTransformation->setTranslation(translationX,
                                                 translationY,
@@ -1076,6 +1117,9 @@ BrowserTabContent::getScaling() const
     if (isVolumeSlicesDisplayed()) {
         return m_volumeSliceViewingTransformation->getScaling();
     }
+    else if (isCerebellumDisplayed()) {
+        return m_cerebellumViewingTransformation->getScaling();
+    }
     else {
         return m_viewingTransformation->getScaling();
     }
@@ -1092,6 +1136,9 @@ BrowserTabContent::setScaling(const float scaling)
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceViewingTransformation->setScaling(scaling);
     }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->setScaling(scaling);
+    }
     else {
         m_viewingTransformation->setScaling(scaling);
     }
@@ -1106,6 +1153,9 @@ BrowserTabContent::getRotationMatrix() const
 {
     if (isVolumeSlicesDisplayed()) {
         return m_volumeSliceViewingTransformation->getRotationMatrix();
+    }
+    else if (isCerebellumDisplayed()) {
+        return m_cerebellumViewingTransformation->getRotationMatrix();
     }
     else {
         return m_viewingTransformation->getRotationMatrix();
@@ -1123,6 +1173,9 @@ BrowserTabContent::setRotationMatrix(const Matrix4x4& rotationMatrix)
 {
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->setRotationMatrix(rotationMatrix);
     }
     else {
         m_viewingTransformation->setRotationMatrix(rotationMatrix);
@@ -1160,8 +1213,11 @@ void
 BrowserTabContent::resetView()
 {
     if (isVolumeSlicesDisplayed()) {
-        m_volumeSliceViewingTransformation->resetVolumeView();
+        m_volumeSliceViewingTransformation->resetView();
         m_obliqueVolumeRotationMatrix->identity();
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->resetView();
     }
     else {
         m_viewingTransformation->resetView();
@@ -1178,6 +1234,9 @@ BrowserTabContent::rightView()
     if (isVolumeSlicesDisplayed()) {
         /* Nothing */
     }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->rightView();
+    }
     else {
         m_viewingTransformation->rightView();
     }
@@ -1192,6 +1251,9 @@ BrowserTabContent::leftView()
 {
     if (isVolumeSlicesDisplayed()) {
         /* Nothing */
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->leftView();
     }
     else {
         m_viewingTransformation->leftView();
@@ -1208,6 +1270,9 @@ BrowserTabContent::anteriorView()
     if (isVolumeSlicesDisplayed()) {
         /* Nothing */
     }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->anteriorView();
+    }
     else {
         m_viewingTransformation->anteriorView();
     }
@@ -1222,6 +1287,9 @@ BrowserTabContent::posteriorView()
 {
     if (isVolumeSlicesDisplayed()) {
         /* Nothing */
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->posteriorView();
     }
     else {
         m_viewingTransformation->posteriorView();
@@ -1238,6 +1306,9 @@ BrowserTabContent::dorsalView()
     if (isVolumeSlicesDisplayed()) {
         /* Nothing */
     }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->dorsalView();
+    }
     else {
         m_viewingTransformation->dorsalView();
     }
@@ -1252,6 +1323,9 @@ BrowserTabContent::ventralView()
 {
     if (isVolumeSlicesDisplayed()) {
         /* Nothing */
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->ventralView();
     }
     else {
         m_viewingTransformation->ventralView();
@@ -1566,6 +1640,15 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 break;
         }
     }
+    else if (isCerebellumDisplayed()) {
+        float dx = mouseDeltaX;
+        float dy = mouseDeltaY;
+        
+        Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
+        rotationMatrix.rotateX(-dy);
+        rotationMatrix.rotateY(dx);
+        m_cerebellumViewingTransformation->setRotationMatrix(rotationMatrix);
+    }
     else {
         if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
             Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
@@ -1674,6 +1757,16 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         }
         m_volumeSliceViewingTransformation->setScaling(scaling);
     }
+    else if (isCerebellumDisplayed()) {
+        float scaling = m_cerebellumViewingTransformation->getScaling();
+        if (mouseDY != 0.0) {
+            scaling *= (1.0f + (mouseDY * 0.01));
+        }
+        if (scaling < 0.01) {
+            scaling = 0.01;
+        }
+        m_cerebellumViewingTransformation->setScaling(scaling);
+    }
     else {
         float scaling = m_viewingTransformation->getScaling();
         if (mouseDY != 0.0) {
@@ -1780,6 +1873,22 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         translation[1] += dy;
         translation[2] += dz;
         m_volumeSliceViewingTransformation->setTranslation(translation);
+    }
+    else if (isCerebellumDisplayed()) {
+        float dx = mouseDX;
+        float dy = mouseDY;
+        
+        if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
+            dx = -dx;
+        }
+        else if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE) {
+            dx = -dx;
+        }
+        float translation[3];
+        m_cerebellumViewingTransformation->getTranslation(translation);
+        translation[0] += dx;
+        translation[1] += dy;
+        m_cerebellumViewingTransformation->setTranslation(translation);
     }
     else {
         float dx = mouseDX;
@@ -1890,6 +1999,14 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
         
         scalingOut = m_volumeSliceViewingTransformation->getScaling();
+    }
+    else if (isCerebellumDisplayed()) {
+        m_cerebellumViewingTransformation->getTranslation(translationOut);
+        
+        Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
+        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
+        
+        scalingOut = m_cerebellumViewingTransformation->getScaling();
     }
     else {
         m_viewingTransformation->getTranslation(translationOut);
@@ -2759,6 +2876,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
         if (btc != this) {
             if (btc->getYokingGroup() == m_yokingGroup) {
                 *m_viewingTransformation = *btc->m_viewingTransformation;
+                *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
                 break;
@@ -2797,6 +2915,7 @@ BrowserTabContent::updateYokedBrowserTabs()
         if (btc != this) {
             if (btc->getYokingGroup() == m_yokingGroup) {
                 *btc->m_viewingTransformation = *m_viewingTransformation;
+                *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;

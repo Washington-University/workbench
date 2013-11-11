@@ -133,6 +133,8 @@ SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
 ViewingTransformations.h
+ViewingTransformationsCerebellum.h
+ViewingTransformationsVolume.h
 VolumeSliceSettings.h
 VolumeSliceViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
@@ -225,6 +227,8 @@ SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
 ViewingTransformations.cxx
+ViewingTransformationsCerebellum.cxx
+ViewingTransformationsVolume.cxx
 VolumeSliceSettings.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
