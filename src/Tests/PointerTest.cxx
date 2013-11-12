@@ -96,12 +96,25 @@ void PointerTest::execute()
                     setFailed("NULL generated, detected after get/move/replace, iteration " + AString::number(i));
                 }
                 
+                myScratch2 = myobj2;
+                myScratch3 = myobj3;
+                if (myScratch2 != myScratch3)
+                {
+                    myobj3 = myScratch2;
+                    myobj3 = myScratch3;
+                }
+                
+                if (myScratch3 == NULL)
+                {
+                    QMutexLocker locked(&messageMutex);
+                    setFailed("NULL generated, detected after replace shared, iteration " + AString::number(i));
+                }
+                
                 if (deltrack1 != 0 || deltrack2 != 0 || deltrack3 != 0)
                 {
                     QMutexLocker locked(&messageMutex);
                     setFailed("premature deletion of object detected, iteration " + AString::number(i));
                 }
-                //would need a mutex or critical section in order to swap two globals while ensuring they dont get dropped for valid reasons, defeating the purpose
             }
         }
     }

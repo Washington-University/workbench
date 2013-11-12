@@ -218,11 +218,11 @@ namespace caret {
     CaretPointer<T>& CaretPointer<T>::operator=(const CaretPointer<T>& right)
     {
         CaretPointer<T> temp(right);//copy construct from it, takes care of locking and type checking
-        CaretPointerShare* tempShare = temp.m_share;//swap the members
+        CaretPointerShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
-        temp.m_share = m_share;//don't need to lock temp before modifying it, it is local
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
+        temp.m_share = m_share;
         temp.m_pointer = m_pointer;
-        CaretMutexLocker locked(&m_mutex);//lock myself before modifying
         m_share = tempShare;
         m_pointer = tempPointer;
         return *this;//temp destructor takes care of the rest
@@ -232,11 +232,11 @@ namespace caret {
     CaretPointer<T>& CaretPointer<T>::operator=(const CaretPointer<T2>& right)
     {
         CaretPointer<T> temp(right);//copy construct from it, takes care of locking and type checking
-        CaretPointerShare* tempShare = temp.m_share;//swap the members
+        CaretPointerShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
-        temp.m_share = m_share;//don't need to lock temp before modifying it, it is local
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
+        temp.m_share = m_share;
         temp.m_pointer = m_pointer;
-        CaretMutexLocker locked(&m_mutex);//lock myself before modifying
         m_share = tempShare;
         m_pointer = tempPointer;
         return *this;//temp destructor takes care of the rest
@@ -246,11 +246,11 @@ namespace caret {
     void CaretPointer<T>::grabNew(T* right)
     {
         CaretPointer<T> temp(right);//construct from the pointer
-        CaretPointerShare* tempShare = temp.m_share;//swap the members
+        CaretPointerShare* tempShare = temp.m_share;//prepare to swap the members
         T* tempPointer = temp.m_pointer;
-        temp.m_share = m_share;//don't need to lock temp before modifying it, it is local
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
+        temp.m_share = m_share;
         temp.m_pointer = m_pointer;
-        CaretMutexLocker locked(&m_mutex);//lock myself before modifying
         m_share = tempShare;
         m_pointer = tempPointer;//destructor of temp takes care of the rest
     }
@@ -467,13 +467,13 @@ namespace caret {
     CaretArray<T>& CaretArray<T>::operator=(const CaretArray<T>& right)
     {
         CaretArray<T> temp(right);//copy construct from it, takes care of locking
-        CaretPointerShare* tempShare = temp.m_share;//swap the shares and fill members
+        CaretPointerShare* tempShare = temp.m_share;//prepare to swap the shares and fill members
         T* tempPointer = temp.m_pointer;
         int64_t tempSize = temp.m_size;
-        temp.m_share = m_share;//don't need to lock temp before modifying it, it is local
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
+        temp.m_share = m_share;
         temp.m_pointer = m_pointer;
         temp.m_size = m_size;
-        CaretMutexLocker locked(&m_mutex);//lock myself before modifying
         m_share = tempShare;
         m_pointer = tempPointer;
         m_size = tempSize;
@@ -484,13 +484,13 @@ namespace caret {
     CaretArray<T>& CaretArray<T>::operator=(const CaretArray<T2>& right)
     {
         CaretArray<T> temp(right);//copy construct from it, takes care of locking
-        CaretPointerShare* tempShare = temp.m_share;//swap the shares and fill members
+        CaretPointerShare* tempShare = temp.m_share;//prepare to swap the shares and fill members
         T* tempPointer = temp.m_pointer;
         int64_t tempSize = temp.m_size;
-        temp.m_share = m_share;//don't need to lock temp before modifying it, it is local
+        CaretMutexLocker locked(&m_mutex);//lock myself before using internal state
+        temp.m_share = m_share;
         temp.m_pointer = m_pointer;
         temp.m_size = m_size;
-        CaretMutexLocker locked(&m_mutex);//lock myself before modifying
         m_share = tempShare;
         m_pointer = tempPointer;
         m_size = tempSize;
