@@ -129,6 +129,12 @@ SelectionManager.h
 SessionManager.h
 Surface.h
 SurfaceDrawingTypeEnum.h
+SurfaceMontageConfigurationAbstract.h
+SurfaceMontageConfigurationCerebellar.h
+SurfaceMontageConfigurationCerebral.h
+SurfaceMontageConfigurationTypeEnum.h
+SurfaceMontageConfigurationFlatMaps.h
+SurfaceMontageLayoutOrientationEnum.h
 SurfaceMontageViewport.h
 SurfaceNodeColoring.h
 SurfaceSelectionModel.h
@@ -223,6 +229,12 @@ SelectionManager.cxx
 SessionManager.cxx
 Surface.cxx
 SurfaceDrawingTypeEnum.cxx
+SurfaceMontageConfigurationAbstract.cxx
+SurfaceMontageConfigurationCerebellar.cxx
+SurfaceMontageConfigurationCerebral.cxx
+SurfaceMontageConfigurationTypeEnum.cxx
+SurfaceMontageConfigurationFlatMaps.cxx
+SurfaceMontageLayoutOrientationEnum.cxx
 SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx

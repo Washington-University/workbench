@@ -33,6 +33,7 @@
 #include "SceneableInterface.h"
 #include "WholeBrainVoxelDrawingMode.h"
 #include "OverlayYokingGroupEnum.h"
+#include "StructureEnum.h"
 
 namespace caret {
     class BrainStructure;
@@ -47,6 +48,20 @@ namespace caret {
     class Overlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
+        enum IncludeVolumeFiles {
+            INCLUDE_VOLUME_FILES_YES,
+            INCLUDE_VOLUME_FILES_NO
+        };
+        
+        enum IncludeSurfaceTypes {
+            INCLUDE_SURFACES_FLAT,
+            INCLUDE_SURFACES_THREE_D
+        };
+        
+        Overlay(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+                const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
+                const Overlay::IncludeVolumeFiles includeVolumeFiles);
+        
         Overlay(BrainStructure* brainStructure);
         
         Overlay(ModelVolume* modelDisplayControllerVolume);
@@ -115,6 +130,13 @@ namespace caret {
 
         void initializeOverlay(Model* modelDisplayController,
                                BrainStructure* brainStructure);
+        
+         std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
+        
+         IncludeSurfaceTypes m_includeSurfaceTypes;
+        
+        IncludeVolumeFiles m_includeVolumeFiles;
+        
         
         /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
         BrainStructure* m_brainStructure;

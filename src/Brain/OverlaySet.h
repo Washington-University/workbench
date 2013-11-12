@@ -46,6 +46,11 @@ namespace caret {
     class OverlaySet : public CaretObject, public SceneableInterface {
         
     public:
+        OverlaySet(Brain* brain,
+                   const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+                   const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
+                   const Overlay::IncludeVolumeFiles includeVolumeFiles);
+        
         OverlaySet(BrainStructure* brainStructure);
         
         OverlaySet(ModelVolume* modelDisplayControllerVolume);

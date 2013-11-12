@@ -34,6 +34,10 @@
 namespace caret {
 
     class OverlaySetArray;
+    class SurfaceMontageConfigurationAbstract;
+    class SurfaceMontageConfigurationCerebellar;
+    class SurfaceMontageConfigurationCerebral;
+    class SurfaceMontageConfigurationFlatMaps;
     class SurfaceSelectionModel;
     
     /// Controls the display of a surface montage
@@ -95,6 +99,10 @@ namespace caret {
         void getMontageViewports(const int32_t tabIndex,
                                  std::vector<SurfaceMontageViewport>& montageViewportsOut);
         
+        SurfaceMontageConfigurationAbstract* getSelectedConfiguration(const int32_t tabIndex);
+        
+        const SurfaceMontageConfigurationAbstract* getSelectedConfiguration(const int32_t tabIndex) const;
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);
@@ -105,6 +113,10 @@ namespace caret {
         ModelSurfaceMontage(const ModelSurfaceMontage&);
         
         ModelSurfaceMontage& operator=(const ModelSurfaceMontage&);
+        
+        void restoreFromSceneVersionTwoAndEarlier(const SceneAttributes* sceneAttributes,
+                                               const SceneClass* sceneClass,
+                                                  const int32_t montageVersion);
         
         SurfaceSelectionModel* m_leftSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
@@ -121,6 +133,13 @@ namespace caret {
         bool m_firstSurfaceEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_secondSurfaceEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+
+        SurfaceMontageConfigurationCerebellar* m_cerebellarConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        SurfaceMontageConfigurationCerebral* m_cerebralConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        SurfaceMontageConfigurationFlatMaps* m_flatMapsConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         
         std::vector<SurfaceMontageViewport> m_montageViewports[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

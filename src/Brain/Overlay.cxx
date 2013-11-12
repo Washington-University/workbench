@@ -55,6 +55,17 @@ using namespace caret;
  * \brief  An overlay for selection of mappable data.
  */
 
+Overlay::Overlay(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+                 const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
+                 const Overlay::IncludeVolumeFiles includeVolumeFiles)
+: m_includeSurfaceStructures(includeSurfaceStructures),
+m_includeSurfaceTypes(includeSurfaceTypes),
+m_includeVolumeFiles(includeVolumeFiles)
+{
+    
+}
+
+
 /**
  * Constructor for surface controllers.
  * @param modelDisplayControllerSurface

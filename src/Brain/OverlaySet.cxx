@@ -85,6 +85,33 @@ using namespace caret;
  */
 
 /**
+ * Constructor for the given surface structures, surface types, and volumes.
+ *
+ * @param includeSurfaceStructures
+ *     Surface structures for data files displayed in this overlay set.
+ * @param includeVolumeFiles
+ *     Surface structures for data files displayed in this overlay set.
+ * @param includeSurfaceTypes
+ *     Surface structures for data files displayed in this overlay set.
+ */
+OverlaySet::OverlaySet(Brain* brain,
+                       const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+                       const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
+                       const Overlay::IncludeVolumeFiles includeVolumeFiles)
+: CaretObject()
+{
+    m_sceneAssistant = NULL;
+    initializeOverlaySet(NULL,
+                         NULL);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        m_overlays[i] = new Overlay(includeSurfaceStructures,
+                                    includeSurfaceTypes,
+                                    includeVolumeFiles);
+    }
+}
+
+/**
  * Constructor for surface controller.
  * @param modelDisplayController
  *     Surface controller that uses this overlay set.
