@@ -75,6 +75,7 @@ DisplayPropertiesFoci.h
 DisplayPropertiesLabels.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
+EventBrainStructureGetAll.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
@@ -176,6 +177,7 @@ DisplayPropertiesFoci.cxx
 DisplayPropertiesLabels.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
+EventBrainStructureGetAll.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx

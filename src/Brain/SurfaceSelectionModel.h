@@ -34,21 +34,15 @@
 
 namespace caret {
 
-    class BrainStructure;
     class Surface;
     
     class SurfaceSelectionModel : public CaretObject, public SceneableInterface {
         
     public:
-        SurfaceSelectionModel();
+        SurfaceSelectionModel(const StructureEnum::Enum structure,
+                              const std::vector<SurfaceTypeEnum::Enum>& surfaceTypes);
         
-        SurfaceSelectionModel(const StructureEnum::Enum structure);
-        
-        SurfaceSelectionModel(BrainStructure* brainStructure);
-        
-        SurfaceSelectionModel(const SurfaceTypeEnum::Enum surfaceType);
-        
-        static SurfaceSelectionModel* newInstanceForVolumeSurfaceOutline();
+        SurfaceSelectionModel(const std::vector<SurfaceTypeEnum::Enum>& surfaceTypes);
         
         virtual ~SurfaceSelectionModel();
         
@@ -72,13 +66,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
     private:
-        enum Mode {
-            MODE_BRAIN_STRUCTURE,
-            MODE_STRUCTURE,
-            MODE_SURFACE_TYPE,
-            MODE_VOLULME_SURFACE_OUTLINE
-        };
-        
         SurfaceSelectionModel(const SurfaceSelectionModel&);
 
         SurfaceSelectionModel& operator=(const SurfaceSelectionModel&);
@@ -87,15 +74,12 @@ namespace caret {
         
         mutable Surface* m_selectedSurface;
         
-        BrainStructure* m_brainStructure;
-        
-        Mode m_mode;
-        
         /** If empty, allow any structure, otherwise restrict to these structures */
         std::vector<StructureEnum::Enum> m_allowableStructures;
         
         /** If empty, allow any surface type, otherwise restrict to these types */
         std::vector<SurfaceTypeEnum::Enum> m_allowableSurfaceTypes;
+        
     };
     
 #ifdef __SURFACE_SELECTION_MODEL_DECLARE__

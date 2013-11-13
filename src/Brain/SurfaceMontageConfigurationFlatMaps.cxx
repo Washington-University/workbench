@@ -58,12 +58,17 @@ SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
 : SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION,
                                       SUPPORTS_LAYOUT_ORIENTATION_NO)
 {
+    std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
+    validSurfaceTypes.push_back(SurfaceTypeEnum::FLAT);
     
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_leftSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-    m_rightSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-    m_cerebellumSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM);
+    m_leftSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
+                                                            validSurfaceTypes);
+    m_rightSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
+                                                             validSurfaceTypes);
+    m_cerebellumSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM,
+                                                                  validSurfaceTypes);
     m_leftEnabled = true;
     m_rightEnabled = true;
     m_cerebellumEnabled = false;

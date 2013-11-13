@@ -58,11 +58,18 @@ SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
 : SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION,
                                       SUPPORTS_LAYOUT_ORIENTATION_YES)
 {
+    std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
+    validSurfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
     
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_firstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM);
-    m_secondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM);
+    m_firstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM,
+                                                             validSurfaceTypes);
+    m_secondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM,
+                                                              validSurfaceTypes);
     m_firstSurfaceEnabled = false;
     m_secondSurfaceEnabled = true;
     m_dorsalEnabled = true;

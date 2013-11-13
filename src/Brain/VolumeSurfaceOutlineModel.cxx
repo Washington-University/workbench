@@ -49,9 +49,15 @@ using namespace caret;
 VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
 : CaretObject()
 {
+    std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
+    validSurfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
+    
     m_displayed = false;
     m_thickness = 5.0;
-    m_surfaceSelectionModel = SurfaceSelectionModel::newInstanceForVolumeSurfaceOutline();
+    m_surfaceSelectionModel = new SurfaceSelectionModel(validSurfaceTypes);
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     
     m_sceneAssistant = new SceneClassAssistant();

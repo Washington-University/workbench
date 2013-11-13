@@ -70,7 +70,11 @@ EventTypeEnum::initialize()
                                      "EVENT_INVALID", 
                                      "Invalid Event"));
     
-    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE, 
+    enumData.push_back(EventTypeEnum(EVENT_BRAIN_STRUCTURE_GET_ALL,
+                                     "EVENT_BRAIN_STRUCTURE_GET_ALL",
+                                     "Get all brain structures"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE,
                                      "EVENT_BROWSER_TAB_DELETE", 
                                      "Delete a browser tab"));
     

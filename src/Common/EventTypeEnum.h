@@ -42,6 +42,8 @@ public:
     enum Enum {
         /** Invalid event */
         EVENT_INVALID,
+        /** Get all brain structures */
+        EVENT_BRAIN_STRUCTURE_GET_ALL,
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
         /** Get a browser tab by tab number */

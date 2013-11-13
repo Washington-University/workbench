@@ -58,10 +58,20 @@ SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral()
 : SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION,
                                       SUPPORTS_LAYOUT_ORIENTATION_YES)
 {
-    m_leftFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-    m_leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-    m_rightFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-    m_rightSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+    std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
+    validSurfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
+    
+    m_leftFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
+                                                                 validSurfaceTypes);
+    m_leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
+                                                                  validSurfaceTypes);
+    m_rightFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
+                                                                  validSurfaceTypes);
+    m_rightSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
+                                                                   validSurfaceTypes);
     m_leftEnabled = true;
     m_rightEnabled = true;
     m_firstSurfaceEnabled = false;

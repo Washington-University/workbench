@@ -30,6 +30,7 @@
 #undef __SURFACE_SELECTION_MODEL_DECLARE__
 
 #include "BrainStructure.h"
+#include "EventBrainStructureGetAll.h"
 #include "EventManager.h"
 #include "EventSurfacesGet.h"
 #include "SceneAttributes.h"
@@ -44,67 +45,45 @@ using namespace caret;
  * \class SurfaceSelection 
  * \brief Maintains selection of a surface.
  *
- * Maintains selection of a surface.  If the surface 
- * becomes invalid, a different surface will become selected.
+ * Maintains selection of a surface.  
+ *
+ * The constructors allow one to limit that available surfaces to those
+ * from specified structures and surface types.
+ *
+ * If the selected surface becomes invalid, a different surface will 
+ * be selected.
  */
 
 /**
- * Constructor for surfaces in any structure.
- */
-SurfaceSelectionModel::SurfaceSelectionModel()
-: CaretObject()
-{
-    m_mode = MODE_STRUCTURE;
-}
-
-/**
- * Constructor for surface from a specific structure.
+ * Constructor for surfaces from a specific structure and of the given
+ * surface types.
+ *
  * @param structure
  *   Limit to surfaces from this structure.
+ * @param surfaceTypes
+ *   Types of surfaces that are available for selection.
  */
-SurfaceSelectionModel::SurfaceSelectionModel(const StructureEnum::Enum structure)
+SurfaceSelectionModel::SurfaceSelectionModel(const StructureEnum::Enum structure,
+                                             const std::vector<SurfaceTypeEnum::Enum>& surfaceTypes)
 : CaretObject()
 {
     m_allowableStructures.push_back(structure);
-    m_mode = MODE_STRUCTURE;
+    m_allowableSurfaceTypes = surfaceTypes;
+    CaretAssert( ! surfaceTypes.empty());
 }
 
 /**
- * Constructor for surface from a brain structure.
- * WARNING: If the brain structure becomes invalid, any further
- * use of this instance may cause a crash.
+ * Constructor for surfaces from any structure and of the given
+ * surface types.
  *
- * @param brainStructure
- *   Only surfaces in brain structure are available.
+ * @param surfaceTypes
+ *   Types of surfaces that are available for selection.
  */
-SurfaceSelectionModel::SurfaceSelectionModel(BrainStructure* brainStructure)
+SurfaceSelectionModel::SurfaceSelectionModel(const std::vector<SurfaceTypeEnum::Enum>& surfaceTypes)
+: CaretObject()
 {
-    m_brainStructure = brainStructure;
-    m_mode = MODE_BRAIN_STRUCTURE;
-}
-
-/**
- * Constructor for surface of a specific type.
- * @param surfaceType
- *   Limit to surfaces from this of these types.
- */
-SurfaceSelectionModel::SurfaceSelectionModel(const SurfaceTypeEnum::Enum surfaceType)
-{
-    m_allowableSurfaceTypes.push_back(surfaceType);
-    m_mode = MODE_SURFACE_TYPE;
-}
-
-/**
- * @return An instance for use in volume surface outline selection
- * that lists surface types in a specific order based upon surface
- * type.
- */
-SurfaceSelectionModel*
-SurfaceSelectionModel::newInstanceForVolumeSurfaceOutline()
-{
-    SurfaceSelectionModel* ssm = new SurfaceSelectionModel();
-    ssm->m_mode = MODE_VOLULME_SURFACE_OUTLINE;
-    return ssm;
+    m_allowableSurfaceTypes = surfaceTypes;
+    CaretAssert( ! surfaceTypes.empty());
 }
 
 /**
@@ -208,107 +187,127 @@ SurfaceSelectionModel::setSurfaceToType(const SurfaceTypeEnum::Enum surfaceType,
 std::vector<Surface*> 
 SurfaceSelectionModel::getAvailableSurfaces() const
 {
-    std::vector<Surface*> surfaces;
+    std::vector<Surface*> unknownSurfaces;
+    std::vector<Surface*> reconstructionSurfaces;
+    std::vector<Surface*> anatomicalSurfaces;
+    std::vector<Surface*> inflatedSurfaces;
+    std::vector<Surface*> veryInflatedSurfaces;
+    std::vector<Surface*> sphericalSurfaces;
+    std::vector<Surface*> semiSphericalSurfaces;
+    std::vector<Surface*> ellipsoidSurfaces;
+    std::vector<Surface*> flatSurfaces;
+    std::vector<Surface*> hullSurfaces;
     
-    switch (m_mode) {
-        case MODE_BRAIN_STRUCTURE:
-        {
-            const int32_t numSurfaces = m_brainStructure->getNumberOfSurfaces();
-            for (int32_t i = 0; i < numSurfaces; i++) {
-                surfaces.push_back(m_brainStructure->getSurface(i));
-            }
+    /*
+     * Get ALL surfaces
+     */
+    EventSurfacesGet getSurfacesEvent;
+    EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
+    std::vector<Surface*> allSurfaces = getSurfacesEvent.getSurfaces();
+    
+    for (std::vector<Surface*>::iterator iter = allSurfaces.begin();
+         iter != allSurfaces.end();
+         iter++) {
+        Surface* surface = *iter;
+        
+        /*
+         * Filter by structure
+         */
+        bool passesStructureTestFlag = false;
+        if (m_allowableStructures.empty()) {
+            passesStructureTestFlag = true;
         }
-            break;
-        case MODE_STRUCTURE:
-        {
-            EventSurfacesGet getSurfacesEvent;
-            for (int32_t i = 0; i < static_cast<int32_t>(m_allowableStructures.size()); i++) {
-                getSurfacesEvent.addStructureConstraint(m_allowableStructures[i]);
+        else {
+            const StructureEnum::Enum structure = surface->getStructure();
+            if (std::find(m_allowableStructures.begin(),
+                          m_allowableStructures.end(),
+                          structure) != m_allowableStructures.end()) {
+                passesStructureTestFlag = true;
             }
-            EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
-            surfaces = getSurfacesEvent.getSurfaces();
+                          
         }
-            break;
-        case MODE_SURFACE_TYPE:
-        {
-            EventSurfacesGet getSurfacesEvent;
-            EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
-            std::vector<Surface*> allSurfaces = getSurfacesEvent.getSurfaces();
-            for (std::vector<Surface*>::iterator iter = allSurfaces.begin();
-                 iter != allSurfaces.end();
-                 iter++) {
-                Surface* s = *iter;
-                const SurfaceTypeEnum::Enum surfaceType = s->getSurfaceType();
-                if (std::find(m_allowableSurfaceTypes.begin(),
-                              m_allowableSurfaceTypes.end(),
-                              surfaceType) != m_allowableSurfaceTypes.end()) {
-                    surfaces.push_back(s);
-                }
-            }
-        }
-        case MODE_VOLULME_SURFACE_OUTLINE:
-        {
-            std::vector<Surface*> anatomicalSurfaces;
-            std::vector<Surface*> reconstructionSurfaces;
-            std::vector<Surface*> inflatedSurfaces;
-            std::vector<Surface*> veryInflatedSurfaces;
-            std::vector<Surface*> otherSurfaces;
-            EventSurfacesGet getSurfacesEvent;
-            EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
-            std::vector<Surface*> allSurfaces = getSurfacesEvent.getSurfaces();
-            for (std::vector<Surface*>::iterator iter = allSurfaces.begin();
-                 iter != allSurfaces.end();
-                 iter++) {
-                Surface* s = *iter;
-                const SurfaceTypeEnum::Enum surfaceType = s->getSurfaceType();
-                
+        
+        if (passesStructureTestFlag) {
+            const SurfaceTypeEnum::Enum surfaceType = surface->getSurfaceType();
+            if (std::find(m_allowableSurfaceTypes.begin(),
+                          m_allowableSurfaceTypes.end(),
+                          surfaceType) != m_allowableSurfaceTypes.end()) {
                 switch (surfaceType) {
-                    case SurfaceTypeEnum::ANATOMICAL:
-                        anatomicalSurfaces.push_back(s);
+                    case SurfaceTypeEnum::UNKNOWN:
+                        unknownSurfaces.push_back(surface);
                         break;
                     case SurfaceTypeEnum::RECONSTRUCTION:
-                        reconstructionSurfaces.push_back(s);
+                        reconstructionSurfaces.push_back(surface);
+                        break;
+                    case SurfaceTypeEnum::ANATOMICAL:
+                        anatomicalSurfaces.push_back(surface);
                         break;
                     case SurfaceTypeEnum::INFLATED:
-                        inflatedSurfaces.push_back(s);
+                        inflatedSurfaces.push_back(surface);
                         break;
                     case SurfaceTypeEnum::VERY_INFLATED:
-                        veryInflatedSurfaces.push_back(s);
+                        veryInflatedSurfaces.push_back(surface);
                         break;
-                    default:
-                        otherSurfaces.push_back(s);
+                    case SurfaceTypeEnum::SPHERICAL:
+                        sphericalSurfaces.push_back(surface);
+                        break;
+                    case SurfaceTypeEnum::SEMI_SPHERICAL:
+                        semiSphericalSurfaces.push_back(surface);
+                        break;
+                    case SurfaceTypeEnum::ELLIPSOID:
+                        ellipsoidSurfaces.push_back(surface);
+                        break;
+                    case SurfaceTypeEnum::FLAT:
+                        flatSurfaces.push_back(surface);
+                        break;
+                    case SurfaceTypeEnum::HULL:
+                        hullSurfaces.push_back(surface);
                         break;
                 }
             }
-            
-            surfaces.insert(surfaces.end(),
-                            anatomicalSurfaces.begin(),
-                            anatomicalSurfaces.end());
-            surfaces.insert(surfaces.end(),
-                            reconstructionSurfaces.begin(),
-                            reconstructionSurfaces.end());
-            surfaces.insert(surfaces.end(),
-                            inflatedSurfaces.begin(),
-                            inflatedSurfaces.end());
-            surfaces.insert(surfaces.end(),
-                            veryInflatedSurfaces.begin(),
-                            veryInflatedSurfaces.end());
-            surfaces.insert(surfaces.end(),
-                            otherSurfaces.begin(),
-                            otherSurfaces.end());
         }
-            break;
-            
     }
-    
 
-    return surfaces;
+    std::vector<Surface*> surfacesOut;
+    
+    surfacesOut.insert(surfacesOut.end(),
+                    anatomicalSurfaces.begin(),
+                    anatomicalSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    reconstructionSurfaces.begin(),
+                    reconstructionSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    inflatedSurfaces.begin(),
+                    inflatedSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    veryInflatedSurfaces.begin(),
+                    veryInflatedSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    sphericalSurfaces.begin(),
+                    sphericalSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    semiSphericalSurfaces.begin(),
+                    semiSphericalSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    ellipsoidSurfaces.begin(),
+                    ellipsoidSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    hullSurfaces.begin(),
+                    hullSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    flatSurfaces.begin(),
+                    flatSurfaces.end());
+    surfacesOut.insert(surfacesOut.end(),
+                    unknownSurfaces.begin(),
+                    unknownSurfaces.end());
+    
+    return surfacesOut;
 }
 
 /**
  * Update the selected surface.
  */
-void 
+void
 SurfaceSelectionModel::updateSelection() const
 {
     std::vector<Surface*> surfaces = getAvailableSurfaces();
@@ -322,22 +321,37 @@ SurfaceSelectionModel::updateSelection() const
     }
     
     if (m_selectedSurface == NULL) {
-        if (surfaces.empty() == false) {
-            switch (m_mode) {
-                case MODE_BRAIN_STRUCTURE:
-                    m_selectedSurface = m_brainStructure->getVolumeInteractionSurface();
-                    break;
-                case MODE_STRUCTURE:
-                    break;
-                case MODE_SURFACE_TYPE:
-                    break;
-                case MODE_VOLULME_SURFACE_OUTLINE:
-                    break;
-            }
+        EventBrainStructureGetAll brainStructureEvent;
+        EventManager::get()->sendEvent(brainStructureEvent.getPointer());
+        
+        const int32_t numBrainStructures = brainStructureEvent.getNumberOfBrainStructures();
+        for (int32_t i = 0; i < numBrainStructures; i++) {
+            BrainStructure* bs = brainStructureEvent.getBrainStructureByIndex(i);
+            m_selectedSurface = bs->getVolumeInteractionSurface();
             
-            if (m_selectedSurface == NULL) {
-                m_selectedSurface = surfaces[0];
+//            if (m_allowableStructures.empty()) {
+//                m_selectedSurface = bs->getVolumeInteractionSurface();
+//            }
+//            else {
+//                const StructureEnum::Enum structure = bs->getStructure();
+//                if (std::find(m_allowableStructures.begin(),
+//                              m_allowableStructures.end(),
+//                              structure) != m_allowableStructures.end()) {
+//                    m_selectedSurface = bs->getVolumeInteractionSurface();
+//                }
+//            }
+            
+            if (m_selectedSurface != NULL) {
+                if (std::find(surfaces.begin(),
+                              surfaces.end(),
+                              m_selectedSurface) != surfaces.end()) {
+                    break;
+                }
             }
+        }
+        
+        if (m_selectedSurface == NULL) {
+            m_selectedSurface = surfaces[0];
         }
     }
 }

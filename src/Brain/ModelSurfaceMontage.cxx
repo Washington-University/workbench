@@ -59,11 +59,21 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE,
                          brain)
 {
+    std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
+    validSurfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-        m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-        m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-        m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        m_leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
+                                                                   validSurfaceTypes);
+        m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
+                                                                         validSurfaceTypes);
+        m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
+                                                                    validSurfaceTypes);
+        m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
+                                                                          validSurfaceTypes);
         m_leftEnabled[i] = true;
         m_rightEnabled[i] = true;
         m_firstSurfaceEnabled[i] = false;

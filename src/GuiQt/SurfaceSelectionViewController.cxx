@@ -29,6 +29,7 @@
 
 #include <QComboBox>
 
+#include "BrainStructure.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
 #include "WuQEventBlockingFilter.h"
@@ -71,7 +72,11 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                  BrainStructure* brainStructure)
 : WuQWidget(parent)
 {
-    SurfaceSelectionModel* ss = new SurfaceSelectionModel(brainStructure);
+    std::vector<SurfaceTypeEnum::Enum> allSurfaceTypes;
+    SurfaceTypeEnum::getAllEnums(allSurfaceTypes);
+    
+    SurfaceSelectionModel* ss = new SurfaceSelectionModel(brainStructure->getStructure(),
+                                                          allSurfaceTypes);
     this->initializeControl(MODE_BRAIN_STRUCTURE,
                             ss);
 }

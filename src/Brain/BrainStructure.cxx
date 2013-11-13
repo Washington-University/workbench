@@ -36,6 +36,7 @@
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
 #include "ElapsedTimer.h"
+#include "EventBrainStructureGetAll.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
 #include "EventModelAdd.h"
@@ -78,7 +79,9 @@ BrainStructure::BrainStructure(Brain* brain,
                                             Overlay::INCLUDE_VOLUME_FILES_NO,
                                             "Structure " + StructureEnum::toGuiName(m_structure));
     
-    EventManager::get()->addEventListener(this, 
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL);
+    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
@@ -946,7 +949,14 @@ BrainStructure::getRgbaFiles(std::vector<RgbaFile*>& rgbaFilesOut) const
 void 
 BrainStructure::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GET_NODE_DATA_FILES) {
+    if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET_ALL) {
+        EventBrainStructureGetAll* brainStructureEvent =
+                    dynamic_cast<EventBrainStructureGetAll*>(event);
+        CaretAssert(brainStructureEvent);
+        brainStructureEvent->addBrainStructure(this);
+        brainStructureEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_NODE_DATA_FILES) {
         EventNodeDataFilesGet* dataFilesEvent =
             dynamic_cast<EventNodeDataFilesGet*>(event);
         CaretAssert(dataFilesEvent);
