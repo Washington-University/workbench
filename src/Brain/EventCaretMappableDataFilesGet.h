@@ -47,6 +47,8 @@ namespace caret {
     public:
         EventCaretMappableDataFilesGet();
         
+        EventCaretMappableDataFilesGet(const DataFileTypeEnum::Enum dataFileType);
+        
         virtual ~EventCaretMappableDataFilesGet();
         
         void addFile(CaretMappableDataFile* mapDataFile);        
@@ -54,9 +56,18 @@ namespace caret {
         void getAllFiles(std::vector<CaretMappableDataFile*>& allFilesOut) const;
         
     private:
+        enum Mode {
+            MODE_ANY_DATA_FILE_TYPE,
+            MODE_ONE_DATA_FILE_TYPE
+        };
+        
         EventCaretMappableDataFilesGet(const EventCaretMappableDataFilesGet&);
         
         EventCaretMappableDataFilesGet& operator=(const EventCaretMappableDataFilesGet&);
+
+        const Mode m_mode;
+        
+        const DataFileTypeEnum::Enum m_oneDataFileType;
         
         std::vector<CaretMappableDataFile*> m_allCaretMappableDataFiles;
         

@@ -43,9 +43,26 @@ using namespace caret;
  * Constructor for ALL map data files.
  */
 EventCaretMappableDataFilesGet::EventCaretMappableDataFilesGet()
-: Event(EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET)
+: Event(EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET),
+m_mode(MODE_ANY_DATA_FILE_TYPE),
+m_oneDataFileType(DataFileTypeEnum::UNKNOWN)
 {
 }
+
+/**
+ * Constructor for map data files of the given file type.
+ *
+ * @param dataFileType
+ *    Type of data files requested.
+ */
+EventCaretMappableDataFilesGet::EventCaretMappableDataFilesGet(const DataFileTypeEnum::Enum dataFileType)
+: Event(EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET),
+m_mode(MODE_ONE_DATA_FILE_TYPE),
+m_oneDataFileType(dataFileType)
+{
+}
+
+
 
 /**
  * Destructor.
@@ -68,9 +85,26 @@ EventCaretMappableDataFilesGet::addFile(CaretMappableDataFile* mapDataFile)
         return;
     }
     
-    const DataFileTypeEnum::Enum dataFileType = mapDataFile->getDataFileType();
-    if (dataFileType == DataFileTypeEnum::SURFACE) {
+    const DataFileTypeEnum::Enum mapDataFileType = mapDataFile->getDataFileType();
+    
+    /*
+     * No surface files
+     */
+    if (mapDataFileType == DataFileTypeEnum::SURFACE) {
         return;
+    }
+    
+    /*
+     * Based upon mode, perform additional filtering of file data type
+     */
+    switch (m_mode) {
+        case MODE_ONE_DATA_FILE_TYPE:
+            if (mapDataFileType != m_oneDataFileType) {
+                return;
+            }
+            break;
+        case MODE_ANY_DATA_FILE_TYPE:
+            break;
     }
 
     m_allCaretMappableDataFiles.push_back(mapDataFile);
