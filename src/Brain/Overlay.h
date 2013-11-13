@@ -131,12 +131,14 @@ namespace caret {
         void initializeOverlay(Model* modelDisplayController,
                                BrainStructure* brainStructure);
         
+        /** Surface structures of data files displayed in this overlay */
          std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
         
+        /** Surface types of data files displayed in this overlay */
          IncludeSurfaceTypes m_includeSurfaceTypes;
         
+        /** Include volume files in this overlay */
         IncludeVolumeFiles m_includeVolumeFiles;
-        
         
         /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
         BrainStructure* m_brainStructure;

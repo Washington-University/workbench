@@ -33,7 +33,6 @@
 
 namespace caret {
 
-    class Brain;
     class BrainStructure;
     class BrowserTabContent;
     class LabelFile;
@@ -46,8 +45,7 @@ namespace caret {
     class OverlaySet : public CaretObject, public SceneableInterface {
         
     public:
-        OverlaySet(Brain* brain,
-                   const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+        OverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
                    const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
                    const Overlay::IncludeVolumeFiles includeVolumeFiles);
         
@@ -115,20 +113,17 @@ namespace caret {
         void initializeOverlaySet(Model* modelDisplayController,
                                   BrainStructure* brainStructure);
 
-        void findUnderlayFiles(Brain* brain,
-                               const std::vector<StructureEnum::Enum>& matchToStructures,
+        void findUnderlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
                                const bool includeVolumeFiles,
                                std::vector<CaretMappableDataFile*>& filesOut,
                                std::vector<int32_t>& mapIndicesOut);
         
-        void findMiddleLayerFiles(Brain* brain,
-                                  const std::vector<StructureEnum::Enum>& matchToStructures,
+        void findMiddleLayerFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
                                   const bool includeVolumeFiles,
                                   std::vector<CaretMappableDataFile*>& filesOut,
                                   std::vector<int32_t>& mapIndicesOut);
         
-        void findOverlayFiles(Brain* brain,
-                              const std::vector<StructureEnum::Enum>& matchToStructures,
+        void findOverlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
                               const bool includeVolumeFiles,
                               std::vector<CaretMappableDataFile*>& filesOut,
                               std::vector<int32_t>& mapIndicesOut);
@@ -142,13 +137,23 @@ namespace caret {
         
         bool findFilesWithMapNamed(std::vector<CaretMappableDataFile*>& matchedFilesOut,
                                    std::vector<int32_t>& matchedFileIndicesOut,
-                                   const Brain* brain,
                                    const std::vector<StructureEnum::Enum>& matchToStructures,
                                    const DataFileTypeEnum::Enum dataFileType,
                                    const bool matchToVolumeData,
                                    const AString& matchToNamesRegularExpressionText,
                                    const bool matchToNamesRegularExpressionResult,
                                    const bool matchOneFilePerStructure);
+        
+        std::vector<VolumeFile*> getVolumeFiles() const;
+        
+        /** Surface structures of data files displayed in this overlay */
+        std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
+        
+        /** Surface types of data files displayed in this overlay */
+        Overlay::IncludeSurfaceTypes m_includeSurfaceTypes;
+        
+        /** Include volume files in this overlay */
+        Overlay::IncludeVolumeFiles m_includeVolumeFiles;
         
         Model* m_modelDisplayController;
         

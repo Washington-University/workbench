@@ -32,13 +32,14 @@
 #include "OverlaySet.h"
 #undef __OVERLAY_SET_DECLARE__
 
-#include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
+#include "EventCaretMappableDataFilesGet.h"
+#include "EventManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurfaceMontage.h"
@@ -94,11 +95,13 @@ using namespace caret;
  * @param includeSurfaceTypes
  *     Surface structures for data files displayed in this overlay set.
  */
-OverlaySet::OverlaySet(Brain* brain,
-                       const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+OverlaySet::OverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
                        const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
                        const Overlay::IncludeVolumeFiles includeVolumeFiles)
-: CaretObject()
+: CaretObject(),
+m_includeSurfaceStructures(includeSurfaceStructures),
+m_includeSurfaceTypes(includeSurfaceTypes),
+m_includeVolumeFiles(includeVolumeFiles)
 {
     m_sceneAssistant = NULL;
     initializeOverlaySet(NULL,
@@ -225,9 +228,9 @@ OverlaySet::initializeOverlaySet(Model* modelDisplayController,
     else if (m_brainStructure == NULL) {
         CaretAssert(m_modelDisplayController != NULL);
     }
-    else {
-        CaretAssertMessage(0, "Both mode and brain structure are NULL");
-    }
+//    else {
+//        CaretAssertMessage(0, "Both mode and brain structure are NULL");
+//    }
     
     m_numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
     
@@ -536,8 +539,6 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
  *     Output to which matched files are APPENDED.
  * @param matchedFileIndicesOut
  *     Output to which matched file indices are APPENDED.
- * @param brain
- *     The brain.
  * @param matchToStructures
  *     If not empty, only include files that map to these structures.  If
  *     matchToVolumeData is true, this parameter is ignored.  If this is (empty
@@ -560,7 +561,6 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 bool
 OverlaySet::findFilesWithMapNamed(std::vector<CaretMappableDataFile*>& matchedFilesOut,
                                   std::vector<int32_t>& matchedFileIndicesOut,
-                                  const Brain* brain,
                                   const std::vector<StructureEnum::Enum>& matchToStructures,
                                   const DataFileTypeEnum::Enum dataFileType,
                                   const bool matchToVolumeData,
@@ -582,9 +582,12 @@ OverlaySet::findFilesWithMapNamed(std::vector<CaretMappableDataFile*>& matchedFi
     /*
      * Get files matching data type
      */
+    EventCaretMappableDataFilesGet mapFileGetEvent(dataFileType);
+    EventManager::get()->sendEvent(mapFileGetEvent.getPointer());
     std::vector<CaretMappableDataFile*> matchToMapFiles;
-    brain->getAllMappableDataFileWithDataFileType(dataFileType,
-                                                  matchToMapFiles);
+    mapFileGetEvent.getAllFiles(matchToMapFiles);
+//    brain->getAllMappableDataFileWithDataFileType(dataFileType,
+//                                                  matchToMapFiles);
     const int32_t numberOfMatchFiles = static_cast<int32_t>(matchToMapFiles.size());
     if (numberOfMatchFiles <= 0) {
         return false;
@@ -768,8 +771,7 @@ OverlaySet::findFilesWithMapNamed(std::vector<CaretMappableDataFile*>& matchedFi
  *    Output containing maps indices in files that were selected.
  */
 void
-OverlaySet::findUnderlayFiles(Brain* brain,
-                              const std::vector<StructureEnum::Enum>& matchToStructures,
+OverlaySet::findUnderlayFiles( const std::vector<StructureEnum::Enum>& matchToStructures,
                               const bool includeVolumeFiles,
                               std::vector<CaretMappableDataFile*>& filesOut,
                               std::vector<int32_t>& mapIndicesOut)
@@ -779,7 +781,6 @@ OverlaySet::findUnderlayFiles(Brain* brain,
      */
     if (findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
                               false,
@@ -792,7 +793,6 @@ OverlaySet::findUnderlayFiles(Brain* brain,
          */
         findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::METRIC,
                               false,
@@ -802,12 +802,14 @@ OverlaySet::findUnderlayFiles(Brain* brain,
     }
     
     if (includeVolumeFiles) {
-        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+        std::vector<VolumeFile*> volumeFiles = getVolumeFiles();
+        
+        const int32_t numVolumes = static_cast<int32_t>(volumeFiles.size());
         if (numVolumes > 0) {
             bool foundAnatomyVolume = false;
 
             for (int32_t i = 0; i < numVolumes; i++) {
-                VolumeFile* vf = brain->getVolumeFile(i);
+                VolumeFile* vf = volumeFiles[i];
                 if (vf->getType() == SubvolumeAttributes::ANATOMY) {
                     if (vf->getNumberOfMaps() > 0) {
                         filesOut.push_back(vf);
@@ -820,7 +822,7 @@ OverlaySet::findUnderlayFiles(Brain* brain,
             
             if (foundAnatomyVolume == false) {
                 for (int32_t i = 0; i < numVolumes; i++) {
-                    VolumeFile* vf = brain->getVolumeFile(i);
+                    VolumeFile* vf = volumeFiles[i];
                     bool testIt = true;
                     if (vf->getType() == SubvolumeAttributes::LABEL) {
                         testIt = false;
@@ -849,6 +851,31 @@ OverlaySet::findUnderlayFiles(Brain* brain,
 }
 
 /**
+ * @return All volume files.
+ */
+std::vector<VolumeFile*>
+OverlaySet::getVolumeFiles() const
+{
+    std::vector<VolumeFile*> volumeFiles;
+    
+    EventCaretMappableDataFilesGet mapFileGetEvent(DataFileTypeEnum::VOLUME);
+    EventManager::get()->sendEvent(mapFileGetEvent.getPointer());
+    std::vector<CaretMappableDataFile*> matchToMapFiles;
+    mapFileGetEvent.getAllFiles(matchToMapFiles);
+    
+    for (std::vector<CaretMappableDataFile*>::iterator iter = matchToMapFiles.begin();
+         iter != matchToMapFiles.end();
+         iter++) {
+        VolumeFile* vf = dynamic_cast<VolumeFile*>(*iter);
+        CaretAssert(vf);
+        volumeFiles.push_back(vf);
+    }
+    
+    return volumeFiles;
+}
+
+
+/**
  * Find middle layer files.
  *
  * @param matchToStructures
@@ -861,8 +888,7 @@ OverlaySet::findUnderlayFiles(Brain* brain,
  *    Output containing maps indices in files that were selected.
  */
 void
-OverlaySet::findMiddleLayerFiles(Brain* brain,
-                                 const std::vector<StructureEnum::Enum>& matchToStructures,
+OverlaySet::findMiddleLayerFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
                                  const bool includeVolumeFiles,
                                  std::vector<CaretMappableDataFile*>& filesOut,
                                  std::vector<int32_t>& mapIndicesOut)
@@ -874,7 +900,6 @@ OverlaySet::findMiddleLayerFiles(Brain* brain,
      */
     if (findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
                               includeVolumeFiles,
@@ -887,7 +912,6 @@ OverlaySet::findMiddleLayerFiles(Brain* brain,
          */
         findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::METRIC,
                               includeVolumeFiles,
@@ -901,7 +925,6 @@ OverlaySet::findMiddleLayerFiles(Brain* brain,
      */
     if (findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
                               includeVolumeFiles,
@@ -914,7 +937,6 @@ OverlaySet::findMiddleLayerFiles(Brain* brain,
          */
         findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::METRIC,
                               includeVolumeFiles,
@@ -924,9 +946,10 @@ OverlaySet::findMiddleLayerFiles(Brain* brain,
     }
     
     if (includeVolumeFiles) {
-        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+        std::vector<VolumeFile*> volumeFiles = getVolumeFiles();
+        const int32_t numVolumes = static_cast<int32_t>(volumeFiles.size());
         for (int32_t i = 0; i < numVolumes; i++) {
-            VolumeFile* vf = brain->getVolumeFile(i);
+            VolumeFile* vf = volumeFiles[i];
             if ((vf->getType() == SubvolumeAttributes::FUNCTIONAL)) {
                 if (vf->getNumberOfMaps() > 0) {
                     filesOut.push_back(vf);
@@ -953,8 +976,7 @@ OverlaySet::findMiddleLayerFiles(Brain* brain,
  *    Output containing maps indices in files that were selected.
  */
 void
-OverlaySet::findOverlayFiles(Brain* brain,
-                             const std::vector<StructureEnum::Enum>& matchToStructures,
+OverlaySet::findOverlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
                              const bool includeVolumeFiles,
                              std::vector<CaretMappableDataFile*>& filesOut,
                              std::vector<int32_t>& mapIndicesOut)
@@ -964,7 +986,6 @@ OverlaySet::findOverlayFiles(Brain* brain,
      */
     if (findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
                               includeVolumeFiles,
@@ -977,7 +998,6 @@ OverlaySet::findOverlayFiles(Brain* brain,
          */
         findFilesWithMapNamed(filesOut,
                               mapIndicesOut,
-                              brain,
                               matchToStructures,
                               DataFileTypeEnum::LABEL,
                               includeVolumeFiles,
@@ -987,9 +1007,10 @@ OverlaySet::findOverlayFiles(Brain* brain,
     }
     
     if (includeVolumeFiles) {
-        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+        std::vector<VolumeFile*> volumeFiles = getVolumeFiles();
+        const int32_t numVolumes = static_cast<int32_t>(volumeFiles.size());
         for (int32_t i = 0; i < numVolumes; i++) {
-            VolumeFile* vf = brain->getVolumeFile(i);
+            VolumeFile* vf = volumeFiles[i];
             if (vf->getType() == SubvolumeAttributes::LABEL) {
                 if (vf->getNumberOfMaps() > 0) {
                     filesOut.push_back(vf);
@@ -1011,18 +1032,6 @@ OverlaySet::findOverlayFiles(Brain* brain,
 void
 OverlaySet::initializeOverlays()
 {
-    
-    Brain* brain = NULL;
-    if (m_modelDisplayController != NULL) {
-        brain = m_modelDisplayController->getBrain();
-    }
-    else if (m_brainStructure != NULL) {
-        brain = m_brainStructure->getBrain();
-    }
-    if (brain == NULL) {
-        return;
-    }
-    
     ModelSurfaceMontage* modelSurfaceMontage = dynamic_cast<ModelSurfaceMontage*>(m_modelDisplayController);
     ModelVolume* modelVolume = dynamic_cast<ModelVolume*>(m_modelDisplayController);
     ModelWholeBrain* modelWholeBrain = dynamic_cast<ModelWholeBrain*>(m_modelDisplayController);
@@ -1035,12 +1044,8 @@ OverlaySet::initializeOverlays()
         matchToStructures.push_back(m_brainStructure->getStructure());
     }
     else if (modelSurfaceMontage != NULL) {
-        if (brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false) != NULL) {
             matchToStructures.push_back(StructureEnum::CORTEX_LEFT);
-        }
-        if (brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false) != NULL) {
             matchToStructures.push_back(StructureEnum::CORTEX_RIGHT);
-        }
     }
     else if (modelVolume != NULL) {
         isMatchToVolumeUnderlay = true;
@@ -1048,9 +1053,8 @@ OverlaySet::initializeOverlays()
         matchToStructures.push_back(StructureEnum::INVALID); // no surface structures
     }
     else if (modelWholeBrain != NULL) {
-        for (int32_t i = 0; i < brain->getNumberOfBrainStructures(); i++) {
-            matchToStructures.push_back(brain->getBrainStructure(i)->getStructure());
-        }
+        matchToStructures.push_back(StructureEnum::CORTEX_LEFT);
+        matchToStructures.push_back(StructureEnum::CORTEX_RIGHT);
         isMatchToVolumeUnderlay = true;
     }
     
@@ -1059,8 +1063,7 @@ OverlaySet::initializeOverlays()
      */
     std::vector<CaretMappableDataFile*> underlayMapFiles;
     std::vector<int32_t> underlayMapIndices;
-    findUnderlayFiles(brain,
-                      matchToStructures,
+    findUnderlayFiles(matchToStructures,
                       isMatchToVolumeUnderlay,
                       underlayMapFiles,
                       underlayMapIndices);
@@ -1071,8 +1074,7 @@ OverlaySet::initializeOverlays()
      */
     std::vector<CaretMappableDataFile*> middleLayerMapFiles;
     std::vector<int32_t> middleLayerMapIndices;
-    findMiddleLayerFiles(brain,
-                         matchToStructures,
+    findMiddleLayerFiles(matchToStructures,
                          isMatchToVolumeOverlays,
                          middleLayerMapFiles,
                          middleLayerMapIndices);
@@ -1082,8 +1084,7 @@ OverlaySet::initializeOverlays()
      */
     std::vector<CaretMappableDataFile*> overlayMapFiles;
     std::vector<int32_t> overlayMapIndices;
-    findOverlayFiles(brain,
-                         matchToStructures,
+    findOverlayFiles(matchToStructures,
                          isMatchToVolumeOverlays,
                          overlayMapFiles,
                          overlayMapIndices);
