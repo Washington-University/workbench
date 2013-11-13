@@ -60,13 +60,13 @@ namespace caret {
         
         Overlay* getYokedOverlay(const int32_t indx);
         
-        void getYokedOverlay(const int32_t indx,
-                             AString& modelNameOut,
-                             int32_t tabIndexOut,
-                             Overlay*& overlayOut,
-                             CaretMappableDataFile*& overlayFileOut,
-                             AString& overlayFileNameOut,
-                             int32_t& overlayFileNumberOfMapsOut) const;
+//        void getYokedOverlay(const int32_t indx,
+//                             AString& modelNameOut,
+//                             int32_t tabIndexOut,
+//                             Overlay*& overlayOut,
+//                             CaretMappableDataFile*& overlayFileOut,
+//                             AString& overlayFileNameOut,
+//                             int32_t& overlayFileNumberOfMapsOut) const;
         
 //        int32_t getMaximumMapIndex() const;
 //

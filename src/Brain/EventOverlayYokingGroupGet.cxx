@@ -159,25 +159,25 @@ EventOverlayYokingGroupGet::getYokedOverlay(const int32_t indx)
  * @param overlayFileNumberOfMapsOut
  *    Number of maps in the selected file.
  */
-void
-EventOverlayYokingGroupGet::getYokedOverlay(const int32_t indx,
-                                      AString& modelNameOut,
-                                      int32_t tabIndexOut,
-                                      Overlay*& overlayOut,
-                                      CaretMappableDataFile*& overlayFileOut,
-                                      AString& overlayFileNameOut,
-                                      int32_t& overlayFileNumberOfMapsOut) const
-{
-    CaretAssertVectorIndex(m_yokedOverlays, indx);
-    const YokedOverlayInfo& yoi = m_yokedOverlays[indx];
-    
-    modelNameOut = yoi.m_modelName;
-    tabIndexOut  = yoi.m_tabIndex;
-    overlayOut = yoi.m_overlay;
-    overlayFileOut = yoi.m_overlayFile;
-    overlayFileNameOut = yoi.m_overlayFileName;
-    overlayFileNumberOfMapsOut = yoi.m_overlayFileNumberOfMaps;
-}
+//void
+//EventOverlayYokingGroupGet::getYokedOverlay(const int32_t indx,
+//                                      AString& modelNameOut,
+//                                      int32_t tabIndexOut,
+//                                      Overlay*& overlayOut,
+//                                      CaretMappableDataFile*& overlayFileOut,
+//                                      AString& overlayFileNameOut,
+//                                      int32_t& overlayFileNumberOfMapsOut) const
+//{
+//    CaretAssertVectorIndex(m_yokedOverlays, indx);
+//    const YokedOverlayInfo& yoi = m_yokedOverlays[indx];
+//    
+//    modelNameOut = yoi.m_modelName;
+//    tabIndexOut  = yoi.m_tabIndex;
+//    overlayOut = yoi.m_overlay;
+//    overlayFileOut = yoi.m_overlayFile;
+//    overlayFileNameOut = yoi.m_overlayFileName;
+//    overlayFileNumberOfMapsOut = yoi.m_overlayFileNumberOfMaps;
+//}
 
 ///**
 // * @return The maximum map index for yoked overlays.  If the files 

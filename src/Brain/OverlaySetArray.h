@@ -38,25 +38,17 @@
 #include "CaretObject.h"
 
 #include "EventListenerInterface.h"
+#include "Overlay.h"
 
 namespace caret {
-    class BrainStructure;
-    class Model;
-    class ModelSurfaceMontage;
-    class ModelVolume;
-    class ModelWholeBrain;
     class OverlaySet;
     
     class OverlaySetArray : public CaretObject, public EventListenerInterface {
         
     public:
-        OverlaySetArray(BrainStructure* brainStructure);
-        
-        OverlaySetArray(ModelVolume* modelVolume);
-        
-        OverlaySetArray(ModelWholeBrain* modelWholeBrain);
-        
-        OverlaySetArray(ModelSurfaceMontage* modelSurfaceMontage);
+        OverlaySetArray(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+                        const Overlay::IncludeVolumeFiles includeVolumeFiles,
+                        const AString& name);
         
         virtual ~OverlaySetArray();
         
@@ -82,20 +74,13 @@ namespace caret {
     private:
         // ADD_NEW_MEMBERS_HERE
         
-        void initialize(BrainStructure* brainStructure,
-                        ModelSurfaceMontage* modelSurfaceMontage,
-                        ModelVolume* modelVolume,
-                        ModelWholeBrain* modelWholeBrain);
+        void initialize();
 
+        /** Name for this overlay set array */
+        AString m_name;
+        
+        /** The overlay sets */
         std::vector<OverlaySet*> m_overlaySets;
-
-        BrainStructure* m_brainStructure;
-        
-        ModelVolume* m_modelVolume;
-        
-        ModelWholeBrain* m_modelWholeBrain;
-        
-        ModelSurfaceMontage* m_modelSurfaceMontage;
     };
     
 #ifdef __OVERLAY_SET_ARRAY_DECLARE__

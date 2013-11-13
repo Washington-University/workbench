@@ -71,10 +71,12 @@ BrainStructure::BrainStructure(Brain* brain,
     m_nodeAttributes = new BrainStructureNodeAttributes();
     m_volumeInteractionSurface = NULL;
     
-    m_overlaySetArray = new OverlaySetArray(this);
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        m_overlaySet[i] = new OverlaySet(this);
-//    }
+    std::vector<StructureEnum::Enum> overlaySurfaceStructures;
+    overlaySurfaceStructures.push_back(m_structure);
+
+    m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
+                                            Overlay::INCLUDE_VOLUME_FILES_NO,
+                                            "Structure " + StructureEnum::toGuiName(m_structure));
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
@@ -94,9 +96,6 @@ BrainStructure::~BrainStructure()
     EventManager::get()->removeAllEventsFromListener(this);
     
     delete m_overlaySetArray;
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        delete m_overlaySet[i];
-//    }
     
     /*
      * Make a copy of all surface pointers since

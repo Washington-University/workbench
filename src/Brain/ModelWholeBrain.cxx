@@ -61,7 +61,14 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
         m_cerebellumSeparation[i] = 0.0;
     }
 
-    m_overlaySetArray = new OverlaySetArray(this);
+    std::vector<StructureEnum::Enum> overlaySurfaceStructures;
+    overlaySurfaceStructures.push_back(StructureEnum::CORTEX_LEFT);
+    overlaySurfaceStructures.push_back(StructureEnum::CORTEX_RIGHT);
+    overlaySurfaceStructures.push_back(StructureEnum::CEREBELLUM);
+    
+    m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
+                                            Overlay::INCLUDE_VOLUME_FILES_YES,
+                                            "All View");
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);

@@ -36,13 +36,7 @@
 #include "StructureEnum.h"
 
 namespace caret {
-    class BrainStructure;
     class CaretMappableDataFile;
-    class Model;
-    class ModelSurface;
-    class ModelSurfaceMontage;
-    class ModelVolume;
-    class ModelWholeBrain;
     class SceneClassAssistant;
     
     class Overlay : public CaretObject, public EventListenerInterface, public SceneableInterface {
@@ -53,22 +47,8 @@ namespace caret {
             INCLUDE_VOLUME_FILES_NO
         };
         
-        enum IncludeSurfaceTypes {
-            INCLUDE_SURFACES_FLAT,
-            INCLUDE_SURFACES_THREE_D
-        };
-        
         Overlay(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
-                const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
                 const Overlay::IncludeVolumeFiles includeVolumeFiles);
-        
-        Overlay(BrainStructure* brainStructure);
-        
-        Overlay(ModelVolume* modelDisplayControllerVolume);
-        
-        Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain);
-        
-        Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~Overlay();
         
@@ -128,29 +108,11 @@ namespace caret {
 
         Overlay& operator=(const Overlay&);
 
-        void initializeOverlay(Model* modelDisplayController,
-                               BrainStructure* brainStructure);
-        
         /** Surface structures of data files displayed in this overlay */
-         std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
-        
-        /** Surface types of data files displayed in this overlay */
-         IncludeSurfaceTypes m_includeSurfaceTypes;
+        const std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
         
         /** Include volume files in this overlay */
-        IncludeVolumeFiles m_includeVolumeFiles;
-        
-        /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
-        BrainStructure* m_brainStructure;
-        
-        /** Volume controller using this overlay (NULL if this overlay is not assigned to a volume controller) */
-        ModelVolume* m_volumeController;
-        
-        /** Whole brain controller using this overlay (NULL if this overlay is not assigned to a whole brain controller) */
-        ModelWholeBrain* m_wholeBrainController;
-        
-        /** Surfaced Montage controller using this overlay (NULL if this overlay is not assigned to a surface montage controller) */
-        ModelSurfaceMontage* m_surfaceMontageController;
+        const IncludeVolumeFiles m_includeVolumeFiles;
         
         /** Name of overlay (DO NOT COPY)*/
         AString m_name;

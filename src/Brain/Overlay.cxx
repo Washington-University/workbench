@@ -29,7 +29,6 @@
 #include "Overlay.h"
 #undef __OVERLAY_DECLARE__
 
-#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -37,10 +36,6 @@
 #include "EventOverlayValidate.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "ModelSurface.h"
-#include "ModelSurfaceMontage.h"
-#include "ModelVolume.h"
-#include "ModelWholeBrain.h"
 #include "RgbaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -55,112 +50,19 @@ using namespace caret;
  * \brief  An overlay for selection of mappable data.
  */
 
+/**
+ * Constructor for files in the given structurs and perhaps volume files.
+ *
+ * @param includeSurfaceStructures
+ *    Surface structures for files available in this overlay.
+ * @param includeVolumeFiles
+ *    Include (or not) volume files.
+ */
 Overlay::Overlay(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
-                 const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
                  const Overlay::IncludeVolumeFiles includeVolumeFiles)
 : m_includeSurfaceStructures(includeSurfaceStructures),
-m_includeSurfaceTypes(includeSurfaceTypes),
 m_includeVolumeFiles(includeVolumeFiles)
 {
-    
-}
-
-
-/**
- * Constructor for surface controllers.
- * @param modelDisplayControllerSurface
- *    Controller that is for surfaces.
- */
-Overlay::Overlay(BrainStructure* brainStructure)
-: CaretObject()
-{
-    CaretAssert(brainStructure);
-    
-    m_volumeController  = NULL;
-    m_wholeBrainController  = NULL;
-    m_surfaceMontageController = NULL;
-    
-    initializeOverlay(NULL,
-                      brainStructure);
-}
-
-/**
- * Constructor for volume controllers.
- * @param modelDisplayControllerVolume
- *    Controller that is for volumes.
- */
-Overlay::Overlay(ModelVolume* modelDisplayControllerVolume)
-: CaretObject()
-{
-    CaretAssert(modelDisplayControllerVolume);
-    
-    m_volumeController  = modelDisplayControllerVolume;
-    m_wholeBrainController  = NULL;
-    m_surfaceMontageController = NULL;
-    
-    initializeOverlay(m_volumeController,
-                            NULL);
-}
-
-/**
- * Constructor for whole brain controllers.
- * @param modelDisplayControllerWholeBrain
- *    Controller that is for whole brains.
- */
-Overlay::Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain)
-: CaretObject()
-{
-    CaretAssert(modelDisplayControllerWholeBrain);
-    
-    m_volumeController  = NULL;
-    m_wholeBrainController  = modelDisplayControllerWholeBrain;
-    m_surfaceMontageController = NULL;
-    
-    initializeOverlay(m_wholeBrainController,
-                            NULL);
-}
-
-/**
- * Constructor for surface montage controllers.
- * @param modelDisplayControllerSurfaceMontage
- *    Controller that is for surface montage.
- */
-Overlay::Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
-: CaretObject()
-{
-    CaretAssert(modelDisplayControllerSurfaceMontage);
-    
-    m_volumeController  = NULL;
-    m_wholeBrainController  = NULL;
-    m_surfaceMontageController = modelDisplayControllerSurfaceMontage;
-    
-    initializeOverlay(m_surfaceMontageController,
-                            NULL);
-}
-
-/**
- * Initialize the overlay's members.
- * @param modelDisplayController
- *    Controller that uses this overlay.
- */
-void
-Overlay::initializeOverlay(Model* modelDisplayController,
-                           BrainStructure* brainStructure)
-{
-    m_brainStructure = brainStructure;
-    
-    if (modelDisplayController == NULL) {
-        CaretAssert(m_brainStructure != NULL);
-    }
-    else if (m_brainStructure == NULL) {
-        CaretAssert(modelDisplayController != NULL);
-    }
-    else {
-        CaretAssertMessage(0, "Both mode and brain structure are NULL");
-    }
-    
-    m_brainStructure = brainStructure;
-    
     m_opacity = 1.0;
     
     m_name = "Overlay ";
@@ -175,9 +77,9 @@ Overlay::initializeOverlay(Model* modelDisplayController,
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add("m_paletteDisplayedFlag", &m_paletteDisplayedFlag);
     m_sceneAssistant->add<WholeBrainVoxelDrawingMode, WholeBrainVoxelDrawingMode::Enum>("m_wholeBrainVoxelDrawingMode",
-                                                            &m_wholeBrainVoxelDrawingMode);
+                                                                                        &m_wholeBrainVoxelDrawingMode);
     m_sceneAssistant->add<OverlayYokingGroupEnum, OverlayYokingGroupEnum::Enum>("m_yokingGroup",
-                                                                  &m_yokingGroup);
+                                                                                &m_yokingGroup);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
@@ -336,11 +238,6 @@ Overlay::copyData(const Overlay* overlay)
      *    overlayIndex
      *
      */
-    m_brainStructure = overlay->m_brainStructure;
-    m_volumeController  = overlay->m_volumeController;
-    m_wholeBrainController = overlay->m_wholeBrainController;
-    m_surfaceMontageController = overlay->m_surfaceMontageController;
-    
     m_opacity = overlay->m_opacity;
     m_enabled = overlay->m_enabled;
     
@@ -359,23 +256,8 @@ Overlay::copyData(const Overlay* overlay)
 void 
 Overlay::swapData(Overlay* overlay)
 {
-    Overlay* swapOverlay = NULL;
-    
-    if (m_brainStructure != NULL) {
-        swapOverlay = new Overlay(m_brainStructure);
-    }
-    else if (m_volumeController != NULL) {
-        swapOverlay = new Overlay(m_volumeController);
-    }
-    else if (m_wholeBrainController != NULL) {
-        swapOverlay = new Overlay(m_wholeBrainController);
-    }
-    else if (m_surfaceMontageController != NULL) {
-        swapOverlay = new Overlay(m_surfaceMontageController);
-    }
-    else {
-        CaretAssertMessage(0, "Unknown overlay type");
-    }
+    Overlay* swapOverlay = new Overlay(m_includeSurfaceStructures,
+                                       m_includeVolumeFiles);
     
     swapOverlay->copyData(overlay);
     
@@ -469,38 +351,17 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     EventManager::get()->sendEvent(eventGetMapDataFiles.getPointer());
     eventGetMapDataFiles.getAllFiles(allDataFiles);
     
-    bool showSurfaceMapFiles = false;
     bool showVolumeMapFiles  = false;
+    switch (m_includeVolumeFiles) {
+        case INCLUDE_VOLUME_FILES_NO:
+            break;
+        case INCLUDE_VOLUME_FILES_YES:
+            showVolumeMapFiles = true;
+            break;
+    }
 
-    /*
-     * If a surface is displayed, restrict selections to files that
-     * match the structure of the displayed surface.
-     */
-    StructureEnum::Enum selectedSurfaceStructure = StructureEnum::ALL;
-    if (m_brainStructure != NULL) {
-        selectedSurfaceStructure = m_brainStructure->getStructure();
-        showSurfaceMapFiles = true;
-    }
-    
-    /*
-     * If a volume is selected, restrict selections to volume files.
-     */
-    if (m_volumeController != NULL) {
-        showVolumeMapFiles = true;
-    }
-    
-    /*
-     * If whole brain is selected, show surface and volume files.
-     */
-    if (m_wholeBrainController != NULL) {
-        showSurfaceMapFiles = true;
-        showVolumeMapFiles = true;
-    }
-    
-    /*
-     * If surface montage is selected, show surface files
-     */
-    if (m_surfaceMontageController != NULL) {
+    bool showSurfaceMapFiles = false;
+    if ( ! m_includeSurfaceStructures.empty()) {
         showSurfaceMapFiles = true;
     }
     
@@ -517,13 +378,15 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         if (mapFile->isSurfaceMappable()) {
             mappable = true;
             if (showSurfaceMapFiles) {
-                if (selectedSurfaceStructure == StructureEnum::ALL) {
+                const StructureEnum::Enum mapFileStructure = mapFile->getStructure();
+                
+                if (mapFileStructure == StructureEnum::ALL) {
                     useIt = true;
                 }
-                else if (mapFile->getStructure() == StructureEnum::ALL) {
-                    useIt = true;
-                }
-                else if (selectedSurfaceStructure == mapFile->getStructure()) {
+                else if (std::find(m_includeSurfaceStructures.begin(),
+                              m_includeSurfaceStructures.end(),
+                              mapFile->getStructure())
+                         != m_includeSurfaceStructures.end()) {
                     useIt = true;
                 }
             }

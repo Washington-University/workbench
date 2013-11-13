@@ -33,10 +33,8 @@
 
 namespace caret {
 
-    class BrainStructure;
     class BrowserTabContent;
     class LabelFile;
-    class Model;
     class SceneClassAssistant;
     class Surface;
     class VolumeFile;
@@ -46,16 +44,7 @@ namespace caret {
         
     public:
         OverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
-                   const Overlay::IncludeSurfaceTypes includeSurfaceTypes,
                    const Overlay::IncludeVolumeFiles includeVolumeFiles);
-        
-        OverlaySet(BrainStructure* brainStructure);
-        
-        OverlaySet(ModelVolume* modelDisplayControllerVolume);
-        
-        OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain);
-        
-        OverlaySet(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~OverlaySet();
         
@@ -110,9 +99,6 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void initializeOverlaySet(Model* modelDisplayController,
-                                  BrainStructure* brainStructure);
-
         void findUnderlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
                                const bool includeVolumeFiles,
                                std::vector<CaretMappableDataFile*>& filesOut,
@@ -147,17 +133,10 @@ namespace caret {
         std::vector<VolumeFile*> getVolumeFiles() const;
         
         /** Surface structures of data files displayed in this overlay */
-        std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
-        
-        /** Surface types of data files displayed in this overlay */
-        Overlay::IncludeSurfaceTypes m_includeSurfaceTypes;
+        const std::vector<StructureEnum::Enum> m_includeSurfaceStructures;
         
         /** Include volume files in this overlay */
-        Overlay::IncludeVolumeFiles m_includeVolumeFiles;
-        
-        Model* m_modelDisplayController;
-        
-        BrainStructure* m_brainStructure;
+        const Overlay::IncludeVolumeFiles m_includeVolumeFiles;
         
         int32_t m_numberOfDisplayedOverlays;
         

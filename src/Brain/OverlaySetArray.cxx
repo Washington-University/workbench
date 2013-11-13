@@ -37,10 +37,8 @@
 #undef __OVERLAY_SET_ARRAY_DECLARE__
 
 #include "BrainConstants.h"
-#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabDelete.h"
-#include "EventBrowserTabGet.h"
 #include "EventOverlayYokingGroupGet.h"
 #include "EventManager.h"
 #include "OverlaySet.h"
@@ -58,50 +56,28 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param brainStructure
- *    Brain structure.
+ * @param includeSurfaceStructures
+ *    Surface structures for files available in this overlay.
+ * @param includeVolumeFiles
+ *    Include (or not) volume files.
+ * @param name
+ *    Name of model using this overlay set.  This name is displayed
+ *    if there is an attempt to yoke models with incompatible overlays.
  */
-OverlaySetArray::OverlaySetArray(BrainStructure* brainStructure)
-: CaretObject()
+OverlaySetArray::OverlaySetArray(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+                const Overlay::IncludeVolumeFiles includeVolumeFiles,
+                const AString& name)
+: CaretObject(),
+m_name(name)
 {
-    initialize(brainStructure, NULL, NULL, NULL);
-}
-
-/**
- * Constructor.
- *
- * @param modelVolume
- *    Volume model.
- */
-OverlaySetArray::OverlaySetArray(ModelVolume* modelVolume)
-: CaretObject()
-{
-    initialize(NULL, NULL, modelVolume, NULL);
-}
-
-/**
- * Constructor.
- *
- * @param modelWholeBrain
- *    Whole brain model.
- */
-OverlaySetArray::OverlaySetArray(ModelWholeBrain* modelWholeBrain)
-: CaretObject()
-{
-    initialize(NULL, NULL, NULL, modelWholeBrain);
-}
-
-/**
- * Constructor.
- *
- * @param modelSurfaceMontage
- *    Surface montage model.
- *
- */
-OverlaySetArray::OverlaySetArray(ModelSurfaceMontage* modelSurfaceMontage)
-: CaretObject()
-{
-    initialize(NULL, modelSurfaceMontage, NULL, NULL);
+    m_overlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_overlaySets[i] = new OverlaySet(includeSurfaceStructures,
+                                          includeVolumeFiles);
+    }
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
 }
 
 /**
@@ -118,69 +94,6 @@ OverlaySetArray::~OverlaySetArray()
     }
     m_overlaySets.clear();
 }
-
-/**
- * Initialize this overlay set array.
- *
- * @param brainStructure
- *    Brain structure.
- * @param modelSurfaceMontage
- *    Surface montage model.
- * @param modelVolume
- *    Volume model.
- * @param modelWholeBrain
- *    Whole brain model.
- */
-void
-OverlaySetArray::initialize(BrainStructure* brainStructure,
-                            ModelSurfaceMontage* modelSurfaceMontage,
-                            ModelVolume* modelVolume,
-                            ModelWholeBrain* modelWholeBrain)
-{
-    m_brainStructure = NULL;
-    m_modelSurfaceMontage = NULL;
-    m_modelVolume = NULL;
-    m_modelWholeBrain = NULL;
-    
-    if (brainStructure != NULL) {
-        m_brainStructure = brainStructure;
-    }
-    else if (modelSurfaceMontage != NULL) {
-        m_modelSurfaceMontage = modelSurfaceMontage;
-    }
-    else if (modelVolume != NULL) {
-        m_modelVolume = modelVolume;
-    }
-    else if (modelWholeBrain != NULL) {
-        m_modelWholeBrain = modelWholeBrain;
-    }
-    else {
-        CaretAssert(0);
-    }
-    
-    m_overlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        if (m_brainStructure != NULL) {
-            m_overlaySets[i] = new OverlaySet(m_brainStructure);
-        }
-        else if (m_modelSurfaceMontage != NULL) {
-            m_overlaySets[i] = new OverlaySet(m_modelSurfaceMontage);
-        }
-        else if (m_modelVolume != NULL) {
-            m_overlaySets[i] = new OverlaySet(m_modelVolume);
-        }
-        else if (m_modelWholeBrain != NULL) {
-            m_overlaySets[i] = new OverlaySet(m_modelWholeBrain);
-        }
-        else {
-            CaretAssert(0);
-        }
-    }
-    
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
-}
-
 
 /**
  * Get a description of this object's content.
@@ -260,20 +173,6 @@ OverlaySetArray::receiveEvent(Event* event)
         const OverlayYokingGroupEnum::Enum requestedYokingGroup = yokeGroupEvent->getYokingGroup();
         
         if (requestedYokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-            AString modelName;
-            if (m_brainStructure != NULL) {
-                modelName = "Structure " + StructureEnum::toGuiName(m_brainStructure->getStructure());
-            }
-            else if (m_modelSurfaceMontage != NULL) {
-                modelName = "Surface Montage View";
-            }
-            else if (m_modelVolume != NULL) {
-                modelName = "Volume View";
-            }
-            else if (m_modelWholeBrain != NULL) {
-                modelName = "All View";
-            }
-            
             /*
              * Find all overlays with the requested yoking
              */
@@ -284,7 +183,7 @@ OverlaySetArray::receiveEvent(Event* event)
                 for (int32_t j = 0; j < overlayCount; j++) {
                     Overlay* overlay = overlaySet->getOverlay(j);
                     if (overlay->getYokingGroup() == requestedYokingGroup) {
-                        yokeGroupEvent->addYokedOverlay(modelName,
+                        yokeGroupEvent->addYokedOverlay(m_name,
                                                         iTab,
                                                         overlay);
                     }

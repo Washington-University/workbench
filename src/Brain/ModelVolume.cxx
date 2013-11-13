@@ -47,7 +47,10 @@ ModelVolume::ModelVolume(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                          brain)
 {
-    m_overlaySetArray = new OverlaySetArray(this);
+    std::vector<StructureEnum::Enum> overlaySurfaceStructures;
+    m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
+                                            Overlay::INCLUDE_VOLUME_FILES_YES,
+                                            "Volume View");
     m_lastVolumeFile = NULL;
     
     /*

@@ -74,7 +74,13 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
         m_flatMapsConfiguration[i] = new SurfaceMontageConfigurationFlatMaps();
     }
     
-    m_overlaySetArray = new OverlaySetArray(this);
+    std::vector<StructureEnum::Enum> overlaySurfaceStructures;
+    overlaySurfaceStructures.push_back(StructureEnum::CORTEX_LEFT);
+    overlaySurfaceStructures.push_back(StructureEnum::CORTEX_RIGHT);
+    
+    m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
+                                            Overlay::INCLUDE_VOLUME_FILES_NO,
+                                            "Surface Montage View");    
 }
 
 /**
