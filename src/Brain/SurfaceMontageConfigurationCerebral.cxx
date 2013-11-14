@@ -407,18 +407,18 @@ SurfaceMontageConfigurationCerebral::getSurfaceMontageViewports(std::vector<Surf
     const int32_t numViewports = static_cast<int32_t>(surfaceMontageViewports.size());
     CaretAssert(totalNum == numViewports);
     
-    std::cout << "Orientation: " << SurfaceMontageLayoutOrientationEnum::toName(getLayoutOrientation()) << std::endl;
-    for (int32_t i = 0; i < numViewports; i++) {
-        const SurfaceMontageViewport& svp = surfaceMontageViewports[i];
-        std::cout << qPrintable("("
-                                + AString::number(svp.getRow())
-                                + ","
-                                + AString::number(svp.getColumn())
-                                + ") "
-                                + ProjectionViewTypeEnum::toName(svp.getProjectionViewType()))
-        << std::endl;
-    }
-    std::cout << std::endl;
+//    std::cout << "Orientation: " << SurfaceMontageLayoutOrientationEnum::toName(getLayoutOrientation()) << std::endl;
+//    for (int32_t i = 0; i < numViewports; i++) {
+//        const SurfaceMontageViewport& svp = surfaceMontageViewports[i];
+//        std::cout << qPrintable("("
+//                                + AString::number(svp.getRow())
+//                                + ","
+//                                + AString::number(svp.getColumn())
+//                                + ") "
+//                                + ProjectionViewTypeEnum::toName(svp.getProjectionViewType()))
+//        << std::endl;
+//    }
+//    std::cout << std::endl;
 }
 
 /**

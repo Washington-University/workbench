@@ -135,6 +135,14 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
     QObject::connect(m_surfaceMontageRightCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(surfaceMontageCheckBoxSelected(bool)));
     
+    m_lateralCheckBox = new QCheckBox("Lateral");
+    QObject::connect(m_lateralCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(surfaceMontageCheckBoxSelected(bool)));
+    
+    m_medialCheckBox = new QCheckBox("Medial");
+    QObject::connect(m_medialCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(surfaceMontageCheckBoxSelected(bool)));
+    
     m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox(" ");
     QObject::connect(m_surfaceMontageFirstSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(surfaceMontageCheckBoxSelected(bool)));
@@ -159,6 +167,18 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
     QObject::connect(m_surfaceMontageRightSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageRightSecondSurfaceSelected(Surface*)));
     
+    QHBoxLayout* checkBoxLayout = new QHBoxLayout();
+    checkBoxLayout->addWidget(m_surfaceMontageLeftCheckBox);
+    checkBoxLayout->addSpacing(10);
+    checkBoxLayout->addStretch();
+    checkBoxLayout->addWidget(m_lateralCheckBox);
+    checkBoxLayout->addSpacing(10);
+    checkBoxLayout->addStretch();
+    checkBoxLayout->addWidget(m_medialCheckBox);
+    checkBoxLayout->addSpacing(10);
+    checkBoxLayout->addStretch();
+    checkBoxLayout->addWidget(m_surfaceMontageRightCheckBox);
+    
     int32_t columnIndex = 0;
     const int32_t COLUMN_ONE_TWO     = columnIndex++;
     const int32_t COLUMN_INDEX_LEFT  = columnIndex++;
@@ -170,8 +190,9 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
     layout->setColumnStretch(2, 100);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
     int row = layout->rowCount();
-    layout->addWidget(m_surfaceMontageLeftCheckBox, row, COLUMN_INDEX_LEFT, Qt::AlignHCenter);
-    layout->addWidget(m_surfaceMontageRightCheckBox, row, COLUMN_INDEX_RIGHT, Qt::AlignHCenter);
+    layout->addLayout(checkBoxLayout,
+                      row, COLUMN_INDEX_LEFT,
+                      1, 2);
     row = layout->rowCount();
     layout->addWidget(m_surfaceMontageFirstSurfaceCheckBox, row, COLUMN_ONE_TWO);
     layout->addWidget(m_surfaceMontageLeftSurfaceViewController->getWidget(), row, COLUMN_INDEX_LEFT);
@@ -191,6 +212,8 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
     m_widgetGroup->add(m_surfaceMontageRightCheckBox);
     m_widgetGroup->add(m_surfaceMontageFirstSurfaceCheckBox);
     m_widgetGroup->add(m_surfaceMontageSecondSurfaceCheckBox);
+    m_widgetGroup->add(m_medialCheckBox);
+    m_widgetGroup->add(m_lateralCheckBox);
 }
 
 /**
@@ -224,7 +247,8 @@ SurfaceMontageCerebralComponent::updateContent(BrowserTabContent* browserTabCont
     m_surfaceMontageRightCheckBox->setChecked(smcc->isRightEnabled());
     m_surfaceMontageFirstSurfaceCheckBox->setChecked(smcc->isFirstSurfaceEnabled());
     m_surfaceMontageSecondSurfaceCheckBox->setChecked(smcc->isSecondSurfaceEnabled());
-    
+    m_lateralCheckBox->setChecked(smcc->isLateralEnabled());
+    m_medialCheckBox->setChecked(smcc->isMedialEnabled());
     
     m_surfaceMontageLeftSurfaceViewController->updateControl(smcc->getLeftFirstSurfaceSelectionModel());
     m_surfaceMontageLeftSecondSurfaceViewController->updateControl(smcc->getLeftSecondSurfaceSelectionModel());
@@ -322,6 +346,9 @@ SurfaceMontageCerebralComponent::surfaceMontageCheckBoxSelected(bool /*status*/)
     smcc->setRightEnabled(m_surfaceMontageRightCheckBox->isChecked());
     smcc->setFirstSurfaceEnabled(m_surfaceMontageFirstSurfaceCheckBox->isChecked());
     smcc->setSecondSurfaceEnabled(m_surfaceMontageSecondSurfaceCheckBox->isChecked());
+    smcc->setLateralEnabled(m_lateralCheckBox->isChecked());
+    smcc->setMedialEnabled(m_medialCheckBox->isChecked());
+    
     m_parentToolBarMontage->updateUserInterface();
     m_parentToolBarMontage->invalidateColoringAndUpdateGraphicsWindow();
 }

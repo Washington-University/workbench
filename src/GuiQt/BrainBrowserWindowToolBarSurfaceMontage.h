@@ -101,6 +101,8 @@ namespace caret {
         QCheckBox* m_surfaceMontageRightCheckBox;
         QCheckBox* m_surfaceMontageFirstSurfaceCheckBox;
         QCheckBox* m_surfaceMontageSecondSurfaceCheckBox;
+        QCheckBox* m_lateralCheckBox;
+        QCheckBox* m_medialCheckBox;
         
         WuQWidgetObjectGroup* m_widgetGroup;
     };
