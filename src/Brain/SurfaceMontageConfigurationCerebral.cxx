@@ -36,7 +36,10 @@
 #include "SurfaceMontageConfigurationCerebral.h"
 #undef __SURFACE_MONTAGE_CONFIGURATION_CEREBRAL_DECLARE__
 
+#include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "EventBrainStructureGetAll.h"
+#include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SurfaceSelectionModel.h"
@@ -74,8 +77,8 @@ SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral()
                                                                    validSurfaceTypes);
     m_leftEnabled = true;
     m_rightEnabled = true;
-    m_firstSurfaceEnabled = false;
-    m_secondSurfaceEnabled = true;
+    m_firstSurfaceEnabled = true;
+    m_secondSurfaceEnabled = false;
     m_lateralEnabled = true;
     m_medialEnabled  = true;
     
@@ -106,6 +109,11 @@ SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral()
                           &m_lateralEnabled);
     m_sceneAssistant->add("m_medialEnabled",
                           &m_medialEnabled);
+
+    std::vector<StructureEnum::Enum> supportedStructures;
+    supportedStructures.push_back(StructureEnum::CORTEX_LEFT);
+    supportedStructures.push_back(StructureEnum::CORTEX_RIGHT);
+    setupOverlaySet(supportedStructures);
 }
 
 /**
@@ -127,7 +135,290 @@ SurfaceMontageConfigurationCerebral::~SurfaceMontageConfigurationCerebral()
 void
 SurfaceMontageConfigurationCerebral::initializeSelectedSurfaces()
 {
+    EventBrainStructureGetAll brainStructureEvent;
+    EventManager::get()->sendEvent(brainStructureEvent.getPointer());
     
+    Surface* leftAnatSurface = NULL;
+    BrainStructure* leftBrainStructure = brainStructureEvent.getBrainStructureByStructure(StructureEnum::CORTEX_LEFT);
+    if (leftBrainStructure != NULL) {
+        leftAnatSurface = leftBrainStructure->getVolumeInteractionSurface();
+    }
+    
+    Surface* rightAnatSurface = NULL;
+    BrainStructure* rightBrainStructure = brainStructureEvent.getBrainStructureByStructure(StructureEnum::CORTEX_RIGHT);
+    if (rightBrainStructure != NULL) {
+        rightAnatSurface = rightBrainStructure->getVolumeInteractionSurface();
+    }
+    
+    m_leftFirstSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
+    if (leftAnatSurface != NULL) {
+        m_leftFirstSurfaceSelectionModel->setSurface(leftAnatSurface);
+    }
+    
+    
+    m_leftSecondSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::INFLATED,
+                                                           SurfaceTypeEnum::VERY_INFLATED);
+    
+    m_rightFirstSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
+    if (rightAnatSurface != NULL) {
+        m_rightFirstSurfaceSelectionModel->setSurface(rightAnatSurface);
+    }
+    
+    m_rightSecondSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::INFLATED,
+                                                            SurfaceTypeEnum::VERY_INFLATED);
+}
+
+/**
+ * @return Is this configuration valid?
+ */
+bool
+SurfaceMontageConfigurationCerebral::isValid()
+{
+    const bool valid = ((getLeftFirstSurfaceSelectionModel()->getSurface() != NULL)
+                        || (getRightFirstSurfaceSelectionModel()->getSurface() != NULL));
+    return valid;
+}
+
+/**
+ * Get the surface montage viewports for the current configuration.
+ *
+ * @param surfaceMontageViewports
+ *    Output of surface montage viewports for drawing.
+ */
+void
+SurfaceMontageConfigurationCerebral::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
+{
+    surfaceMontageViewports.clear();
+    
+    std::vector<SurfaceMontageViewport> leftLateralViewports;
+    std::vector<SurfaceMontageViewport> leftMedialViewports;
+    std::vector<SurfaceMontageViewport> rightLateralViewports;
+    std::vector<SurfaceMontageViewport> rightMedialViewports;
+    
+    if (m_leftEnabled) {
+        if (m_firstSurfaceEnabled) {
+            Surface* leftSurface = m_leftFirstSurfaceSelectionModel->getSurface();
+            if (leftSurface != NULL) {
+                if (m_lateralEnabled) {
+                    SurfaceMontageViewport smv(leftSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+                    leftLateralViewports.push_back(smv);
+                }
+                if (m_medialEnabled) {
+                    SurfaceMontageViewport smv(leftSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL);
+                    leftMedialViewports.push_back(smv);
+                }
+            }
+        }
+        if (m_secondSurfaceEnabled) {
+            Surface* leftSurface = m_leftSecondSurfaceSelectionModel->getSurface();
+            if (leftSurface != NULL) {
+                if (m_lateralEnabled) {
+                    SurfaceMontageViewport smv(leftSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
+                    leftLateralViewports.push_back(smv);
+                }
+                if (m_medialEnabled) {
+                    SurfaceMontageViewport smv(leftSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL);
+                    leftMedialViewports.push_back(smv);
+                }
+            }
+        }
+    }
+    
+    if (m_rightEnabled) {
+        if (m_firstSurfaceEnabled) {
+            Surface* rightSurface = m_rightFirstSurfaceSelectionModel->getSurface();
+            if (rightSurface != NULL) {
+                if (m_lateralEnabled) {
+                    SurfaceMontageViewport smv(rightSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL);
+                    rightLateralViewports.push_back(smv);
+                }
+                if (m_medialEnabled) {
+                    SurfaceMontageViewport smv(rightSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL);
+                    rightMedialViewports.push_back(smv);
+                }
+            }
+        }
+    }
+    if (m_rightEnabled) {
+        if (m_secondSurfaceEnabled) {
+            Surface* rightSurface = m_rightSecondSurfaceSelectionModel->getSurface();
+            if (rightSurface != NULL) {
+                if (m_lateralEnabled) {
+                    SurfaceMontageViewport smv(rightSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL);
+                    rightLateralViewports.push_back(smv);
+                }
+                if (m_medialEnabled) {
+                    SurfaceMontageViewport smv(rightSurface,
+                                               ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL);
+                    rightMedialViewports.push_back(smv);
+                }
+            }
+        }
+    }
+
+    std::vector<SurfaceMontageViewport> leftViewports;
+    leftViewports.insert(leftViewports.end(),
+                         leftLateralViewports.begin(),
+                         leftLateralViewports.end());
+    leftViewports.insert(leftViewports.end(),
+                         leftMedialViewports.begin(),
+                         leftMedialViewports.end());
+
+    std::vector<SurfaceMontageViewport> rightViewports;
+    rightViewports.insert(rightViewports.end(),
+                         rightLateralViewports.begin(),
+                         rightLateralViewports.end());
+    rightViewports.insert(rightViewports.end(),
+                         rightMedialViewports.begin(),
+                         rightMedialViewports.end());
+    
+    const int32_t numLeft = static_cast<int32_t>(leftViewports.size());
+    const int32_t numRight = static_cast<int32_t>(rightViewports.size());
+    const int32_t totalNum = numLeft + numRight;
+    
+    if (totalNum == 1) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       leftViewports.begin(),
+                                       leftViewports.end());
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       rightViewports.begin(),
+                                       rightViewports.end());
+        CaretAssert(surfaceMontageViewports.size() == 1);
+        
+        surfaceMontageViewports[0].setRowAndColumn(0, 0);
+        
+    }
+    else if (totalNum == 2) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       leftViewports.begin(),
+                                       leftViewports.end());
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       rightViewports.begin(),
+                                       rightViewports.end());
+        
+        CaretAssert(surfaceMontageViewports.size() == 2);
+        
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                break;
+        }
+        
+    }
+    else if (totalNum == 4) {
+        if (numLeft == 4) {
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           leftLateralViewports.begin(),
+                                           leftLateralViewports.end());
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           leftMedialViewports.begin(),
+                                           leftMedialViewports.end());
+            CaretAssert(surfaceMontageViewports.size() == 4);
+            surfaceMontageViewports[0].setRowAndColumn(0, 0);
+            surfaceMontageViewports[1].setRowAndColumn(1, 0);
+            surfaceMontageViewports[2].setRowAndColumn(0, 1);
+            surfaceMontageViewports[3].setRowAndColumn(1, 1);
+        }
+        else if (numRight == 4) {
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           rightLateralViewports.begin(),
+                                           rightLateralViewports.end());
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           rightMedialViewports.begin(),
+                                           rightMedialViewports.end());
+            CaretAssert(surfaceMontageViewports.size() == 4);
+            surfaceMontageViewports[0].setRowAndColumn(0, 0);
+            surfaceMontageViewports[1].setRowAndColumn(1, 0);
+            surfaceMontageViewports[2].setRowAndColumn(0, 1);
+            surfaceMontageViewports[3].setRowAndColumn(1, 1);
+        }
+        else if (numLeft == numRight) {
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           leftViewports.begin(),
+                                           leftViewports.end());
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           rightViewports.begin(),
+                                           rightViewports.end());
+            CaretAssert(surfaceMontageViewports.size() == 4);
+            
+            surfaceMontageViewports[0].setRowAndColumn(0, 0);
+            surfaceMontageViewports[1].setRowAndColumn(1, 0);
+            surfaceMontageViewports[2].setRowAndColumn(0, 1);
+            surfaceMontageViewports[3].setRowAndColumn(1, 1);
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    else if (totalNum == 8) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       leftLateralViewports.begin(),
+                                       leftLateralViewports.end());
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       leftMedialViewports.begin(),
+                                       leftMedialViewports.end());
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       rightLateralViewports.begin(),
+                                       rightLateralViewports.end());
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       rightMedialViewports.begin(),
+                                       rightMedialViewports.end());
+        CaretAssert(surfaceMontageViewports.size() == 8);
+        
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[3].setRowAndColumn(1, 1);
+                surfaceMontageViewports[4].setRowAndColumn(0, 2);
+                surfaceMontageViewports[5].setRowAndColumn(1, 2);
+                surfaceMontageViewports[6].setRowAndColumn(0, 3);
+                surfaceMontageViewports[7].setRowAndColumn(1, 3);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[3].setRowAndColumn(1, 1);
+                surfaceMontageViewports[4].setRowAndColumn(2, 0);
+                surfaceMontageViewports[5].setRowAndColumn(3, 0);
+                surfaceMontageViewports[6].setRowAndColumn(2, 1);
+                surfaceMontageViewports[7].setRowAndColumn(3, 1);
+                break;
+        }
+    }
+    else if (totalNum > 0) {
+        CaretAssert(0);
+    }
+    
+    const int32_t numViewports = static_cast<int32_t>(surfaceMontageViewports.size());
+    CaretAssert(totalNum == numViewports);
+    
+    std::cout << "Orientation: " << SurfaceMontageLayoutOrientationEnum::toName(getLayoutOrientation()) << std::endl;
+    for (int32_t i = 0; i < numViewports; i++) {
+        const SurfaceMontageViewport& svp = surfaceMontageViewports[i];
+        std::cout << qPrintable("("
+                                + AString::number(svp.getRow())
+                                + ","
+                                + AString::number(svp.getColumn())
+                                + ") "
+                                + ProjectionViewTypeEnum::toName(svp.getProjectionViewType()))
+        << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 /**

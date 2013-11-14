@@ -37,6 +37,7 @@
 #undef __SURFACE_MONTAGE_CONFIGURATION_ABSTRACT_DECLARE__
 
 #include "CaretAssert.h"
+#include "OverlaySet.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -64,7 +65,8 @@ m_supportsLayoutOrientation(supportsLayoutOrientation)
 {
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_layoutOrientation = SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION;
+    m_overlaySet = NULL;
+    m_layoutOrientation = SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION;
     
     /*
      * Note: Since these members are initialized by the constructor,
@@ -83,6 +85,9 @@ m_supportsLayoutOrientation(supportsLayoutOrientation)
 SurfaceMontageConfigurationAbstract::~SurfaceMontageConfigurationAbstract()
 {
     delete m_sceneAssistant;
+    CaretAssertMessage(m_overlaySet,
+                       "Did you forget to call setupOverlaySet() from subclass constructor?");
+    delete m_overlaySet;
 }
 
 /**
@@ -96,11 +101,30 @@ SurfaceMontageConfigurationAbstract::toString() const
 }
 
 /**
+ * Setup the overlay set for the subclass.
+ *
+ * @param includeSurfaceStructures
+ *     Surface structures supported by subclass.
+ */
+void
+SurfaceMontageConfigurationAbstract::setupOverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures)
+{
+    m_overlaySet = new OverlaySet(includeSurfaceStructures,
+                                  Overlay::INCLUDE_VOLUME_FILES_NO);
+    
+    m_sceneAssistant->add("m_overlaySet",
+                          "OverlaySet",
+                          m_overlaySet);
+}
+
+/**
  * @return The overlay set
  */
 OverlaySet*
 SurfaceMontageConfigurationAbstract::getOverlaySet()
 {
+    CaretAssertMessage(m_overlaySet,
+                       "Did you forget to call setupOverlaySet() from subclass constructor?");
     return m_overlaySet;
 }
 
@@ -110,6 +134,8 @@ SurfaceMontageConfigurationAbstract::getOverlaySet()
 const OverlaySet*
 SurfaceMontageConfigurationAbstract::getOverlaySet() const
 {
+    CaretAssertMessage(m_overlaySet,
+                       "Did you forget to call setupOverlaySet() from subclass constructor?");
     return m_overlaySet;
 }
 

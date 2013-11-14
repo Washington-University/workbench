@@ -30,15 +30,14 @@
 #include "Model.h"
 #include "StructureEnum.h"
 #include "SurfaceMontageViewport.h"
+#include "SurfaceMontageConfigurationTypeEnum.h"
 
 namespace caret {
 
-    class OverlaySetArray;
     class SurfaceMontageConfigurationAbstract;
     class SurfaceMontageConfigurationCerebellar;
     class SurfaceMontageConfigurationCerebral;
     class SurfaceMontageConfigurationFlatMaps;
-    class SurfaceSelectionModel;
     
     /// Controls the display of a surface montage
     class ModelSurfaceMontage : public Model, public EventListenerInterface  {
@@ -58,14 +57,6 @@ namespace caret {
         
         void initializeOverlays();
         
-        SurfaceSelectionModel* getLeftSurfaceSelectionModel(const int tabIndex);
-        
-        SurfaceSelectionModel* getLeftSecondSurfaceSelectionModel(const int tabIndex);
-        
-        SurfaceSelectionModel* getRightSurfaceSelectionModel(const int tabIndex);
-        
-        SurfaceSelectionModel* getRightSecondSurfaceSelectionModel(const int tabIndex);
-        
         Surface* getSelectedSurface(const StructureEnum::Enum structure,
                                     const int32_t windowTabNumber);
         
@@ -73,35 +64,32 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const;
         
-        bool isLeftEnabled(const int tabIndex) const;
-        
-        void setLeftEnabled(const int tabIndex,
-                                    const bool enabled);
-        
-        bool isRightEnabled(const int tabIndex) const;
-        
-        void setRightEnabled(const int tabIndex,
-                            const bool enabled);
-        
-        bool isFirstSurfaceEnabled(const int tabIndex) const;
-        
-        void setFirstSurfaceEnabled(const int tabIndex,
-                                         const bool enabled);
-        
-        bool isSecondSurfaceEnabled(const int tabIndex) const;
-        
-        void setSecondSurfaceEnabled(const int tabIndex,
-                                    const bool enabled);
-        
         void setMontageViewports(const int32_t tabIndex,
                                  const std::vector<SurfaceMontageViewport>& montageViewports);
         
         void getMontageViewports(const int32_t tabIndex,
                                  std::vector<SurfaceMontageViewport>& montageViewportsOut);
         
+        SurfaceMontageConfigurationTypeEnum::Enum getSelectedConfigurationType(const int32_t tabIndex) const;
+        
+        void setSelectedConfigurationType(const int32_t tabIndex,
+                                          const SurfaceMontageConfigurationTypeEnum::Enum configurationType);
+        
         SurfaceMontageConfigurationAbstract* getSelectedConfiguration(const int32_t tabIndex);
         
         const SurfaceMontageConfigurationAbstract* getSelectedConfiguration(const int32_t tabIndex) const;
+        
+        SurfaceMontageConfigurationCerebellar * getCerebellarConfiguration(const int32_t tabIndex);
+        
+        const SurfaceMontageConfigurationCerebellar* getCerebellarConfiguration(const int32_t tabIndex) const;
+        
+        SurfaceMontageConfigurationCerebral * getCerebralConfiguration(const int32_t tabIndex);
+        
+        const SurfaceMontageConfigurationCerebral* getCerebralConfiguration(const int32_t tabIndex) const;
+        
+        SurfaceMontageConfigurationFlatMaps * getFlatMapsConfiguration(const int32_t tabIndex);
+        
+        const SurfaceMontageConfigurationFlatMaps* getFlatMapsConfiguration(const int32_t tabIndex) const;
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -118,34 +106,15 @@ namespace caret {
                                                const SceneClass* sceneClass,
                                                   const int32_t montageVersion);
         
-        SurfaceSelectionModel* m_leftSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        SurfaceSelectionModel* m_leftSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        SurfaceSelectionModel* m_rightSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        SurfaceSelectionModel* m_rightSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_leftEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_rightEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_firstSurfaceEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool m_secondSurfaceEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-
         SurfaceMontageConfigurationCerebellar* m_cerebellarConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SurfaceMontageConfigurationCerebral* m_cerebralConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SurfaceMontageConfigurationFlatMaps* m_flatMapsConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        
         std::vector<SurfaceMontageViewport> m_montageViewports[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        /** Overlays sets for this model and for each tab */
-        OverlaySetArray* m_overlaySetArray;
-        
+        SurfaceMontageConfigurationTypeEnum::Enum m_selectedConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 } // namespace

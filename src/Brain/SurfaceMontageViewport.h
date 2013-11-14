@@ -48,24 +48,73 @@ namespace caret {
 //        SurfaceMontageViewport();
         
         SurfaceMontageViewport(Surface* surface,
-                               const ProjectionViewTypeEnum::Enum projectionViewType,
-                               const int x,
-                               const int y,
-                               const int w,
-                               const int h);
+                               const ProjectionViewTypeEnum::Enum projectionViewType);
         
         virtual ~SurfaceMontageViewport();
         
-        int32_t viewport[4];
+        /**
+         * @return The surface in the viewport.
+         */
+        Surface* getSurface() const { return m_surface; }
         
-        Surface* surface;
-        
-        ProjectionViewTypeEnum::Enum projectionViewType;
-
-        StructureEnum::Enum structure;
+        ProjectionViewTypeEnum::Enum getProjectionViewType() const { return m_projectionViewType; }
         
         bool isInside(const int32_t x,
                       const int32_t y) const;
+        
+        /**
+         * @return Row of this item (0 is top)
+         */
+        int32_t getRow() const;
+        
+        /**
+         * @return Column of this item (0 is left)
+         */
+        int32_t getColumn() const;
+        
+        void setRowAndColumn(const int32_t row,
+                             const int32_t column);
+        
+        /**
+         * @return X-coordinate in viewport.
+         */
+        int32_t getX() const;
+        
+        /**
+         * @return Y-Coordinate in viewport.
+         */
+        int32_t getY() const;
+        
+        /**
+         * @return Width of viewport.
+         */
+        int32_t getWidth() const;
+        
+        /**
+         * @return Height of viewport.
+         */
+        int32_t getHeight() const;
+        
+        void getViewport(int32_t viewportOut[4]) const;
+        
+        void setViewport(const int32_t viewport[4]);
+        
+        static void getNumberOfRowsAndColumns(const std::vector<SurfaceMontageViewport>& montageViewports,
+                                              int32_t& numberOfRowsOut,
+                                              int32_t& numberOfColumnsOut);
+        
+    private:
+        int32_t m_row;
+        
+        int32_t m_column;
+        
+        int32_t m_viewport[4];
+        
+        Surface* m_surface;
+        
+        ProjectionViewTypeEnum::Enum m_projectionViewType;
+
+        StructureEnum::Enum m_structure;
         
         // ADD_NEW_METHODS_HERE
 

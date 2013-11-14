@@ -64,18 +64,17 @@ SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
     validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
     validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
     
-    m_sceneAssistant = new SceneClassAssistant();
-    
     m_firstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM,
                                                              validSurfaceTypes);
     m_secondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM,
                                                               validSurfaceTypes);
-    m_firstSurfaceEnabled = false;
-    m_secondSurfaceEnabled = true;
+    m_firstSurfaceEnabled = true;
+    m_secondSurfaceEnabled = false;
     m_dorsalEnabled = true;
     m_ventralEnabled  = true;
     m_anteriorEnabled = true;
     m_posteriorEnabled = true;
+    
     m_sceneAssistant = new SceneClassAssistant();
     
     m_sceneAssistant->add("m_firstSurfaceSelectionModel",
@@ -98,6 +97,10 @@ SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
                           &m_anteriorEnabled);
     m_sceneAssistant->add("m_posteriorEnabled",
                           &m_posteriorEnabled);
+    
+    std::vector<StructureEnum::Enum> supportedStructures;
+    supportedStructures.push_back(StructureEnum::CEREBELLUM);
+    setupOverlaySet(supportedStructures);
 }
 
 /**
@@ -105,7 +108,20 @@ SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
  */
 SurfaceMontageConfigurationCerebellar::~SurfaceMontageConfigurationCerebellar()
 {
+    delete m_firstSurfaceSelectionModel;
+    delete m_secondSurfaceSelectionModel;
+    
     delete m_sceneAssistant;
+}
+
+/**
+ * @return Is this configuration valid?
+ */
+bool
+SurfaceMontageConfigurationCerebellar::isValid()
+{
+    const bool valid = (getFirstSurfaceSelectionModel()->getSurface() != NULL);
+    return valid;
 }
 
 /**
@@ -259,6 +275,18 @@ void
 SurfaceMontageConfigurationCerebellar::setPosteriorEnabled(const bool enabled)
 {
     m_posteriorEnabled = enabled;
+}
+
+/**
+ * Get the surface montage viewports for the current configuration.
+ *
+ * @param surfaceMontageViewports
+ *    Output of surface montage viewports for drawing.
+ */
+void
+SurfaceMontageConfigurationCerebellar::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
+{
+    surfaceMontageViewports.clear();
 }
 
 

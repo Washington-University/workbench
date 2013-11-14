@@ -28,15 +28,13 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
+#include "Brain.h"
+#include "BrainOpenGL.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "ModelSurfaceMontage.h"
-
-#include "Brain.h"
-#include "BrainOpenGL.h"
 #include "OverlaySet.h"
-#include "OverlaySetArray.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -66,18 +64,7 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
     validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
-                                                                   validSurfaceTypes);
-        m_leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
-                                                                         validSurfaceTypes);
-        m_rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
-                                                                    validSurfaceTypes);
-        m_rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
-                                                                          validSurfaceTypes);
-        m_leftEnabled[i] = true;
-        m_rightEnabled[i] = true;
-        m_firstSurfaceEnabled[i] = false;
-        m_secondSurfaceEnabled[i] = true;
+        m_selectedConfiguration[i] = SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION;
         
         m_cerebellarConfiguration[i] = new SurfaceMontageConfigurationCerebellar();
         m_cerebralConfiguration[i] = new SurfaceMontageConfigurationCerebral();
@@ -87,10 +74,6 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;
     overlaySurfaceStructures.push_back(StructureEnum::CORTEX_LEFT);
     overlaySurfaceStructures.push_back(StructureEnum::CORTEX_RIGHT);
-    
-    m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
-                                            Overlay::INCLUDE_VOLUME_FILES_NO,
-                                            "Surface Montage View");    
 }
 
 /**
@@ -100,13 +83,7 @@ ModelSurfaceMontage::~ModelSurfaceMontage()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    delete m_overlaySetArray;
-    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_leftSurfaceSelectionModel[i];
-        delete m_leftSecondSurfaceSelectionModel[i];
-        delete m_rightSurfaceSelectionModel[i];
-        delete m_rightSecondSurfaceSelectionModel[i];
         delete m_cerebellarConfiguration[i];
         delete m_cerebralConfiguration[i];
         delete m_flatMapsConfiguration[i];
@@ -130,219 +107,188 @@ ModelSurfaceMontage::receiveEvent(Event* /*event*/)
 void
 ModelSurfaceMontage::initializeSelectedSurfaces()
 {
-    Surface* leftAnatSurface = NULL;
-    BrainStructure* leftBrainStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_LEFT,
-                                                                    false);
-    if (leftBrainStructure != NULL) {
-        leftAnatSurface = leftBrainStructure->getVolumeInteractionSurface();
-    }
-    
-    Surface* rightAnatSurface = NULL;
-    BrainStructure* rightBrainStructure = m_brain->getBrainStructure(StructureEnum::CORTEX_RIGHT,
-                                                                    false);
-    if (rightBrainStructure != NULL) {
-        rightAnatSurface = rightBrainStructure->getVolumeInteractionSurface();
-    }
-    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_leftSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
-        if (leftAnatSurface != NULL) {
-            m_leftSurfaceSelectionModel[i]->setSurface(leftAnatSurface);
-        }
-        
-
-        m_leftSecondSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::INFLATED,
-                                                               SurfaceTypeEnum::VERY_INFLATED);
-        
-        m_rightSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
-        if (rightAnatSurface != NULL) {
-            m_rightSurfaceSelectionModel[i]->setSurface(rightAnatSurface);
-        }
-
-        m_rightSecondSurfaceSelectionModel[i]->setSurfaceToType(SurfaceTypeEnum::INFLATED,
-                                                               SurfaceTypeEnum::VERY_INFLATED);
-        m_leftEnabled[i] = true;
-        m_rightEnabled[i] = true;
-        m_firstSurfaceEnabled[i] = false;
-        m_secondSurfaceEnabled[i] = true;
+        m_cerebellarConfiguration[i]->initializeSelectedSurfaces();
+        m_cerebralConfiguration[i]->initializeSelectedSurfaces();
+        m_flatMapsConfiguration[i]->initializeSelectedSurfaces();
     }
 }
 
-/**
- * @return Is  enabled?
- */
-bool 
-ModelSurfaceMontage::isLeftEnabled(const int tabIndex) const
-{
-    CaretAssertArrayIndex(m_leftEnabled, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_leftEnabled[tabIndex];
-}
+///**
+// * @return Is  enabled?
+// */
+//bool 
+//ModelSurfaceMontage::isLeftEnabled(const int tabIndex) const
+//{
+//    CaretAssertArrayIndex(m_leftEnabled, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_leftEnabled[tabIndex];
+//}
+//
+///**
+// * Set  enabled
+// * @param tabIndex
+// *    Index of tab.
+// * @param enabled
+// *    New status
+// */
+//void 
+//ModelSurfaceMontage::setLeftEnabled(const int tabIndex,
+//                                                 const bool enabled)
+//{
+//    CaretAssertArrayIndex(m_leftEnabled, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//
+//    m_leftEnabled[tabIndex] = enabled;
+//}
 
-/**
- * Set  enabled
- * @param tabIndex
- *    Index of tab.
- * @param enabled
- *    New status
- */
-void 
-ModelSurfaceMontage::setLeftEnabled(const int tabIndex,
-                                                 const bool enabled)
-{
-    CaretAssertArrayIndex(m_leftEnabled, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-
-    m_leftEnabled[tabIndex] = enabled;
-}
-
-/**
- * @return Is  enabled?
- */
-bool
-ModelSurfaceMontage::isRightEnabled(const int tabIndex) const
-{
-    CaretAssertArrayIndex(m_rightEnabled,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_rightEnabled[tabIndex];
-}
-
-/**
- * Set  enabled
- * @param tabIndex
- *    Index of tab.
- * @param enabled
- *    New status
- */
-void
-ModelSurfaceMontage::setRightEnabled(const int tabIndex,
-                                                 const bool enabled)
-{
-    CaretAssertArrayIndex(m_rightEnabled,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    
-    m_rightEnabled[tabIndex] = enabled;
-}
-
-/**
- * @return Is  enabled?
- */
-bool
-ModelSurfaceMontage::isFirstSurfaceEnabled(const int tabIndex) const
-{
-    CaretAssertArrayIndex(m_firstSurfaceEnabled,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_firstSurfaceEnabled[tabIndex];
-}
-
-/**
- * Set  enabled
- * @param tabIndex
- *    Index of tab.
- * @param enabled
- *    New status
- */
-void
-ModelSurfaceMontage::setFirstSurfaceEnabled(const int tabIndex,
-                                                 const bool enabled)
-{
-    CaretAssertArrayIndex(m_firstSurfaceEnabled,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    
-    m_firstSurfaceEnabled[tabIndex] = enabled;
-}
-
-/**
- * @return Is  enabled?
- */
-bool
-ModelSurfaceMontage::isSecondSurfaceEnabled(const int tabIndex) const
-{
-    CaretAssertArrayIndex(m_secondSurfaceEnabled,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_secondSurfaceEnabled[tabIndex];
-}
-
-/**
- * Set  enabled
- * @param tabIndex
- *    Index of tab.
- * @param enabled
- *    New status
- */
-void
-ModelSurfaceMontage::setSecondSurfaceEnabled(const int tabIndex,
-                                                 const bool enabled)
-{
-    CaretAssertArrayIndex(m_secondSurfaceEnabled,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    
-    m_secondSurfaceEnabled[tabIndex] = enabled;
-}
-
-/**
- * @param tabIndex
- *    Index of tab.
- * @return the left surface selection in this controller.
- */
-SurfaceSelectionModel*
-ModelSurfaceMontage::getLeftSurfaceSelectionModel(const int tabIndex)
-{
-    CaretAssertArrayIndex(m_leftSurfaceSelectionModel, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_leftSurfaceSelectionModel[tabIndex];
-}
-
-/**
- * @param tabIndex
- *    Index of tab.
- * @return the left second surface selection in this controller.
- */
-SurfaceSelectionModel*
-ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel(const int tabIndex)
-{
-    CaretAssertArrayIndex(m_leftSecondSurfaceSelectionModel, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_leftSecondSurfaceSelectionModel[tabIndex];
-}
-
-/**
- * @param tabIndex
- *    Index of tab.
- * @return the right surface selection in this controller.
- */
-SurfaceSelectionModel*
-ModelSurfaceMontage::getRightSurfaceSelectionModel(const int tabIndex)
-{
-    CaretAssertArrayIndex(m_rightSurfaceSelectionModel, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_rightSurfaceSelectionModel[tabIndex];
-}
-
-/**
- * @param tabIndex
- *    Index of tab.
- * @return the right second surface selection in this controller.
- */
-SurfaceSelectionModel*
-ModelSurfaceMontage::getRightSecondSurfaceSelectionModel(const int tabIndex)
-{
-    CaretAssertArrayIndex(m_rightSecondSurfaceSelectionModel, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return m_rightSecondSurfaceSelectionModel[tabIndex];
-}
+///**
+// * @return Is  enabled?
+// */
+//bool
+//ModelSurfaceMontage::isRightEnabled(const int tabIndex) const
+//{
+//    CaretAssertArrayIndex(m_rightEnabled,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+//                          tabIndex);
+//    return m_rightEnabled[tabIndex];
+//}
+//
+///**
+// * Set  enabled
+// * @param tabIndex
+// *    Index of tab.
+// * @param enabled
+// *    New status
+// */
+//void
+//ModelSurfaceMontage::setRightEnabled(const int tabIndex,
+//                                                 const bool enabled)
+//{
+//    CaretAssertArrayIndex(m_rightEnabled,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+//                          tabIndex);
+//    
+//    m_rightEnabled[tabIndex] = enabled;
+//}
+//
+///**
+// * @return Is  enabled?
+// */
+//bool
+//ModelSurfaceMontage::isFirstSurfaceEnabled(const int tabIndex) const
+//{
+//    CaretAssertArrayIndex(m_firstSurfaceEnabled,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+//                          tabIndex);
+//    return m_firstSurfaceEnabled[tabIndex];
+//}
+//
+///**
+// * Set  enabled
+// * @param tabIndex
+// *    Index of tab.
+// * @param enabled
+// *    New status
+// */
+//void
+//ModelSurfaceMontage::setFirstSurfaceEnabled(const int tabIndex,
+//                                                 const bool enabled)
+//{
+//    CaretAssertArrayIndex(m_firstSurfaceEnabled,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+//                          tabIndex);
+//    
+//    m_firstSurfaceEnabled[tabIndex] = enabled;
+//}
+//
+///**
+// * @return Is  enabled?
+// */
+//bool
+//ModelSurfaceMontage::isSecondSurfaceEnabled(const int tabIndex) const
+//{
+//    CaretAssertArrayIndex(m_secondSurfaceEnabled,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+//                          tabIndex);
+//    return m_secondSurfaceEnabled[tabIndex];
+//}
+//
+///**
+// * Set  enabled
+// * @param tabIndex
+// *    Index of tab.
+// * @param enabled
+// *    New status
+// */
+//void
+//ModelSurfaceMontage::setSecondSurfaceEnabled(const int tabIndex,
+//                                                 const bool enabled)
+//{
+//    CaretAssertArrayIndex(m_secondSurfaceEnabled,
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+//                          tabIndex);
+//    
+//    m_secondSurfaceEnabled[tabIndex] = enabled;
+//}
+//
+///**
+// * @param tabIndex
+// *    Index of tab.
+// * @return the left surface selection in this controller.
+// */
+//SurfaceSelectionModel*
+//ModelSurfaceMontage::getLeftSurfaceSelectionModel(const int tabIndex)
+//{
+//    CaretAssertArrayIndex(m_leftSurfaceSelectionModel, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_leftSurfaceSelectionModel[tabIndex];
+//}
+//
+///**
+// * @param tabIndex
+// *    Index of tab.
+// * @return the left second surface selection in this controller.
+// */
+//SurfaceSelectionModel*
+//ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel(const int tabIndex)
+//{
+//    CaretAssertArrayIndex(m_leftSecondSurfaceSelectionModel, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_leftSecondSurfaceSelectionModel[tabIndex];
+//}
+//
+///**
+// * @param tabIndex
+// *    Index of tab.
+// * @return the right surface selection in this controller.
+// */
+//SurfaceSelectionModel*
+//ModelSurfaceMontage::getRightSurfaceSelectionModel(const int tabIndex)
+//{
+//    CaretAssertArrayIndex(m_rightSurfaceSelectionModel, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_rightSurfaceSelectionModel[tabIndex];
+//}
+//
+///**
+// * @param tabIndex
+// *    Index of tab.
+// * @return the right second surface selection in this controller.
+// */
+//SurfaceSelectionModel*
+//ModelSurfaceMontage::getRightSecondSurfaceSelectionModel(const int tabIndex)
+//{
+//    CaretAssertArrayIndex(m_rightSecondSurfaceSelectionModel, 
+//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+//                          tabIndex);
+//    return m_rightSecondSurfaceSelectionModel[tabIndex];
+//}
 
 /**
  * Get the name for use in a GUI.
@@ -382,7 +328,7 @@ ModelSurfaceMontage::getNameForBrowserTab() const
 OverlaySet* 
 ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 {
-    return m_overlaySetArray->getOverlaySet(tabIndex);
+    return getSelectedConfiguration(tabIndex)->getOverlaySet();
 }
 
 /**
@@ -395,7 +341,7 @@ ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 {
-    return m_overlaySetArray->getOverlaySet(tabIndex);
+    return getSelectedConfiguration(tabIndex)->getOverlaySet();
 }
 
 /**
@@ -404,7 +350,11 @@ ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 void 
 ModelSurfaceMontage::initializeOverlays()
 {
-    m_overlaySetArray->initializeOverlaySelections();
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_cerebellarConfiguration[i]->getOverlaySet()->initializeOverlays();
+        m_cerebralConfiguration[i]->getOverlaySet()->initializeOverlays();
+        m_flatMapsConfiguration[i]->getOverlaySet()->initializeOverlays();
+    }
 }
 
 /**
@@ -425,14 +375,47 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
 
 {
     SurfaceSelectionModel* selectionModel = NULL;
-    switch (structure) {
-        case StructureEnum::CORTEX_LEFT:
-            selectionModel = getLeftSurfaceSelectionModel(windowTabNumber);
+    
+    switch (getSelectedConfigurationType(windowTabNumber)) {
+        case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+        {
+            SurfaceMontageConfigurationCerebellar* smcc = getCerebellarConfiguration(windowTabNumber);
+            if (structure == StructureEnum::CEREBELLUM) {
+                selectionModel = smcc->getFirstSurfaceSelectionModel();
+            }
+        }
             break;
-        case StructureEnum::CORTEX_RIGHT:
-            selectionModel = getRightSurfaceSelectionModel(windowTabNumber);
+        case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+        {
+            SurfaceMontageConfigurationCerebral* smcc = getCerebralConfiguration(windowTabNumber);
+            switch (structure) {
+                case StructureEnum::CORTEX_LEFT:
+                    selectionModel = smcc->getLeftFirstSurfaceSelectionModel();
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    selectionModel = smcc->getRightFirstSurfaceSelectionModel();
+                    break;
+                default:
+                    break;
+            }
+        }
             break;
-        default:
+        case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+        {
+            SurfaceMontageConfigurationFlatMaps* smcfm = getFlatMapsConfiguration(windowTabNumber);
+            switch (structure) {
+                case StructureEnum::CEREBELLUM:
+                    selectionModel = smcfm->getCerebellumSurfaceSelectionModel();
+                case StructureEnum::CORTEX_LEFT:
+                    selectionModel = smcfm->getLeftSurfaceSelectionModel();
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    selectionModel = smcfm->getRightSurfaceSelectionModel();
+                    break;
+                default:
+                    break;
+            }
+        }
             break;
     }
     
@@ -461,6 +444,136 @@ ModelSurfaceMontage::getSelectedConfiguration(const int32_t tabIndex) const
                           tabIndex);
     return m_cerebralConfiguration[tabIndex];
 }
+
+/**
+ * @return The type of configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of the tab.
+ */
+SurfaceMontageConfigurationTypeEnum::Enum
+ModelSurfaceMontage::getSelectedConfigurationType(const int32_t tabIndex) const
+{
+    return m_selectedConfiguration[tabIndex];
+}
+
+/**
+ * Set type of configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of the tab.
+ * @param configurationType
+ *    New configuration type for the tab index.   
+ */
+void
+ModelSurfaceMontage::setSelectedConfigurationType(const int32_t tabIndex,
+                                                  const SurfaceMontageConfigurationTypeEnum::Enum configurationType)
+{
+    m_selectedConfiguration[tabIndex] = configurationType;
+}
+
+/**
+ * Get the cerebellar configuration in the given tab.
+ * 
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Cerebellar configuration.
+ */
+SurfaceMontageConfigurationCerebellar *
+ModelSurfaceMontage::getCerebellarConfiguration(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_cerebellarConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_cerebellarConfiguration[tabIndex];
+}
+
+/**
+ * Get the cerebellar configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Cerebellar configuration.
+ */
+const SurfaceMontageConfigurationCerebellar*
+ModelSurfaceMontage::getCerebellarConfiguration(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_cerebellarConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_cerebellarConfiguration[tabIndex];
+}
+
+/**
+ * Get the cerebral configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Cerebral configuration.
+ */
+SurfaceMontageConfigurationCerebral *
+ModelSurfaceMontage::getCerebralConfiguration(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_cerebralConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_cerebralConfiguration[tabIndex];
+}
+
+/**
+ * Get the cerebral configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Cerebral configuration.
+ */
+const SurfaceMontageConfigurationCerebral*
+ModelSurfaceMontage::getCerebralConfiguration(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_cerebralConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_cerebralConfiguration[tabIndex];
+}
+
+/**
+ * Get the flat maps configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Flat maps configuration.
+ */
+SurfaceMontageConfigurationFlatMaps *
+ModelSurfaceMontage::getFlatMapsConfiguration(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_flatMapsConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_flatMapsConfiguration[tabIndex];
+}
+
+/**
+ * Get the flat maps configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Flat maps configuration.
+ */
+const SurfaceMontageConfigurationFlatMaps*
+ModelSurfaceMontage::getFlatMapsConfiguration(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_flatMapsConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_flatMapsConfiguration[tabIndex];
+}
+
 
 /**
  * Save information specific to this type of model to the scene.

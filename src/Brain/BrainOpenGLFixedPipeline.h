@@ -76,6 +76,9 @@ namespace caret {
     class PaletteColorMapping;
     class PaletteFile;
     class SurfaceFile;
+    class SurfaceMontageConfigurationCerebellar;
+    class SurfaceMontageConfigurationCerebral;
+    class SurfaceMontageConfigurationFlatMaps;
     class VolumeFile;
     class VolumeMappableInterface;
     
@@ -278,6 +281,7 @@ namespace caret {
         void drawSurfaceMontageModel(BrowserTabContent* browserTabContent,
                                      ModelSurfaceMontage* surfaceMontageModel,
                                      const int32_t viewport[4]);
+        
         
 //        void setOrthographicProjection(const int32_t viewport[4],
 //                                       const Model::ViewingTransformIndex rotationMatrixIndex);

@@ -90,6 +90,9 @@
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
+#include "SurfaceMontageConfigurationCerebellar.h"
+#include "SurfaceMontageConfigurationCerebral.h"
+#include "SurfaceMontageConfigurationFlatMaps.h"
 #include "IdentificationWithColor.h"
 #include "SelectionManager.h"
 #include "MathFunctions.h"
@@ -6417,215 +6420,67 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                                   ModelSurfaceMontage* surfaceMontageModel,
                                                   const int32_t viewport[4])
 {
-    GLint savedVP[4];
-    glGetIntegerv(GL_VIEWPORT, savedVP);
-    
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
-    std::vector<Surface*> rowOne;
-    if (surfaceMontageModel->isFirstSurfaceEnabled(tabIndex)) {
-        if (surfaceMontageModel->isLeftEnabled(tabIndex)) {
-            Surface* s = surfaceMontageModel->getLeftSurfaceSelectionModel(tabIndex)->getSurface();
-            if (s != NULL) {
-                rowOne.push_back(s);
-            }
-        }
-        if (surfaceMontageModel->isRightEnabled(tabIndex)) {
-            Surface* s = surfaceMontageModel->getRightSurfaceSelectionModel(tabIndex)->getSurface();
-            if (s != NULL) {
-                rowOne.push_back(s);
-            }
-        }
-    }
-    std::vector<Surface*> rowTwo;
-    if (surfaceMontageModel->isSecondSurfaceEnabled(tabIndex)) {
-        if (surfaceMontageModel->isLeftEnabled(tabIndex)) {
-            Surface* s = surfaceMontageModel->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface();
-            if (s != NULL) {
-                rowTwo.push_back(s);
-            }
-        }
-        if (surfaceMontageModel->isRightEnabled(tabIndex)) {
-            Surface* s = surfaceMontageModel->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface();
-            if (s != NULL) {
-                rowTwo.push_back(s);
-            }
-        }
-    }
-    
-    const int32_t numberOfSurfaces = static_cast<int32_t>(rowOne.size() + rowTwo.size());
-    if (rowOne.empty()) {
-        rowOne = rowTwo;
-        rowTwo.clear();
-    }
+    SurfaceMontageConfigurationAbstract* config = surfaceMontageModel->getSelectedConfiguration(tabIndex);
     
     std::vector<SurfaceMontageViewport> montageViewports;
+    config->getSurfaceMontageViewports(montageViewports);
+    if (montageViewports.empty()) {
+        return;
+    }
     
-    /*
-     * If the first row contains two surfaces and the second row contains
-     * zero surfaces, this is a special case for two structures with
-     * one surface each.
-     */
-    if ((rowOne.size() == 2) && (rowTwo.size() == 0)) {
-        const int32_t numRows = 2;
-        const int32_t numCols = 2;
-        const int32_t vpSizeX = viewport[2] / numCols;
-        const int32_t vpSizeY = viewport[3] / numRows;
-        
-        for (int32_t ivp = 0; ivp < 2; ivp++) {
-            Surface* surface = rowOne[ivp];
-            
-            if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-                /*
-                 * Lateral view of surface
-                 */
-                SurfaceMontageViewport lateralVP(surface,
-                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL,
-                                                 viewport[0] + vpSizeX,
-                                                 viewport[1] + vpSizeY,
-                                                 vpSizeX,
-                                                 vpSizeY);
-                montageViewports.push_back(lateralVP);
-                
-                /*
-                 * Medial view of surface
-                 */
-                SurfaceMontageViewport medialVP(surface,
-                                                ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL,
-                                                viewport[0] + vpSizeX,
-                                                viewport[1],
-                                                vpSizeX,
-                                                vpSizeY);
-                montageViewports.push_back(medialVP);
-            }
-            else if (surface->getStructure() == StructureEnum::CORTEX_LEFT) {
-                /*
-                 * Lateral view of surface
-                 */
-                SurfaceMontageViewport lateralVP(surface,
-                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL,
-                                                 viewport[0],
-                                                 viewport[1] + vpSizeY,
-                                                 vpSizeX,
-                                                 vpSizeY);
-                montageViewports.push_back(lateralVP);
-                
-                /*
-                 * Medial view of surface
-                 */
-                SurfaceMontageViewport medialVP(surface,
-                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL,
-                                                viewport[0],
-                                                viewport[1],
-                                                vpSizeX,
-                                                vpSizeY);
-                montageViewports.push_back(medialVP);
-            }
-            else {
-                CaretLogWarning("Surface is neither left nor right in montage: "
-                                + surface->getFileNameNoPath());
-                continue;
-            }
-        }
-    }
-    else {
-        /*
-         * Number of rows to display.  Use only one row when there is only
-         * one surface to display;
-         */
-        const int32_t numRows = (numberOfSurfaces == 1) ? 1 : 2;
-        const int32_t vpSizeY = viewport[3] / numRows;
-        int32_t vpY = viewport[1];
-        
-        /*
-         * Note that row one is on top and row two is on bottom.
-         * Note that OpenGL has origin in bottom left corner.
-         */
-        for (int32_t iRow = 0; iRow < 2; iRow++) {
-            std::vector<Surface*> rowContent = (iRow == 0) ? rowTwo : rowOne;
-            
-            const int32_t numSurfaces = static_cast<int32_t>(rowContent.size());
-            if (numSurfaces > 0) {
-                int32_t vpX = viewport[0];
-                
-                for (int32_t i = 0; i < numSurfaces; i++) {
-                    const int32_t numCols = (numSurfaces * 2);
-                    int32_t vpSizeX = viewport[2] / numCols;
-                    
-                    Surface* surface = rowContent[i];
-                    
-                    ProjectionViewTypeEnum::Enum lateralView = ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL;
-                    ProjectionViewTypeEnum::Enum medialView = ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL;
-                    if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-                        lateralView = ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL;
-                        medialView  = ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL;
-                    }
-                    else if (surface->getStructure() != StructureEnum::CORTEX_LEFT) {
-                        CaretLogWarning("Surface is neither left nor right in montage: "
-                                        + surface->getFileNameNoPath());
-                        continue;
-                    }
-                    
-                    /*
-                     * Lateral view of surface
-                     */
-                    SurfaceMontageViewport lateralVP(surface,
-                                       lateralView,
-                                       vpX,
-                                       vpY,
-                                       vpSizeX,
-                                       vpSizeY);
-                    montageViewports.push_back(lateralVP);
-                    vpX += vpSizeX;
-                    
-                    /*
-                     * Medial view of surface
-                     */
-                    SurfaceMontageViewport medialVP(surface,
-                                       medialView,
-                                       vpX,
-                                       vpY,
-                                       vpSizeX,
-                                       vpSizeY);
-                    montageViewports.push_back(medialVP);
-                    vpX += vpSizeX;
-                }
-                
-                vpY += vpSizeY;
-            }
-        }
-    }
+    GLint savedVP[4];
+    glGetIntegerv(GL_VIEWPORT,
+                  savedVP);
+    
+    
+    int32_t numberOfRows = 0;
+    int32_t numberOfColumns = 0;
+    SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
+                                                      numberOfRows,
+                                                      numberOfColumns);
+    
+    const int32_t vpSizeX = viewport[2] / numberOfColumns;
+    const int32_t vpSizeY = viewport[3] / numberOfRows;
     
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
-        const SurfaceMontageViewport& mvp = montageViewports[ivp];
+        SurfaceMontageViewport& mvp = montageViewports[ivp];
         const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
-                                                                                     mvp.surface,
+                                                                                     mvp.getSurface(),
                                                                                      this->windowTabIndex);
         float center[3];
-        mvp.surface->getBoundingBox()->getCenter(center);
-
-        this->setViewportAndOrthographicProjectionForSurfaceFile(mvp.viewport,
-                                                                 mvp.projectionViewType,
-                                                                 mvp.surface);
+        mvp.getSurface()->getBoundingBox()->getCenter(center);
+        
+        const int32_t rowFromTop    = mvp.getRow();
+        const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
+        const int32_t column = mvp.getColumn();
+        
+        const int32_t surfaceViewport[4] = {
+            (viewport[0] + (column * vpSizeX)),
+            (viewport[1] + (rowFromBottom * vpSizeY)),
+            vpSizeX,
+            vpSizeY
+        };
+        mvp.setViewport(surfaceViewport);
+        
+        this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
+                                                                 mvp.getProjectionViewType(),
+                                                                 mvp.getSurface());
         
         this->applyViewingTransformations(center,
-                                          mvp.projectionViewType);
-        this->drawSurface(mvp.surface,
+                                          mvp.getProjectionViewType());
+        this->drawSurface(mvp.getSurface(),
                           nodeColoringRGBA);
         
     }
-    
-    surfaceMontageModel->setMontageViewports(this->windowTabIndex,
-                                             montageViewports);
-    
     
     glViewport(savedVP[0], 
                savedVP[1], 
                savedVP[2], 
                savedVP[3]);
 }
-
 
 /**
  * Draw the whole brain.

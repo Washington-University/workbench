@@ -50,6 +50,8 @@ namespace caret {
         
         virtual void initializeSelectedSurfaces();
         
+        virtual bool isValid();
+        
         SurfaceSelectionModel* getLeftSurfaceSelectionModel();
         
         SurfaceSelectionModel* getRightSurfaceSelectionModel();
@@ -67,6 +69,8 @@ namespace caret {
         bool isCerebellumEnabled() const;
         
         void setCerebellumEnabled(const bool enabled);
+        
+        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
         
     private:
         SurfaceMontageConfigurationFlatMaps(const SurfaceMontageConfigurationFlatMaps&);

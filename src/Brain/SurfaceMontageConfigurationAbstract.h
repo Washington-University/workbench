@@ -38,12 +38,15 @@
 #include "CaretObject.h"
 
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 #include "SurfaceMontageConfigurationTypeEnum.h"
 #include "SurfaceMontageLayoutOrientationEnum.h"
+#include "SurfaceMontageViewport.h"
 
 namespace caret {
     class OverlaySet;
     class SceneClassAssistant;
+    class SurfaceMontageViewport;
 
     class SurfaceMontageConfigurationAbstract : public CaretObject, public SceneableInterface {
         
@@ -62,6 +65,8 @@ namespace caret {
         
         virtual void initializeSelectedSurfaces() = 0;
         
+        virtual bool isValid() = 0;
+        
         OverlaySet* getOverlaySet();
         
         const OverlaySet* getOverlaySet() const;
@@ -78,12 +83,16 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports) = 0;
+        
     private:
         SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationAbstract&);
 
         SurfaceMontageConfigurationAbstract& operator=(const SurfaceMontageConfigurationAbstract&);
         
     protected:
+        void setupOverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures);
+        
         virtual void saveMembersToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass) = 0;
         

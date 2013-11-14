@@ -54,6 +54,7 @@ class QToolButton;
 
 namespace caret {
     
+    class BrainBrowserWindowToolBarSurfaceMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
     class Model;
@@ -176,7 +177,7 @@ namespace caret {
         WuQWidgetObjectGroup* modeWidgetGroup;
         WuQWidgetObjectGroup* windowWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
-        WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
+//        WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
         WuQWidgetObjectGroup* clippingWidgetGroup;
@@ -370,22 +371,23 @@ namespace caret {
         void surfaceSelectionControlChanged(const StructureEnum::Enum,
                                             ModelSurface*);
         
-    private:
-        SurfaceSelectionViewController* surfaceMontageLeftSurfaceViewController;
-        SurfaceSelectionViewController* surfaceMontageLeftSecondSurfaceViewController;
-        SurfaceSelectionViewController* surfaceMontageRightSurfaceViewController;
-        SurfaceSelectionViewController* surfaceMontageRightSecondSurfaceViewController;
-        QCheckBox* surfaceMontageLeftCheckBox;
-        QCheckBox* surfaceMontageRightCheckBox;
-        QCheckBox* surfaceMontageFirstSurfaceCheckBox;
-        QCheckBox* surfaceMontageSecondSurfaceCheckBox;
-        
-    private slots:
-        void surfaceMontageLeftSurfaceSelected(Surface*);
-        void surfaceMontageLeftSecondSurfaceSelected(Surface*);
-        void surfaceMontageRightSurfaceSelected(Surface*);
-        void surfaceMontageRightSecondSurfaceSelected(Surface*);
-        void surfaceMontageCheckBoxSelected(bool);
+    private: /*SM*/
+        BrainBrowserWindowToolBarSurfaceMontage* m_surfaceMontageToolBarComponent;
+//        SurfaceSelectionViewController* surfaceMontageLeftSurfaceViewController;
+//        SurfaceSelectionViewController* surfaceMontageLeftSecondSurfaceViewController;
+//        SurfaceSelectionViewController* surfaceMontageRightSurfaceViewController;
+//        SurfaceSelectionViewController* surfaceMontageRightSecondSurfaceViewController;
+//        QCheckBox* surfaceMontageLeftCheckBox;
+//        QCheckBox* surfaceMontageRightCheckBox;
+//        QCheckBox* surfaceMontageFirstSurfaceCheckBox;
+//        QCheckBox* surfaceMontageSecondSurfaceCheckBox;
+//        
+//    private slots:
+//        void surfaceMontageLeftSurfaceSelected(Surface*);
+//        void surfaceMontageLeftSecondSurfaceSelected(Surface*);
+//        void surfaceMontageRightSurfaceSelected(Surface*);
+//        void surfaceMontageRightSecondSurfaceSelected(Surface*);
+//        void surfaceMontageCheckBoxSelected(bool);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;
@@ -474,6 +476,7 @@ namespace caret {
         
     private:
         friend class BrainBrowserWindow;
+        friend class BrainBrowserWindowToolBarComponent;
         
         /**
          * When a tab is selected in Tile Tabs viewing,

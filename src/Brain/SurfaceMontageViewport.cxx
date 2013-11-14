@@ -49,23 +49,6 @@ using namespace caret;
  * \brief Viewports in a surface montage
  */
 
-///**
-// * Constructor for invalid viewport.
-// */
-//SurfaceMontageViewport::SurfaceMontageViewport()
-//: CaretObject()
-//{
-//    CaretAssert(surface);
-//    
-//    this->surface = NULL;
-//    this->structure = StructureEnum::INVALID;
-//    this->viewingMatrixIndex = Model::VIEWING_TRANSFORM_NORMAL;
-//    this->viewport[0] = -1;
-//    this->viewport[1] = -1;
-//    this->viewport[2] = -1;
-//    this->viewport[3] = -1;
-//}
-
 /**
  * Constructor.
  *
@@ -73,32 +56,23 @@ using namespace caret;
  *   Surface in the montage.
  * @param projectionViewType
  *   Projection view type.
- * @param x
- *   X-coordinate of viewport.
- * @param y
- *   T-coordinate of viewport.
- * @param w
- *   width of viewport.
- * @param h
- *   height of viewport.
  */
 SurfaceMontageViewport::SurfaceMontageViewport(Surface* surface,
-                                               const ProjectionViewTypeEnum::Enum projectionViewType,
-                       const int x,
-                       const int y,
-                       const int w,
-                       const int h)
+                                               const ProjectionViewTypeEnum::Enum projectionViewType)
 : CaretObject()
 {
     CaretAssert(surface);
     
-    this->surface = surface;
-    this->structure = surface->getStructure();
-    this->projectionViewType = projectionViewType;
-    this->viewport[0] = x;
-    this->viewport[1] = y;
-    this->viewport[2] = w;
-    this->viewport[3] = h;
+    m_surface = surface;
+    m_structure = surface->getStructure();
+    m_projectionViewType = projectionViewType;
+    m_viewport[0] = -1;
+    m_viewport[1] = -1;
+    m_viewport[2] = -1;
+    m_viewport[3] = -1;
+    
+    m_row    = -1;
+    m_column = -1;
 }
 
 
@@ -121,11 +95,165 @@ bool
 SurfaceMontageViewport::isInside(const int32_t x,
                                  const int32_t y) const
 {
-    if (x < this->viewport[0]) return false;
-    if (x > (this->viewport[0] + this->viewport[2])) return false;
-    if (y < this->viewport[1]) return false;
-    if (y > (this->viewport[1] + this->viewport[3])) return false;
+    if (x < m_viewport[0]) return false;
+    if (x > (m_viewport[0] + m_viewport[2])) return false;
+    if (y < m_viewport[1]) return false;
+    if (y > (m_viewport[1] + m_viewport[3])) return false;
     
     return true;
+}
+
+/**
+ * Set the row and column.
+ *
+ * @param row
+ *    New value for row.
+ * @param column
+ *    New value for column.
+ */
+void
+SurfaceMontageViewport::setRowAndColumn(const int32_t row,
+                                        const int32_t column)
+{
+    m_row    = row;
+    m_column = column;
+}
+
+/**
+ * Get the viewport.
+ * 
+ * @param viewportOut
+ *    Output containing viewport.
+ */
+void
+SurfaceMontageViewport::getViewport(int32_t viewportOut[4]) const
+{
+    CaretAssert((m_viewport[0] >= 0)
+                && (m_viewport[1] >= 0)
+                && (m_viewport[2] > 0)
+                && (m_viewport[3] > 1));
+    
+    viewportOut[0] = m_viewport[0];
+    viewportOut[1] = m_viewport[1];
+    viewportOut[2] = m_viewport[2];
+    viewportOut[3] = m_viewport[3];
+}
+
+/**
+ * Set the viewport for this item.
+ * @param viewport
+ *     Values for viewport.
+ */
+void
+SurfaceMontageViewport::setViewport(const int32_t viewport[4])
+{
+    m_viewport[0] = viewport[0];
+    m_viewport[1] = viewport[1];
+    m_viewport[2] = viewport[2];
+    m_viewport[3] = viewport[3];
+}
+
+/**
+ * @return Row of this item (0 is top)
+ */
+int32_t
+SurfaceMontageViewport::getRow() const
+{
+    CaretAssert(m_row >= 0);
+    return m_row;
+}
+
+/**
+ * @return Column of this item (0 is left)
+ */
+int32_t
+SurfaceMontageViewport::getColumn() const
+{
+    CaretAssert(m_column >= 0);
+    return m_column;
+}
+
+/**
+ * @return X-coordinate in viewport.
+ */
+int32_t
+SurfaceMontageViewport::getX() const
+{
+    CaretAssert( m_viewport[0] >= 0);
+    return m_viewport[0];
+}
+
+/**
+ * @return Y-Coordinate in viewport.
+ */
+int32_t
+SurfaceMontageViewport::getY() const
+{
+    CaretAssert(m_viewport[1] >= 0);
+    return m_viewport[1];
+}
+
+/**
+ * @return Width of viewport.
+ */
+int32_t
+SurfaceMontageViewport::getWidth() const
+{
+    CaretAssert(m_viewport[2] > 0);
+    return m_viewport[2];
+}
+
+/**
+ * @return Height of viewport.
+ */
+int32_t
+SurfaceMontageViewport::getHeight() const
+{
+    CaretAssert(m_viewport[3] > 0);
+    return m_viewport[3];
+}
+
+/**
+ * Find the number of rows and columns for the given montage viewports.
+ *
+ * @param montageViewports
+ *     The montage viewports.
+ * @param numberOfRowsOut
+ *     Output number of rows.
+ * @param numberOfColumnsOut
+ *     Output number of columns.
+ */
+void
+SurfaceMontageViewport::getNumberOfRowsAndColumns(const std::vector<SurfaceMontageViewport>& montageViewports,
+                                                  int32_t& numberOfRowsOut,
+                                                  int32_t& numberOfColumnsOut)
+{
+    numberOfRowsOut    = 0;
+    numberOfColumnsOut = 0;
+    
+    if (montageViewports.empty()) {
+        return;
+    }
+    
+    for (std::vector<SurfaceMontageViewport>::const_iterator iter = montageViewports.begin();
+         iter != montageViewports.end();
+         iter++) {
+        const SurfaceMontageViewport& svp = *iter;
+        const int32_t row    = svp.getRow();
+        const int32_t column = svp.getColumn();
+
+        if (row > numberOfRowsOut) {
+            numberOfRowsOut = row;
+        }
+        if (column > numberOfColumnsOut) {
+            numberOfColumnsOut = column;
+        }
+    }
+    
+    /*
+     * Add one since row and column in viewports are indices that range 0 to 1
+     */
+    numberOfRowsOut++;
+    numberOfColumnsOut++;
 }
 

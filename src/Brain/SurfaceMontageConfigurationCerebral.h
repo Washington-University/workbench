@@ -82,6 +82,10 @@ namespace caret {
         
         virtual void initializeSelectedSurfaces();
         
+        virtual bool isValid();
+        
+        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
+        
     private:
         SurfaceMontageConfigurationCerebral(const SurfaceMontageConfigurationCerebral&);
 

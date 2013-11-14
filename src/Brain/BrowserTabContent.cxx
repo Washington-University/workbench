@@ -61,6 +61,9 @@
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "Surface.h"
+#include "SurfaceMontageConfigurationCerebellar.h"
+#include "SurfaceMontageConfigurationCerebral.h"
+#include "SurfaceMontageConfigurationFlatMaps.h"
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
 #include "VolumeFile.h"
@@ -903,21 +906,53 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         {
             ModelSurfaceMontage* msm = getDisplayedSurfaceMontageModel();
-            if (msm->isFirstSurfaceEnabled(tabIndex)) {
-                if (msm->isLeftEnabled(tabIndex)) {
-                    displayedDataFiles.insert(msm->getLeftSurfaceSelectionModel(tabIndex)->getSurface());
+            switch (msm->getSelectedConfigurationType(tabIndex)) {
+                case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+                {
+                    SurfaceMontageConfigurationCerebellar* smcc = msm->getCerebellarConfiguration(tabIndex);
+                    if (smcc->isFirstSurfaceEnabled()) {
+                        displayedDataFiles.insert(smcc->getFirstSurfaceSelectionModel()->getSurface());
+                    }
+                    if (smcc->isSecondSurfaceEnabled()) {
+                        displayedDataFiles.insert(smcc->getSecondSurfaceSelectionModel()->getSurface());
+                    }
                 }
-                if (msm->isRightEnabled(tabIndex)) {
-                    displayedDataFiles.insert(msm->getRightSurfaceSelectionModel(tabIndex)->getSurface());
+                    break;
+                case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+                {
+                    SurfaceMontageConfigurationCerebral* smcc = msm->getCerebralConfiguration(tabIndex);
+                    if (smcc->isFirstSurfaceEnabled()) {
+                        if (smcc->isLeftEnabled()) {
+                            displayedDataFiles.insert(smcc->getLeftFirstSurfaceSelectionModel()->getSurface());
+                        }
+                        if (smcc->isRightEnabled()) {
+                            displayedDataFiles.insert(smcc->getRightFirstSurfaceSelectionModel()->getSurface());
+                        }
+                    }
+                    if (smcc->isSecondSurfaceEnabled()) {
+                        if (smcc->isLeftEnabled()) {
+                            displayedDataFiles.insert(smcc->getLeftSecondSurfaceSelectionModel()->getSurface());
+                        }
+                        if (smcc->isRightEnabled()) {
+                            displayedDataFiles.insert(smcc->getRightSecondSurfaceSelectionModel()->getSurface());
+                        }
+                    }
                 }
-            }
-            if (msm->isSecondSurfaceEnabled(tabIndex)) {
-                if (msm->isLeftEnabled(tabIndex)) {
-                    displayedDataFiles.insert(msm->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface());
+                    break;
+                case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+                {
+                    SurfaceMontageConfigurationFlatMaps* smcfm = msm->getFlatMapsConfiguration(tabIndex);
+                    if (smcfm->isLeftEnabled()) {
+                        displayedDataFiles.insert(smcfm->getLeftSurfaceSelectionModel()->getSurface());
+                    }
+                    if (smcfm->isRightEnabled()) {
+                        displayedDataFiles.insert(smcfm->getRightSurfaceSelectionModel()->getSurface());
+                    }
+                    if (smcfm->isCerebellumEnabled()) {
+                        displayedDataFiles.insert(smcfm->getCerebellumSurfaceSelectionModel()->getSurface());
+                    }
                 }
-                if (msm->isRightEnabled(tabIndex)) {
-                    displayedDataFiles.insert(msm->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface());
-                }
+                    break;
             }
         }
             break;
@@ -1675,7 +1710,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                     const SurfaceMontageViewport& smv = montageViewports[ivp];
                     if (smv.isInside(mousePressX,
                                      mousePressY)) {
-                        switch (smv.projectionViewType) {
+                        switch (smv.getProjectionViewType()) {
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                                 isLeft = true;
                                 isLateral = true;
@@ -1908,7 +1943,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 const SurfaceMontageViewport& smv = montageViewports[ivp];
                 if (smv.isInside(mousePressX,
                                  mousePressY)) {
-                    switch (smv.projectionViewType) {
+                    switch (smv.getProjectionViewType()) {
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                             isLeft = true;
                             isLateral = true;

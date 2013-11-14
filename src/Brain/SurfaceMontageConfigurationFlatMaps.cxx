@@ -61,8 +61,6 @@ SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
     validSurfaceTypes.push_back(SurfaceTypeEnum::FLAT);
     
-    m_sceneAssistant = new SceneClassAssistant();
-    
     m_leftSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
                                                             validSurfaceTypes);
     m_rightSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT,
@@ -91,6 +89,12 @@ SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
                           &m_rightEnabled);
     m_sceneAssistant->add("m_cerebellumEnabled",
                           &m_cerebellumEnabled);
+
+    std::vector<StructureEnum::Enum> supportedStructures;
+    supportedStructures.push_back(StructureEnum::CEREBELLUM);
+    supportedStructures.push_back(StructureEnum::CORTEX_LEFT);
+    supportedStructures.push_back(StructureEnum::CORTEX_RIGHT);
+    setupOverlaySet(supportedStructures);
 }
 
 /**
@@ -98,6 +102,10 @@ SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
  */
 SurfaceMontageConfigurationFlatMaps::~SurfaceMontageConfigurationFlatMaps()
 {
+    delete m_leftSurfaceSelectionModel;
+    delete m_rightSurfaceSelectionModel;
+    delete m_cerebellumSurfaceSelectionModel;
+    
     delete m_sceneAssistant;
 }
 
@@ -109,6 +117,19 @@ SurfaceMontageConfigurationFlatMaps::initializeSelectedSurfaces()
 {
     
 }
+
+/**
+ * @return Is this configuration valid?
+ */
+bool
+SurfaceMontageConfigurationFlatMaps::isValid()
+{
+    const bool valid = ((getLeftSurfaceSelectionModel()->getSurface() != NULL)
+                        || (getRightSurfaceSelectionModel()->getSurface() != NULL)
+                        || (getCerebellumSurfaceSelectionModel()->getSurface() != NULL));
+    return valid;
+}
+
 
 /**
  * @return Is left  enabled?
@@ -195,6 +216,18 @@ SurfaceSelectionModel*
 SurfaceMontageConfigurationFlatMaps::getCerebellumSurfaceSelectionModel()
 {
     return m_cerebellumSurfaceSelectionModel;
+}
+
+/**
+ * Get the surface montage viewports for the current configuration.
+ *
+ * @param surfaceMontageViewports
+ *    Output of surface montage viewports for drawing.
+ */
+void
+SurfaceMontageConfigurationFlatMaps::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
+{
+    surfaceMontageViewports.clear();
 }
 
 /**
