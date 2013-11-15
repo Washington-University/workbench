@@ -1697,9 +1697,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             
             ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
             if (montageModel != NULL) {
-                std::vector<SurfaceMontageViewport> montageViewports;
-                montageModel->getMontageViewports(getTabNumber(),
-                                                  montageViewports);
+                std::vector<const SurfaceMontageViewport*> montageViewports;
+                montageModel->getSurfaceMontageViewportsForTransformation(getTabNumber(),
+                                                                          montageViewports);
                 
                 bool isValid = false;
                 bool isFlat  = false;
@@ -1707,10 +1707,20 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 bool isLateral = true;
                 const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
                 for (int32_t ivp = 0; ivp < numViewports; ivp++) {
-                    const SurfaceMontageViewport& smv = montageViewports[ivp];
-                    if (smv.isInside(mousePressX,
+                    const SurfaceMontageViewport* smv = montageViewports[ivp];
+                    if (smv->isInside(mousePressX,
                                      mousePressY)) {
-                        switch (smv.getProjectionViewType()) {
+                        switch (smv->getProjectionViewType()) {
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                                break;
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                                break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                                 isLeft = true;
                                 isLateral = true;
@@ -1931,19 +1941,29 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         
         ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
         if (montageModel != NULL) {
-            std::vector<SurfaceMontageViewport> montageViewports;
-            montageModel->getMontageViewports(getTabNumber(),
-                                              montageViewports);
+            std::vector<const SurfaceMontageViewport*> montageViewports;
+            montageModel->getSurfaceMontageViewportsForTransformation(getTabNumber(),
+                                                                      montageViewports);
             
             bool isValid = false;
             bool isLeft = true;
             bool isLateral = false;
             const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
             for (int32_t ivp = 0; ivp < numViewports; ivp++) {
-                const SurfaceMontageViewport& smv = montageViewports[ivp];
-                if (smv.isInside(mousePressX,
+                const SurfaceMontageViewport* smv = montageViewports[ivp];
+                if (smv->isInside(mousePressX,
                                  mousePressY)) {
-                    switch (smv.getProjectionViewType()) {
+                    switch (smv->getProjectionViewType()) {
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                            break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                             isLeft = true;
                             isLateral = true;
@@ -2055,6 +2075,19 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         const double rotationFlippedY = 180.0 - rotationY;
         
         switch (projectionViewType) {
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                rotationX =     0.0;
+                rotationY =     0.0;
+                rotationZ =     0.0;
+                break;
             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
                 break;
             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:

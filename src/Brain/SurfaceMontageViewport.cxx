@@ -224,7 +224,7 @@ SurfaceMontageViewport::getHeight() const
  *     Output number of columns.
  */
 void
-SurfaceMontageViewport::getNumberOfRowsAndColumns(const std::vector<SurfaceMontageViewport>& montageViewports,
+SurfaceMontageViewport::getNumberOfRowsAndColumns(const std::vector<SurfaceMontageViewport*>& montageViewports,
                                                   int32_t& numberOfRowsOut,
                                                   int32_t& numberOfColumnsOut)
 {
@@ -235,12 +235,12 @@ SurfaceMontageViewport::getNumberOfRowsAndColumns(const std::vector<SurfaceMonta
         return;
     }
     
-    for (std::vector<SurfaceMontageViewport>::const_iterator iter = montageViewports.begin();
+    for (std::vector<SurfaceMontageViewport*>::const_iterator iter = montageViewports.begin();
          iter != montageViewports.end();
          iter++) {
-        const SurfaceMontageViewport& svp = *iter;
-        const int32_t row    = svp.getRow();
-        const int32_t column = svp.getColumn();
+        const SurfaceMontageViewport* svp = *iter;
+        const int32_t row    = svp->getRow();
+        const int32_t column = svp->getColumn();
 
         if (row > numberOfRowsOut) {
             numberOfRowsOut = row;

@@ -83,7 +83,9 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports) = 0;
+        void getSurfaceMontageViewportsForDrawing(std::vector<SurfaceMontageViewport*>& surfaceMontageViewports);
+        
+        void getSurfaceMontageViewportsForTransformation(std::vector<const SurfaceMontageViewport*>& surfaceMontageViewports) const;
         
     private:
         SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationAbstract&);
@@ -91,6 +93,15 @@ namespace caret {
         SurfaceMontageConfigurationAbstract& operator=(const SurfaceMontageConfigurationAbstract&);
         
     protected:
+        
+        /**
+         * Update the montage viewports using the current selected surfaces and settings.
+         *
+         * @param surfaceMontageViewports
+         *     Will be loaded with the montage viewports.
+         */
+        virtual void updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports) = 0;
+        
         void setupOverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures);
         
         virtual void saveMembersToScene(const SceneAttributes* sceneAttributes,
@@ -115,6 +126,8 @@ namespace caret {
         SurfaceMontageLayoutOrientationEnum::Enum m_layoutOrientation;
         
         OverlaySet* m_overlaySet;
+        
+        std::vector<SurfaceMontageViewport> m_surfaceMontageViewports;
         
         // ADD_NEW_MEMBERS_HERE
         

@@ -84,7 +84,7 @@ namespace caret {
         
         virtual bool isValid();
         
-        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
+        virtual void updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
         
     private:
         SurfaceMontageConfigurationCerebral(const SurfaceMontageConfigurationCerebral&);

@@ -70,7 +70,7 @@ namespace caret {
         
         void setCerebellumEnabled(const bool enabled);
         
-        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
+        virtual void updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
         
     private:
         SurfaceMontageConfigurationFlatMaps(const SurfaceMontageConfigurationFlatMaps&);

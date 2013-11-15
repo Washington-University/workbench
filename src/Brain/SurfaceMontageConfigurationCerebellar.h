@@ -78,7 +78,7 @@ namespace caret {
         
         void setPosteriorEnabled(const bool enabled);
         
-        virtual void getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
+        virtual void updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports);
         
         virtual bool isValid();
         

@@ -48,6 +48,16 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Viewing cerebellum in anterior orientation */
+        PROJECTION_VIEW_CEREBELLUM_ANTERIOR,
+        /** Viewing cerebellum in dorsal orientation */
+        PROJECTION_VIEW_CEREBELLUM_DORSAL,
+        /** Viewing cerebellum in posterior orientation */
+        PROJECTION_VIEW_CEREBELLUM_POSTERIOR,
+        /** Viewing cerebellum in ventral orientation */
+        PROJECTION_VIEW_CEREBELLUM_VENTRAL,
+        /** Viewing cerebellum in flat surface */
+        PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE,
         /** Viewing models from left lateral */
         PROJECTION_VIEW_LEFT_LATERAL,
         /** Viewing models from left medial */

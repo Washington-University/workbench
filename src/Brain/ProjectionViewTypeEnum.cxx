@@ -86,7 +86,27 @@ ProjectionViewTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_LEFT_LATERAL, 
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_CEREBELLUM_ANTERIOR,
+                                              "PROJECTION_VIEW_CEREBELLUM_ANTERIOR",
+                                              "Cerebellum Anterior"));
+    
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_CEREBELLUM_DORSAL,
+                                              "PROJECTION_VIEW_CEREBELLUM_DORSAL",
+                                              "Cerebellum Dorsal"));
+    
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_CEREBELLUM_POSTERIOR,
+                                              "PROJECTION_VIEW_CEREBELLUM_POSTERIOR",
+                                              "Cerebellum Posterior"));
+    
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_CEREBELLUM_VENTRAL,
+                                              "PROJECTION_VIEW_CEREBELLUM_VENTRAL",
+                                              "Cerebellum Ventral"));
+    
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE,
+                                              "PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE",
+                                               "Cerebellum Flat"));
+    
+    enumData.push_back(ProjectionViewTypeEnum(PROJECTION_VIEW_LEFT_LATERAL,
                                     "PROJECTION_VIEW_LEFT_LATERAL", 
                                     "Left Lateral"));
     

@@ -99,7 +99,7 @@ namespace caret {
         
         void setViewport(const int32_t viewport[4]);
         
-        static void getNumberOfRowsAndColumns(const std::vector<SurfaceMontageViewport>& montageViewports,
+        static void getNumberOfRowsAndColumns(const std::vector<SurfaceMontageViewport*>& montageViewports,
                                               int32_t& numberOfRowsOut,
                                               int32_t& numberOfColumnsOut);
         

@@ -218,13 +218,13 @@ SurfaceMontageConfigurationFlatMaps::getCerebellumSurfaceSelectionModel()
 }
 
 /**
- * Get the surface montage viewports for the current configuration.
+ * Update the montage viewports using the current selected surfaces and settings.
  *
  * @param surfaceMontageViewports
- *    Output of surface montage viewports for drawing.
+ *     Will be loaded with the montage viewports.
  */
 void
-SurfaceMontageConfigurationFlatMaps::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
+SurfaceMontageConfigurationFlatMaps::updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
 {
     surfaceMontageViewports.clear();
     
@@ -247,12 +247,12 @@ SurfaceMontageConfigurationFlatMaps::getSurfaceMontageViewports(std::vector<Surf
     }
     
     if (m_cerebellumEnabled) {
-//        Surface* cerebellumSurface = m_cerebellumSurfaceSelectionModel->getSurface();
-//        if (cerebellumSurface != NULL) {
-//            SurfaceMontageViewport smv(cerebellumSurface,
-//                                       ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE);
-//            surfaceMontageViewports.push_back(smv);
-//        }
+        Surface* cerebellumSurface = m_cerebellumSurfaceSelectionModel->getSurface();
+        if (cerebellumSurface != NULL) {
+            SurfaceMontageViewport smv(cerebellumSurface,
+                                       ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE);
+            surfaceMontageViewports.push_back(smv);
+        }
     }
     
     const int32_t numSurfaces = static_cast<int32_t>(surfaceMontageViewports.size());

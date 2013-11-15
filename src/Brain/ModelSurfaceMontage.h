@@ -64,11 +64,11 @@ namespace caret {
         
         virtual AString getNameForBrowserTab() const;
         
-        void setMontageViewports(const int32_t tabIndex,
-                                 const std::vector<SurfaceMontageViewport>& montageViewports);
+        void getSurfaceMontageViewportsForDrawing(const int32_t tabIndex,
+                                                  std::vector<SurfaceMontageViewport*>& surfaceMontageViewports);
         
-        void getMontageViewports(const int32_t tabIndex,
-                                 std::vector<SurfaceMontageViewport>& montageViewportsOut);
+        void getSurfaceMontageViewportsForTransformation(const int32_t tabIndex,
+                                                         std::vector<const SurfaceMontageViewport*>& surfaceMontageViewports) const;
         
         SurfaceMontageConfigurationTypeEnum::Enum getSelectedConfigurationType(const int32_t tabIndex) const;
         
@@ -111,8 +111,6 @@ namespace caret {
         SurfaceMontageConfigurationCerebral* m_cerebralConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SurfaceMontageConfigurationFlatMaps* m_flatMapsConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        std::vector<SurfaceMontageViewport> m_montageViewports[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SurfaceMontageConfigurationTypeEnum::Enum m_selectedConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };

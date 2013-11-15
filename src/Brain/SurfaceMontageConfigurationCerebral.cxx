@@ -180,13 +180,13 @@ SurfaceMontageConfigurationCerebral::isValid()
 }
 
 /**
- * Get the surface montage viewports for the current configuration.
+ * Update the montage viewports using the current selected surfaces and settings.
  *
  * @param surfaceMontageViewports
- *    Output of surface montage viewports for drawing.
+ *     Will be loaded with the montage viewports.
  */
 void
-SurfaceMontageConfigurationCerebral::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
+SurfaceMontageConfigurationCerebral::updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
 {
     surfaceMontageViewports.clear();
     

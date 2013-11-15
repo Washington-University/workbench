@@ -278,15 +278,224 @@ SurfaceMontageConfigurationCerebellar::setPosteriorEnabled(const bool enabled)
 }
 
 /**
- * Get the surface montage viewports for the current configuration.
+ * Update the montage viewports using the current selected surfaces and settings.
  *
  * @param surfaceMontageViewports
- *    Output of surface montage viewports for drawing.
+ *     Will be loaded with the montage viewports.
  */
 void
-SurfaceMontageConfigurationCerebellar::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
+SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
 {
     surfaceMontageViewports.clear();
+    
+    std::vector<SurfaceMontageViewport> anteriorViewports;
+    std::vector<SurfaceMontageViewport> dorsalViewports;
+    std::vector<SurfaceMontageViewport> posteriorViewports;
+    std::vector<SurfaceMontageViewport> ventralViewports;
+    
+    int32_t numFirst = 0;
+    if (m_firstSurfaceEnabled) {
+        Surface* surface = m_firstSurfaceSelectionModel->getSurface();
+        if (surface != NULL) {
+            if (m_anteriorEnabled) {
+                anteriorViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR));
+                numFirst++;
+            }
+            if (m_dorsalEnabled) {
+                dorsalViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL));
+                numFirst++;
+            }
+            if (m_posteriorEnabled) {
+                posteriorViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR));
+                numFirst++;
+            }
+            if (m_ventralEnabled) {
+                ventralViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL));
+                numFirst++;
+            }
+        }
+    }
+    
+    int32_t numSecond = 0;
+    if (m_secondSurfaceEnabled) {
+        Surface* surface = m_secondSurfaceSelectionModel->getSurface();
+        if (surface != NULL) {
+            if (m_anteriorEnabled) {
+                anteriorViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR));
+                numSecond++;
+            }
+            if (m_dorsalEnabled) {
+                dorsalViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL));
+                numSecond++;
+            }
+            if (m_posteriorEnabled) {
+                posteriorViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR));
+                numSecond++;
+            }
+            if (m_ventralEnabled) {
+                ventralViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL));
+                numSecond++;
+            }
+        }
+    }
+    
+    std::vector<SurfaceMontageViewport> allViewports;
+    allViewports.insert(allViewports.end(),
+                                   dorsalViewports.begin(),
+                                   dorsalViewports.end());
+    allViewports.insert(allViewports.end(),
+                                   ventralViewports.begin(),
+                                   ventralViewports.end());
+    allViewports.insert(allViewports.end(),
+                                   anteriorViewports.begin(),
+                                   anteriorViewports.end());
+    allViewports.insert(allViewports.end(),
+                                   posteriorViewports.begin(),
+                                   posteriorViewports.end());
+    const int32_t numAll = static_cast<int32_t>(allViewports.size());
+    
+    const int32_t totalNum = numFirst + numSecond;
+
+    CaretAssert(numAll == totalNum);
+    
+    if (totalNum == 1) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       allViewports.begin(),
+                                       allViewports.end());
+        CaretAssert(surfaceMontageViewports.size() == 1);
+        
+        surfaceMontageViewports[0].setRowAndColumn(0, 0);
+        
+    }
+    else if (totalNum == 2) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       allViewports.begin(),
+                                       allViewports.end());
+        
+        CaretAssert(surfaceMontageViewports.size() == 2);
+        
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                break;
+        }
+        
+    }
+    else if (totalNum == 3) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       allViewports.begin(),
+                                       allViewports.end());
+        
+        CaretAssert(surfaceMontageViewports.size() == 3);
+        
+        for (int32_t i = 0; i < 3; i++) {
+            SurfaceMontageViewport& svp = surfaceMontageViewports[i];
+            switch (svp.getProjectionViewType()) {
+                case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                    svp.setRowAndColumn(1, 0);
+                    break;
+                case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                    svp.setRowAndColumn(0, 0);
+                    break;
+                case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                    svp.setRowAndColumn(1, 1);
+                    break;
+                case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                    svp.setRowAndColumn(0, 1);
+                    break;
+                default:
+                    CaretAssert(0);
+            }
+        }
+    }
+    else if (totalNum == 4) {
+        if ((numFirst == 4)
+            || (numSecond == 4)){
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           allViewports.begin(),
+                                           allViewports.end());
+            CaretAssert(surfaceMontageViewports.size() == 4);
+            surfaceMontageViewports[0].setRowAndColumn(0, 0);
+            surfaceMontageViewports[1].setRowAndColumn(0, 1);
+            surfaceMontageViewports[2].setRowAndColumn(1, 0);
+            surfaceMontageViewports[3].setRowAndColumn(1, 1);
+        }
+        else if (numFirst == numSecond) {
+            surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                           allViewports.begin(),
+                                           allViewports.end());
+            CaretAssert(surfaceMontageViewports.size() == 4);
+            
+            surfaceMontageViewports[0].setRowAndColumn(0, 0);
+            surfaceMontageViewports[1].setRowAndColumn(0, 1);
+            surfaceMontageViewports[2].setRowAndColumn(1, 0);
+            surfaceMontageViewports[3].setRowAndColumn(1, 1);
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    else if (totalNum == 8) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       allViewports.begin(),
+                                       allViewports.end());
+        CaretAssert(surfaceMontageViewports.size() == 8);
+        
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 2);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[3].setRowAndColumn(0, 3);
+                surfaceMontageViewports[4].setRowAndColumn(1, 0);
+                surfaceMontageViewports[5].setRowAndColumn(1, 2);
+                surfaceMontageViewports[6].setRowAndColumn(1, 1);
+                surfaceMontageViewports[7].setRowAndColumn(1, 3);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                surfaceMontageViewports[2].setRowAndColumn(1, 0);
+                surfaceMontageViewports[3].setRowAndColumn(1, 1);
+                surfaceMontageViewports[4].setRowAndColumn(2, 0);
+                surfaceMontageViewports[5].setRowAndColumn(2, 1);
+                surfaceMontageViewports[6].setRowAndColumn(3, 0);
+                surfaceMontageViewports[7].setRowAndColumn(3, 1);
+                break;
+        }
+    }
+    else if (totalNum > 0) {
+        CaretAssert(0);
+    }
+    
+//    const int32_t numViewports = static_cast<int32_t>(surfaceMontageViewports.size());
+//    CaretAssert(totalNum == numViewports);
+//    
+//    std::cout << "Orientation: " << SurfaceMontageLayoutOrientationEnum::toName(getLayoutOrientation()) << std::endl;
+//    for (int32_t i = 0; i < numViewports; i++) {
+//        const SurfaceMontageViewport& svp = surfaceMontageViewports[i];
+//        std::cout << qPrintable("("
+//                                + AString::number(svp.getRow())
+//                                + ","
+//                                + AString::number(svp.getColumn())
+//                                + ") "
+//                                + ProjectionViewTypeEnum::toName(svp.getProjectionViewType()))
+//        << std::endl;
+//    }
+//    std::cout << std::endl;
 }
 
 

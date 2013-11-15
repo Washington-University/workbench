@@ -1030,35 +1030,48 @@ ModelSurfaceMontage::restoreFromSceneVersionTwoAndEarlier(const SceneAttributes*
     }
 }
 
-
 /**
- * Set the montage viewports that were drawn for the given tab.
- * 
- * @param tabIndex
- *    Index of the tab.
- * @param montageViewports
- *    The viewports/models that were drawn.
- */
-void
-ModelSurfaceMontage::setMontageViewports(const int32_t tabIndex,
-                                         const std::vector<SurfaceMontageViewport>& montageViewports)
-{
-    m_montageViewports[tabIndex] = montageViewports;
-}
-
-/**
- * Get the montage viewports that were drawn for the given tab.
+ * Get the montage viewports for drawing by OpenGL.  The montage viewports
+ * will be updated prior to returning them.   OpenGL will update
+ * the viewing dimensions (x, y, width, height) in the returned montage
+ * viewports.
  *
  * @param tabIndex
- *    Index of the tab.
- * @param montageViewportsOut
- *    The viewports/models that were drawn.
+ *    Tab for which viewports are requested.
+ * @param surfaceMontageViewports
+ *    The montage viewports.
  */
 void
-ModelSurfaceMontage::getMontageViewports(const int32_t tabIndex,
-                                         std::vector<SurfaceMontageViewport>& montageViewportsOut)
+ModelSurfaceMontage::getSurfaceMontageViewportsForDrawing(const int32_t tabIndex,
+                                                          std::vector<SurfaceMontageViewport*>& surfaceMontageViewports)
 {
-    montageViewportsOut = m_montageViewports[tabIndex];
+    SurfaceMontageConfigurationAbstract* config = getSelectedConfiguration(tabIndex);
+    if (config != NULL) {
+        config->getSurfaceMontageViewportsForDrawing(surfaceMontageViewports);
+    }
+    else {
+        surfaceMontageViewports.clear();
+    }
 }
 
+/**
+ * Get the montage viewports that will be used by the mouse transformations.
+ *
+ * @param tabIndex
+ *    Tab for which viewports are requested.
+ * @param surfaceMontageViewports
+ *    The montage viewports.
+ */
+void
+ModelSurfaceMontage::getSurfaceMontageViewportsForTransformation(const int32_t tabIndex,
+                                                                 std::vector<const SurfaceMontageViewport*>& surfaceMontageViewports) const
+{
+    const SurfaceMontageConfigurationAbstract* config = getSelectedConfiguration(tabIndex);
+    if (config != NULL) {
+        config->getSurfaceMontageViewportsForTransformation(surfaceMontageViewports);
+    }
+    else {
+        surfaceMontageViewports.clear();
+    }
+}
 

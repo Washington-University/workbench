@@ -6424,8 +6424,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     
     SurfaceMontageConfigurationAbstract* config = surfaceMontageModel->getSelectedConfiguration(tabIndex);
     
-    std::vector<SurfaceMontageViewport> montageViewports;
-    config->getSurfaceMontageViewports(montageViewports);
+    std::vector<SurfaceMontageViewport*> montageViewports;
+    surfaceMontageModel->getSurfaceMontageViewportsForDrawing(tabIndex,
+                                                              montageViewports);
     if (montageViewports.empty()) {
         return;
     }
@@ -6446,16 +6447,16 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
-        SurfaceMontageViewport& mvp = montageViewports[ivp];
+        SurfaceMontageViewport* mvp = montageViewports[ivp];
         const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel,
-                                                                                     mvp.getSurface(),
+                                                                                     mvp->getSurface(),
                                                                                      this->windowTabIndex);
         float center[3];
-        mvp.getSurface()->getBoundingBox()->getCenter(center);
+        mvp->getSurface()->getBoundingBox()->getCenter(center);
         
-        const int32_t rowFromTop    = mvp.getRow();
+        const int32_t rowFromTop    = mvp->getRow();
         const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
-        const int32_t column = mvp.getColumn();
+        const int32_t column = mvp->getColumn();
         
         const int32_t surfaceViewport[4] = {
             (viewport[0] + (column * vpSizeX)),
@@ -6463,15 +6464,15 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             vpSizeX,
             vpSizeY
         };
-        mvp.setViewport(surfaceViewport);
+        mvp->setViewport(surfaceViewport);
         
         this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
-                                                                 mvp.getProjectionViewType(),
-                                                                 mvp.getSurface());
+                                                                 mvp->getProjectionViewType(),
+                                                                 mvp->getSurface());
         
         this->applyViewingTransformations(center,
-                                          mvp.getProjectionViewType());
-        this->drawSurface(mvp.getSurface(),
+                                          mvp->getProjectionViewType());
+        this->drawSurface(mvp->getSurface(),
                           nodeColoringRGBA);
         
     }
@@ -6912,6 +6913,28 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
     this->orthographicFar    =  1000.0; //500.0; // 10000.0;
     
     switch (projectionType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+            glOrtho(this->orthographicRight, this->orthographicLeft,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicFar, this->orthographicNear);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+            glOrtho(this->orthographicRight, this->orthographicLeft,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicFar, this->orthographicNear);
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:

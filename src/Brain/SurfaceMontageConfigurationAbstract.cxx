@@ -73,6 +73,8 @@ m_supportsLayoutOrientation(supportsLayoutOrientation)
      * they do not need to be saved to the scene:
      *    m_configuration
      *    m_supportsLayoutOrientation
+     *    m_surfaceMontageViewports
+     *    
      */
     m_sceneAssistant->add<SurfaceMontageLayoutOrientationEnum,
                           SurfaceMontageLayoutOrientationEnum::Enum>("m_layoutOrientation",
@@ -231,5 +233,47 @@ SurfaceMontageConfigurationAbstract::setLayoutOrientation(const SurfaceMontageLa
     m_layoutOrientation = layoutOrientation;
 }
 
+/**
+ * Get the montage viewports for drawing by OpenGL.  The montage viewports
+ * will be updated prior to returning them.   OpenGL will update
+ * the viewing dimensions (x, y, width, height) in the returned montage
+ * viewports.
+ *
+ * @param surfaceMontageViewports
+ *    The montage viewports.
+ */
+void
+SurfaceMontageConfigurationAbstract::getSurfaceMontageViewportsForDrawing(std::vector<SurfaceMontageViewport*>& surfaceMontageViewports)
+{
+    m_surfaceMontageViewports.clear();
+    
+    updateSurfaceMontageViewports(m_surfaceMontageViewports);
+
+    for (std::vector<SurfaceMontageViewport>::iterator iter = m_surfaceMontageViewports.begin();
+         iter != m_surfaceMontageViewports.end();
+         iter++) {
+        SurfaceMontageViewport& svp = *iter;
+        surfaceMontageViewports.push_back(&svp);
+    }
+}
+
+/**
+ * Get the montage viewports that will be used by the mouse transformations.
+ *
+ * @param surfaceMontageViewports
+ *    The montage viewports.
+ */
+void
+SurfaceMontageConfigurationAbstract::getSurfaceMontageViewportsForTransformation(std::vector<const SurfaceMontageViewport*>& surfaceMontageViewports) const
+{
+    surfaceMontageViewports.clear();
+    
+    for (std::vector<SurfaceMontageViewport>::const_iterator iter = m_surfaceMontageViewports.begin();
+         iter != m_surfaceMontageViewports.end();
+         iter++) {
+        const SurfaceMontageViewport& svp = *iter;
+        surfaceMontageViewports.push_back(&svp);
+    }
+}
 
 

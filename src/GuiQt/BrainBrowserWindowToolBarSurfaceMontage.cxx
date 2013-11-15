@@ -474,11 +474,11 @@ SurfaceMontageCerebellarComponent::SurfaceMontageCerebellarComponent(BrainBrowse
     QObject::connect(m_ventralCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     
-    m_anteriorCheckBox = new QCheckBox("Posterior");
+    m_anteriorCheckBox = new QCheckBox("Anterior");
     QObject::connect(m_anteriorCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     
-    m_posteriorCheckBox = new QCheckBox("Anterior");
+    m_posteriorCheckBox = new QCheckBox("Posterior");
     QObject::connect(m_posteriorCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     
