@@ -477,6 +477,7 @@ namespace caret {
     private:
         friend class BrainBrowserWindow;
         friend class BrainBrowserWindowToolBarComponent;
+        friend class BrainBrowserWindowToolBarSurfaceMontage;
         
         /**
          * When a tab is selected in Tile Tabs viewing,

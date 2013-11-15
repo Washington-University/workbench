@@ -123,15 +123,15 @@ SurfaceMontageConfigurationTypeEnum::initialize()
 
     enumData.push_back(SurfaceMontageConfigurationTypeEnum(CEREBELLAR_CORTEX_CONFIGURATION, 
                                     "CEREBELLAR_CORTEX_CONFIGURATION", 
-                                    ""));
+                                    "Cerebellar Cortex"));
     
     enumData.push_back(SurfaceMontageConfigurationTypeEnum(CEREBRAL_CORTEX_CONFIGURATION, 
                                     "CEREBRAL_CORTEX_CONFIGURATION", 
-                                    ""));
+                                    "Cerebral Cortex"));
     
     enumData.push_back(SurfaceMontageConfigurationTypeEnum(FLAT_CONFIGURATION, 
                                     "FLAT_CONFIGURATION", 
-                                    ""));
+                                    "Flat Maps"));
     
 }
 

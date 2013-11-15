@@ -123,11 +123,11 @@ SurfaceMontageLayoutOrientationEnum::initialize()
 
     enumData.push_back(SurfaceMontageLayoutOrientationEnum(LANDSCAPE_LAYOUT_ORIENTATION, 
                                     "LANDSCAPE_LAYOUT_ORIENTATION", 
-                                    ""));
+                                    "Landscape"));
     
     enumData.push_back(SurfaceMontageLayoutOrientationEnum(PORTRAIT_LAYOUT_ORIENTATION, 
                                     "PORTRAIT_LAYOUT_ORIENTATION", 
-                                    ""));
+                                    "Portrait"));
     
 }
 

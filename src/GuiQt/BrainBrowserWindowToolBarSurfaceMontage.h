@@ -42,8 +42,11 @@ class QStackedWidget;
 namespace caret {
 
     class BrowserTabContent;
+    class EnumComboBoxTemplate;
     class Surface;
+    class SurfaceMontageCerebellarComponent;
     class SurfaceMontageCerebralComponent;
+    class SurfaceMontageFlatMapsComponent;
     class SurfaceSelectionViewController;
     
     class BrainBrowserWindowToolBarSurfaceMontage : public BrainBrowserWindowToolBarComponent {
@@ -56,21 +59,38 @@ namespace caret {
         virtual ~BrainBrowserWindowToolBarSurfaceMontage();
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
+
+    private slots:
+        void surfaceMontageConfigurationTypeEnumComboBoxItemActivated();
+        
+        void surfaceMontageLayoutOrientationEnumComboBoxItemActivated();
         
     private:
         BrainBrowserWindowToolBarSurfaceMontage(const BrainBrowserWindowToolBarSurfaceMontage&);
 
         BrainBrowserWindowToolBarSurfaceMontage& operator=(const BrainBrowserWindowToolBarSurfaceMontage&);
         
-    private:
+        BrainBrowserWindowToolBar* m_parentToolBar;
+        
         SurfaceMontageCerebralComponent* m_cerebralComponent;
         
+        SurfaceMontageCerebellarComponent* m_cerebellarComponent;
+        
+        SurfaceMontageFlatMapsComponent* m_flatMapsComponent;
+        
         QStackedWidget* m_stackedWidget;
+        
+        EnumComboBoxTemplate* m_surfaceMontageConfigurationTypeEnumComboBox;
+        
+        EnumComboBoxTemplate* m_surfaceMontageLayoutOrientationEnumComboBox;
+        
         // ADD_NEW_MEMBERS_HERE
         
     private slots:
         
     };
+    
+/* ===========================================================================*/
     
     class SurfaceMontageCerebralComponent : public QWidget {
         
@@ -84,21 +104,21 @@ namespace caret {
         void updateContent(BrowserTabContent* browserTabContent);
         
     private slots:
-        void surfaceMontageLeftSurfaceSelected(Surface*);
-        void surfaceMontageLeftSecondSurfaceSelected(Surface*);
-        void surfaceMontageRightSurfaceSelected(Surface*);
-        void surfaceMontageRightSecondSurfaceSelected(Surface*);
-        void surfaceMontageCheckBoxSelected(bool);
+        void leftSurfaceSelected(Surface*);
+        void leftSecondSurfaceSelected(Surface*);
+        void rightSurfaceSelected(Surface*);
+        void rightSecondSurfaceSelected(Surface*);
+        void checkBoxSelected(bool);
         
     private:
         BrainBrowserWindowToolBarSurfaceMontage* m_parentToolBarMontage;
         
-        SurfaceSelectionViewController* m_surfaceMontageLeftSurfaceViewController;
-        SurfaceSelectionViewController* m_surfaceMontageLeftSecondSurfaceViewController;
-        SurfaceSelectionViewController* m_surfaceMontageRightSurfaceViewController;
-        SurfaceSelectionViewController* m_surfaceMontageRightSecondSurfaceViewController;
-        QCheckBox* m_surfaceMontageLeftCheckBox;
-        QCheckBox* m_surfaceMontageRightCheckBox;
+        SurfaceSelectionViewController* m_leftSurfaceViewController;
+        SurfaceSelectionViewController* m_leftSecondSurfaceViewController;
+        SurfaceSelectionViewController* m_rightSurfaceViewController;
+        SurfaceSelectionViewController* m_rightSecondSurfaceViewController;
+        QCheckBox* m_leftCheckBox;
+        QCheckBox* m_rightCheckBox;
         QCheckBox* m_surfaceMontageFirstSurfaceCheckBox;
         QCheckBox* m_surfaceMontageSecondSurfaceCheckBox;
         QCheckBox* m_lateralCheckBox;
@@ -106,6 +126,72 @@ namespace caret {
         
         WuQWidgetObjectGroup* m_widgetGroup;
     };
+    
+/* ===========================================================================*/
+    
+    class SurfaceMontageCerebellarComponent : public QWidget {
+        
+        Q_OBJECT
+        
+    public:
+        SurfaceMontageCerebellarComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage);
+        
+        ~SurfaceMontageCerebellarComponent();
+        
+        void updateContent(BrowserTabContent* browserTabContent);
+        
+    private slots:
+        void firstSurfaceSelected(Surface*);
+        void secondSurfaceSelected(Surface*);
+        void checkBoxSelected(bool);
+        
+    private:
+        BrainBrowserWindowToolBarSurfaceMontage* m_parentToolBarMontage;
+        
+        SurfaceSelectionViewController* m_firstSurfaceViewController;
+        SurfaceSelectionViewController* m_secondSurfaceViewController;
+        QCheckBox* m_firstSurfaceCheckBox;
+        QCheckBox* m_secondSurfaceCheckBox;
+        QCheckBox* m_dorsalCheckBox;
+        QCheckBox* m_ventralCheckBox;
+        QCheckBox* m_anteriorCheckBox;
+        QCheckBox* m_posteriorCheckBox;
+        
+        WuQWidgetObjectGroup* m_widgetGroup;
+    };
+
+    /* ===========================================================================*/
+    
+    class SurfaceMontageFlatMapsComponent : public QWidget {
+        
+        Q_OBJECT
+        
+    public:
+        SurfaceMontageFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage);
+        
+        ~SurfaceMontageFlatMapsComponent();
+        
+        void updateContent(BrowserTabContent* browserTabContent);
+        
+        private slots:
+        void leftSurfaceSelected(Surface*);
+        void rightSurfaceSelected(Surface*);
+        void cerebellumSurfaceSelected(Surface*);
+        void checkBoxSelected(bool);
+        
+    private:
+        BrainBrowserWindowToolBarSurfaceMontage* m_parentToolBarMontage;
+        
+        SurfaceSelectionViewController* m_leftSurfaceViewController;
+        SurfaceSelectionViewController* m_rightSurfaceViewController;
+        SurfaceSelectionViewController* m_cerebellumSurfaceViewController;
+        QCheckBox* m_leftSurfaceCheckBox;
+        QCheckBox* m_rightSurfaceCheckBox;
+        QCheckBox* m_cerebellumSurfaceCheckBox;
+        
+        WuQWidgetObjectGroup* m_widgetGroup;
+    };
+    
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_SURFACE_MONTAGE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_SURFACE_MONTAGE_DECLARE__

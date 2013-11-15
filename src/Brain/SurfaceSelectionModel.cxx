@@ -312,6 +312,11 @@ SurfaceSelectionModel::updateSelection() const
 {
     std::vector<Surface*> surfaces = getAvailableSurfaces();
     
+    if (surfaces.empty()) {
+        m_selectedSurface = NULL;
+        return;
+    }
+    
     if (m_selectedSurface != NULL) {
         if (std::find(surfaces.begin(),
                       surfaces.end(),
@@ -327,24 +332,30 @@ SurfaceSelectionModel::updateSelection() const
         const int32_t numBrainStructures = brainStructureEvent.getNumberOfBrainStructures();
         for (int32_t i = 0; i < numBrainStructures; i++) {
             BrainStructure* bs = brainStructureEvent.getBrainStructureByIndex(i);
-            m_selectedSurface = bs->getVolumeInteractionSurface();
             
-//            if (m_allowableStructures.empty()) {
-//                m_selectedSurface = bs->getVolumeInteractionSurface();
-//            }
-//            else {
-//                const StructureEnum::Enum structure = bs->getStructure();
-//                if (std::find(m_allowableStructures.begin(),
-//                              m_allowableStructures.end(),
-//                              structure) != m_allowableStructures.end()) {
-//                    m_selectedSurface = bs->getVolumeInteractionSurface();
-//                }
-//            }
+            /*
+             * Use the volume interaction surface if it is acceptable
+             */
+            Surface* volumeInteractionSurface = NULL;
             
-            if (m_selectedSurface != NULL) {
+            if (m_allowableStructures.empty()) {
+                volumeInteractionSurface = bs->getVolumeInteractionSurface();
+            }
+            else {
+                const StructureEnum::Enum structure = bs->getStructure();
+                if (std::find(m_allowableStructures.begin(),
+                              m_allowableStructures.end(),
+                              structure) != m_allowableStructures.end()) {
+                    volumeInteractionSurface = bs->getVolumeInteractionSurface();
+                    break;
+                }
+            }
+            
+            if (volumeInteractionSurface != NULL) {
                 if (std::find(surfaces.begin(),
                               surfaces.end(),
-                              m_selectedSurface) != surfaces.end()) {
+                              volumeInteractionSurface) != surfaces.end()) {
+                    m_selectedSurface = volumeInteractionSurface;
                     break;
                 }
             }

@@ -426,23 +426,51 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
     return surface;
 }
 
+/**
+ * Get the selected configuration for the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab for the selected configuration.
+ */
 SurfaceMontageConfigurationAbstract*
 ModelSurfaceMontage::getSelectedConfiguration(const int32_t tabIndex)
 {
-    CaretAssertArrayIndex(m_cerebralConfiguration,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_cerebralConfiguration[tabIndex];
+    switch (getSelectedConfigurationType(tabIndex)) {
+        case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+            CaretAssertArrayIndex(m_cerebellarConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            return m_cerebellarConfiguration[tabIndex];
+            break;
+        case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+            CaretAssertArrayIndex(m_cerebralConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            return m_cerebralConfiguration[tabIndex];
+            break;
+        case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+            CaretAssertArrayIndex(m_flatMapsConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            return m_flatMapsConfiguration[tabIndex];
+            break;
+    }
+
+    return NULL;
 }
 
 
+/**
+ * Get the selected configuration for the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab for the selected configuration.
+ */
 const SurfaceMontageConfigurationAbstract*
 ModelSurfaceMontage::getSelectedConfiguration(const int32_t tabIndex) const
 {
-    CaretAssertArrayIndex(m_cerebralConfiguration,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          tabIndex);
-    return m_cerebralConfiguration[tabIndex];
+    ModelSurfaceMontage* msm = const_cast<ModelSurfaceMontage*>(this);
+    return msm->getSelectedConfiguration(tabIndex);
 }
 
 /**

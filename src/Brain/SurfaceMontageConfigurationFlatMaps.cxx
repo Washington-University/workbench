@@ -115,7 +115,6 @@ SurfaceMontageConfigurationFlatMaps::~SurfaceMontageConfigurationFlatMaps()
 void
 SurfaceMontageConfigurationFlatMaps::initializeSelectedSurfaces()
 {
-    
 }
 
 /**
@@ -228,6 +227,45 @@ void
 SurfaceMontageConfigurationFlatMaps::getSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports)
 {
     surfaceMontageViewports.clear();
+    
+    if (m_leftEnabled) {
+        Surface* leftSurface = m_leftSurfaceSelectionModel->getSurface();
+        if (leftSurface != NULL) {
+            SurfaceMontageViewport smv(leftSurface,
+                                       ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE);
+            surfaceMontageViewports.push_back(smv);
+        }
+    }
+    
+    if (m_rightEnabled) {
+        Surface* rightSurface = m_rightSurfaceSelectionModel->getSurface();
+        if (rightSurface != NULL) {
+            SurfaceMontageViewport smv(rightSurface,
+                                       ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE);
+            surfaceMontageViewports.push_back(smv);
+        }
+    }
+    
+    if (m_cerebellumEnabled) {
+//        Surface* cerebellumSurface = m_cerebellumSurfaceSelectionModel->getSurface();
+//        if (cerebellumSurface != NULL) {
+//            SurfaceMontageViewport smv(cerebellumSurface,
+//                                       ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE);
+//            surfaceMontageViewports.push_back(smv);
+//        }
+    }
+    
+    const int32_t numSurfaces = static_cast<int32_t>(surfaceMontageViewports.size());
+    for (int32_t i = 0; i < numSurfaces; i++) {
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[i].setRowAndColumn(0, i);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[i].setRowAndColumn(i, 0);
+                break;
+        }
+    }
 }
 
 /**
