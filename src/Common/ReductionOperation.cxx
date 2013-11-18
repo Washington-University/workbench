@@ -161,6 +161,18 @@ float ReductionOperation::reduce(const float* data, const int64_t& numElems, con
             }
             return bestval;
         }
+        case ReductionEnum::COUNT_NONZERO:
+        {
+            int64_t count = 0;
+            for (int64_t i = 0; i < numElems; ++i)
+            {
+                if (data[i] != 0.0f)
+                {
+                    ++count;
+                }
+            }
+            return count;
+        }
     }
     return 0.0f;
 }

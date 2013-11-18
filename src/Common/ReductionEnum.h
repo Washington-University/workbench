@@ -55,7 +55,8 @@ public:
             SAMPSTDEV,
             VARIANCE,
             MEDIAN,
-            MODE
+            MODE,
+            COUNT_NONZERO
     };
 
     ~ReductionEnum();
