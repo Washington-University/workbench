@@ -118,7 +118,7 @@ ViewingTransformationsCerebellum::resetView()
 void
 ViewingTransformationsCerebellum::dorsalView()
 {
-    m_rotationMatrix->setRotation(30.0, 0.0, 0.0);
+    m_rotationMatrix->setRotation(0.0, 0.0, 0.0);
 }
 
 /**

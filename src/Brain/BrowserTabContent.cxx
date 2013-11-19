@@ -480,6 +480,13 @@ BrowserTabContent::isCerebellumDisplayed() const
         }
     }
     
+    const ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
+    if (montageModel != NULL) {
+        if (montageModel->getSelectedConfigurationType(getTabNumber()) == SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION) {
+            return true;
+        }
+    }
+    
     return false;
 }
 
@@ -533,6 +540,19 @@ BrowserTabContent::getDisplayedSurfaceMontageModel()
 {
     ModelSurfaceMontage* mdcsm =
     dynamic_cast<ModelSurfaceMontage*>(getModelControllerForDisplay());
+    return mdcsm;
+}
+
+/**
+ * @return Pointer to displayed surface montage model
+ * or NULL if the displayed model is not a surface
+ * montage model.
+ */
+const ModelSurfaceMontage*
+BrowserTabContent::getDisplayedSurfaceMontageModel() const
+{
+    const ModelSurfaceMontage* mdcsm =
+    dynamic_cast<const ModelSurfaceMontage*>(getModelControllerForDisplay());
     return mdcsm;
 }
 
@@ -1676,12 +1696,80 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
         }
     }
     else if (isCerebellumDisplayed()) {
-        float dx = mouseDeltaX;
-        float dy = mouseDeltaY;
+        const float screenDX = mouseDeltaX;
+        const float screenDY = mouseDeltaY;
         
+        float rotateDX = 0.0;
+        float rotateDY = 0.0;
+        float rotateDZ = 0.0;
+        
+        ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
+        if (montageModel != NULL) {
+            std::vector<const SurfaceMontageViewport*> montageViewports;
+            montageModel->getSurfaceMontageViewportsForTransformation(getTabNumber(),
+                                                                      montageViewports);
+            
+            bool foundMontageViewportFlag = false;
+            
+            const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+            for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+                const SurfaceMontageViewport* smv = montageViewports[ivp];
+                
+                if (smv->isInside(mousePressX,
+                                  mousePressY)) {
+                    switch (smv->getProjectionViewType()) {
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                            rotateDX =  screenDY;
+                            //rotateDY =  screenDX;
+                            rotateDZ =  screenDX;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                            rotateDX = -screenDY;
+                            rotateDY =  screenDX;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                            rotateDX =  -screenDY;
+                            rotateDZ =   screenDX;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                            rotateDX = -screenDY;
+                            rotateDY = -screenDX;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                            break;
+                    }
+                }
+                if (foundMontageViewportFlag) {
+                    break;
+                }
+            }
+        }
+        else {
+            rotateDX = -screenDX;
+            rotateDY = screenDY;
+        }
+                
         Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
-        rotationMatrix.rotateX(-dy);
-        rotationMatrix.rotateY(dx);
+        rotationMatrix.rotateX(rotateDX);
+        rotationMatrix.rotateY(rotateDY);
+        rotationMatrix.rotateZ(rotateDZ);
         m_cerebellumViewingTransformation->setRotationMatrix(rotationMatrix);
     }
     else {
@@ -1920,19 +2008,82 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         m_volumeSliceViewingTransformation->setTranslation(translation);
     }
     else if (isCerebellumDisplayed()) {
-        float dx = mouseDX;
-        float dy = mouseDY;
+        const float screenDX = mouseDX;
+        const float screenDY = mouseDY;
         
-        if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL) {
-            dx = -dx;
+        float translateDX = 0.0;
+        float translateDY = 0.0;
+        float translateDZ = 0.0;
+        
+        ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
+        if (montageModel != NULL) {
+            std::vector<const SurfaceMontageViewport*> montageViewports;
+            montageModel->getSurfaceMontageViewportsForTransformation(getTabNumber(),
+                                                                      montageViewports);
+            
+            bool foundMontageViewportFlag = false;
+            
+            const int32_t numViewports = static_cast<int32_t>(montageViewports.size());
+            for (int32_t ivp = 0; ivp < numViewports; ivp++) {
+                const SurfaceMontageViewport* smv = montageViewports[ivp];
+                
+                if (smv->isInside(mousePressX,
+                                  mousePressY)) {
+                    switch (smv->getProjectionViewType()) {
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                            translateDX = -screenDX;
+                            translateDZ =  screenDY;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                            translateDX = screenDX;
+                            translateDY = screenDY;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                            translateDX = screenDX;
+                            translateDZ = screenDY;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                            translateDX =  screenDX;
+                            translateDY = -screenDY;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                            translateDX = screenDX;
+                            translateDY = screenDY;
+                            foundMontageViewportFlag = true;
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                            break;
+                    }
+                }
+                if (foundMontageViewportFlag) {
+                    break;
+                }
+            }
         }
-        else if (getProjectionViewType() == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE) {
-            dx = -dx;
+        else {
+            translateDX = screenDX;
+            translateDY = screenDY;
         }
+
         float translation[3];
         m_cerebellumViewingTransformation->getTranslation(translation);
-        translation[0] += dx;
-        translation[1] += dy;
+        translation[0] += translateDX;
+        translation[1] += translateDY;
+        translation[2] += translateDZ;
         m_cerebellumViewingTransformation->setTranslation(translation);
     }
     else {
@@ -1985,9 +2136,9 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                             isLateral = false;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
-                            break;
                             isLeft = false;
                             isLateral = true;
+                            break;
                     }
                     isValid = true;
                 }
@@ -2047,6 +2198,9 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
                                                       double rotationMatrixOut[16],
                                                       float& scalingOut) const
 {
+    /*
+     * Check for volume slice viewing
+     */
     if (isVolumeSlicesDisplayed()) {
         m_volumeSliceViewingTransformation->getTranslation(translationOut);
         
@@ -2054,73 +2208,177 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
         
         scalingOut = m_volumeSliceViewingTransformation->getScaling();
+        
+        return;
     }
-    else if (isCerebellumDisplayed()) {
+    
+    /*
+     * Surfaces may need a modification to the rotation matrix
+     * dependent upon the projection view type.
+     */
+    
+    Matrix4x4 rotationMatrix;
+    
+    if (isCerebellumDisplayed()) {
         m_cerebellumViewingTransformation->getTranslation(translationOut);
         
-        Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
-        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
+        rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
         
         scalingOut = m_cerebellumViewingTransformation->getScaling();
     }
     else {
         m_viewingTransformation->getTranslation(translationOut);
 
-        Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
-        double rotationX, rotationY, rotationZ;
-        rotationMatrix.getRotation(rotationX,
-                                      rotationY,
-                                      rotationZ);
-        const double rotationFlippedX = -rotationX;
-        const double rotationFlippedY = 180.0 - rotationY;
-        
-        switch (projectionViewType) {
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
-                rotationX =     0.0;
-                rotationY =     0.0;
-                rotationZ =     0.0;
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
-                rotationX =     0.0;
-                rotationY =     0.0;
-                rotationZ =     0.0;
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
-                rotationX = rotationFlippedX;
-                rotationY = rotationFlippedY;
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
-                rotationX = rotationFlippedX;
-                rotationY = rotationFlippedY;
-                break;
-            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
-                rotationX =   0.0;
-                rotationY = 180.0;
-                rotationZ =   0.0;
-                break;
-        }
-        
-        Matrix4x4 matrix;
-        matrix.setRotation(rotationX,
-                           rotationY,
-                           rotationZ);
-        matrix.getMatrixForOpenGL(rotationMatrixOut);
+        rotationMatrix = m_viewingTransformation->getRotationMatrix();
         
         scalingOut = m_viewingTransformation->getScaling();
     }
+    
+    
+    double rotationX, rotationY, rotationZ;
+    rotationMatrix.getRotation(rotationX,
+                               rotationY,
+                               rotationZ);
+    const double rotationFlippedX = -rotationX;
+    const double rotationFlippedY = 180.0 - rotationY;
+    
+    switch (projectionViewType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+//            rotationX +=  90.0;
+//            rotationY -= 180.0;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+//            rotationX -= 90.0;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+//            rotationY += 180.0;
+//            rotationZ += 180.0;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+            rotationX =     0.0;
+            rotationY =     0.0;
+            rotationZ =     0.0;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+            rotationX =     0.0;
+            rotationY =     0.0;
+            rotationZ =     0.0;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+            rotationX = rotationFlippedX;
+            rotationY = rotationFlippedY;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+            rotationX = rotationFlippedX;
+            rotationY = rotationFlippedY;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            rotationX =   0.0;
+            rotationY = 180.0;
+            rotationZ =   0.0;
+            break;
+    }
+    
+    Matrix4x4 matrix;
+    matrix.setRotation(rotationX,
+                       rotationY,
+                       rotationZ);
+    matrix.getMatrixForOpenGL(rotationMatrixOut);
 }
+
+//void
+//BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEnum::Enum projectionViewType,
+//                                                      float translationOut[3],
+//                                                      double rotationMatrixOut[16],
+//                                                      float& scalingOut) const
+//{
+//    if (isVolumeSlicesDisplayed()) {
+//        m_volumeSliceViewingTransformation->getTranslation(translationOut);
+//        
+//        Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
+//        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
+//        
+//        scalingOut = m_volumeSliceViewingTransformation->getScaling();
+//    }
+//    else if (isCerebellumDisplayed()) {
+//        m_cerebellumViewingTransformation->getTranslation(translationOut);
+//        
+//        Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
+//        
+//        
+//        
+//        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
+//        
+//        scalingOut = m_cerebellumViewingTransformation->getScaling();
+//    }
+//    else {
+//        m_viewingTransformation->getTranslation(translationOut);
+//        
+//        Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
+//        double rotationX, rotationY, rotationZ;
+//        rotationMatrix.getRotation(rotationX,
+//                                   rotationY,
+//                                   rotationZ);
+//        const double rotationFlippedX = -rotationX;
+//        const double rotationFlippedY = 180.0 - rotationY;
+//        
+//        switch (projectionViewType) {
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+//                rotationY += 180.0;
+//                rotationZ += 180.0;
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+//                rotationX -= 90.0;
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+//                rotationX =     0.0;
+//                rotationY =     0.0;
+//                rotationZ =     0.0;
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+//                rotationX =     0.0;
+//                rotationY =     0.0;
+//                rotationZ =     0.0;
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+//                rotationX = rotationFlippedX;
+//                rotationY = rotationFlippedY;
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+//                rotationX = rotationFlippedX;
+//                rotationY = rotationFlippedY;
+//                break;
+//            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+//                rotationX =   0.0;
+//                rotationY = 180.0;
+//                rotationZ =   0.0;
+//                break;
+//        }
+//        
+//        Matrix4x4 matrix;
+//        matrix.setRotation(rotationX,
+//                           rotationY,
+//                           rotationZ);
+//        matrix.getMatrixForOpenGL(rotationMatrixOut);
+//        
+//        scalingOut = m_viewingTransformation->getScaling();
+//    }
+//}
+
 
 /**
  * Place the transformations for the given window tab into

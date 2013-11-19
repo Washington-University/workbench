@@ -105,6 +105,8 @@ namespace caret {
         
         ModelSurfaceMontage* getDisplayedSurfaceMontageModel();
         
+        const ModelSurfaceMontage* getDisplayedSurfaceMontageModel() const;
+        
         const std::vector<ModelSurface*> getAllSurfaceModels() const;
         
         ModelSurfaceSelector* getSurfaceModelSelector();

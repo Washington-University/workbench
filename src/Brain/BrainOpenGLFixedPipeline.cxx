@@ -692,6 +692,67 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    float eyeX = 0.0;
+    float eyeY = 0.0;
+    float eyeZ = 0.0;
+    
+    float centerX = 0.0;
+    float centerY = 0.0;
+    float centerZ = 0.0;
+    
+    float upX = 0.0;
+    float upY = 0.0;
+    float upZ = 0.0;
+    
+    bool useGluLookAt = false;
+    
+    switch (projectionViewType) {
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+            eyeY = 5.0;
+            upZ  = 1.0;
+            useGluLookAt = true;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+            eyeZ = 5.0;
+            upY  = 1.0;
+            useGluLookAt = true;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+            eyeY = -5.0;
+            upZ  =  1.0;
+            useGluLookAt = true;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+            eyeZ = -5.0;
+            upY  = -1.0;
+            useGluLookAt = true;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+            eyeZ = 5.0;
+            upY  = 1.0;
+            useGluLookAt = true;
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+            break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+            break;
+    }
+
+    if (useGluLookAt) {
+        gluLookAt(eyeX, eyeY, eyeZ,
+                  centerX, centerY, centerZ,
+                  upX, upY, upZ);
+    }
+
     
     float translation[3];
     double rotationMatrixElements[16];
@@ -6422,8 +6483,6 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
 {
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
-    SurfaceMontageConfigurationAbstract* config = surfaceMontageModel->getSelectedConfiguration(tabIndex);
-    
     std::vector<SurfaceMontageViewport*> montageViewports;
     surfaceMontageModel->getSurfaceMontageViewportsForDrawing(tabIndex,
                                                               montageViewports);
@@ -6914,26 +6973,32 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
     
     switch (projectionType) {
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-            glOrtho(this->orthographicLeft, this->orthographicRight,
-                    this->orthographicBottom, this->orthographicTop,
-                    this->orthographicNear, this->orthographicFar);
-            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicNear, this->orthographicFar);
             break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-            glOrtho(this->orthographicRight, this->orthographicLeft,
-                    this->orthographicBottom, this->orthographicTop,
-                    this->orthographicFar, this->orthographicNear);
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-            glOrtho(this->orthographicRight, this->orthographicLeft,
-                    this->orthographicBottom, this->orthographicTop,
-                    this->orthographicFar, this->orthographicNear);
-            break;
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+//            glOrtho(this->orthographicLeft, this->orthographicRight,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicNear, this->orthographicFar);
+//            break;
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+//            glOrtho(this->orthographicRight, this->orthographicLeft,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicFar, this->orthographicNear);
+//            break;
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+//            glOrtho(this->orthographicRight, this->orthographicLeft,
+//                    this->orthographicBottom, this->orthographicTop,
+//                    this->orthographicFar, this->orthographicNear);
+//            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+            glOrtho(this->orthographicLeft, this->orthographicRight,
+                    this->orthographicBottom, this->orthographicTop,
+                    this->orthographicNear, this->orthographicFar);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
