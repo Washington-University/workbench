@@ -860,7 +860,7 @@ ModelSurfaceMontage::restoreFromSceneVersionTwoAndEarlier(const SceneAttributes*
             SurfaceSelectionModel* ssm = m_cerebralConfiguration[key]->getLeftFirstSurfaceSelectionModel();
             
             ssm->restoreFromScene(sceneAttributes,
-                                                               surfaceClass);
+                                  surfaceClass);
         }
     }
     
@@ -882,7 +882,7 @@ ModelSurfaceMontage::restoreFromSceneVersionTwoAndEarlier(const SceneAttributes*
             SurfaceSelectionModel* ssm = m_cerebralConfiguration[key]->getLeftSecondSurfaceSelectionModel();
             
             ssm->restoreFromScene(sceneAttributes,
-                                                                     surfaceClass);
+                                  surfaceClass);
         }
     }
     
@@ -904,7 +904,7 @@ ModelSurfaceMontage::restoreFromSceneVersionTwoAndEarlier(const SceneAttributes*
             SurfaceSelectionModel* ssm = m_cerebralConfiguration[key]->getRightFirstSurfaceSelectionModel();
             
             ssm->restoreFromScene(sceneAttributes,
-                                                                surfaceClass);
+                                  surfaceClass);
         }
     }
     
@@ -926,7 +926,7 @@ ModelSurfaceMontage::restoreFromSceneVersionTwoAndEarlier(const SceneAttributes*
             SurfaceSelectionModel* ssm = m_cerebralConfiguration[key]->getRightSecondSurfaceSelectionModel();
             
             ssm->restoreFromScene(sceneAttributes,
-                                                                      surfaceClass);
+                                  surfaceClass);
         }
     }
     
