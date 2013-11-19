@@ -1762,10 +1762,10 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             }
         }
         else {
-            rotateDX = -screenDX;
-            rotateDY = screenDY;
+            rotateDX = -screenDY;
+            rotateDY =  screenDX;
         }
-                
+        
         Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
         rotationMatrix.rotateX(rotateDX);
         rotationMatrix.rotateY(rotateDY);
