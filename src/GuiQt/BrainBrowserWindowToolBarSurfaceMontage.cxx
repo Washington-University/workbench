@@ -149,6 +149,7 @@ BrainBrowserWindowToolBarSurfaceMontage::surfaceMontageConfigurationTypeEnumComb
     
     updateContent(btc);
     invalidateColoringAndUpdateGraphicsWindow();
+    m_parentToolBar->updateUserInterface();
 }
 
 /**

@@ -1189,8 +1189,11 @@ OverlaySet::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes, 
                                   sceneClass);
     
+//    const int32_t numOverlaysToSave = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
+    const int32_t numOverlaysToSave = getNumberOfDisplayedOverlays();
+    
     std::vector<SceneClass*> overlayClassVector;
-    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+    for (int i = 0; i < numOverlaysToSave; i++) {
         overlayClassVector.push_back(m_overlays[i]->saveToScene(sceneAttributes, "m_overlays"));
     }
     

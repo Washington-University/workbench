@@ -112,7 +112,7 @@ namespace caret {
         
         SurfaceMontageConfigurationFlatMaps* m_flatMapsConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceMontageConfigurationTypeEnum::Enum m_selectedConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        SurfaceMontageConfigurationTypeEnum::Enum m_selectedConfigurationType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 } // namespace

@@ -64,7 +64,7 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
     validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectedConfiguration[i] = SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION;
+        m_selectedConfigurationType[i] = SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION;
         
         m_cerebellarConfiguration[i] = new SurfaceMontageConfigurationCerebellar();
         m_cerebralConfiguration[i] = new SurfaceMontageConfigurationCerebral();
@@ -374,14 +374,15 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
                                     const int32_t windowTabNumber)
 
 {
-    SurfaceSelectionModel* selectionModel = NULL;
+    std::vector<SurfaceSelectionModel*> selectionModels;
     
     switch (getSelectedConfigurationType(windowTabNumber)) {
         case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
         {
             SurfaceMontageConfigurationCerebellar* smcc = getCerebellarConfiguration(windowTabNumber);
             if (structure == StructureEnum::CEREBELLUM) {
-                selectionModel = smcc->getFirstSurfaceSelectionModel();
+                selectionModels.push_back(smcc->getFirstSurfaceSelectionModel());
+                selectionModels.push_back(smcc->getSecondSurfaceSelectionModel());
             }
         }
             break;
@@ -390,10 +391,12 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
             SurfaceMontageConfigurationCerebral* smcc = getCerebralConfiguration(windowTabNumber);
             switch (structure) {
                 case StructureEnum::CORTEX_LEFT:
-                    selectionModel = smcc->getLeftFirstSurfaceSelectionModel();
+                    selectionModels.push_back(smcc->getLeftFirstSurfaceSelectionModel());
+                    selectionModels.push_back(smcc->getLeftSecondSurfaceSelectionModel());
                     break;
                 case StructureEnum::CORTEX_RIGHT:
-                    selectionModel = smcc->getRightFirstSurfaceSelectionModel();
+                    selectionModels.push_back(smcc->getRightFirstSurfaceSelectionModel());
+                    selectionModels.push_back(smcc->getRightSecondSurfaceSelectionModel());
                     break;
                 default:
                     break;
@@ -405,12 +408,12 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
             SurfaceMontageConfigurationFlatMaps* smcfm = getFlatMapsConfiguration(windowTabNumber);
             switch (structure) {
                 case StructureEnum::CEREBELLUM:
-                    selectionModel = smcfm->getCerebellumSurfaceSelectionModel();
+                    selectionModels.push_back(smcfm->getCerebellumSurfaceSelectionModel());
                 case StructureEnum::CORTEX_LEFT:
-                    selectionModel = smcfm->getLeftSurfaceSelectionModel();
+                    selectionModels.push_back(smcfm->getLeftSurfaceSelectionModel());
                     break;
                 case StructureEnum::CORTEX_RIGHT:
-                    selectionModel = smcfm->getRightSurfaceSelectionModel();
+                    selectionModels.push_back(smcfm->getRightSurfaceSelectionModel());
                     break;
                 default:
                     break;
@@ -419,11 +422,19 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
             break;
     }
     
-    Surface* surface = NULL;
-    if (selectionModel != NULL) {
-        surface = selectionModel->getSurface();
+    Surface* surfaceOut = NULL;
+    
+    for (std::vector<SurfaceSelectionModel*>::iterator iter = selectionModels.begin();
+         iter != selectionModels.end();
+         iter++) {
+        SurfaceSelectionModel* sm = *iter;
+        if (sm != NULL) {
+            surfaceOut = sm->getSurface();
+            break;
+        }
     }
-    return surface;
+
+    return surfaceOut;
 }
 
 /**
@@ -482,7 +493,7 @@ ModelSurfaceMontage::getSelectedConfiguration(const int32_t tabIndex) const
 SurfaceMontageConfigurationTypeEnum::Enum
 ModelSurfaceMontage::getSelectedConfigurationType(const int32_t tabIndex) const
 {
-    return m_selectedConfiguration[tabIndex];
+    return m_selectedConfigurationType[tabIndex];
 }
 
 /**
@@ -497,7 +508,7 @@ void
 ModelSurfaceMontage::setSelectedConfigurationType(const int32_t tabIndex,
                                                   const SurfaceMontageConfigurationTypeEnum::Enum configurationType)
 {
-    m_selectedConfiguration[tabIndex] = configurationType;
+    m_selectedConfigurationType[tabIndex] = configurationType;
 }
 
 /**
@@ -627,12 +638,17 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
     SceneObjectMapIntegerKey* flatConfigurationMap = new SceneObjectMapIntegerKey("m_flatMapsConfiguration",
                                                                              SceneObjectDataTypeEnum::SCENE_CLASS);
     
+
     /*
      * Get indices of tabs that are to be saved to scene.
-     */ 
+     */
     const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
-    const int32_t numActiveTabs = static_cast<int32_t>(tabIndices.size()); 
+    const int32_t numActiveTabs = static_cast<int32_t>(tabIndices.size());
     
+    sceneClass->addEnumeratedTypeArrayForTabIndices<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>("m_selectedConfigurationType",
+                                                                                                                      m_selectedConfigurationType,
+                                                                                                                      tabIndices);
+
     for (int32_t i = 0; i < numActiveTabs; i++) {
         const int32_t tabIndex = tabIndices[i];
         const AString tabString = ("[" + AString::number(tabIndex) + "]");
@@ -795,6 +811,9 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
                                                                  flatClass);
             }
         }
+        
+        sceneClass->getEnumerateTypeArrayForTabIndices<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>("m_selectedConfigurationType",
+                                                                                                                                      m_selectedConfigurationType);
     }
     else {
         restoreFromSceneVersionTwoAndEarlier(sceneAttributes,

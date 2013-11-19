@@ -69,7 +69,7 @@ SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
                                                                   validSurfaceTypes);
     m_leftEnabled = true;
     m_rightEnabled = true;
-    m_cerebellumEnabled = false;
+    m_cerebellumEnabled = true;
     
     m_sceneAssistant = new SceneClassAssistant();
     

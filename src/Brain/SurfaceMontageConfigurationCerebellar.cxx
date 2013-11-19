@@ -448,6 +448,31 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
             CaretAssert(0);
         }
     }
+    else if (totalNum == 6) {
+        surfaceMontageViewports.insert(surfaceMontageViewports.end(),
+                                       allViewports.begin(),
+                                       allViewports.end());
+        CaretAssert(surfaceMontageViewports.size() == 6);
+        
+        switch (getLayoutOrientation()) {
+            case SurfaceMontageLayoutOrientationEnum::LANDSCAPE_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(1, 0);
+                surfaceMontageViewports[2].setRowAndColumn(0, 1);
+                surfaceMontageViewports[3].setRowAndColumn(1, 1);
+                surfaceMontageViewports[4].setRowAndColumn(0, 2);
+                surfaceMontageViewports[5].setRowAndColumn(1, 2);
+                break;
+            case SurfaceMontageLayoutOrientationEnum::PORTRAIT_LAYOUT_ORIENTATION:
+                surfaceMontageViewports[0].setRowAndColumn(0, 0);
+                surfaceMontageViewports[1].setRowAndColumn(0, 1);
+                surfaceMontageViewports[2].setRowAndColumn(1, 0);
+                surfaceMontageViewports[3].setRowAndColumn(1, 1);
+                surfaceMontageViewports[4].setRowAndColumn(2, 0);
+                surfaceMontageViewports[5].setRowAndColumn(2, 1);
+                break;
+        }
+    }
     else if (totalNum == 8) {
         surfaceMontageViewports.insert(surfaceMontageViewports.end(),
                                        allViewports.begin(),
