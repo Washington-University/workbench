@@ -46,7 +46,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BugReportDialog(QWidget* parent);
+        BugReportDialog(QWidget* parent,
+                        const AString& openGLInformation);
         
         virtual ~BugReportDialog();
         
@@ -66,9 +67,10 @@ namespace caret {
         
         void copyToEmail();
         
-    private:
-        
+    private:        
         QTextEdit* m_textEdit;
+        
+        QString m_emailAddressURL;
         
         // ADD_NEW_MEMBERS_HERE
 

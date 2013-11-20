@@ -120,7 +120,8 @@ namespace caret {
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
         
-        void processShowBugReportDialog(BrainBrowserWindow* browserWindow);
+        void processShowBugReportDialog(BrainBrowserWindow* browserWindow,
+                                        const AString& openGLInformation);
         void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);

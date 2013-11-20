@@ -36,6 +36,7 @@
 #include <QClipboard>
 #include <QDesktopServices>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QPushButton>
 #include <QTextEdit>
 #include <QUrl>
@@ -61,16 +62,27 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parent
+ *    Parent on which this dialog is displayed.
+ * @param openGLInformation
+ *    Information about OpenGL.
  */
-BugReportDialog::BugReportDialog(QWidget* parent)
+BugReportDialog::BugReportDialog(QWidget* parent,
+                                 const AString& openGLInformation)
 : WuQDialogNonModal("Report Workbench Bug",
                     parent)
 {
+    const AString emailAddress("john@brainvis.wustl.edu");
+    m_emailAddressURL = ("mailto:"
+                         + emailAddress
+                         + "?subject=Workbench Bug Report");
+    
     const AString newLines("\n\n");
     
     AString bugInfo;
     
-    bugInfo.appendWithNewLine("Please address each of the numbered items and then submit your bug report:\n");
+    bugInfo.appendWithNewLine("");
     
     bugInfo.appendWithNewLine("(1) SUMMARY_OF_PROBLEM"
                               + newLines);
@@ -87,11 +99,34 @@ BugReportDialog::BugReportDialog(QWidget* parent)
     bugInfo.appendWithNewLine("(5) NAME OF UPDLOADE DATA ZIP FILE"
                               + newLines);
     
+    bugInfo.appendWithNewLine("-----------------------------------");
     bugInfo.appendWithNewLine("DO NOT CHANGE TEXT BELOW THIS LINE:\n");
+    
     bugInfo.appendWithNewLine(ApplicationInformation().getAllInformationInString("\n\n"));
     
+    bugInfo.appendWithNewLine(openGLInformation);
     
+    const AString hcpURL("http://humanconnectome.org/connectome/get-connectome-workbench.html");
+    const AString infoMessage = ("<html>You are using Workbench version "
+                                 + ApplicationInformation().getVersion()
+                                 + ".  Check for a newer release of Workbench at <a href=\""
+                                 + hcpURL
+                                 + "\">"
+                                 + hcpURL
+                                 + "</a>."
+                                 + "  If there is a newer version of Workbench, please download it and "
+                                 + "verify that the bug has not been fixed."
+                                 + "<br><br>"
+                                 + "Please address each of the numbered items in the text below and then submit your bug report."
+                                 + "<br><br>"
+                                 + "Email the bug report to: "
+                                 + emailAddress
+                                 //+ "<a href=\"mailto:" + m_emailAddressURL + "\">" + emailAddress + "</a>"
+                                 + "</html>");
     
+    QLabel* versionLabel = new QLabel(infoMessage);
+    versionLabel->setWordWrap(true);
+    versionLabel->setOpenExternalLinks(true);
     
     m_textEdit = new QTextEdit();
     m_textEdit->setMinimumSize(600, 600);
@@ -114,6 +149,8 @@ BugReportDialog::BugReportDialog(QWidget* parent)
     
     QWidget* contentWidget = new QWidget;
     QVBoxLayout* layout = new QVBoxLayout(contentWidget);
+    layout->addWidget(versionLabel, 0);
+    layout->addSpacing(8);
     layout->addWidget(m_textEdit, 1000);
     layout->addLayout(buttonsLayout, 0);
     
@@ -141,9 +178,9 @@ BugReportDialog::copyToClipboard()
 void
 BugReportDialog::copyToEmail()
 {
-    const AString mailURL = ("mailto:john@brainvis.wustl.edu"
-                             "?subject=Bug Report"
-                             "&body=" + m_textEdit->toPlainText().trimmed());
+    const AString mailURL = (m_emailAddressURL
+                             + "&body="
+                             + m_textEdit->toPlainText().trimmed());
     QUrl url(mailURL);
     QDesktopServices::openUrl(url);
 }

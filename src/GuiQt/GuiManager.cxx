@@ -1214,11 +1214,21 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
     }
 }
 
+/**
+ * Show the Workbench Bug Report Dialog.
+ *
+ * @param browserWindow
+ *    Parent of dialog if it needs to be created.
+ * @param openGLInformation
+ *    Information about OpenGL.
+ */
 void
-GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow)
+GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
+                                       const AString& openGLInformation)
 {
     if (m_bugReportDialog == NULL) {
-        m_bugReportDialog = new BugReportDialog(browserWindow);
+        m_bugReportDialog = new BugReportDialog(browserWindow,
+                                                openGLInformation);
         this->nonModalDialogs.push_back(m_customViewDialog);
     }
     

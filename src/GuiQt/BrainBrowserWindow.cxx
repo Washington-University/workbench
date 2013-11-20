@@ -2689,7 +2689,8 @@ BrainBrowserWindow::processHcpWebsiteInBrowser()
 void
 BrainBrowserWindow::processReportWorkbenchBug()
 {
-    GuiManager::get()->processShowBugReportDialog(this);
+    GuiManager::get()->processShowBugReportDialog(this,
+                                                  m_openGLWidget->getOpenGLInformation());
 }
 
 /**
