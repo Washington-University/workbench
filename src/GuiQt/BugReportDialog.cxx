@@ -73,11 +73,13 @@ BugReportDialog::BugReportDialog(QWidget* parent,
 : WuQDialogNonModal("Report Workbench Bug",
                     parent)
 {
-    const AString emailAddress("john@brainvis.wustl.edu");
+    const AString emailAddress("workbench_bugs@brainvis.wustl.edu");
     m_emailAddressURL = ("mailto:"
                          + emailAddress
                          + "?subject=Workbench Bug Report");
     
+    m_uploadWebSite = "http://brainvis.wustl.edu/cgi-bin/upload.cgi";
+
     const AString newLines("\n\n");
     
     AString bugInfo;
@@ -96,7 +98,12 @@ BugReportDialog::BugReportDialog(QWidget* parent,
     bugInfo.appendWithNewLine("(4) WHAT SHOULD HAPPEN"
                               + newLines);
     
-    bugInfo.appendWithNewLine("(5) NAME OF UPDLOADE DATA ZIP FILE"
+    bugInfo.appendWithNewLine("(5) NAME OF UPDLOADED DATA ZIP FILE (Press \"Upload Data\" button to go to the upload website)"
+                              + newLines);
+    
+    bugInfo.appendWithNewLine("(6) SCREEN CAPTURES - After this information is copied into your email client, "
+                              "image captures (File Menu->Capture Image) that help describe the bug may be "
+                              "copied into the email message."
                               + newLines);
     
     bugInfo.appendWithNewLine("-----------------------------------");
@@ -119,6 +126,10 @@ BugReportDialog::BugReportDialog(QWidget* parent,
                                  + "<br><br>"
                                  + "Please address each of the numbered items in the text below and then submit your bug report."
                                  + "<br><br>"
+                                 + "Data files that cause the bug may be uploaded (as a ZIP file) at "
+                                 + "<a href=\"" + m_uploadWebSite + "\">" + m_uploadWebSite + "</a>."
+                                 + "  wb_command -zip-spec-file can be used to zip a data set."
+                                 + "<br><br>"
                                  + "Email the bug report to: "
                                  + emailAddress
                                  //+ "<a href=\"mailto:" + m_emailAddressURL + "\">" + emailAddress + "</a>"
@@ -129,7 +140,7 @@ BugReportDialog::BugReportDialog(QWidget* parent,
     versionLabel->setOpenExternalLinks(true);
     
     m_textEdit = new QTextEdit();
-    m_textEdit->setMinimumSize(600, 600);
+    m_textEdit->setMinimumSize(600, 400);
     m_textEdit->setText(bugInfo);
     
     QPushButton* copyToClipboardPushButton = new QPushButton("Copy to Clipboard");
@@ -140,7 +151,17 @@ BugReportDialog::BugReportDialog(QWidget* parent,
     QObject::connect(copyToEmailPushButton, SIGNAL(clicked()),
                      this, SLOT(copyToEmail()));
     
+    QPushButton* uploadWebSitePushButton = new QPushButton("Upload Data");
+    QObject::connect(uploadWebSitePushButton, SIGNAL(clicked()),
+                     this, SLOT(openUploadWebsite()));
+    
+    copyToClipboardPushButton->setToolTip("Copies information to the computer's clipboard");
+    copyToEmailPushButton->setToolTip("Sends information to the user's email client");
+    uploadWebSitePushButton->setToolTip("Display upload website in user's web browser");
+    
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(uploadWebSitePushButton);
     buttonsLayout->addStretch();
     buttonsLayout->addWidget(copyToClipboardPushButton);
     buttonsLayout->addStretch();
@@ -168,6 +189,9 @@ BugReportDialog::~BugReportDialog()
 }
 
 
+/**
+ * Copy the text to the user's clipboard.
+ */
 void
 BugReportDialog::copyToClipboard()
 {
@@ -175,6 +199,9 @@ BugReportDialog::copyToClipboard()
                                         QClipboard::Clipboard);
 }
 
+/**
+ * Copy the text to the user's email client.
+ */
 void
 BugReportDialog::copyToEmail()
 {
@@ -185,10 +212,22 @@ BugReportDialog::copyToEmail()
     QDesktopServices::openUrl(url);
 }
 
+/**
+ * Update the dialog.
+ */
 void
 BugReportDialog::updateDialog()
 {
     /* nothing to do */
+}
+
+/**
+ * Open the Upload Website in the user's web browser.
+ */
+void
+BugReportDialog::openUploadWebsite()
+{
+    QDesktopServices::openUrl(QUrl(m_uploadWebSite));
 }
 
 

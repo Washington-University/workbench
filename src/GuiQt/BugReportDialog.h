@@ -67,10 +67,14 @@ namespace caret {
         
         void copyToEmail();
         
+        void openUploadWebsite();
+        
     private:        
         QTextEdit* m_textEdit;
         
         QString m_emailAddressURL;
+        
+        QString m_uploadWebSite;
         
         // ADD_NEW_MEMBERS_HERE
 
