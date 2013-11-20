@@ -115,25 +115,23 @@ BugReportDialog::BugReportDialog(QWidget* parent,
     bugInfo.appendWithNewLine(openGLInformation);
     
     const AString hcpURL("http://humanconnectome.org/connectome/get-connectome-workbench.html");
-    const AString infoMessage = ("<html>You are using Workbench version "
-                                 + ApplicationInformation().getVersion()
-                                 + ".  Check for a newer release of Workbench at <a href=\""
+    const AString infoMessage = ("<html>Verify that your bug occurs in the latest version of Workbench: "
+                                 "<a href=\""
                                  + hcpURL
                                  + "\">"
                                  + hcpURL
                                  + "</a>."
-                                 + "  If there is a newer version of Workbench, please download it and "
-                                 + "verify that the bug has not been fixed."
+                                 + "<br>"
+                                 + "You are using version " + ApplicationInformation().getVersion()
+                                 + "."
                                  + "<br><br>"
-                                 + "Please address each of the numbered items in the text below and then submit your bug report."
+                                 + "Please address each of the numbered items in the field below."
+                                 + "  Use the \"Copy to Email\" button to submit your bug report to "
+                                 + emailAddress
                                  + "<br><br>"
                                  + "Data files that cause the bug may be uploaded (as a ZIP file) at "
                                  + "<a href=\"" + m_uploadWebSite + "\">" + m_uploadWebSite + "</a>."
                                  + "  wb_command -zip-spec-file can be used to zip a data set."
-                                 + "<br><br>"
-                                 + "Email the bug report to: "
-                                 + emailAddress
-                                 //+ "<a href=\"mailto:" + m_emailAddressURL + "\">" + emailAddress + "</a>"
                                  + "</html>");
     
     QLabel* versionLabel = new QLabel(infoMessage);
