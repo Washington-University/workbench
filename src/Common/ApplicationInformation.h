@@ -52,6 +52,8 @@ namespace caret {
         
         void getAllInformation(std::vector<AString>& informationValues) const;
         
+        AString getAllInformationInString(const AString& separator) const;
+        
         AString getCompiledWithDebugStatus() const;
         
     private:
@@ -68,6 +70,8 @@ namespace caret {
         AString commitDate;
         
         AString compiledWithDebugOn;
+        
+        AString operatingSystemName;
     };
     
 #ifdef __APPLICATION_INFORMATION_DECLARE__

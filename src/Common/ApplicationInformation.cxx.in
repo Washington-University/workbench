@@ -66,6 +66,20 @@ ApplicationInformation::ApplicationInformation()
     this->compiledWithDebugOn = "Compiled Debug: YES";
 #endif // NDEBUG
 
+    this->operatingSystemName = "Unknown";
+    
+#ifdef CARET_OS_LINUX
+    this->operatingSystemName = "Operating System: Linux";
+#endif // CARET_OS_MACOSX
+    
+#ifdef CARET_OS_MACOSX
+    this->operatingSystemName = "Operating System: Apple OSX";
+#endif // CARET_OS_MACOSX
+    
+#ifdef CARET_OS_WINDOWS
+    this->operatingSystemName = "Operating System: Windows";
+#endif // CARET_OS_MACOSX
+
 }
 
 /**
@@ -127,5 +141,33 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     informationValues.push_back(commitDate);
 
     informationValues.push_back(this->compiledWithDebugOn);
+
+    informationValues.push_back(this->operatingSystemName);
 }
+
+/**
+ * Get all of the application information in a string with each line
+ * separated by the given 'separator'.
+ *
+ * @param separator
+ *    The separator is placed between each line of information.  A newline
+ *    ("\n") is commonly used for the separator.
+ */
+AString
+ApplicationInformation::getAllInformationInString(const AString& separator) const
+{
+    std::vector<AString> informationValues;
+    getAllInformation(informationValues);
+    
+    AString infoOut;
+    for (std::vector<AString>::iterator iter = informationValues.begin();
+         iter != informationValues.end();
+         iter++) {
+        infoOut += *iter;
+        infoOut += separator;
+    }
+    
+    return infoOut;
+}
+
 
