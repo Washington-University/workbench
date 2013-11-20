@@ -35,6 +35,7 @@ BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
+BugReportDialog.h
 CaretColorEnumComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
@@ -139,6 +140,7 @@ BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 BrainOpenGLWidgetTextRenderer.h
+BugReportDialog.h
 CaretColorEnumComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
@@ -264,6 +266,7 @@ BrainBrowserWindowToolBar.cxx
 BrainOpenGLWidget.cxx
 BrainOpenGLWidgetContextMenu.cxx
 BrainOpenGLWidgetTextRenderer.cxx
+BugReportDialog.cxx
 CaretColorEnumComboBox.cxx
 CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx

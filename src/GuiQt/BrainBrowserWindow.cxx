@@ -2647,7 +2647,7 @@ BrainBrowserWindow::getBrowserTabContent(int tabIndex)
  * default context menu from appearing.
  *
  * @return Context menu for display or NULL if
- * nothing available. 
+ * nothing available.
  */
 QMenu* 
 BrainBrowserWindow::createPopupMenu()
@@ -2689,30 +2689,7 @@ BrainBrowserWindow::processHcpWebsiteInBrowser()
 void
 BrainBrowserWindow::processReportWorkbenchBug()
 {
-    AString bugInfo;
-
-    bugInfo.appendWithNewLine("SUMMARY_OF_PROBLEM"
-                              "\n\n\n\n");
-    
-    bugInfo.appendWithNewLine("HOW TO REPRODUCE PROBLEM"
-                              "\n\n\n\n");
-    
-    bugInfo.appendWithNewLine("WHAT HAPPENS"
-                              "\n\n\n\n");
-    
-    bugInfo.appendWithNewLine("WHAT SHOULD HAPPEN"
-                              "\n\n\n\n");
-    
-    bugInfo.appendWithNewLine("NAME OF UPDLOADE DATA ZIP FILE"
-                              "\n\n\n\n");
-    
-    bugInfo.appendWithNewLine(ApplicationInformation().getAllInformationInString("\n\n"));
-    
-    const AString mailURL = ("mailto:john@brainvis.wustl.edu"
-                       "?subject=Bug Report"
-                       "&body=" + bugInfo);
-    QUrl url(mailURL);
-    QDesktopServices::openUrl(url);
+    GuiManager::get()->processShowBugReportDialog(this);
 }
 
 /**

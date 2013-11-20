@@ -49,6 +49,7 @@ namespace caret {
     class Brain;
     class BrainBrowserWindow;
     class BrowserTabContent;
+    class BugReportDialog;
     class ChartableInterface;
     class ChartingDialog;
     class CursorManager;
@@ -119,6 +120,7 @@ namespace caret {
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
         
+        void processShowBugReportDialog(BrainBrowserWindow* browserWindow);
         void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);
@@ -237,6 +239,8 @@ namespace caret {
         CursorManager* cursorManager;
         
         QAction* m_informationDisplayDialogEnabledAction;
+        
+        BugReportDialog* m_bugReportDialog;
         
         /** 
          * Tracks non-modal dialogs that are created only one time

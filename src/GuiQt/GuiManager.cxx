@@ -41,6 +41,7 @@
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BugReportDialog.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
@@ -116,6 +117,7 @@ GuiManager::GuiManager(QObject* parent)
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
+    m_bugReportDialog = NULL;
     m_customViewDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
@@ -1210,6 +1212,19 @@ GuiManager::processShowSceneDialogAndScene(BrainBrowserWindow* browserWindow,
         showHideSceneDialog(false,
                             NULL);
     }
+}
+
+void
+GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_bugReportDialog == NULL) {
+        m_bugReportDialog = new BugReportDialog(browserWindow);
+        this->nonModalDialogs.push_back(m_customViewDialog);
+    }
+    
+    m_bugReportDialog->setVisible(true);
+    m_bugReportDialog->show();
+    m_bugReportDialog->activateWindow();
 }
 
 /**
