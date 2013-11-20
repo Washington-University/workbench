@@ -175,6 +175,7 @@ namespace caret {
         
         void processHcpWebsiteInBrowser();
         void processHcpFeatureRequestWebsiteInBrowser();
+        void processReportWorkbenchBug();
         
         void processShowSurfacePropertiesDialog();
         
@@ -310,6 +311,7 @@ namespace caret {
 
         QAction* m_helpHcpWebsiteAction;
         QAction* m_helpHcpFeatureRequestAction;
+        QAction* m_helpWorkbenchBugReportAction;
         QAction* m_helpOnlineAction;
         QAction* m_helpSearchOnlineAction;
         

@@ -39,6 +39,7 @@
 #undef __BRAIN_BROWSER_WINDOW_DECLARE__
 
 #include "AboutWorkbenchDialog.h"
+#include "ApplicationInformation.h"
 #include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
@@ -607,6 +608,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processHcpFeatureRequestWebsiteInBrowser()));
+    
+    m_helpWorkbenchBugReportAction =
+    WuQtUtilities::createAction("Report a Workbench Bug...",
+                                "Send a Workbench Bug Report",
+                                this,
+                                this,
+                                SLOT(processReportWorkbenchBug()));
     
     m_helpOnlineAction =
     WuQtUtilities::createAction("Show Help (Online)...",
@@ -1336,6 +1344,7 @@ BrainBrowserWindow::createMenuHelp()
     QMenu* menu = new QMenu("Help", this);
     
     menu->addAction(m_helpHcpWebsiteAction);
+    menu->addAction(m_helpWorkbenchBugReportAction);
     menu->addAction(m_helpHcpFeatureRequestAction);
     menu->addSeparator();
     menu->addAction(m_helpOnlineAction);
@@ -2671,6 +2680,38 @@ void
 BrainBrowserWindow::processHcpWebsiteInBrowser()
 {
     QUrl url("https://humanconnectome.org");
+    QDesktopServices::openUrl(url);
+}
+
+/**
+ * Report a Workbench bug.
+ */
+void
+BrainBrowserWindow::processReportWorkbenchBug()
+{
+    AString bugInfo;
+
+    bugInfo.appendWithNewLine("SUMMARY_OF_PROBLEM"
+                              "\n\n\n\n");
+    
+    bugInfo.appendWithNewLine("HOW TO REPRODUCE PROBLEM"
+                              "\n\n\n\n");
+    
+    bugInfo.appendWithNewLine("WHAT HAPPENS"
+                              "\n\n\n\n");
+    
+    bugInfo.appendWithNewLine("WHAT SHOULD HAPPEN"
+                              "\n\n\n\n");
+    
+    bugInfo.appendWithNewLine("NAME OF UPDLOADE DATA ZIP FILE"
+                              "\n\n\n\n");
+    
+    bugInfo.appendWithNewLine(ApplicationInformation().getAllInformationInString("\n\n"));
+    
+    const AString mailURL = ("mailto:john@brainvis.wustl.edu"
+                       "?subject=Bug Report"
+                       "&body=" + bugInfo);
+    QUrl url(mailURL);
     QDesktopServices::openUrl(url);
 }
 
