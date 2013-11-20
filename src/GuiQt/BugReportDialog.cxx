@@ -98,7 +98,7 @@ BugReportDialog::BugReportDialog(QWidget* parent,
     bugInfo.appendWithNewLine("(4) WHAT SHOULD HAPPEN"
                               + newLines);
     
-    bugInfo.appendWithNewLine("(5) NAME OF UPDLOADED DATA ZIP FILE (Press \"Upload Data\" button to go to the upload website)"
+    bugInfo.appendWithNewLine("(5) NAME OF UPLOADED DATA ZIP FILE (Press \"Upload Data\" button to go to the upload website)"
                               + newLines);
     
     bugInfo.appendWithNewLine("(6) SCREEN CAPTURES - After this information is copied into your email client, "
@@ -106,8 +106,9 @@ BugReportDialog::BugReportDialog(QWidget* parent,
                               "copied into the email message."
                               + newLines);
     
-    bugInfo.appendWithNewLine("-----------------------------------");
-    bugInfo.appendWithNewLine("DO NOT CHANGE TEXT BELOW THIS LINE:\n");
+    bugInfo.appendWithNewLine("------------------------------------------------------------------");
+    bugInfo.appendWithNewLine("PLEASE DO NOT CHANGE TEXT BELOW THIS LINE.\n"
+                              "It is used to help us understand the context of your reported bug.\n");
     
     bugInfo.appendWithNewLine(ApplicationInformation().getAllInformationInString("\n\n"));
     
