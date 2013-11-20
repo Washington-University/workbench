@@ -66,7 +66,7 @@ ApplicationInformation::ApplicationInformation()
     this->compiledWithDebugOn = "Compiled Debug: YES";
 #endif // NDEBUG
 
-    this->operatingSystemName = "Unknown";
+    this->operatingSystemName = "Operating System: Unknown";
     
 #ifdef CARET_OS_LINUX
     this->operatingSystemName = "Operating System: Linux";
