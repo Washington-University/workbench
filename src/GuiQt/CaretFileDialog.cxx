@@ -46,7 +46,15 @@
 
 using namespace caret;
 
-#ifdef USE_QT_FILE_DIALOG
+FilterFilesProxyModel::FilterFilesProxyModel()
+{
+    m_dataFileType = DataFileTypeEnum::UNKNOWN;
+}
+
+FilterFilesProxyModel::~FilterFilesProxyModel()
+{
+}
+
 
 /**
  * On Macs, Qt shows files that do not match the filter as disabled.  This
@@ -55,7 +63,7 @@ using namespace caret;
  * @return True to display file, else false.
  */
 bool 
-HideFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const {
+FilterFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const {
     
     /*
      * See if the 'super' allows file to be displayed.
@@ -71,13 +79,37 @@ HideFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourc
         if((flags & Qt::ItemIsEnabled) == 0) {
             showIt = false;
         }
+        
+        /*
+         * All CIFTI files use a 'CIFTI prefix' followed by the NIFTI volume
+         * extension.  As a result, when the File Dialog's filter is set
+         * to volume files, both volume and CIFTI files are displayed.
+         * So, when the filter is volume files, inhibit the display CIFTI
+         * files in the file selection dialog.
+         */
+        if (showIt) {
+            if (m_dataFileType == DataFileTypeEnum::VOLUME) {
+                const AString name = fileModel->fileName(modelIndex);
+                bool isValid = false;
+                const DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name,
+                                                                                            &isValid);
+                if (isValid) {
+                    if (fileType != DataFileTypeEnum::VOLUME) {
+                        showIt = false;
+                    }
+                }
+            }
+        }
     }
     
     return showIt;
 }
 
-#endif // USE_QT_FILE_DIALOG
-
+void
+FilterFilesProxyModel::setDataFileTypeForFiltering(const DataFileTypeEnum::Enum dataFileType)
+{
+    m_dataFileType = dataFileType;
+}
 
 /**
  * \class caret::CaretFileDialog 
@@ -89,13 +121,8 @@ HideFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourc
  */
 CaretFileDialog::CaretFileDialog(QWidget* parent,
                                  Qt::WindowFlags f)
-#ifdef USE_QT_FILE_DIALOG
 : QFileDialog(parent,
                 f)
-#else
-: WuQFileDialog(parent,
-                f)
-#endif
 {
     this->initializeCaretFileDialog();
         
@@ -108,17 +135,10 @@ CaretFileDialog::CaretFileDialog(QWidget* parent,
                                  const QString& caption,
                                  const QString& directory,
                                  const QString& filter)
-#ifdef USE_QT_FILE_DIALOG
 : QFileDialog(parent,
               caption,
               directory,
               filter)
-#else
-: WuQFileDialog(parent,
-                caption,
-                directory,
-                filter)
-#endif
 {
     this->initializeCaretFileDialog();
     
@@ -140,29 +160,15 @@ CaretFileDialog::~CaretFileDialog()
 void 
 CaretFileDialog::initializeCaretFileDialog()
 {
-#ifdef USE_QT_FILE_DIALOG
     /*
      * Create a proxy model that hides files that do not match the file filter.
      * On Macs, Qt shows files that do not match the file filter as disabled
      * but we don't want them displayed.  The dialog will take ownership of 
      * the proxy model so it does not need to be deleted by this instance.
      */
-    HideFilesProxyModel* fileFilterProxyModel = new HideFilesProxyModel();
-    this->setProxyModel(fileFilterProxyModel);
+    m_filterFilesProxyModel = new FilterFilesProxyModel();
+    this->setProxyModel(m_filterFilesProxyModel);
     
-    /*
-     * This appears that it should work but it still shows files disabled on Mac.
-     *
-     QFileSystemModel* model = new QFileSystemModel(this);
-     model->setNameFilterDisables(false);
-     QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(this);
-     proxyModel->setSourceModel(model);
-     model->setNameFilterDisables(false);
-     this->setProxyModel(proxyModel);
-     */
-#endif
-
-#ifdef USE_QT_FILE_DIALOG
 #ifdef Q_OS_MACX
     /*
      * On Macs, add /Volumes to the sidebar URLs 
@@ -172,8 +178,33 @@ CaretFileDialog::initializeCaretFileDialog()
     urls.append(QUrl::fromLocalFile("/Volumes"));
     this->setSidebarUrls(urls);
 #endif // Q_OS_MACX
-#endif
+    
+    QObject::connect(this, SIGNAL(filterSelected(const QString&)),
+                     this, SLOT(fileFilterWasChanged(const QString&)));
+    
+    fileFilterWasChanged(selectedFilter());
 }
+
+/**
+ * Gets called when the file filter is changed.
+ *
+ * @param filter
+ *    Newly selected file filter.
+ */
+void
+CaretFileDialog::fileFilterWasChanged(const QString& filter)
+{
+    bool isValid = false;
+    DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromQFileDialogFilter(filter,
+                                                                                  &isValid);
+    
+    if ( ! isValid) {
+        dataFileType = DataFileTypeEnum::UNKNOWN;
+    }
+    
+    m_filterFilesProxyModel->setDataFileTypeForFiltering(dataFileType);
+}
+
 
 /**
  * Like QFileDialog::getOpenFileName() except that this
@@ -385,29 +416,6 @@ CaretFileDialog::getChooseFileNameDialog(const DataFileTypeEnum::Enum dataFileTy
             return filename;
         }
     }
-    
-    
-    
-//    CaretFileDialog cfd(parent,
-//                        caption,
-//                        dir,
-//                        DataFileTypeEnum::toQFileDialogFilter(dataFileType));
-//    cfd.selectFilter(DataFileTypeEnum::toQFileDialogFilter(dataFileType));
-//    cfd.setOptions(options);
-//    cfd.setAcceptMode(QFileDialog::AcceptSave);
-//    cfd.setFileMode(CaretFileDialog::AnyFile);
-//    cfd.setLabelText(CaretFileDialog::Accept, "Choose");
-//    cfd.setWindowTitle("Choose File Name");
-//    
-//    if (cfd.exec() == CaretFileDialog::Accepted) {
-//        QStringList selectedFiles = cfd.selectedFiles();
-//        if (selectedFiles.size() > 0) {
-//            AString filename = DataFileTypeEnum::addFileExtensionIfMissing(selectedFiles[0],
-//                                                                           dataFileType);
-//            return filename;
-//        }
-//    }
-    
     return QString();
 }
 

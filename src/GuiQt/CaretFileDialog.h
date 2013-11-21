@@ -34,27 +34,16 @@
  */
 /*LICENSE_END*/
 
-#define USE_QT_FILE_DIALOG
-
-
-#ifdef USE_QT_FILE_DIALOG
 #include <QFileDialog>
 #include <QSortFilterProxyModel>
-#else
-#include "WuQFileDialog.h"
-#endif
 
 #include "DataFileTypeEnum.h"
 
 namespace caret {
 
-#ifdef USE_QT_FILE_DIALOG
-    class HideFilesProxyModel;
+    class FilterFilesProxyModel;
     
     class CaretFileDialog : public QFileDialog {
-#else
-    class CaretFileDialog : public WuQFileDialog {
-#endif
         Q_OBJECT
         
     public:
@@ -110,6 +99,9 @@ namespace caret {
                                             QString *selectedFilter = 0,
                                             Options options = 0);
         
+    private slots:
+        void fileFilterWasChanged(const QString& filter);
+        
     private:
         CaretFileDialog(const CaretFileDialog&);
 
@@ -117,23 +109,28 @@ namespace caret {
         
         void initializeCaretFileDialog();
         
+        FilterFilesProxyModel* m_filterFilesProxyModel;
     };
     
-#ifdef USE_QT_FILE_DIALOG
         /**
-         * May be fully implemented to hide files.
+         * May be fully implemented to provide additional filtering of files.
          */
-        class HideFilesProxyModel : public QSortFilterProxyModel {
+        class FilterFilesProxyModel : public QSortFilterProxyModel {
             
         public:
-            HideFilesProxyModel() { }
+            FilterFilesProxyModel();
             
-            virtual ~HideFilesProxyModel() { }
+            virtual ~FilterFilesProxyModel();
+            
+            void setDataFileTypeForFiltering(const DataFileTypeEnum::Enum dataFileType);
             
         protected:
             bool filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const;
+            
+        private:
+            DataFileTypeEnum::Enum m_dataFileType;
+            
         };
-#endif // USE_QT_FILE_DIALOG
         
 #ifdef __CARET_FILE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
