@@ -181,8 +181,22 @@ CaretFileDialog::initializeCaretFileDialog()
     
     QObject::connect(this, SIGNAL(filterSelected(const QString&)),
                      this, SLOT(fileFilterWasChanged(const QString&)));
+}
+
+/**
+ * Overrides parent's setVisible to ensure file filter is properly set
+ *
+ * @param visible
+ *     New visibility status.
+ */
+void
+CaretFileDialog::setVisible(bool visible)
+{
+    if (visible) {
+        fileFilterWasChanged(selectedFilter());
+    }
     
-    fileFilterWasChanged(selectedFilter());
+    QFileDialog::setVisible(visible);
 }
 
 /**

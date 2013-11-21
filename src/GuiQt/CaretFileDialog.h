@@ -99,6 +99,9 @@ namespace caret {
                                             QString *selectedFilter = 0,
                                             Options options = 0);
         
+    public slots:
+        virtual void setVisible(bool visible);
+        
     private slots:
         void fileFilterWasChanged(const QString& filter);
         
