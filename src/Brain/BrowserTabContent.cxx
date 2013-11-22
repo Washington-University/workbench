@@ -2244,15 +2244,45 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
     
     switch (projectionViewType) {
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+        {
+            Matrix4x4 matrixOut = rotationMatrix;
+            
+            Matrix4x4 anteriorMatrix;
+            anteriorMatrix.setRotation(90.0, 0.0, -180.0);
+            
+            matrixOut.postmultiply(anteriorMatrix);
+            matrixOut.getMatrixForOpenGL(rotationMatrixOut);
+            return;
+        }
 //            rotationX +=  90.0;
 //            rotationY -= 180.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+        {
+            Matrix4x4 matrixOut = rotationMatrix;
+            
+            Matrix4x4 posteriorMatrix;
+            posteriorMatrix.setRotation(-90.0, 0.0, 0.0);
+            
+            matrixOut.postmultiply(posteriorMatrix);
+            matrixOut.getMatrixForOpenGL(rotationMatrixOut);
+            return;
+        }
 //            rotationX -= 90.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+        {
+            Matrix4x4 matrixOut = rotationMatrix;
+            
+            Matrix4x4 ventralMatrix;
+            ventralMatrix.setRotation(0.0, 180.0, 180.0);
+            
+            matrixOut.postmultiply(ventralMatrix);
+            matrixOut.getMatrixForOpenGL(rotationMatrixOut);
+            return;
+        }
 //            rotationY += 180.0;
 //            rotationZ += 180.0;
             break;

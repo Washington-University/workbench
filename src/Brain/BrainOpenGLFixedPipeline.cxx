@@ -708,26 +708,29 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
     bool useGluLookAt = false;
     
     switch (projectionViewType) {
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+//            eyeY = 5.0;
+//            upZ  = 1.0;
+//            useGluLookAt = true;
+//            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-            eyeY = 5.0;
-            upZ  = 1.0;
-            useGluLookAt = true;
-            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
             eyeZ = 5.0;
             upY  = 1.0;
             useGluLookAt = true;
             break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-            eyeY = -5.0;
-            upZ  =  1.0;
-            useGluLookAt = true;
-            break;
-        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-            eyeZ = -5.0;
-            upY  = -1.0;
-            useGluLookAt = true;
-            break;
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+//            eyeY = -5.0;
+//            upZ  =  1.0;
+//            useGluLookAt = true;
+//            break;
+//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+//            eyeZ = -5.0;
+//            upY  = -1.0;
+//            useGluLookAt = true;
+//            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
             eyeZ = 5.0;
             upY  = 1.0;
