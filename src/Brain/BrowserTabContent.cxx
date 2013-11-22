@@ -2031,8 +2031,8 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                                   mousePressY)) {
                     switch (smv->getProjectionViewType()) {
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-                            translateDX = -screenDX;
-                            translateDZ =  screenDY;
+                            translateDX =  screenDX;
+                            translateDY =  screenDY;
                             foundMontageViewportFlag = true;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
@@ -2042,12 +2042,12 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
                             translateDX = screenDX;
-                            translateDZ = screenDY;
+                            translateDY = screenDY;
                             foundMontageViewportFlag = true;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
                             translateDX =  screenDX;
-                            translateDY = -screenDY;
+                            translateDY =  screenDY;
                             foundMontageViewportFlag = true;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
