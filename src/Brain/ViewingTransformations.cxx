@@ -262,8 +262,9 @@ void
 ViewingTransformations::anteriorView()
 {
     m_rotationMatrix->identity();
-    m_rotationMatrix->rotateX(-90.0);
-    m_rotationMatrix->rotateY(180.0);
+    m_rotationMatrix->setRotation(90.0, 0.0, -180.0);
+//    m_rotationMatrix->rotateX(-90.0);
+//    m_rotationMatrix->rotateY(180.0);
 }
 
 /**
@@ -273,7 +274,8 @@ void
 ViewingTransformations::posteriorView()
 {
     m_rotationMatrix->identity();
-    m_rotationMatrix->rotateX(-90.0);
+    m_rotationMatrix->setRotation(-90.0, 0.0, 0.0);
+//    m_rotationMatrix->rotateX(-90.0);
 }
 
 /**
