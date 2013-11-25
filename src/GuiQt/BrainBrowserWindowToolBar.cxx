@@ -1653,13 +1653,15 @@ BrainBrowserWindowToolBar::createOrientationWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTabContent)
 {
     if (this->orientationWidget->isHidden()) {
         return;
     }
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
+    
+    const int32_t tabIndex = browserTabContent->getTabNumber();
     
     this->orientationWidgetGroup->blockAllSignals(true);
     
@@ -1690,6 +1692,23 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
         }
         else if (mdcsm != NULL) {
             showCombinedViewOrientationButtons = true;
+            
+            AString latMedLeftRightText = "LM";
+            AString latMedLeftRightToolTipText = "View from a Lateral/Medial perspective";
+            switch (mdcsm->getSelectedConfigurationType(tabIndex)) {
+                case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+                    latMedLeftRightText = "LR";
+                    latMedLeftRightToolTipText = "View from a Right/Left Perspective";
+                    break;
+                case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+                    break;
+                case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+                    break;
+            }
+            
+            this->orientationLateralMedialToolButtonAction->setText(latMedLeftRightText);
+            WuQtUtilities::setToolTipAndStatusTip(this->orientationLateralMedialToolButtonAction,
+                                                  latMedLeftRightToolTipText);
         }
         else if (mdcv != NULL) {
             // nothing
