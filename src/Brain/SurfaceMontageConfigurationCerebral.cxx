@@ -404,8 +404,7 @@ SurfaceMontageConfigurationCerebral::updateSurfaceMontageViewports(std::vector<S
         CaretAssert(0);
     }
     
-    const int32_t numViewports = static_cast<int32_t>(surfaceMontageViewports.size());
-    CaretAssert(totalNum == numViewports);
+    CaretAssert(totalNum == static_cast<int32_t>(surfaceMontageViewports.size()));
     
 //    std::cout << "Orientation: " << SurfaceMontageLayoutOrientationEnum::toName(getLayoutOrientation()) << std::endl;
 //    for (int32_t i = 0; i < numViewports; i++) {

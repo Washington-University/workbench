@@ -360,11 +360,9 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
     allViewports.insert(allViewports.end(),
                                    posteriorViewports.begin(),
                                    posteriorViewports.end());
-    const int32_t numAll = static_cast<int32_t>(allViewports.size());
-    
     const int32_t totalNum = numFirst + numSecond;
 
-    CaretAssert(numAll == totalNum);
+    CaretAssert(static_cast<int32_t>(allViewports.size()) == totalNum);
     
     if (totalNum == 1) {
         surfaceMontageViewports.insert(surfaceMontageViewports.end(),

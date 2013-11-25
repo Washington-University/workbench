@@ -84,7 +84,7 @@ BrainBrowserWindowToolBarComponent::~BrainBrowserWindowToolBarComponent()
  *    An event for which this instance is listening.
  */
 void
-BrainBrowserWindowToolBarComponent::receiveEvent(Event* event)
+BrainBrowserWindowToolBarComponent::receiveEvent(Event* /*event*/)
 {
 //    if (event->getEventType() == EventTypeEnum::) {
 //        <EVENT_CLASS_NAME*> eventName = dynamic_cast<EVENT_CLASS_NAME*>(event);
