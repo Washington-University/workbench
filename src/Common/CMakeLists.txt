@@ -55,6 +55,7 @@ ColorManager.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
+DataFileContentInformation.h
 DataFileException.h
 DataFileInterface.h
 DescriptiveStatistics.h
@@ -94,6 +95,7 @@ ReductionEnum.h
 ReductionOperation.h
 SpeciesEnum.h
 StereotaxicSpaceEnum.h
+StringTableModel.h
 StructureEnum.h
 SystemUtilities.h
 TileTabsConfiguration.h
@@ -125,6 +127,7 @@ CaretTemporaryFile.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx
+DataFileContentInformation.cxx
 DataFileException.cxx
 DescriptiveStatistics.cxx
 ElapsedTimer.cxx
@@ -159,6 +162,7 @@ ReductionEnum.cxx
 ReductionOperation.cxx
 SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
+StringTableModel.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx

@@ -29,6 +29,11 @@
 
 #include <limits>
 
+#include "DataFileContentInformation.h"
+#include "DescriptiveStatistics.h"
+#include "Histogram.h"
+#include "StringTableModel.h"
+
 using namespace caret;
 
 
@@ -194,4 +199,148 @@ CaretMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     return false;
 }
 
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    dataFileInformation.addNameAndValue("Maps to Surface",
+                                        isSurfaceMappable());
+    dataFileInformation.addNameAndValue("Maps to Volume",
+                                        isVolumeMappable());
+    dataFileInformation.addNameAndValue("Maps with LabelTable",
+                                        isMappedWithLabelTable());
+    dataFileInformation.addNameAndValue("Maps with Palette",
+                                        isMappedWithPalette());
+    
+    const bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
+                              && (isSurfaceMappable() || isVolumeMappable()));
+    
+    
+    if (showMapFlag) {
+        const int32_t numMaps = getNumberOfMaps();
+        if (isSurfaceMappable()) {
+            dataFileInformation.addNameAndValue("Number of Maps",
+                                                numMaps);
+        }
+        
+        if (numMaps > 0) {
+            int columnCount = 0;
+            const int COL_INDEX   = columnCount++;
+            
+            int32_t COL_MIN     = -1;
+            int32_t COL_MAX     = -1;
+            int32_t COL_MEAN    = -1;
+            int32_t COL_DEV     = -1;
+            int32_t COL_PCT_POS = -1;
+            int32_t COL_PCT_NEG = -1;
+            int32_t COL_INF_NAN = -1;
+            
+            if (isMappedWithPalette()) {
+                COL_MIN = columnCount++;
+                COL_MAX = columnCount++;
+                COL_MEAN = columnCount++;
+                COL_DEV = columnCount++;
+                COL_PCT_POS = columnCount++;
+                COL_PCT_NEG = columnCount++;
+                COL_INF_NAN = columnCount++;
+            }
+            const int COL_NAME = columnCount++;
+            
+            /*
+             * Include a row for the column titles
+             */
+            const int32_t tableRowCount = numMaps + 1;
+            StringTableModel stringTable(tableRowCount,
+                                         columnCount);
+            
+            stringTable.setElement(0, COL_INDEX, "Map");
+            if (COL_MIN >= 0) {
+                stringTable.setElement(0, COL_MIN, "Minimum");
+            }
+            if (COL_MAX >= 0) {
+                stringTable.setElement(0, COL_MAX, "Maximum");
+            }
+            if (COL_MEAN >= 0) {
+                stringTable.setElement(0, COL_MEAN, "Mean");
+            }
+            if (COL_DEV >= 0) {
+                stringTable.setElement(0, COL_DEV, "Sample Dev");
+            }
+            if (COL_PCT_POS >= 0) {
+                stringTable.setElement(0, COL_PCT_POS, "% Positive");
+            }
+            if (COL_PCT_NEG >= 0) {
+                stringTable.setElement(0, COL_PCT_NEG, "% Negative");
+            }
+            if (COL_INF_NAN >= 0) {
+                stringTable.setElement(0, COL_INF_NAN, "Inf/NaN");
+            }
+            
+            stringTable.setElement(0, COL_NAME, "Map Name");
+            stringTable.setColumnAlignment(COL_NAME, StringTableModel::ALIGN_LEFT);
+            
+            for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+                
+                const int32_t tableRow = mapIndex + 1;
+                
+                CaretAssert(COL_INDEX >= 0);
+                CaretAssert(COL_NAME >= 0);
+                stringTable.setElement(tableRow, COL_INDEX, (mapIndex + 1));
+                stringTable.setElement(tableRow, COL_NAME, getMapName(mapIndex));
+                
+                if (isMappedWithPalette()) {
+                    const DescriptiveStatistics* stats = const_cast<CaretMappableDataFile*>(this)->getMapStatistics(mapIndex);
+                    
+                    const Histogram* histogram = getMapHistogram(mapIndex);
+                    int64_t posCount = 0;
+                    int64_t zeroCount = 0;
+                    int64_t negCount = 0;
+                    int64_t infCount = 0;
+                    int64_t negInfCount = 0;
+                    int64_t nanCount = 0;
+                    histogram->getCounts(posCount,
+                                         zeroCount,
+                                         negCount,
+                                         infCount,
+                                         negInfCount,
+                                         nanCount);
+                    const int64_t numInfinityAndNotANumber = (infCount
+                                                + negInfCount
+                                                + nanCount);
+                    const double totalCount = (posCount
+                                                + zeroCount
+                                                + negCount
+                                                + numInfinityAndNotANumber);
+                    const double pctPositive = (posCount / totalCount) * 100.0;
+                    const double pctNegative = (negCount / totalCount) * 100.0;
+                    
+                    CaretAssert(COL_MIN >= 0);
+                    CaretAssert(COL_MAX >= 0);
+                    CaretAssert(COL_MEAN >= 0);
+                    CaretAssert(COL_DEV >= 0);
+                    CaretAssert(COL_PCT_POS >= 0);
+                    CaretAssert(COL_PCT_NEG >= 0);
+                    CaretAssert(COL_INF_NAN >= 0);
+                    stringTable.setElement(tableRow, COL_MIN, stats->getMinimumValue());
+                    stringTable.setElement(tableRow, COL_MAX, stats->getMaximumValue());
+                    stringTable.setElement(tableRow, COL_MEAN, stats->getMean());
+                    stringTable.setElement(tableRow, COL_DEV, stats->getStandardDeviationSample());
+                    stringTable.setElement(tableRow, COL_PCT_POS, pctPositive);
+                    stringTable.setElement(tableRow, COL_PCT_NEG, pctNegative);
+                    stringTable.setElement(tableRow, COL_INF_NAN, numInfinityAndNotANumber);
+                }
+            }
+            
+            dataFileInformation.addText(stringTable.getInString()
+                                        + "\n");
+        }
+    }
+}
 

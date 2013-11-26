@@ -23,6 +23,7 @@
  */ 
 
 #include "DataFile.h"
+#include "DataFileContentInformation.h"
 #include "FileInformation.h"
 
 using namespace caret;
@@ -138,18 +139,16 @@ DataFile::setFileName(const AString& filename)
 }
 
 /**
- * @return Information about the file in a text string.
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
  */
-AString
-DataFile::getFileInformation() const
+void
+DataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
-    AString info;
-    
-    info.appendWithNewLine("Name: " + getFileName());
-    
-    return info;
+    dataFileInformation.addNameAndValue("Name", getFileName());
 }
-
 
 /**
  * Set the status to modified.

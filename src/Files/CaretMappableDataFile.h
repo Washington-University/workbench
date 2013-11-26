@@ -61,6 +61,8 @@ namespace caret {
         
         virtual ~CaretMappableDataFile();
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         /**
          * @return Is the data mappable to a surface?
          */

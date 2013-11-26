@@ -66,6 +66,8 @@ namespace caret {
         
         virtual ~SurfaceFile();
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         virtual void receiveEvent(Event* event);
         
         virtual void clear();
@@ -122,6 +124,8 @@ namespace caret {
         void setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType);
         
         float getSphericalRadius() const;
+        
+        float getSurfaceArea() const;
         
         CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false) const;
         

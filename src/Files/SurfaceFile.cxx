@@ -32,6 +32,7 @@
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
 #include "CaretOMP.h"
+#include "DataFileContentInformation.h"
 #include "DescriptiveStatistics.h"
 #include "EventSurfaceColoringInvalidate.h"
 
@@ -1059,6 +1060,29 @@ SurfaceFile::getSphericalRadius() const
     return radius;
 }
 
+/**
+ * @return Area of the surface.
+ */
+float
+SurfaceFile::getSurfaceArea() const
+{
+    float areaOut = 0.0;
+    
+    CaretAssert(this->trianglePointer);
+    const int32_t numberOfTriangles = getNumberOfTriangles();
+    for (int32_t i = 0; i < numberOfTriangles; ++i) {
+        const int32_t* triangleNodeIndices = getTriangle(i);
+        const float* node1 = getCoordinate(triangleNodeIndices[0]);
+        const float* node2 = getCoordinate(triangleNodeIndices[1]);
+        const float* node3 = getCoordinate(triangleNodeIndices[2]);
+        areaOut += MathFunctions::triangleArea(node1,
+                                               node2,
+                                               node3);
+    }
+    
+    return areaOut;
+}
+
 
 
 void SurfaceFile::computeNodeAreas(std::vector<float>& areasOut) const
@@ -1535,4 +1559,41 @@ bool SurfaceFile::hasNodeCorrespondence(const SurfaceFile& rhs) const
         }
     }
     return true;
+}
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    GiftiTypeFile::addToDataFileContentInformation(dataFileInformation);
+    
+    dataFileInformation.addNameAndValue("Surface Type (Primary)",
+                                        SurfaceTypeEnum::toGuiName(getSurfaceType()));
+    dataFileInformation.addNameAndValue("Surface Type (Secondary)",
+                                        SecondarySurfaceTypeEnum::toGuiName(getSecondaryType()));
+    dataFileInformation.addNameAndValue("Number of Triangles",
+                                        getNumberOfTriangles());
+    
+    const BoundingBox* boundingBox = getBoundingBox();
+    dataFileInformation.addNameAndValue("X-minimum", boundingBox->getMinX());
+    dataFileInformation.addNameAndValue("X-maximum", boundingBox->getMaxX());
+    dataFileInformation.addNameAndValue("Y-minimum", boundingBox->getMinY());
+    dataFileInformation.addNameAndValue("Y-maximum", boundingBox->getMaxY());
+    dataFileInformation.addNameAndValue("Z-minimum", boundingBox->getMinZ());
+    dataFileInformation.addNameAndValue("Z-maximum", boundingBox->getMaxZ());
+    dataFileInformation.addNameAndValue("Spherical Radius", getSphericalRadius());
+    dataFileInformation.addNameAndValue("Surface Area", getSurfaceArea());
+    
+    DescriptiveStatistics stats;
+    getNodesSpacingStatistics(stats);
+    
+    dataFileInformation.addNameAndValue("Spacing Mean", stats.getMean());
+    dataFileInformation.addNameAndValue("Spacing Std Dev", stats.getStandardDeviationSample());
+    dataFileInformation.addNameAndValue("Spacing Minimum", stats.getMinimumValue());
+    dataFileInformation.addNameAndValue("Spacing Maximum", stats.getMaximumValue());
 }

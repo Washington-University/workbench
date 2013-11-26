@@ -37,6 +37,7 @@
 
 #include "CaretDataFile.h"
 #include "CaretDataFileHelper.h"
+#include "DataFileContentInformation.h"
 #include "OperationFileInformation.h"
 #include "OperationException.h"
 
@@ -97,7 +98,9 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     
     try {
         CaretDataFile* caretDataFile = CaretDataFileHelper::readAnyCaretDataFile(dataFileName);
-        std::cout << qPrintable(caretDataFile->getFileInformation()) << std::endl;
+        DataFileContentInformation dataFileContentInformation;
+        caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
+        std::cout << qPrintable(dataFileContentInformation.getInformationInString()) << std::endl;
         delete caretDataFile;
     }
     catch (const DataFileException& dfe) {

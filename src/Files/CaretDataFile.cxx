@@ -27,6 +27,7 @@
 #include "CaretDataFile.h"
 #undef __CARET_DATA_FILE_DECLARE__
 
+#include "DataFileContentInformation.h"
 #include "SceneClass.h"
 
 using namespace caret;
@@ -156,19 +157,20 @@ CaretDataFile::setDisplayedInGUI(const bool displayedInGUI)
 }
 
 /**
- * @return Information about the file in a text string.
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
  */
-AString
-CaretDataFile::getFileInformation() const
+void
+CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
-    AString info = DataFile::getFileInformation();
-    
-    info.appendWithNewLine("Type: " + DataFileTypeEnum::toGuiName(m_dataFileType));
-    
-    
-    return info;
+    DataFile::addToDataFileContentInformation(dataFileInformation);
+    dataFileInformation.addNameAndValue("Type",
+                                        DataFileTypeEnum::toGuiName(m_dataFileType));
+    dataFileInformation.addNameAndValue("Structure",
+                                        StructureEnum::toGuiName(getStructure()));
 }
-
 
 /**
  * Set the username and password for reading files, typically from

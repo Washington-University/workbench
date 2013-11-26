@@ -33,6 +33,8 @@
 
 namespace caret {
 
+    class DataFileContentInformation;
+    
     /**
      * Abstract Data File.
      */
@@ -54,7 +56,7 @@ namespace caret {
         
         virtual void setFileName(const AString& filename);
         
-        virtual AString getFileInformation() const;
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         /**
          * Read the data file.
