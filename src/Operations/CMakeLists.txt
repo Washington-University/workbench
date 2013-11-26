@@ -35,6 +35,7 @@ OperationConvertMatrix4ToWorkbenchSparse.h
 OperationConvertWarpfield.h
 OperationEstimateFiberBinghams.h
 OperationException.h
+OperationFileInformation.h
 OperationFociListCoords.h
 OperationLabelMask.h
 OperationMetadataRemoveProvenance.h
@@ -85,6 +86,7 @@ OperationConvertMatrix4ToWorkbenchSparse.cxx
 OperationConvertWarpfield.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
+OperationFileInformation.cxx
 OperationFociListCoords.cxx
 OperationLabelMask.cxx
 OperationMetadataRemoveProvenance.cxx

@@ -156,6 +156,21 @@ CaretDataFile::setDisplayedInGUI(const bool displayedInGUI)
 }
 
 /**
+ * @return Information about the file in a text string.
+ */
+AString
+CaretDataFile::getFileInformation() const
+{
+    AString info = DataFile::getFileInformation();
+    
+    info.appendWithNewLine("Type: " + DataFileTypeEnum::toGuiName(m_dataFileType));
+    
+    
+    return info;
+}
+
+
+/**
  * Set the username and password for reading files, typically from
  * a database or website.
  *

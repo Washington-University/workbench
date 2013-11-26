@@ -72,6 +72,8 @@ namespace caret {
         
         virtual AString getFileNameNoExtension() const;
         
+        virtual AString getFileInformation() const;
+        
         virtual bool supportsWriting() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

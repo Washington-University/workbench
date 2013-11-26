@@ -138,6 +138,20 @@ DataFile::setFileName(const AString& filename)
 }
 
 /**
+ * @return Information about the file in a text string.
+ */
+AString
+DataFile::getFileInformation() const
+{
+    AString info;
+    
+    info.appendWithNewLine("Name: " + getFileName());
+    
+    return info;
+}
+
+
+/**
  * Set the status to modified.
  */
 void 

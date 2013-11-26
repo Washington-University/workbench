@@ -127,6 +127,7 @@
 #include "OperationConvertMatrix4ToWorkbenchSparse.h"
 #include "OperationConvertWarpfield.h"
 #include "OperationEstimateFiberBinghams.h"
+#include "OperationFileInformation.h"
 #include "OperationFociListCoords.h"
 #include "OperationLabelMask.h"
 #include "OperationMetadataRemoveProvenance.h"
@@ -315,6 +316,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertMatrix4ToWorkbenchSparse()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertWarpfield()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationEstimateFiberBinghams()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationFileInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataRemoveProvenance()));

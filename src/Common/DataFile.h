@@ -54,6 +54,8 @@ namespace caret {
         
         virtual void setFileName(const AString& filename);
         
+        virtual AString getFileInformation() const;
+        
         /**
          * Read the data file.
          *

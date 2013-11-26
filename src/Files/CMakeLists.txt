@@ -25,6 +25,7 @@ BorderException.h
 BorderFile.h
 BorderFileSaxReader.h
 CaretDataFile.h
+CaretDataFileHelper.h
 CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
@@ -112,6 +113,7 @@ BorderException.cxx
 BorderFile.cxx
 BorderFileSaxReader.cxx
 CaretDataFile.cxx
+CaretDataFileHelper.cxx
 CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
