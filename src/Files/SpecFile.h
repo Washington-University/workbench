@@ -63,6 +63,8 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         void addCaretDataFile(CaretDataFile* caretDataFile);
         
         void removeCaretDataFile(CaretDataFile* caretDataFile);

@@ -31,6 +31,7 @@
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretTemporaryFile.h"
+#include "DataFileContentInformation.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
@@ -1513,4 +1514,65 @@ VolumeFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
     }
 }
 
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    std::vector<int64_t> dims;
+    getDimensions(dims);
+    dataFileInformation.addNameAndValue("Dimensions",
+                                        AString::fromNumbers(dims, ", "));
+    
+    BoundingBox boundingBox;
+    getVoxelSpaceBoundingBox(boundingBox);
+    dataFileInformation.addNameAndValue("X-minimum", boundingBox.getMinX());
+    dataFileInformation.addNameAndValue("X-maximum", boundingBox.getMaxX());
+    dataFileInformation.addNameAndValue("Y-minimum", boundingBox.getMinY());
+    dataFileInformation.addNameAndValue("Y-maximum", boundingBox.getMaxY());
+    dataFileInformation.addNameAndValue("Z-minimum", boundingBox.getMinZ());
+    dataFileInformation.addNameAndValue("Z-maximum", boundingBox.getMaxZ());
+    
+    VolumeSpace::OrientTypes orientation[3];
+    
+    getOrientation(orientation);
+    for (int32_t i = 0; i < 3; i++) {
+        AString orientName;
+        
+        switch (orientation[i]) {
+            case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                orientName = "Anterior to Posterior";
+                break;
+            case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                orientName = "Inferior to Superior";
+                break;
+            case VolumeSpace::LEFT_TO_RIGHT:
+                orientName = "Left to Right";
+                break;
+            case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                orientName = "Posterior to Anterior";
+                break;
+            case VolumeSpace::RIGHT_TO_LEFT:
+                orientName = "Right to Left";
+                break;
+            case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                orientName = "Superior to Inferior";
+                break;
+        }
+        dataFileInformation.addNameAndValue(("Orientation[" + AString::number(i) + "]"),
+                                            orientName);
+    }
+    
+    float spacing[3];
+    getVoxelSpacing(spacing[0], spacing[1], spacing[2]);
+    dataFileInformation.addNameAndValue("Spacing",
+                                        AString::fromNumbers(spacing, 3, ", "));
+    
+}
 

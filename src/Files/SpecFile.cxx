@@ -29,6 +29,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPointer.h"
+#include "DataFileContentInformation.h"
 #include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
@@ -41,6 +42,7 @@
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "SpecFileSaxReader.h"
+#include "StringTableModel.h"
 #include "SystemUtilities.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
@@ -1568,4 +1570,81 @@ SpecFile::clearModified()
     }
 }
 
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+SpecFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    const int32_t numberOfFiles = getNumberOfFiles();
+    if (numberOfFiles <= 0) {
+        return;
+    }
+    
+    int32_t columnCounter = 0;
+    const int32_t COL_TYPE      = columnCounter++;
+    const int32_t COL_STRUCTURE = columnCounter++;
+    const int32_t COL_NAME      = columnCounter++;
+    const int32_t COL_PATH      = columnCounter++;
+    
+    StringTableModel table((numberOfFiles + 1),
+                           columnCounter);
+    
+    int32_t rowIndex = 0;
+    table.setElement(rowIndex,
+                     COL_TYPE,
+                     "TYPE");
+    table.setElement(rowIndex,
+                     COL_STRUCTURE,
+                     "STRUCTURE");
+    table.setElement(rowIndex,
+                     COL_NAME,
+                     "NAME");
+    table.setElement(rowIndex,
+                     COL_PATH,
+                     "PATH");
+    
+    rowIndex++;
+    
+    table.setColumnAlignment(COL_TYPE, StringTableModel::ALIGN_LEFT);
+    table.setColumnAlignment(COL_STRUCTURE, StringTableModel::ALIGN_LEFT);
+    table.setColumnAlignment(COL_NAME, StringTableModel::ALIGN_LEFT);
+    table.setColumnAlignment(COL_PATH, StringTableModel::ALIGN_LEFT);
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        const DataFileTypeEnum::Enum dataFileType = dataFileTypeGroup->getDataFileType();
+        
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+            FileInformation fileInfo(sfdf->getFileName());
+            
+            table.setElement(rowIndex,
+                             COL_TYPE,
+                             DataFileTypeEnum::toGuiName(dataFileType));
+            table.setElement(rowIndex,
+                             COL_STRUCTURE,
+                             StructureEnum::toGuiName(sfdf->getStructure()));
+            table.setElement(rowIndex,
+                             COL_NAME,
+                             fileInfo.getFileName());
+            table.setElement(rowIndex,
+                             COL_PATH,
+                             fileInfo.getPathName());
+            
+            rowIndex++;
+        }
+    }
+    
+    dataFileInformation.addText("\n"
+                                + table.getInString());
+}
 

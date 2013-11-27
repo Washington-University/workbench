@@ -106,6 +106,5 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     catch (const DataFileException& dfe) {
         throw OperationException(dfe.whatString());
     }
-    
 }
 
