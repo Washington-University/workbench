@@ -55,6 +55,8 @@ namespace caret {
         
     public:
 
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         void clear();
         
         void readFile(const AString& filename) throw (DataFileException);

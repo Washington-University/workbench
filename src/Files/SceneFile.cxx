@@ -43,6 +43,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileContentInformation.h"
 #include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
@@ -457,4 +458,28 @@ SceneFile::writeFile(const AString& filename) throw (DataFileException)
     }
 }
 
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    const int32_t numScenes = getNumberOfScenes();
+    if (numScenes > 0) {
+        AString sceneNamesText = "SCENES";
+        for (int32_t i = 0; i < numScenes; i++) {
+            const Scene* scene = getSceneAtIndex(i);
+            sceneNamesText.appendWithNewLine("    "
+                                             + scene->getName());
+            
+        }
+        
+        dataFileInformation.addText(sceneNamesText);
+    }
+}
 
