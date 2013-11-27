@@ -30,7 +30,7 @@
 #include <limits>
 
 #include "DataFileContentInformation.h"
-#include "DescriptiveStatistics.h"
+#include "FastStatistics.h"
 #include "Histogram.h"
 #include "StringTableModel.h"
 
@@ -296,7 +296,8 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                 stringTable.setElement(tableRow, COL_NAME, getMapName(mapIndex));
                 
                 if (isMappedWithPalette()) {
-                    const DescriptiveStatistics* stats = const_cast<CaretMappableDataFile*>(this)->getMapStatistics(mapIndex);
+                    //const DescriptiveStatistics* stats = const_cast<CaretMappableDataFile*>(this)->getMapStatistics(mapIndex);
+                    const FastStatistics* stats = const_cast<CaretMappableDataFile*>(this)->getMapFastStatistics(mapIndex);
                     
                     const Histogram* histogram = getMapHistogram(mapIndex);
                     int64_t posCount = 0;
@@ -328,10 +329,10 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                     CaretAssert(COL_PCT_POS >= 0);
                     CaretAssert(COL_PCT_NEG >= 0);
                     CaretAssert(COL_INF_NAN >= 0);
-                    stringTable.setElement(tableRow, COL_MIN, stats->getMinimumValue());
-                    stringTable.setElement(tableRow, COL_MAX, stats->getMaximumValue());
+                    stringTable.setElement(tableRow, COL_MIN, stats->getMin());
+                    stringTable.setElement(tableRow, COL_MAX, stats->getMax());
                     stringTable.setElement(tableRow, COL_MEAN, stats->getMean());
-                    stringTable.setElement(tableRow, COL_DEV, stats->getStandardDeviationSample());
+                    stringTable.setElement(tableRow, COL_DEV, stats->getSampleStdDev());
                     stringTable.setElement(tableRow, COL_PCT_POS, pctPositive);
                     stringTable.setElement(tableRow, COL_PCT_NEG, pctNegative);
                     stringTable.setElement(tableRow, COL_INF_NAN, numInfinityAndNotANumber);
