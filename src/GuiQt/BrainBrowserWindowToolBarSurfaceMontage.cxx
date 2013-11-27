@@ -264,6 +264,7 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
                      this, SLOT(rightSecondSurfaceSelected(Surface*)));
     
     QHBoxLayout* checkBoxLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(checkBoxLayout, 2, 0);
     checkBoxLayout->addWidget(m_leftCheckBox);
     checkBoxLayout->addSpacing(10);
     checkBoxLayout->addStretch();
@@ -284,7 +285,7 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
     layout->setColumnStretch(0,   0);
     layout->setColumnStretch(1, 100);
     layout->setColumnStretch(2, 100);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     int row = layout->rowCount();
     layout->addWidget(m_surfaceMontageFirstSurfaceCheckBox, row, COLUMN_ONE_TWO);
     layout->addWidget(m_leftSurfaceViewController->getWidget(), row, COLUMN_INDEX_LEFT);
@@ -310,6 +311,8 @@ SurfaceMontageCerebralComponent::SurfaceMontageCerebralComponent(BrainBrowserWin
     m_widgetGroup->add(m_surfaceMontageSecondSurfaceCheckBox);
     m_widgetGroup->add(m_medialCheckBox);
     m_widgetGroup->add(m_lateralCheckBox);
+    
+    setFixedHeight(sizeHint().height());
 }
 
 /**
@@ -500,6 +503,7 @@ SurfaceMontageCerebellarComponent::SurfaceMontageCerebellarComponent(BrainBrowse
                      this, SLOT(secondSurfaceSelected(Surface*)));
     
     QHBoxLayout* checkBoxLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(checkBoxLayout, 2, 0);
     checkBoxLayout->addStretch();
     checkBoxLayout->addWidget(m_dorsalCheckBox);
     checkBoxLayout->addSpacing(5);
@@ -520,7 +524,7 @@ SurfaceMontageCerebellarComponent::SurfaceMontageCerebellarComponent(BrainBrowse
     QGridLayout* layout = new QGridLayout(this);
     layout->setColumnStretch(COLUMN_CHECKBOX,    0);
     layout->setColumnStretch(COLUMN_SELECTION, 100);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     int row = layout->rowCount();
     layout->addWidget(m_firstSurfaceCheckBox, row, COLUMN_CHECKBOX);
     layout->addWidget(m_firstSurfaceViewController->getWidget(), row, COLUMN_SELECTION);
@@ -542,6 +546,8 @@ SurfaceMontageCerebellarComponent::SurfaceMontageCerebellarComponent(BrainBrowse
     m_widgetGroup->add(m_ventralCheckBox);
     m_widgetGroup->add(m_anteriorCheckBox);
     m_widgetGroup->add(m_posteriorCheckBox);
+
+    setFixedHeight(sizeHint().height());
 }
 
 /**
@@ -673,7 +679,7 @@ SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWin
     QObject::connect(m_rightSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     
-    m_cerebellumSurfaceCheckBox = new QCheckBox("Cerebellum");
+    m_cerebellumSurfaceCheckBox = new QCheckBox("Cerebellum ");
     QObject::connect(m_cerebellumSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     
@@ -689,16 +695,17 @@ SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWin
     QObject::connect(m_cerebellumSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(cerebellumSurfaceSelected(Surface*)));
     
-    QHBoxLayout* checkBoxLayout = new QHBoxLayout();
-    checkBoxLayout->addStretch();
-    checkBoxLayout->addWidget(m_leftSurfaceCheckBox);
-    checkBoxLayout->addSpacing(5);
-    checkBoxLayout->addStretch();
-    checkBoxLayout->addWidget(m_rightSurfaceCheckBox);
-    checkBoxLayout->addSpacing(5);
-    checkBoxLayout->addStretch();
-    checkBoxLayout->addWidget(m_cerebellumSurfaceCheckBox);
-    checkBoxLayout->addStretch();
+//    QHBoxLayout* checkBoxLayout = new QHBoxLayout();
+//    WuQtUtilities::setLayoutSpacingAndMargins(checkBoxLayout, 2, 0);
+//    checkBoxLayout->addStretch();
+//    checkBoxLayout->addWidget(m_leftSurfaceCheckBox);
+//    checkBoxLayout->addSpacing(5);
+//    checkBoxLayout->addStretch();
+//    checkBoxLayout->addWidget(m_rightSurfaceCheckBox);
+//    checkBoxLayout->addSpacing(5);
+//    checkBoxLayout->addStretch();
+//    checkBoxLayout->addWidget(m_cerebellumSurfaceCheckBox);
+//    checkBoxLayout->addStretch();
     
     int32_t columnIndex = 0;
     const int32_t COLUMN_CHECKBOX  = columnIndex++;
@@ -718,10 +725,10 @@ SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWin
     layout->addWidget(m_cerebellumSurfaceCheckBox, row, COLUMN_CHECKBOX);
     layout->addWidget(m_cerebellumSurfaceViewController->getWidget(), row, COLUMN_SELECTION);
     row = layout->rowCount();
-    layout->addLayout(checkBoxLayout,
-                      row, COLUMN_CHECKBOX,
-                      1, 2);
-    row = layout->rowCount();
+//    layout->addLayout(checkBoxLayout,
+//                      row, COLUMN_CHECKBOX,
+//                      1, 2);
+//    row = layout->rowCount();
     
     m_widgetGroup = new WuQWidgetObjectGroup(this);
     m_widgetGroup->add(m_leftSurfaceViewController->getWidget());
@@ -730,6 +737,8 @@ SurfaceMontageFlatMapsComponent::SurfaceMontageFlatMapsComponent(BrainBrowserWin
     m_widgetGroup->add(m_leftSurfaceCheckBox);
     m_widgetGroup->add(m_rightSurfaceCheckBox);
     m_widgetGroup->add(m_cerebellumSurfaceCheckBox);
+        
+    setFixedHeight(sizeHint().height());
 }
 
 /**
