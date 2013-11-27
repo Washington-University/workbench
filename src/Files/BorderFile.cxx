@@ -39,6 +39,7 @@
 #include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileContentInformation.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FileAdapter.h"
 #include "FileInformation.h"
@@ -829,4 +830,31 @@ BorderFile::clearModified()
         m_borders[i]->clearModified();
     }
 }
+
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    QStringList fociNames = getAllBorderNamesSorted();
+    const int32_t numNames = fociNames.size();
+    if (numNames > 0) {
+        AString namesListText = "BORDER NAMES";
+        for (int32_t i = 0; i < numNames; i++) {
+            namesListText.appendWithNewLine("    "
+                                            + fociNames.at(i));
+            
+        }
+        
+        dataFileInformation.addText(namesListText);
+    }
+}
+
 

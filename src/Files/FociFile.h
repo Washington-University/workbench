@@ -54,6 +54,8 @@ namespace caret {
 
         FociFile& operator=(const FociFile& obj);
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         GiftiMetaData* getFileMetaData();
         
         const GiftiMetaData* getFileMetaData() const;

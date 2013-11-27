@@ -471,7 +471,7 @@ SceneFile::addToDataFileContentInformation(DataFileContentInformation& dataFileI
     
     const int32_t numScenes = getNumberOfScenes();
     if (numScenes > 0) {
-        AString sceneNamesText = "SCENES";
+        AString sceneNamesText = "SCENE NAMES";
         for (int32_t i = 0; i < numScenes; i++) {
             const Scene* scene = getSceneAtIndex(i);
             sceneNamesText.appendWithNewLine("    "
