@@ -105,9 +105,32 @@ namespace caret {
             CT::getAllEnums(allEnums);
             
             m_itemComboBox->blockSignals(true);
+            
+            m_itemComboBox->clear();
             const int32_t numColors = static_cast<int32_t>(allEnums.size());
             for (int32_t i = 0; i < numColors; i++) {
                 const ET enumValue = allEnums[i];
+                const int32_t indx = m_itemComboBox->count();
+                const AString name = CT::toGuiName(enumValue);
+                m_itemComboBox->addItem(name);
+                m_itemComboBox->setItemData(indx,
+                                            CT::toIntegerCode(enumValue));
+            }
+            
+            m_itemComboBox->blockSignals(false);
+        }
+        
+        /**
+         * Setup the combo box.
+         */
+        template<class CT, typename ET>
+        void setupWithItems(const std::vector<ET>& comboBoxItems) {
+            m_itemComboBox->blockSignals(true);
+            
+            m_itemComboBox->clear();
+            const int32_t numColors = static_cast<int32_t>(comboBoxItems.size());
+            for (int32_t i = 0; i < numColors; i++) {
+                const ET enumValue = comboBoxItems[i];
                 const int32_t indx = m_itemComboBox->count();
                 const AString name = CT::toGuiName(enumValue);
                 m_itemComboBox->addItem(name);
