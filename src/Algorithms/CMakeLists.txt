@@ -49,6 +49,7 @@ AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmFiberDotProducts.h
 AlgorithmGiftiAllLabelsToROIs.h
+AlgorithmGiftiLabelAddPrefix.h
 AlgorithmGiftiLabelToROI.h
 AlgorithmLabelDilate.h
 AlgorithmLabelMerge.h
@@ -135,6 +136,7 @@ AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmFiberDotProducts.cxx
 AlgorithmGiftiAllLabelsToROIs.cxx
+AlgorithmGiftiLabelAddPrefix.cxx
 AlgorithmGiftiLabelToROI.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmLabelMerge.cxx
