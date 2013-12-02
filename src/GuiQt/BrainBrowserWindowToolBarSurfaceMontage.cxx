@@ -180,9 +180,22 @@ BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browse
     ModelSurfaceMontage* msm = browserTabContent->getDisplayedSurfaceMontageModel();
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
-    m_surfaceMontageConfigurationTypeEnumComboBox->setSelectedItem<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>(msm->getSelectedConfigurationType(tabIndex));
     
+    std::vector<SurfaceMontageConfigurationTypeEnum::Enum> validConfigs;
+    if (msm->getCerebellarConfiguration(tabIndex)->isValid()) {
+        validConfigs.push_back(SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION);
+    }
+    if (msm->getCerebralConfiguration(tabIndex)->isValid()) {
+        validConfigs.push_back(SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION);
+    }
+    if (msm->getFlatMapsConfiguration(tabIndex)->isValid()) {
+        validConfigs.push_back(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION);
+    }
+    
+    m_surfaceMontageConfigurationTypeEnumComboBox->setupWithItems<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>(validConfigs);
     SurfaceMontageConfigurationAbstract* selectedConfiguration = msm->getSelectedConfiguration(tabIndex);
+    m_surfaceMontageConfigurationTypeEnumComboBox->setSelectedItem<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>(msm->getSelectedConfigurationType(tabIndex));
+
     m_surfaceMontageLayoutOrientationEnumComboBox->setSelectedItem<SurfaceMontageLayoutOrientationEnum,SurfaceMontageLayoutOrientationEnum::Enum>(selectedConfiguration->getLayoutOrientation());
     
     switch (msm->getSelectedConfigurationType(tabIndex)) {

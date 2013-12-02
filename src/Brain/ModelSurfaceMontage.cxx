@@ -493,6 +493,61 @@ ModelSurfaceMontage::getSelectedConfiguration(const int32_t tabIndex) const
 SurfaceMontageConfigurationTypeEnum::Enum
 ModelSurfaceMontage::getSelectedConfigurationType(const int32_t tabIndex) const
 {
+    /*
+     * Find valid configurations
+     */
+    std::vector< SurfaceMontageConfigurationTypeEnum::Enum> validTypes;
+    if (m_cerebellarConfiguration[tabIndex]->isValid()) {
+        validTypes.push_back(SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION);
+    }
+    if (m_cerebralConfiguration[tabIndex]->isValid()) {
+        validTypes.push_back(SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION);
+    }
+    if (m_flatMapsConfiguration[tabIndex]->isValid()) {
+        validTypes.push_back(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION);
+    }
+
+    /*
+     * Verify selected type is valid
+     */
+    bool validTypeSelected = false;
+    switch (m_selectedConfigurationType[tabIndex]) {
+        case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+            CaretAssertArrayIndex(m_cerebellarConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            if (m_cerebellarConfiguration[tabIndex]->isValid()) {
+                validTypeSelected = true;
+            }
+            break;
+        case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+            CaretAssertArrayIndex(m_cerebralConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            if (m_cerebralConfiguration[tabIndex]->isValid()) {
+                validTypeSelected = true;
+            }
+            break;
+        case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+            CaretAssertArrayIndex(m_flatMapsConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            if (m_flatMapsConfiguration[tabIndex]->isValid()) {
+                validTypeSelected = true;
+            }
+            break;
+    }
+    
+    /*
+     * If configuration type selected is not valid, choose another
+     * configuration type.
+     */
+    if ( ! validTypeSelected) {
+        if ( ! validTypes.empty()) {
+            m_selectedConfigurationType[tabIndex] = validTypes[0];
+        }
+    }
+    
     return m_selectedConfigurationType[tabIndex];
 }
 
