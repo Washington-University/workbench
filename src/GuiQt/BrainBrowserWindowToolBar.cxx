@@ -1675,7 +1675,10 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
         bool rightFlag = false;
         bool leftFlag = false;
         bool leftRightFlag = false;
-        bool showCombinedViewOrientationButtons = false;
+        
+        bool enableDualViewOrientationButtons = false;
+        bool showDualViewOrientationButtons = false;
+        bool showSingleViewOrientationButtons = false;
         
         if (mdcs != NULL) {
             const Surface* surface = mdcs->getSurface();
@@ -1689,18 +1692,20 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
             else {
                 leftRightFlag = true;
             }
+            
+            showSingleViewOrientationButtons = true;
         }
         else if (mdcsm != NULL) {
-            showCombinedViewOrientationButtons = true;
-            
             AString latMedLeftRightText = "LM";
             AString latMedLeftRightToolTipText = "View from a Lateral/Medial perspective";
             switch (mdcsm->getSelectedConfigurationType(tabIndex)) {
                 case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
                     latMedLeftRightText = "LR";
                     latMedLeftRightToolTipText = "View from a Right/Left Perspective";
+                    enableDualViewOrientationButtons = true;
                     break;
                 case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+                    enableDualViewOrientationButtons = true;
                     break;
                 case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
                     break;
@@ -1709,12 +1714,15 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
             this->orientationLateralMedialToolButtonAction->setText(latMedLeftRightText);
             WuQtUtilities::setToolTipAndStatusTip(this->orientationLateralMedialToolButtonAction,
                                                   latMedLeftRightToolTipText);
+            
+            showDualViewOrientationButtons = true;
         }
         else if (mdcv != NULL) {
             // nothing
         }
         else if (mdcwb != NULL) {
             leftRightFlag = true;
+            showSingleViewOrientationButtons = true;
         }
         else {
             CaretAssertMessage(0, "Unknown model display controller type");
@@ -1773,16 +1781,27 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
                                                   "View from a RIGHT perspective");
         }
 
-        this->orientationLateralMedialToolButton->setVisible(showCombinedViewOrientationButtons);
-        this->orientationDorsalVentralToolButton->setVisible(showCombinedViewOrientationButtons);
-        this->orientationAnteriorPosteriorToolButton->setVisible(showCombinedViewOrientationButtons);
-    
-        this->orientationLeftOrLateralToolButton->setVisible(showCombinedViewOrientationButtons == false);
-        this->orientationRightOrMedialToolButton->setVisible(showCombinedViewOrientationButtons == false);
-        this->orientationDorsalToolButton->setVisible(showCombinedViewOrientationButtons == false);
-        this->orientationVentralToolButton->setVisible(showCombinedViewOrientationButtons == false);
-        this->orientationAnteriorToolButton->setVisible(showCombinedViewOrientationButtons == false);
-        this->orientationPosteriorToolButton->setVisible(showCombinedViewOrientationButtons == false);
+        /*
+         * The dual view buttons are not need for a flat map montage.
+         * However, if they are hidden, their space is not reallocated and the 
+         * Reset button remains on the right and it looks weird.  So, 
+         * display them but disable them when a flat map montage.
+         */
+        this->orientationLateralMedialToolButton->setVisible(showDualViewOrientationButtons);
+        this->orientationDorsalVentralToolButton->setVisible(showDualViewOrientationButtons);
+        this->orientationAnteriorPosteriorToolButton->setVisible(showDualViewOrientationButtons);
+
+        this->orientationLateralMedialToolButton->setEnabled(enableDualViewOrientationButtons);
+        this->orientationDorsalVentralToolButton->setEnabled(enableDualViewOrientationButtons);
+        this->orientationAnteriorPosteriorToolButton->setEnabled(enableDualViewOrientationButtons);
+        
+        
+        this->orientationLeftOrLateralToolButton->setVisible(showSingleViewOrientationButtons);
+        this->orientationRightOrMedialToolButton->setVisible(showSingleViewOrientationButtons);
+        this->orientationDorsalToolButton->setVisible(showSingleViewOrientationButtons);
+        this->orientationVentralToolButton->setVisible(showSingleViewOrientationButtons);
+        this->orientationAnteriorToolButton->setVisible(showSingleViewOrientationButtons);
+        this->orientationPosteriorToolButton->setVisible(showSingleViewOrientationButtons);
     }
     this->orientationWidgetGroup->blockAllSignals(false);
         
