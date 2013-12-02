@@ -31,6 +31,7 @@
 
 #include "DataFileContentInformation.h"
 #include "FastStatistics.h"
+#include "GiftiLabelTable.h"
 #include "Histogram.h"
 #include "StringTableModel.h"
 
@@ -222,7 +223,6 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     const bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
                               && (isSurfaceMappable() || isVolumeMappable()));
     
-    
     if (showMapFlag) {
         const int32_t numMaps = getNumberOfMaps();
         if (isSurfaceMappable()) {
@@ -341,6 +341,33 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
             
             dataFileInformation.addText(stringTable.getInString()
                                         + "\n");
+            
+            /*
+             * Show label table for each map.
+             * However, some files contain only a single label table used
+             * for all maps and this condition is detected if the first
+             * two label tables use the same pointer.
+             */
+            bool haveLabelTableForEachMap = false;
+            if (numMaps > 1) {
+                if (getMapLabelTable(0) != getMapLabelTable(1)) {
+                    haveLabelTableForEachMap = true;
+                }
+            }
+            for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+                const AString labelTableName = ("Label table for "
+                                                + (haveLabelTableForEachMap
+                                                   ? ("map " + AString::number(mapIndex + 1) + ": " + getMapName(mapIndex))
+                                                   : ("ALL maps"))
+                                                + "\n");
+                
+                dataFileInformation.addText(labelTableName
+                                            + getMapLabelTable(mapIndex)->toFormattedString("    "));
+                
+                if ( ! haveLabelTableForEachMap) {
+                    break;
+                }
+            }
         }
     }
 }

@@ -31,7 +31,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
 #include "NameIndexSort.h"
-
+#include "StringTableModel.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -1304,25 +1304,84 @@ GiftiLabelTable::toString() const
 AString
 GiftiLabelTable::toFormattedString(const AString& indentation) const
 {
-    AString s = (indentation +
-                 + "GiftiLabelTable=[\n");
+    std::set<int32_t> allKeys = getKeys();
+    const int32_t numberOfKeys = allKeys.size();
     
-    const AString indent2 = (indentation + indentation);
-    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
-         iter != this->labelsMap.end();
-         iter++) {
-        s += indent2;
-        s += "key=";
-        s += AString::number(iter->first);
-        s += "  ";
-        s += iter->second->toString();
-        s += "\n";
-        
+    if (numberOfKeys <= 0) {
+        return "Empty";
     }
-    s += (indentation +
-          + "]\n");
     
-    return s;
+    int32_t columnCounter = 0;
+    const int32_t COL_INDENT = columnCounter++;
+    const int32_t COL_KEY    = columnCounter++;
+    const int32_t COL_NAME   = columnCounter++;
+    const int32_t COL_RED    = columnCounter++;
+    const int32_t COL_GREEN  = columnCounter++;
+    const int32_t COL_BLUE   = columnCounter++;
+    const int32_t COL_ALPHA  = columnCounter++;
+    
+    const int32_t numberOfTableRows = numberOfKeys + 1;
+    StringTableModel table(numberOfTableRows,
+                           columnCounter);
+    
+    int32_t rowIndex = 0;
+    table.setElement(rowIndex,
+                     COL_INDENT, // accomplishes indentation
+                     indentation);
+    table.setElement(rowIndex,
+                     COL_KEY,
+                     "KEY");
+    table.setElement(rowIndex,
+                     COL_NAME,
+                     "NAME");
+    table.setElement(rowIndex,
+                     COL_RED,
+                     "RED");
+    table.setElement(rowIndex,
+                     COL_GREEN,
+                     "GREEN");
+    table.setElement(rowIndex,
+                     COL_BLUE,
+                     "BLUE");
+    table.setElement(rowIndex,
+                     COL_ALPHA,
+                     "ALPHA");
+    
+    rowIndex++;
+    
+    table.setColumnAlignment(COL_KEY, StringTableModel::ALIGN_RIGHT);
+    table.setColumnAlignment(COL_NAME, StringTableModel::ALIGN_LEFT);
+    table.setColumnAlignment(COL_RED, StringTableModel::ALIGN_RIGHT);
+    table.setColumnAlignment(COL_GREEN, StringTableModel::ALIGN_RIGHT);
+    table.setColumnAlignment(COL_BLUE, StringTableModel::ALIGN_RIGHT);
+    table.setColumnAlignment(COL_ALPHA, StringTableModel::ALIGN_RIGHT);
+    
+    for (std::set<int32_t>::iterator iter = allKeys.begin();
+         iter != allKeys.end();
+         iter++) {
+        const int32_t key = *iter;
+        const GiftiLabel* label = getLabel(key);
+        
+        CaretAssertArrayIndex("table",
+                              numberOfTableRows,
+                              rowIndex);
+        
+        table.setElement(rowIndex, COL_KEY, key);
+        if (label != NULL) {
+            table.setElement(rowIndex, COL_NAME, label->getName());
+            table.setElement(rowIndex, COL_RED, label->getRed());
+            table.setElement(rowIndex, COL_GREEN, label->getGreen());
+            table.setElement(rowIndex, COL_BLUE, label->getBlue());
+            table.setElement(rowIndex, COL_ALPHA, label->getAlpha());
+        }
+        else {
+            table.setElement(rowIndex, COL_NAME, "Label Missing");
+        }
+        
+        rowIndex++;
+    }
+    
+    return table.getInString();
 }
 
 /**
