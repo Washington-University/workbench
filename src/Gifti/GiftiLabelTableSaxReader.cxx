@@ -162,15 +162,25 @@ GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
       case STATE_LABEL_TABLE:
          break;
       case STATE_LABEL_TABLE_LABEL:
-           this->labelTable->setLabel(this->labelIndex, 
-                                      this->elementText, 
-                                      this->labelRed, 
-                                      this->labelGreen, 
-                                      this->labelBlue, 
-                                      this->labelAlpha,
-                                      this->labelX,
-                                      this->labelY,
-                                      this->labelZ);
+         if ((elementText == "unknown" || elementText == "Unknown") && labelAlpha == 0.0f)
+         {
+            if (labelTable->getLabel("???") == NULL)//if we already have an unlabeled key, don't change things, and warn
+            {
+               CaretLogFiner("Using '" + elementText + "' label as unlabeled key");
+               elementText = "???";//pretend these strings are actually "???" when alpha is 0, as that means it is unlabeled
+            } else {
+               CaretLogWarning("found multiple label elements that should be interpreted as unlabeled");
+            }
+         }
+         this->labelTable->setLabel(this->labelIndex,
+                                    this->elementText,
+                                    this->labelRed,
+                                    this->labelGreen,
+                                    this->labelBlue,
+                                    this->labelAlpha,
+                                    this->labelX,
+                                    this->labelY,
+                                    this->labelZ);
          break;
    }
 
