@@ -378,17 +378,27 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         if (mapFile->isSurfaceMappable()) {
             mappable = true;
             if (showSurfaceMapFiles) {
-                const StructureEnum::Enum mapFileStructure = mapFile->getStructure();
                 
-                if (mapFileStructure == StructureEnum::ALL) {
-                    useIt = true;
+                for (std::vector<StructureEnum::Enum>::const_iterator iter = m_includeSurfaceStructures.begin();
+                     iter != m_includeSurfaceStructures.end();
+                     iter++) {
+                    if (mapFile->isMappableToSurfaceStructure(*iter)) {
+                        useIt = true;
+                        break;
+                    }
                 }
-                else if (std::find(m_includeSurfaceStructures.begin(),
-                              m_includeSurfaceStructures.end(),
-                              mapFile->getStructure())
-                         != m_includeSurfaceStructures.end()) {
-                    useIt = true;
-                }
+                
+//                const StructureEnum::Enum mapFileStructure = mapFile->getStructure();
+//                
+//                if (mapFileStructure == StructureEnum::ALL) {
+//                    useIt = true;
+//                }
+//                else if (std::find(m_includeSurfaceStructures.begin(),
+//                              m_includeSurfaceStructures.end(),
+//                              mapFile->getStructure())
+//                         != m_includeSurfaceStructures.end()) {
+//                    useIt = true;
+//                }
             }
         }
         if (mapFile->isVolumeMappable()) {

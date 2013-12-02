@@ -197,6 +197,41 @@ CiftiMappableDataFile::setStructure(const StructureEnum::Enum /*structure*/)
 }
 
 /**
+ * Is this file able to map to the given structure?  Some data files, such
+ * as CIFTI files, are able to map to multiple surface structure.  The default
+ * implementation of this method simply compares the given structure to
+ * getStructure() and returns true if they are the same value, else false.
+ *
+ * @param structure
+ *   Structure for testing mappability status.
+ * @return True if this file is able to map to the given structure, else false.
+ */
+bool
+CiftiMappableDataFile::isMappableToSurfaceStructure(const StructureEnum::Enum structure) const
+{
+    /*
+     * Validate number of nodes are correct
+     */
+    int32_t numCiftiNodes = -1;
+    
+    switch (m_brainordinateMappedDataAccess) {
+        case DATA_ACCESS_INVALID:
+            break;
+        case DATA_ACCESS_WITH_COLUMN_METHODS:
+            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+            break;
+        case DATA_ACCESS_WITH_ROW_METHODS:
+            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+            break;
+    }
+    if (numCiftiNodes > 0) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * @return Metadata for the file.
  */
 GiftiMetaData*

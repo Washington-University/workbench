@@ -79,6 +79,8 @@ namespace caret {
          */
         virtual int32_t getNumberOfMaps() const = 0;
         
+        virtual bool isMappableToSurfaceStructure(const StructureEnum::Enum structure) const;
+        
         /**
          * @return True if the file has map attributes (name and metadata).
          * For files that do not have map attributes, they should override

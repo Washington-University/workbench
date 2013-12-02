@@ -90,6 +90,8 @@ namespace caret {
         
         virtual bool isEmpty() const;
         
+        virtual bool isMappableToSurfaceStructure(const StructureEnum::Enum structure) const;
+        
         virtual StructureEnum::Enum getStructure() const;
         
         virtual void setStructure(const StructureEnum::Enum structure);

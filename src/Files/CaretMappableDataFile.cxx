@@ -100,6 +100,30 @@ CaretMappableDataFile::hasMapAttributes() const
     return true;
 }
 
+/**
+ * Is this file able to map to the given structure?  Some data files, such
+ * as CIFTI files, are able to map to multiple surface structure.  The default
+ * implementation of this method simply compares the given structure to
+ * getStructure() and returns true if they are the same value, else false.
+ *
+ * @param structure
+ *   Structure for testing mappability status.
+ * @return True if this file is able to map to the given structure, else false.
+ */
+bool
+CaretMappableDataFile::isMappableToSurfaceStructure(const StructureEnum::Enum structure) const
+{
+    if (getStructure() == StructureEnum::ALL) {
+        return true;
+    }
+    
+    if (structure == getStructure()) {
+        return true;
+    }
+    
+    return false;
+}
+
 // note: method is documented in header file
 int32_t
 CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName)
