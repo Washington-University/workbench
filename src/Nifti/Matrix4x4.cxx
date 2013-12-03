@@ -2115,17 +2115,28 @@ Matrix4x4::writeAsGiftiXML(XmlWriter& xmlWriter,
     xmlWriter.writeElementCData(xmlDataSpaceTag, this->dataSpaceName);
     xmlWriter.writeElementCData(xmlTransformedSpaceTag, this->transformedSpaceName);
 
+    /*
+     * Note: Matrix4x4 is column major order but GIFTI uses
+     * row major order so transpose matrix as values are 
+     * written.
+     */
     xmlWriter.writeStartElement(xmlMatrixDataTag);
-    for (int32_t i = 0; i < 4; i++) {
-        for (int32_t j = 0; j < 4; j++) {
+    for (int32_t iRow = 0; iRow < 4; iRow++) {
+        for (int32_t jCol = 0; jCol < 4; jCol++) {
+            /*
+             * Transpose indices
+             */
+            const int32_t i = jCol;
+            const int32_t j = iRow;
+            
             const AString txt = (AString::number(this->matrix[i][j]) + " ");
-            if (j == 0) {
+            if (jCol == 0) {
                 xmlWriter.writeCharactersWithIndent(txt);
             }
             else {
                 xmlWriter.writeCharacters(txt);
             }
-            if (j == 3) {
+            if (jCol == 3) {
                 xmlWriter.writeCharacters("\n");
             }
         }

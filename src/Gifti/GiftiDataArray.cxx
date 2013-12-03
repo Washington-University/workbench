@@ -1086,17 +1086,24 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    //
     this->metaData.writeAsXML(xmlWriter);
    
-   //
-   // Write the matrices
-   //
-   for (int32_t i = 0; i < getNumberOfMatrices(); i++) {
-       this->matrices[i].writeAsGiftiXML(xmlWriter,
-                                         GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX,
-                                         GiftiXmlElements::TAG_MATRIX_DATA_SPACE,
-                                         GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE,
-                                         GiftiXmlElements::TAG_MATRIX_DATA);
-   }
-   
+    /*
+     * Write one identity matrix for the transformation matrix. 
+     *
+     * We do not want to write the transformation matrices that
+     * were read from the file as the first matrix was applied to
+     * the coordinates when the file was read.  To do so would require 
+     * applying an inverse of the matrix.  However, the user may have 
+     * modified the coordinates so the matrix is no longer valid for 
+     * the file's coordinates.
+     */
+    Matrix4x4 identityMatrix;
+    identityMatrix.identity();
+    identityMatrix.writeAsGiftiXML(xmlWriter,
+                                   GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX,
+                                   GiftiXmlElements::TAG_MATRIX_DATA_SPACE,
+                                   GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE,
+                                   GiftiXmlElements::TAG_MATRIX_DATA);
+
    //
    // NOTE: for the base64 and ZLIB-Base64 data, it is important that there are
    // no spaces between the <DATA> and </DATA> tags.

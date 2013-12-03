@@ -234,6 +234,18 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
     }
     
     /*
+     * Apply the first transformation matrix that transforms to 
+     * Talairach space.
+     */
+    for (int32_t im = 0; im < this->coordinateDataArray->getNumberOfMatrices(); im++) {
+        const Matrix4x4* m = this->coordinateDataArray->getMatrix(im);
+        if (m->getTransformedSpaceName() == "NIFTI_XFORM_TALAIRACH") {
+            applyMatrix(*m);
+            break;
+        }
+    }
+
+    /*
      * Create the topology helper in a thread so files dont' take
      * too long to read.
      */

@@ -287,6 +287,12 @@ GiftiFileSaxReader::endElement(const AString& namespaceURI,
                 }
              }
              matrix->setMatrix(m);
+             
+             /*
+              * In GIFTI file, matrix is row-major order
+              * but Matrix4x4 is column-major order.
+              */
+             matrix->transpose();
          }
          break;
    }
