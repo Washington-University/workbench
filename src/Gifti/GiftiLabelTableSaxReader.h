@@ -119,6 +119,9 @@ namespace caret {
         
         /// label's Z-coordinate
         float labelZ;
+        
+        /// tracks whether we have read an "unused" label, because the GiftiLabelTable constructor and clear() add "???" whether we want it or not
+        bool m_haveUnlabeled;
     };
 
 } // namespace

@@ -47,6 +47,7 @@ GiftiLabelTableSaxReader::GiftiLabelTableSaxReader(GiftiLabelTable* labelTable)
     this->stateStack.push(state);
     this->elementText = "";
     this->labelTable = labelTable;
+    m_haveUnlabeled = false;
 }
 
 /**
@@ -164,8 +165,9 @@ GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
       case STATE_LABEL_TABLE_LABEL:
          if ((elementText == "unknown" || elementText == "Unknown") && labelAlpha == 0.0f)
          {
-            if (labelTable->getLabel("???") == NULL)//if we already have an unlabeled key, don't change things, and warn
+            if (!m_haveUnlabeled)//if we already have an unlabeled key, don't change things, and warn
             {
+               m_haveUnlabeled = true;
                CaretLogFiner("Using '" + elementText + "' label as unlabeled key");
                elementText = "???";//pretend these strings are actually "???" when alpha is 0, as that means it is unlabeled
             } else {
