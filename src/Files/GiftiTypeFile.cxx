@@ -23,6 +23,7 @@
  */ 
 
 #include "CaretLogger.h"
+#include "DataFileContentInformation.h"
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
 #include "GiftiDataArray.h"
@@ -748,4 +749,20 @@ GiftiTypeFile::updateScalarColoringForMap(const int32_t /*mapIndex*/,
 {
     /* no volumes in gifti */
 }
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+GiftiTypeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    dataFileInformation.addNameAndValue("Number of Vertices",
+                                        getNumberOfNodes());
+}
+
 

@@ -1524,11 +1524,38 @@ void
 VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
+
+    dataFileInformation.addNameAndValue("Orthogonal", isPlumb());
+    
+    int64_t dimI, dimJ, dimK, dimTime, dimComponents;
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComponents);
     
     std::vector<int64_t> dims;
     getDimensions(dims);
-    dataFileInformation.addNameAndValue("Dimensions",
-                                        AString::fromNumbers(dims, ", "));
+    dataFileInformation.addNameAndValue("Dim[0]",
+                                        AString::number(dimI));
+    dataFileInformation.addNameAndValue("Dim[1]",
+                                        AString::number(dimJ));
+    dataFileInformation.addNameAndValue("Dim[2]",
+                                        AString::number(dimK));
+    dataFileInformation.addNameAndValue("Dim[Time]",
+                                        AString::number(dimTime));
+    dataFileInformation.addNameAndValue("Dim[Components]",
+                                        AString::number(dimComponents));
+
+    const int64_t zero64 = 0;
+    if (indexValid(zero64, zero64, zero64)) {
+        float x, y, z;
+        indexToSpace(zero64, zero64, zero64, x, y, z);
+        dataFileInformation.addNameAndValue("IJK = (0,0,0)",
+                                            ("XYZ = ("
+                                             + AString::number(x)
+                                             + ", "
+                                             + AString::number(y)
+                                             + ", "
+                                             + AString::number(z)
+                                             + ")"));
+    }
     
     BoundingBox boundingBox;
     getVoxelSpaceBoundingBox(boundingBox);
@@ -1571,6 +1598,9 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
     
     float spacing[3];
     getVoxelSpacing(spacing[0], spacing[1], spacing[2]);
+    spacing[0] = std::fabs(spacing[0]);
+    spacing[1] = std::fabs(spacing[1]);
+    spacing[2] = std::fabs(spacing[2]);
     dataFileInformation.addNameAndValue("Spacing",
                                         AString::fromNumbers(spacing, 3, ", "));
     

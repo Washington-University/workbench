@@ -1031,7 +1031,11 @@ SurfaceFile::translateToCenterOfMass()
     }
 }
 
-void SurfaceFile::flipNormals()
+/**
+ * Flip the normal vectors.
+ */
+void
+SurfaceFile::flipNormals()
 {
     if (trianglePointer == NULL) return;
     const int numTiles = getNumberOfTriangles();
@@ -1047,6 +1051,45 @@ void SurfaceFile::flipNormals()
     invalidateHelpers();//sorted topology helpers would change, so just for completeness
     setModified();
 }
+
+/**
+ * @return True if normal vectors are correct, else false.
+ *
+ * Find the node with the greatest Z-coordinate.  If the Z-component
+ * of the this node's normal vector is positive, then the normal vectors
+ * point out of the surface and they are correct.  Otherwise, the normal
+ * vectors are pointing into the surface.
+ */
+bool
+SurfaceFile::areNormalVectorsCorrect() const
+{
+    CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+    
+    float maxZ = -std::numeric_limits<float>::max();
+    int32_t indxMaxZ = -1;
+    
+    const int32_t numberOfNodes = getNumberOfNodes();
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (th->getNodeHasNeighbors(i)) {
+            const float* xyz = getCoordinate(i);
+            
+            if (xyz[2] > maxZ) {
+                maxZ     = xyz[2];
+                indxMaxZ = i;
+            }
+        }
+    }
+    
+    if (indxMaxZ >= 0) {
+        const float* normal = getNormalVector(indxMaxZ);
+        if (normal[2] > 0.0) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * @return The radius of the spherical surface.
@@ -1572,12 +1615,14 @@ SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFil
 {
     GiftiTypeFile::addToDataFileContentInformation(dataFileInformation);
     
+    dataFileInformation.addNameAndValue("Number of Triangles",
+                                        getNumberOfTriangles());
+    dataFileInformation.addNameAndValue("Normal Vectors Correct",
+                                        areNormalVectorsCorrect());
     dataFileInformation.addNameAndValue("Surface Type (Primary)",
                                         SurfaceTypeEnum::toGuiName(getSurfaceType()));
     dataFileInformation.addNameAndValue("Surface Type (Secondary)",
                                         SecondarySurfaceTypeEnum::toGuiName(getSecondaryType()));
-    dataFileInformation.addNameAndValue("Number of Triangles",
-                                        getNumberOfTriangles());
     
     const BoundingBox* boundingBox = getBoundingBox();
     dataFileInformation.addNameAndValue("X-minimum", boundingBox->getMinX());
@@ -1586,7 +1631,9 @@ SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFil
     dataFileInformation.addNameAndValue("Y-maximum", boundingBox->getMaxY());
     dataFileInformation.addNameAndValue("Z-minimum", boundingBox->getMinZ());
     dataFileInformation.addNameAndValue("Z-maximum", boundingBox->getMaxZ());
-    dataFileInformation.addNameAndValue("Spherical Radius", getSphericalRadius());
+    if (getSurfaceType() == SurfaceTypeEnum::SPHERICAL) {
+        dataFileInformation.addNameAndValue("Spherical Radius", getSphericalRadius());
+    }
     dataFileInformation.addNameAndValue("Surface Area", getSurfaceArea());
     
     DescriptiveStatistics stats;

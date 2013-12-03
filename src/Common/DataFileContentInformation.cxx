@@ -107,6 +107,22 @@ DataFileContentInformation::addNameAndValue(const AString& name,
  */
 void
 DataFileContentInformation::addNameAndValue(const AString& name,
+                                            const int64_t value)
+{
+    m_namesAndValues.push_back(std::make_pair((name + ":"),
+                                              AString::number(value)));
+}
+
+/**
+ * Add a name and value pair.
+ *
+ * @param name
+ *    The name.
+ * @param value
+ *    The value.
+ */
+void
+DataFileContentInformation::addNameAndValue(const AString& name,
                                             const double value,
                                             const int32_t precision)
 {

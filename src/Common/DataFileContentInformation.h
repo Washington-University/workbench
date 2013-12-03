@@ -55,6 +55,9 @@ namespace caret {
                              const int32_t value);
         
         void addNameAndValue(const AString& name,
+                             const int64_t value);
+        
+        void addNameAndValue(const AString& name,
                              const double value,
                              const int32_t precision = 3);
         

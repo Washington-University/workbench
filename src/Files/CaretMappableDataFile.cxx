@@ -29,6 +29,7 @@
 
 #include <limits>
 
+#include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "DataFileContentInformation.h"
 #include "FastStatistics.h"
 #include "GiftiLabelTable.h"
@@ -244,8 +245,43 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     dataFileInformation.addNameAndValue("Maps with Palette",
                                         isMappedWithPalette());
     
-    const bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
+    if (isMappedWithPalette()) {
+        NiftiTimeUnitsEnum::Enum timeUnits = getMapIntervalUnits();
+        switch (timeUnits) {
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                break;
+        }
+        dataFileInformation.addNameAndValue("Map Interval Units", NiftiTimeUnitsEnum::toName(timeUnits));
+        if (timeUnits != NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN) {
+            float mapIntervalStart, mapIntervalStep;
+            getMapIntervalStartAndStep(mapIntervalStart, mapIntervalStep);
+            dataFileInformation.addNameAndValue("Map Interval Start", mapIntervalStart);
+            dataFileInformation.addNameAndValue("Map Interval Stop", mapIntervalStep);
+        }
+    }
+    
+    bool showMapFlag = ((isMappedWithLabelTable() || isMappedWithPalette())
                               && (isSurfaceMappable() || isVolumeMappable()));
+    
+    /*
+     * Do not show maps on CIFTI connectivity matrix data because
+     * they do not have maps, they have a matrix.
+     */
+    const bool ciftiMatrixFlag = (dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this)
+                                  != NULL);
+    if (ciftiMatrixFlag) {
+        showMapFlag = false;
+    }
     
     if (showMapFlag) {
         const int32_t numMaps = getNumberOfMaps();
@@ -346,50 +382,66 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                     const double pctPositive = (posCount / totalCount) * 100.0;
                     const double pctNegative = (negCount / totalCount) * 100.0;
                     
-                    CaretAssert(COL_MIN >= 0);
-                    CaretAssert(COL_MAX >= 0);
-                    CaretAssert(COL_MEAN >= 0);
-                    CaretAssert(COL_DEV >= 0);
-                    CaretAssert(COL_PCT_POS >= 0);
-                    CaretAssert(COL_PCT_NEG >= 0);
-                    CaretAssert(COL_INF_NAN >= 0);
-                    stringTable.setElement(tableRow, COL_MIN, stats->getMin());
-                    stringTable.setElement(tableRow, COL_MAX, stats->getMax());
-                    stringTable.setElement(tableRow, COL_MEAN, stats->getMean());
-                    stringTable.setElement(tableRow, COL_DEV, stats->getSampleStdDev());
-                    stringTable.setElement(tableRow, COL_PCT_POS, pctPositive);
-                    stringTable.setElement(tableRow, COL_PCT_NEG, pctNegative);
-                    stringTable.setElement(tableRow, COL_INF_NAN, numInfinityAndNotANumber);
+                    if (COL_MIN >= 0) {
+                        stringTable.setElement(tableRow, COL_MIN, stats->getMin());
+                    }
+                    
+                    if (COL_MAX >= 0) {
+                        stringTable.setElement(tableRow, COL_MAX, stats->getMax());
+                    }
+                    
+                    if (COL_MEAN >= 0) {
+                        stringTable.setElement(tableRow, COL_MEAN, stats->getMean());
+                    }
+                    
+                    if (COL_DEV >= 0) {
+                        stringTable.setElement(tableRow, COL_DEV, stats->getSampleStdDev());
+                    }
+                    if (COL_PCT_POS >= 0) {
+                        stringTable.setElement(tableRow, COL_PCT_POS, pctPositive);
+                    }
+                    
+                    if (COL_PCT_NEG >= 0) {
+                        stringTable.setElement(tableRow, COL_PCT_NEG, pctNegative);
+                    }
+                    
+                    if (COL_INF_NAN >= 0) {
+                        stringTable.setElement(tableRow, COL_INF_NAN, numInfinityAndNotANumber);
+                    }
                 }
             }
             
-            dataFileInformation.addText(stringTable.getInString()
+            dataFileInformation.addText("\n"
+                                        + stringTable.getInString()
                                         + "\n");
             
-            /*
-             * Show label table for each map.
-             * However, some files contain only a single label table used
-             * for all maps and this condition is detected if the first
-             * two label tables use the same pointer.
-             */
-            bool haveLabelTableForEachMap = false;
-            if (numMaps > 1) {
-                if (getMapLabelTable(0) != getMapLabelTable(1)) {
-                    haveLabelTableForEachMap = true;
+            if (isMappedWithLabelTable()) {
+                /*
+                 * Show label table for each map.
+                 * However, some files contain only a single label table used
+                 * for all maps and this condition is detected if the first
+                 * two label tables use the same pointer.
+                 */
+                bool haveLabelTableForEachMap = false;
+                if (numMaps > 1) {
+                    if (getMapLabelTable(0) != getMapLabelTable(1)) {
+                        haveLabelTableForEachMap = true;
+                    }
                 }
-            }
-            for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
-                const AString labelTableName = ("Label table for "
-                                                + (haveLabelTableForEachMap
-                                                   ? ("map " + AString::number(mapIndex + 1) + ": " + getMapName(mapIndex))
-                                                   : ("ALL maps"))
+                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+                    const AString labelTableName = ("Label table for "
+                                                    + (haveLabelTableForEachMap
+                                                       ? ("map " + AString::number(mapIndex + 1) + ": " + getMapName(mapIndex))
+                                                       : ("ALL maps"))
+                                                    + "\n");
+                    
+                    dataFileInformation.addText(labelTableName
+                                                + getMapLabelTable(mapIndex)->toFormattedString("    ")
                                                 + "\n");
-                
-                dataFileInformation.addText(labelTableName
-                                            + getMapLabelTable(mapIndex)->toFormattedString("    "));
-                
-                if ( ! haveLabelTableForEachMap) {
-                    break;
+                    
+                    if ( ! haveLabelTableForEachMap) {
+                        break;
+                    }
                 }
             }
         }

@@ -48,6 +48,7 @@
 #include "CaretTemporaryFile.h"
 #include "CiftiXnat.h"
 #include "CiftiXML.h"
+#include "DataFileContentInformation.h"
 #include "DescriptiveStatistics.h"
 #include "EventManager.h"
 #include "EventCiftiMappableDataFileColoringUpdated.h"
@@ -3271,7 +3272,12 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
 NiftiTimeUnitsEnum::Enum
 CiftiMappableDataFile::getMapIntervalUnits() const
 {
-    return NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+    float start, step;
+    NiftiTimeUnitsEnum::Enum units;
+    m_ciftiFacade->getMapIntervalStartStepAndUnits(start,
+                                                   step,
+                                                   units);
+    return units;
 }
 
 /**
@@ -3289,8 +3295,10 @@ void
 CiftiMappableDataFile::getMapIntervalStartAndStep(float& firstMapUnitsValueOut,
                                         float& mapIntervalStepValueOut) const
 {
-    firstMapUnitsValueOut   = 1.0;
-    mapIntervalStepValueOut = 1.0;
+    NiftiTimeUnitsEnum::Enum units;
+    m_ciftiFacade->getMapIntervalStartStepAndUnits(firstMapUnitsValueOut,
+                                                   mapIntervalStepValueOut,
+                                                   units);
 }
 
 /**
@@ -3425,3 +3433,43 @@ CiftiMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                                sceneClass->getClass("m_classNameHierarchy"));
     }
 }
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
+    getDimensions(dimI,
+                  dimJ,
+                  dimK,
+                  dimTime,
+                  dimNumComp);
+    
+    dataFileInformation.addNameAndValue("Dim[0]", dimI);
+    dataFileInformation.addNameAndValue("Dim[1]", dimJ);
+    dataFileInformation.addNameAndValue("Dim[2]", dimK);
+    
+    std::vector<StructureEnum::Enum> allStructures;
+    StructureEnum::getAllEnums(allStructures);
+    
+    for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
+         iter != allStructures.end();
+         iter++) {
+        const int32_t numNodes = getSurfaceNumberOfNodes(*iter);
+        if (numNodes > 0) {
+            dataFileInformation.addNameAndValue(("Number of Vertices ("
+                                                 + StructureEnum::toGuiName(*iter)
+                                                 + ")"),
+                                                (AString::number(numNodes)
+                                                 + "  "));
+        }
+    }
+}
+

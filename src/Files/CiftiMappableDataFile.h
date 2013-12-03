@@ -86,6 +86,8 @@ namespace caret {
     public:
         virtual ~CiftiMappableDataFile();
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         virtual void clear();
         
         virtual bool isEmpty() const;

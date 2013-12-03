@@ -181,6 +181,8 @@ namespace caret {
         
         void flipNormals();
         
+        bool areNormalVectorsCorrect() const;
+        
         ///check that it has EXACTLY the same topology, with no flipped normals or rotated or reordered triangles
         bool matchesTopology(const SurfaceFile& rhs) const;
         

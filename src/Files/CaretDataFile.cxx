@@ -27,6 +27,7 @@
 #include "CaretDataFile.h"
 #undef __CARET_DATA_FILE_DECLARE__
 
+#include "CaretMappableDataFile.h"
 #include "DataFileContentInformation.h"
 #include "SceneClass.h"
 
@@ -168,8 +169,28 @@ CaretDataFile::addToDataFileContentInformation(DataFileContentInformation& dataF
     DataFile::addToDataFileContentInformation(dataFileInformation);
     dataFileInformation.addNameAndValue("Type",
                                         DataFileTypeEnum::toGuiName(m_dataFileType));
-    dataFileInformation.addNameAndValue("Structure",
-                                        StructureEnum::toGuiName(getStructure()));
+    
+    std::vector<StructureEnum::Enum> allStructures;
+    StructureEnum::getAllEnums(allStructures);
+    
+    CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(this);
+    if (cmdf != NULL) {
+        AString structureNames;
+        
+        for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
+             iter != allStructures.end();
+             iter++) {
+            if (cmdf->isMappableToSurfaceStructure(*iter)) {
+                structureNames.append(StructureEnum::toGuiName(*iter) + " ");
+            }
+        }
+        dataFileInformation.addNameAndValue("Structure",
+                                           structureNames);
+    }
+    else {
+        dataFileInformation.addNameAndValue("Structure",
+                                            StructureEnum::toGuiName(getStructure()));
+    }
 }
 
 /**

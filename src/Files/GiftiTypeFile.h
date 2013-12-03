@@ -48,6 +48,8 @@ namespace caret {
         
         GiftiTypeFile& operator=(const GiftiTypeFile&);
         
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         /**
          * Validate the contents of the file after it
          * has been read such as correct number of 
