@@ -59,7 +59,7 @@ void AlgorithmGiftiLabelAddPrefix::useParameters(OperationParameters* myParams, 
 {
     LabelFile* labelIn = myParams->getLabel(1);
     AString prefix = myParams->getString(2);
-    LabelFile* labelOut = myParams->getLabel(3);
+    LabelFile* labelOut = myParams->getOutputLabel(3);
     AlgorithmGiftiLabelAddPrefix(myProgObj, labelIn, prefix, labelOut);
 }
 
