@@ -237,9 +237,10 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
      * Apply the first transformation matrix that transforms to 
      * Talairach space.
      */
+    const AString talairachName = NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH);
     for (int32_t im = 0; im < this->coordinateDataArray->getNumberOfMatrices(); im++) {
         const Matrix4x4* m = this->coordinateDataArray->getMatrix(im);
-        if (m->getTransformedSpaceName() == "NIFTI_XFORM_TALAIRACH") {
+        if (m->getTransformedSpaceName() == talairachName) {
             applyMatrix(*m);
             break;
         }

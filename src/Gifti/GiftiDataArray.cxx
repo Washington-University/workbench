@@ -1096,13 +1096,17 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
      * modified the coordinates so the matrix is no longer valid for 
      * the file's coordinates.
      */
-    Matrix4x4 identityMatrix;
-    identityMatrix.identity();
-    identityMatrix.writeAsGiftiXML(xmlWriter,
-                                   GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX,
-                                   GiftiXmlElements::TAG_MATRIX_DATA_SPACE,
-                                   GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE,
-                                   GiftiXmlElements::TAG_MATRIX_DATA);
+    if (getIntent() == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
+        Matrix4x4 identityMatrix;
+        identityMatrix.identity();
+        identityMatrix.setDataSpaceName(NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH));
+        identityMatrix.setTransformedSpaceName(NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH));
+        identityMatrix.writeAsGiftiXML(xmlWriter,
+                                       GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX,
+                                       GiftiXmlElements::TAG_MATRIX_DATA_SPACE,
+                                       GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE,
+                                       GiftiXmlElements::TAG_MATRIX_DATA);
+    }
 
    //
    // NOTE: for the base64 and ZLIB-Base64 data, it is important that there are
