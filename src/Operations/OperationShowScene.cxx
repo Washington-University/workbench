@@ -143,14 +143,19 @@ OperationShowScene::getParameters()
 /**
  * Use Parameters and perform operation
  */
+#ifndef HAVE_OSMESA
+void
+OperationShowScene::useParameters(OperationParameters* /*myParams*/,
+                                          ProgressObject* /*myProgObj*/)
+{
+    throw OperationException("Show scene command not available due to this software version "
+                             "not being built with the Mesa OffScreen Library");
+}
+#else // HAVE_OSMESA
 void
 OperationShowScene::useParameters(OperationParameters* myParams,
                                           ProgressObject* myProgObj)
 {
-#ifndef HAVE_OSMESA
-    throw OperationException("Show scene command not available due to this software version "
-                             "not being built with the Mesa OffScreen Library");
-#else // HAVE_OSMESA
     LevelProgress myProgress(myProgObj);
     AString sceneFileName = FileInformation(myParams->getString(1)).getFilePath();
     AString sceneNameOrNumber = myParams->getString(2);
@@ -318,8 +323,8 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     OSMesaDestroyContext(mesaContext);
     
 
-#endif // HAVE_OSMESA
 }
+#endif // HAVE_OSMESA
 
 /**
  * Write the image data to a Image File.
