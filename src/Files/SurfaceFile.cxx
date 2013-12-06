@@ -237,14 +237,16 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
      * Apply the first transformation matrix that transforms to 
      * Talairach space.
      */
-    const AString talairachName = NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH);
-    for (int32_t im = 0; im < this->coordinateDataArray->getNumberOfMatrices(); im++) {
-        const Matrix4x4* m = this->coordinateDataArray->getMatrix(im);
-        if (m->getTransformedSpaceName() == talairachName) {
-            applyMatrix(*m);
-            break;
-        }
-    }
+// Disable as FreeSurfer is inserting a matrix that causes issues in 
+// HCP Pipeline
+//    const AString talairachName = NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH);
+//    for (int32_t im = 0; im < this->coordinateDataArray->getNumberOfMatrices(); im++) {
+//        const Matrix4x4* m = this->coordinateDataArray->getMatrix(im);
+//        if (m->getTransformedSpaceName() == talairachName) {
+//            applyMatrix(*m);
+//            break;
+//        }
+//    }
 
     /*
      * Create the topology helper in a thread so files dont' take
