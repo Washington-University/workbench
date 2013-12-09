@@ -45,6 +45,7 @@ class GiftiLabel;
     
 class XmlWriter;
 class XmlException;
+class WuQTableWidgetModel;
     
 /**
  * Maintains a GIFTI Label Table using key/value pairs.
@@ -206,6 +207,10 @@ public:
     void getKeysAndNames(std::map<int32_t, AString>& keysAndNamesOut) const;
     
 //    bool hasLabelsWithInvalidGroupNameHierarchy() const;
+    
+    WuQTableWidgetModel* getInWuQTableWidgetModel() const;
+    
+    void setFromWuQTableWidgetModel(const WuQTableWidgetModel* tableModel);
     
 private:
     void issueLabelKeyZeroWarning(const AString& name) const;

@@ -1,5 +1,3 @@
-#ifndef __WU_Q_IMAGE_LABEL_H__
-#define __WU_Q_IMAGE_LABEL_H__
 
 /*LICENSE_START*/
 /*
@@ -34,64 +32,36 @@
  */
 /*LICENSE_END*/
 
+#define __LABEL_TABLE_EDITOR_DIALOG_DECLARE__
+#include "LabelTableEditorDialog.h"
+#undef __LABEL_TABLE_EDITOR_DIALOG_DECLARE__
 
-#include <QLabel>
+#include "CaretAssert.h"
+using namespace caret;
 
-class QIcon;
 
-namespace caret {
-
-    class WuQImageLabel : public QLabel {
-        
-        Q_OBJECT
-
-    public:
-        WuQImageLabel(const QIcon* icon,
-                      const QString& text);
-        
-        WuQImageLabel(const QIcon& icon,
-                      const QString& text);
-        
-        virtual ~WuQImageLabel();
-        
-        void updateIconText(const QIcon* icon,
-                            const QString& text);
-        
-        virtual void mouseMoveEvent(QMouseEvent* ev);
-        
-        virtual void mousePressEvent(QMouseEvent* ev);
-        
-        virtual void mouseReleaseEvent(QMouseEvent* ev);
-        
-        // ADD_NEW_METHODS_HERE
-        
-    signals:
-        /**
-         * Emitted if the mouse button is clicked over
-         * this widget.
-         */
-        void clicked();
-        
-    private:
-        WuQImageLabel(const WuQImageLabel&);
-
-        WuQImageLabel& operator=(const WuQImageLabel&);
-
-        int m_mouseMinX;
-        
-        int m_mouseMaxX;
-        
-        int m_mouseMinY;
-        
-        int m_mouseMaxY;
-        
-        // ADD_NEW_MEMBERS_HERE
-
-    };
     
-#ifdef __WU_Q_IMAGE_LABEL_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_IMAGE_LABEL_DECLARE__
+/**
+ * \class caret::LabelTableEditorDialog 
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \ingroup GuiQt
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ */
 
-} // namespace
-#endif  //__WU_Q_IMAGE_LABEL_H__
+/**
+ * Constructor.
+ */
+LabelTableEditorDialog::LabelTableEditorDialog()
+: WuQDialogNonModal()
+{
+    
+}
+
+/**
+ * Destructor.
+ */
+LabelTableEditorDialog::~LabelTableEditorDialog()
+{
+}
+

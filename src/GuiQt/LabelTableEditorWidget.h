@@ -1,5 +1,5 @@
-#ifndef __WU_Q_IMAGE_LABEL_H__
-#define __WU_Q_IMAGE_LABEL_H__
+#ifndef __LABEL_TABLE_EDITOR_WIDGET_H__
+#define __LABEL_TABLE_EDITOR_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -35,63 +35,52 @@
 /*LICENSE_END*/
 
 
-#include <QLabel>
-
-class QIcon;
+#include <QWidget>
 
 namespace caret {
 
-    class WuQImageLabel : public QLabel {
+    class CaretMappableDataFile;
+    class GiftiLabelTable;
+    class WuQTableWidget;
+    
+    class LabelTableEditorWidget : public QWidget {
         
         Q_OBJECT
 
     public:
-        WuQImageLabel(const QIcon* icon,
-                      const QString& text);
+        LabelTableEditorWidget(QWidget* parent = 0);
         
-        WuQImageLabel(const QIcon& icon,
-                      const QString& text);
+        virtual ~LabelTableEditorWidget();
         
-        virtual ~WuQImageLabel();
+        void updateEditor(CaretMappableDataFile* caretMappableDataFile,
+                          const int32_t mapIndex);
         
-        void updateIconText(const QIcon* icon,
-                            const QString& text);
-        
-        virtual void mouseMoveEvent(QMouseEvent* ev);
-        
-        virtual void mousePressEvent(QMouseEvent* ev);
-        
-        virtual void mouseReleaseEvent(QMouseEvent* ev);
-        
-        // ADD_NEW_METHODS_HERE
-        
-    signals:
-        /**
-         * Emitted if the mouse button is clicked over
-         * this widget.
-         */
-        void clicked();
+        void updateWidget();
         
     private:
-        WuQImageLabel(const WuQImageLabel&);
+        LabelTableEditorWidget(const LabelTableEditorWidget&);
 
-        WuQImageLabel& operator=(const WuQImageLabel&);
+        LabelTableEditorWidget& operator=(const LabelTableEditorWidget&);
+        
+    public:
 
-        int m_mouseMinX;
-        
-        int m_mouseMaxX;
-        
-        int m_mouseMinY;
-        
-        int m_mouseMaxY;
-        
+        // ADD_NEW_METHODS_HERE
+
+    private:
         // ADD_NEW_MEMBERS_HERE
 
+        GiftiLabelTable* m_labelTable;
+        
+        CaretMappableDataFile* m_caretMappableDataFile;
+        
+        int32_t m_mapFileIndex;
+        
+        WuQTableWidget* m_tableWidget;
     };
     
-#ifdef __WU_Q_IMAGE_LABEL_DECLARE__
+#ifdef __LABEL_TABLE_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_IMAGE_LABEL_DECLARE__
+#endif // __LABEL_TABLE_EDITOR_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_IMAGE_LABEL_H__
+#endif  //__LABEL_TABLE_EDITOR_WIDGET_H__

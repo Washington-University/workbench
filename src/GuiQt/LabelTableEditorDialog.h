@@ -1,5 +1,5 @@
-#ifndef __WU_Q_IMAGE_LABEL_H__
-#define __WU_Q_IMAGE_LABEL_H__
+#ifndef __LABEL_TABLE_EDITOR_DIALOG_H__
+#define __LABEL_TABLE_EDITOR_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -35,63 +35,38 @@
 /*LICENSE_END*/
 
 
-#include <QLabel>
+#include "WuQDialogNonModal.h"
 
-class QIcon;
+
 
 namespace caret {
 
-    class WuQImageLabel : public QLabel {
+    class LabelTableEditorDialog : public WuQDialogNonModal {
         
         Q_OBJECT
 
     public:
-        WuQImageLabel(const QIcon* icon,
-                      const QString& text);
+        LabelTableEditorDialog();
         
-        WuQImageLabel(const QIcon& icon,
-                      const QString& text);
-        
-        virtual ~WuQImageLabel();
-        
-        void updateIconText(const QIcon* icon,
-                            const QString& text);
-        
-        virtual void mouseMoveEvent(QMouseEvent* ev);
-        
-        virtual void mousePressEvent(QMouseEvent* ev);
-        
-        virtual void mouseReleaseEvent(QMouseEvent* ev);
-        
-        // ADD_NEW_METHODS_HERE
-        
-    signals:
-        /**
-         * Emitted if the mouse button is clicked over
-         * this widget.
-         */
-        void clicked();
+        virtual ~LabelTableEditorDialog();
         
     private:
-        WuQImageLabel(const WuQImageLabel&);
+        LabelTableEditorDialog(const LabelTableEditorDialog&);
 
-        WuQImageLabel& operator=(const WuQImageLabel&);
+        LabelTableEditorDialog& operator=(const LabelTableEditorDialog&);
+        
+    public:
 
-        int m_mouseMinX;
-        
-        int m_mouseMaxX;
-        
-        int m_mouseMinY;
-        
-        int m_mouseMaxY;
-        
+        // ADD_NEW_METHODS_HERE
+
+    private:
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __WU_Q_IMAGE_LABEL_DECLARE__
+#ifdef __LABEL_TABLE_EDITOR_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_IMAGE_LABEL_DECLARE__
+#endif // __LABEL_TABLE_EDITOR_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_IMAGE_LABEL_H__
+#endif  //__LABEL_TABLE_EDITOR_DIALOG_H__

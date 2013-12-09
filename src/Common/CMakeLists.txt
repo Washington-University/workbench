@@ -17,6 +17,7 @@ INCLUDE(${QT_USE_FILE})
 
 SET(MOC_INPUT_HEADER_FILES
 CaretHttpManager.h
+WuQTableWidgetModel.h
 )
 
 QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
@@ -102,6 +103,7 @@ TileTabsConfiguration.h
 TracksModificationInterface.h
 Vector3D.h
 VoxelIJK.h
+WuQTableWidgetModel.h
 
 ${MOC_SOURCE_FILES}
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
@@ -167,6 +169,7 @@ StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
 Vector3D.cxx
+WuQTableWidgetModel.cxx
 )
 
 #

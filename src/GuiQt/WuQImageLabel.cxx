@@ -77,6 +77,25 @@ WuQImageLabel::WuQImageLabel(const QIcon* icon,
 }
 
 /**
+ * Constructor constructs an image label with either the given icon if the
+ * icon is valid (not NULL).  If the icon is invalid (NULL), the text
+ * will be displayed.
+ *
+ * @param icon
+ *     Icon that is displayed.
+ * @param text
+ *     Text that is displayed if icon is not valid (NULL).
+ */
+WuQImageLabel::WuQImageLabel(const QIcon& icon,
+                             const QString& text)
+: QLabel()
+{
+    updateIconText(&icon,
+                   text);
+    setAlignment(Qt::AlignCenter);
+}
+
+/**
  * Destructor.
  */
 WuQImageLabel::~WuQImageLabel()
