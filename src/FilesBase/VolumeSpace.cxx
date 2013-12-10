@@ -516,7 +516,7 @@ void VolumeSpace::writeCiftiXML2(QXmlStreamWriter& xml) const
     {
         myExponent = 3 * (int)floor((log10(minLength) - log10(50.0f)) / 3.0f);//some magic to get the exponent that is a multiple of 3 that puts the length of the smallest spacing vector in [0.05, 50]
     }
-    float multiplier = pow(10, -3 - myExponent);//conversion factor from mm
+    float multiplier = pow(10.0f, -3 - myExponent);//conversion factor from mm
     xml.writeAttribute("MeterExponent", AString::number(myExponent));
     AString matrixString;
     for (int j = 0; j < 3; ++j)
