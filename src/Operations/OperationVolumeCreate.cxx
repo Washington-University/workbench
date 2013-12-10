@@ -22,7 +22,7 @@
  *
  */
 
-#include "OperationVolumeSetSpace.h"
+#include "OperationVolumeCreate.h"
 #include "OperationException.h"
 
 #include "FloatMatrix.h"
@@ -31,24 +31,28 @@
 using namespace caret;
 using namespace std;
 
-AString OperationVolumeSetSpace::getCommandSwitch()
+AString OperationVolumeCreate::getCommandSwitch()
 {
-    return "-volume-set-space";
+    return "-volume-create";
 }
 
-AString OperationVolumeSetSpace::getShortDescription()
+AString OperationVolumeCreate::getShortDescription()
 {
-    return "CHANGE VOLUME SPACE INFORMATION";
+    return "CREATE A BLANK VOLUME FILE";
 }
 
-OperationParameters* OperationVolumeSetSpace::getParameters()
+OperationParameters* OperationVolumeCreate::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addVolumeParameter(1, "volume-in", "the input volume");
+    ret->addIntegerParameter(1, "i-dim", "length of first dimension");
     
-    ret->addStringParameter(2, "volume-out", "output - the output volume");//fake the "out" parameter formatting, because copying a volume file in memory is currently a problem
+    ret->addIntegerParameter(2, "j-dim", "length of second dimension");
     
-    OptionalParameter* plumbOpt = ret->createOptionalParameter(3, "-plumb", "set via axis order and spacing/offset");
+    ret->addIntegerParameter(3, "k-dim", "length of third dimension");
+    
+    ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
+    
+    OptionalParameter* plumbOpt = ret->createOptionalParameter(5, "-plumb", "set via axis order and spacing/offset");
     plumbOpt->addStringParameter(1, "axis-order", "a string like 'XYZ' that specifies which index is along which spatial dimension");
     plumbOpt->addDoubleParameter(2, "x-spacing", "change in x-coordinate from incrementing the relevant index");
     plumbOpt->addDoubleParameter(3, "y-spacing", "change in y-coordinate from incrementing the relevant index");
@@ -57,7 +61,7 @@ OperationParameters* OperationVolumeSetSpace::getParameters()
     plumbOpt->addDoubleParameter(6, "y-offset", "the y-coordinate of the first voxel");
     plumbOpt->addDoubleParameter(7, "z-offset", "the z-coordinate of the first voxel");
     
-    OptionalParameter* sformOpt = ret->createOptionalParameter(4, "-sform", "set via a nifti sform");
+    OptionalParameter* sformOpt = ret->createOptionalParameter(6, "-sform", "set via a nifti sform");
     char axisNames[] = "xyz", indexNames[] = "ijk";
     for (int axis = 0; axis < 3; ++axis)
     {
@@ -70,21 +74,24 @@ OperationParameters* OperationVolumeSetSpace::getParameters()
     }
     
     ret->setHelpText(
-        AString("Writes a copy of the volume file, with the spacing information changed as specified.  ") +
-        "No reordering of the voxel data occurs.  " +
+        AString("Creates a volume file full of zeros.  ") +
         "Exactly one of -plumb or -sform must be specified."
     );
     return ret;
 }
 
-void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void OperationVolumeCreate::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    VolumeFile* orig = myParams->getVolume(1);
+    vector<int64_t> dims(3);
+    dims[0] = myParams->getInteger(1);
+    dims[1] = myParams->getInteger(2);
+    dims[2] = myParams->getInteger(3);
+    VolumeFile* output = myParams->getOutputVolume(4);
     FloatMatrix newSform = FloatMatrix::zeros(4, 4);
     newSform[3][3] = 1.0f;//not needed, but just for sanity
     bool haveSpace = false;
-    OptionalParameter* plumbOpt = myParams->getOptionalParameter(3);
+    OptionalParameter* plumbOpt = myParams->getOptionalParameter(5);
     if (plumbOpt->m_present)
     {
         haveSpace = true;
@@ -123,7 +130,7 @@ void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, Progr
         newSform[2][revorder[2]] = (float)plumbOpt->getDouble(4);
         newSform[2][3] = (float)plumbOpt->getDouble(7);
     }
-    OptionalParameter* sformOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* sformOpt = myParams->getOptionalParameter(6);
     if (sformOpt->m_present)
     {
         if (haveSpace) throw OperationException("only one of -plumb and -sform may be specified");
@@ -138,6 +145,6 @@ void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, Progr
         }
     }
     if (!haveSpace) throw OperationException("you must specify -plumb or -sform");
-    orig->setVolumeSpace(newSform.getMatrix());
-    orig->writeFile(myParams->getString(2));
+    output->reinitialize(dims, newSform.getMatrix());
+    output->setValueAllVoxels(0.0f);
 }
