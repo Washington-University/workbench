@@ -157,6 +157,7 @@
 #include "OperationVolumeMath.h"
 #include "OperationVolumePalette.h"
 #include "OperationVolumeReorient.h"
+#include "OperationVolumeSetSpace.h"
 #include "OperationWbsparseMergeDense.h"
 #include "OperationZipSceneFile.h"
 #include "OperationZipSpecFile.h"
@@ -349,6 +350,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeReorient()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeSetSpace()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationWbsparseMergeDense()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationZipSceneFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationZipSpecFile()));

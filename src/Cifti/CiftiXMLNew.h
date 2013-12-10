@@ -60,11 +60,11 @@ namespace caret
         int getNumberOfDimensions() const { return m_indexMaps.size(); }
         const CiftiVersion& getParsedVersion() const { return m_parsedVersion; }
         const CiftiIndexMap& getMap(const int& direction) const;
-        CiftiIndexMap::MappingType getMappingType(const int& direction) const;
         GiftiMetaData* getFileMetadata() const;//HACK: allow modification of palette and metadata within XML without setting the xml on a file again
         PaletteColorMapping* getFilePalette() const;
         
-        const CiftiBrainModelsMap& getBrainModelsMap(const int& direction) const;//convenience functions
+        CiftiIndexMap::MappingType getMappingType(const int& direction) const;//convenience functions
+        const CiftiBrainModelsMap& getBrainModelsMap(const int& direction) const;
         const CiftiLabelsMap& getLabelsMap(const int& direction) const;
         const CiftiParcelsMap& getParcelsMap(const int& direction) const;
         const CiftiScalarsMap& getScalarsMap(const int& direction) const;
