@@ -53,6 +53,8 @@ namespace caret
         const T* find(const int64_t& index1, const int64_t& index2, const int64_t& index3) const;
         ///returns a pointer to the desired element, or NULL if no such element is found
         const T* find(const int64_t index[3]) const { return find(index[0], index[1], index[2]); }
+        ///empties the lookup
+        void clear();
     };
     
     template<typename T>
@@ -83,6 +85,12 @@ namespace caret
         typename CaretCompactLookup<T>::const_iterator iter3 = iter2->find(index1);
         if (iter3 == iter2->end()) return NULL;
         return &(*iter3);
+    }
+    
+    template <typename T>
+    void CaretCompact3DLookup<T>::clear()
+    {
+        m_lookup.clear();
     }
 
 }

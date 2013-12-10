@@ -76,6 +76,11 @@ GiftiMetaData::operator=(const GiftiMetaData& o)
     return *this;
 }
 
+bool GiftiMetaData::operator==(const GiftiMetaData& rhs) const
+{
+    return (metadata == rhs.metadata);
+}
+
 /**
  * Helps with copy constructor and assignment operator.
  */
@@ -83,20 +88,23 @@ void
 GiftiMetaData::copyHelper(const GiftiMetaData& o)
 {
     /*
-     * Preserve this instance's Unique ID.
+     * Preserve this instance's Unique ID, but only if it already has one.
      */
-    const AString uid = this->getUniqueID();
-    this->metadata = o.metadata;
-    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
-              uid);
-    this->clearModified();
+    if (exists(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID))
+    {
+        const AString uid = this->getUniqueID();
+        this->metadata = o.metadata;
+        this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+                uid);
+        this->clearModified();
+    } else {
+        this->metadata = o.metadata;
+    }
 }
 
 void
 GiftiMetaData::initializeMembersGiftiMetaData()
 {
-    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID, 
-              SystemUtilities::createUniqueID());
     this->modifiedFlag = false;
 }
 
@@ -148,20 +156,25 @@ GiftiMetaData::removeUniqueID()
 */
 
 /**
- * Clear the metadata.  Note does create a UniqueID.
+ * Clear the metadata.
  *
  */
 void
-GiftiMetaData::clear()
+GiftiMetaData::clear(bool keepUUID)
 {
+    if (keepUUID && exists(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID))
+    {
     /*
      * Preserve this instance's Unique ID.
      */
-    const AString uid = this->getUniqueID();
-    this->metadata.clear();
-    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
-              uid);
-    this->clearModified();
+        const AString uid = this->getUniqueID();
+        this->metadata.clear();
+        this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+                uid);
+        this->clearModified();
+    } else {
+        metadata.clear();
+    }
 }
 
 /**
@@ -269,16 +282,21 @@ void
 GiftiMetaData::replaceWithMap(const std::map<AString, AString>& map)
 {
     /*
-     * Save UniqueID and use it if no unique ID in given map.
+     * Save UniqueID if it has one and use it if no unique ID in given map.
      */
-    const AString uid = this->getUniqueID();
+    AString uid;
+    if (exists(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID))
+    {
+        uid = this->getUniqueID();
+    }
     
     this->metadata = map;
     
     /*
-     * If metadata was not in given map, restore the Unique ID.
+     * If metadata was not in given map, restore the Unique ID if we had one.
      */
-    if (this->metadata.find(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID) == this->metadata.end()) {
+    if (this->metadata.find(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID) == this->metadata.end() &&
+        uid != "") {
         this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
                   uid);
     }
@@ -513,6 +531,98 @@ GiftiMetaData::writeAsXML(XmlWriter& xmlWriter)
     }
     catch (XmlException& e) {
         throw GiftiException(e);
+    }
+}
+
+void GiftiMetaData::writeCiftiXML1(QXmlStreamWriter& xmlWriter) const
+{
+    xmlWriter.writeStartElement(GiftiXmlElements::TAG_METADATA);
+    for (MetaDataConstIterator iter = metadata.begin(); iter != metadata.end(); ++iter)
+    {
+        xmlWriter.writeStartElement(GiftiXmlElements::TAG_METADATA_ENTRY);
+        xmlWriter.writeTextElement(GiftiXmlElements::TAG_METADATA_NAME, iter->first);
+        xmlWriter.writeTextElement(GiftiXmlElements::TAG_METADATA_VALUE, iter->second);
+        xmlWriter.writeEndElement();
+    }
+    xmlWriter.writeEndElement();
+}
+
+void GiftiMetaData::writeCiftiXML2(QXmlStreamWriter& xmlWriter) const
+{
+    writeCiftiXML1(xmlWriter);
+}
+
+void GiftiMetaData::readCiftiXML1(QXmlStreamReader& xml)
+{
+    clear(false);
+    while (!xml.atEnd())//don't check the current element's name
+    {
+        xml.readNext();
+        if (xml.isStartElement())
+        {
+            QStringRef name = xml.name();
+            if (name == GiftiXmlElements::TAG_METADATA_ENTRY)
+            {
+                readEntry(xml);
+            } else {
+                xml.raiseError("unexpected tag name in " + GiftiXmlElements::TAG_METADATA + ": " + name.toString());
+            }
+        } else if (xml.isEndElement()) {
+            break;
+        }
+    }
+}
+
+void GiftiMetaData::readCiftiXML2(QXmlStreamReader& xml)
+{
+    readCiftiXML1(xml);
+}
+
+void GiftiMetaData::readEntry(QXmlStreamReader& xml)
+{
+    AString key, value;
+    bool haveKey = false, haveValue = false;
+    while (!xml.atEnd())//don't check the current element's name
+    {
+        xml.readNext();
+        if (xml.isStartElement())
+        {
+            QStringRef name = xml.name();
+            if (name == GiftiXmlElements::TAG_METADATA_NAME)
+            {
+                key = xml.readElementText();
+                haveKey = true;
+            } else if (name == GiftiXmlElements::TAG_METADATA_VALUE) {
+                value = xml.readElementText();
+                haveValue = true;
+            } else {
+                xml.raiseError("unexpected tag name in " + GiftiXmlElements::TAG_METADATA_ENTRY + ": " + name.toString());
+            }
+        } else if (xml.isEndElement()) {
+            if (haveKey && haveValue)
+            {
+                if (exists(key))
+                {
+                    xml.raiseError("key '" + key + "' used more than once in " + GiftiXmlElements::TAG_METADATA);
+                } else {
+                    set(key, value);
+                }
+            } else {
+                if (haveKey)
+                {
+                    xml.raiseError(GiftiXmlElements::TAG_METADATA_ENTRY + " element has no " + GiftiXmlElements::TAG_METADATA_VALUE + " element");
+                } else {
+                    if (haveValue)
+                    {
+                        xml.raiseError(GiftiXmlElements::TAG_METADATA_ENTRY + " element has no " + GiftiXmlElements::TAG_METADATA_NAME + " element");
+                    } else {
+                        xml.raiseError(GiftiXmlElements::TAG_METADATA_ENTRY + " element has no " + GiftiXmlElements::TAG_METADATA_NAME +
+                                       " or " + GiftiXmlElements::TAG_METADATA_VALUE + " element");
+                    }
+                }
+            }
+            break;
+        }
     }
 }
 

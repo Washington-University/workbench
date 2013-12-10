@@ -25,11 +25,20 @@ CiftiHeader.h
 CiftiHeaderIO.h
 CiftiInterface.h
 CiftiMatrix.h
+CiftiVersion.h
 CiftiXMLElements.h
 CiftiXML.h
 CiftiXMLReader.h
 CiftiXMLWriter.h
 CiftiXnat.h
+
+CiftiXMLNew.h
+CiftiIndexMap.h
+CiftiBrainModelsMap.h
+CiftiLabelsMap.h
+CiftiParcelsMap.h
+CiftiScalarsMap.h
+CiftiSeriesMap.h
 
 CiftiFile.cxx
 CiftiFileException.cxx
@@ -37,11 +46,20 @@ CiftiHeader.cxx
 CiftiHeaderIO.cxx
 CiftiInterface.cxx
 CiftiMatrix.cxx
+CiftiVersion.cxx
 CiftiXML.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
 CiftiXMLWriter.cxx
 CiftiXnat.cxx
+
+CiftiXMLNew.cxx
+CiftiIndexMap.cxx
+CiftiBrainModelsMap.cxx
+CiftiLabelsMap.cxx
+CiftiParcelsMap.cxx
+CiftiScalarsMap.cxx
+CiftiSeriesMap.cxx
 )
 
 #

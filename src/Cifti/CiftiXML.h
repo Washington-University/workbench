@@ -116,14 +116,14 @@ namespace caret {
         * readXML, replacing the currently Cifti XML Root, if it exists
         * @param bytes an ASCII formatted byte array that contains Cifti XML data
         */
-        void readXML(const QByteArray &bytes) { QString text(bytes);readXML(text);}
+        void readXML(const QByteArray &bytes, bool test = true) { QString text(bytes);readXML(text); if (test) testNewXML(bytes); }
         /**
         * readXML
         *
         * readXML, replacing the currently Cifti XML Root, if it exists
         * @param text QString that contains Cifti XML data
         */
-        void readXML(const QString &text) {QXmlStreamReader xml(text); readXML(xml);}
+        void readXML(const QString &text, bool test = true) {QXmlStreamReader xml(text); readXML(xml); if (test) testNewXML(text); }
         /**
         * readXML
         *
@@ -137,14 +137,17 @@ namespace caret {
         * write the Cifti XML data to the supplied QString
         * @param text
         */
-        void writeXML(QString &text) const { QXmlStreamWriter xml(&text); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root);}
+        void writeXML(QString &text) const { QXmlStreamWriter xml(&text); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root); testNewXML(text); }//we don't use the old writer in testing, so it won't recurse
         /**
         * writeXML
         *
         * write the Cifti XML data to the supplied byte array.
         * @param bytes
         */
-        void writeXML(QByteArray &bytes) const { QXmlStreamWriter xml(&bytes); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root);}
+        void writeXML(QByteArray &bytes) const { QXmlStreamWriter xml(&bytes); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root); testNewXML(bytes); }
+        
+        static void testNewXML(const QString& xmlString);
+        static void testNewXML(const QByteArray& xmlString);
 
         /**
         * setXMLRoot

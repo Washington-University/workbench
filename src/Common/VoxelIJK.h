@@ -48,6 +48,13 @@ namespace caret {
             if (m_ijk[1] > rhs.m_ijk[1]) return false;
             return (m_ijk[0] < rhs.m_ijk[0]);
         }
+        bool operator==(const VoxelIJK& rhs) const
+        {
+            return (m_ijk[0] == rhs.m_ijk[0] &&
+                    m_ijk[1] == rhs.m_ijk[1] &&
+                    m_ijk[2] == rhs.m_ijk[2]);
+        }
+        bool operator!=(const VoxelIJK& rhs) const { return !((*this) == rhs); }
     };
     
 }

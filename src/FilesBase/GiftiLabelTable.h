@@ -60,6 +60,10 @@ public:
     
     bool matches(const GiftiLabelTable& rhs, const bool checkColors = false, const bool checkCoords = false) const;
     
+    bool operator==(const GiftiLabelTable& rhs) const { return matches(rhs, true); }
+    
+    bool operator!=(const GiftiLabelTable& rhs) const { return !((*this) == rhs); }
+    
     virtual ~GiftiLabelTable();
 
 private:

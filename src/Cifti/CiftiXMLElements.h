@@ -30,6 +30,7 @@
 #include "AString.h"
 #include "CaretPointer.h"
 #include "CaretCompact3DLookup.h"
+#include "CiftiVersion.h"
 #include "nifti2.h"
 #include "StructureEnum.h"
 /* Cifti Defines */
@@ -37,24 +38,6 @@
 namespace caret {
 
 class PaletteColorMapping;
-
-class CiftiVersion
-{
-    int16_t m_major, m_minor;
-public:
-    CiftiVersion();
-    CiftiVersion(const int16_t& major, const int16_t& minor);
-    CiftiVersion(const AString& versionString);
-    AString toString() const;
-    bool operator<(const CiftiVersion& rhs) const;
-    bool operator>(const CiftiVersion& rhs) const;
-    bool operator==(const CiftiVersion& rhs) const;
-    bool operator!=(const CiftiVersion& rhs) const;
-    bool operator<=(const CiftiVersion& rhs) const;
-    bool operator>=(const CiftiVersion& rhs) const;
-    ///quirk tests
-    bool hasReversedFirstDims() const;
-};
 
 class GiftiLabelTable;
 /*! ModelType */

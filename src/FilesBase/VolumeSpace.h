@@ -29,6 +29,9 @@
 
 #include "Vector3D.h"
 
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+
 #include "stdint.h"
 #include <vector>
 
@@ -58,7 +61,9 @@ namespace caret
         const int64_t* getDims() const { return m_dims; }
         const std::vector<std::vector<float> >& getSform() const { return m_sform; }
         void getSpacingVectors(Vector3D& iStep, Vector3D& jStep, Vector3D& kStep, Vector3D& origin) const;
-        bool matchesVolumeSpace(const VolumeSpace& right) const;//should this be used in an operator==?  it allows slight mismatches...
+        bool matchesVolumeSpace(const VolumeSpace& right) const;//allows slight mismatches
+        bool operator==(const VolumeSpace& right) const;//requires that it be exact
+        bool operator!=(const VolumeSpace& right) const { return !(*this == right); }
 
         ///returns true if volume space is not skew, and each axis and index is separate
         bool isPlumb() const;
@@ -132,6 +137,11 @@ namespace caret
         {
             return getIndex(indexIn[0], indexIn[1], indexIn[2]);//implicit cast to int64_t
         }
+        
+        void readCiftiXML1(QXmlStreamReader& xml);//xml functions
+        void readCiftiXML2(QXmlStreamReader& xml);
+        void writeCiftiXML1(QXmlStreamWriter& xml) const;
+        void writeCiftiXML2(QXmlStreamWriter& xml) const;
     };
 
     template <typename T>

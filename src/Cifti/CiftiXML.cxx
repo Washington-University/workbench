@@ -32,8 +32,125 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 
+#include "CiftiXMLNew.h"
+#include "CaretLogger.h"
+
 using namespace caret;
 using namespace std;
+
+void CiftiXML::testNewXML(const QString& xmlString)
+{
+    CiftiXMLNew test1, test2;
+    CiftiXML compare1, compare2;
+    AString stage;
+    try
+    {
+        stage = "1_newRead1";
+        test1.readXML(AString(xmlString));
+        for (int i = 0; i < test1.getNumberOfDimensions(); ++i)
+        {
+            if (test1.getMappingType(i) == CiftiIndexMap::SERIES)
+            {
+                CiftiSeriesMap myMap = test1.getSeriesMap(i);
+                myMap.setLength(1);//there are asserts in series map that upon writing, it must know the length, so fake it for now
+                test1.setMap(i, myMap);
+            }
+        }
+        stage = "2_newWrite2";
+        AString newWritten2 = test1.writeXMLToString(CiftiVersion(1, 1));
+        stage = "3_newRead2";
+        test2.readXML(newWritten2);
+        stage = "4_newCompare";
+        if (test1.getNumberOfDimensions() == test2.getNumberOfDimensions())
+        {
+            for (int i = 0; i < test1.getNumberOfDimensions(); ++i)
+            {
+                if (test1.getMap(i) != test2.getMap(i))
+                {
+                    CaretLogWarning("comparison in new cifti xml failed, dimension " + AString::number(i) + " not equal");
+                }
+            }
+        } else {
+            CaretLogWarning("comparison in new cifti xml failed, different number of dimensions");
+        }
+        stage = "5_newWrite1";
+        AString newWritten1 = test2.writeXMLToString(CiftiVersion(1, 0));
+        stage = "6_oldRead1";
+        compare1.readXML(newWritten1, false);//prevent recursively triggering test
+        compare2.readXML(xmlString, false);
+        if (!compare1.matchesForRows(compare2))
+        {
+            CaretLogWarning("comparison in old xml failed for rows");
+        }
+        if (!compare1.matchesForColumns(compare2))
+        {
+            CaretLogWarning("comparison in old xml failed for columns");
+        }
+    } catch (CaretException& e) {
+        CaretLogWarning("error testing new xml: stage '" + stage + "', error: " + e.whatString());
+    } catch (std::exception& e) {
+        CaretLogWarning("error testing new xml: stage '" + stage + "', error: " + e.what());
+    } catch (...) {
+        CaretLogWarning("error testing new xml: stage '" + stage + "', unknown throw type");
+    }
+}
+
+void CiftiXML::testNewXML(const QByteArray& xmlBytes)
+{
+    CiftiXMLNew test1, test2;
+    CiftiXML compare1, compare2;
+    AString stage;
+    try
+    {
+        stage = "1_newRead1";
+        test1.readXML(xmlBytes);
+        for (int i = 0; i < test1.getNumberOfDimensions(); ++i)
+        {
+            if (test1.getMappingType(i) == CiftiIndexMap::SERIES)
+            {
+                CiftiSeriesMap myMap = test1.getSeriesMap(i);
+                myMap.setLength(1);//there are asserts in series map that upon writing, it must know the length, so fake it for now
+                test1.setMap(i, myMap);
+            }
+        }
+        stage = "2_newWrite2";
+        QByteArray newWritten2 = test1.writeXMLToQByteArray(CiftiVersion(1, 1));
+        stage = "3_newRead2";
+        test2.readXML(newWritten2);
+        stage = "4_newCompare";
+        if (test1.getNumberOfDimensions() == test2.getNumberOfDimensions())
+        {
+            for (int i = 0; i < test1.getNumberOfDimensions(); ++i)
+            {
+                if (test1.getMap(i) != test2.getMap(i))
+                {
+                    CaretLogWarning("comparison in new cifti xml failed, dimension " + AString::number(i) + " not equal");
+                }
+            }
+        } else {
+            CaretLogWarning("comparison in new cifti xml failed, different number of dimensions");
+        }
+        stage = "5_newWrite1";
+        QByteArray newWritten1 = test2.writeXMLToQByteArray(CiftiVersion(1, 0));
+        stage = "6_oldRead1";
+        compare1.readXML(newWritten1, false);//prevent recursively triggering test
+        compare2.readXML(xmlBytes, false);
+        if (!compare1.matchesForRows(compare2))
+        {
+            CaretLogWarning("comparison in old xml failed for rows");
+        }
+        if (!compare1.matchesForColumns(compare2))
+        {
+            CaretLogWarning("comparison in old xml failed for columns");
+        }
+    } catch (CaretException& e) {
+        CaretLogWarning("error testing new xml: stage '" + stage + "', error: " + e.whatString());
+    } catch (std::exception& e) {
+        CaretLogWarning("error testing new xml: stage '" + stage + "', error: " + e.what());
+    } catch (...) {
+        CaretLogWarning("error testing new xml: stage '" + stage + "', unknown throw type");
+    }
+}
 
 CiftiXML::CiftiXML()
 {

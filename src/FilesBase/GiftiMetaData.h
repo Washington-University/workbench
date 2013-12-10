@@ -31,6 +31,9 @@
 #include "GiftiException.h"
 #include "TracksModificationInterface.h"
 
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
+
 #include <stdint.h>
 
 #include <map>
@@ -55,6 +58,10 @@ public:
     GiftiMetaData(const GiftiMetaData& o);
 
     GiftiMetaData& operator=(const GiftiMetaData& o);
+    
+    bool operator==(const GiftiMetaData& rhs) const;
+    
+    bool operator!=(const GiftiMetaData& rhs) const { return !((*this) == rhs); }
 
     virtual ~GiftiMetaData();
 
@@ -68,7 +75,7 @@ public:
 
     //void removeUniqueID();
 
-    void clear();
+    void clear(bool keepUUID = true);
 
     void append(const GiftiMetaData& smd);
 
@@ -111,6 +118,11 @@ public:
     void writeAsXML(XmlWriter& xmlWriter)
             throw (GiftiException);
 
+    void writeCiftiXML1(QXmlStreamWriter& xmlWriter) const;
+    void writeCiftiXML2(QXmlStreamWriter& xmlWriter) const;//for style, and in case it changes
+    void readCiftiXML1(QXmlStreamReader& xml);
+    void readCiftiXML2(QXmlStreamReader& xml);
+    
     void updateUserNameDate();
 
     void setModified();
@@ -122,6 +134,8 @@ public:
     void resetUniqueIdentifier();
 
 private:
+    void readEntry(QXmlStreamReader& xml);
+    
     std::map<AString,AString> createTreeMap();
 
     void replaceName(

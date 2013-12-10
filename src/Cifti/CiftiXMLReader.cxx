@@ -99,6 +99,7 @@ void CiftiXMLReader::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElemen
             {
                 matrixElement.m_volume.push_back(CiftiVolumeElement());
                 parseVolume(xml,matrixElement.m_volume.back());
+                if (xml.hasError()) return;
             }
             else xml.raiseError("unknown element in Matrix: " + elementName);
         }
@@ -678,6 +679,7 @@ void CiftiXMLReader::parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volu
             {
                 volume.m_transformationMatrixVoxelIndicesIJKtoXYZ.push_back(TransformationMatrixVoxelIndicesIJKtoXYZElement());
                 parseTransformationMatrixVoxelIndicesIJKtoXYZ(xml,volume.m_transformationMatrixVoxelIndicesIJKtoXYZ.back());
+                if (xml.hasError()) return;
             }
             else xml.raiseError("unknown element in Volume: " + elementName);
         }
@@ -704,9 +706,9 @@ void CiftiXMLReader::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamRea
         else if(dataSpace == "NIFTI_XFORM_ALIGNED_ANAT") transform.m_dataSpace = NIFTI_XFORM_ALIGNED_ANAT;
         else if(dataSpace == "NIFTI_XFORM_TALAIRACH") transform.m_dataSpace = NIFTI_XFORM_TALAIRACH;
         else if(dataSpace == "NIFTI_XFORM_MNI_152") transform.m_dataSpace = NIFTI_XFORM_MNI_152;
-        else xml.raiseError("Volume contains unknown or unsupported data space.");
+        else { xml.raiseError("Volume contains unknown or unsupported data space."); return; }
     }
-    else xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain dataSpace.");
+    else { xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain dataSpace."); return; }
 
     if(attributes.hasAttribute("TransformedSpace"))
     {
@@ -717,9 +719,9 @@ void CiftiXMLReader::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamRea
         else if(transformedSpace == "NIFTI_XFORM_ALIGNED_ANAT") transform.m_transformedSpace = NIFTI_XFORM_ALIGNED_ANAT;
         else if(transformedSpace == "NIFTI_XFORM_TALAIRACH") transform.m_transformedSpace = NIFTI_XFORM_TALAIRACH;
         else if(transformedSpace == "NIFTI_XFORM_MNI_152") transform.m_transformedSpace = NIFTI_XFORM_MNI_152;
-        else xml.raiseError("Volume contains unknown or unsupported transformed space.");
+        else { xml.raiseError("Volume contains unknown or unsupported transformed space."); return; }
     }
-    else xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain transformedSpace.");
+    else { xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain transformedSpace."); return; }
 
     if(attributes.hasAttribute("UnitsXYZ"))
     {
@@ -727,23 +729,31 @@ void CiftiXMLReader::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamRea
 
         if(unitsXYZ == "NIFTI_UNITS_MM") transform.m_unitsXYZ = NIFTI_UNITS_MM;
         else if(unitsXYZ == "NIFTI_UNITS_MICRON") transform.m_unitsXYZ = NIFTI_UNITS_MICRON;
-        else xml.raiseError("Volume contains unknown or unsupported spatial XYZ coordinates.");
+        else { xml.raiseError("Volume contains unknown or unsupported spatial XYZ coordinates."); return; }
     }
-    else xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain UnitsXYZ.");
+    else { xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain UnitsXYZ."); return; }
 
     xml.readNext();
     if(xml.tokenType() != QXmlStreamReader::Characters) {
         xml.raiseError("Error reading Transformation matrix.");
+        return;
     }
     QString voxelIndicesString = xml.text().toString();
     QStringList voxelIndices = voxelIndicesString.split(QRegExp("\\s+"),QString::SkipEmptyParts);
-    for(int i = 0;i<16;i++)
-        transform.m_transform[i] = voxelIndices.at(i).toFloat();
+    if (voxelIndices.size() == 16)
+    {
+        for(int i = 0;i<16;i++)
+            transform.m_transform[i] = voxelIndices.at(i).toFloat();
+    } else {
+        xml.raiseError("TransformationMatrixVoxelIndicesIJKtoXYZ does not contain 16 values");
+        return;
+    }
 
     //get end element for TransformationMatrixVoxelIndicesIJKtoXYZ
     while(!xml.isEndElement() && !xml.hasError())  xml.readNext();
     if(!xml.isEndElement())
     {
         xml.raiseError("End element for TransformationMatrixVoxelIndicesIJKtoXYZ not found.");
+        return;
     }
 }

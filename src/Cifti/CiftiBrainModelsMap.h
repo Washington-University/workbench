@@ -1,0 +1,137 @@
+#ifndef __CIFTI_BRAIN_MODELS_MAP_H__
+#define __CIFTI_BRAIN_MODELS_MAP_H__
+
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2011 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+/*LICENSE_END*/
+
+#include "CiftiIndexMap.h"
+
+#include "CaretCompact3DLookup.h"
+#include "StructureEnum.h"
+#include "VolumeSpace.h"
+
+#include <map>
+#include <utility>
+#include <vector>
+
+namespace caret
+{
+    class CiftiBrainModelsMap : public CiftiIndexMap
+    {
+    public:
+        enum ModelType
+        {
+            SURFACE,
+            VOXELS
+        };
+        struct SurfaceMap
+        {
+            int64_t m_ciftiIndex;
+            int64_t m_surfaceNode;
+        };
+        struct VolumeMap
+        {
+            int64_t m_ciftiIndex;
+            int64_t m_ijk[3];
+        };
+        struct ModelInfo
+        {
+            ModelType m_type;
+            StructureEnum::Enum m_structure;
+        };
+        bool hasVolumeData() const;
+        bool hasSurfaceData(const StructureEnum::Enum& structure) const;
+        int64_t getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
+        int64_t getIndexForVoxel(const int64_t* ijk) const;
+        std::vector<SurfaceMap> getSurfaceMap(const StructureEnum::Enum& structure) const;
+        std::vector<VolumeMap> getFullVolumeMap() const;
+        std::vector<VolumeMap> getVolumeStructureMap(const StructureEnum::Enum& structure) const;
+        const VolumeSpace& getVolumeSpace() const;
+        int64_t getSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
+        std::vector<StructureEnum::Enum> getSurfaceStructureList() const;
+        std::vector<StructureEnum::Enum> getVolumeStructureList() const;
+        const std::vector<int64_t>& getNodeList(const StructureEnum::Enum& structure) const;//useful for copying mappings to a new dense mapping
+        const std::vector<int64_t>& getVoxelList(const StructureEnum::Enum& structure) const;
+        std::vector<ModelInfo> getModelInfo() const;
+        
+        CiftiBrainModelsMap() { m_haveVolumeSpace = false; m_ignoreVolSpace = false; }
+        void addSurfaceModel(const int64_t& numberOfNodes, const StructureEnum::Enum& structure, const float* roi = NULL);
+        void addSurfaceModel(const int64_t& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
+        void addVolumeModel(const StructureEnum::Enum& structure, const std::vector<int64_t>& ijkList);
+        void setVolumeSpace(const VolumeSpace& space);
+        void clear();//do we need this?
+        
+        CiftiIndexMap* clone() const { return new CiftiBrainModelsMap(*this); }
+        MappingType getType() const { return BRAIN_MODELS; }
+        int64_t getLength() const;
+        bool operator==(const CiftiIndexMap& rhs) const;
+        void readXML1(QXmlStreamReader& xml);
+        void readXML2(QXmlStreamReader& xml);
+        void writeXML1(QXmlStreamWriter& xml) const;
+        void writeXML2(QXmlStreamWriter& xml) const;
+    private:
+        struct BrainModelPriv
+        {
+            ModelType m_type;
+            StructureEnum::Enum m_brainStructure;
+            int64_t m_surfaceNumberOfNodes;
+            std::vector<int64_t> m_nodeIndices;
+            std::vector<int64_t> m_voxelIndicesIJK;
+            
+            int64_t m_modelStart, m_modelEnd;//stuff only needed for optimization - models are kept in sorted order by their index ranges
+            std::vector<int64_t> m_nodeToIndexLookup;
+            bool operator==(const BrainModelPriv& rhs) const;
+            bool operator!=(const BrainModelPriv& rhs) const { return !((*this) == rhs); }
+            void setupSurface(const int64_t& start);
+        };
+        VolumeSpace m_volSpace;
+        bool m_haveVolumeSpace, m_ignoreVolSpace;//second is needed for parsing cifti-1
+        std::vector<BrainModelPriv> m_modelsInfo;
+        std::map<StructureEnum::Enum, int> m_surfUsed, m_volUsed;
+        CaretCompact3DLookup<std::pair<int64_t, StructureEnum::Enum> > m_voxelToIndexLookup;//make one unified lookup rather than separate lookups per volume structure
+        int64_t getNextStart() const;
+        struct ParseHelperModel
+        {//specifically to allow the parsed elements to be sorted before using addSurfaceModel/addVolumeModel
+            ModelType m_type;
+            StructureEnum::Enum m_brainStructure;
+            int64_t m_surfaceNumberOfNodes;
+            std::vector<int64_t> m_nodeIndices;
+            std::vector<int64_t> m_voxelIndicesIJK;
+            int64_t m_offset, m_count;
+            bool operator<(const ParseHelperModel& rhs) const
+            {
+                if (m_offset < rhs.m_offset) return true;
+                if (m_offset > rhs.m_offset) return false;//get the common cases first
+                if (m_count < rhs.m_count) return true;//in case we have a zero-length model - this shouldn't happen, usually
+                return false;
+            }
+            void parseBrainModel1(QXmlStreamReader& xml);
+            void parseBrainModel2(QXmlStreamReader& xml);
+            static std::vector<int64_t> readIndexArray(QXmlStreamReader& xml);
+        };
+    };
+}
+
+#endif //__CIFTI_BRAIN_MODELS_MAP_H__

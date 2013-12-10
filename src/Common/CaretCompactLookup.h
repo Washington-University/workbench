@@ -106,6 +106,8 @@ namespace caret
         const_iterator find(const int64_t& index) const;
         iterator end();
         const_iterator end() const;
+        ///empties the lookup
+        void clear();
     };
     
     template <typename T>
@@ -222,6 +224,11 @@ namespace caret
         return const_iterator(*this, 0, -1);
     }
 
+    template <typename T>
+    void CaretCompactLookup<T>::clear()
+    {
+        m_chunks.clear();
+    }
 }
 
 #endif //__CARET_COMPACT_LOOKUP_H__
