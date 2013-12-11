@@ -45,7 +45,6 @@ class GiftiLabel;
     
 class XmlWriter;
 class XmlException;
-class WuQTableWidgetModel;
     
 /**
  * Maintains a GIFTI Label Table using key/value pairs.
@@ -208,10 +207,6 @@ public:
     
 //    bool hasLabelsWithInvalidGroupNameHierarchy() const;
     
-    WuQTableWidgetModel* getInWuQTableWidgetModel() const;
-    
-    void setFromWuQTableWidgetModel(const WuQTableWidgetModel* tableModel);
-    
 private:
     void issueLabelKeyZeroWarning(const AString& name) const;
     
@@ -229,6 +224,14 @@ private:
     /**tracks modification status */
     bool modifiedFlag;
 
+    int32_t m_tableModelColumnIndexKey;
+    int32_t m_tableModelColumnIndexName;
+    int32_t m_tableModelColumnIndexColorSwatch;
+    int32_t m_tableModelColumnIndexRed;
+    int32_t m_tableModelColumnIndexGreen;
+    int32_t m_tableModelColumnIndexBlue;
+    int32_t m_tableModelColumnCount;
+    
 };
 
 } // namespace

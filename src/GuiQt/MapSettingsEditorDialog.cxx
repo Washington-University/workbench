@@ -43,7 +43,6 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabelTableEditor.h"
-#include "LabelTableEditorWidget.h"
 #include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLayerWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
@@ -94,14 +93,12 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     m_paletteColorMappingWidget = new MapSettingsPaletteColorMappingWidget();
     
-    m_labelTableEditorWidget = new LabelTableEditorWidget();
-    
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
-//    m_labelsWidget = createLabelsSection();
+    m_labelsWidget = createLabelsSection();
     
     m_tabWidget = new QTabWidget();
-    m_labelsWidgetTabIndex = m_tabWidget->addTab(m_labelTableEditorWidget,
+    m_labelsWidgetTabIndex = m_tabWidget->addTab(m_labelsWidget,
                       "Labels");
     m_tabWidget->setTabEnabled(m_tabWidget->count() - 1, false);
 
@@ -233,8 +230,6 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
                      * Update label editor
                      */
                     isLabelsValid = true;
-                    m_labelTableEditorWidget->updateEditor(m_caretMappableDataFile,
-                                                           m_mapIndex);
                 }
             }
             
@@ -449,24 +444,24 @@ MapSettingsEditorDialog::editLabelTablePushButtonClicked()
     }
 }
 
-///**
-// * Create and return widget for editing label tables.
-// */
-//QWidget*
-//MapSettingsEditorDialog::createLabelsSection()
-//{
-//    m_editLabelTablePushButton = new QPushButton("Edit");
-//    QObject::connect(m_editLabelTablePushButton, SIGNAL(clicked()),
-//                     this, SLOT(editLabelTablePushButtonClicked()));
-//    
-//    QWidget* widget = new QWidget();
-//    QVBoxLayout* layout = new QVBoxLayout(widget);
-//    layout->addWidget(m_editLabelTablePushButton,
-//                      0,
-//                      Qt::AlignLeft);
-//    layout->addStretch();
-//    
-//    return widget;
-//}
+/**
+ * Create and return widget for editing label tables.
+ */
+QWidget*
+MapSettingsEditorDialog::createLabelsSection()
+{
+    m_editLabelTablePushButton = new QPushButton("Edit");
+    QObject::connect(m_editLabelTablePushButton, SIGNAL(clicked()),
+                     this, SLOT(editLabelTablePushButtonClicked()));
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(m_editLabelTablePushButton,
+                      0,
+                      Qt::AlignLeft);
+    layout->addStretch();
+    
+    return widget;
+}
 
 

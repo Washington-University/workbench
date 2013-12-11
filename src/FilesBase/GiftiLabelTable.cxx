@@ -33,7 +33,6 @@
 #include "NameIndexSort.h"
 #include "StringTableModel.h"
 #include "XmlWriter.h"
-#include "WuQTableWidgetModel.h"
 
 using namespace caret;
 
@@ -110,6 +109,14 @@ void
 GiftiLabelTable::initializeMembersGiftiLabelTable()
 {
     this->modifiedFlag = false;
+    
+    m_tableModelColumnCount = 0;
+    m_tableModelColumnIndexKey         = m_tableModelColumnCount++;
+    m_tableModelColumnIndexName        = m_tableModelColumnCount++;
+    m_tableModelColumnIndexColorSwatch = m_tableModelColumnCount++;
+    m_tableModelColumnIndexRed         = m_tableModelColumnCount++;
+    m_tableModelColumnIndexGreen       = m_tableModelColumnCount++;
+    m_tableModelColumnIndexBlue        = m_tableModelColumnCount++;
 }
 /**
  * Clear the labelTable.
@@ -1593,75 +1600,3 @@ GiftiLabelTable::issueLabelKeyZeroWarning(const AString& name) const
                         + "\".  This label is typically \"???\" or \"unknown\".");
     }
 }
-
-/**
- * Load the Label Table into a Table Widget Model.
- *
- * @return Table Widget Model containing the label table.
- */
-WuQTableWidgetModel*
-GiftiLabelTable::getInWuQTableWidgetModel() const
-{
-    std::vector<int32_t> keys = getLabelKeysSortedByName();
-    
-//    const int32_t bigPosInt = std::numeric_limits<int32_t>::max();
-//    const int32_t bigNegInt = std::numeric_limits<int32_t>::min();
-    int32_t indexCounter = 0;
-    WuQTableWidgetModelColumnText* keyColumn =
-        new WuQTableWidgetModelColumnText("Key",
-                                          WuQTableWidgetModelColumnContent::COLUMN_ALIGN_RIGHT,
-                                          WuQTableWidgetModelColumnText::TEXT_EDITABLE_YES);
-    const int32_t keyColumnIndex = indexCounter++;
-    
-    WuQTableWidgetModelColumnText* nameColumn =
-        new WuQTableWidgetModelColumnText("Name",
-                                          WuQTableWidgetModelColumnContent::COLUMN_ALIGN_LEFT,
-                                          WuQTableWidgetModelColumnText::TEXT_EDITABLE_YES);
-    const int32_t nameColumnIndex = indexCounter++;
-    
-    WuQTableWidgetModelColumnColorSwatch* colorSwatchColumn =
-        new WuQTableWidgetModelColumnColorSwatch("Color",
-                                                 WuQTableWidgetModelColumnContent::COLUMN_ALIGN_CENTER);
-    const int32_t colorColumnIndex = indexCounter++;
-    
-    std::vector<WuQTableWidgetModelColumnContent*> columnContentInfo;
-    columnContentInfo.push_back(keyColumn);
-    columnContentInfo.push_back(nameColumn);
-    columnContentInfo.push_back(colorSwatchColumn);
-
-    const int32_t numberOfLabels = static_cast<int32_t>(keys.size());
-    
-    WuQTableWidgetModel* tableModel = new WuQTableWidgetModel(columnContentInfo,
-                                                   numberOfLabels);
-    
-    for (int32_t i = 0; i < numberOfLabels; i++) {
-        const GiftiLabel* gl = getLabel(keys[i]);
-        
-        tableModel->setText(i,
-                            keyColumnIndex,
-                            QString::number(keys[i]));
-        tableModel->setText(i,
-                            nameColumnIndex,
-                            gl->getName());
-        tableModel->setColorSwatch(i,
-                                   colorColumnIndex,
-                                   gl->getColor());
-    }
-    
-    return tableModel;
-}
-
-/**
- * Copy the table model into this label table.
- *
- * @param tableModel
- *    The table model.
- */
-void
-GiftiLabelTable::setFromWuQTableWidgetModel(const WuQTableWidgetModel* tableModel)
-{
-    
-}
-
-
-

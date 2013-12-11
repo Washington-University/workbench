@@ -99,7 +99,7 @@ namespace caret {
         
         MapSettingsLayerWidget* m_layerWidget;
         
-        //QWidget* m_labelsWidget;
+        QWidget* m_labelsWidget;
         
         QPushButton* m_editLabelTablePushButton;
         

@@ -68,7 +68,6 @@ ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
-LabelTableEditorWidget.h
 MacApplication.h
 MapSettingsEditorDialog.h
 MapSettingsFiberTrajectoryWidget.h
@@ -117,7 +116,6 @@ WuQListWidget.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTabWidget.h
-WuQTableWidget.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
@@ -197,7 +195,6 @@ ImageCaptureMethodEnum.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
-LabelTableEditorWidget.h
 MacApplication.h
 MapSettingsEditorDialog.h
 MapSettingsFiberTrajectoryWidget.h
@@ -255,7 +252,6 @@ WuQListWidget.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTabWidget.h
-WuQTableWidget.h
 WuQTimedMessageDisplay.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
@@ -326,7 +322,6 @@ ImageCaptureMethodEnum.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
-LabelTableEditorWidget.cxx
 MacApplication.cxx
 MapSettingsEditorDialog.cxx
 MapSettingsFiberTrajectoryWidget.cxx
@@ -382,7 +377,6 @@ WuQListWidget.cxx
 WuQMessageBox.cxx
 WuQSpinBoxGroup.cxx
 WuQTabWidget.cxx
-WuQTableWidget.cxx
 WuQTimedMessageDisplay.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx
