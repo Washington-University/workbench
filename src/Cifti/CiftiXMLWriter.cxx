@@ -350,14 +350,17 @@ void CiftiXMLWriter::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWri
     if(transformedSpaceString.length() > 0) xml.writeAttribute("TransformedSpace", transformedSpaceString);
     if(unitsXYZString.length() > 0) xml.writeAttribute("UnitsXYZ", unitsXYZString);
 
-    QString voxelIndices;
-    QString s;
-    for(int i = 0;i<15;i++)
+    QString matrixString;
+    for(int i = 0;i<12;i++)
     {
-        voxelIndices.append(s.sprintf("%.10f ",transform.m_transform[i]));
+        matrixString += QString::number(transform.m_transform[i], 'f', 10) + " ";
     }
-    voxelIndices.append(s.sprintf("%.10f", transform.m_transform[15]));
-    xml.writeCharacters(voxelIndices);
+    for (int i = 0; i < 3; ++i)//always write 0 0 0 1, ignore the actual last row
+    {
+        matrixString += QString::number(0.0f, 'f', 10) + " ";
+    }
+    matrixString += QString::number(1.0f, 'f', 10);
+    xml.writeCharacters(matrixString);
 
     xml.writeEndElement();
 

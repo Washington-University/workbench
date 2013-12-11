@@ -1038,6 +1038,10 @@ void CiftiXML::setVolumeDimsAndSForm(const int64_t dims[3], const vector<vector<
             myTrans.m_transform[i * 4 + j] = sform[i][j];
         }
     }
+    myTrans.m_transform[12] = 0.0f;//force last row to be set to 0 0 0 1 internally for sanity, even though we don't use it
+    myTrans.m_transform[13] = 0.0f;
+    myTrans.m_transform[14] = 0.0f;
+    myTrans.m_transform[15] = 1.0f;
     myTrans.m_unitsXYZ = NIFTI_UNITS_MM;
     myVol.m_volumeDimensions[0] = dims[0];
     myVol.m_volumeDimensions[1] = dims[1];
