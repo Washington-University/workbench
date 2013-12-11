@@ -270,6 +270,7 @@ namespace caret {
         int m_COLUMN_LOAD_CHECKBOX;
         int m_COLUMN_SAVE_CHECKBOX;
         int m_COLUMN_STATUS_LABEL;
+        int m_COLUMN_DISPLAYED_LABEL;
         int m_COLUMN_IN_SPEC_FILE_CHECKBOX;
         int m_COLUMN_READ_BUTTON;
         int m_COLUMN_REMOVE_BUTTON;

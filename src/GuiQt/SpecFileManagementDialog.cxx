@@ -293,6 +293,7 @@ m_specFile(specFile)
     m_COLUMN_LOAD_CHECKBOX               = -1;
     m_COLUMN_SAVE_CHECKBOX               = -1;
     m_COLUMN_STATUS_LABEL                = -1;
+    m_COLUMN_DISPLAYED_LABEL             = -1;
     m_COLUMN_IN_SPEC_FILE_CHECKBOX       = -1;
     m_COLUMN_READ_BUTTON                 = -1;
     m_COLUMN_REMOVE_BUTTON               = -1;
@@ -307,6 +308,7 @@ m_specFile(specFile)
     if (enableManageItems) {
         m_COLUMN_SAVE_CHECKBOX = columnCounter++;
         m_COLUMN_STATUS_LABEL = columnCounter++;
+        m_COLUMN_DISPLAYED_LABEL = columnCounter++;
         m_COLUMN_IN_SPEC_FILE_CHECKBOX = columnCounter++;
         m_COLUMN_READ_BUTTON = columnCounter++;
         m_COLUMN_REMOVE_BUTTON = columnCounter++;
@@ -700,6 +702,10 @@ SpecFileManagementDialog::setTableColumnLabels()
         m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_STATUS_LABEL,
                                                     createHeaderTextItem("Modified"));
     }
+    if (m_COLUMN_DISPLAYED_LABEL >= 0) {
+        m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_DISPLAYED_LABEL,
+                                                    createHeaderTextItem("Displayed"));
+    }
     if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0){
         m_filesTableWidget->setHorizontalHeaderItem(m_COLUMN_IN_SPEC_FILE_CHECKBOX,
                                                     createHeaderTextItem("In Spec"));
@@ -858,6 +864,13 @@ SpecFileManagementDialog::updateTableDimensionsToFitFiles()
             item->setForeground(modifiedBrush);
         }
         
+        if (m_COLUMN_DISPLAYED_LABEL >= 0) {
+            QTableWidgetItem* item = createTextItem();
+            setTableWidgetItem(iRow,
+                               m_COLUMN_DISPLAYED_LABEL,
+                               item);
+            item->setTextAlignment(Qt::AlignCenter);
+        }
         if (isDataFileRow) {
             if (m_COLUMN_IN_SPEC_FILE_CHECKBOX >= 0) {
                 QTableWidgetItem* item = createCheckableItem();
@@ -1230,6 +1243,21 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                         if (isFileSavable) {
                             statusItem->setText("YES");
                         }
+                    }
+                }
+                
+                /*
+                 * Displayed label.
+                 */
+                CaretAssert(m_COLUMN_DISPLAYED_LABEL >= 0);
+                QTableWidgetItem* displayedItem = getTableWidgetItem(rowIndex,
+                                                                     m_COLUMN_DISPLAYED_LABEL);
+                
+                CaretAssert(displayedItem);
+                displayedItem->setText("");
+                if (caretDataFile != NULL) {
+                    if (caretDataFile->isDisplayedInGUI()) {
+                        displayedItem->setText("YES");
                     }
                 }
                 
