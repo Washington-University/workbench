@@ -316,6 +316,9 @@ void CiftiXMLNew::parseMatrix1(QXmlStreamReader& xml)
                 fileVolSpace.readCiftiXML1(xml);
                 if (xml.hasError()) return;
                 haveVolSpace = true;
+            } else if (name == "LabelTable") {
+                CaretLogFiner("skipping unused LabelTable element in Matrix in CIFTI-1");
+                xml.readElementText(QXmlStreamReader::SkipChildElements);
             } else {
                 throw CaretException("unknown element in Matrix: " + name.toString());
             }
