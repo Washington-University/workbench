@@ -202,6 +202,22 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "pdconn.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_SCALAR,
+                                        "CONNECTIVITY_PARCEL_SCALAR",
+                                        "Connectivity - Parcel Scalar",
+                                        "CIFTI PARCEL SCALAR",
+                                        false,
+                                        false,
+                                        "pscalar.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_SERIES,
+                                        "CONNECTIVITY_PARCEL_SERIES",
+                                        "Connectivity - Parcel Series",
+                                        "CIFTI PARCEL SERIES",
+                                        false,
+                                        false,
+                                        "ptseries.nii"));
+    
     enumData.push_back(DataFileTypeEnum(FOCI,
                                         "FOCI", 
                                         "Foci",

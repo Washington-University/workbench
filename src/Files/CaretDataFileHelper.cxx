@@ -72,6 +72,8 @@ CaretDataFileHelper::~CaretDataFileHelper()
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "CiftiParcelScalarFile.h"
+#include "CiftiParcelSeriesFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "FociFile.h"
@@ -138,6 +140,12 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename) throw (DataFi
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             caretDataFile = new CiftiConnectivityMatrixParcelDenseFile();
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            caretDataFile = new CiftiParcelScalarFile();
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            caretDataFile = new CiftiParcelSeriesFile();
             break;
         case DataFileTypeEnum::FOCI:
             caretDataFile = new FociFile();

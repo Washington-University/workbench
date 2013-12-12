@@ -37,6 +37,8 @@
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiParcelScalarFile.h"
+#include "CiftiParcelSeriesFile.h"
 #include "DisplayPropertiesSurface.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "DisplayPropertiesLabels.h"
@@ -372,6 +374,20 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                             numNodes,
                                                                             overlayRGBV);
                 }
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    isColoringValid = this->assignCiftiParcelScalarColoring(brainStructure,
+                                                                            dynamic_cast<CiftiParcelScalarFile*>(selectedMapFile),
+                                                                            selectedMapUniqueID,
+                                                                            numNodes,
+                                                                            overlayRGBV);
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                    isColoringValid = this->assignCiftiParcelSeriesColoring(brainStructure,
+                                                                            dynamic_cast<CiftiParcelSeriesFile*>(selectedMapFile),
+                                                                            selectedMapUniqueID,
+                                                                            numNodes,
+                                                                            overlayRGBV);
                     break;
                 case DataFileTypeEnum::FOCI:
                     break;
@@ -1063,6 +1079,77 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
 }
 
 /**
+ * Assign cifti parcel scalar coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param ciftiScalarFile
+ *    Cifti Scalar file that is selected.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiParcelScalarColoring(const BrainStructure* brainStructure,
+                                               CiftiParcelScalarFile* ciftiParcelScalarFile,
+                                               const AString& ciftiMapUniqueID,
+                                               const int32_t numberOfNodes,
+                                               float* rgbv)
+{
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiParcelScalarFile*> allCiftiParcelScalarFiles;
+    brain->getConnectivityParcelScalarFiles(allCiftiParcelScalarFiles);
+    
+    int32_t mapIndex = -1;
+    for (std::vector<CiftiParcelScalarFile*>::iterator iter = allCiftiParcelScalarFiles.begin();
+         iter != allCiftiParcelScalarFiles.end();
+         iter++) {
+        CiftiParcelScalarFile* csf = *iter;
+        if (csf == ciftiParcelScalarFile) {
+            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+            if (mapIndex >= 0) {
+                break;
+            }
+        }
+    }
+    
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    /*
+     * Update coloring
+     */
+    if (ciftiParcelScalarFile->isMapColoringValid(mapIndex) == false) {
+        ciftiParcelScalarFile->updateScalarColoringForMap(mapIndex,
+                                                    brain->getPaletteFile());
+    }
+    
+    std::vector<float> dataValues(numberOfNodes);
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    ciftiParcelScalarFile->getMapSurfaceNodeColoring(mapIndex,
+                                               structure,
+                                               rgbv,
+                                               &dataValues[0],
+                                               numberOfNodes);
+    return true;
+}
+
+/**
  * Assign cifti scalar coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
@@ -1133,6 +1220,80 @@ SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainSt
                                                rgbv,
                                                &dataValues[0],
                                                numberOfNodes);
+    return true;
+}
+
+/**
+ * Assign cifti parcel series coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param ciftiParcelSeriesFile
+ *    Cifti Parcel Series file that is selected.
+ * @param ciftiMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
+bool
+SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brainStructure,
+                                                   CiftiParcelSeriesFile* ciftiParcelSeriesFile,
+                                                   const AString& ciftiMapUniqueID,
+                                                   const int32_t numberOfNodes,
+                                                   float* rgbv)
+{
+    Brain* brain = (Brain*)(brainStructure->getBrain());
+    std::vector<CiftiParcelSeriesFile*> allCiftiParcelSeriesFiles;
+    brain->getConnectivityParcelSeriesFiles(allCiftiParcelSeriesFiles);
+    
+    int32_t mapIndex = -1;
+    for (std::vector<CiftiParcelSeriesFile*>::iterator iter = allCiftiParcelSeriesFiles.begin();
+         iter != allCiftiParcelSeriesFiles.end();
+         iter++) {
+        CiftiParcelSeriesFile* cdsf = *iter;
+        if (cdsf == ciftiParcelSeriesFile) {
+            mapIndex = cdsf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+            if (mapIndex >= 0) {
+                break;
+            }
+        }
+    }
+    
+    if (mapIndex < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    /*
+     * Update coloring
+     */
+    if (ciftiParcelSeriesFile->isMapColoringValid(mapIndex) == false) {
+        ciftiParcelSeriesFile->updateScalarColoringForMap(mapIndex,
+                                                        brain->getPaletteFile());
+    }
+    
+    /*
+     * Get Coloring
+     */
+    std::vector<float> dataValues(numberOfNodes);
+    const StructureEnum::Enum structure = brainStructure->getStructure();
+    ciftiParcelSeriesFile->getMapSurfaceNodeColoring(mapIndex,
+                                                   structure,
+                                                   rgbv,
+                                                   &dataValues[0],
+                                                   numberOfNodes);
     return true;
 }
 

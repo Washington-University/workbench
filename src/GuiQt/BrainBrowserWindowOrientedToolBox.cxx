@@ -514,6 +514,10 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     haveConnFiles = true;
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                    break;
                 case DataFileTypeEnum::FOCI:
                     haveFoci = true;
                     break;

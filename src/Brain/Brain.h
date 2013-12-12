@@ -59,6 +59,8 @@ namespace caret {
     class CiftiFiberTrajectoryFile;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
+    class CiftiParcelSeriesFile;
+    class CiftiParcelScalarFile;
     class DisplayProperties;
     class DisplayPropertiesBorders;
     class DisplayPropertiesFiberOrientation;
@@ -237,6 +239,22 @@ namespace caret {
         const CiftiBrainordinateScalarFile* getConnectivityDenseScalarFile(int32_t indx) const;
         
         void getConnectivityDenseScalarFiles(std::vector<CiftiBrainordinateScalarFile*>& connectivityDenseScalarFilesOut) const;
+        
+        int32_t getNumberOfConnectivityParcelScalarFiles() const;
+        
+        CiftiParcelScalarFile* getConnectivityParcelScalarFile(int32_t indx);
+        
+        const CiftiParcelScalarFile* getConnectivityParcelScalarFile(int32_t indx) const;
+        
+        void getConnectivityParcelScalarFiles(std::vector<CiftiParcelScalarFile*>& connectivityParcelScalarFilesOut) const;
+
+        int32_t getNumberOfConnectivityParcelSeriesFiles() const;
+        
+        CiftiParcelSeriesFile* getConnectivityParcelSeriesFile(int32_t indx);
+        
+        const CiftiParcelSeriesFile* getConnectivityParcelSeriesFile(int32_t indx) const;
+        
+        void getConnectivityParcelSeriesFiles(std::vector<CiftiParcelSeriesFile*>& connectivityParcelSeriesFilesOut) const;
         
         int32_t getNumberOfConnectivityFiberOrientationFiles() const;
         
@@ -434,6 +452,12 @@ namespace caret {
         CiftiBrainordinateScalarFile* readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
                                              const AString& filename) throw (DataFileException);
         
+        CiftiParcelScalarFile* readConnectivityParcelScalarFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                                      const AString& filename) throw (DataFileException);
+        
+        CiftiParcelSeriesFile* readConnectivityParcelSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
+                                                                const AString& filename) throw (DataFileException);
+        
         CiftiFiberOrientationFile* readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNull,
                                                   const AString& filename) throw (DataFileException);
         
@@ -489,6 +513,10 @@ namespace caret {
         std::vector<CiftiConnectivityMatrixDenseParcelFile*> m_connectivityMatrixDenseParcelFiles;
         
         std::vector<CiftiBrainordinateScalarFile*> m_connectivityDenseScalarFiles;
+        
+        std::vector<CiftiParcelSeriesFile*> m_connectivityParcelSeriesFiles;
+        
+        std::vector<CiftiParcelScalarFile*> m_connectivityParcelScalarFiles;
         
         std::vector<CiftiFiberOrientationFile*> m_connectivityFiberOrientationFiles;
         

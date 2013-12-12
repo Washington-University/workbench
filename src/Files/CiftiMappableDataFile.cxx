@@ -2382,6 +2382,12 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
         case CiftiFacade::CIFTI_PARCEL_DENSE:
             useMapData = true;
             break;
+        case CiftiFacade::CIFTI_PARCEL_SCALAR:
+            useMapData = true;
+            break;
+        case CiftiFacade::CIFTI_PARCEL_SERIES:
+            useMapData = true;
+            break;
     }
     
     

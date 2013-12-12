@@ -56,7 +56,9 @@ namespace caret {
             CIFTI_DENSE_PARCEL,
             CIFTI_DATA_SERIES,
             CIFTI_PARCEL,
-            CIFTI_PARCEL_DENSE
+            CIFTI_PARCEL_DENSE,
+            CIFTI_PARCEL_SCALAR,
+            CIFTI_PARCEL_SERIES
         };
         
         CiftiFacade(const DataFileTypeEnum::Enum dataFileType,

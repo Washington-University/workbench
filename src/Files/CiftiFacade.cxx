@@ -96,6 +96,12 @@ m_containsSurfaceDataForMappingToBrainordinates(false)
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             m_ciftiFileType = CIFTI_PARCEL_DENSE;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            m_ciftiFileType = CIFTI_PARCEL_SCALAR;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            m_ciftiFileType = CIFTI_PARCEL_SERIES;
+            break;
         case DataFileTypeEnum::FOCI:
             break;
         case DataFileTypeEnum::LABEL:
@@ -192,6 +198,24 @@ m_containsSurfaceDataForMappingToBrainordinates(false)
             m_numberOfMaps = 1;
             m_loadBrainordinateDataFromRows = true;
             m_brainordinateDataColoredWithPalette = true;
+            break;
+        case CIFTI_PARCEL_SCALAR:
+            m_useColumnMapsForBrainordinateMapping = true;
+            m_useAlongRowMethodsForMapAttributes = true;
+            m_loadBrainordinateDataFromColumns = true;
+            m_numberOfMaps = m_numberOfColumns;
+            m_brainordinateDataColoredWithPalette = true;
+            m_useParcelsForBrainordinateMapping = true;
+            m_containsMapAttributes = true;
+            break;
+        case CIFTI_PARCEL_SERIES:
+            m_useColumnMapsForBrainordinateMapping = true;
+            m_useAlongRowMethodsForMapAttributes = true;
+            m_loadBrainordinateDataFromColumns = true;
+            m_numberOfMaps = m_numberOfColumns;
+            m_brainordinateDataColoredWithPalette = true;
+            m_useParcelsForBrainordinateMapping = true;
+            //m_containsMapAttributes = true;
             break;
     }
     
@@ -859,7 +883,8 @@ CiftiFacade::getNameForMapOrSeriesIndex(const int32_t mapIndex) const
     AString name;
     
     if (m_containsMapAttributes == false) {
-        if (m_ciftiFileType == CIFTI_DATA_SERIES) {
+        if ((m_ciftiFileType == CIFTI_DATA_SERIES)
+            || (m_ciftiFileType == CIFTI_PARCEL_SERIES)) {
             /*
              * Data Series does not have map names
              * so construct map names from map interval
@@ -997,13 +1022,25 @@ CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
 {
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     if (m_loadBrainordinateDataFromColumns) {
-        const int64_t nodeRowIndex = ciftiXML.getRowIndexForNode(nodeIndex,
-                                                                 structure);
-        if (nodeRowIndex >= 0) {
-            seriesDataOut.resize(m_numberOfColumns);
-            m_ciftiInterface->getRow(&seriesDataOut[0],
-                                     nodeRowIndex);
-            return true;
+        if (m_useParcelsForBrainordinateMapping) {
+            const int64_t parcelRowIndex = ciftiXML.getColumnParcelForNode(nodeIndex,
+                                                                      structure);
+            if (parcelRowIndex >= 0) {
+                seriesDataOut.resize(m_numberOfColumns);
+                m_ciftiInterface->getRow(&seriesDataOut[0],
+                                         parcelRowIndex);
+                return true;
+            }
+        }
+        else {
+            const int64_t nodeRowIndex = ciftiXML.getRowIndexForNode(nodeIndex,
+                                                                     structure);
+            if (nodeRowIndex >= 0) {
+                seriesDataOut.resize(m_numberOfColumns);
+                m_ciftiInterface->getRow(&seriesDataOut[0],
+                                         nodeRowIndex);
+                return true;
+            }
         }
     }
     else if (m_loadBrainordinateDataFromRows) {

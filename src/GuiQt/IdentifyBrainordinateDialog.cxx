@@ -158,6 +158,10 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:

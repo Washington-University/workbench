@@ -501,8 +501,59 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
              * Limit dense scalar and data series to maps selected in the overlays
              * from all tabs.
              */
-            if ((cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
-                || (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
+            bool limitMapIndicesFlag = false;
+            switch (cmdf->getDataFileType()) {
+                case DataFileTypeEnum::BORDER:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    limitMapIndicesFlag = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                    limitMapIndicesFlag = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                    limitMapIndicesFlag = true;
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                    limitMapIndicesFlag = true;
+                    break;
+                case DataFileTypeEnum::FOCI:
+                    break;
+                case DataFileTypeEnum::LABEL:
+                    break;
+                case DataFileTypeEnum::METRIC:
+                    break;
+                case DataFileTypeEnum::PALETTE:
+                    break;
+                case DataFileTypeEnum::RGBA:
+                    break;
+                case DataFileTypeEnum::SCENE:
+                    break;
+                case DataFileTypeEnum::SPECIFICATION:
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    break;
+                case DataFileTypeEnum::UNKNOWN:
+                    CaretAssert(0);
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                    break;
+            }
+            if (limitMapIndicesFlag) {
                 getMapIndicesOfFileUsedInOverlays(cmdf,
                                                   mapIndices);
             }
