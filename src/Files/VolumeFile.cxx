@@ -77,8 +77,7 @@ VolumeFile::VolumeFile()
     m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
-    m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
-    m_niftiVersionNumber = -1;
+    m_niftiHeaderInfo.m_valid = false;
     validateMembers();
 }
 
@@ -88,8 +87,7 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
-    m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
-    m_niftiVersionNumber = -1;
+    m_niftiHeaderInfo.m_valid = false;
     validateMembers();
     setType(whatType);
 }
@@ -100,8 +98,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
-    m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
-    m_niftiVersionNumber = -1;
+    m_niftiHeaderInfo.m_valid = false;
     validateMembers();
     setType(whatType);
 }
@@ -266,29 +263,22 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         parseExtensions();
         clearModified();
         
-        m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
-        m_niftiVersionNumber = myNifti.getNiftiVersion();
-        switch (m_niftiVersionNumber) {
-            case 1:
-            {
-                Nifti1Header niftiHeader;
-                myNifti.getHeader(niftiHeader);
-                niftiHeader.getNiftiDataTypeEnum(m_niftiDataType);
-            }
-                break;
-            case 2:
-            {
-                Nifti1Header niftiHeader;
-                myNifti.getHeader(niftiHeader);
-                niftiHeader.getNiftiDataTypeEnum(m_niftiDataType);
-            }
-                break;
-            default:
-                CaretLogSevere("Has a new version of NIFTI = "
-                               + AString::number(m_niftiVersionNumber)
-                               + " been added?");
-                break;
+        m_niftiHeaderInfo.m_versionNumber = myNifti.getNiftiVersion();
+        
+        Nifti1Header niftiHeader;
+        myNifti.getHeader(niftiHeader);
+        
+        niftiHeader.getNiftiDataTypeEnum(m_niftiHeaderInfo.m_dataType);
+        
+        nifti_1_header niftiHeaderStruct;
+        niftiHeader.getHeaderStruct(niftiHeaderStruct);
+        
+        m_niftiHeaderInfo.m_dimensions.clear();
+        for (int32_t i = 0; i < 8; i++) {
+            m_niftiHeaderInfo.m_dimensions.push_back(niftiHeaderStruct.dim[i]);
         }
+        
+        m_niftiHeaderInfo.m_valid = true;
     } catch (const CaretException& e) {
         clear();
         throw DataFileException(e);
@@ -1555,28 +1545,37 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
 
-    if (m_niftiVersionNumber >= 1) {
-        dataFileInformation.addNameAndValue("NIFTI Version",
-                                            m_niftiVersionNumber);
-        dataFileInformation.addNameAndValue("NIFTI Data Type",
-                                            NiftiDataTypeEnum::toName(m_niftiDataType));
-    }
-    
     dataFileInformation.addNameAndValue("Orthogonal", isPlumb());
     
-    int64_t dimI, dimJ, dimK, dimMaps, dimComponents;
-    getDimensions(dimI, dimJ, dimK, dimMaps, dimComponents);
-    
-    dataFileInformation.addNameAndValue("Dim I",
-                                        AString::number(dimI));
-    dataFileInformation.addNameAndValue("Dim J",
-                                        AString::number(dimJ));
-    dataFileInformation.addNameAndValue("Dim K",
-                                        AString::number(dimK));
-    dataFileInformation.addNameAndValue("Dim Maps",
-                                        AString::number(dimMaps));
-    dataFileInformation.addNameAndValue("Dim Components",
-                                        AString::number(dimComponents));
+    if (m_niftiHeaderInfo.m_valid) {
+        dataFileInformation.addNameAndValue("NIFTI Version",
+                                            m_niftiHeaderInfo.m_versionNumber);
+        dataFileInformation.addNameAndValue("NIFTI Data Type",
+                                            NiftiDataTypeEnum::toName(m_niftiHeaderInfo.m_dataType));
+        
+        const int32_t numDims = static_cast<int32_t>(m_niftiHeaderInfo.m_dimensions.size());
+        for (int32_t i = 0; i < numDims; i++) {
+            dataFileInformation.addNameAndValue(("Dim["
+                                                 + AString::number(i)
+                                                 + "]"),
+                                                AString::number(m_niftiHeaderInfo.m_dimensions[i]));
+        }
+    }
+    else {
+        int64_t dimI, dimJ, dimK, dimMaps, dimComponents;
+        getDimensions(dimI, dimJ, dimK, dimMaps, dimComponents);
+        
+        dataFileInformation.addNameAndValue("Dim I",
+                                            AString::number(dimI));
+        dataFileInformation.addNameAndValue("Dim J",
+                                            AString::number(dimJ));
+        dataFileInformation.addNameAndValue("Dim K",
+                                            AString::number(dimK));
+        dataFileInformation.addNameAndValue("Dim Maps",
+                                            AString::number(dimMaps));
+        dataFileInformation.addNameAndValue("Dim Components",
+                                            AString::number(dimComponents));
+    }
 
     const int64_t zero64 = 0;
     if (indexValid(zero64, zero64, zero64)) {

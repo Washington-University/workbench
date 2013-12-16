@@ -159,7 +159,10 @@ CiftiMappableDataFile::clearPrivate()
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
 
-    m_selectionMode = SELECTION_MODE_NONE;    
+    m_selectionMode = SELECTION_MODE_NONE;
+    
+    m_niftiHeaderDimensions.clear();
+    m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
 }
 
 /**
@@ -583,11 +586,20 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         
         CaretLogFine(msg);
         
+        m_niftiHeaderDimensions.clear();
+        m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
+        
         CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(ciftiInterface);
         if (ciftiFile != NULL) {
             CiftiHeader ciftiHeader;
             ciftiFile->getHeader(ciftiHeader);
-            ciftiHeader.getDimensions(m_ciftiHeaderDimensions);
+            
+            nifti_2_header nifti2Struct;
+            ciftiHeader.getHeaderStruct(nifti2Struct);
+            for (int32_t i = 0; i < 8; i++) {
+                m_niftiHeaderDimensions.push_back(nifti2Struct.dim[i]);
+            }
+            ciftiHeader.getNiftiDataTypeEnum(m_niftiDataType);
         }
         
         clearModified();
@@ -3467,7 +3479,7 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
-//    if (m_ciftiHeaderDimensions.empty()) {
+    if (m_niftiHeaderDimensions.empty()) {
         int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
         getDimensions(dimI,
                       dimJ,
@@ -3478,16 +3490,19 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
         dataFileInformation.addNameAndValue("Dim[0]", dimI);
         dataFileInformation.addNameAndValue("Dim[1]", dimJ);
         dataFileInformation.addNameAndValue("Dim[2]", dimK);
-//    }
-//    else {
-//        const int32_t numDims = static_cast<int32_t>(m_ciftiHeaderDimensions.size());
-//        for (int32_t i = 0; i < numDims; i++) {
-//            dataFileInformation.addNameAndValue(("Dim["
-//                                                 + AString::number(i)
-//                                                 + "]"),
-//                                                m_ciftiHeaderDimensions[i]);
-//        }
-//    }
+    }
+    else {
+        const int32_t numDims = static_cast<int32_t>(m_niftiHeaderDimensions.size());
+        for (int32_t i = 0; i < numDims; i++) {
+            dataFileInformation.addNameAndValue(("Dim["
+                                                 + AString::number(i)
+                                                 + "]"),
+                                                m_niftiHeaderDimensions[i]);
+        }
+    }
+    
+    dataFileInformation.addNameAndValue("NIFTI Data Type",
+                                        NiftiDataTypeEnum::toName(m_niftiDataType));
     
     std::vector<StructureEnum::Enum> allStructures;
     StructureEnum::getAllEnums(allStructures);

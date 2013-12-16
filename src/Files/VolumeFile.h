@@ -77,9 +77,21 @@ namespace caret {
         /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
         VolumeFileVoxelColorizer* m_voxelColorizer;
         
-        int32_t m_niftiVersionNumber;
+        struct NiftiHeaderInfo {
+            NiftiHeaderInfo() {
+                m_valid = false;
+            }
+            
+            int32_t m_versionNumber;
+            
+            NiftiDataTypeEnum::Enum m_dataType;
+            
+            std::vector<int64_t> m_dimensions;
+            
+            bool m_valid;
+        };
         
-        NiftiDataTypeEnum::Enum m_niftiDataType;
+        NiftiHeaderInfo m_niftiHeaderInfo;
         
         mutable CaretMutex m_splineMutex;
         

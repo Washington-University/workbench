@@ -456,7 +456,9 @@ namespace caret {
 
         SelectionMode m_selectionMode; 
 
-        std::vector<int64_t> m_ciftiHeaderDimensions;
+        std::vector<int64_t> m_niftiHeaderDimensions;
+        
+        NiftiDataTypeEnum::Enum m_niftiDataType;
         
         int64_t m_selectionIndex; //index into row or column with selection data
         
