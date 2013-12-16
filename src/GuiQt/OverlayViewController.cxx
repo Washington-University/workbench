@@ -364,7 +364,7 @@ OverlayViewController::fileComboBoxSelected(int indx)
     validateYokingSelection();
     // not needed with call to validateYokingSelection: this->updateViewController(this->overlay);
     
-    this->updateUserInterfaceAndGraphicsWindow();    
+    // called inside validateYokingSelection();  this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -399,7 +399,8 @@ OverlayViewController::mapIndexSpinBoxValueChanged(int indx)
     }
     mapNameComboBox->blockSignals(false);
     
-    this->updateUserInterfaceAndGraphicsWindow();
+    this->updateUserInterfaceIfYoked();
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -431,7 +432,8 @@ OverlayViewController::mapNameComboBoxSelected(int indx)
     m_mapIndexSpinBox->setValue(indx + 1);
     m_mapIndexSpinBox->blockSignals(false);
     
-    this->updateUserInterfaceAndGraphicsWindow();
+    this->updateUserInterfaceIfYoked();
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -447,7 +449,7 @@ OverlayViewController::enabledCheckBoxClicked(bool checked)
     }
     overlay->setEnabled(checked);
     
-    this->updateUserInterfaceAndGraphicsWindow();
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -464,7 +466,7 @@ OverlayViewController::colorBarActionTriggered(bool status)
     
     this->overlay->setPaletteDisplayEnabled(status);
     
-    this->updateUserInterfaceAndGraphicsWindow();
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -481,7 +483,7 @@ OverlayViewController::opacityDoubleSpinBoxValueChanged(double value)
     
     this->overlay->setOpacity(value);
     
-    this->updateUserInterfaceAndGraphicsWindow();
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -727,10 +729,36 @@ OverlayViewController::updateUserInterfaceAndGraphicsWindow()
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
     else {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
+    }
+    
+    updateGraphicsWindow();
+}
+
+/**
+ * Update graphics and GUI after selections made
+ */
+void
+OverlayViewController::updateUserInterfaceIfYoked()
+{
+    if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+}
+
+/**
+ * Update graphics after selections made
+ */
+void
+OverlayViewController::updateGraphicsWindow()
+{
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    if (this->overlay->getYokingGroup() != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    else {
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
     }
 }

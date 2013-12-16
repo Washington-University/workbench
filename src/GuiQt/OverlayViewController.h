@@ -115,6 +115,10 @@ namespace caret {
 
         void updateUserInterfaceAndGraphicsWindow();
         
+        void updateUserInterfaceIfYoked();
+        
+        void updateGraphicsWindow();
+        
         QMenu* createConstructionMenu(QWidget* parent);
         
         void validateYokingSelection();
