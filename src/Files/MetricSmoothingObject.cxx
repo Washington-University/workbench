@@ -46,7 +46,7 @@ MetricSmoothingObject::MetricSmoothingObject(const SurfaceFile* mySurf, const fl
     precomputeWeights(mySurf, kernel, myRoi, myMethod);
 }
 
-void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* columnOut, const MetricFile* roi, const bool& fixZeros)
+void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* columnOut, const MetricFile* roi, const bool& fixZeros) const
 {
     CaretAssert(metricIn != NULL);
     CaretAssert(columnOut != NULL);
@@ -75,7 +75,7 @@ void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& 
     }
 }
 
-void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros)
+void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros) const
 {
     CaretAssert(metricIn != NULL);
     CaretAssert(metricOut != NULL);
@@ -112,7 +112,7 @@ void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& 
     }
 }
 
-void MetricSmoothingObject::smoothMetric(const MetricFile* metricIn, MetricFile* metricOut, const MetricFile* roi, const bool& fixZeros)
+void MetricSmoothingObject::smoothMetric(const MetricFile* metricIn, MetricFile* metricOut, const MetricFile* roi, const bool& fixZeros) const
 {
     CaretAssert(metricIn != NULL);
     CaretAssert(metricOut != NULL);
@@ -144,7 +144,7 @@ void MetricSmoothingObject::smoothMetric(const MetricFile* metricIn, MetricFile*
     }
 }
 
-void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const bool& fixZeros)
+void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const bool& fixZeros) const
 {
     CaretAssert(metricIn != NULL);//asserts only, and only basic checks, these functions are private
     CaretAssert(metricOut != NULL);
@@ -158,7 +158,7 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
-            WeightList& myWeightRef = m_weightLists[i];
+            const WeightList& myWeightRef = m_weightLists[i];
             if (myWeightRef.m_weightSum != 0.0f)//skip nodes with no neighbors quickly
             {
                 float sum = 0.0f, weightsum = 0.0f;
@@ -187,7 +187,7 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
-            WeightList& myWeightRef = m_weightLists[i];
+            const WeightList& myWeightRef = m_weightLists[i];
             if (myWeightRef.m_weightSum != 0.0f)
             {
                 float sum = 0.0f;
@@ -205,7 +205,7 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
     metricOut->setValuesForColumn(whichOutColumn, scratch);
 }
 
-void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros)
+void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros) const
 {
     CaretAssert(metricIn != NULL);//asserts only, and only basic checks, these functions are private
     CaretAssert(metricOut != NULL);
@@ -222,7 +222,7 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
-            WeightList& myWeightRef = m_weightLists[i];
+            const WeightList& myWeightRef = m_weightLists[i];
             if (roiColumn[i] > 0.0f && myWeightRef.m_weightSum != 0.0f)//skip nodes with no neighbors quickly
             {
                 float sum = 0.0f, weightsum = 0.0f;
@@ -252,7 +252,7 @@ void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFil
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
-            WeightList& myWeightRef = m_weightLists[i];
+            const WeightList& myWeightRef = m_weightLists[i];
             if (roiColumn[i] > 0.0f && myWeightRef.m_weightSum != 0.0f)
             {
                 float sum = 0.0f, weightsum = 0.0f;
