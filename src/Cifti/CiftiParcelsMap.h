@@ -63,7 +63,7 @@ namespace caret
         void addSurface(const int& numberOfNodes, const StructureEnum::Enum& structure);
         void setVolumeSpace(const VolumeSpace& space);
         void addParcel(const Parcel& parcel);
-        void clear();//do we need this?
+        void clear();
         
         CiftiIndexMap* clone() const { return new CiftiParcelsMap(*this); }
         MappingType getType() const { return PARCELS; }

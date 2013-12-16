@@ -26,6 +26,7 @@
 #include "CiftiFileException.h"
 #include "GiftiLabelTable.h"
 #include "PaletteColorMapping.h"
+#include "VoxelIJK.h"
 
 #include <algorithm>
 #include <set>
@@ -424,13 +425,13 @@ bool CiftiParcelElement::operator==(const CiftiParcelElement& rhs) const
         }
         if (!found) return false;
     }
+    set<VoxelIJK> myvoxset, rhsvoxset;//different orders mean the same thing, so sort voxels, then compare
     for (size_t i = 0; i < m_voxelIndicesIJK.size(); i += 3)
     {
-        if (m_voxelIndicesIJK[i] != rhs.m_voxelIndicesIJK[i]) return false;
-        if (m_voxelIndicesIJK[i + 1] != rhs.m_voxelIndicesIJK[i + 1]) return false;
-        if (m_voxelIndicesIJK[i + 2] != rhs.m_voxelIndicesIJK[i + 2]) return false;
+        myvoxset.insert(VoxelIJK(m_voxelIndicesIJK.data() + i));
+        rhsvoxset.insert(VoxelIJK(rhs.m_voxelIndicesIJK.data() + i));
     }
-    return true;
+    return (myvoxset == rhsvoxset);
 }
 
 bool CiftiParcelSurfaceElement::operator==(const CiftiParcelSurfaceElement& rhs) const

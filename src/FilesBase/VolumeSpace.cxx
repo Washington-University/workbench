@@ -380,7 +380,7 @@ void VolumeSpace::readCiftiXML1(QXmlStreamReader& xml)
     }
     if (newsform[3][0] != 0.0f || newsform[3][1] != 0.0f || newsform[3][2] != 0.0f || newsform[3][3] != 1.0f)//yes, using equals, because those are all exact in float
     {
-        CaretLogWarning("last row of matrix in TransformationMatrixVoxelIndicesIJKtoXYZ is not 0 0 0 1");//not error, because apparently we screwed this up in the previous cifti-1 writer
+        CaretLogFiner("last row of matrix in TransformationMatrixVoxelIndicesIJKtoXYZ is not 0 0 0 1");//not error, because apparently we screwed this up in the previous cifti-1 writer
     }
     if (xml.readNextStartElement())//find Volume end element
     {

@@ -81,7 +81,7 @@ namespace caret
         void addSurfaceModel(const int64_t& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
         void addVolumeModel(const StructureEnum::Enum& structure, const std::vector<int64_t>& ijkList);
         void setVolumeSpace(const VolumeSpace& space);
-        void clear();//do we need this?
+        void clear();
         
         CiftiIndexMap* clone() const { return new CiftiBrainModelsMap(*this); }
         MappingType getType() const { return BRAIN_MODELS; }

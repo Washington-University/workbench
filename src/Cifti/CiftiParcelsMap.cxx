@@ -211,8 +211,7 @@ bool CiftiParcelsMap::hasSurfaceData(const StructureEnum::Enum& structure) const
 bool CiftiParcelsMap::hasVolumeData() const
 {
     CaretAssert(!m_ignoreVolSpace);
-    if (!m_haveVolumeSpace) return false;
-    int64_t numParcels = (int64_t)m_parcels.size();
+    int64_t numParcels = (int64_t)m_parcels.size();//NOTE: this function is used when reading cifti-1 to determine whether it is an error to not have a volume space, so we can't just check m_haveVolumeSpace
     for (int64_t i = 0; i < numParcels; ++i)
     {
         if (m_parcels[i].m_voxelIndices.size() != 0) return true;
