@@ -3479,22 +3479,21 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
-    if (m_niftiHeaderDimensions.empty()) {
-        int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
-        getDimensions(dimI,
-                      dimJ,
-                      dimK,
-                      dimTime,
-                      dimNumComp);
-        
-        dataFileInformation.addNameAndValue("Dim[0]", dimI);
-        dataFileInformation.addNameAndValue("Dim[1]", dimJ);
-        dataFileInformation.addNameAndValue("Dim[2]", dimK);
-    }
-    else {
+    int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
+    getDimensions(dimI,
+                  dimJ,
+                  dimK,
+                  dimTime,
+                  dimNumComp);
+    
+    dataFileInformation.addNameAndValue("Volume Dim[0]", dimI);
+    dataFileInformation.addNameAndValue("Volume Dim[1]", dimJ);
+    dataFileInformation.addNameAndValue("Volume Dim[2]", dimK);
+    
+    if ( ! m_niftiHeaderDimensions.empty()) {
         const int32_t numDims = static_cast<int32_t>(m_niftiHeaderDimensions.size());
         for (int32_t i = 0; i < numDims; i++) {
-            dataFileInformation.addNameAndValue(("Dim["
+            dataFileInformation.addNameAndValue(("NIFTI Dim["
                                                  + AString::number(i)
                                                  + "]"),
                                                 m_niftiHeaderDimensions[i]);
