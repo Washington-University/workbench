@@ -77,6 +77,10 @@ namespace caret {
         /** Performs coloring of voxels.  Will be NULL if coloring is disabled. */
         VolumeFileVoxelColorizer* m_voxelColorizer;
         
+        int32_t m_niftiVersionNumber;
+        
+        NiftiDataTypeEnum::Enum m_niftiDataType;
+        
         mutable CaretMutex m_splineMutex;
         
         mutable bool m_splinesValid;
