@@ -583,6 +583,13 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         
         CaretLogFine(msg);
         
+        CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(ciftiInterface);
+        if (ciftiFile != NULL) {
+            CiftiHeader ciftiHeader;
+            ciftiFile->getHeader(ciftiHeader);
+            ciftiHeader.getDimensions(m_ciftiHeaderDimensions);
+        }
+        
         clearModified();
     }
     catch (CiftiFileException& e) {
@@ -3132,12 +3139,13 @@ m_rgbaValid(false)
     m_histogram.grabNew(new Histogram());
     m_metadata.grabNew(new GiftiMetaData());
     
+    m_name = "";
     if (ciftiFacade->containsMapAttributes()) {
         ciftiFacade->getMetadataForMapOrSeriesIndex(mapIndex,
                                                     m_metadata);
+        m_name = ciftiFacade->getNameForMapOrSeriesIndex(mapIndex);
     }
     
-    m_name = ciftiFacade->getNameForMapOrSeriesIndex(mapIndex);
     
     m_paletteColorMapping = ciftiFacade->getPaletteColorMappingForMapOrSeriesIndex(mapIndex);
     
@@ -3459,16 +3467,27 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
 {
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
-    int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
-    getDimensions(dimI,
-                  dimJ,
-                  dimK,
-                  dimTime,
-                  dimNumComp);
-    
-    dataFileInformation.addNameAndValue("Dim[0]", dimI);
-    dataFileInformation.addNameAndValue("Dim[1]", dimJ);
-    dataFileInformation.addNameAndValue("Dim[2]", dimK);
+//    if (m_ciftiHeaderDimensions.empty()) {
+        int64_t dimI, dimJ, dimK, dimTime, dimNumComp;
+        getDimensions(dimI,
+                      dimJ,
+                      dimK,
+                      dimTime,
+                      dimNumComp);
+        
+        dataFileInformation.addNameAndValue("Dim[0]", dimI);
+        dataFileInformation.addNameAndValue("Dim[1]", dimJ);
+        dataFileInformation.addNameAndValue("Dim[2]", dimK);
+//    }
+//    else {
+//        const int32_t numDims = static_cast<int32_t>(m_ciftiHeaderDimensions.size());
+//        for (int32_t i = 0; i < numDims; i++) {
+//            dataFileInformation.addNameAndValue(("Dim["
+//                                                 + AString::number(i)
+//                                                 + "]"),
+//                                                m_ciftiHeaderDimensions[i]);
+//        }
+//    }
     
     std::vector<StructureEnum::Enum> allStructures;
     StructureEnum::getAllEnums(allStructures);

@@ -456,6 +456,8 @@ namespace caret {
 
         SelectionMode m_selectionMode; 
 
+        std::vector<int64_t> m_ciftiHeaderDimensions;
+        
         int64_t m_selectionIndex; //index into row or column with selection data
         
         // ADD_NEW_MEMBERS_HERE
