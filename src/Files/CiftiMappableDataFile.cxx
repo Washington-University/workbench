@@ -781,7 +781,11 @@ CiftiMappableDataFile::getMapName(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    return m_ciftiFacade->getNameForMapOrSeriesIndex(mapIndex);
+    return m_mapContent[mapIndex]->m_name;
+    
+//  Using ciftiFacace for name can be slow for series maps since it
+//  requires converting numbers to strings
+//    return m_ciftiFacade->getNameForMapOrSeriesIndex(mapIndex);
 }
 
 /**
@@ -806,6 +810,7 @@ CiftiMappableDataFile::setMapName(const int32_t mapIndex,
         return;
     }
     
+    m_mapContent[mapIndex]->m_name = mapName;
     m_ciftiFacade->setNameForMapOrSeriesIndex(mapIndex,
                                               mapName);
     
@@ -3131,6 +3136,9 @@ m_rgbaValid(false)
         ciftiFacade->getMetadataForMapOrSeriesIndex(mapIndex,
                                                     m_metadata);
     }
+    
+    m_name = ciftiFacade->getNameForMapOrSeriesIndex(mapIndex);
+    
     m_paletteColorMapping = ciftiFacade->getPaletteColorMappingForMapOrSeriesIndex(mapIndex);
     
     m_labelTable = ciftiFacade->getLabelTableForMapOrSeriesIndex(mapIndex);

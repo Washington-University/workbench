@@ -359,6 +359,9 @@ namespace caret {
             void updateColoring(const std::vector<float>& data,
                                 const PaletteFile* paletteFile);
             
+            /** Name of Map */
+            AString m_name;
+            
             /** Count of data elements in map. */
             const int64_t m_dataCount;
             
