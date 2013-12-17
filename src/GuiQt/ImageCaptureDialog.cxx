@@ -56,7 +56,6 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "ImageCaptureMethodEnum.h"
 #include "ImageDimensionsModel.h"
 #include "SessionManager.h"
 #include "CaretFileDialog.h"
@@ -210,28 +209,10 @@ ImageCaptureDialog::createImageOptionsSection()
     cropMarginLayout->addWidget(m_imageAutoCropMarginSpinBox);
     cropMarginLayout->addStretch();
     
-    const AString captureMethodToolTip = ("Sometimes, the default image capture method fails to "
-                                          "function correctly and the captured image does not match "
-                                          "the content of the graphics window.  If this occurs, "
-                                          "try changing the Capture Method to Grab Frame Buffer.");
-    QLabel* imageCaptureLabel = new QLabel("Capture Method (Advanced)");
-    WuQtUtilities::setWordWrappedToolTip(imageCaptureLabel,
-                                         captureMethodToolTip);
-    m_imageCaptureMethodEnumComboBox = new EnumComboBoxTemplate(this);
-    m_imageCaptureMethodEnumComboBox->setup<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
-    WuQtUtilities::setWordWrappedToolTip(m_imageCaptureMethodEnumComboBox->getWidget(),
-                                         captureMethodToolTip);
-    QHBoxLayout* captureMethodLayout = new QHBoxLayout();
-    captureMethodLayout->addWidget(imageCaptureLabel);
-    captureMethodLayout->addWidget(m_imageCaptureMethodEnumComboBox->getWidget());
-    captureMethodLayout->addStretch();
-    
     QGroupBox* groupBox = new QGroupBox("Image Options");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     layout->addWidget(m_imageAutoCropCheckBox);
     layout->addLayout(cropMarginLayout);
-    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addLayout(captureMethodLayout);
     
     return groupBox;
 }
@@ -762,8 +743,6 @@ ImageCaptureDialog::applyButtonPressed()
 {
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     
-    const ImageCaptureMethodEnum::Enum imageCaptureMethod = m_imageCaptureMethodEnumComboBox->getSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
-    
     /*
      * Zero for width/height means capture image in size of window
      */
@@ -774,8 +753,7 @@ ImageCaptureDialog::applyButtonPressed()
         imageY = m_pixelHeightSpinBox->value();
     }
     
-    EventImageCapture imageCaptureEvent(imageCaptureMethod,
-                                        browserWindowIndex,
+    EventImageCapture imageCaptureEvent(browserWindowIndex,
                                         imageX,
                                         imageY);
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());

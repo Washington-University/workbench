@@ -114,7 +114,6 @@ namespace caret {
         
         EnumComboBoxTemplate* m_imagePixelsPerSpatialUnitsEnumComboBox;
         EnumComboBoxTemplate* m_imageSpatialUnitsEnumComboBox;
-        EnumComboBoxTemplate* m_imageCaptureMethodEnumComboBox;
 
         QCheckBox* m_imageAutoCropCheckBox;
         QSpinBox*  m_imageAutoCropMarginSpinBox;

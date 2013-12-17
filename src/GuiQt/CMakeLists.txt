@@ -191,7 +191,6 @@ GuiManager.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
-ImageCaptureMethodEnum.h
 InformationDisplayDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
@@ -318,7 +317,6 @@ GuiManager.cxx
 HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
-ImageCaptureMethodEnum.cxx
 InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx

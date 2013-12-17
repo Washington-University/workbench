@@ -44,6 +44,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "CursorManager.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
@@ -54,12 +55,13 @@
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "SelectionManager.h"
-#include "SelectionItemSurfaceNode.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "Model.h"
 #include "MouseEvent.h"
+#include "SelectionManager.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "TileTabsConfiguration.h"
 #include "UserInputModeBorders.h"
@@ -1020,7 +1022,10 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     
     QImage image;
     
-    switch (imageCaptureEvent->getImageCaptureMethod()) {
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const ImageCaptureMethodEnum::Enum imageCaptureMethod = prefs->getImageCaptureMethod();
+    
+    switch (imageCaptureMethod) {
         case ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_GRAB_FRAME_BUFFER:
         {
             image = grabFrameBuffer();

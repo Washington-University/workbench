@@ -52,9 +52,6 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param imageCaptureMethod
- *    The image capture method.  In most cases use render pixmap but if it 
- *    fails try grab frame buffer.
  * @param browserWindowIndex
  *    The browser window index.
  * @param imageSizeX
@@ -62,12 +59,10 @@ using namespace caret;
  * @param imageSizeY
  *    Y-Size for the captured image.
  */
-EventImageCapture::EventImageCapture(const ImageCaptureMethodEnum::Enum imageCaptureMethod,
-                                     const int32_t browserWindowIndex,
+EventImageCapture::EventImageCapture(const int32_t browserWindowIndex,
                                      const int32_t imageSizeX,
                                      const int32_t imageSizeY)
 : Event(EventTypeEnum::EVENT_IMAGE_CAPTURE),
-m_imageCaptureMethod(imageCaptureMethod),
 m_browserWindowIndex(browserWindowIndex),
 m_imageSizeX(imageSizeX),
 m_imageSizeY(imageSizeY)
@@ -80,15 +75,6 @@ m_imageSizeY(imageSizeY)
  */
 EventImageCapture::~EventImageCapture()
 {
-}
-
-/**
- * @return The image capture method.
- */
-ImageCaptureMethodEnum::Enum
-EventImageCapture::getImageCaptureMethod() const
-{
-    return m_imageCaptureMethod;
 }
 
 /**

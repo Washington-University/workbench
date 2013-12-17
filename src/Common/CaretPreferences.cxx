@@ -1052,6 +1052,30 @@ CaretPreferences::setOpenGLDrawingMethod(const OpenGLDrawingMethodEnum::Enum ope
 }
 
 /**
+ * @return The image capture method.
+ */
+ImageCaptureMethodEnum::Enum
+CaretPreferences::getImageCaptureMethod() const
+{
+    return this->imageCaptureMethod;
+}
+
+/**
+ * Set the image capture method.
+ *
+ * @param imageCaptureMethod
+ *     New value for image capture method.
+ */
+void
+CaretPreferences::setImageCaptureMethod(const ImageCaptureMethodEnum::Enum imageCaptureMethod)
+{
+    this->imageCaptureMethod = imageCaptureMethod;
+    this->setString(NAME_IMAGE_CAPTURE_METHOD,
+                    ImageCaptureMethodEnum::toName(this->imageCaptureMethod));
+}
+
+
+/**
  * @return Save remote login to preferences.
  */
 bool
@@ -1381,6 +1405,15 @@ CaretPreferences::readPreferences()
         logLevel = LogLevelEnum::INFO;
     }
     this->setLoggingLevel(logLevel);
+    
+    AString imageCaptureMethodName = this->qSettings->value(NAME_IMAGE_CAPTURE_METHOD,
+                                                        ImageCaptureMethodEnum::toName(ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP)).toString();
+    bool validImageCaptureMethodName = false;
+    this->imageCaptureMethod = ImageCaptureMethodEnum::fromName(imageCaptureMethodName,
+                                                            &validImageCaptureMethodName);
+    if ( ! validImageCaptureMethodName) {
+        this->imageCaptureMethod = ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP;
+    }
     
     AString openGLDrawingMethodName = this->qSettings->value(NAME_OPENGL_DRAWING_METHOD,
                                                              OpenGLDrawingMethodEnum::toName(OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_OFF)).toString();

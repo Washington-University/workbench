@@ -29,6 +29,7 @@
 
 #include "CaretObject.h"
 #include "LogLevelEnum.h"
+#include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 
 class QSettings;
@@ -73,6 +74,10 @@ namespace caret {
         LogLevelEnum::Enum getLoggingLevel() const;
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);
+        
+        ImageCaptureMethodEnum::Enum getImageCaptureMethod() const;
+        
+        void setImageCaptureMethod(const ImageCaptureMethodEnum::Enum imageCaptureMethod);
         
         OpenGLDrawingMethodEnum::Enum getOpenDrawingMethod() const;
         
@@ -226,6 +231,8 @@ namespace caret {
         
         LogLevelEnum::Enum loggingLevel;
         
+        ImageCaptureMethodEnum::Enum imageCaptureMethod;
+        
         OpenGLDrawingMethodEnum::Enum openGLDrawingMethod;
         
         std::vector<ModelTransform*> customViews;
@@ -265,6 +272,7 @@ namespace caret {
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
         static const AString NAME_DEVELOP_MENU;
+        static const AString NAME_IMAGE_CAPTURE_METHOD;
 //        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_OPENGL_DRAWING_METHOD;
@@ -290,6 +298,7 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
+    const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";

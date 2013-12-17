@@ -37,21 +37,17 @@
 #include <QImage>
 
 #include "Event.h"
-#include "ImageCaptureMethodEnum.h"
 
 namespace caret {
 
     class EventImageCapture : public Event {
         
     public:
-        EventImageCapture(const ImageCaptureMethodEnum::Enum imageCaptureMethod,
-                          const int32_t browserWindowIndex,
+        EventImageCapture(const int32_t browserWindowIndex,
                           const int32_t imageSizeX,
                           const int32_t imageSizeY);
         
         virtual ~EventImageCapture();
-        
-        ImageCaptureMethodEnum::Enum getImageCaptureMethod() const;
         
         int32_t getBrowserWindowIndex() const;
         
@@ -74,8 +70,6 @@ namespace caret {
 
     private:
         // ADD_NEW_MEMBERS_HERE
-        
-        const ImageCaptureMethodEnum::Enum m_imageCaptureMethod;
         
         const int32_t m_browserWindowIndex;
         

@@ -71,6 +71,7 @@ FileInformation.h
 FloatMatrix.h
 Histogram.h
 HtmlStringBuilder.h
+ImageCaptureMethodEnum.h
 Logger.h
 LogHandler.h
 LogHandlerInformationTextDisplay.h
@@ -141,6 +142,7 @@ FileInformation.cxx
 FloatMatrix.cxx
 Histogram.cxx
 HtmlStringBuilder.cxx
+ImageCaptureMethodEnum.cxx
 Logger.cxx
 LogHandler.cxx
 LogHandlerInformationTextDisplay.cxx

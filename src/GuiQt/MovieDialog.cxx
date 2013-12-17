@@ -629,8 +629,7 @@ void MovieDialog::captureFrame(AString filename)
 //        imageY,
 //        imageFile,
 //        false);
-    EventImageCapture imageCaptureEvent(ImageCaptureMethodEnum::IMAGE_CAPTURE_WITH_RENDER_PIXMAP,
-                                        m_browserWindowIndex,
+    EventImageCapture imageCaptureEvent(m_browserWindowIndex,
                                         imageX,
                                         imageY);
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());

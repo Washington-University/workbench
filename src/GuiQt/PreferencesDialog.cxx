@@ -47,6 +47,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "ImageCaptureMethodEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
@@ -184,6 +185,9 @@ PreferencesDialog::updateDialog()
         this->loggingLevelComboBox->setCurrentIndex(indx);
     }
 
+    const ImageCaptureMethodEnum::Enum captureMethod = prefs->getImageCaptureMethod();
+    m_imageCaptureMethodEnumComboBox->setSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>(captureMethod);
+    
     const OpenGLDrawingMethodEnum::Enum drawingMethod = prefs->getOpenDrawingMethod();
     m_openGLDrawingMethodEnumComboBox->setSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>(drawingMethod);
 
@@ -307,16 +311,40 @@ PreferencesDialog::openGLDrawingMethodEnumComboBoxItemActivated()
 }
 
 /**
+ * Called when the image capture method is changed.
+ */
+void
+PreferencesDialog::imageCaptureMethodEnumComboBoxItemActivated()
+{
+    const ImageCaptureMethodEnum::Enum imageCaptureMethod = m_imageCaptureMethodEnumComboBox->getSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setImageCaptureMethod(imageCaptureMethod);
+}
+
+/**
  * Creates OpenGL Items.
  */
 void
 PreferencesDialog::addOpenGLItems()
 {
+    m_imageCaptureMethodEnumComboBox = new EnumComboBoxTemplate(this);
+    m_imageCaptureMethodEnumComboBox->setup<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
+    QObject::connect(m_imageCaptureMethodEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(imageCaptureMethodEnumComboBoxItemActivated()));
+    const AString captureMethodToolTip = ("Sometimes, the default image capture method fails to "
+                                          "function correctly and the captured image does not match "
+                                          "the content of the graphics window.  If this occurs, "
+                                          "try changing the Capture Method to Grab Frame Buffer.");
+    WuQtUtilities::setWordWrappedToolTip(m_imageCaptureMethodEnumComboBox->getComboBox(),
+                                         captureMethodToolTip);
+    
     m_openGLDrawingMethodEnumComboBox = new EnumComboBoxTemplate(this);
     m_openGLDrawingMethodEnumComboBox->setup<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>();
     QObject::connect(m_openGLDrawingMethodEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(openGLDrawingMethodEnumComboBoxItemActivated()));
     
+    this->addWidgetToLayout("Image Capture Method",
+                            m_imageCaptureMethodEnumComboBox->getWidget());
     this->addWidgetToLayout("OpenGL Vertex Buffers",
                             m_openGLDrawingMethodEnumComboBox->getWidget());
 }

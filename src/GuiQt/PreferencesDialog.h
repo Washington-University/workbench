@@ -58,6 +58,7 @@ namespace caret {
         void foregroundColorPushButtonPressed();
         void loggingLevelComboBoxChanged(int);
         void openGLDrawingMethodEnumComboBoxItemActivated();
+        void imageCaptureMethodEnumComboBoxItemActivated();
         
         void volumeAxesCrosshairsComboBoxToggled(bool value);
         void volumeAxesLabelsComboBoxToggled(bool value);
@@ -96,6 +97,8 @@ namespace caret {
         QComboBox* loggingLevelComboBox;
         
         EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
+        
+        EnumComboBoxTemplate* m_imageCaptureMethodEnumComboBox;
         
         WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
