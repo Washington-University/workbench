@@ -64,7 +64,6 @@ namespace caret {
             float m_weightSum;
         };
         std::vector<WeightList> m_weightLists;
-        int m_numIterations;
         void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const bool& fixZeros) const;
         void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros) const;
         void precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod);
