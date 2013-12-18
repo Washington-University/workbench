@@ -76,6 +76,7 @@ void AlgorithmSurfaceModifySphere::useParameters(OperationParameters* myParams, 
 AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myProgObj, const SurfaceFile* mySphere, const float& newRadius, SurfaceFile* outSphere, const bool& recenter) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    bool originVertexWarned = false;
     Vector3D center;//initializes to the origin
     if (recenter)
     {
@@ -95,34 +96,50 @@ AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myPro
     {
         Vector3D recenterCoord = Vector3D(coordData + i) - center;
         float tempf = recenterCoord.length();
-        Vector3D outCoord = recenterCoord * (newRadius / tempf);
-        outCoords[i] = outCoord[0];
-        outCoords[i + 1] = outCoord[1];
-        outCoords[i + 2] = outCoord[2];
-        if (tempf != tempf) throw CaretException("found NaN coordinate in the input sphere");
-        if (first)
+        Vector3D outCoord;
+        if (tempf == 0.0f)
         {
-            first = false;
-            mindist = tempf;
-            maxdist = tempf;
-        } else {
-            if (tempf < mindist)
+            outCoord = Vector3D(newRadius, 0.0f, 0.0f);
+            if (!originVertexWarned)
             {
-                mindist = tempf;
+                CaretLogWarning("found at least one vertex at origin, moved to +x position");
+                originVertexWarned = true;
             }
-            if (tempf > maxdist)
+        } else {
+            outCoord = recenterCoord * (newRadius / tempf);
+            outCoords[i] = outCoord[0];
+            outCoords[i + 1] = outCoord[1];
+            outCoords[i + 2] = outCoord[2];
+            if (tempf != tempf) throw CaretException("found NaN coordinate in the input sphere");
+            if (first)
             {
+                first = false;
+                mindist = tempf;
                 maxdist = tempf;
+            } else {
+                if (tempf < mindist)
+                {
+                    mindist = tempf;
+                }
+                if (tempf > maxdist)
+                {
+                    maxdist = tempf;
+                }
             }
         }
     }
-    if (mindist * TOLERANCE < maxdist)
+    if (first)
     {
-        if (recenter)
+        throw AlgorithmException("all vertices were located at the origin, aborting");
+    } else {
+        if (mindist * TOLERANCE < maxdist)
         {
-            CaretLogWarning("input sphere is unusually irregular, inspect the input");
-        } else {
-            CaretLogWarning("input sphere is either unusually irregular or not centered, inspect the input");
+            if (recenter)
+            {
+                CaretLogWarning("input sphere is unusually irregular, inspect the input");
+            } else {
+                CaretLogWarning("input sphere is either unusually irregular or not centered, inspect the input");
+            }
         }
     }
     outSphere->setCoordinates(outCoords.data());
