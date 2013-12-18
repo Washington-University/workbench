@@ -69,6 +69,13 @@ Vector3D::Vector3D()
     m_vec[2] = 0.0f;
 }
 
+Vector3D::Vector3D(const float& x, const float& y, const float& z)
+{
+    m_vec[0] = x;
+    m_vec[1] = y;
+    m_vec[2] = z;
+}
+
 Vector3D::Vector3D(const float* right)
 {
     m_vec[0] = right[0];

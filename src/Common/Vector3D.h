@@ -29,9 +29,10 @@
 
 namespace caret {
     
-    struct Vector3D
+    class Vector3D
     {
         float m_vec[3];
+    public:
         //vector functions
         float dot(const Vector3D& right) const;
         Vector3D cross(const Vector3D& right) const;
@@ -40,6 +41,7 @@ namespace caret {
         float lengthsquared() const;
         //constructors
         Vector3D();
+        Vector3D(const float& x, const float& y, const float& z);
         Vector3D(const float* right);
         //compatibility operators
         float& operator[](const int64_t& index);

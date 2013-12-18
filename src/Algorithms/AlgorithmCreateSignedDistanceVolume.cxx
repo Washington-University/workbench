@@ -216,27 +216,27 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             Vector3D nodeCoord = mySurf->getCoordinate(node), tempvec;
             float tempf, tempf2, tempf3;
             tempvec = nodeCoord - iOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);//compute bounding box once rather than doing a convoluted sphere loop construct
+            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);//compute bounding box once rather than doing a convoluted sphere loop construct
             int64_t imin = (int64_t)ceil(tempf);
             if (imin < 0) imin = 0;
             tempvec = nodeCoord + iOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
+            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
             int64_t imax = (int64_t)floor(tempf) + 1;
             if (imax > myDims[0]) imax = myDims[0];
             tempvec = nodeCoord - jOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
+            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
             int64_t jmin = (int64_t)ceil(tempf2);
             if (jmin < 0) jmin = 0;
             tempvec = nodeCoord + jOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
+            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
             int64_t jmax = (int64_t)floor(tempf2) + 1;
             if (jmax > myDims[1]) jmax = myDims[1];
             tempvec = nodeCoord - kOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
+            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
             int64_t kmin = (int64_t)ceil(tempf3);
             if (kmin < 0) kmin = 0;
             tempvec = nodeCoord + kOrthHat * exactLim;
-            myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
+            myVolOut->spaceToIndex(tempvec, tempf, tempf2, tempf3);
             int64_t kmax = (int64_t)floor(tempf3) + 1;
             if (kmax > myDims[2]) kmax = myDims[2];
             for (ijk[2] = kmin; ijk[2] < kmax; ++ijk[2])
@@ -245,7 +245,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 {
                     for (ijk[0] = imin; ijk[0] < imax; ++ijk[0])
                     {
-                        myVolOut->indexToSpace(ijk, tempvec.m_vec);
+                        myVolOut->indexToSpace(ijk, tempvec);
                         tempvec -= nodeCoord;
                         if (tempvec.length() <= exactLim)
                         {
@@ -283,8 +283,8 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
 #pragma omp CARET_FOR schedule(dynamic)
         for (int i = 0; i < numExact; i += 3)
         {
-            myVolOut->indexToSpace(exactVoxelList.data() + i, thisCoord.m_vec);
-            myVolOut->setValue(myDist->dist(thisCoord.m_vec, myWinding), exactVoxelList.data() + i);
+            myVolOut->indexToSpace(exactVoxelList.data() + i, thisCoord);
+            myVolOut->setValue(myDist->dist(thisCoord, myWinding), exactVoxelList.data() + i);
             volMarked[myVolOut->getIndex(exactVoxelList.data() + i)] |= 22;//set marked to have valid value (positive and negative), and frozen
         }
     }

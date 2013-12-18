@@ -511,9 +511,9 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<Voxe
             int64_t node3 = node * 3;
             PolyInfo myPoly(innerSurf, outerSurf, node);//build the polygon
             Vector3D minIndex, maxIndex, tempvec;
-            myVolume->spaceToIndex(innerCoords + node3, minIndex.m_vec);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
+            myVolume->spaceToIndex(innerCoords + node3, minIndex);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
             maxIndex = minIndex;
-            myVolume->spaceToIndex(outerCoords + node3, tempvec.m_vec);
+            myVolume->spaceToIndex(outerCoords + node3, tempvec);
             for (int i = 0; i < 3; ++i)
             {
                 if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
@@ -524,13 +524,13 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<Voxe
             for (int j = 0; j < numNeigh; ++j)
             {
                 int neigh3 = myNeighList[j] * 3;
-                myVolume->spaceToIndex(outerCoords + neigh3, tempvec.m_vec);
+                myVolume->spaceToIndex(outerCoords + neigh3, tempvec);
                 for (int i = 0; i < 3; ++i)
                 {
                     if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
                     if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
                 }
-                myVolume->spaceToIndex(innerCoords + neigh3, tempvec.m_vec);
+                myVolume->spaceToIndex(innerCoords + neigh3, tempvec);
                 for (int i = 0; i < 3; ++i)
                 {
                     if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
@@ -653,7 +653,7 @@ float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const VolumeFile* my
                                                             const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
 {
     Vector3D myLowCorner;
-    myVolume->indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner.m_vec);
+    myVolume->indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner);
     int inside = 0;
     Vector3D istep = ivec / divisions;
     Vector3D jstep = jvec / divisions;
@@ -668,7 +668,7 @@ float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const VolumeFile* my
             for (int k = 0; k < divisions; ++k)
             {
                 Vector3D thisPoint = tempVecj + kstep * k;
-                inside += myPoly.isInside(thisPoint.m_vec);
+                inside += myPoly.isInside(thisPoint);
             }
         }
     }

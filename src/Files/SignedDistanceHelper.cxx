@@ -321,7 +321,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                             Vector3D vert2 = m_base->getCoordinate(myTileNodes[1]);
                             Vector3D vert3 = m_base->getCoordinate(myTileNodes[2]);
                             Vector3D centroid = (vert1 + vert2 + vert3) / 3.0f;
-                            if (MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, tempvec.m_vec))//make sure the triangle has a valid normal
+                            if (MathFunctions::normalVector(vert1, vert2, vert3, tempvec))//make sure the triangle has a valid normal
                             {
                                 tempvec2 = point - centroid;
                                 tempf = tempvec.dot(tempvec2.normal());
@@ -440,7 +440,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                             const int32_t* tile1nodes = m_base->getTriangle(tile1);
                             MathFunctions::normalVector(m_base->getCoordinate(tile1nodes[0]),
                                                         m_base->getCoordinate(tile1nodes[1]),
-                                                        m_base->getCoordinate(tile1nodes[2]), tempvec.m_vec);
+                                                        m_base->getCoordinate(tile1nodes[2]), tempvec);
                             normalaccum += tempvec;
                         }
                         if (tile2 > -1)
@@ -448,7 +448,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                             const int32_t *tile2nodes = m_base->getTriangle(tile2);
                             MathFunctions::normalVector(m_base->getCoordinate(tile2nodes[0]),
                                                         m_base->getCoordinate(tile2nodes[1]),
-                                                        m_base->getCoordinate(tile2nodes[2]), tempvec.m_vec);
+                                                        m_base->getCoordinate(tile2nodes[2]), tempvec);
                             normalaccum += tempvec;
                         }
                         if (normalaccum.dot(result) < 0.0f)
@@ -464,7 +464,7 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
                         Vector3D vert1 = m_base->getCoordinate(triNodes[0]);
                         Vector3D vert2 = m_base->getCoordinate(triNodes[1]);
                         Vector3D vert3 = m_base->getCoordinate(triNodes[2]);
-                        MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, triNormal.m_vec);
+                        MathFunctions::normalVector(vert1, vert2, vert3, triNormal);
                         if (triNormal.dot(result) < 0.0f)
                         {
                             return -1;
