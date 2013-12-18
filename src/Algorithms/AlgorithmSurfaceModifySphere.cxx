@@ -96,17 +96,18 @@ AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myPro
     {
         Vector3D recenterCoord = Vector3D(coordData + i) - center;
         float tempf = recenterCoord.length();
-        Vector3D outCoord;
         if (tempf == 0.0f)
         {
-            outCoord = Vector3D(newRadius, 0.0f, 0.0f);
+            outCoords[i] = newRadius;
+            outCoords[i + 1] = 0.0f;
+            outCoords[i + 2] = 0.0f;
             if (!originVertexWarned)
             {
                 CaretLogWarning("found at least one vertex at origin, moved to +x position");
                 originVertexWarned = true;
             }
         } else {
-            outCoord = recenterCoord * (newRadius / tempf);
+            Vector3D outCoord = recenterCoord * (newRadius / tempf);
             outCoords[i] = outCoord[0];
             outCoords[i + 1] = outCoord[1];
             outCoords[i + 2] = outCoord[2];
