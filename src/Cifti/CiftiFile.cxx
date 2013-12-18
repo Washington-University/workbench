@@ -113,13 +113,21 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
             inputFile.seek(sizeof(nifti_2_header));
             char extensions[4];
             inputFile.read(extensions,4);
+            if (extensions[0] == 0)
+            {
+                throw CiftiFileException("cifti files require a nifti extension");
+            }
+            if (extensions[0] != 1 || extensions[1] != 0 || extensions[2] != 0 || extensions[3] != 0)
+            {
+                throw CiftiFileException("unrecognized nifti extender bytes");
+            }
             unsigned int length;
             inputFile.read((char *)&length, 4);
             if(m_swapNeeded)ByteSwapping::swapBytes(&length,1);
             unsigned int ecode;
             inputFile.read((char *)&ecode,4);
             if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
-            if((int32_t)ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
+            if((int32_t)ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extension.  Extension Code is not Cifti.");//TODO: not assume that the first (only) extension is cifti
             QByteArray bytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
             inputFile.close();
             m_xml.readXML(bytes);
