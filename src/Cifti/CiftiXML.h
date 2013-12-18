@@ -116,7 +116,7 @@ namespace caret {
         * readXML, replacing the currently Cifti XML Root, if it exists
         * @param bytes an ASCII formatted byte array that contains Cifti XML data
         */
-        void readXML(const QByteArray &bytes, bool test = true) { QString text(bytes);readXML(text); if (test) testNewXML(bytes); }
+        void readXML(const QByteArray &bytes, bool test = true) { QString text(bytes);readXML(text, test); if (test) testNewXML(bytes); }
         /**
         * readXML
         *
