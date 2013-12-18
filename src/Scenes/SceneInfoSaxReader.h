@@ -1,6 +1,6 @@
 
-#ifndef __SCENE_FILE_SAX_READER_H__
-#define __SCENE_FILE_SAX_READER_H__
+#ifndef __SCENE_INFO_SAX_READER_H__
+#define __SCENE_INFO_SAX_READER_H__
 
 /*LICENSE_START*/
 /*
@@ -27,31 +27,28 @@
  */
 /*LICENSE_END*/
 
-#include <map>
 #include <stack>
 #include <stdint.h>
 
 #include "AString.h"
-#include "SceneSaxReader.h"
 #include "XmlSaxParserException.h"
 #include "XmlSaxParserHandlerInterface.h"
 
 
 namespace caret {
 
-    class Scene;
-    class SceneFile;
     class SceneInfo;
-    class SceneInfoSaxReader;
-    class GiftiMetaDataSaxReader;
     class XmlAttributes;
-    class XmlException;
     
-    class SceneFileSaxReader : public CaretObject, public XmlSaxParserHandlerInterface {
+    /**
+     * class for reading a Scene Info with a SAX Parser
+     */
+    class SceneInfoSaxReader : public CaretObject, public XmlSaxParserHandlerInterface {
     public:
-        SceneFileSaxReader(SceneFile* sceneFile);
+        SceneInfoSaxReader(const AString& sceneFileName,
+                       SceneInfo* sceneInfo);
         
-        virtual ~SceneFileSaxReader();
+        virtual ~SceneInfoSaxReader();
         
         void startElement(const AString& namespaceURI,
                           const AString& localName,
@@ -74,23 +71,23 @@ namespace caret {
         
         void endDocument() throw (XmlSaxParserException);
         
-        
     protected:
         /// file reading states
         enum STATE {
             /// no state
             STATE_NONE,
-            /// processing SceneFile tag
-            STATE_SCENE_FILE,
-            /// processing MetaData tag
-            STATE_METADATA,
-            /// processing SceneInfoDirectory tag
-            STATE_SCENE_INFO_DIRECTORY,
-            /// processing SceneInfo tag
+            /// processing Scene Info tag
             STATE_SCENE_INFO,
-            /// processing Scene tag
-            STATE_SCENE
+            /// processing Scene Info Name tag
+            STATE_SCENE_INFO_NAME,
+            /// processing Scene Info Description tag
+            STATE_SCENE_INFO_DESCRIPTION,
+            /// processing Scene Info thumbnail tag
+            STATE_SCENE_INFO_IMAGE_THUMBNAIL
         };
+        
+        /// name of scene file
+        AString m_sceneFileName;
         
         /// file reading state
         STATE m_state;
@@ -101,35 +98,23 @@ namespace caret {
         /// the error message
         AString m_errorMessage;
         
-        /// scene file that is being read
-        SceneFile* m_sceneFile;
-        
-        /// scene that is being read
-        Scene* m_scene;
-        
-        /// scene info that is being read
-        SceneInfo* m_sceneInfo;
-        
-        /// index attribute of scene info being read
-        int32_t m_sceneInfoIndex;
-        
         /// element text
         AString m_elementText;
         
-        /// GIFTI meta data sax reader
-        GiftiMetaDataSaxReader* m_metaDataSaxReader;   
+        /// Scene being read
+        SceneInfo* m_sceneInfo;
         
-        /// Scene sax reader
-        SceneSaxReader* m_sceneSaxReader;
+        /** Index of scene info */
+        int32_t m_sceneInfoIndex;
+       
+        /** image format */
+        AString m_imageFormat;
         
-        /// Scene info sax reader
-        SceneInfoSaxReader* m_sceneInfoSaxReader;
-        
-        /// map that stores scene info by index
-        std::map<int32_t, SceneInfo*> m_sceneInfoMap;
+        /** image encoding */
+        AString m_imageEncoding;
     };
 
 } // namespace
 
-#endif // __SCENE_FILE_SAX_READER_H__
+#endif // __SCENE_INFO_SAX_READER_H__
 

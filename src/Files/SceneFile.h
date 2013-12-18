@@ -93,10 +93,15 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         /** Version of file */
-        static int32_t getFileVersion() { return s_sceneFileVersion; }
+        static float getFileVersion() { return s_sceneFileVersion; }
         
         /** XML Tag for scene file */
         static const AString XML_TAG_SCENE_FILE;
+        
+        /**
+         * XML Tag for Scene Info Directory element.
+         */
+        static const AString XML_TAG_SCENE_INFO_DIRECTORY_TAG;
         
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
@@ -118,7 +123,8 @@ namespace caret {
 #ifdef __SCENE_FILE_DECLARE__
     const AString SceneFile::XML_TAG_SCENE_FILE = "SceneFile";
     const AString SceneFile::XML_ATTRIBUTE_VERSION = "Version";
-    const float SceneFile::s_sceneFileVersion = 1.0;
+    const AString SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG = "SceneInfoDirectory";
+    const float SceneFile::s_sceneFileVersion = 2.0;
 #endif // __SCENE_FILE_DECLARE__
 
 } // namespace

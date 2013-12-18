@@ -92,6 +92,14 @@ public:
     void setDotsPerMeter(const int x,
                          const int y);
     
+    void resizeToMaximumWidthOrHeight(const int32_t maximumWidthOrHeight);
+    
+    void getImageInByteArray(QByteArray& byteArrayOut,
+                             const AString& format) const throw (DataFileException);
+    
+    void setImageFromByteArray(const QByteArray& byteArray,
+                               const AString& format) throw (DataFileException);
+    
     void combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>& imageFiles,
                                                 const int numImagesPerRow,
                                                 const uint8_t backgroundColor[3]);
@@ -116,7 +124,7 @@ private:
                             const int positionX,
                             const int positionY) throw (DataFileException);
     
-    QImage* image;
+    QImage* m_image;
 };
 
 } // namespace

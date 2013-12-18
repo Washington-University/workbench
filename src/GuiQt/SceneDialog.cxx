@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGroupBox>
@@ -55,15 +57,20 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CursorDisplayScoped.h"
+#include "CaretPreferences.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventImageCapture.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "ImageFile.h"
 #include "ProgressReportingDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneFile.h"
+#include "SceneInfo.h"
 #include "Scene.h"
+#include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQListWidget.h"
@@ -220,10 +227,32 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
         for (int32_t i = 0; i < numScenes; i++) {
             Scene* scene = sceneFile->getSceneAtIndex(i);
             
+            QByteArray imageByteArray;
+            AString imageBytesFormat;
+            scene->getSceneInfo()->getImageThumbnailBytes(imageByteArray,
+                                                          imageBytesFormat);
             QListWidgetItem* lwi = new QListWidgetItem(scene->getName());
             lwi->setToolTip(WuQtUtilities::createWordWrappedToolTipText(scene->getDescription()));
             lwi->setData(Qt::UserRole,
                          qVariantFromValue(reinterpret_cast<quintptr>(scene)));
+            
+            if (imageByteArray.length() > 0) {
+                try {
+                    ImageFile imageFile;
+                    imageFile.setImageFromByteArray(imageByteArray,
+                                                    imageBytesFormat);
+                    const QImage* image = imageFile.getAsQImage();
+                    QPixmap pixmap;
+                    if (pixmap.convertFromImage(*image)) {
+                        QIcon icon(pixmap);
+                        lwi->setIcon(icon);
+                    }
+                }
+                catch (const DataFileException& dfe) {
+                    
+                }
+            }
+            
             
             if (scene == selectedScene) {
                 defaultIndex = i;
@@ -361,6 +390,8 @@ SceneDialog::addNewSceneButtonClicked()
             newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                               "guiManager"));
             
+            addImageThumbnailToScene(newScene);
+            
             sceneFile->addScene(newScene);
             
             Scene::setSceneBeingCreated(NULL);
@@ -441,6 +472,8 @@ SceneDialog::replaceSceneButtonClicked()
                 newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                                   "guiManager"));
                 
+                addImageThumbnailToScene(newScene);
+                
                 sceneFile->replaceScene(newScene,
                                         scene);
                 
@@ -454,6 +487,66 @@ SceneDialog::replaceSceneButtonClicked()
         }
     }
 }
+
+void
+SceneDialog::addImageThumbnailToScene(Scene* scene)
+{
+    AString errorMessage;
+    
+    CaretAssert(scene);
+    
+    std::vector<ImageFile*> imageFiles;
+    
+    std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
+    for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
+         iter != windows.end();
+         iter++) {
+        BrainBrowserWindow* bbw = *iter;
+        const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
+        
+        const int32_t sizeX = 0;
+        const int32_t sizeY = 0;
+        EventImageCapture imageCaptureEvent(browserWindowIndex,
+                                            sizeX,
+                                            sizeY);
+        EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
+        
+        if (imageCaptureEvent.getEventProcessCount() > 0) {
+            if (imageCaptureEvent.isError()) {
+                errorMessage.appendWithNewLine(imageCaptureEvent.getErrorMessage());
+            }
+            else {
+                imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
+            }
+        }
+    }
+    
+    if ( ! imageFiles.empty()) {
+        try {
+            const int32_t numImagesPerRow = static_cast<int32_t>(std::sqrt(imageFiles.size()));
+            ImageFile compositeImageFile;
+            uint8_t backgroundColor[4] = { 0, 0, 0, 255 };
+            SessionManager::get()->getCaretPreferences()->getColorBackground(backgroundColor);
+            compositeImageFile.combinePreservingAspectAndFillIfNeeded(imageFiles,
+                                                                      numImagesPerRow,
+                                                                      backgroundColor);
+            
+            compositeImageFile.resizeToMaximumWidthOrHeight(100);
+            
+            QByteArray byteArray;
+            compositeImageFile.getImageInByteArray(byteArray,
+                                                   SceneDialog::PREFERRED_IMAGE_FORMAT);
+            
+            scene->getSceneInfo()->setImageThumbnailBytes(byteArray,
+                                                          SceneDialog::PREFERRED_IMAGE_FORMAT);
+        }
+        catch (const DataFileException& dfe) {
+            WuQMessageBox::errorOk(m_addNewScenePushButton,
+                                   dfe.whatString());
+        }
+    }
+}
+
 
 /**
  * Check to see if there are modified files.  If there are

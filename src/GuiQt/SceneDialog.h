@@ -101,6 +101,8 @@ namespace caret {
         
         void loadSceneListWidget(Scene* selectedSceneIn);
         
+        void addImageThumbnailToScene(Scene* scene);
+        
         QWidget* createMainPage();
         QWidget* createOptionPage();
         QWidget* createSceneCreateOptionsWidget();
@@ -129,9 +131,11 @@ namespace caret {
         QComboBox* m_optionsShowSceneWindowBehaviorComboBox;
         
         QCheckBox* m_optionsCreateSceneAddSpecFileCheckBox;
+        
+        static const AString PREFERRED_IMAGE_FORMAT;
     };
 #ifdef __SCENE_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";
 #endif // __SCENE_DIALOG_DECLARE__
 
 } // namespace

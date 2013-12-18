@@ -43,6 +43,7 @@
 #include "SceneClassArray.h"
 #include "SceneEnumeratedType.h"
 #include "SceneEnumeratedTypeArray.h"
+#include "SceneInfo.h"
 #include "SceneObjectMapIntegerKey.h"
 #include "ScenePathName.h"
 #include "ScenePrimitive.h"
@@ -345,6 +346,4 @@ SceneWriterXml::writeSceneClass(const SceneClass& sceneClass)
      */
     m_xmlWriter.writeEndElement();
 }
-
-
 

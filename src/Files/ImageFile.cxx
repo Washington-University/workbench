@@ -25,11 +25,13 @@
 
 #include <cmath>
 
+#include <QBuffer>
 #include <QColor>
 #include <QImage>
 #include <QImageWriter>
 #include <QTime>
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "FileInformation.h"
 #include "ImageFile.h"
@@ -42,7 +44,7 @@ using namespace caret;
 ImageFile::ImageFile()
 : DataFile()
 {
-    this->image = new QImage();
+    m_image = new QImage();
 }
 
 /**
@@ -53,7 +55,7 @@ ImageFile::ImageFile()
 ImageFile::ImageFile(const QImage& qimage)
 : DataFile()
 {
-    this->image = new QImage(qimage);
+    m_image = new QImage(qimage);
 }
 
 /**
@@ -74,7 +76,7 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const int imageHeight,
                      const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
 {
-    this->image = new QImage(imageWidth,
+    m_image = new QImage(imageWidth,
                              imageHeight,
                              QImage::Format_RGB32);
     
@@ -96,7 +98,7 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
         const int scanLineIndex = (isOriginAtTop
                                    ? y
                                    : imageHeight -y - 1);
-        QRgb* rgbScanLine = (QRgb*)this->image->scanLine(scanLineIndex);
+        QRgb* rgbScanLine = (QRgb*)m_image->scanLine(scanLineIndex);
         
         for (int x = 0; x < imageWidth; x++) {
             const int32_t contentOffset = (((y * imageWidth) * 4)
@@ -121,9 +123,9 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
  */
 ImageFile::~ImageFile()
 {
-    if (this->image != NULL) {
-        delete this->image;
-        this->image = NULL;
+    if (m_image != NULL) {
+        delete m_image;
+        m_image = NULL;
     }
 }
 
@@ -133,10 +135,10 @@ ImageFile::~ImageFile()
 void
 ImageFile::clear()
 {
-    if (this->image != NULL) {
-        delete this->image;
+    if (m_image != NULL) {
+        delete m_image;
     }
-    this->image = new QImage();
+    m_image = new QImage();
     this->clearModified();
 }
 
@@ -147,7 +149,7 @@ ImageFile::clear()
 bool
 ImageFile::isEmpty() const
 {
-    return (this->image->width() <= 0);
+    return (m_image->width() <= 0);
 }
 
 ///**
@@ -158,7 +160,7 @@ ImageFile::isEmpty() const
 //QImage*
 //ImageFile::getAsQImage()
 //{
-//    return this->image;
+//    return m_image;
 //}
 
 /**
@@ -167,7 +169,7 @@ ImageFile::isEmpty() const
 const QImage*
 ImageFile::getAsQImage() const
 {
-    return this->image;
+    return m_image;
 }
 
 /**
@@ -178,10 +180,10 @@ ImageFile::getAsQImage() const
 void
 ImageFile::setFromQImage(const QImage& qimage)
 {
-    if (this->image != NULL) {
-        delete this->image;
+    if (m_image != NULL) {
+        delete m_image;
     }
-    this->image = new QImage(qimage);
+    m_image = new QImage(qimage);
     this->setModified();
 }
 
@@ -197,8 +199,8 @@ void
 ImageFile::setDotsPerMeter(const int x,
                            const int y)
 {
-    this->image->setDotsPerMeterX(x);
-    this->image->setDotsPerMeterX(y);
+    m_image->setDotsPerMeterX(x);
+    m_image->setDotsPerMeterX(y);
 }
 
 
@@ -218,8 +220,8 @@ ImageFile::findImageObject(const uint8_t backgroundColor[3],
     //
     // Dimensions of image
     //
-    const int numX = this->image->width();
-    const int numY = this->image->height();
+    const int numX = m_image->width();
+    const int numY = m_image->height();
     
     //
     // Initialize output
@@ -235,7 +237,7 @@ ImageFile::findImageObject(const uint8_t backgroundColor[3],
     bool gotPixelFlag = false;
     for (int i = 0; i < numX; i++) {
         for (int j = 0; j < numY; j++) {
-            const QRgb pixel = this->image->pixel(i, j);
+            const QRgb pixel = m_image->pixel(i, j);
             if ((qRed(pixel) != backgroundColor[0]) ||
                 (qGreen(pixel) != backgroundColor[1]) ||
                 (qBlue(pixel)  != backgroundColor[2])) {
@@ -255,7 +257,7 @@ ImageFile::findImageObject(const uint8_t backgroundColor[3],
     gotPixelFlag = false;
     for (int i = (numX - 1); i >= 0; i--) {
         for (int j = 0; j < numY; j++) {
-            const QRgb pixel = this->image->pixel(i, j);
+            const QRgb pixel = m_image->pixel(i, j);
             if ((qRed(pixel) != backgroundColor[0]) ||
                 (qGreen(pixel) != backgroundColor[1]) ||
                 (qBlue(pixel)  != backgroundColor[2])) {
@@ -275,7 +277,7 @@ ImageFile::findImageObject(const uint8_t backgroundColor[3],
     gotPixelFlag = false;
     for (int j = 0; j < numY; j++) {
         for (int i = 0; i < numX; i++) {
-            const QRgb pixel = this->image->pixel(i, j);
+            const QRgb pixel = m_image->pixel(i, j);
             if ((qRed(pixel) != backgroundColor[0]) ||
                 (qGreen(pixel) != backgroundColor[1]) ||
                 (qBlue(pixel)  != backgroundColor[2])) {
@@ -295,7 +297,7 @@ ImageFile::findImageObject(const uint8_t backgroundColor[3],
     gotPixelFlag = false;
     for (int j = (numY - 1); j >= 0; j--) {
         for (int i = 0; i < numX; i++) {
-            const QRgb pixel = this->image->pixel(i, j);
+            const QRgb pixel = m_image->pixel(i, j);
             if ((qRed(pixel) != backgroundColor[0]) ||
                 (qGreen(pixel) != backgroundColor[1]) ||
                 (qBlue(pixel)  != backgroundColor[2])) {
@@ -377,8 +379,8 @@ ImageFile::addMargin(const int marginSizeX,
     //
     // Add margin
     //
-    const int width = this->image->width();
-    const int height = this->image->height();
+    const int width = m_image->width();
+    const int height = m_image->height();
     const int newWidth = width + marginSizeX * 2;
     const int newHeight = height + marginSizeY * 2;
     QRgb backgroundColorRGB = qRgba(backgroundColor[0],
@@ -390,10 +392,10 @@ ImageFile::addMargin(const int marginSizeX,
     // Insert image
     //
     ImageFile imageFile;
-    imageFile.setFromQImage(QImage(newWidth, newHeight, this->image->format()));
-    imageFile.image->fill(backgroundColorRGB);
+    imageFile.setFromQImage(QImage(newWidth, newHeight, m_image->format()));
+    imageFile.m_image->fill(backgroundColorRGB);
     try {
-        imageFile.insertImage(*this->image, marginSizeX, marginSizeY);
+        imageFile.insertImage(*m_image, marginSizeX, marginSizeY);
         this->setFromQImage(*imageFile.getAsQImage());
     }
     catch (DataFileException& e) {
@@ -423,8 +425,8 @@ ImageFile::cropImageRemoveBackground(const int marginSize,
     CaretLogFine("cropping: "
                    + AString::fromNumbers(leftTopRightBottom, 4, " "));
     
-    const int currentWidth = this->image->width();
-    const int currentHeight = this->image->height();
+    const int currentWidth = m_image->width();
+    const int currentHeight = m_image->height();
     
     //
     // If cropping is valid
@@ -480,7 +482,7 @@ ImageFile::combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>&
         return;
     }
     if (numImages == 1) {
-        this->setFromQImage(*imageFiles[0]->image);
+        this->setFromQImage(*imageFiles[0]->m_image);
         return;
     }
     
@@ -503,8 +505,8 @@ ImageFile::combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>&
         //
         // Track max width/height
         //
-        maxImageWidth = std::max(maxImageWidth, imageFiles[i]->image->width());
-        maxImageHeight = std::max(maxImageHeight, imageFiles[i]->image->height());
+        maxImageWidth = std::max(maxImageWidth, imageFiles[i]->m_image->width());
+        maxImageHeight = std::max(maxImageHeight, imageFiles[i]->m_image->height());
     }
     
     //
@@ -516,7 +518,7 @@ ImageFile::combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>&
     const int outputImageSizeY = maxImageHeight * numberOfRows;
     QImage combinedImage(outputImageSizeX,
                          outputImageSizeY,
-                         imageFiles[0]->image->format());
+                         imageFiles[0]->m_image->format());
     combinedImage.fill(backgroundColorRGB);
     
     
@@ -529,7 +531,7 @@ ImageFile::combinePreservingAspectAndFillIfNeeded(const std::vector<ImageFile*>&
         //
         // Scale image
         //
-        const QImage imageScaled = imageFiles[i]->image->scaled(maxImageWidth,
+        const QImage imageScaled = imageFiles[i]->m_image->scaled(maxImageWidth,
                                                                 maxImageHeight,
                                                                 Qt::KeepAspectRatio,
                                                                 Qt::SmoothTransformation);
@@ -589,7 +591,7 @@ ImageFile::readFile(const AString& filename) throw (DataFileException)
     
     this->setFileName(filename);
     
-    if (this->image->load(filename) == false) {
+    if (m_image->load(filename) == false) {
         clear();
         throw DataFileException(filename + "Unable to load file.");
     }
@@ -609,14 +611,14 @@ ImageFile::appendImageAtBottom(const ImageFile& img)
     // Determine size of new image
     //
     const QImage* otherImage = img.getAsQImage();
-    const int newWidth = std::max(image->width(), otherImage->width());
-    const int newHeight = image->height() + otherImage->height();
-    const int oldHeight = image->height();
+    const int newWidth = std::max(m_image->width(), otherImage->width());
+    const int newHeight = m_image->height() + otherImage->height();
+    const int oldHeight = m_image->height();
     
     //
     // Copy the current image
     //
-    const QImage currentImage = *this->image;
+    const QImage currentImage = *m_image;
     //   std::cout << "cw: " << currentImage.width() << std::endl;
     //   std::cout << "ch: " << currentImage.height() << std::endl;
     
@@ -660,7 +662,7 @@ ImageFile::insertImage(const QImage& otherImage,
                        const int y) throw (DataFileException)
 {
     ImageFile::insertImage(otherImage,
-                           *this->image,
+                           *m_image,
                            x,
                            y);
     /*
@@ -779,8 +781,8 @@ ImageFile::compareFileForUnitTesting(const DataFile* dataFile,
     //
     // Confirm width/height
     //
-    const int width = image->width();
-    const int height = image->height();
+    const int width = m_image->width();
+    const int height = m_image->height();
     if ((width != otherImage->width()) ||
         (height != otherImage->height())) {
         messageOut = "The images are of different height and/or width.";
@@ -793,7 +795,7 @@ ImageFile::compareFileForUnitTesting(const DataFile* dataFile,
     int pixelCount = 0;
     for (int i = 0; i < width; i++) {
         for (int j = 0; j < height; j++) {
-            QColor im1 = image->pixel(i, j);
+            QColor im1 = m_image->pixel(i, j);
             QColor im2 = otherImage->pixel(i, j);
             if ((abs(im1.red() - im2.red()) > tolerance) ||
                 (abs(im1.green() - im2.green()) > tolerance) ||
@@ -829,10 +831,10 @@ ImageFile::writeFile(const AString& filename) throw (DataFileException)
     this->setFileName(filename);
     
     AString errorMessage;
-    if (image->width() <= 0) {
+    if (m_image->width() <= 0) {
         errorMessage = "Image width is zero.";
     }
-    if (image->height() <= 0) {
+    if (m_image->height() <= 0) {
         if (errorMessage.isEmpty() == false) errorMessage += "\n";
         errorMessage = "Image height is zero.";
     }
@@ -861,7 +863,7 @@ ImageFile::writeFile(const AString& filename) throw (DataFileException)
     if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
         writer.setCompression(1);
     }
-    if (writer.write(*this->image) == false) {
+    if (writer.write(*m_image) == false) {
         throw DataFileException(writer.errorString());
     }
     
@@ -975,6 +977,100 @@ ImageFile::getImageFileFilters(std::vector<AString>& imageFileFilters,
         if (imageFileFilters.empty() == false) {
             defaultFilter = imageFileFilters[0];
         }
+    }
+}
+
+/**
+ * Resize the image so that its maximum dimension is the given value
+ * yet preserves the aspect ratio of the image.
+ *
+ * @param maximumWidthOrHeight
+ *     Maximum dimension for the image.
+ */
+void
+ImageFile::resizeToMaximumWidthOrHeight(const int32_t maximumWidthOrHeight)
+{
+    CaretAssert(m_image);
+    
+    const int32_t width = m_image->width();
+    const int32_t height = m_image->height();
+    
+    if ((width > 0)
+        && (height > 0)) {
+        if (width > height) {
+            if (width > maximumWidthOrHeight) {
+                *m_image = m_image->scaledToWidth(maximumWidthOrHeight,
+                                                  Qt::SmoothTransformation);
+            }
+        }
+        else {
+            if (height > maximumWidthOrHeight) {
+                *m_image = m_image->scaledToHeight(maximumWidthOrHeight,
+                                                   Qt::SmoothTransformation);
+            }
+        }
+    }
+}
+
+/**
+ * Essentially writes the image file to a byte array using the given format.
+ *
+ * @param byteArrayOut
+ *    Byte array into which the image is written.
+ * @param format
+ *    Format for the image (jpg, ppm, etc.).
+ */
+void
+ImageFile::getImageInByteArray(QByteArray& byteArrayOut,
+                               const AString& format) const throw (DataFileException)
+{
+    byteArrayOut.clear();
+    
+    if (m_image != NULL) {
+        QBuffer buffer(&byteArrayOut);
+        if ( ! buffer.open(QIODevice::WriteOnly)) {
+            throw DataFileException("PROGRAM ERROR: Unable to open byte array for output of image.");
+        }
+        
+        bool successFlag = false;
+        if (format.isEmpty()) {
+            successFlag = m_image->save(&buffer);
+        }
+        else {
+            successFlag = m_image->save(&buffer,
+                                        format.toAscii().data());
+        }
+        
+        if ( ! successFlag) {
+            throw DataFileException("Failed to write image to byte array.  "
+                                    + buffer.errorString());
+        }
+    }
+}
+
+/**
+ * Essentially reads the image file from a byte array using the given format.
+ *
+ * @param byteArray
+ *    Byte array from which the image is read.
+ * @param format
+ *    Format for the image (jpg, ppm, etc.) or empty if unknown.
+ */
+void
+ImageFile::setImageFromByteArray(const QByteArray& byteArray,
+                                 const AString& format) throw (DataFileException)
+{
+    bool successFlag = false;
+    if (format.isEmpty()) {
+        successFlag = m_image->loadFromData(byteArray);
+    }
+    else {
+        successFlag = m_image->loadFromData(byteArray,
+                                            format.toAscii().data());
+    }
+    
+    if ( ! successFlag) {
+        throw DataFileException("Failed to create image from byte array.");
     }
 }
 

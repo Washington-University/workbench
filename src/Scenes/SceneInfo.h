@@ -1,9 +1,9 @@
-#ifndef __SCENE__H_
-#define __SCENE__H_
+#ifndef __SCENE_INFO_H__
+#define __SCENE_INFO_H__
 
 /*LICENSE_START*/
 /*
- * Copyright 2012 Washington University,
+ * Copyright 2013 Washington University,
  * All rights reserved.
  *
  * Connectome DB and Connectome Workbench are part of the integrated Connectome 
@@ -22,7 +22,7 @@
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITqNESS FOR A PARTICULAR PURPOSE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR  
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
@@ -34,90 +34,71 @@
  */
 /*LICENSE_END*/
 
-
+#include <stdint.h>
 #include "CaretObject.h"
-#include "SceneTypeEnum.h"
+
+
 
 namespace caret {
-    class SceneAttributes;
-    class SceneClass;
-    class SceneInfo;
+    class XmlWriter;
     
-    class Scene : public CaretObject {
+    class SceneInfo : public CaretObject {
         
     public:
-        Scene(const SceneTypeEnum::Enum sceneType);
+        SceneInfo();
         
-        virtual ~Scene();
-        
-    private:
-        Scene(const Scene&);
-
-        Scene& operator=(const Scene&);
-        
-    public:
-
-        const SceneAttributes* getAttributes() const;
-
-        SceneAttributes* getAttributes();
-
-        void addClass(SceneClass* sceneClass);
-        
-        int32_t getNumberOfClasses() const;
-        
-        const SceneClass* getClassAtIndex(const int32_t indx) const;
-
-        const SceneClass* getClassWithName(const AString& sceneClassName) const;
+        virtual ~SceneInfo();
         
         AString getName() const;
-
+        
         void setName(const AString& sceneName);
-
+        
         AString getDescription() const;
         
         void setDescription(const AString& description);
         
-        SceneInfo* getSceneInfo();
-        
-        const SceneInfo* getSceneInfo() const;
-        
-        void setSceneInfo(SceneInfo* sceneInfo);
-        
-        bool hasFilesWithRemotePaths() const;
-        
-        void setHasFilesWithRemotePaths(const bool hasFilesWithRemotePaths);
+        void getImageThumbnailBytes(QByteArray& imageThumbnailBytesOut,
+                                    AString& imageFormatOut) const;
 
+        void setImageThumbnailBytes(const QByteArray& imageThumbnailBytes,
+                                    const AString& imageFormat);
         
-        // ADD_NEW_METHODS_HERE
+        void writeSceneInfo(XmlWriter& xmlWriter,
+                            const int32_t sceneInfoIndex) const;
 
-        static void setSceneBeingCreated(Scene* scene);
+        void setImageThumbnailFromText(const AString& text,
+                                       const AString& encoding,
+                                       const AString& imageFormat);
         
-        static void setSceneBeingCreatedHasFilesWithRemotePaths();
+        void writeSceneInfoImage(XmlWriter& xmlWriter,
+                                 const AString& xmlTag,
+                                 const QByteArray& imageBytes,
+                                 const AString& imageFormat) const;
         
     private:
+        SceneInfo(const SceneInfo&);
 
-        /** Attributes of the scene*/
-        SceneAttributes* m_sceneAttributes;
-
-        /** Classes contained in the scene*/
-        std::vector<SceneClass*> m_sceneClasses;
-
-        /** Info about scene */
-        SceneInfo* m_sceneInfo;
+        SceneInfo& operator=(const SceneInfo&);
         
-        /** True if it found a ScenePathName with a remote file */
-        bool m_hasFilesWithRemotePaths;
+        /** name of scene*/
+        AString m_sceneName;
         
-        /** When a scene is being created, this will be set */
-        static Scene* s_sceneBeingCreated;
+        /** description of scene */
+        AString m_sceneDescription;
+        
+        /** thumbnail image bytes */
+        QByteArray m_imageThumbnailBytes;
+        
+        /** format of thumbnail image (eg: jpg, ppm, etc.) */
+        AString m_imageThumbnailFormat;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __SCENE_DECLARE__
-    Scene* Scene::s_sceneBeingCreated = NULL;
-#endif // __SCENE_DECLARE__
+#ifdef __SCENE_INFO_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __SCENE_INFO_DECLARE__
 
 } // namespace
-#endif  //__SCENE__H_
+#endif  //__SCENE_INFO_H__

@@ -32,6 +32,8 @@
 #include "Scene.h"
 #include "SceneFile.h"
 #include "SceneFileSaxReader.h"
+#include "SceneInfo.h"
+#include "SceneInfoSaxReader.h"
 #include "SceneXmlElements.h"
 
 #include "XmlAttributes.h"
@@ -57,6 +59,7 @@ SceneFileSaxReader::SceneFileSaxReader(SceneFile* sceneFile)
     m_elementText = "";
     m_metaDataSaxReader = NULL;
     m_sceneSaxReader = NULL;
+    m_sceneInfoSaxReader = NULL;
     m_scene = NULL;
 }
 
@@ -73,6 +76,9 @@ SceneFileSaxReader::~SceneFileSaxReader()
     }
     if (m_sceneSaxReader != NULL) {
         delete m_sceneSaxReader;
+    }
+    if (m_sceneInfoSaxReader != NULL) {
+        delete m_sceneInfoSaxReader;
     }
     if (m_scene != NULL) {
         delete m_scene;
@@ -115,6 +121,26 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                 throw e;
             }
             break;
+        case STATE_SCENE_INFO_DIRECTORY:
+            if (qName == SceneXmlElements::SCENE_INFO_TAG) {
+                m_state = STATE_SCENE_INFO;
+                m_sceneInfoIndex = attributes.getValueAsIntRequired(SceneXmlElements::SCENE_INFO_INDEX_ATTRIBUTE);
+                m_sceneInfo = new SceneInfo();
+                m_sceneInfoSaxReader = new SceneInfoSaxReader(m_sceneFile->getFileName(),
+                                                              m_sceneInfo);
+                m_sceneInfoSaxReader->startElement(namespaceURI, localName, qName, attributes);
+            }
+            else {
+                const AString msg = XmlUtilities::createInvalidChildElementMessage(SceneXmlElements::SCENE_INFO_TAG,
+                                                                                   qName);
+                XmlSaxParserException e(msg);
+                CaretLogThrowing(e);
+                throw e;
+            }
+            break;
+        case STATE_SCENE_INFO:
+            m_sceneInfoSaxReader->startElement(namespaceURI, localName, qName, attributes);
+            break;
         case STATE_SCENE:
             m_sceneSaxReader->startElement(namespaceURI, localName, qName, attributes);
             break;
@@ -123,6 +149,10 @@ SceneFileSaxReader::startElement(const AString& namespaceURI,
                 m_state = STATE_METADATA;
                 m_metaDataSaxReader = new GiftiMetaDataSaxReader(m_sceneFile->getFileMetaData());
                 m_metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
+            }
+            else if (qName == SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG) {
+                m_state = STATE_SCENE_INFO_DIRECTORY;
+                break;
             }
             else if (qName == SceneXmlElements::SCENE_TAG) {
                 m_state = STATE_SCENE;
@@ -186,7 +216,43 @@ SceneFileSaxReader::endElement(const AString& namespaceURI,
                 m_sceneSaxReader = NULL;
             }
             break;
+        case STATE_SCENE_INFO_DIRECTORY:
+            break;
+        case STATE_SCENE_INFO:
+            CaretAssert(m_sceneInfo);
+            CaretAssert(m_sceneInfoSaxReader);
+            m_sceneInfoSaxReader->endElement(namespaceURI, localName, qName);
+            if (qName == SceneXmlElements::SCENE_INFO_TAG) {
+                m_sceneInfoMap.insert(std::make_pair(m_sceneInfoIndex,
+                                                     m_sceneInfo));
+                delete m_sceneInfoSaxReader;
+                m_sceneInfoSaxReader = NULL;
+            }
+            break;
         case STATE_SCENE_FILE:
+        {
+            for (std::map<int32_t, SceneInfo*>::iterator iter = m_sceneInfoMap.begin();
+                 iter != m_sceneInfoMap.end();
+                 iter++) {
+                const int32_t sceneIndex = iter->first;
+                SceneInfo* sceneInfo     = iter->second;
+                CaretAssert(sceneInfo);
+                
+                if ((sceneIndex >= 0)
+                    && (sceneIndex < m_sceneFile->getNumberOfScenes())) {
+                    Scene* scene = m_sceneFile->getSceneAtIndex(sceneIndex);
+                    scene->setSceneInfo(sceneInfo);
+                }
+                else {
+                    const AString msg = ("SceneInfo has bad index="
+                                     + AString::number(sceneIndex)
+                                     + " in file "
+                                     + m_sceneFile->getFileName());
+                    CaretAssertMessage(0, msg);
+                    CaretLogSevere(msg);
+                }
+            }
+        }
             break;
         case STATE_METADATA:
             CaretAssert(m_metaDataSaxReader);
@@ -224,6 +290,9 @@ SceneFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
     }
     else if (m_sceneSaxReader != NULL) {
         m_sceneSaxReader->characters(ch);
+    }
+    else if (m_sceneInfoSaxReader != NULL) {
+        m_sceneInfoSaxReader->characters(ch);
     }
     else {
         m_elementText += ch;

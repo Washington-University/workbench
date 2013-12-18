@@ -40,6 +40,7 @@
 namespace caret {
 
     class SceneClass;
+    class SceneInfo;
     class XmlWriter;
     
     class SceneWriterXml : public SceneWriterInterface {

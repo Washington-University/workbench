@@ -49,6 +49,7 @@
 #include "GiftiMetaData.h"
 #include "Scene.h"
 #include "SceneFileSaxReader.h"
+#include "SceneInfo.h"
 #include "SceneWriterXml.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
@@ -388,7 +389,9 @@ SceneFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Format the version string so that it ends with at most one zero
         //
-        const AString versionString = AString::number(1.0);
+        const AString versionString = AString::number(SceneFile::getFileVersion(),
+                                                      1,
+                                                      'f');
         
         //
         // Open the file
@@ -431,13 +434,24 @@ SceneFile::writeFile(const AString& filename) throw (DataFileException)
         if (m_metadata != NULL) {
             m_metadata->writeAsXML(xmlWriter);
         }
+
+        const int32_t numScenes = this->getNumberOfScenes();
+
+        /*
+         * Write the scene info directory
+         */
+        xmlWriter.writeStartElement(SceneFile::XML_TAG_SCENE_INFO_DIRECTORY_TAG);
+        for (int32_t i = 0; i < numScenes; i++) {
+            m_scenes[i]->getSceneInfo()->writeSceneInfo(xmlWriter,
+                                                        i);
+        }
+        xmlWriter.writeEndElement();
         
         //
         // Write scenes
         //
         SceneWriterXml sceneWriter(xmlWriter,
                                    this->getFileName());
-        const int32_t numScenes = this->getNumberOfScenes();
         for (int32_t i = 0; i < numScenes; i++) {
             sceneWriter.writeScene(*m_scenes[i], 
                                    i);

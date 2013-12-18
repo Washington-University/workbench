@@ -118,8 +118,47 @@ namespace caret {
          * can be used to handle previous versions of a class.
          */
         static const AString OBJECT_VERSION_ATTRIBUTE = "Version";
+    
+        /**
+         * XML Tag for Scene Info element.
+         */
+        static const AString SCENE_INFO_TAG = "SceneInfo";
+    
+        /**
+         * XML Tag for Scene Info index attribute.
+         */
+        static const AString SCENE_INFO_INDEX_ATTRIBUTE = "Index";
+    
+        /**
+         * XML Tag for Scene Info name element.
+         */
+        static const AString SCENE_INFO_NAME_TAG = "Name";
+
+        /**
+         * XML Tag for Scene Info description element.
+         */
+        static const AString SCENE_INFO_DESCRIPTION_TAG = "Description";
+    
+        /**
+         * XML Tag for Scene Info Image Thumbnail element.
+         */
+        static const AString SCENE_INFO_IMAGE_THUMBNAIL_TAG = "ImageThumbnail";
+    
+        /**
+         * XML Tag for Scene Info image format attribute.
+         */
+        static const AString SCENE_INFO_IMAGE_FORMAT_ATTRIBUTE = "Format";
         
-        
+        /**
+         * XML Tag for Scene Info image encoding attribute.
+         */
+        static const AString SCENE_INFO_IMAGE_ENCODING_ATTRIBUTE = "Encoding";
+    
+        /**
+         * Name for Base64 encoding used in Scene Info image encoding attribute.
+         */
+        static const AString SCENE_INFO_ENCODING_BASE64_NAME = "Base64";
+    
     } // namespace SceneXmlElements
     
 } // namespace caret

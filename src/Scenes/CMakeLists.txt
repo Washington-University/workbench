@@ -39,6 +39,8 @@ SceneEnumeratedTypeArray.h
 SceneEnumeratedType.h
 SceneFloat.h
 SceneFloatArray.h
+SceneInfo.h
+SceneInfoSaxReader.h
 SceneInteger.h
 SceneIntegerArray.h
 SceneObject.h
@@ -68,6 +70,8 @@ SceneEnumeratedTypeArray.cxx
 SceneEnumeratedType.cxx
 SceneFloat.cxx
 SceneFloatArray.cxx
+SceneInfo.cxx
+SceneInfoSaxReader.cxx
 SceneInteger.cxx
 SceneIntegerArray.cxx
 SceneObject.cxx

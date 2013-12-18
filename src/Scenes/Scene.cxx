@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneInfo.h"
 
 using namespace caret;
 
@@ -247,6 +248,7 @@ Scene::Scene(const SceneTypeEnum::Enum sceneType)
 {
     m_sceneAttributes = new SceneAttributes(sceneType);
     m_hasFilesWithRemotePaths = false;
+    m_sceneInfo = new SceneInfo();
 }
 
 /**
@@ -261,6 +263,8 @@ Scene::~Scene()
         delete m_sceneClasses[i];
     }
     m_sceneClasses.clear();
+    
+    delete m_sceneInfo;
 }
 
 /**
@@ -337,7 +341,7 @@ Scene::getClassWithName(const AString& sceneClassName) const
 AString
 Scene::getName() const
 {
-    return m_sceneName;
+    return m_sceneInfo->getName();
 }
 
 /**
@@ -348,7 +352,7 @@ Scene::getName() const
 void
 Scene::setName(const AString& sceneName)
 {
-    m_sceneName = sceneName;
+    m_sceneInfo->setName(sceneName);
 }
 
 /**
@@ -357,7 +361,7 @@ Scene::setName(const AString& sceneName)
 AString
 Scene::getDescription() const
 {
-    return m_sceneDescription;
+    return m_sceneInfo->getDescription();
 }
 
 /**
@@ -368,7 +372,7 @@ Scene::getDescription() const
 void
 Scene::setDescription(const AString& sceneDescription)
 {
-    m_sceneDescription = sceneDescription;
+    m_sceneInfo->setDescription(sceneDescription);
 }
 
 /**
@@ -410,6 +414,41 @@ Scene::setSceneBeingCreatedHasFilesWithRemotePaths()
     if (s_sceneBeingCreated != NULL) {
         s_sceneBeingCreated->m_hasFilesWithRemotePaths = true;
     }
+}
+
+/**
+ * @return The scene info (name, description, etc.) for this scene.
+ */
+SceneInfo*
+Scene::getSceneInfo()
+{
+    return m_sceneInfo;
+}
+
+/**
+ * @return The scene info (name, description, etc.) for this scene.
+ * Const method.
+ */
+const SceneInfo*
+Scene::getSceneInfo() const
+{
+    return m_sceneInfo;
+}
+
+/**
+ * Set the scene info.  Ownership of the pointer to SceneInfo is taken
+ * by this Scene object and the Scene object will delete the pointer
+ * at the appropriate time (replaced or Scene is deleted).
+ */
+void
+Scene::setSceneInfo(SceneInfo* sceneInfo)
+{
+    CaretAssert(sceneInfo);
+    
+    if (m_sceneInfo != NULL) {
+        delete m_sceneInfo;
+    }
+    m_sceneInfo = sceneInfo;
 }
 
 
