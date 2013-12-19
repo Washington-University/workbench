@@ -871,8 +871,9 @@ void GeodesicHelper::getPathToNode(const int32_t root, const int32_t endpoint, v
     }
     vector<int32_t> ofInterest(1, endpoint);
     CaretMutexLocker locked(&inUse);//let sanity checks fail without locking
+    parent[endpoint] = -2;//sentinel value that DOESN'T mean end of path
     dijkstra(root, ofInterest, smoothflag);//TODO: change this to use A*
-    if (!(marked[endpoint] & 4))//check for valid value
+    if (parent[endpoint] == -2)//check for invalid value
     {
         return;
     }
@@ -885,7 +886,7 @@ void GeodesicHelper::getPathToNode(const int32_t root, const int32_t endpoint, v
     }
     tempReverse.push_back(next);
     int32_t tempSize = (int32_t)tempReverse.size();
-    for (int32_t i = tempSize - 1; i >= 0; ++i)
+    for (int32_t i = tempSize - 1; i >= 0; --i)
     {
         int32_t tempNode = tempReverse[i];
         pathNodesOut.push_back(tempNode);

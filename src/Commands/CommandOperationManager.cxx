@@ -148,6 +148,7 @@
 #include "OperationSpecFileMerge.h"
 #include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceCoordinatesToMetric.h"
+#include "OperationSurfaceCutResample.h"
 #include "OperationSurfaceFlipNormals.h"
 #include "OperationSurfaceGeodesicDistance.h"
 #include "OperationSurfaceGeodesicROIs.h"
@@ -342,6 +343,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCoordinatesToMetric()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCutResample()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceFlipNormals()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicDistance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));

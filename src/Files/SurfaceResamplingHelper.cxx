@@ -28,8 +28,10 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretOMP.h"
+#include "GeodesicHelper.h"
 #include "SignedDistanceHelper.h"
 #include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "Vector3D.h"
 
 #include <set>
@@ -66,7 +68,7 @@ SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEn
     }
 }
 
-void SurfaceResamplingHelper::resampleNormal(const float* input, float* output, const float& invalidVal)
+void SurfaceResamplingHelper::resampleNormal(const float* input, float* output, const float& invalidVal) const
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -87,7 +89,7 @@ void SurfaceResamplingHelper::resampleNormal(const float* input, float* output, 
     }
 }
 
-void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output)
+void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output) const
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -109,7 +111,7 @@ void SurfaceResamplingHelper::resample3DCoord(const float* input, float* output)
     }
 }
 
-void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* output, const int32_t& invalidVal)
+void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* output, const int32_t& invalidVal) const
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -144,7 +146,7 @@ void SurfaceResamplingHelper::resamplePopular(const int32_t* input, int32_t* out
     }
 }
 
-void SurfaceResamplingHelper::resampleLargest(const float* input, float* output, const float& invalidVal)
+void SurfaceResamplingHelper::resampleLargest(const float* input, float* output, const float& invalidVal) const
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -170,7 +172,7 @@ void SurfaceResamplingHelper::resampleLargest(const float* input, float* output,
     }
 }
 
-void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* output, const int32_t& invalidVal)
+void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* output, const int32_t& invalidVal) const
 {
     int numNodes = (int)m_weights.size() - 1;
 #pragma omp CARET_PARFOR schedule(dynamic)
@@ -196,7 +198,7 @@ void SurfaceResamplingHelper::resampleLargest(const int32_t* input, int32_t* out
     }
 }
 
-void SurfaceResamplingHelper::getResampleValidROI(float* output)
+void SurfaceResamplingHelper::getResampleValidROI(float* output) const
 {
     int numNodes = (int)m_weights.size() - 1;
     for (int i = 0; i < numNodes; ++i)
@@ -206,6 +208,194 @@ void SurfaceResamplingHelper::getResampleValidROI(float* output)
             output[i] = 1.0f;
         } else {
             output[i] = 0.0f;
+        }
+    }
+}
+
+void SurfaceResamplingHelper::resampleCutSurface(const SurfaceFile* cutSurfaceIn, const SurfaceFile* currentSphere, const SurfaceFile* newSphere, SurfaceFile* surfaceOut)
+{
+    if (!checkSphere(currentSphere) || !checkSphere(newSphere)) throw CaretException("input surfaces to SurfaceResamplingHelper must be spheres");
+    SurfaceFile currentSphereMod, newSphereMod;
+    changeRadius(100.0f, currentSphere, &currentSphereMod);
+    changeRadius(100.0f, newSphere, &newSphereMod);
+    SurfaceFile cutCurSphere = *cutSurfaceIn;
+    cutCurSphere.setCoordinates(currentSphereMod.getCoordinateData());
+    int newNodes = newSphere->getNumberOfNodes();
+    vector<BarycentricInfo> newInfo(newSphere->getNumberOfNodes());
+    CaretPointer<SignedDistanceHelper> mySignedHelp = cutCurSphere.getSignedDistanceHelper();
+    for (int i = 0; i < newNodes; ++i)
+    {
+        mySignedHelp->barycentricWeights(newSphereMod.getCoordinate(i), newInfo[i]);
+    }
+    vector<int> isOnEdge(newNodes, 0);//really used as bool, but avoid bitpacking so it can be modified in parallel
+    CaretPointer<TopologyHelper> cutTopoHelp = cutSurfaceIn->getTopologyHelper();//because topology didn't change, and it might have one already
+    CaretPointer<TopologyHelper> closedTopoHelp = currentSphere->getTopologyHelper();//ditto
+    CaretPointer<TopologyHelper> newTopoHelp = newSphere->getTopologyHelper();//tritto?
+    CaretPointer<GeodesicHelper> closedGeoHelp = currentSphereMod.getGeodesicHelper();
+    CaretPointer<GeodesicHelper> cutGeoHelp = cutCurSphere.getGeodesicHelper();
+    const vector<TopologyEdgeInfo>& cutEdgeInfo = cutTopoHelp->getEdgeInfo();
+    vector<int> largestNode(newNodes, -1);
+    for (int i = 0; i < newNodes; ++i)
+    {
+        float largestWeight = 0.0f, secondWeight = 0.0f;//locate the two nodes with largest barycentric weights
+        largestNode[i] = -1;
+        int secondNode = -1;
+        for (int j = 0; j < 3; ++j)
+        {
+            if (newInfo[i].baryWeights[j] > largestWeight)
+            {
+                secondNode = largestNode[i];//shift largest to second
+                secondWeight = largestWeight;
+                largestWeight = newInfo[i].baryWeights[j];//update largest
+                largestNode[i] = newInfo[i].nodes[j];
+            } else if (newInfo[i].baryWeights[j] > secondWeight) {
+                secondWeight = newInfo[i].baryWeights[j];
+                secondNode = newInfo[i].nodes[j];
+            }
+        }
+        switch (newInfo[i].type)
+        {
+            case BarycentricInfo::NODE:
+                if (cutTopoHelp->getNodeTiles(largestNode[i]).size() != closedTopoHelp->getNodeTiles(largestNode[i]).size())
+                {
+                    isOnEdge[i] = 1;
+                }
+                break;
+            case BarycentricInfo::EDGE:
+            {
+                const vector<int32_t>& cutEdges = cutTopoHelp->getNodeEdges(largestNode[i]);
+                for (int j = 0; j < (int)cutEdges.size(); ++j)
+                {
+                    const TopologyEdgeInfo& myInfo = cutEdgeInfo[cutEdges[j]];
+                    if (myInfo.node1 == largestNode[i])
+                    {
+                        if (myInfo.node2 == secondNode)
+                        {
+                            if (myInfo.numTiles == 1)//NOTE: assumes 1 tile means that it is an edge of a cut, could compare to closed instead, but need to search it separately
+                            {
+                                isOnEdge[i] = 1;
+                            }
+                            break;
+                        }
+                    } else {
+                        if (myInfo.node1 == secondNode && myInfo.node2 == largestNode[i])
+                        {
+                            if (myInfo.numTiles == 1)//ditto
+                            {
+                                isOnEdge[i] = 1;
+                            }
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+            case BarycentricInfo::TRIANGLE://is never on a cut edge, do nothing
+                break;
+        }
+    }
+    set<int32_t> triRemove, nodeDisconnect;
+    for (int32_t i = 0; i < newNodes; ++i)
+    {
+        if (i == 214)
+        {
+            cout << "hit" << endl;
+        }
+        const vector<int32_t>& neighbors = newTopoHelp->getNodeNeighbors(i);
+        if (isOnEdge[i])
+        {
+            bool hasInteriorNeighbor = false;
+            for (int j = 0; j < (int)neighbors.size(); ++j)
+            {
+                if (!isOnEdge[neighbors[j]])
+                {
+                    hasInteriorNeighbor = true;
+                    break;
+                }
+            }
+            if (hasInteriorNeighbor)
+            {
+                for (int j = 0; j < (int)neighbors.size(); ++j)
+                {
+                    vector<int32_t> closedPath, cutPath;
+                    vector<float> closedPathDists, cutPathDists;
+                    closedGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], closedPath, closedPathDists);
+                    cutGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], cutPath, cutPathDists);
+                    if (cutPathDists.size() == 0 || cutPathDists.back() > 2.0f * closedPathDists.back())//maybe this cutoff should be tunable
+                    {
+                        const vector<int32_t>& myTiles = newTopoHelp->getNodeTiles(i);//find tiles on new mesh that share this edge, remove them
+                        for (int k = 0; k < (int)myTiles.size(); ++k)
+                        {
+                            const int32_t* thisTile = newSphere->getTriangle(myTiles[k]);
+                            if (thisTile[0] == neighbors[j] || thisTile[1] == neighbors[j] || thisTile[2] == neighbors[j])
+                            {
+                                triRemove.insert(myTiles[k]);
+                            }
+                        }
+                    }
+                }
+            } else {
+                nodeDisconnect.insert(i);//disconnect it completely if it has no interior neighbors
+                const vector<int32_t>& nodeTiles = newTopoHelp->getNodeTiles(i);
+                for (int j = 0; j < (int)nodeTiles.size(); ++j)
+                {
+                    triRemove.insert(nodeTiles[j]);
+                }
+            }
+        } else {//interior nodes also have to be checked for crossing the cut, since there may not be a node that falls inside the cut
+            for (int j = 0; j < (int)neighbors.size(); ++j)
+            {
+                vector<int32_t> closedPath, cutPath;
+                vector<float> closedPathDists, cutPathDists;
+                closedGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], closedPath, closedPathDists);
+                cutGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], cutPath, cutPathDists);//note: path length of zero means no connection
+                if (cutPathDists.size() == 0 || cutPathDists.back() > 2.0f * closedPathDists.back())//maybe this cutoff should be tunable
+                {
+                    const vector<int32_t>& myTiles = newTopoHelp->getNodeTiles(i);//find tiles on new mesh that share this edge, remove them
+                    for (int k = 0; k < (int)myTiles.size(); ++k)
+                    {
+                        const int32_t* thisTile = newSphere->getTriangle(myTiles[k]);
+                        if (thisTile[0] == neighbors[j] || thisTile[1] == neighbors[j] || thisTile[2] == neighbors[j])
+                        {
+                            triRemove.insert(myTiles[k]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    int numNewTris = newSphere->getNumberOfTriangles();
+    surfaceOut->setNumberOfNodesAndTriangles(newNodes, numNewTris - triRemove.size());
+    surfaceOut->setStructure(cutSurfaceIn->getStructure());
+    surfaceOut->setSurfaceType(cutSurfaceIn->getSurfaceType());
+    surfaceOut->setSecondaryType(cutSurfaceIn->getSecondaryType());
+    int outTri = 0;
+    set<int32_t>::iterator iter = triRemove.begin();
+    for (int i = 0; i < numNewTris; ++i)
+    {
+        if (i == *iter)//sets are sorted, so this won't miss any
+        {
+            ++iter;//if current orig tri is to be removed, increment iterator and skip adding
+        } else {
+            surfaceOut->setTriangle(outTri, newSphere->getTriangle(i));
+            ++outTri;
+        }
+    }
+    CaretAssert(outTri == numNewTris - (int)triRemove.size());
+    iter = nodeDisconnect.begin();//and now, same for disconnected nodes
+    Vector3D origin(0.0f, 0.0f, 0.0f);//where we move disconnected nodes to
+    for (int i = 0; i < newNodes; ++i)
+    {
+        if (i == *iter)
+        {
+            ++iter;
+            surfaceOut->setCoordinate(i, origin);
+        } else {
+            Vector3D coord1 = cutSurfaceIn->getCoordinate(newInfo[i].nodes[0]);
+            Vector3D coord2 = cutSurfaceIn->getCoordinate(newInfo[i].nodes[1]);
+            Vector3D coord3 = cutSurfaceIn->getCoordinate(newInfo[i].nodes[2]);
+            Vector3D outCoord = coord1 * newInfo[i].baryWeights[0] + coord2 * newInfo[i].baryWeights[1] + coord3 * newInfo[i].baryWeights[2];
+            surfaceOut->setCoordinate(i, outCoord);
         }
     }
 }
