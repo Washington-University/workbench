@@ -76,7 +76,7 @@ void AlgorithmSurfaceModifySphere::useParameters(OperationParameters* myParams, 
 AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myProgObj, const SurfaceFile* mySphere, const float& newRadius, SurfaceFile* outSphere, const bool& recenter) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    bool originVertexWarned = false;
+    bool originVertexWarned = false, nanWarned = false;
     Vector3D center;//initializes to the origin
     if (recenter)
     {
@@ -106,12 +106,20 @@ AlgorithmSurfaceModifySphere::AlgorithmSurfaceModifySphere(ProgressObject* myPro
                 CaretLogWarning("found at least one vertex at origin, moved to +x position");
                 originVertexWarned = true;
             }
+        } else if (tempf != tempf) {
+            outCoords[i] = newRadius;
+            outCoords[i + 1] = 0.0f;
+            outCoords[i + 2] = 0.0f;
+            if (!nanWarned)
+            {
+                CaretLogWarning("found at least one NaN vertex, moved to +x position");
+                nanWarned = true;
+            }
         } else {
             Vector3D outCoord = recenterCoord * (newRadius / tempf);
             outCoords[i] = outCoord[0];
             outCoords[i + 1] = outCoord[1];
             outCoords[i + 2] = outCoord[2];
-            if (tempf != tempf) throw CaretException("found NaN coordinate in the input sphere");
             if (first)
             {
                 first = false;
