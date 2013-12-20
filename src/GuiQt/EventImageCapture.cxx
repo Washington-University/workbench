@@ -50,7 +50,22 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for capturing image of window without any resizing.
+ *
+ * @param browserWindowIndex
+ *    The browser window index.
+ */
+EventImageCapture::EventImageCapture(const int32_t browserWindowIndex)
+: Event(EventTypeEnum::EVENT_IMAGE_CAPTURE),
+m_browserWindowIndex(browserWindowIndex),
+m_imageSizeX(0),
+m_imageSizeY(0)
+{
+}
+
+/**
+ * Constructor for capturing image of window with the given sizing.  If
+ * the X & Y sizes are both zero, the no image resizing is performed.
  *
  * @param browserWindowIndex
  *    The browser window index.
@@ -67,8 +82,8 @@ m_browserWindowIndex(browserWindowIndex),
 m_imageSizeX(imageSizeX),
 m_imageSizeY(imageSizeY)
 {
-    
 }
+
 
 /**
  * Destructor.

@@ -981,8 +981,49 @@ ImageFile::getImageFileFilters(std::vector<AString>& imageFileFilters,
 }
 
 /**
+ * Resize the image so that its width is no larger than the given value.
+ * If the image's current width is less than the given value, no
+ * resizing takes place.
+ *
+ * @param maximumWidth
+ *     Maximum width for the image.
+ */
+void
+ImageFile::resizeToMaximumWidth(const int32_t maximumWidth)
+{
+    CaretAssert(m_image);
+    const int32_t width = m_image->width();
+    
+    if (width > maximumWidth) {
+        *m_image = m_image->scaledToWidth(maximumWidth,
+                                          Qt::SmoothTransformation);
+    }
+}
+
+/**
+ * Resize the image so that its height is no larger than the given value.
+ * If the image's current height is less than the given value, no
+ * resizing takes place.
+ *
+ * @param maximumHeight
+ *     Maximum height for the image.
+ */
+void
+ImageFile::resizeToMaximumHeight(const int32_t maximumHeight)
+{
+    CaretAssert(m_image);
+    const int32_t height = m_image->height();
+    
+    if (height > maximumHeight) {
+        *m_image = m_image->scaledToHeight(maximumHeight,
+                                          Qt::SmoothTransformation);
+    }
+}
+
+/**
  * Resize the image so that its maximum dimension is the given value
- * yet preserves the aspect ratio of the image.
+ * yet preserves the aspect ratio of the image.  If the maximum dimension
+ * is less than the given value, no resizing takes place.
  *
  * @param maximumWidthOrHeight
  *     Maximum dimension for the image.
@@ -998,15 +1039,11 @@ ImageFile::resizeToMaximumWidthOrHeight(const int32_t maximumWidthOrHeight)
     if ((width > 0)
         && (height > 0)) {
         if (width > height) {
-            if (width > maximumWidthOrHeight) {
-                *m_image = m_image->scaledToWidth(maximumWidthOrHeight,
-                                                  Qt::SmoothTransformation);
-            }
+            resizeToMaximumWidth(maximumWidthOrHeight);
         }
         else {
             if (height > maximumWidthOrHeight) {
-                *m_image = m_image->scaledToHeight(maximumWidthOrHeight,
-                                                   Qt::SmoothTransformation);
+                resizeToMaximumWidth(maximumWidthOrHeight);
             }
         }
     }

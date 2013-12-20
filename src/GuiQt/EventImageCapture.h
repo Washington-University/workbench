@@ -47,6 +47,8 @@ namespace caret {
                           const int32_t imageSizeX,
                           const int32_t imageSizeY);
         
+        EventImageCapture(const int32_t browserWindowIndex);
+        
         virtual ~EventImageCapture();
         
         int32_t getBrowserWindowIndex() const;

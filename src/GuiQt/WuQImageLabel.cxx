@@ -55,7 +55,39 @@ using namespace caret;
  */
 
 #include <QIcon>
+#include <QImage>
 #include <QMouseEvent>
+#include <QPixmap>
+
+/**
+ * Default constructor creates a label with no image nor text.
+ */
+WuQImageLabel::WuQImageLabel()
+: QLabel()
+{
+    setAlignment(Qt::AlignCenter);
+}
+
+
+/**
+ * Constructor constructs an image label with either the given image if the
+ * image is valid (not NULL).  If the image is invalid (NULL), the text
+ * will be displayed.
+ *
+ * @param image
+ *     Image that is displayed.
+ * @param text
+ *     Text that is displayed if image is not valid (NULL).
+ */
+WuQImageLabel::WuQImageLabel(const QImage* image,
+                             const QString& text)
+: QLabel()
+{
+    updateImageText(image,
+                    text);
+    setAlignment(Qt::AlignCenter);
+}
+
 
 /**
  * Constructor constructs an image label with either the given icon if the
@@ -123,6 +155,29 @@ WuQImageLabel::updateIconText(const QIcon* icon,
     else {
         setText(text);
     }
+}
+
+/*
+ * Update image label with either the given image if the
+ * image is valid (not NULL).  If the image is invalid (NULL), the text
+ * will be displayed.
+ *
+ * @param image
+ *     Image that is displayed.
+ * @param text
+ *     Text that is displayed if icon is not valid (NULL).
+ */
+void
+WuQImageLabel::updateImageText(const QImage* image,
+                               const QString& text)
+{
+    if (image != NULL) {
+        setPixmap(QPixmap::fromImage(*image));
+    }
+    else {
+        setPixmap(QPixmap());
+    }
+    setText(text);
 }
 
 /**

@@ -38,6 +38,7 @@
 #include <QLabel>
 
 class QIcon;
+class QImage;
 
 namespace caret {
 
@@ -46,6 +47,11 @@ namespace caret {
         Q_OBJECT
 
     public:
+        WuQImageLabel();
+        
+        WuQImageLabel(const QImage* image,
+                      const QString& text);
+        
         WuQImageLabel(const QIcon* icon,
                       const QString& text);
         
@@ -53,6 +59,9 @@ namespace caret {
                       const QString& text);
         
         virtual ~WuQImageLabel();
+        
+        void updateImageText(const QImage* icon,
+                             const QString& text);
         
         void updateIconText(const QIcon* icon,
                             const QString& text);

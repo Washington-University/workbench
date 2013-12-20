@@ -34,19 +34,22 @@
  */
 /*LICENSE_END*/
 
+#include <QGroupBox>
 
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
 class QComboBox;
+class QLabel;
 class QPushButton;
+class QVBoxLayout;
 
 namespace caret {
 
     class Scene;
+    class SceneClassInfoWidget;
     class SceneFile;
-    class WuQListWidget;
     class WuQDataEntryDialog;
     
     class SceneDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -72,8 +75,6 @@ namespace caret {
     private slots:
         void sceneFileSelected();
         
-        void sceneSelected();
-        
         void newSceneFileButtonClicked();
         
         void addNewSceneButtonClicked();
@@ -88,6 +89,10 @@ namespace caret {
         
         void sceneWasDropped();
         
+        void sceneHighlighted(const int32_t sceneIndex);
+        
+        void sceneActivated(const int32_t sceneIndex);
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -99,9 +104,13 @@ namespace caret {
         
         void loadSceneFileComboBox(SceneFile* selectedSceneFileIn);
         
-        void loadSceneListWidget(Scene* selectedSceneIn);
+        void loadScenesIntoDialog(Scene* selectedSceneIn);
         
         void addImageThumbnailToScene(Scene* scene);
+        
+        void highlightSceneAtIndex(const int32_t sceneIndex);
+        
+        void highlightScene(const Scene* scene);
         
         QWidget* createMainPage();
         QWidget* createOptionPage();
@@ -126,13 +135,70 @@ namespace caret {
         
         QPushButton* m_showScenePushButton;
         
-        WuQListWidget* m_sceneSelectionListWidget;
-        
         QComboBox* m_optionsShowSceneWindowBehaviorComboBox;
         
         QCheckBox* m_optionsCreateSceneAddSpecFileCheckBox;
         
+        QWidget* m_sceneSelectionWidget;
+        
+        QVBoxLayout* m_sceneSelectionLayout;
+        
+        std::vector<SceneClassInfoWidget*> m_sceneClassInfoWidgets;
+        
+        int32_t m_selectedSceneClassInfoIndex;
+        
         static const AString PREFERRED_IMAGE_FORMAT;
+    };
+    
+    class SceneClassInfoWidget : public QGroupBox {
+        Q_OBJECT
+      
+    public:
+        SceneClassInfoWidget();
+        
+        ~SceneClassInfoWidget();
+        
+        void updateContent(Scene* scene,
+                           const int32_t sceneIndex);
+        
+        void setBackgroundForSelected(const bool selected);
+        
+        Scene* getScene();
+        
+        int32_t getSceneIndex() const;
+        
+        bool isValid() const;
+        
+    signals:
+        /**
+         * Emited when user activates (double clicks) this widget.
+         */
+        void activated(const int32_t sceneIndex);
+        
+        /**
+         * Emited when user highlights (clicks) this widget.
+         */
+        void highlighted(const int32_t sceneIndex);
+        
+    protected:
+        virtual void mousePressEvent(QMouseEvent* event);
+        
+        virtual void mouseDoubleClickEvent(QMouseEvent* event);
+        
+    private:
+        QLabel* m_previewImageLabel;
+        
+        QLabel* m_nameLabel;
+        
+        QLabel* m_descriptionLabel;
+        
+        Scene* m_scene;
+        
+        int32_t m_sceneIndex;
+        
+        bool m_defaultAutoFillBackgroundStatus;
+        QPalette::ColorRole m_defaultBackgroundRole;
+        
     };
 #ifdef __SCENE_DIALOG_DECLARE__
     const AString SceneDialog::PREFERRED_IMAGE_FORMAT = "jpg";

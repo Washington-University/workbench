@@ -94,6 +94,10 @@ public:
     
     void resizeToMaximumWidthOrHeight(const int32_t maximumWidthOrHeight);
     
+    void resizeToMaximumWidth(const int32_t maximumWidth);
+    
+    void resizeToMaximumHeight(const int32_t maximumHeight);
+    
     void getImageInByteArray(QByteArray& byteArrayOut,
                              const AString& format) const throw (DataFileException);
     

@@ -36,11 +36,14 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFrame>
 #include <QGroupBox>
 #include <QGridLayout>
+#include <QImage>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
@@ -56,6 +59,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CaretLogger.h"
 #include "CursorDisplayScoped.h"
 #include "CaretPreferences.h"
 #include "EventBrowserTabGetAll.h"
@@ -73,7 +77,6 @@
 #include "SessionManager.h"
 #include "UsernamePasswordWidget.h"
 #include "WuQDataEntryDialog.h"
-#include "WuQListWidget.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -94,6 +97,8 @@ SceneDialog::SceneDialog(QWidget* parent)
 : WuQDialogNonModal("Scenes",
                     parent)
 {
+    m_selectedSceneClassInfoIndex = -1;
+    
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(createMainPage(), "Scenes");
     tabWidget->addTab(createOptionPage(), "Options");
@@ -137,7 +142,7 @@ void
 SceneDialog::updateDialog()
 {
     loadSceneFileComboBox(NULL);
-    loadSceneListWidget(NULL);    
+    loadScenesIntoDialog(NULL);
 }
 
 /**
@@ -163,12 +168,38 @@ SceneDialog::getSelectedSceneFile()
 Scene*
 SceneDialog::getSelectedScene()
 {
-    Scene* scene = NULL;
-    QListWidgetItem* lwi = m_sceneSelectionListWidget->currentItem();
-    if (lwi != NULL) {
-        scene = reinterpret_cast<Scene*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
+    Scene* selectedScene = NULL;
+    
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        int32_t numValidScenes = sceneFile->getNumberOfScenes();
+        
+        bool selectedSceneChanged = false;
+        
+        if (m_selectedSceneClassInfoIndex >= numValidScenes) {
+            m_selectedSceneClassInfoIndex = numValidScenes - 1;
+            
+            selectedSceneChanged = true;
+        }
+        if (m_selectedSceneClassInfoIndex < 0) {
+            if (numValidScenes > 0) {
+                m_selectedSceneClassInfoIndex = 0;
+                
+                selectedSceneChanged = true;
+            }
+        }
+        
+        if ((m_selectedSceneClassInfoIndex >= 0)
+            && (m_selectedSceneClassInfoIndex < numValidScenes)) {
+            selectedScene = sceneFile->getSceneAtIndex(m_selectedSceneClassInfoIndex);
+        }
+        
+        if (selectedSceneChanged) {
+            highlightSceneAtIndex(m_selectedSceneClassInfoIndex);
+        }
     }
-    return scene;
+    
+    return selectedScene;
 }
 
 
@@ -210,7 +241,7 @@ SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
  * Load the scene selection list widget.
  */
 void 
-SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
+SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
 {
     SceneFile* sceneFile = getSelectedSceneFile();
     Scene* selectedScene = selectedSceneIn;
@@ -218,11 +249,20 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
         selectedScene = getSelectedScene();
     }
     
-    m_sceneSelectionListWidget->blockSignals(true);
-    m_sceneSelectionListWidget->clear();
+    for (std::vector<SceneClassInfoWidget*>::iterator iter = m_sceneClassInfoWidgets.begin();
+         iter != m_sceneClassInfoWidgets.end();
+         iter++) {
+        SceneClassInfoWidget* sciw = *iter;
+        sciw->blockSignals(true);
+        sciw->updateContent(NULL,
+                            -1);
+    }
+    
+    int32_t numberOfValidSceneInfoWidgets = 0;
+    
+    int32_t defaultIndex = -1;
     
     if (sceneFile != NULL) {
-        int32_t defaultIndex = 0;
         const int32_t numScenes = sceneFile->getNumberOfScenes();
         for (int32_t i = 0; i < numScenes; i++) {
             Scene* scene = sceneFile->getSceneAtIndex(i);
@@ -231,40 +271,50 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
             AString imageBytesFormat;
             scene->getSceneInfo()->getImageThumbnailBytes(imageByteArray,
                                                           imageBytesFormat);
-            QListWidgetItem* lwi = new QListWidgetItem(scene->getName());
-            lwi->setToolTip(WuQtUtilities::createWordWrappedToolTipText(scene->getDescription()));
-            lwi->setData(Qt::UserRole,
-                         qVariantFromValue(reinterpret_cast<quintptr>(scene)));
             
-            if (imageByteArray.length() > 0) {
-                try {
-                    ImageFile imageFile;
-                    imageFile.setImageFromByteArray(imageByteArray,
-                                                    imageBytesFormat);
-                    const QImage* image = imageFile.getAsQImage();
-                    QPixmap pixmap;
-                    if (pixmap.convertFromImage(*image)) {
-                        QIcon icon(pixmap);
-                        lwi->setIcon(icon);
-                    }
-                }
-                catch (const DataFileException& dfe) {
-                    
-                }
+            SceneClassInfoWidget* sciw = NULL;
+            
+            if (i >= static_cast<int32_t>(m_sceneClassInfoWidgets.size())) {
+                sciw = new SceneClassInfoWidget();
+                QObject::connect(sciw, SIGNAL(activated(int32_t)),
+                                 this, SLOT(sceneActivated(int32_t)));
+                QObject::connect(sciw, SIGNAL(highlighted(int32_t)),
+                                 this, SLOT(sceneHighlighted(int32_t)));
+                m_sceneClassInfoWidgets.push_back(sciw);
+                m_sceneSelectionLayout->addWidget(sciw);
+            }
+            else {
+                sciw = m_sceneClassInfoWidgets[i];
             }
             
+            sciw->updateContent(scene,
+                                i);
+            
+            sciw->setBackgroundForSelected(i == 1);
             
             if (scene == selectedScene) {
                 defaultIndex = i;
             }
-            m_sceneSelectionListWidget->addItem(lwi);
+            else if (defaultIndex < 0) {
+                defaultIndex = i;
+            }
         }
-        
-        if (numScenes > 0) {
-            m_sceneSelectionListWidget->setCurrentRow(defaultIndex);
-        }
+        numberOfValidSceneInfoWidgets = numScenes;
     }
-    m_sceneSelectionListWidget->blockSignals(false);
+    
+    const int32_t numberOfSceneInfoWidgets = static_cast<int32_t>(m_sceneClassInfoWidgets.size());
+    for (int32_t i = 0; i < numberOfSceneInfoWidgets; i++) {
+        bool visibilityStatus = false;
+        if (i < numberOfValidSceneInfoWidgets) {
+            visibilityStatus = true;
+        }
+        m_sceneClassInfoWidgets[i]->setVisible(visibilityStatus);
+        m_sceneClassInfoWidgets[i]->blockSignals(false);
+    }
+    
+    if (defaultIndex >= 0) {
+        highlightSceneAtIndex(defaultIndex);
+    }
 
     const bool validFile = (getSelectedSceneFile() != NULL);
     const bool validScene = (getSelectedScene() != NULL);    
@@ -273,6 +323,58 @@ SceneDialog::loadSceneListWidget(Scene* selectedSceneIn)
     m_deleteScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
+}
+
+/**
+ * Highlight the scene at the given index.
+ *
+ * @param sceneIndex
+ *     Index of scene to highlight.
+ */
+void
+SceneDialog::highlightSceneAtIndex(const int32_t sceneIndex)
+{
+    bool sceneIndexValid = false;
+    
+    const int32_t numberOfSceneInfoWidgets = static_cast<int32_t>(m_sceneClassInfoWidgets.size());
+    for (int32_t i = 0; i < numberOfSceneInfoWidgets; i++) {
+        SceneClassInfoWidget* sciw = m_sceneClassInfoWidgets[i];
+        if (sciw->isValid()) {
+            if (sciw->getSceneIndex() == sceneIndex) {
+                sciw->setBackgroundForSelected(true);
+                sceneIndexValid = true;
+                m_selectedSceneClassInfoIndex = i;
+            }
+            else {
+                sciw->setBackgroundForSelected(false);
+            }
+        }
+    }
+    
+    if ( ! sceneIndexValid) {
+        m_selectedSceneClassInfoIndex = -1;
+    }
+}
+
+/**
+ * Highlight the given scene.
+ *
+ * @param scene
+ *     Scene to highlight.
+ */
+void
+SceneDialog::highlightScene(const Scene* scene)
+{
+    const int32_t numberOfSceneInfoWidgets = static_cast<int32_t>(m_sceneClassInfoWidgets.size());
+    for (int32_t i = 0; i < numberOfSceneInfoWidgets; i++) {
+        SceneClassInfoWidget* sciw = m_sceneClassInfoWidgets[i];
+        if (sciw->isValid()) {
+            if (sciw->getScene() == scene) {
+                highlightSceneAtIndex(sciw->getSceneIndex());
+                return;
+            }
+        }
+    }
 }
 
 /**
@@ -317,15 +419,7 @@ SceneDialog::newSceneFileButtonClicked()
 void 
 SceneDialog::sceneFileSelected()
 {
-    loadSceneListWidget(NULL);
-}
-
-/**
- * Called when a scene is selected.
- */
-void 
-SceneDialog::sceneSelected()
-{
+    loadScenesIntoDialog(NULL);
 }
 
 /**
@@ -396,7 +490,7 @@ SceneDialog::addNewSceneButtonClicked()
             
             Scene::setSceneBeingCreated(NULL);
             
-            loadSceneListWidget(newScene);
+            loadScenesIntoDialog(newScene);
         }
     }
 }
@@ -479,7 +573,7 @@ SceneDialog::replaceSceneButtonClicked()
                 
                 Scene::setSceneBeingCreated(NULL);
                 
-                loadSceneListWidget(newScene);
+                loadScenesIntoDialog(newScene);
             }
             else {
                 scene->setName(savedSceneName);
@@ -504,11 +598,7 @@ SceneDialog::addImageThumbnailToScene(Scene* scene)
         BrainBrowserWindow* bbw = *iter;
         const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
         
-        const int32_t sizeX = 0;
-        const int32_t sizeY = 0;
-        EventImageCapture imageCaptureEvent(browserWindowIndex,
-                                            sizeX,
-                                            sizeY);
+        EventImageCapture imageCaptureEvent(browserWindowIndex);
         EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
         
         if (imageCaptureEvent.getEventProcessCount() > 0) {
@@ -531,7 +621,7 @@ SceneDialog::addImageThumbnailToScene(Scene* scene)
                                                                       numImagesPerRow,
                                                                       backgroundColor);
             
-            compositeImageFile.resizeToMaximumWidthOrHeight(100);
+            compositeImageFile.resizeToMaximumWidthOrHeight(512);
             
             QByteArray byteArray;
             compositeImageFile.getImageInByteArray(byteArray,
@@ -652,18 +742,22 @@ SceneDialog::createMainPage()
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
     sceneButtonLayout->addWidget(m_replaceScenePushButton);
     sceneButtonLayout->addWidget(m_deleteScenePushButton);
-    
+
     /*
-     * Scene selection list widget
+     * Widget and layout containing the scene class info.
      */
-    m_sceneSelectionListWidget = new WuQListWidget();
-    
-    QObject::connect(m_sceneSelectionListWidget, SIGNAL(currentRowChanged(int)),
-                     this, SLOT(sceneSelected()));
-    QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-                     this, SLOT(showSceneButtonClicked()));  // show the scene
-    QObject::connect(m_sceneSelectionListWidget, SIGNAL(itemWasDropped()),
-                     this, SLOT(sceneWasDropped())); 
+    m_sceneSelectionLayout = new QVBoxLayout();
+    m_sceneSelectionWidget = new QWidget();
+    m_sceneSelectionWidget->setSizePolicy(m_sceneSelectionWidget->sizePolicy().horizontalPolicy(),
+                                          QSizePolicy::Fixed);
+    QVBoxLayout* sceneSelectionWidgetLayout = new QVBoxLayout(m_sceneSelectionWidget);
+    sceneSelectionWidgetLayout->addLayout(m_sceneSelectionLayout);
+    sceneSelectionWidgetLayout->addStretch();
+    QScrollArea* sceneSelectionScrollArea = new QScrollArea();
+    sceneSelectionScrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    sceneSelectionScrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    sceneSelectionScrollArea->setWidget(m_sceneSelectionWidget);
+    sceneSelectionScrollArea->setWidgetResizable(true);
     
     /*
      * Layout widgets
@@ -678,8 +772,9 @@ SceneDialog::createMainPage()
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3);
     row++;
     gridLayout->addWidget(sceneLabel, row, 0, (Qt::AlignTop | Qt::AlignRight));
-    gridLayout->addWidget(m_sceneSelectionListWidget, row, 1);
+    gridLayout->addWidget(sceneSelectionScrollArea, row, 1);
     gridLayout->addLayout(sceneButtonLayout, row, 2);
+    row++;
     
     return widget;
 }
@@ -690,32 +785,32 @@ SceneDialog::createMainPage()
 void 
 SceneDialog::sceneWasDropped()
 {
-    std::vector<Scene*> newlyOrderedScenes;
-    
-    /*
-     * Get the scenes from this list widget to obtain the new scene ordering.
-     */
-    const int32_t numItems = m_sceneSelectionListWidget->count();
-    for (int32_t i = 0; i < numItems; i++) {
-        QListWidgetItem* lwi = m_sceneSelectionListWidget->item(i);
-        if (lwi != NULL) {
-            if (lwi != NULL) {
-                Scene* scene = reinterpret_cast<Scene*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
-                newlyOrderedScenes.push_back(scene);
-            }
-        }
-    }
-    
-    if (newlyOrderedScenes.empty() == false) {
-        /*
-         * Update the order of the scenes in the scene file.
-         */
-        SceneFile* sceneFile = getSelectedSceneFile();
-        if (sceneFile != NULL) {
-            sceneFile->reorderScenes(newlyOrderedScenes);
-            sceneFileSelected();
-        }
-    }
+//    std::vector<Scene*> newlyOrderedScenes;
+//    
+//    /*
+//     * Get the scenes from this list widget to obtain the new scene ordering.
+//     */
+//    const int32_t numItems = m_sceneSelectionListWidget->count();
+//    for (int32_t i = 0; i < numItems; i++) {
+//        QListWidgetItem* lwi = m_sceneSelectionListWidget->item(i);
+//        if (lwi != NULL) {
+//            if (lwi != NULL) {
+//                Scene* scene = reinterpret_cast<Scene*>(qVariantValue<quintptr>(lwi->data(Qt::UserRole)));
+//                newlyOrderedScenes.push_back(scene);
+//            }
+//        }
+//    }
+//    
+//    if (newlyOrderedScenes.empty() == false) {
+//        /*
+//         * Update the order of the scenes in the scene file.
+//         */
+//        SceneFile* sceneFile = getSelectedSceneFile();
+//        if (sceneFile != NULL) {
+//            sceneFile->reorderScenes(newlyOrderedScenes);
+//            sceneFileSelected();
+//        }
+//    }
 }
 
 /**
@@ -841,6 +936,19 @@ SceneDialog::validateContentOfCreateSceneDialog(WuQDataEntryDialog* sceneCreateD
                                     errorMessage);
 }
 
+void
+SceneDialog::sceneHighlighted(const int32_t sceneIndex)
+{
+    highlightSceneAtIndex(sceneIndex);
+}
+
+void
+SceneDialog::sceneActivated(const int32_t sceneIndex)
+{
+    highlightSceneAtIndex(sceneIndex);
+    showSceneButtonClicked();
+}
+
 
 /**
  * Called when delete scene button clicked.
@@ -924,7 +1032,7 @@ SceneDialog::displayScene(SceneFile* sceneFile,
                         scene,
                         true);
     loadSceneFileComboBox(sceneFile);
-    loadSceneListWidget(scene);
+    loadScenesIntoDialog(scene);
     
     return isSuccessful;
 }
@@ -1008,3 +1116,206 @@ SceneDialog::receiveEvent(Event* event)
         uiEvent->setEventProcessed();
     }
 }
+
+
+
+/* ======================================================================== */
+/**
+ * \class caret::SceneClassWidget
+ * \brief Dialog for manipulation of scenes.
+ * \ingroup GuiQt
+ */
+
+/**
+ * Constructor.
+ */
+SceneClassInfoWidget::SceneClassInfoWidget()
+: QGroupBox(0)
+{
+//    QWidget* w = new QWidget();
+//    setFrameShape(QFrame::Box);
+//    setFrameStyle(QFrame::Plain);
+//    setLineWidth(1);
+//    setMidLineWidth(0);
+    
+    m_scene = NULL;
+    m_sceneIndex = -1;
+    
+    m_defaultBackgroundRole = backgroundRole();
+    m_defaultAutoFillBackgroundStatus = autoFillBackground();
+    
+    m_nameLabel = new QLabel();
+    
+    m_descriptionLabel = new QLabel();
+    m_descriptionLabel->setWordWrap(true);
+    
+    m_previewImageLabel = new QLabel();
+    
+    QVBoxLayout* rightLayout = new QVBoxLayout();
+    rightLayout->addWidget(m_nameLabel);
+    rightLayout->addWidget(m_descriptionLabel);
+    rightLayout->addStretch();
+    
+    QVBoxLayout* leftLayout = new QVBoxLayout();
+    leftLayout->addWidget(m_previewImageLabel);
+    leftLayout->addStretch();
+
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->addLayout(leftLayout);
+    layout->addLayout(rightLayout, 100);
+    
+    setSizePolicy(sizePolicy().horizontalPolicy(),
+                  QSizePolicy::Fixed); //Minimum);
+}
+
+/**
+ * Destructor.
+ */
+SceneClassInfoWidget::~SceneClassInfoWidget()
+{
+    
+}
+
+/**
+ * Set/reset the background so that the widget appears to be 
+ * selected/unselected.
+ *
+ * @param selected
+ *     Selection status.
+ */
+void
+SceneClassInfoWidget::setBackgroundForSelected(const bool selected)
+{
+    if (selected) {
+        setAutoFillBackground(true);
+        setBackgroundRole(QPalette::AlternateBase);
+    }
+    else {
+        setAutoFillBackground(m_defaultAutoFillBackgroundStatus);
+        setBackgroundRole(m_defaultBackgroundRole);
+    }
+}
+
+/**
+ * Update the content.
+ *
+ * @param scene
+ *     Scene for display.
+ * @param sceneIndex
+ *     Index of the scene.
+ */
+void
+SceneClassInfoWidget::updateContent(Scene* scene,
+                                    const int32_t sceneIndex)
+{
+    m_scene = scene;
+    m_sceneIndex = sceneIndex;
+    
+    if ((m_scene != NULL)
+        && (m_sceneIndex >= 0)) {
+        const SceneInfo* sceneInfo = m_scene->getSceneInfo();
+        
+        m_nameLabel->setText("<html><b>Name</b>: "
+                             + sceneInfo->getName()
+                             + "</html>");
+        
+        m_descriptionLabel->setText("<html><b>Description</b>: "
+                                    + sceneInfo->getDescription()
+                                    + "</html>");
+        m_descriptionLabel->setWordWrap(true);
+        
+        QByteArray imageByteArray;
+        AString imageBytesFormat;
+        scene->getSceneInfo()->getImageThumbnailBytes(imageByteArray,
+                                                      imageBytesFormat);
+        
+        
+        const int maximumPreviewImageSize = 64;
+        
+        QImage  previewImage;
+        bool    previewImageValid = false;
+        
+        if (imageByteArray.length() > 0) {
+            try {
+                ImageFile imageFile;
+                imageFile.setImageFromByteArray(imageByteArray,
+                                                imageBytesFormat);
+                imageFile.resizeToMaximumWidthOrHeight(maximumPreviewImageSize);
+                previewImage = *imageFile.getAsQImage();
+                previewImageValid = true;
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogSevere(dfe.whatString());
+            }
+        }
+        
+        if (previewImageValid) {
+            m_previewImageLabel->setText("");
+            m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
+        }
+        else {
+            m_previewImageLabel->setText("<html>No preview<br>available</html>");
+            m_previewImageLabel->setPixmap(QPixmap());
+        }
+        
+        const int maximumLabelSize = maximumPreviewImageSize + 8;
+        m_previewImageLabel->setFixedWidth(maximumLabelSize);
+    }
+}
+
+/**
+ * Called by Qt when the mouse is pressed.
+ *
+ * @param event
+ *    The mouse event information.
+ */
+void
+SceneClassInfoWidget::mousePressEvent(QMouseEvent* event)
+{
+    emit highlighted(m_sceneIndex);
+    event->setAccepted(true);
+}
+
+/**
+ * Called when the mouse is double clicked.
+ *
+ * @param event
+ *    The mouse event information.
+ */
+void
+SceneClassInfoWidget::mouseDoubleClickEvent(QMouseEvent* event)
+{
+    emit activated(m_sceneIndex);
+    event->setAccepted(true);
+}
+
+/**
+ * @return The scene.
+ */
+Scene*
+SceneClassInfoWidget::getScene()
+{
+    return m_scene;
+}
+
+/**
+ * @return The index of the scene.
+ */
+int32_t
+SceneClassInfoWidget::getSceneIndex() const
+{
+    return m_sceneIndex;
+}
+
+bool
+SceneClassInfoWidget::isValid() const
+{
+    if ((m_scene != NULL)
+        && (m_sceneIndex >= 0)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
