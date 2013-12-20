@@ -62,10 +62,7 @@ SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral()
                                       SUPPORTS_LAYOUT_ORIENTATION_YES)
 {
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
-    validSurfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
-    validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
-    validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
-    validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
+    SurfaceTypeEnum::getAllEnumsExceptFlat(validSurfaceTypes);
     
     m_leftFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT,
                                                                  validSurfaceTypes);

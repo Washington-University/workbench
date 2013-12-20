@@ -59,10 +59,7 @@ SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
                                       SUPPORTS_LAYOUT_ORIENTATION_YES)
 {
     std::vector<SurfaceTypeEnum::Enum> validSurfaceTypes;
-    validSurfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
-    validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
-    validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
-    validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
+    SurfaceTypeEnum::getAllEnumsExceptFlat(validSurfaceTypes);
     
     m_firstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CEREBELLUM,
                                                              validSurfaceTypes);
