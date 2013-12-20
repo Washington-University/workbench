@@ -91,9 +91,10 @@ AlgorithmSurfaceCreateSphere::AlgorithmSurfaceCreateSphere(ProgressObject* myPro
     }
     if (m_numDivisions == -1) throw AlgorithmException("too many vertices specified");
     m_surface = mySurfOut;
-    m_surface->setSurfaceType(SurfaceTypeEnum::SPHERICAL);
     getNumberOfNodesAndTrianglesFromDivisions(m_numDivisions, mynodes, mytris);
     m_surface->setNumberOfNodesAndTriangles(mynodes, mytris);
+    m_surface->setSurfaceType(SurfaceTypeEnum::SPHERICAL);
+    m_surface->setSecondaryType(SecondarySurfaceTypeEnum::INVALID);
     SurfaceFile initSurf;
     initSurf.setNumberOfNodesAndTriangles(12, 20);
     const double phi = (1.0 + sqrt(5.0)) / 2.0;
