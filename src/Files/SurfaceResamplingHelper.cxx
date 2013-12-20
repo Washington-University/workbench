@@ -222,19 +222,22 @@ void SurfaceResamplingHelper::resampleCutSurface(const SurfaceFile* cutSurfaceIn
     cutCurSphere.setCoordinates(currentSphereMod.getCoordinateData());
     int newNodes = newSphere->getNumberOfNodes();
     vector<BarycentricInfo> newInfo(newSphere->getNumberOfNodes());
-    CaretPointer<SignedDistanceHelper> mySignedHelp = cutCurSphere.getSignedDistanceHelper();
-    for (int i = 0; i < newNodes; ++i)
+#pragma omp CARET_PAR
     {
-        mySignedHelp->barycentricWeights(newSphereMod.getCoordinate(i), newInfo[i]);
+        CaretPointer<SignedDistanceHelper> mySignedHelp = cutCurSphere.getSignedDistanceHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int i = 0; i < newNodes; ++i)
+        {
+            mySignedHelp->barycentricWeights(newSphereMod.getCoordinate(i), newInfo[i]);
+        }
     }
     vector<int> isOnEdge(newNodes, 0);//really used as bool, but avoid bitpacking so it can be modified in parallel
-    CaretPointer<TopologyHelper> cutTopoHelp = cutSurfaceIn->getTopologyHelper();//because topology didn't change, and it might have one already
+    CaretPointer<TopologyHelper> cutTopoHelp = cutSurfaceIn->getTopologyHelper();//because topology didn't change, and it might have one already - also, don't need separate helpers per thread, not using neighbors to depth
     CaretPointer<TopologyHelper> closedTopoHelp = currentSphere->getTopologyHelper();//ditto
     CaretPointer<TopologyHelper> newTopoHelp = newSphere->getTopologyHelper();//tritto?
-    CaretPointer<GeodesicHelper> closedGeoHelp = currentSphereMod.getGeodesicHelper();
-    CaretPointer<GeodesicHelper> cutGeoHelp = cutCurSphere.getGeodesicHelper();
     const vector<TopologyEdgeInfo>& cutEdgeInfo = cutTopoHelp->getEdgeInfo();
     vector<int> largestNode(newNodes, -1);
+#pragma omp CARET_PARFOR
     for (int i = 0; i < newNodes; ++i)
     {
         float largestWeight = 0.0f, secondWeight = 0.0f;//locate the two nodes with largest barycentric weights
@@ -294,33 +297,63 @@ void SurfaceResamplingHelper::resampleCutSurface(const SurfaceFile* cutSurfaceIn
                 break;
         }
     }
-    set<int32_t> triRemove, nodeDisconnect;
-    for (int32_t i = 0; i < newNodes; ++i)
+    int numNewTris = newSphere->getNumberOfTriangles();
+    vector<int> triRemove(numNewTris, 0), nodeDisconnect(newNodes, 0);//again, avoid bitpacking
+#pragma omp CARET_PAR
     {
-        if (i == 214)
+        CaretPointer<GeodesicHelper> closedGeoHelp = currentSphereMod.getGeodesicHelper();
+        CaretPointer<GeodesicHelper> cutGeoHelp = cutCurSphere.getGeodesicHelper();
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < newNodes; ++i)
         {
-            cout << "hit" << endl;
-        }
-        const vector<int32_t>& neighbors = newTopoHelp->getNodeNeighbors(i);
-        if (isOnEdge[i])
-        {
-            bool hasInteriorNeighbor = false;
-            for (int j = 0; j < (int)neighbors.size(); ++j)
+            const vector<int32_t>& neighbors = newTopoHelp->getNodeNeighbors(i);
+            if (isOnEdge[i])
             {
-                if (!isOnEdge[neighbors[j]])
+                bool hasInteriorNeighbor = false;
+                for (int j = 0; j < (int)neighbors.size(); ++j)
                 {
-                    hasInteriorNeighbor = true;
-                    break;
+                    if (!isOnEdge[neighbors[j]])
+                    {
+                        hasInteriorNeighbor = true;
+                        break;
+                    }
                 }
-            }
-            if (hasInteriorNeighbor)
-            {
+                if (hasInteriorNeighbor)
+                {
+                    for (int j = 0; j < (int)neighbors.size(); ++j)
+                    {
+                        vector<int32_t> closedPath, cutPath;
+                        vector<float> closedPathDists, cutPathDists;
+                        closedGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], closedPath, closedPathDists);
+                        cutGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], cutPath, cutPathDists);
+                        if (cutPathDists.size() == 0 || cutPathDists.back() > 2.0f * closedPathDists.back())//maybe this cutoff should be tunable
+                        {
+                            const vector<int32_t>& myTiles = newTopoHelp->getNodeTiles(i);//find tiles on new mesh that share this edge, remove them
+                            for (int k = 0; k < (int)myTiles.size(); ++k)
+                            {
+                                const int32_t* thisTile = newSphere->getTriangle(myTiles[k]);
+                                if (thisTile[0] == neighbors[j] || thisTile[1] == neighbors[j] || thisTile[2] == neighbors[j])
+                                {
+                                    triRemove[myTiles[k]] = 1;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    nodeDisconnect[i] = 1;//disconnect it completely if it has no interior neighbors
+                    const vector<int32_t>& nodeTiles = newTopoHelp->getNodeTiles(i);
+                    for (int j = 0; j < (int)nodeTiles.size(); ++j)
+                    {
+                        triRemove[nodeTiles[j]] = 1;
+                    }
+                }
+            } else {//interior nodes also have to be checked for crossing the cut, since there may not be a node that falls inside the cut
                 for (int j = 0; j < (int)neighbors.size(); ++j)
                 {
                     vector<int32_t> closedPath, cutPath;
                     vector<float> closedPathDists, cutPathDists;
                     closedGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], closedPath, closedPathDists);
-                    cutGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], cutPath, cutPathDists);
+                    cutGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], cutPath, cutPathDists);//note: path length of zero means no connection
                     if (cutPathDists.size() == 0 || cutPathDists.back() > 2.0f * closedPathDists.back())//maybe this cutoff should be tunable
                     {
                         const vector<int32_t>& myTiles = newTopoHelp->getNodeTiles(i);//find tiles on new mesh that share this edge, remove them
@@ -329,66 +362,38 @@ void SurfaceResamplingHelper::resampleCutSurface(const SurfaceFile* cutSurfaceIn
                             const int32_t* thisTile = newSphere->getTriangle(myTiles[k]);
                             if (thisTile[0] == neighbors[j] || thisTile[1] == neighbors[j] || thisTile[2] == neighbors[j])
                             {
-                                triRemove.insert(myTiles[k]);
+                                triRemove[myTiles[k]] = 1;
                             }
                         }
                     }
                 }
-            } else {
-                nodeDisconnect.insert(i);//disconnect it completely if it has no interior neighbors
-                const vector<int32_t>& nodeTiles = newTopoHelp->getNodeTiles(i);
-                for (int j = 0; j < (int)nodeTiles.size(); ++j)
-                {
-                    triRemove.insert(nodeTiles[j]);
-                }
-            }
-        } else {//interior nodes also have to be checked for crossing the cut, since there may not be a node that falls inside the cut
-            for (int j = 0; j < (int)neighbors.size(); ++j)
-            {
-                vector<int32_t> closedPath, cutPath;
-                vector<float> closedPathDists, cutPathDists;
-                closedGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], closedPath, closedPathDists);
-                cutGeoHelp->getPathToNode(largestNode[i], largestNode[neighbors[j]], cutPath, cutPathDists);//note: path length of zero means no connection
-                if (cutPathDists.size() == 0 || cutPathDists.back() > 2.0f * closedPathDists.back())//maybe this cutoff should be tunable
-                {
-                    const vector<int32_t>& myTiles = newTopoHelp->getNodeTiles(i);//find tiles on new mesh that share this edge, remove them
-                    for (int k = 0; k < (int)myTiles.size(); ++k)
-                    {
-                        const int32_t* thisTile = newSphere->getTriangle(myTiles[k]);
-                        if (thisTile[0] == neighbors[j] || thisTile[1] == neighbors[j] || thisTile[2] == neighbors[j])
-                        {
-                            triRemove.insert(myTiles[k]);
-                        }
-                    }
-                }
             }
         }
     }
-    int numNewTris = newSphere->getNumberOfTriangles();
-    surfaceOut->setNumberOfNodesAndTriangles(newNodes, numNewTris - triRemove.size());
+    int triRemoveCount = 0;
+    for (int i = 0; i < numNewTris; ++i)
+    {
+        if (triRemove[i] != 0) ++triRemoveCount;//parallelizing counting would be silly
+    }
+    surfaceOut->setNumberOfNodesAndTriangles(newNodes, numNewTris - triRemoveCount);
     surfaceOut->setStructure(cutSurfaceIn->getStructure());
     surfaceOut->setSurfaceType(cutSurfaceIn->getSurfaceType());
     surfaceOut->setSecondaryType(cutSurfaceIn->getSecondaryType());
     int outTri = 0;
-    set<int32_t>::iterator iter = triRemove.begin();
     for (int i = 0; i < numNewTris; ++i)
     {
-        if (i == *iter)//sets are sorted, so this won't miss any
+        if (triRemove[i] == 0)
         {
-            ++iter;//if current orig tri is to be removed, increment iterator and skip adding
-        } else {
             surfaceOut->setTriangle(outTri, newSphere->getTriangle(i));
-            ++outTri;
+            ++outTri;//means this can't be parallel, but it would also be silly
         }
     }
-    CaretAssert(outTri == numNewTris - (int)triRemove.size());
-    iter = nodeDisconnect.begin();//and now, same for disconnected nodes
+    CaretAssert(outTri == numNewTris - triRemoveCount);
     Vector3D origin(0.0f, 0.0f, 0.0f);//where we move disconnected nodes to
-    for (int i = 0; i < newNodes; ++i)
+    for (int i = 0; i < newNodes; ++i)//could be parallel, but probably not needed
     {
-        if (i == *iter)
+        if (nodeDisconnect[i] != 0)
         {
-            ++iter;
             surfaceOut->setCoordinate(i, origin);
         } else {
             Vector3D coord1 = cutSurfaceIn->getCoordinate(newInfo[i].nodes[0]);
