@@ -354,6 +354,31 @@ SurfaceTypeEnum::getAllEnums(std::vector<SurfaceTypeEnum::Enum>& allEnums)
 }
 
 /**
+ * Get all of the enumerated type values EXCEPT FLAT.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param enumsOut
+ *     A vector that is OUTPUT containing all of the enumerated values EXCEPT FLAT
+ */
+void
+SurfaceTypeEnum::getAllEnumsExceptFlat(std::vector<Enum>& enumsOut)
+{
+    std::vector<SurfaceTypeEnum::Enum> allEnums;
+    SurfaceTypeEnum::getAllEnums(allEnums);
+
+    enumsOut.clear();
+    
+    for (std::vector<SurfaceTypeEnum::Enum>::iterator iter = allEnums.begin();
+         iter != allEnums.end();
+         iter++) {
+        const SurfaceTypeEnum::Enum st = *iter;
+        if (st != FLAT) {
+            enumsOut.push_back(st);
+        }
+    }
+}
+
+/**
  * Constructor.
  *
  * @param e
@@ -645,3 +670,4 @@ SecondarySurfaceTypeEnum::getAllEnums(std::vector<SecondarySurfaceTypeEnum::Enum
         allEnums.push_back(iter->e);
     }
 }
+

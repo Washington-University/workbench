@@ -85,6 +85,8 @@ public:
 
     static void getAllEnums(std::vector<Enum>& allEnums);
     
+    static void getAllEnumsExceptFlat(std::vector<Enum>& enumsOut);
+    
 private:
     SurfaceTypeEnum(const Enum e, 
                     const AString& name,
