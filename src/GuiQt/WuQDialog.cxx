@@ -586,6 +586,17 @@ WuQDialog::focusGained()
 }
 
 /**
+ * Gets called when the dialog is to be displayed.
+ */
+void
+WuQDialog::showEvent(QShowEvent* event)
+{
+    std::cout << "Dialog " << qPrintable(windowTitle()) << " size hint: " << sizeHint().width() << ", " << sizeHint().height() << std::endl;
+    QDialog::showEvent(event);
+}
+
+
+/**
  * A scroll area's size hint is often larger than its content widget and in
  * this case the dialog will be too large with blank space in the scroll area.
  * This method will adjust the size of the dialog which in turn will shrink

@@ -1097,7 +1097,7 @@ SceneDialog::showImagePreviewButtonClicked()
                     else {
                         WuQDataEntryDialog ded(scene->getName(),
                                                m_showSceneImagePreviewPushButton,
-                                               true);
+                                               false);
                         QLabel* imageLabel = new QLabel();
                         imageLabel->setPixmap(QPixmap::fromImage(*image));
                         ded.addWidget("",

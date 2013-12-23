@@ -107,6 +107,8 @@ namespace caret  {
         
         virtual void focusGained();
         
+        virtual void showEvent(QShowEvent* event);
+        
     private:
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
                                                    QWidget* centralWidget,
