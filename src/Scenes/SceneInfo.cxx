@@ -110,33 +110,49 @@ SceneInfo::setDescription(const AString& sceneDescription)
 /**
  * Set bytes containing the thumbnail image.  
  *
- * @param imageThumbnailBytes
+ * @param imageBytes
  *    Byte array containing the image file.
  * @param imageFormat 
  *    Format of the image (jpg, ppm, etc.).
  */
 void
-SceneInfo::setImageThumbnailBytes(const QByteArray& imageThumbnailBytes,
+SceneInfo::setImageBytes(const QByteArray& imageBytes,
                                   const AString& imageFormat)
 {
-    m_imageThumbnailBytes  = imageThumbnailBytes;
-    m_imageThumbnailFormat = imageFormat;
+    m_imageBytes  = imageBytes;
+    m_imageFormat = imageFormat;
 }
 
 /**
  * Get bytes containing the thumbnail image.
  *
- * @param imageThumbnailBytesOut
+ * @param imageBytesOut
  *    Byte array containing the image file.
  * @param imageFormatOut
  *    Format of the image (jpg, ppm, etc.).
  */
 void
-SceneInfo::getImageThumbnailBytes(QByteArray& imageThumbnailBytesOut,
+SceneInfo::getImageBytes(QByteArray& imageBytesOut,
                                   AString& imageFormatOut) const
 {
-    imageThumbnailBytesOut = m_imageThumbnailBytes;
-    imageFormatOut         = m_imageThumbnailFormat;
+    imageBytesOut = m_imageBytes;
+    imageFormatOut         = m_imageFormat;
+}
+
+/**
+ * @return true if the scene contains an image, else false.
+ *
+ * The image is considered valid if the image bytes are not empty and,
+ * if not empty, it is assumed that the image is valid.
+ */
+bool
+SceneInfo::hasImage() const
+{
+    if (m_imageBytes.isEmpty()) {
+        return false;
+    }
+    
+    return true;
 }
 
 /**
@@ -165,9 +181,9 @@ SceneInfo::writeSceneInfo(XmlWriter& xmlWriter,
                                        m_sceneDescription);
     
     writeSceneInfoImage(xmlWriter,
-                        SceneXmlElements::SCENE_INFO_IMAGE_THUMBNAIL_TAG,
-                        m_imageThumbnailBytes,
-                        m_imageThumbnailFormat);
+                        SceneXmlElements::SCENE_INFO_IMAGE_TAG,
+                        m_imageBytes,
+                        m_imageFormat);
     
     
     /*
@@ -216,17 +232,17 @@ SceneInfo::writeSceneInfoImage(XmlWriter& xmlWriter,
  * 
  */
 void
-SceneInfo::setImageThumbnailFromText(const AString& text,
+SceneInfo::setImageFromText(const AString& text,
                                const AString& encoding,
                                const AString& imageFormat)
 {
-    m_imageThumbnailBytes.clear();
-    m_imageThumbnailFormat = "";
+    m_imageBytes.clear();
+    m_imageFormat = "";
     
     if ( ! text.isEmpty()) {
         if (encoding == SceneXmlElements::SCENE_INFO_ENCODING_BASE64_NAME) {
-            m_imageThumbnailBytes = QByteArray::fromBase64(text.toAscii());
-            m_imageThumbnailFormat = imageFormat;
+            m_imageBytes = QByteArray::fromBase64(text.toAscii());
+            m_imageFormat = imageFormat;
         }
         else {
             CaretLogSevere("Invalid encoding ("

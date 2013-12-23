@@ -85,6 +85,8 @@ namespace caret {
         
         void showSceneButtonClicked();
         
+        void showImagePreviewButtonClicked();
+        
         void validateContentOfCreateSceneDialog(WuQDataEntryDialog*);
         
         void sceneWasDropped();
@@ -106,7 +108,7 @@ namespace caret {
         
         void loadScenesIntoDialog(Scene* selectedSceneIn);
         
-        void addImageThumbnailToScene(Scene* scene);
+        void addImageToScene(Scene* scene);
         
         void highlightSceneAtIndex(const int32_t sceneIndex);
         
@@ -134,6 +136,8 @@ namespace caret {
         QPushButton* m_replaceScenePushButton;
         
         QPushButton* m_showScenePushButton;
+        
+        QPushButton* m_showSceneImagePreviewPushButton;
         
         QComboBox* m_optionsShowSceneWindowBehaviorComboBox;
         
@@ -195,6 +199,8 @@ namespace caret {
         Scene* m_scene;
         
         int32_t m_sceneIndex;
+        
+        bool m_previewImageValid;
         
         bool m_defaultAutoFillBackgroundStatus;
         QPalette::ColorRole m_defaultBackgroundRole;

@@ -99,7 +99,7 @@ SceneInfoSaxReader::startElement(const AString& /* namespaceURI */,
             else if (qName == SceneXmlElements::SCENE_INFO_DESCRIPTION_TAG) {
                 m_state = STATE_SCENE_INFO_DESCRIPTION;
             }
-            else if (qName == SceneXmlElements::SCENE_INFO_IMAGE_THUMBNAIL_TAG) {
+            else if (qName == SceneXmlElements::SCENE_INFO_IMAGE_TAG) {
                 m_state          = STATE_SCENE_INFO_IMAGE_THUMBNAIL;
                 m_imageFormat    = attributes.getValue(SceneXmlElements::SCENE_INFO_IMAGE_FORMAT_ATTRIBUTE);
                 m_imageEncoding  = attributes.getValue(SceneXmlElements::SCENE_INFO_IMAGE_ENCODING_ATTRIBUTE);
@@ -155,9 +155,9 @@ SceneInfoSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_SCENE_INFO_IMAGE_THUMBNAIL:
         {
             CaretAssert(m_sceneInfo);
-            m_sceneInfo->setImageThumbnailFromText(stringValue,
-                                                   m_imageEncoding,
-                                                   m_imageFormat);
+            m_sceneInfo->setImageFromText(stringValue,
+                                          m_imageEncoding,
+                                          m_imageFormat);
             m_imageEncoding  = "";
             m_imageFormat    = "";
         }

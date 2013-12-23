@@ -452,6 +452,7 @@ WuQDialog::setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
     /*
      * Get size of central widget with a little padding.
      */
+    centralWidget->adjustSize();
     int widgetWidth = centralWidget->sizeHint().width() + 20;
     const int widgetHeight = centralWidget->sizeHint().height() + 20;
     

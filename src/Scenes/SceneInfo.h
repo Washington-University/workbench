@@ -57,16 +57,18 @@ namespace caret {
         
         void setDescription(const AString& description);
         
-        void getImageThumbnailBytes(QByteArray& imageThumbnailBytesOut,
+        void getImageBytes(QByteArray& imageBytesOut,
                                     AString& imageFormatOut) const;
 
-        void setImageThumbnailBytes(const QByteArray& imageThumbnailBytes,
+        void setImageBytes(const QByteArray& imageBytes,
                                     const AString& imageFormat);
+        
+        bool hasImage() const;
         
         void writeSceneInfo(XmlWriter& xmlWriter,
                             const int32_t sceneInfoIndex) const;
 
-        void setImageThumbnailFromText(const AString& text,
+        void setImageFromText(const AString& text,
                                        const AString& encoding,
                                        const AString& imageFormat);
         
@@ -87,10 +89,10 @@ namespace caret {
         AString m_sceneDescription;
         
         /** thumbnail image bytes */
-        QByteArray m_imageThumbnailBytes;
+        QByteArray m_imageBytes;
         
         /** format of thumbnail image (eg: jpg, ppm, etc.) */
-        AString m_imageThumbnailFormat;
+        AString m_imageFormat;
         
         // ADD_NEW_MEMBERS_HERE
 

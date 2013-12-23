@@ -92,6 +92,9 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parent
+ *    The parent widget.
  */
 SceneDialog::SceneDialog(QWidget* parent)
 : WuQDialogNonModal("Scenes",
@@ -206,6 +209,9 @@ SceneDialog::getSelectedScene()
 
 /**
  * Load the scene files into the scene file combo box.
+ *
+ * @param selectedSceneFileIn
+ *     Scene file that is added.
  */
 void 
 SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
@@ -238,7 +244,10 @@ SceneDialog::loadSceneFileComboBox(SceneFile* selectedSceneFileIn)
 }
 
 /**
- * Load the scene selection list widget.
+ * Load the scene into the dialog.
+ *
+ * @param selectedSceneIn
+ *     Scene to add.
  */
 void 
 SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
@@ -269,7 +278,7 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
             
             QByteArray imageByteArray;
             AString imageBytesFormat;
-            scene->getSceneInfo()->getImageThumbnailBytes(imageByteArray,
+            scene->getSceneInfo()->getImageBytes(imageByteArray,
                                                           imageBytesFormat);
             
             SceneClassInfoWidget* sciw = NULL;
@@ -317,12 +326,13 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     }
 
     const bool validFile = (getSelectedSceneFile() != NULL);
-    const bool validScene = (getSelectedScene() != NULL);    
-    
+    const bool validScene = (getSelectedScene() != NULL);
+    const bool validPreview = (getSelectedScene()->getSceneInfo()->hasImage());
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
+    m_showSceneImagePreviewPushButton->setEnabled(validPreview);
 }
 
 /**
@@ -484,7 +494,7 @@ SceneDialog::addNewSceneButtonClicked()
             newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                               "guiManager"));
             
-            addImageThumbnailToScene(newScene);
+            addImageToScene(newScene);
             
             sceneFile->addScene(newScene);
             
@@ -566,7 +576,7 @@ SceneDialog::replaceSceneButtonClicked()
                 newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                                   "guiManager"));
                 
-                addImageThumbnailToScene(newScene);
+                addImageToScene(newScene);
                 
                 sceneFile->replaceScene(newScene,
                                         scene);
@@ -582,15 +592,23 @@ SceneDialog::replaceSceneButtonClicked()
     }
 }
 
+/**
+ * Add an image to the scene.
+ * 
+ * @param scene
+ *    Scene to which image is added.
+ */
 void
-SceneDialog::addImageThumbnailToScene(Scene* scene)
+SceneDialog::addImageToScene(Scene* scene)
 {
     AString errorMessage;
     
     CaretAssert(scene);
     
+    /*
+     * Capture an image of each window
+     */
     std::vector<ImageFile*> imageFiles;
-    
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
@@ -611,9 +629,15 @@ SceneDialog::addImageThumbnailToScene(Scene* scene)
         }
     }
     
+    /*
+     * Assemble images of each window into a single image
+     * and add it to the scene.  Use one image per row
+     * since the images are limited in horizontal space
+     * when shown in the listing of scenes.
+     */
     if ( ! imageFiles.empty()) {
         try {
-            const int32_t numImagesPerRow = static_cast<int32_t>(std::sqrt(imageFiles.size()));
+            const int32_t numImagesPerRow = 1;
             ImageFile compositeImageFile;
             uint8_t backgroundColor[4] = { 0, 0, 0, 255 };
             SessionManager::get()->getCaretPreferences()->getColorBackground(backgroundColor);
@@ -621,19 +645,28 @@ SceneDialog::addImageThumbnailToScene(Scene* scene)
                                                                       numImagesPerRow,
                                                                       backgroundColor);
             
-            compositeImageFile.resizeToMaximumWidthOrHeight(512);
+            compositeImageFile.resizeToMaximumWidth(512);
             
             QByteArray byteArray;
             compositeImageFile.getImageInByteArray(byteArray,
                                                    SceneDialog::PREFERRED_IMAGE_FORMAT);
             
-            scene->getSceneInfo()->setImageThumbnailBytes(byteArray,
+            scene->getSceneInfo()->setImageBytes(byteArray,
                                                           SceneDialog::PREFERRED_IMAGE_FORMAT);
         }
         catch (const DataFileException& dfe) {
             WuQMessageBox::errorOk(m_addNewScenePushButton,
                                    dfe.whatString());
         }
+    }
+    
+    /*
+     * Free memory from the image files.
+     */
+    for (std::vector<ImageFile*>::iterator iter = imageFiles.begin();
+         iter != imageFiles.end();
+         iter++) {
+        delete *iter;
     }
 }
 
@@ -734,10 +767,19 @@ SceneDialog::createMainPage()
                      this, SLOT(showSceneButtonClicked()));
     
     /*
+     * Show scene image button
+     */
+    m_showSceneImagePreviewPushButton = new QPushButton("Preview...");
+    QObject::connect(m_showSceneImagePreviewPushButton, SIGNAL(clicked()),
+                     this, SLOT(showImagePreviewButtonClicked()));
+    
+    /*
      * Layout for scene buttons
      */
     QVBoxLayout* sceneButtonLayout = new QVBoxLayout();
     sceneButtonLayout->addWidget(m_showScenePushButton);
+    sceneButtonLayout->addWidget(m_showSceneImagePreviewPushButton);
+    sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addStretch();
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
     sceneButtonLayout->addWidget(m_replaceScenePushButton);
@@ -845,7 +887,6 @@ SceneDialog::createSceneCreateOptionsWidget()
      * Create scene group box
      */
     const int COLUMN_LABEL = 0;
-//    const int COLUMN_WIDGET = 1;
     QGroupBox* createScenesOptionsGroupBox = new QGroupBox("Create scenes options");
     QGridLayout* createScenesLayout = new QGridLayout(createScenesOptionsGroupBox);
     const int createSceneRow = createScenesLayout->rowCount(); // should be zero
@@ -936,12 +977,24 @@ SceneDialog::validateContentOfCreateSceneDialog(WuQDataEntryDialog* sceneCreateD
                                     errorMessage);
 }
 
+/**
+ * Slot that get called when a scene is highlighted (clicked).
+ *
+ * @param sceneIndex
+ *    Index of the scene.
+ */
 void
 SceneDialog::sceneHighlighted(const int32_t sceneIndex)
 {
     highlightSceneAtIndex(sceneIndex);
 }
 
+/**
+ * Slot that get called when a scene is activated (double clicked).
+ * 
+ * @param sceneIndex
+ *    Index of the scene.
+ */
 void
 SceneDialog::sceneActivated(const int32_t sceneIndex)
 {
@@ -1014,6 +1067,62 @@ SceneDialog::showSceneButtonClicked()
                             false);
     }
 }
+
+/**
+ * Called when show image preview button is clicked.
+ */
+void
+SceneDialog::showImagePreviewButtonClicked()
+{
+    const Scene* scene = getSelectedScene();
+    if (scene != NULL) {
+        QByteArray imageByteArray;
+        AString imageBytesFormat;
+        scene->getSceneInfo()->getImageBytes(imageByteArray,
+                                             imageBytesFormat);
+        
+        
+        AString errorMessage;
+        
+        if (imageByteArray.length() > 0) {
+            try {
+                ImageFile imageFile;
+                imageFile.setImageFromByteArray(imageByteArray,
+                                                imageBytesFormat);
+                const QImage* image = imageFile.getAsQImage();
+                if (image != NULL) {
+                    if (image->isNull()) {
+                        errorMessage = "Image is invalid (isNull)";
+                    }
+                    else {
+                        WuQDataEntryDialog ded(scene->getName(),
+                                               m_showSceneImagePreviewPushButton,
+                                               true);
+                        QLabel* imageLabel = new QLabel();
+                        imageLabel->setPixmap(QPixmap::fromImage(*image));
+                        ded.addWidget("",
+                                      imageLabel);
+                        ded.setCancelButtonText("");
+                        ded.setOkButtonText("Close");
+                        ded.exec();
+                    }
+                }
+                else {
+                    errorMessage = "Image is not valid (NULL pointer)";
+                }
+            }
+            catch (const DataFileException& dfe) {
+                errorMessage = dfe.whatString();
+            }
+            
+            if ( ! errorMessage.isEmpty()) {
+                WuQMessageBox::errorOk(m_showSceneImagePreviewPushButton,
+                                       errorMessage);
+            }
+        }
+    }
+}
+
 
 /**
  * Display the given scene from the given scene file.
@@ -1226,7 +1335,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         
         QByteArray imageByteArray;
         AString imageBytesFormat;
-        scene->getSceneInfo()->getImageThumbnailBytes(imageByteArray,
+        scene->getSceneInfo()->getImageBytes(imageByteArray,
                                                       imageBytesFormat);
         
         
@@ -1249,13 +1358,16 @@ SceneClassInfoWidget::updateContent(Scene* scene,
             }
         }
         
+        m_previewImageLabel->clear();
+        m_previewImageLabel->setAlignment(Qt::AlignHCenter
+                                          | Qt::AlignTop);
         if (previewImageValid) {
-            m_previewImageLabel->setText("");
+            //m_previewImageLabel->setText("");
             m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
         }
         else {
-            m_previewImageLabel->setText("<html>No preview<br>available</html>");
-            m_previewImageLabel->setPixmap(QPixmap());
+            m_previewImageLabel->setText("<html>No preview<br>image</html>");
+            //m_previewImageLabel->setPixmap(QPixmap());
         }
         
         const int maximumLabelSize = maximumPreviewImageSize + 8;
@@ -1307,6 +1419,11 @@ SceneClassInfoWidget::getSceneIndex() const
     return m_sceneIndex;
 }
 
+
+/**
+ * @return True if this scene class info widget is valid (has
+ * a scene with a valid index).
+ */
 bool
 SceneClassInfoWidget::isValid() const
 {
@@ -1317,5 +1434,4 @@ SceneClassInfoWidget::isValid() const
     
     return false;
 }
-
 

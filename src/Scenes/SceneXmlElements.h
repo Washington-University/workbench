@@ -140,9 +140,9 @@ namespace caret {
         static const AString SCENE_INFO_DESCRIPTION_TAG = "Description";
     
         /**
-         * XML Tag for Scene Info Image Thumbnail element.
+         * XML Tag for Scene Info Image element.
          */
-        static const AString SCENE_INFO_IMAGE_THUMBNAIL_TAG = "ImageThumbnail";
+        static const AString SCENE_INFO_IMAGE_TAG = "Image";
     
         /**
          * XML Tag for Scene Info image format attribute.
