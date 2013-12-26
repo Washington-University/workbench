@@ -162,7 +162,8 @@ UsernamePasswordWidget::getUserNameAndPasswordInDialog(QWidget* parent,
     UsernamePasswordWidget* userNameAndPasswordWidget = new UsernamePasswordWidget();
     dialogLayout->addWidget(userNameAndPasswordWidget);
     
-    dialog.setCentralWidget(dialogWidget);
+    dialog.setCentralWidget(dialogWidget,
+                            WuQDialog::SCROLL_AREA_NEVER);
     
     if (dialog.exec() == WuQDialogModal::Accepted) {
         userNameAndPasswordWidget->getUsernameAndPassword(usernameOut,

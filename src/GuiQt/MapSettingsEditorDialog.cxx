@@ -124,7 +124,8 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     layout->addWidget(m_tabWidget);
     //layout->addWidget(windowOptionsWidget);
 
-    this->setCentralWidget(w);
+    this->setCentralWidget(w,
+                           WuQDialog::SCROLL_AREA_NEVER);
     this->addWidgetToLeftOfButtons(windowOptionsWidget);
     
     disableAutoDefaultForAllPushButtons();

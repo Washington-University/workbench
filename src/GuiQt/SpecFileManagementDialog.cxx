@@ -389,7 +389,7 @@ m_specFile(specFile)
     setTopBottomAndCentralWidgets(toolbarWidget,
                                   centralWidget,
                                   NULL,
-                                  enableScrollBars);
+                                  WuQDialog::SCROLL_AREA_NEVER);
     
     /*
      * Display the data files.

@@ -58,8 +58,13 @@ namespace caret {
     public:
         // constructor
         WuQDataEntryDialog(const QString& title,
-                           QWidget* parent = 0,
+                           QWidget* parent,
                            const bool addScrollBarsFlag = false,
+                           Qt::WindowFlags f = 0);
+        
+        WuQDataEntryDialog(const QString& title,
+                           QWidget* parent,
+                           const WuQDialog::ScrollAreaStatus scrollBarStatus,
                            Qt::WindowFlags f = 0);
         
         // destructor
@@ -153,7 +158,9 @@ namespace caret {
 //        // override to verify data after OK button pressed if subclassing this dialog
 //        virtual bool dataEnteredIsValid();
         
-    private:      
+    private:
+        void constructDialog(const WuQDialog::ScrollAreaStatus scrollBarStatus);
+        
         /// widgets in dialog
         QVector<QWidget*> widgets;
         

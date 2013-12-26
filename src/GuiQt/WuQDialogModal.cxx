@@ -97,7 +97,8 @@ WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
     QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
                      this, SLOT(clicked(QAbstractButton*)));
     
-    this->setCentralWidget(centralWidget);
+    this->setCentralWidget(centralWidget,
+                           WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**

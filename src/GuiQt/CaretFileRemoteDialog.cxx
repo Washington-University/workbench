@@ -96,7 +96,8 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
     controlsLayout->addWidget(m_usernamePasswordWidget, 0, Qt::AlignCenter);
     WuQtUtilities::setLayoutSpacingAndMargins(controlsLayout, 4, 2);
 
-    setCentralWidget(controlsWidget);
+    setCentralWidget(controlsWidget,
+                     WuQDialog::SCROLL_AREA_NEVER);
    
     /*
      * Restore previous selections

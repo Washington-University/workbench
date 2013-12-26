@@ -121,7 +121,8 @@ MetaDataEditorDialog::initializeDialog(const AString& dialogTitle,
     
     m_metaDataEditorWidget = new MetaDataEditorWidget(this);
     
-    setCentralWidget(m_metaDataEditorWidget);
+    setCentralWidget(m_metaDataEditorWidget,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     m_metaDataEditorWidget->loadMetaData(metaData);
 }

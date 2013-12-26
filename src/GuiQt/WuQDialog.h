@@ -49,15 +49,24 @@ namespace caret  {
                   Qt::WindowFlags f = 0);
         
     public:
+        /**
+         *
+         */
+        enum ScrollAreaStatus {
+            SCROLL_AREA_ALWAYS,
+            SCROLL_AREA_AS_NEEDED,
+            SCROLL_AREA_NEVER
+        };
+        
         virtual ~WuQDialog();
         
         void setCentralWidget(QWidget* centralWidget,
-                              const bool allowInsertingIntoScrollArea = true);
+                              const ScrollAreaStatus placeCentralWidgetInScrollAreaStatus);
         
         void setTopBottomAndCentralWidgets(QWidget* topWidget,
                               QWidget* centralWidget,
                                            QWidget* bottomWidget,
-                              const bool allowInsertingIntoScrollArea = true);
+                                           const ScrollAreaStatus placeCentralWidgetInScrollAreaStatus);
         
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);
@@ -82,6 +91,8 @@ namespace caret  {
         static void adjustSizeOfDialogWithScrollArea(QDialog* dialog,
                                                      QScrollArea* scrollArea);
         
+        virtual QSize sizeHint () const;
+
     public slots:
 
         virtual bool close();
@@ -113,9 +124,7 @@ namespace caret  {
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
                                                    QWidget* centralWidget,
                                                    QWidget* bottomWidget,
-                                                   const bool allowInsertingIntoScrollArea);
-        
-        QList<QWidget*> m_userWidgets;
+                                                   const ScrollAreaStatus placeCentralWidgetInScrollAreaStatus);
         
         QVBoxLayout* userWidgetLayout;
         
@@ -125,6 +134,18 @@ namespace caret  {
         
         bool autoDefaultProcessingEnabledFlag;
         
+        bool m_firstTimeInShowMethodFlag;
+        
+        ScrollAreaStatus m_placeCentralWidgetInScrollAreaStatus;
+        
+        int32_t m_centralWidgetLayoutIndex;
+        
+        QWidget* m_topWidget;
+        QWidget* m_centralWidget;
+        QWidget* m_bottomWidget;
+        
+        int32_t m_sizeHintWidth;
+        int32_t m_sizeHintHeight;
     };
 
 #ifdef __WU_QDIALOG_DECLARE__

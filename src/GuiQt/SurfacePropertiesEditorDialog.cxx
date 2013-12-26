@@ -131,7 +131,8 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     gridLayout->addWidget(m_opacitySpinBox, row, 1);
     row++;
 
-    setCentralWidget(w);
+    setCentralWidget(w,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     updateDialog();
     

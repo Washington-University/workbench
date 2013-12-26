@@ -93,7 +93,8 @@ TileTabsConfigurationDialog::TileTabsConfigurationDialog(QWidget* parent)
                             100,
                             Qt::AlignHCenter);
     
-    setCentralWidget(dialogWidget);
+    setCentralWidget(dialogWidget,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     disableAutoDefaultForAllPushButtons();
 

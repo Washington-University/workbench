@@ -87,7 +87,8 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget
         layout->addWidget(new QLabel(informationData[i]));
     }
     
-    this->setCentralWidget(widget);
+    this->setCentralWidget(widget,
+                           WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**

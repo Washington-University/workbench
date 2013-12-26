@@ -174,7 +174,8 @@ SplashScreen::SplashScreen(QWidget* parent)
     setCancelButtonText("Skip");
     setOkButtonText("Open");
 
-    setCentralWidget(widget);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
 
     /*
      * Set a minimum width so spec files are visible

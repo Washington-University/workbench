@@ -106,7 +106,8 @@ CustomViewDialog::CustomViewDialog(QWidget* parent)
     layout->addWidget(transformWidget, 0, Qt::AlignVCenter);
     layout->addWidget(m_copyWidget, 0, Qt::AlignVCenter);
     layout->addWidget(customViewWidget, 0, Qt::AlignVCenter);
-    setCentralWidget(widget);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     /*
      * No auto default button processing (Qt highlights button)

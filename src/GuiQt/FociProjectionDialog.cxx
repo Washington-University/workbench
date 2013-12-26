@@ -88,7 +88,8 @@ FociProjectionDialog::FociProjectionDialog(QWidget* parent)
     layout->addWidget(fociFileWidget);
     layout->addWidget(optionsWidget);
     
-    setCentralWidget(widget);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**

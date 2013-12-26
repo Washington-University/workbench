@@ -304,7 +304,8 @@ GiftiLabelTableEditor::initializeDialog(GiftiLabelTable* giftiLabelTable,
     layout->addLayout(nameLayout);
     layout->addWidget(m_colorEditorWidget);
     
-    setCentralWidget(widget);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     m_editingGroup = new WuQWidgetObjectGroup(this);
     m_editingGroup->add(undoPushButton);

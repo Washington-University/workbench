@@ -246,7 +246,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     gridLayout->addWidget(ciftiFileRowIndexLabel, row, 1);
     gridLayout->addWidget(m_ciftiFileRowIndexSpinBox, row, 2);
     
-    setCentralWidget(widget);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
 
     switch (s_lastMode) {
         case MODE_CIFTI_ROW:

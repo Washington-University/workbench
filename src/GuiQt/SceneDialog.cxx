@@ -114,7 +114,8 @@ SceneDialog::SceneDialog(QWidget* parent)
     /*
      * Set the dialog's widget
      */
-    this->setCentralWidget(tabWidget);
+    this->setCentralWidget(tabWidget,
+                           WuQDialog::SCROLL_AREA_AS_NEEDED);
 
     /*
      * No auto default button processing (Qt highlights button)
@@ -326,8 +327,19 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     }
 
     const bool validFile = (getSelectedSceneFile() != NULL);
-    const bool validScene = (getSelectedScene() != NULL);
-    const bool validPreview = (getSelectedScene()->getSceneInfo()->hasImage());
+    
+    
+    bool validScene   = false;
+    bool validPreview = false;
+    if (validFile) {
+        const Scene* scene = getSelectedScene();
+        if (scene != NULL) {
+            validScene = true;
+            const SceneInfo* sceneInfo = scene->getSceneInfo();
+            CaretAssert(scene);
+            validPreview = sceneInfo->hasImage();
+        }
+    }
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
@@ -1097,7 +1109,7 @@ SceneDialog::showImagePreviewButtonClicked()
                     else {
                         WuQDataEntryDialog ded(scene->getName(),
                                                m_showSceneImagePreviewPushButton,
-                                               false);
+                                               WuQDialog::SCROLL_AREA_AS_NEEDED);
                         QLabel* imageLabel = new QLabel();
                         imageLabel->setPixmap(QPixmap::fromImage(*image));
                         ded.addWidget("",

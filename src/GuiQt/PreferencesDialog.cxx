@@ -102,7 +102,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     this->addVolumeItems();
     this->addDevelopItems();
     
-    this->setCentralWidget(widget);
+    this->setCentralWidget(widget,
+                           WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**

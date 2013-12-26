@@ -50,6 +50,17 @@ using namespace caret;
 
 /**
  * constructor.
+ *
+ * @param title
+ *     Title for dialog.
+ * @param parent
+ *     Parent of the dialog.
+ * @param addScrollBarsFlag
+ *     If true, add scrollbars to the dialog (typically true when the dialog
+ *     will contain many items.
+ * @param f
+ *     Qt's Window flags.
+ *
  */
 WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
                                        QWidget* parent,
@@ -57,41 +68,81 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
                                        Qt::WindowFlags f)
    : WuQDialogModal(title, parent, f)
 {
-   //
-   // Widget and Layout for user's widgets
-   //
-   QWidget* widgetForGridLayout = new QWidget;
-   widgetGridLayout = new QGridLayout(widgetForGridLayout);
-   
-   //
-   // Labels for text at top, hidden until set by user
-   //
-   textAtTopLabel = new QLabel;
-   textAtTopLabel->setHidden(true);
-   
-   //
-   // ButtonGroup for radio buttons
-   //
-   radioButtonGroup = new QButtonGroup(this);
-   
-   //
-   // Layout for dialog
-   //
-   QWidget* widget = new QWidget();
-   QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
-   dialogLayout->addWidget(textAtTopLabel);
-   dialogLayout->addWidget(widgetForGridLayout);
-
-   this->setCentralWidget(widget,
-                          addScrollBarsFlag);
+    WuQDialog::ScrollAreaStatus scrollBarStatus = WuQDialog::SCROLL_AREA_NEVER;
+    if (addScrollBarsFlag) {
+        scrollBarStatus = WuQDialog::SCROLL_AREA_ALWAYS;
+    }
+    
+    constructDialog(scrollBarStatus);
 }
-                   
+
+/**
+ * constructor.
+ *
+ * @param title
+ *     Title for dialog.
+ * @param parent
+ *     Parent of the dialog.
+ * @param scrollBarStatus
+ *     Add scrollbars (never, as needed, always).
+ * @param f
+ *     Qt's Window flags.
+ *
+ */
+WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
+                   QWidget* parent,
+                   const WuQDialog::ScrollAreaStatus scrollBarStatus,
+                   Qt::WindowFlags f)
+: WuQDialogModal(title, parent, f)
+{
+    constructDialog(scrollBarStatus);    
+}
+
 /**
  * destructor.
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
 }
+
+/**
+ * Finish construction of the dialog.
+ *
+ * @param scrollBarStatus
+ *     Status for scroll bars.
+ */
+void
+WuQDataEntryDialog::constructDialog(const WuQDialog::ScrollAreaStatus scrollBarStatus)
+{
+    //
+    // Widget and Layout for user's widgets
+    //
+    QWidget* widgetForGridLayout = new QWidget;
+    widgetGridLayout = new QGridLayout(widgetForGridLayout);
+    
+    //
+    // Labels for text at top, hidden until set by user
+    //
+    textAtTopLabel = new QLabel;
+    textAtTopLabel->setHidden(true);
+    
+    //
+    // ButtonGroup for radio buttons
+    //
+    radioButtonGroup = new QButtonGroup(this);
+    
+    //
+    // Layout for dialog
+    //
+    QWidget* widget = new QWidget();
+    QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
+    dialogLayout->addWidget(textAtTopLabel);
+    dialogLayout->addWidget(widgetForGridLayout);
+    
+    this->setCentralWidget(widget,
+                           scrollBarStatus);
+}
+
 
 /**
  * Called when the OK button is pressed.

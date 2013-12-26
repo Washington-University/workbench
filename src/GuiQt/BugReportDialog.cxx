@@ -174,7 +174,8 @@ BugReportDialog::BugReportDialog(QWidget* parent,
     layout->addWidget(m_textEdit, 1000);
     layout->addLayout(buttonsLayout, 0);
     
-    setCentralWidget(contentWidget);
+    setCentralWidget(contentWidget,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     setApplyButtonText("");
     disableAutoDefaultForAllPushButtons();

@@ -86,6 +86,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
                     parent)
 {
     m_imageDimensionsModel = new ImageDimensionsModel();
+    m_imageDimensionsWidget = NULL;
     
     setDeleteWhenClosed(false);
 
@@ -122,7 +123,8 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     layout->addWidget(imageOptionsWidget);
     layout->addWidget(imageDestinationWidget);
     
-    setCentralWidget(w);
+    setCentralWidget(w,
+                     WuQDialog::SCROLL_AREA_NEVER);
     
     /*
      * Make apply button the default button.
@@ -623,11 +625,13 @@ ImageCaptureDialog::updateBrowserWindowWidthAndHeightLabel()
         
         updateDialogWithImageDimensionsModel();
         
+        CaretAssert(m_imageDimensionsWidget);
         m_imageDimensionsWidget->setEnabled(true);
     }
     else {
         windowSizeText += (" (Invalid Window Number)");
 
+        CaretAssert(m_imageDimensionsWidget);
         m_imageDimensionsWidget->setEnabled(false);
     }
     

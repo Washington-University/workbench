@@ -156,7 +156,8 @@ RegionOfInterestCreateFromBorderDialog::createDialog(const std::vector<Border*>&
                             0,
                             Qt::AlignLeft);
     
-    this->setCentralWidget(widget);
+    this->setCentralWidget(widget,
+                           WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**

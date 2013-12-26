@@ -287,7 +287,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     /*
      * Set the widget for the dialog.
      */
-    setCentralWidget(widget);
+    setCentralWidget(widget,
+                     WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**

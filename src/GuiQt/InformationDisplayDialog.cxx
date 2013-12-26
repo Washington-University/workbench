@@ -67,7 +67,8 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
     this->setApplyButtonText("");
     
     m_informationWidget = new InformationDisplayWidget(this);
-    this->setCentralWidget(m_informationWidget);
+    this->setCentralWidget(m_informationWidget,
+                           WuQDialog::SCROLL_AREA_NEVER);
 }
 
 /**
