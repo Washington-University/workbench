@@ -91,7 +91,7 @@ namespace caret  {
         static void adjustSizeOfDialogWithScrollArea(QDialog* dialog,
                                                      QScrollArea* scrollArea);
         
-        virtual QSize sizeHint () const;
+        virtual QSize sizeHint() const;
 
     public slots:
 
@@ -120,6 +120,9 @@ namespace caret  {
         
         virtual void showEvent(QShowEvent* event);
         
+        void setDialogSizeHint(const int32_t width,
+                               const int32_t height);
+        
     private:
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
                                                    QWidget* centralWidget,
@@ -144,8 +147,8 @@ namespace caret  {
         QWidget* m_centralWidget;
         QWidget* m_bottomWidget;
         
-        int32_t m_sizeHintWidth;
-        int32_t m_sizeHintHeight;
+        mutable int32_t m_sizeHintWidth;
+        mutable int32_t m_sizeHintHeight;
     };
 
 #ifdef __WU_QDIALOG_DECLARE__

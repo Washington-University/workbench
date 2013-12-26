@@ -70,8 +70,8 @@ WuQDialogNonModal::WuQDialogNonModal(const AString& dialogTitle,
     this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setDefault(false);
     this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setAutoDefault(false);
     
-    this->isPositionRestoredWhenReopened = false;
-    this->positionWhenClosedValid = false;
+    m_isPositionRestoredWhenReopened = false;
+    m_positionWhenClosedValid = false;
 }
 
 /**
@@ -90,9 +90,16 @@ WuQDialogNonModal::~WuQDialogNonModal()
 void 
 WuQDialogNonModal::closeEvent(QCloseEvent* event)
 {
-    if (this->isPositionRestoredWhenReopened) {
-        this->positionWhenClosedValid = true;
-        this->positionWhenClosed = this->pos();
+    if (m_isPositionRestoredWhenReopened) {
+        /*
+         * Save position and size of dialog so that 
+         * when it is shown next time, it will be
+         * in the position and size as when it was
+         * closed.
+         */
+        m_positionWhenClosedValid = true;
+        m_positionWhenClosed = this->pos();
+        m_sizeWhenClosed = this->size();
     }
     
     WuQDialog::closeEvent(event);
@@ -106,9 +113,22 @@ WuQDialogNonModal::closeEvent(QCloseEvent* event)
 void 
 WuQDialogNonModal::showEvent(QShowEvent* event)
 {
-    if (this->isPositionRestoredWhenReopened) {
-        if (this->positionWhenClosedValid) {
-            this->move(this->positionWhenClosed);
+    if (m_isPositionRestoredWhenReopened) {
+        if (m_positionWhenClosedValid) {
+            /*
+             * Restore the dialog in the position and size that it
+             * was in when closed.  Use move() for position and
+             * the size hint for the size.
+             */
+            this->move(m_positionWhenClosed);
+            const int32_t w = m_sizeWhenClosed.width();
+            const int32_t h = m_sizeWhenClosed.height();
+            if ((w > 0)
+                && (h > 0)) {
+                this->setDialogSizeHint(w,
+                                        h);
+                adjustSize();
+            }
         }
     }
     
@@ -253,7 +273,7 @@ WuQDialogNonModal::setCloseButtonText(const AString& text)
 void 
 WuQDialogNonModal::setSaveWindowPositionForNextTime(const bool saveIt)
 {
-    this->isPositionRestoredWhenReopened = saveIt;
+    m_isPositionRestoredWhenReopened = saveIt;
 }
 
 /**

@@ -88,9 +88,10 @@ namespace caret {
 
         WuQDialogNonModal& operator=(const WuQDialogNonModal&);
         
-        QPoint positionWhenClosed;
-        bool positionWhenClosedValid;
-        bool isPositionRestoredWhenReopened;
+        QPoint m_positionWhenClosed;
+        QSize  m_sizeWhenClosed;
+        bool m_positionWhenClosedValid;
+        bool m_isPositionRestoredWhenReopened;
     };
     
 #ifdef __WU_Q_DIALOG_NON_MODAL_DECLARE__

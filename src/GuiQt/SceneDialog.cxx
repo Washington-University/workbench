@@ -115,12 +115,15 @@ SceneDialog::SceneDialog(QWidget* parent)
      * Set the dialog's widget
      */
     this->setCentralWidget(tabWidget,
-                           WuQDialog::SCROLL_AREA_AS_NEEDED);
+                           WuQDialog::SCROLL_AREA_NEVER);
 
     /*
      * No auto default button processing (Qt highlights button)
      */
     disableAutoDefaultForAllPushButtons();
+    
+    setDialogSizeHint(650,
+                      500);
     
     /*
      * Update the dialog.

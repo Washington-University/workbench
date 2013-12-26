@@ -115,6 +115,20 @@ WuQDialog::~WuQDialog()
 }
 
 /**
+ * Set the size hint for the dialog to the given width and height.
+ *
+ * NOTE: If there are scrollbars added to the dialog, this size hint
+ * may be ignored.
+ */
+void
+WuQDialog::setDialogSizeHint(const int32_t width,
+                             const int32_t height)
+{
+    m_sizeHintWidth  = width;
+    m_sizeHintHeight = height;
+}
+
+/**
  * Add a widget to the left of the buttons at the bottom of the dialog.
  * More than one widget can be added and the first widget will be on 
  * the left-most side.
@@ -596,6 +610,13 @@ WuQDialog::sizeHint () const
         && (m_sizeHintHeight > 0)) {
         sh.setWidth(m_sizeHintWidth);
         sh.setHeight(m_sizeHintHeight);
+        
+        /*
+         * Reset the size hint so that the user can resize the dialog
+         * without it reverting to this size hint.
+         */
+        m_sizeHintWidth  = -1;
+        m_sizeHintHeight = -1;
     }
     
     return sh;
