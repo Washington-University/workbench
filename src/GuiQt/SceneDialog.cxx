@@ -71,6 +71,7 @@
 #include "ProgressReportingDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
+#include "SceneCreateReplaceDialog.h"
 #include "SceneFile.h"
 #include "SceneInfo.h"
 #include "Scene.h"
@@ -459,64 +460,68 @@ SceneDialog::addNewSceneButtonClicked()
     
     SceneFile* sceneFile = getSelectedSceneFile();
     if (sceneFile != NULL) {
-        /*
-         * Create dialog for scene creation
-         */
-        WuQDataEntryDialog newSceneDialog("New Scene",
-                                          this);
+        Scene* newScene = SceneCreateReplaceDialog::createNewScene(m_addNewScenePushButton,
+                                                                   sceneFile);
+        loadScenesIntoDialog(newScene);
         
-        /*
-         * Will want to valid data.
-         */
-        QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
-                         this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
-        
-        /*
-         * Name for scene
-         */
-        QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name", 
-                                                                           "");
-        newSceneNameLineEdit->selectAll();
-        newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
-        
-        /*
-         * Description
-         */
-        QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description", 
-                                                                "", 
-                                                                false);
-        
-        if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
-            const AString newSceneName = newSceneNameLineEdit->text();
-            Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
-            Scene::setSceneBeingCreated(newScene);
-            newScene->setName(newSceneName);
-            newScene->setDescription(descriptionTextEdit->toPlainText());
-            
-            /*
-             * Get all browser tabs and only save transformations for tabs
-             * that are valid.
-             */ 
-            EventBrowserTabGetAll getAllTabs;
-            EventManager::get()->sendEvent(getAllTabs.getPointer());
-            std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
-            
-            SceneAttributes* sceneAttributes = newScene->getAttributes();
-            sceneAttributes->setSceneFileName(sceneFile->getFileName());
-            sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
-            sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
-            
-            newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
-                                                              "guiManager"));
-            
-            addImageToScene(newScene);
-            
-            sceneFile->addScene(newScene);
-            
-            Scene::setSceneBeingCreated(NULL);
-            
-            loadScenesIntoDialog(newScene);
-        }
+//        /*
+//         * Create dialog for scene creation
+//         */
+//        WuQDataEntryDialog newSceneDialog("New Scene",
+//                                          this);
+//        
+//        /*
+//         * Will want to valid data.
+//         */
+//        QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
+//                         this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
+//        
+//        /*
+//         * Name for scene
+//         */
+//        QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name", 
+//                                                                           "");
+//        newSceneNameLineEdit->selectAll();
+//        newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
+//        
+//        /*
+//         * Description
+//         */
+//        QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description", 
+//                                                                "", 
+//                                                                false);
+//        
+//        if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
+//            const AString newSceneName = newSceneNameLineEdit->text();
+//            Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+//            Scene::setSceneBeingCreated(newScene);
+//            newScene->setName(newSceneName);
+//            newScene->setDescription(descriptionTextEdit->toPlainText());
+//            
+//            /*
+//             * Get all browser tabs and only save transformations for tabs
+//             * that are valid.
+//             */ 
+//            EventBrowserTabGetAll getAllTabs;
+//            EventManager::get()->sendEvent(getAllTabs.getPointer());
+//            std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
+//            
+//            SceneAttributes* sceneAttributes = newScene->getAttributes();
+//            sceneAttributes->setSceneFileName(sceneFile->getFileName());
+//            sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
+//            sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
+//            
+//            newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
+//                                                              "guiManager"));
+//            
+//            addImageToScene(newScene);
+//            
+//            sceneFile->addScene(newScene);
+//            
+//            Scene::setSceneBeingCreated(NULL);
+//            
+//            loadScenesIntoDialog(newScene);
+//        }
     }
 }
 
@@ -534,75 +539,81 @@ SceneDialog::replaceSceneButtonClicked()
     if (sceneFile != NULL) {
         Scene* scene = getSelectedScene();
         if (scene != NULL) {
-            /*
-             * Create dialog for scene creation
-             */
-            WuQDataEntryDialog newSceneDialog("Replace Scene",
-                                              this);
+            Scene* newScene = SceneCreateReplaceDialog::replaceExistingScene(m_addNewScenePushButton,
+                                                                             sceneFile,
+                                                                             scene);
+            loadScenesIntoDialog(newScene);
             
-            /*
-             * Will want to valid data.
-             */
-            QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
-                             this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
             
-            /*
-             * Name for scene
-             */
-            QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name",
-                                                                               scene->getName());
-            newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
-            
-            /*
-             * Description
-             */
-            QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description",
-                                                                        scene->getDescription(),
-                                                                        false);
-            
-            /*
-             * Error checking will not allow two scenes with the same name
-             * so temporarily modify name of scene being replaced and restore
-             * it if the user does not hit OK.
-             */
-            const AString savedSceneName = scene->getName();
-            scene->setName("slkkjdlkfjaslfjdljfdkljdfjsdfj");
-            
-            if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
-                const AString newSceneName = newSceneNameLineEdit->text();
-                Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
-                Scene::setSceneBeingCreated(newScene);
-                newScene->setName(newSceneName);
-                newScene->setDescription(descriptionTextEdit->toPlainText());
-                
-                /*
-                 * Get all browser tabs and only save transformations for tabs
-                 * that are valid.
-                 */
-                EventBrowserTabGetAll getAllTabs;
-                EventManager::get()->sendEvent(getAllTabs.getPointer());
-                std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
-                
-                SceneAttributes* sceneAttributes = newScene->getAttributes();
-                sceneAttributes->setSceneFileName(sceneFile->getFileName());
-                sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
-                sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
-                
-                newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
-                                                                  "guiManager"));
-                
-                addImageToScene(newScene);
-                
-                sceneFile->replaceScene(newScene,
-                                        scene);
-                
-                Scene::setSceneBeingCreated(NULL);
-                
-                loadScenesIntoDialog(newScene);
-            }
-            else {
-                scene->setName(savedSceneName);
-            }
+//            /*
+//             * Create dialog for scene creation
+//             */
+//            WuQDataEntryDialog newSceneDialog("Replace Scene",
+//                                              this);
+//            
+//            /*
+//             * Will want to valid data.
+//             */
+//            QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
+//                             this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
+//            
+//            /*
+//             * Name for scene
+//             */
+//            QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name",
+//                                                                               scene->getName());
+//            newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
+//            
+//            /*
+//             * Description
+//             */
+//            QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description",
+//                                                                        scene->getDescription(),
+//                                                                        false);
+//            
+//            /*
+//             * Error checking will not allow two scenes with the same name
+//             * so temporarily modify name of scene being replaced and restore
+//             * it if the user does not hit OK.
+//             */
+//            const AString savedSceneName = scene->getName();
+//            scene->setName("slkkjdlkfjaslfjdljfdkljdfjsdfj");
+//            
+//            if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
+//                const AString newSceneName = newSceneNameLineEdit->text();
+//                Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
+//                Scene::setSceneBeingCreated(newScene);
+//                newScene->setName(newSceneName);
+//                newScene->setDescription(descriptionTextEdit->toPlainText());
+//                
+//                /*
+//                 * Get all browser tabs and only save transformations for tabs
+//                 * that are valid.
+//                 */
+//                EventBrowserTabGetAll getAllTabs;
+//                EventManager::get()->sendEvent(getAllTabs.getPointer());
+//                std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
+//                
+//                SceneAttributes* sceneAttributes = newScene->getAttributes();
+//                sceneAttributes->setSceneFileName(sceneFile->getFileName());
+//                sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
+//                sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
+//                
+//                newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
+//                                                                  "guiManager"));
+//                
+//                addImageToScene(newScene);
+//                
+//                sceneFile->replaceScene(newScene,
+//                                        scene);
+//                
+//                Scene::setSceneBeingCreated(NULL);
+//                
+//                loadScenesIntoDialog(newScene);
+//            }
+//            else {
+//                scene->setName(savedSceneName);
+//            }
         }
     }
 }

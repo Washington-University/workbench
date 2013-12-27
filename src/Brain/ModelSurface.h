@@ -50,6 +50,8 @@ namespace caret {
         
         void initializeOverlays();
         
+        virtual AString toDescriptiveString() const;
+        
     private:
         ModelSurface(const ModelSurface&);
         

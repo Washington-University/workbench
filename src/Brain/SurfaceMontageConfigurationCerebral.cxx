@@ -42,6 +42,7 @@
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "Surface.h"
 #include "SurfaceSelectionModel.h"
 
 using namespace caret;
@@ -584,10 +585,28 @@ SurfaceMontageConfigurationCerebral::getLeftFirstSurfaceSelectionModel()
 }
 
 /**
+ * @return the left first surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationCerebral::getLeftFirstSurfaceSelectionModel() const
+{
+    return m_leftFirstSurfaceSelectionModel;
+}
+
+/**
  * @return the left second surface selection in this configuration.
  */
 SurfaceSelectionModel*
 SurfaceMontageConfigurationCerebral::getLeftSecondSurfaceSelectionModel()
+{
+    return m_leftSecondSurfaceSelectionModel;
+}
+
+/**
+ * @return the left second surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationCerebral::getLeftSecondSurfaceSelectionModel() const
 {
     return m_leftSecondSurfaceSelectionModel;
 }
@@ -602,11 +621,89 @@ SurfaceMontageConfigurationCerebral::getRightFirstSurfaceSelectionModel()
 }
 
 /**
+ * @return the right first surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationCerebral::getRightFirstSurfaceSelectionModel() const
+{
+    return m_rightFirstSurfaceSelectionModel;
+}
+
+/**
  * @return the right second surface selection in this configuration.
  */
 SurfaceSelectionModel*
 SurfaceMontageConfigurationCerebral::getRightSecondSurfaceSelectionModel()
 {
     return m_rightSecondSurfaceSelectionModel;
+}
+
+/**
+ * @return the right second surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationCerebral::getRightSecondSurfaceSelectionModel() const
+{
+    return m_rightSecondSurfaceSelectionModel;
+}
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+SurfaceMontageConfigurationCerebral::toString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Cerebral Montage: ");
+
+    if (isLeftEnabled()) {
+        if (isFirstSurfaceEnabled()) {
+            const Surface* firstLeftSurface = getLeftFirstSurfaceSelectionModel()->getSurface();
+            if (firstLeftSurface != NULL) {
+                msg.appendWithNewLine("Left Surface: "
+                                      + firstLeftSurface->toString());
+            }
+        }
+        
+        if (isSecondSurfaceEnabled()) {
+            const Surface* secondLeftSurface = getLeftSecondSurfaceSelectionModel()->getSurface();
+            if (secondLeftSurface != NULL) {
+                msg.appendWithNewLine("Left Surface: "
+                                      + secondLeftSurface->toString());
+            }
+        }
+    }
+    
+    if (isRightEnabled()) {
+        if (isFirstSurfaceEnabled()) {
+            const Surface* firstRightSurface = getRightFirstSurfaceSelectionModel()->getSurface();
+            if (firstRightSurface != NULL) {
+                msg.appendWithNewLine("Right Surface: "
+                                      + firstRightSurface->toString());
+            }
+        }
+        if (isSecondSurfaceEnabled()) {
+            const Surface* secondRightSurface = getRightSecondSurfaceSelectionModel()->getSurface();
+            if (secondRightSurface != NULL) {
+                msg.appendWithNewLine("Right Surface: "
+                                      + secondRightSurface->toString());
+            }
+        }
+    }
+    
+    AString viewsMsg = "Selected Views: ";
+    
+    if (isLateralEnabled()) {
+        viewsMsg += " Lateral";
+    }
+    if (isMedialEnabled()) {
+        viewsMsg += " Medial";
+    }
+    
+    msg.appendWithNewLine(viewsMsg);
+    
+    return msg;
 }
 

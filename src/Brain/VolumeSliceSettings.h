@@ -36,6 +36,7 @@
 
 
 #include "CaretObject.h"
+#include "ModelTypeEnum.h"
 #include "SceneableInterface.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewModeEnum.h"
@@ -139,6 +140,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
+        AString toStringForModelType(const ModelTypeEnum::Enum modelType);
         
     private:
         void copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj);

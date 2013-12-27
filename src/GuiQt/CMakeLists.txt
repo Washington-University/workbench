@@ -84,6 +84,7 @@ PreferencesDialog.h
 ProgressReportingDialog.h
 ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
+SceneCreateReplaceDialog.h
 SceneDialog.h
 SpecFileManagementDialog.h
 SplashScreen.h
@@ -211,6 +212,7 @@ PreferencesDialog.h
 ProgressReportingDialog.h
 ProgressReportingWithSlots.h
 RegionOfInterestCreateFromBorderDialog.h
+SceneCreateReplaceDialog.h
 SceneDialog.h
 SceneWindowGeometry.h
 SpecFileManagementDialog.h
@@ -337,6 +339,7 @@ PlotPanner.cxx
 ProgressReportingDialog.cxx
 ProgressReportingWithSlots.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
+SceneCreateReplaceDialog.cxx
 SceneDialog.cxx
 SceneWindowGeometry.cxx
 SpecFileManagementDialog.cxx

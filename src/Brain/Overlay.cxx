@@ -180,25 +180,37 @@ Overlay::getName() const
 AString 
 Overlay::toString() const
 {
+    AString msg;
+    
     Overlay* me = const_cast<Overlay*>(this);
     if (me != NULL) {
-        CaretMappableDataFile* mapFile = NULL;
-        int32_t mapIndex = 0;
-        me->getSelectionData(mapFile,
-                             mapIndex);
-        AString msg = ("MapFile=");
-        if (mapFile != NULL) {
-            msg += (mapFile->getFileNameNoPath()
-                    + ", mapIndex="
-                    + AString::number(mapIndex));
+        if (me->isEnabled()) {
+            CaretMappableDataFile* mapFile = NULL;
+            int32_t mapIndex = 0;
+            me->getSelectionData(mapFile,
+                                 mapIndex);
+            if (mapFile != NULL) {
+                msg += ("File: "+
+                        mapFile->getFileNameNoPath());
+                if (mapFile->hasMapAttributes()) {
+                    if ((mapIndex >= 0)
+                        && (mapIndex < mapFile->getNumberOfMaps())) {
+                        msg += ("   Map Index: "
+                                + AString::number(mapIndex + 1)
+                                + "  Map Name: "
+                                + mapFile->getMapName(mapIndex));
+                    }
+                }
+                msg += ("   Structure: "
+                        + StructureEnum::toGuiName(mapFile->getStructure()));
+            }
+            else {
+                msg += "No File";
+            }
         }
-        else {
-            msg += "NONE";
-        }
-        
-        return msg;
     }
-    return "INVALID";
+    
+    return msg;
 }
 
 /**

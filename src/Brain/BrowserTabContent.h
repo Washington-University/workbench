@@ -85,6 +85,8 @@ namespace caret {
         
         OverlaySet* getOverlaySet();
         
+        const OverlaySet* getOverlaySet() const;
+        
         int32_t getTabNumber() const;
         
         ModelTypeEnum::Enum getSelectedModelType() const;

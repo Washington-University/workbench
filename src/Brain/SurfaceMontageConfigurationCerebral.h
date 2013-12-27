@@ -50,11 +50,19 @@ namespace caret {
         
         SurfaceSelectionModel* getLeftFirstSurfaceSelectionModel();
         
+        const SurfaceSelectionModel* getLeftFirstSurfaceSelectionModel() const;
+        
         SurfaceSelectionModel* getLeftSecondSurfaceSelectionModel();
+        
+        const SurfaceSelectionModel* getLeftSecondSurfaceSelectionModel() const;
         
         SurfaceSelectionModel* getRightFirstSurfaceSelectionModel();
         
+        const SurfaceSelectionModel* getRightFirstSurfaceSelectionModel() const;
+        
         SurfaceSelectionModel* getRightSecondSurfaceSelectionModel();
+
+        const SurfaceSelectionModel* getRightSecondSurfaceSelectionModel() const;
         
         bool isLeftEnabled() const;
         
@@ -92,6 +100,8 @@ namespace caret {
         SurfaceMontageConfigurationCerebral& operator=(const SurfaceMontageConfigurationCerebral&);
         
     public:
+        virtual AString toString() const;
+        
 
         // ADD_NEW_METHODS_HERE
 

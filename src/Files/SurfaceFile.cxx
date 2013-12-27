@@ -1659,3 +1659,25 @@ SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFil
     dataFileInformation.addNameAndValue("Spacing Minimum", stats.getMinimumValue());
     dataFileInformation.addNameAndValue("Spacing Maximum", stats.getMaximumValue());
 }
+
+/**
+ * @return A String describing the content of this object.
+ */
+AString
+SurfaceFile::toString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Surface: "
+                          + getFileNameNoPath());
+    msg.appendWithNewLine("   Structure: "
+                          + StructureEnum::toGuiName(getStructure()));
+    msg.appendWithNewLine("   Primary Type: "
+                          + SurfaceTypeEnum::toGuiName(getSurfaceType()));
+    msg.appendWithNewLine("   Secondary Type: "
+                          + SecondarySurfaceTypeEnum::toGuiName(getSecondaryType()));
+    msg.appendWithNewLine("");
+    return msg;
+}
+
+

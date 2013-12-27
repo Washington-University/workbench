@@ -2629,6 +2629,16 @@ BrainBrowserWindow::getBrowserTabContent()
 }
 
 /**
+ * @return Return the active browser tab content in
+ * this browser window.
+ */
+const BrowserTabContent*
+BrainBrowserWindow::getBrowserTabContent() const
+{
+    return m_toolbar->getTabContentFromSelectedTab();
+}
+
+/**
  * get browser tab content for tab with specified tab Index
  * @param tabIndex
  *   Desired tabIndex
@@ -2967,10 +2977,38 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * Get the viewport size for the window.
+ *
+ * @param w
+ *    Output width.
+ * @param h
+ *    Output height.
+ */
 void
 BrainBrowserWindow::getViewportSize(int &w, int &h)
 {
     m_openGLWidget->getViewPortSize(w,h);
+}
+
+/**
+ * @return A string describing the object's content.
+ */
+AString
+BrainBrowserWindow::toString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Window "
+                          + AString::number(getBrowserWindowIndex() + 1)
+                          + ":");
+    
+    const BrowserTabContent* btc = getBrowserTabContent();
+    if (btc != NULL) {
+        msg.appendWithNewLine(btc->toString());
+    }
+    
+    return msg;
 }
 
 

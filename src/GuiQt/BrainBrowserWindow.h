@@ -63,6 +63,8 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent();
 
+        const BrowserTabContent* getBrowserTabContent() const;
+        
         BrowserTabContent* getBrowserTabContent(int tabIndex);
 
         
@@ -117,6 +119,8 @@ namespace caret {
         
         void getGraphicsWidgetSize(int32_t& widthOut,
                                    int32_t& heightOut) const;
+        
+        AString toString() const;
         
     protected:
         void closeEvent(QCloseEvent* event);

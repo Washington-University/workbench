@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "Surface.h"
 #include "SurfaceSelectionModel.h"
 
 using namespace caret;
@@ -140,10 +141,28 @@ SurfaceMontageConfigurationCerebellar::getFirstSurfaceSelectionModel()
 }
 
 /**
+ * @return First surface selection model.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationCerebellar::getFirstSurfaceSelectionModel() const
+{
+    return m_firstSurfaceSelectionModel;
+}
+
+/**
  * @return Second surface selection model.
  */
 SurfaceSelectionModel*
 SurfaceMontageConfigurationCerebellar::getSecondSurfaceSelectionModel()
+{
+    return m_secondSurfaceSelectionModel;
+}
+
+/**
+ * @return Second surface selection model.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationCerebellar::getSecondSurfaceSelectionModel() const
 {
     return m_secondSurfaceSelectionModel;
 }
@@ -555,4 +574,52 @@ SurfaceMontageConfigurationCerebellar::restoreMembersFromScene(const SceneAttrib
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+SurfaceMontageConfigurationCerebellar::toString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Cerebellar Montage: ");
+    
+    const Surface* firstSurface = getFirstSurfaceSelectionModel()->getSurface();
+    if (firstSurface != NULL) {
+        if (isFirstSurfaceEnabled()) {
+            msg.appendWithNewLine("Surface: "
+                                  + firstSurface->toString());
+        }
+    }
+    
+    const Surface* secondSurface = getSecondSurfaceSelectionModel()->getSurface();
+    if (secondSurface != NULL) {
+        if (isSecondSurfaceEnabled()) {
+            msg.appendWithNewLine("Surface: "
+                                  + secondSurface->toString());
+        }
+    }
+    
+    AString viewsMsg = "Selected Views: ";
+    
+    if (isAnteriorEnabled()) {
+        viewsMsg += " Anterior";
+    }
+    if (isDorsalEnabled()) {
+        viewsMsg += " Dorsal";
+    }
+    if (isPosteriorEnabled()) {
+        viewsMsg += " Posterior";
+    }
+    if (isVentralEnabled()) {
+        viewsMsg += " Ventral";
+    }
+    
+    msg.appendWithNewLine(viewsMsg);
+    
+    return msg;
+}
+
 

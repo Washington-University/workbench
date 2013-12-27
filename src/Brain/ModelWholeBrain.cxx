@@ -76,7 +76,7 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<SurfaceTypeEnum,SurfaceTypeEnum::Enum>("m_selectedSurfaceType", 
                                                                                               m_selectedSurfaceType);
-    m_sceneAssistant->addTabIndexedBooleanArray("m_leftEnabled", m_leftEnabled);    
+    m_sceneAssistant->addTabIndexedBooleanArray("m_leftEnabled", m_leftEnabled);
     m_sceneAssistant->addTabIndexedBooleanArray("m_rightEnabled", m_rightEnabled);    
     m_sceneAssistant->addTabIndexedBooleanArray("m_cerebellumEnabled", m_cerebellumEnabled);    
     m_sceneAssistant->addTabIndexedFloatArray("m_leftRightSeparation", m_leftRightSeparation);    
@@ -111,9 +111,13 @@ ModelWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& su
                            m_availableSurfaceTypes.end());
 }
 /**
+ * Get the selected surface type for the given tab.
  *
+ * @param windowTabNumber
+ *    The tab.
+ * @return 
+ *    Surface type for the tab.
  */
-
 SurfaceTypeEnum::Enum 
 ModelWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
 {

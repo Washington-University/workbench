@@ -52,7 +52,11 @@ namespace caret {
         
         SurfaceSelectionModel* getFirstSurfaceSelectionModel();
         
+        const SurfaceSelectionModel* getFirstSurfaceSelectionModel() const;
+        
         SurfaceSelectionModel* getSecondSurfaceSelectionModel();
+        
+        const SurfaceSelectionModel* getSecondSurfaceSelectionModel() const;
         
         bool isFirstSurfaceEnabled() const;
         
@@ -89,6 +93,8 @@ namespace caret {
         
     public:
 
+        virtual AString toString() const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

@@ -1149,3 +1149,17 @@ ModelSurfaceMontage::getSurfaceMontageViewportsForTransformation(const int32_t t
     }
 }
 
+/**
+ * @return A string describing the model.
+ */
+AString
+ModelSurfaceMontage::toString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Surface Montage: ");
+    
+    return msg;
+}
+
+

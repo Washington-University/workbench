@@ -189,6 +189,8 @@ namespace caret {
         ///check only that each node is connected to the same set of other nodes, allow any other form of mischief
         bool hasNodeCorrespondence(const SurfaceFile& rhs) const;
         
+        virtual AString toString() const;
+        
     protected:
         /**
          * Validate the contents of the file after it

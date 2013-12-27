@@ -54,9 +54,15 @@ namespace caret {
         
         SurfaceSelectionModel* getLeftSurfaceSelectionModel();
         
+        const SurfaceSelectionModel* getLeftSurfaceSelectionModel() const;
+        
         SurfaceSelectionModel* getRightSurfaceSelectionModel();
         
+        const SurfaceSelectionModel* getRightSurfaceSelectionModel() const;
+        
         SurfaceSelectionModel* getCerebellumSurfaceSelectionModel();
+        
+        const SurfaceSelectionModel* getCerebellumSurfaceSelectionModel() const;
         
         bool isLeftEnabled() const;
         
@@ -79,6 +85,8 @@ namespace caret {
         
     public:
 
+        virtual AString toString() const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

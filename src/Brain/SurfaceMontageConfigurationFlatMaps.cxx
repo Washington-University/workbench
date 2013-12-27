@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "Surface.h"
 #include "SurfaceSelectionModel.h"
 
 using namespace caret;
@@ -200,6 +201,15 @@ SurfaceMontageConfigurationFlatMaps::getLeftSurfaceSelectionModel()
 }
 
 /**
+ * @return the left surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationFlatMaps::getLeftSurfaceSelectionModel() const
+{
+    return m_leftSurfaceSelectionModel;
+}
+
+/**
  * @return the right surface selection in this configuration.
  */
 SurfaceSelectionModel*
@@ -209,10 +219,28 @@ SurfaceMontageConfigurationFlatMaps::getRightSurfaceSelectionModel()
 }
 
 /**
+ * @return the right surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationFlatMaps::getRightSurfaceSelectionModel() const
+{
+    return m_rightSurfaceSelectionModel;
+}
+
+/**
  * @return the cerebellum surface selection in this configuration.
  */
 SurfaceSelectionModel*
 SurfaceMontageConfigurationFlatMaps::getCerebellumSurfaceSelectionModel()
+{
+    return m_cerebellumSurfaceSelectionModel;
+}
+
+/**
+ * @return the cerebellum surface selection in this configuration.
+ */
+const SurfaceSelectionModel*
+SurfaceMontageConfigurationFlatMaps::getCerebellumSurfaceSelectionModel() const
 {
     return m_cerebellumSurfaceSelectionModel;
 }
@@ -304,4 +332,43 @@ SurfaceMontageConfigurationFlatMaps::restoreMembersFromScene(const SceneAttribut
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+SurfaceMontageConfigurationFlatMaps::toString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Cerebral Montage: ");
+    
+    if (isLeftEnabled()) {
+        const Surface* firstLeftSurface = getLeftSurfaceSelectionModel()->getSurface();
+        if (firstLeftSurface != NULL) {
+            msg.appendWithNewLine("Left Surface: "
+                                  + firstLeftSurface->toString());
+        }
+    }
+    
+    if (isRightEnabled()) {
+        const Surface* firstRightSurface = getRightSurfaceSelectionModel()->getSurface();
+        if (firstRightSurface != NULL) {
+            msg.appendWithNewLine("Right Surface: "
+                                  + firstRightSurface->toString());
+        }
+    }
+    
+    if (isCerebellumEnabled()) {
+        const Surface* cerebellumSurface = getCerebellumSurfaceSelectionModel()->getSurface();
+        if (cerebellumSurface != NULL) {
+            msg.appendWithNewLine("Cerebellum Surface: "
+                                  + cerebellumSurface->toString());
+        }
+    }
+    
+    return msg;
+}
+
 

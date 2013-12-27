@@ -330,7 +330,84 @@ BrowserTabContent::getUserName() const
 AString 
 BrowserTabContent::toString() const
 {
-    return "WindowTabContent";
+    const int32_t tabIndex = getTabNumber();
+    
+    AString msg = ("Browser Tab "
+                   + AString::number(tabIndex + 1)
+                   + ": ");
+    
+    const Model* model = getModelControllerForDisplay();
+
+    if (model != NULL) {
+        bool surfaceFlag    = false;
+        bool surfaceMontageFlag = false;
+        bool wholeBrainFlag = false;
+        bool volumeFlag     = false;
+        switch (model->getControllerType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                surfaceFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                surfaceMontageFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                volumeFlag = true;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                wholeBrainFlag = true;
+                break;
+        }
+
+        if (volumeFlag) {
+            msg.appendWithNewLine("Volume Slice View");
+        }
+        else if (wholeBrainFlag) {
+            msg.appendWithNewLine("All View");
+                if (isWholeBrainCerebellumEnabled()) {
+                    const Surface* cerebellumSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CEREBELLUM,
+                                                                                             tabIndex);
+                    if (cerebellumSurface != NULL) {
+                        msg.appendWithNewLine(cerebellumSurface->toString());
+                    }
+                }
+                if (isWholeBrainLeftEnabled()) {
+                    const Surface* leftSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_LEFT,
+                                                                                       tabIndex);
+                    if (leftSurface != NULL) {
+                        msg.appendWithNewLine(leftSurface->toString());
+                    }
+                }
+                if (isWholeBrainRightEnabled()) {
+                    const Surface* rightSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
+                                                                                        tabIndex);
+                    if (rightSurface != NULL) {
+                        msg.appendWithNewLine(rightSurface->toString());
+                    }
+                }
+        }
+        else if (surfaceFlag) {
+            msg.appendWithNewLine(model->toString());
+        }
+        else if (surfaceMontageFlag) {
+            if (m_surfaceMontageModel != NULL) {
+                msg.appendWithNewLine(m_surfaceMontageModel->getSelectedConfiguration(tabIndex)->toString());
+            }
+        }
+
+        if (wholeBrainFlag
+            || volumeFlag) {
+            msg.appendWithNewLine(m_volumeSliceSettings->toStringForModelType(model->getControllerType()));
+        }
+        
+        msg.appendWithNewLine("");
+        msg.appendWithNewLine(getOverlaySet()->toString());
+    }
+    
+    return msg;
 }
 
 /**
@@ -588,6 +665,21 @@ BrowserTabContent::getOverlaySet()
     Model* modelDisplayController = getModelControllerForDisplay();
     if (modelDisplayController != NULL) {
        return modelDisplayController->getOverlaySet(m_tabNumber);
+    }
+    return NULL;
+}
+
+/**
+ * Get the overlay assignments for this tab.
+ *
+ * @return  Overlay assignments for this tab or NULL if no valid model.
+ */
+const OverlaySet*
+BrowserTabContent::getOverlaySet() const
+{
+    const Model* modelDisplayController = getModelControllerForDisplay();
+    if (modelDisplayController != NULL) {
+        return modelDisplayController->getOverlaySet(m_tabNumber);
     }
     return NULL;
 }

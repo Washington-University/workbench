@@ -161,6 +161,75 @@ VolumeSliceSettings::toString() const
     return "VolumeSliceSettings";
 }
 
+AString
+VolumeSliceSettings::toStringForModelType(const ModelTypeEnum::Enum modelType)
+{
+    bool volumeFlag = false;
+    bool wholeBrainFlag = false;
+    
+    switch (modelType) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            volumeFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            wholeBrainFlag = true;
+            break;
+    }
+    
+    AString msg;
+    
+    bool showParasagittalCoordinate = false;
+    bool showCoronalCoordinate      = false;
+    bool showAxialCoordinate        = false;
+    
+    msg.appendWithNewLine("Volume Slice Settings: ");
+    if (volumeFlag) {
+        msg.appendWithNewLine("   View Plane: "
+                              + VolumeSliceViewPlaneEnum::toGuiName(m_sliceViewPlane));
+        showParasagittalCoordinate = true;
+        showCoronalCoordinate      = true;
+        showAxialCoordinate        = true;
+    }
+    
+    if (wholeBrainFlag) {
+        if (m_sliceEnabledParasagittal) {
+            showParasagittalCoordinate = true;
+        }
+        if (m_sliceEnabledCoronal) {
+            showCoronalCoordinate = true;
+        }
+        if (m_sliceEnabledAxial) {
+            showAxialCoordinate = true;
+        }
+    }
+    
+    if (showParasagittalCoordinate) {
+        msg.appendWithNewLine("   Parasagittal (X-axis) Coordinate: "
+                              + AString::number(m_sliceCoordinateParasagittal, 'f', 3));
+    }
+    if (showCoronalCoordinate) {
+        msg.appendWithNewLine("   Coronal (Y-axis) Coordinate:      "
+                              + AString::number(m_sliceCoordinateCoronal, 'f', 3));
+    }
+    if (showAxialCoordinate) {
+        msg.appendWithNewLine("   Axial (Z-axis) Coordinate:        "
+                              + AString::number(m_sliceCoordinateAxial, 'f', 3));
+    }
+
+    msg.appendWithNewLine("");
+    
+    return msg;
+}
+
+
 /**
  * @return The slice view plane.
  *

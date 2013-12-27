@@ -227,3 +227,16 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
                                      sceneClass);
 }
 
+/**
+ * @return A descriptive string describing the model.
+ */
+AString
+ModelVolume::toDescriptiveString() const
+{
+    AString msg;
+    
+    msg.appendWithNewLine("Volume: ");
+    
+    return msg;
+}
+

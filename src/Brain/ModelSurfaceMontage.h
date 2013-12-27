@@ -91,6 +91,8 @@ namespace caret {
         
         const SurfaceMontageConfigurationFlatMaps* getFlatMapsConfiguration(const int32_t tabIndex) const;
         
+        virtual AString toString() const;
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);

@@ -262,3 +262,20 @@ ModelSurface::restoreModelSpecificInformationFromScene(const SceneAttributes* /*
     /* nothing to restore from scene */
 }
 
+/**
+ * @return A string describing the model.
+ */
+AString
+ModelSurface::toDescriptiveString() const
+{
+    AString msg;
+    
+    const Surface* surface = getSurface();
+    if (surface != NULL) {
+        msg.appendWithNewLine(surface->toString());
+    }
+    
+    return msg;
+}
+
+

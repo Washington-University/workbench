@@ -269,10 +269,13 @@ OverlaySet::toString() const
     AString msg = "Overlay Set:";
     const int numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
-        msg += ("\n   Overlay "
-                + AString::number(i)
-                + ": "
-                + getOverlay(i)->toString());
+        const AString overlayMsg = getOverlay(i)->toString();
+        if ( ! overlayMsg.isEmpty()) {
+            msg += ("\n   Overlay "
+                    + AString::number(i + 1)
+                    + ": "
+                    + overlayMsg);
+        }
     }
     return msg;
 }
