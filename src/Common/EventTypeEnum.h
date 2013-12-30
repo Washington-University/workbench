@@ -48,8 +48,10 @@ public:
         EVENT_BROWSER_TAB_DELETE,
         /** Get a browser tab by tab number */
         EVENT_BROWSER_TAB_GET,
-        /** Get a ALL browser tabs */
+        /** Get ALL (both viewed and not viewed) browser tabs */
         EVENT_BROWSER_TAB_GET_ALL,
+        /** Get ALL VIEWED browser tabs (tabs that are viewed in windows) */
+        EVENT_BROWSER_TAB_GET_ALL_VIEWED,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
         /** Get the content of a browser window */
