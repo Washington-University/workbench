@@ -65,6 +65,7 @@
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabGetAllViewed.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowCreateTabs.h"
@@ -350,6 +351,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->isContructorFinished = true;
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS);
@@ -4392,6 +4394,29 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
             }
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL_VIEWED) {
+        EventBrowserTabGetAllViewed* viewedTabsEvent = dynamic_cast<EventBrowserTabGetAllViewed*>(event);
+        CaretAssert(viewedTabsEvent);
+        
+        BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+        if (browserWindow != NULL) {
+            if (browserWindow->isTileTabsSelected()) {
+                const int32_t numTabs = this->tabBar->count();
+                for (int32_t i = 0; i < numTabs; i++) {
+                    BrowserTabContent* btc = this->getTabContentFromTab(i);
+                    viewedTabsEvent->addViewedBrowserTab(btc);
+                }
+            }
+            else {
+                BrowserTabContent* btc = getTabContentFromSelectedTab();
+                if (btc != NULL) {
+                    viewedTabsEvent->addViewedBrowserTab(btc);
+                }
+            }
+        }
+        
+        viewedTabsEvent->setEventProcessed();
+    }
     else {
         
     }
@@ -4494,17 +4519,34 @@ BrainBrowserWindowToolBar::saveToScene(const SceneAttributes* sceneAttributes,
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
     }    
+
+    /*
+     * Determine tabs in this toolbar that should be saved to scene
+     */
+    const std::vector<int32_t> tabIndicesForScene = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    std::vector<int32_t> tabIndicesToSave;
+    const int numTabsInToolbar = this->tabBar->count();
+    if (numTabsInToolbar > 0) {
+        for (int32_t i = 0; i < numTabsInToolbar; i++) {
+            BrowserTabContent* btc = this->getTabContentFromTab(i);
+            const int32_t tabIndex = btc->getTabNumber();
+            if (std::find(tabIndicesForScene.begin(),
+                          tabIndicesForScene.end(),
+                          tabIndex) != tabIndicesForScene.end()) {
+                tabIndicesToSave.push_back(tabIndex);
+            }
+        }
+    }
     
     /*
-     * Add tabs
+     * Save the tabs
      */
-    const int numTabs = this->tabBar->count();
+    const int numTabs = static_cast<int32_t>(tabIndicesToSave.size());
     if (numTabs > 0) {
         SceneIntegerArray* sceneTabIndexArray = new SceneIntegerArray("tabIndices",
                                                                       numTabs);
         for (int32_t i = 0; i < numTabs; i++) {
-            BrowserTabContent* btc = this->getTabContentFromTab(i);
-            const int32_t tabIndex = btc->getTabNumber();
+            const int32_t tabIndex = tabIndicesToSave[i];
             sceneTabIndexArray->setValue(i,
                                          tabIndex);
         }

@@ -438,14 +438,23 @@ SessionManager::saveToScene(const SceneAttributes* sceneAttributes,
                                              brainSceneClasses));
     
     /*
+     * Get the tabs that are to be included in the scene
+     */
+    const std::vector<int32_t> tabIndicesForScene = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    
+    /*
      * Save browser tabs
      */
     std::vector<SceneClass*> browserTabSceneClasses;
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        BrowserTabContent* btc = m_browserTabs[i];
-        if (btc != NULL) {
-            browserTabSceneClasses.push_back(btc->saveToScene(sceneAttributes, 
-                                                              "m_browserTabs"));
+    for (int32_t tabIndex = 0; tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; tabIndex++) {
+        if (std::find(tabIndicesForScene.begin(),
+                      tabIndicesForScene.end(),
+                      tabIndex) != tabIndicesForScene.end()) {
+            BrowserTabContent* btc = m_browserTabs[tabIndex];
+            if (btc != NULL) {
+                browserTabSceneClasses.push_back(btc->saveToScene(sceneAttributes,
+                                                                  "m_browserTabs"));
+            }
         }
     }
     sceneClass->addChild(new SceneClassArray("m_browserTabs",

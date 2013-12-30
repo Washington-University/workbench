@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
+
 #define __SCENE_CREATE_REPLACE_DIALOG_DECLARE__
 #include "SceneCreateReplaceDialog.h"
 #undef __SCENE_CREATE_REPLACE_DIALOG_DECLARE__
@@ -49,6 +51,7 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabGetAllViewed.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -439,14 +442,18 @@ SceneCreateReplaceDialog::okButtonClicked()
      * that are valid.
      */
     std::vector<int32_t> tabIndices;
-    if (m_addAllTabsCheckBox) {
+    if (m_addAllTabsCheckBox->isChecked()) {
         EventBrowserTabGetAll getAllTabs;
         EventManager::get()->sendEvent(getAllTabs.getPointer());
         tabIndices = getAllTabs.getBrowserTabIndices();
     }
     else {
-        CaretAssertMessage(0, "Implementation for \"add all tabs\" false is missing.");
+        EventBrowserTabGetAllViewed getViewedTabs;
+        EventManager::get()->sendEvent(getViewedTabs.getPointer());
+        tabIndices = getViewedTabs.getViewdedBrowserTabIndices();
     }
+    std::sort(tabIndices.begin(),
+              tabIndices.end());
     
     SceneAttributes* sceneAttributes = newScene->getAttributes();
     sceneAttributes->setSceneFileName(m_sceneFile->getFileName());
