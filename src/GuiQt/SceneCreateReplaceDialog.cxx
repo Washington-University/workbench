@@ -110,16 +110,66 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     m_sceneToReplace = sceneToReplace;
     m_sceneThatWasCreated = NULL;
     
-    QWidget* infoWidget = createSceneInformationWidget();
-    
+    /*
+     * Options widget
+     */
+    QLabel* optionsLabel = new QLabel("Options");
     QWidget* optionsWidget = createSceneOptionsWidget();
+    
+    /*
+     * Create scene information widgets
+     */
+    QLabel* nameLabel = new QLabel("Name");
+    m_nameLineEdit = new QLineEdit();
+    
+    QLabel* descriptionLabel = new QLabel("Description");
+    m_descriptionTextEdit = new QPlainTextEdit();
+    
+    const Qt::Alignment labelAlignment = (Qt::AlignLeft | Qt::AlignTop);
+    
+    /*
+     * Layout for  widgets
+     */
+    int32_t columnCounter = 0;
+    const int32_t labelColumn  = columnCounter++;
+    const int32_t widgetColumn = columnCounter++;
+    QGridLayout* infoGridLayout = new QGridLayout();
+    infoGridLayout->setColumnStretch(labelColumn,   0);
+    infoGridLayout->setColumnStretch(widgetColumn, 100);
+    int32_t rowCounter = 0;
+    infoGridLayout->setRowStretch(rowCounter, 0);
+    infoGridLayout->addWidget(nameLabel,
+                              rowCounter, labelColumn,
+                              labelAlignment);
+    infoGridLayout->addWidget(m_nameLineEdit,
+                              rowCounter, widgetColumn);
+    rowCounter++;
+    infoGridLayout->setRowStretch(rowCounter, 100);
+    infoGridLayout->addWidget(descriptionLabel,
+                              rowCounter, labelColumn,
+                              labelAlignment);
+    infoGridLayout->addWidget(m_descriptionTextEdit,
+                              rowCounter, widgetColumn);
+    rowCounter++;
+    infoGridLayout->setRowStretch(rowCounter, 0);
+    infoGridLayout->addWidget(optionsLabel,
+                              rowCounter, labelColumn,
+                              labelAlignment);
+    infoGridLayout->addWidget(optionsWidget,
+                              rowCounter, widgetColumn);
+    rowCounter++;
+    
+    /*
+     * Add the layout to a widget and return the widget.
+     */
+    QWidget* infoWidget = new QWidget();
+    infoWidget->setLayout(infoGridLayout);
+
     
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(dialogWidget);
     dialogLayout->addWidget(infoWidget,
                             100);
-    dialogLayout->addWidget(optionsWidget,
-                            0);
     
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
@@ -303,52 +353,6 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene)
 }
 
 /**
- * @return Widget containing the scene information widgets.
- */
-QWidget*
-SceneCreateReplaceDialog::createSceneInformationWidget()
-{
-    /*
-     * Create scene information widgets
-     */
-    QLabel* nameLabel = new QLabel("Name");
-    m_nameLineEdit = new QLineEdit();
-    
-    QLabel* descriptionLabel = new QLabel("Description");
-    m_descriptionTextEdit = new QPlainTextEdit();
-    
-    /*
-     * Layout for scene information widgets
-     */
-    int32_t columnCounter = 0;
-    const int32_t labelColumn  = columnCounter++;
-    const int32_t widgetColumn = columnCounter++;
-    QGridLayout* infoGridLayout = new QGridLayout();
-    infoGridLayout->setColumnStretch(labelColumn,   0);
-    infoGridLayout->setColumnStretch(widgetColumn, 100);
-    int32_t rowCounter = 0;
-    infoGridLayout->setRowStretch(rowCounter, 0);
-    infoGridLayout->addWidget(nameLabel,
-                              rowCounter, labelColumn);
-    infoGridLayout->addWidget(m_nameLineEdit,
-                              rowCounter, widgetColumn);
-    rowCounter++;
-    infoGridLayout->setRowStretch(rowCounter, 100);
-    infoGridLayout->addWidget(descriptionLabel,
-                              rowCounter, labelColumn);
-    infoGridLayout->addWidget(m_descriptionTextEdit,
-                              rowCounter, widgetColumn);
-    rowCounter++;
-    
-    /*
-     * Add the layout to a widget and return the widget.
-     */
-    QWidget* infoWidget = new QWidget();
-    infoWidget->setLayout(infoGridLayout);
-    return infoWidget;
-}
-
-/**
  * @return Widget containing the scene options widgets.
  */
 QWidget*
@@ -399,7 +403,11 @@ SceneCreateReplaceDialog::createSceneOptionsWidget()
     /*
      * Add the layout to a widget and return the widget.
      */
-    QWidget* optionsWidget = new QWidget();
+    QFrame* optionsWidget = new QFrame();
+    optionsWidget->setFrameStyle(QFrame::Box
+                         | QFrame::Plain);
+    optionsWidget->setLineWidth(1);
+//    QWidget* optionsWidget = new QWidget();
     optionsWidget->setLayout(optionsLayout);
     return optionsWidget;
 }

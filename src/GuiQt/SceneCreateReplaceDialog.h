@@ -89,8 +89,6 @@ namespace caret {
         
         Scene* m_sceneThatWasCreated;
         
-        QWidget* createSceneInformationWidget();
-        
         QWidget* createSceneOptionsWidget();
         
         QLineEdit* m_nameLineEdit;
