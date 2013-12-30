@@ -23,6 +23,7 @@
  */ 
 
 #include <memory>
+#include <set>
 
 #include <QTextStream>
 
@@ -30,6 +31,8 @@
 #include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "DataFileContentInformation.h"
+#include "EventGetDisplayedDataFiles.h"
+#include "EventManager.h"
 #include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
@@ -1355,9 +1358,22 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                                             1);
     
     AString specFileNameForScene;
-    if (sceneAttributes->isSpecFileNameIncludedInScene()) {
+    if (sceneAttributes->isSpecFileNameSavedToScene()) {
         specFileNameForScene = getFileName();
     }
+    
+    const bool allLoadedFilesFlag = sceneAttributes->isAllLoadedFilesSavedToScene();
+    
+
+    
+    std::set<const CaretDataFile*> displayedDataFiles;
+    if ( ! allLoadedFilesFlag) {
+        const std::vector<int32_t> tabIndicesForScene = sceneAttributes->getIndicesOfTabsForSavingToScene();
+        EventGetDisplayedDataFiles displayedFilesEvent(tabIndicesForScene);
+        EventManager::get()->sendEvent(displayedFilesEvent.getPointer());
+        displayedDataFiles = displayedFilesEvent.getDisplayedDataFiles();        
+    }
+    
     sceneClass->addPathName("specFileName",
                             specFileNameForScene);
     
@@ -1385,7 +1401,19 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                  * Only write files that are loaded (indicated by its
                  * "caretDataFile" not NULL.
                  */
-                if (file->getCaretDataFile() != NULL) {
+                const CaretDataFile* caretDataFile = file->getCaretDataFile();
+                if (caretDataFile != NULL) {
+                    bool addFileToSceneFlag = false;
+                    if (allLoadedFilesFlag) {
+                        addFileToSceneFlag = true;
+                    }
+                    else {
+                        if (displayedDataFiles.find(caretDataFile) != displayedDataFiles.end()) {
+                            addFileToSceneFlag = true;
+                        }
+                    }
+                    
+                    if (addFileToSceneFlag) {
                         SceneClass* fileClass = new SceneClass("specFileDataFile",
                                                                "SpecFileDataFile",
                                                                1);
@@ -1400,6 +1428,7 @@ SpecFile::saveToScene(const SceneAttributes* sceneAttributes,
                                               file->isLoadingSelected());
                         
                         dataFileClasses.push_back(fileClass);
+                    }
                 }
             }
         }

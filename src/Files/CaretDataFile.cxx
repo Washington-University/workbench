@@ -50,7 +50,6 @@ CaretDataFile::CaretDataFile(const DataFileTypeEnum::Enum dataFileType)
 SceneableInterface()
 {
     m_dataFileType = dataFileType;
-    m_displayedInGuiFlag = false;
     
     AString name = (DataFileTypeEnum::toName(m_dataFileType).toLower()
                     + "_file_"
@@ -129,32 +128,6 @@ void
 CaretDataFile::copyDataCaretDataFile(const CaretDataFile& cdf)
 {
     m_dataFileType = cdf.m_dataFileType;
-}
-
-/**
- * @return Is this file displayed in the graphical user-interface?
- *
- * Note: Before calling this method, Brain::determineDisplayedDataFiles()
- * must be called.  It will set the displayed status for all 
- * files that is owns.
- */
-bool 
-CaretDataFile::isDisplayedInGUI() const
-{
-    return m_displayedInGuiFlag;
-}
-
-/**
- * Set the displayed in graphical user-interface status.
- * @param displayedInGUI
- *    New status of displayed in GUI.
- *
- * Note: This method is called by Brain::determineDisplayedDataFiles().
- */
-void 
-CaretDataFile::setDisplayedInGUI(const bool displayedInGUI)
-{
-    m_displayedInGuiFlag = displayedInGUI;
 }
 
 /**

@@ -63,13 +63,17 @@ namespace caret {
         
         void setSceneFileName(const AString& sceneFileName);
         
-        RestoreWindowBehavior getRestoreWindowBehavior() const;
+        RestoreWindowBehavior getRestoreWindowBehaviorInSceneDisplay() const;
         
-        void setWindowRestoreBehavior(const RestoreWindowBehavior rwb);
+        void setWindowRestoreBehaviorInSceneDisplay(const RestoreWindowBehavior rwb);
         
-        bool isSpecFileNameIncludedInScene() const;
+        bool isSpecFileNameSavedToScene() const;
         
-        void setSpecFileNameIncludedInScene(const bool status);
+        void setSpecFileNameSavedToScene(const bool status);
+        
+        bool isAllLoadedFilesSavedToScene() const;
+        
+        void setAllLoadedFilesSavedToScene(const bool status);
         
         void addToErrorMessage(const AString& message) const;
         
@@ -92,9 +96,11 @@ namespace caret {
         
         AString m_sceneFileName;
         
-        RestoreWindowBehavior m_restoreWindowBehavior;
+        RestoreWindowBehavior m_restoreWindowBehaviorInSceneDisplay;
         
-        bool m_includeSpecFileNameInScene;
+        bool m_specFileNameSavedToScene;
+        
+        bool m_allLoadedFilesSavedToScene;
         
         mutable AString m_errorMessage;
         

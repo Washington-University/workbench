@@ -34,6 +34,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include <QLabel>
 
 #include "CaretObject.h"
@@ -263,6 +265,8 @@ namespace caret {
         QIcon* m_iconReloadFile;
         
         QIcon* m_iconRemoveFile;
+        
+        std::set<const CaretDataFile*> m_displayedDataFiles;
         
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_NONE;

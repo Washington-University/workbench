@@ -47,6 +47,7 @@
 #include <QScopedPointer>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
@@ -458,7 +459,8 @@ SceneCreateReplaceDialog::okButtonClicked()
     SceneAttributes* sceneAttributes = newScene->getAttributes();
     sceneAttributes->setSceneFileName(m_sceneFile->getFileName());
     sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
-    sceneAttributes->setSpecFileNameIncludedInScene(m_addSpecFileNameToSceneCheckBox->isChecked());
+    sceneAttributes->setSpecFileNameSavedToScene(m_addSpecFileNameToSceneCheckBox->isChecked());
+    sceneAttributes->setAllLoadedFilesSavedToScene(m_addAllLoadedFilesCheckBox->isChecked());
     
     newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                       "guiManager"));

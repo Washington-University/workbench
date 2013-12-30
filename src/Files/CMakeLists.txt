@@ -47,6 +47,7 @@ CiftiParcelScalarFile.h
 ConnectivityDataLoaded.h
 DataFileTypeEnum.h
 EventCiftiMappableDataFileColoringUpdated.h
+EventGetDisplayedDataFiles.h
 EventSurfaceColoringInvalidate.h
 Fiber.h
 FiberOrientation.h
@@ -136,6 +137,7 @@ CiftiParcelScalarFile.cxx
 ConnectivityDataLoaded.cxx
 DataFileTypeEnum.cxx
 EventCiftiMappableDataFileColoringUpdated.cxx
+EventGetDisplayedDataFiles.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
 FiberOrientation.cxx

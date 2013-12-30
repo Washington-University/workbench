@@ -62,6 +62,7 @@
 #include "CursorDisplayScoped.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
+#include "EventGetDisplayedDataFiles.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventSpecFileReadDataFiles.h"
@@ -140,8 +141,6 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
     CaretAssert(brain);
     const AString title = ("Manage Data Files");
     
-    brain->determineDisplayedDataFiles();
-    
     SpecFileManagementDialog dialog(MODE_MANAGE_FILES,
                                     brain,
                                     brain->getSpecFile(),
@@ -168,8 +167,6 @@ SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(Brain* brain,
 {
     CaretAssert(brain);
     const AString title = ("Save Data Files");
-    
-    brain->determineDisplayedDataFiles();
     
     SpecFileManagementDialog dialog(MODE_SAVE_FILES_WHILE_QUITTING,
                                     brain,
@@ -267,11 +264,13 @@ m_specFile(specFile)
         m_specFileTableRowIndex = tableRowCounter++;
     }
     
+    bool testForDisplayedDataFiles = false;
     m_loadScenesPushButton = NULL;
     switch (m_dialogMode) {
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
             setOkButtonText("Save Checked Files");
             setCancelButtonText("Close");
+            testForDisplayedDataFiles = true;
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
             setOkButtonText("Load");
@@ -282,7 +281,14 @@ m_specFile(specFile)
         case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
             setOkButtonText("Save Selected Files and Exit");
             setCancelButtonText("Cancel");
+            testForDisplayedDataFiles = true;
             break;
+    }
+    
+    if (testForDisplayedDataFiles) {
+        EventGetDisplayedDataFiles displayedFilesEvent;
+        EventManager::get()->sendEvent(displayedFilesEvent.getPointer());
+        m_displayedDataFiles = displayedFilesEvent.getDisplayedDataFiles();
     }
     
 
@@ -384,7 +390,7 @@ m_specFile(specFile)
     /*
      * No scrollbars in dialog since the table widget will have scroll bars
      */
-    const bool enableScrollBars = false;
+//    const bool enableScrollBars = false;
 
     setTopBottomAndCentralWidgets(toolbarWidget,
                                   centralWidget,
@@ -1256,7 +1262,7 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 CaretAssert(displayedItem);
                 displayedItem->setText("");
                 if (caretDataFile != NULL) {
-                    if (caretDataFile->isDisplayedInGUI()) {
+                    if (m_displayedDataFiles.find(caretDataFile) != m_displayedDataFiles.end()) {
                         displayedItem->setText("YES");
                     }
                 }

@@ -62,6 +62,7 @@
 #include "CaretLogger.h"
 #include "CursorDisplayScoped.h"
 #include "CaretPreferences.h"
+#include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
@@ -1088,9 +1089,18 @@ SceneDialog::showSceneButtonClicked()
                                                this);
         progressDialog.setValue(0);
         
+        ElapsedTimer timer;
+        timer.start();
+        
         displayScenePrivate(sceneFile,
                             scene,
                             false);
+        
+        const AString msg = ("Time to load scene: "
+                             + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                             + " seconds.");
+        WuQMessageBox::informationOk(m_showScenePushButton,
+                                     msg);
     }
 }
 
@@ -1215,7 +1225,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     
     SceneAttributes* sceneAttributes = scene->getAttributes();
     sceneAttributes->setSceneFileName(sceneFileName);
-    sceneAttributes->setWindowRestoreBehavior(windowBehavior);
+    sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(windowBehavior);
     
     GuiManager::get()->restoreFromScene(sceneAttributes,
                                         guiManagerClass);

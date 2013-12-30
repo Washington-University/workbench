@@ -68,6 +68,8 @@ public:
         EVENT_DATA_FILE_READ,
         /** Reload (replace) a data file with its saved version */
         EVENT_DATA_FILE_RELOAD,
+        /** Get data files that are display in windows/tabs */
+        EVENT_GET_DISPLAYED_DATA_FILES,
         /** Get node data files */
         EVENT_GET_NODE_DATA_FILES,
         /** get or set the user input mode */

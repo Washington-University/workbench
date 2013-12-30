@@ -1104,11 +1104,13 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
     const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
         Overlay* overlay = overlaySet->getOverlay(i);
-        CaretMappableDataFile* overlayDataFile = NULL;
-        int32_t mapIndex;
-        overlay->getSelectionData(overlayDataFile, 
-                                  mapIndex);
-        displayedDataFiles.insert(overlayDataFile);
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* overlayDataFile = NULL;
+            int32_t mapIndex;
+            overlay->getSelectionData(overlayDataFile,
+                                      mapIndex);
+            displayedDataFiles.insert(overlayDataFile);
+        }
     }
     
     

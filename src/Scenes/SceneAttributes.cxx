@@ -54,8 +54,9 @@ using namespace caret;
 SceneAttributes::SceneAttributes(const SceneTypeEnum::Enum sceneType)
 : CaretObject(), m_sceneType(sceneType)
 {
-    m_restoreWindowBehavior = RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES;
-    m_includeSpecFileNameInScene = true;
+    m_restoreWindowBehaviorInSceneDisplay = RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES;
+    m_specFileNameSavedToScene   = true;
+    m_allLoadedFilesSavedToScene = true;
 }
 
 /**
@@ -118,43 +119,68 @@ SceneAttributes::setSceneFileName(const AString& sceneFileName)
 }
 
 /**
- * @return The window restoration behavior.
+ * @return The window restoration behavior when displaying a scene.
  */
 SceneAttributes::RestoreWindowBehavior 
-SceneAttributes::getRestoreWindowBehavior() const
+SceneAttributes::getRestoreWindowBehaviorInSceneDisplay() const
 {
-    return m_restoreWindowBehavior;
+    return m_restoreWindowBehaviorInSceneDisplay;
 }
 
 /**
- * Set the window restoration behavior.
+ * Set the window restoration behavior when displaying a scene.
  * @param rwb
  *   New value for window restoration behavior.
  */
 void 
-SceneAttributes::setWindowRestoreBehavior(const RestoreWindowBehavior rwb)
+SceneAttributes::setWindowRestoreBehaviorInSceneDisplay(const RestoreWindowBehavior rwb)
 {
-    m_restoreWindowBehavior = rwb;
+    m_restoreWindowBehaviorInSceneDisplay = rwb;
 }
 
 /**
- * @return true if spec file name is included in scene.
+ * @return true if spec file name is included in scene creation.
  */
 bool 
-SceneAttributes::isSpecFileNameIncludedInScene() const
+SceneAttributes::isSpecFileNameSavedToScene() const
 {
-    return m_includeSpecFileNameInScene;
+    return m_specFileNameSavedToScene;
 }
 
 /**
- * Set spec file name included in scene.
+ * Set spec file name included in scene creation.
  * @param status
- *    New status of spec file name included in scene.
+ *    New status of spec file name included in scene creation.
  */
 void 
-SceneAttributes::setSpecFileNameIncludedInScene(const bool status)
+SceneAttributes::setSpecFileNameSavedToScene(const bool status)
 {
-    m_includeSpecFileNameInScene = status;
+    m_specFileNameSavedToScene = status;
+}
+
+/**
+ * @return Are all loaded files saved to the scene when creating a scene, even those
+ * that do not affect the scene?  Including all loaded files will increase
+ * the time required to display the scene.
+ */
+bool
+SceneAttributes::isAllLoadedFilesSavedToScene() const
+{
+    return m_allLoadedFilesSavedToScene;
+}
+
+/**
+ * When creating a scene, should all loadedfiles be included in the scene, even
+ * those that do not affect the scene?  Including all loaded  files will increase
+ * the time required to display the scene.
+ *
+ * @param status
+ *    New status.
+ */
+void
+SceneAttributes::setAllLoadedFilesSavedToScene(const bool status)
+{
+    m_allLoadedFilesSavedToScene = status;
 }
 
 /**

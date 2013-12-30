@@ -277,7 +277,7 @@ SceneWindowGeometry::restoreFromScene(const SceneAttributes* sceneAttributes,
     bool isResizeWindow = false;
     bool isMoveWindow   = false;
     bool isMoveWindowRelative = false;
-    switch (sceneAttributes->getRestoreWindowBehavior()) {
+    switch (sceneAttributes->getRestoreWindowBehaviorInSceneDisplay()) {
         case SceneAttributes::RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES:
             isResizeWindow = true;
             isMoveWindow   = true;
