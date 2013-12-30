@@ -41,8 +41,8 @@ struct nifti_2_header {   /* NIFTI-2 usage         */  /* NIFTI-1 usage        *
     /*************************/  /************************/ /************/
     int32_t   sizeof_hdr;     /*!< MUST be 540           */  /* int32_t sizeof_hdr; (348) */  /*   0 */
     char  magic[8] ;      /*!< MUST be valid signature. */  /* char magic[4];     */  /*   4 */
-    short datatype;       /*!< Defines data type!    */  /* short datatype;       */  /*  12 */
-    short bitpix;         /*!< Number bits/voxel.    */  /* short bitpix;         */  /*  14 */
+    int16_t datatype;       /*!< Defines data type!    */  /* short datatype;       */  /*  12 */
+    int16_t bitpix;         /*!< Number bits/voxel.    */  /* short bitpix;         */  /*  14 */
     int64_t dim[8];     /*!< Data array dimensions.*/  /* short dim[8];         */  /*  16 */
     double intent_p1 ;    /*!< 1st intent parameter. */  /* float intent_p1;      */  /*  80 */
     double intent_p2 ;    /*!< 2nd intent parameter. */  /* float intent_p2;      */  /*  88 */
