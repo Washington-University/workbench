@@ -88,7 +88,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     ret->setHelpText(
         AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
         "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
-        "Only one of -to-gifti-ext or -from-gifti-ext may be specified.  " +
+        "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, or -from-nifti.  " +
         "The -transpose option is needed if the binary file is in column-major order."
     );
     return ret;

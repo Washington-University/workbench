@@ -24,7 +24,7 @@ const int32_t NIFTI_ECODE_CIFTI=32;
 
 #define NIFTI2_VERSION(h) \
     (h).sizeof_hdr == 348 ? 1 : (\
-    (h).sizeof_hdr == 1543569408? 1 : (\
+    (h).sizeof_hdr == 1543569408 ? 1 : (\
     (h).sizeof_hdr == 540 ? 2 : (\
     (h).sizeof_hdr == 469893120 ? 2 : 0)))
 
