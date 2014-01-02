@@ -1689,6 +1689,7 @@ GiftiDataArray::getPaletteColorMapping() const
             }
         }
     }
+    this->paletteColorMapping->clearModified();
     
     return this->paletteColorMapping;
 }
