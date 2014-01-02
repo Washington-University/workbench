@@ -88,8 +88,16 @@ namespace caret {
         AString m_saveDialogPositionName;
         
         struct SavedPosition {
+            SavedPosition() {
+                x = -1;
+                y = -1;
+                w = -1;
+                h = -1;
+            }
             int x;
             int y;
+            int w;
+            int h;
         };
         
         static std::map<QString, SavedPosition> s_savedDialogPositions;

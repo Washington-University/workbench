@@ -193,8 +193,11 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         m_descriptionTextEdit->setPlainText(description.getText());
     }
     
-    setMinimumWidth(500);
+    setMinimumWidth(600);
     setMinimumHeight(300);
+    
+    setSaveWindowPositionForNextTime("SceneCreateDialog");
+    
 }
 
 /**

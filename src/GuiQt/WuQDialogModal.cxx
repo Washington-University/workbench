@@ -315,6 +315,11 @@ WuQDialogModal::setVisible(bool visible)
                     move(savedPosition.x,
                          savedPosition.y);
                 }
+                if ((savedPosition.w > 0)
+                    && (savedPosition.h > 0)) {
+                    resize(savedPosition.w,
+                           savedPosition.h);
+                }
             }
         }
         else {
@@ -324,6 +329,9 @@ WuQDialogModal::setVisible(bool visible)
             SavedPosition savedPosition;
             savedPosition.x = x();
             savedPosition.y = y();
+            savedPosition.w = width();
+            savedPosition.h = height();
+            
             if (iter != s_savedDialogPositions.end()) {
                 /*
                  * Replace dialog position
