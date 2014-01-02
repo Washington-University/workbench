@@ -330,14 +330,30 @@ BrowserTabContent::getUserName() const
 AString 
 BrowserTabContent::toString() const
 {
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
+}
+
+/**
+ * Get a text description of the window's content.
+ *
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
     const int32_t tabIndex = getTabNumber();
     
-    AString msg = ("Browser Tab "
+    descriptionOut.addLine("Browser Tab "
                    + AString::number(tabIndex + 1)
                    + ": ");
     
+    descriptionOut.pushIndentation();
+    
     const Model* model = getModelControllerForDisplay();
-
+    
     if (model != NULL) {
         bool surfaceFlag    = false;
         bool surfaceMontageFlag = false;
@@ -361,54 +377,61 @@ BrowserTabContent::toString() const
                 wholeBrainFlag = true;
                 break;
         }
-
+        
         if (volumeFlag) {
-            msg.appendWithNewLine("Volume Slice View");
+            descriptionOut.addLine("Volume Slice View");
         }
         else if (wholeBrainFlag) {
-            msg.appendWithNewLine("All View");
-                if (isWholeBrainCerebellumEnabled()) {
-                    const Surface* cerebellumSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CEREBELLUM,
-                                                                                             tabIndex);
-                    if (cerebellumSurface != NULL) {
-                        msg.appendWithNewLine(cerebellumSurface->toString());
-                    }
+            descriptionOut.addLine("All View");
+            descriptionOut.pushIndentation();
+            
+            if (isWholeBrainCerebellumEnabled()) {
+                const Surface* cerebellumSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CEREBELLUM,
+                                                                                         tabIndex);
+                if (cerebellumSurface != NULL) {
+                    cerebellumSurface->getDescriptionOfContent(descriptionOut);
                 }
-                if (isWholeBrainLeftEnabled()) {
-                    const Surface* leftSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_LEFT,
-                                                                                       tabIndex);
-                    if (leftSurface != NULL) {
-                        msg.appendWithNewLine(leftSurface->toString());
-                    }
+            }
+            if (isWholeBrainLeftEnabled()) {
+                const Surface* leftSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_LEFT,
+                                                                                   tabIndex);
+                if (leftSurface != NULL) {
+                    leftSurface->getDescriptionOfContent(descriptionOut);
                 }
-                if (isWholeBrainRightEnabled()) {
-                    const Surface* rightSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
-                                                                                        tabIndex);
-                    if (rightSurface != NULL) {
-                        msg.appendWithNewLine(rightSurface->toString());
-                    }
+            }
+            if (isWholeBrainRightEnabled()) {
+                const Surface* rightSurface = m_wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
+                                                                                    tabIndex);
+                if (rightSurface != NULL) {
+                    rightSurface->getDescriptionOfContent(descriptionOut);
                 }
+            }
+            
+            descriptionOut.popIndentation();
         }
         else if (surfaceFlag) {
-            msg.appendWithNewLine(model->toString());
+            model->getDescriptionOfContent(tabIndex,
+                                           descriptionOut);
         }
         else if (surfaceMontageFlag) {
-            if (m_surfaceMontageModel != NULL) {
-                msg.appendWithNewLine(m_surfaceMontageModel->getSelectedConfiguration(tabIndex)->toString());
-            }
-        }
-
-        if (wholeBrainFlag
-            || volumeFlag) {
-            msg.appendWithNewLine(m_volumeSliceSettings->toStringForModelType(model->getControllerType()));
+            model->getDescriptionOfContent(tabIndex,
+                                           descriptionOut);
         }
         
-        msg.appendWithNewLine("");
-        msg.appendWithNewLine(getOverlaySet()->toString());
+        if (wholeBrainFlag
+            || volumeFlag) {
+            descriptionOut.pushIndentation();
+            m_volumeSliceSettings->getDescriptionOfContent(model->getControllerType(),
+                                                           descriptionOut);
+            descriptionOut.popIndentation();
+        }
+        
+        getOverlaySet()->getDescriptionOfContent(descriptionOut);
     }
     
-    return msg;
+    descriptionOut.popIndentation();
 }
+
 
 /**
  * Get the selected model type.

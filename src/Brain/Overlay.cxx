@@ -36,6 +36,7 @@
 #include "EventOverlayValidate.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "PlainTextStringBuilder.h"
 #include "RgbaFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -180,8 +181,20 @@ Overlay::getName() const
 AString 
 Overlay::toString() const
 {
-    AString msg;
-    
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
+}
+
+/**
+ * Get a text description of the window's content.
+ *
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+Overlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
     Overlay* me = const_cast<Overlay*>(this);
     if (me != NULL) {
         if (me->isEnabled()) {
@@ -190,27 +203,22 @@ Overlay::toString() const
             me->getSelectionData(mapFile,
                                  mapIndex);
             if (mapFile != NULL) {
-                msg += ("File: "+
-                        mapFile->getFileNameNoPath());
+                descriptionOut.addLine("File: "+
+                                       mapFile->getFileNameNoPath());
                 if (mapFile->hasMapAttributes()) {
                     if ((mapIndex >= 0)
                         && (mapIndex < mapFile->getNumberOfMaps())) {
-                        msg += ("   Map Index: "
-                                + AString::number(mapIndex + 1)
-                                + "  Map Name: "
-                                + mapFile->getMapName(mapIndex));
+                        descriptionOut.addLine("Map Index: "
+                                               + AString::number(mapIndex + 1));
+                        descriptionOut.addLine("Map Name: "
+                                               + mapFile->getMapName(mapIndex));
                     }
                 }
-                msg += ("   Structure: "
-                        + StructureEnum::toGuiName(mapFile->getStructure()));
-            }
-            else {
-                msg += "No File";
+                descriptionOut.addLine("Structure: "
+                                       + StructureEnum::toGuiName(mapFile->getStructure()));
             }
         }
     }
-    
-    return msg;
 }
 
 /**

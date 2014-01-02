@@ -47,6 +47,7 @@ namespace caret {
     class BrainBrowserWindowOrientedToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
+    class PlainTextStringBuilder;
     class SceneClassAssistant;
 
     
@@ -121,6 +122,8 @@ namespace caret {
                                    int32_t& heightOut) const;
         
         AString toString() const;
+        
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
     protected:
         void closeEvent(QCloseEvent* event);

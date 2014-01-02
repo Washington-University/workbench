@@ -37,6 +37,7 @@ namespace caret {
     class LabelFile;
     class SceneClassAssistant;
     class Surface;
+    class PlaneTextStringBuilder;
     class VolumeFile;
     class VolumeMappableInterface;
     
@@ -97,6 +98,8 @@ namespace caret {
                                       const SceneClass* sceneClass);
     public:
         virtual AString toString() const;
+        
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
     private:
         void findUnderlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,

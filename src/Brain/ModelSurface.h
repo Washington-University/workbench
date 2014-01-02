@@ -52,6 +52,9 @@ namespace caret {
         
         virtual AString toDescriptiveString() const;
         
+        virtual void getDescriptionOfContent(const int32_t tabIndex,
+                                             PlainTextStringBuilder& descriptionOut) const;
+        
     private:
         ModelSurface(const ModelSurface&);
         

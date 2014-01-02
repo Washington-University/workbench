@@ -36,6 +36,7 @@
 #include "VolumeSliceSettings.h"
 #undef __VOLUME_SLICE_SETTINGS_DECLARE__
 
+#include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "VolumeFile.h"
@@ -161,8 +162,17 @@ VolumeSliceSettings::toString() const
     return "VolumeSliceSettings";
 }
 
-AString
-VolumeSliceSettings::toStringForModelType(const ModelTypeEnum::Enum modelType)
+/**
+ * Get a text description of the instance's content.
+ *
+ * @param modelType
+ *    Type of model.
+ * @param descriptionOut
+ *    Description of the instance's content.
+ */
+void
+VolumeSliceSettings::getDescriptionOfContent(const ModelTypeEnum::Enum modelType,
+                                             PlainTextStringBuilder& descriptionOut) const
 {
     bool volumeFlag = false;
     bool wholeBrainFlag = false;
@@ -184,15 +194,16 @@ VolumeSliceSettings::toStringForModelType(const ModelTypeEnum::Enum modelType)
             break;
     }
     
-    AString msg;
-    
     bool showParasagittalCoordinate = false;
     bool showCoronalCoordinate      = false;
     bool showAxialCoordinate        = false;
     
-    msg.appendWithNewLine("Volume Slice Settings: ");
+    descriptionOut.addLine("Volume Slice Settings: ");
+    
+    descriptionOut.pushIndentation();
+    
     if (volumeFlag) {
-        msg.appendWithNewLine("   View Plane: "
+        descriptionOut.addLine("   View Plane: "
                               + VolumeSliceViewPlaneEnum::toGuiName(m_sliceViewPlane));
         showParasagittalCoordinate = true;
         showCoronalCoordinate      = true;
@@ -212,22 +223,22 @@ VolumeSliceSettings::toStringForModelType(const ModelTypeEnum::Enum modelType)
     }
     
     if (showParasagittalCoordinate) {
-        msg.appendWithNewLine("   Parasagittal (X-axis) Coordinate: "
+        descriptionOut.addLine("   Parasagittal (X-axis) Coordinate: "
                               + AString::number(m_sliceCoordinateParasagittal, 'f', 3));
     }
     if (showCoronalCoordinate) {
-        msg.appendWithNewLine("   Coronal (Y-axis) Coordinate:      "
+        descriptionOut.addLine("   Coronal (Y-axis) Coordinate:      "
                               + AString::number(m_sliceCoordinateCoronal, 'f', 3));
     }
     if (showAxialCoordinate) {
-        msg.appendWithNewLine("   Axial (Z-axis) Coordinate:        "
+        descriptionOut.addLine("   Axial (Z-axis) Coordinate:        "
                               + AString::number(m_sliceCoordinateAxial, 'f', 3));
     }
-
-    msg.appendWithNewLine("");
     
-    return msg;
+    descriptionOut.popIndentation();
 }
+
+
 
 
 /**

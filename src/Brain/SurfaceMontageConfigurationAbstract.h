@@ -45,6 +45,7 @@
 
 namespace caret {
     class OverlaySet;
+    class PlainTextStringBuilder;
     class SceneClassAssistant;
     class SurfaceMontageViewport;
 
@@ -115,6 +116,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const = 0;
         
     private:
         SceneClassAssistant* m_sceneAssistant;

@@ -37,6 +37,7 @@
 #undef __SURFACE_MONTAGE_CONFIGURATION_FLAT_MAPS_DECLARE__
 
 #include "CaretAssert.h"
+#include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "Surface.h"
@@ -340,35 +341,51 @@ SurfaceMontageConfigurationFlatMaps::restoreMembersFromScene(const SceneAttribut
 AString
 SurfaceMontageConfigurationFlatMaps::toString() const
 {
-    AString msg;
-    
-    msg.appendWithNewLine("Cerebral Montage: ");
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
+}
+
+/**
+ * Get a text description of the instance's content.
+ *
+ * @param descriptionOut
+ *    Description of the instance's content.
+ */
+void
+SurfaceMontageConfigurationFlatMaps::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
+    descriptionOut.addLine("Flat Montage: ");
     
     if (isLeftEnabled()) {
         const Surface* firstLeftSurface = getLeftSurfaceSelectionModel()->getSurface();
         if (firstLeftSurface != NULL) {
-            msg.appendWithNewLine("Left Surface: "
-                                  + firstLeftSurface->toString());
+            descriptionOut.addLine("Left Surface:");
+            descriptionOut.pushIndentation();
+            firstLeftSurface->getDescriptionOfContent(descriptionOut);
+            descriptionOut.popIndentation();
         }
     }
     
     if (isRightEnabled()) {
         const Surface* firstRightSurface = getRightSurfaceSelectionModel()->getSurface();
         if (firstRightSurface != NULL) {
-            msg.appendWithNewLine("Right Surface: "
-                                  + firstRightSurface->toString());
+            descriptionOut.addLine("Right Surface:");
+            descriptionOut.pushIndentation();
+            firstRightSurface->getDescriptionOfContent(descriptionOut);
+            descriptionOut.popIndentation();
         }
     }
     
     if (isCerebellumEnabled()) {
         const Surface* cerebellumSurface = getCerebellumSurfaceSelectionModel()->getSurface();
         if (cerebellumSurface != NULL) {
-            msg.appendWithNewLine("Cerebellum Surface: "
-                                  + cerebellumSurface->toString());
+            descriptionOut.addLine("Cerebellum Surface:");
+            descriptionOut.pushIndentation();
+            cerebellumSurface->getDescriptionOfContent(descriptionOut);
+            descriptionOut.popIndentation();
         }
     }
-    
-    return msg;
 }
 
 

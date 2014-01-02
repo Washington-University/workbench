@@ -33,6 +33,7 @@
 namespace caret {
     class Brain;
     class OverlaySet;
+    class PlainTextStringBuilder;
     
     /// Base class for controlling a model
     class Model : public CaretObject, public SceneableInterface {
@@ -63,6 +64,9 @@ namespace caret {
         virtual AString toString() const;
         
         virtual AString toDescriptiveString() const;
+        
+        virtual void getDescriptionOfContent(const int32_t tabIndex,
+                                             PlainTextStringBuilder& descriptionOut) const;
         
         virtual OverlaySet* getOverlaySet(const int tabIndex) = 0;
         

@@ -57,6 +57,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "PlainTextStringBuilder.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneFile.h"
@@ -174,15 +175,14 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     setCentralWidget(dialogWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
 
-    AString description;
-    
+    PlainTextStringBuilder description;
     std::vector<BrainBrowserWindow*> windows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (std::vector<BrainBrowserWindow*>::iterator iter = windows.begin();
          iter != windows.end();
          iter++) {
         BrainBrowserWindow* window = *iter;
-        description.appendWithNewLine(window->toString());
-        description.appendWithNewLine("");
+        window->getDescriptionOfContent(description);
+        description.addLine("");
     }
     
     if (sceneToReplace != NULL) {
@@ -190,7 +190,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         m_descriptionTextEdit->setPlainText(sceneToReplace->getDescription());
     }
     else {
-        m_descriptionTextEdit->setPlainText(description);
+        m_descriptionTextEdit->setPlainText(description.getText());
     }
     
     setMinimumWidth(500);

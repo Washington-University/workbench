@@ -69,6 +69,7 @@
 #include "GuiManager.h"
 #include "ModelSurface.h"
 #include "ModelWholeBrain.h"
+#include "PlainTextStringBuilder.h"
 #include "ProgressReportingDialog.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -3010,6 +3011,28 @@ BrainBrowserWindow::toString() const
     
     return msg;
 }
+
+/**
+ * Get a text description of the window's content.
+ *
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+BrainBrowserWindow::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
+    descriptionOut.addLine("Window "
+                           + AString::number(getBrowserWindowIndex() + 1)
+                           + ":");
+    
+    const BrowserTabContent* btc = getBrowserTabContent();
+    if (btc != NULL) {
+        descriptionOut.pushIndentation();
+        btc->getDescriptionOfContent(descriptionOut);
+        descriptionOut.popIndentation();
+    }
+}
+
 
 
 

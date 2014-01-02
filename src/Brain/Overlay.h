@@ -30,6 +30,7 @@
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "PlainTextStringBuilder.h"
 #include "SceneableInterface.h"
 #include "WholeBrainVoxelDrawingMode.h"
 #include "OverlayYokingGroupEnum.h"
@@ -63,6 +64,8 @@ namespace caret {
         void setOverlayNumber(const int32_t overlayIndex);
         
         virtual AString toString() const;
+        
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
         bool isEnabled() const;
         

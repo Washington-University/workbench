@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "EventBrainStructureGetAll.h"
 #include "EventManager.h"
+#include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "Surface.h"
@@ -654,24 +655,44 @@ SurfaceMontageConfigurationCerebral::getRightSecondSurfaceSelectionModel() const
 AString
 SurfaceMontageConfigurationCerebral::toString() const
 {
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
+}
+
+/**
+ * Get a text description of the instance's content.
+ *
+ * @param descriptionOut
+ *    Description of the instance's content.
+ */
+void
+SurfaceMontageConfigurationCerebral::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
     AString msg;
     
-    msg.appendWithNewLine("Cerebral Montage: ");
-
+    descriptionOut.addLine("Cerebral Montage: ");
+    
+    descriptionOut.pushIndentation();
+    
     if (isLeftEnabled()) {
         if (isFirstSurfaceEnabled()) {
             const Surface* firstLeftSurface = getLeftFirstSurfaceSelectionModel()->getSurface();
             if (firstLeftSurface != NULL) {
-                msg.appendWithNewLine("Left Surface: "
-                                      + firstLeftSurface->toString());
+                descriptionOut.addLine("Left Surface:");
+                descriptionOut.pushIndentation();
+                firstLeftSurface->getDescriptionOfContent(descriptionOut);
+                descriptionOut.popIndentation();
             }
         }
         
         if (isSecondSurfaceEnabled()) {
             const Surface* secondLeftSurface = getLeftSecondSurfaceSelectionModel()->getSurface();
             if (secondLeftSurface != NULL) {
-                msg.appendWithNewLine("Left Surface: "
-                                      + secondLeftSurface->toString());
+                descriptionOut.addLine("Left Surface:");
+                descriptionOut.pushIndentation();
+                secondLeftSurface->getDescriptionOfContent(descriptionOut);
+                descriptionOut.popIndentation();
             }
         }
     }
@@ -680,15 +701,19 @@ SurfaceMontageConfigurationCerebral::toString() const
         if (isFirstSurfaceEnabled()) {
             const Surface* firstRightSurface = getRightFirstSurfaceSelectionModel()->getSurface();
             if (firstRightSurface != NULL) {
-                msg.appendWithNewLine("Right Surface: "
-                                      + firstRightSurface->toString());
+                descriptionOut.addLine("Right Surface:");
+                descriptionOut.pushIndentation();
+                firstRightSurface->getDescriptionOfContent(descriptionOut);
+                descriptionOut.popIndentation();
             }
         }
         if (isSecondSurfaceEnabled()) {
             const Surface* secondRightSurface = getRightSecondSurfaceSelectionModel()->getSurface();
             if (secondRightSurface != NULL) {
-                msg.appendWithNewLine("Right Surface: "
-                                      + secondRightSurface->toString());
+                descriptionOut.addLine("Right Surface:");
+                descriptionOut.pushIndentation();
+                secondRightSurface->getDescriptionOfContent(descriptionOut);
+                descriptionOut.popIndentation();
             }
         }
     }
@@ -702,8 +727,9 @@ SurfaceMontageConfigurationCerebral::toString() const
         viewsMsg += " Medial";
     }
     
-    msg.appendWithNewLine(viewsMsg);
+    descriptionOut.addLine(viewsMsg);
     
-    return msg;
+    descriptionOut.popIndentation();
 }
+
 

@@ -46,6 +46,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "Overlay.h"
+#include "PlainTextStringBuilder.h"
 #include "Scene.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -266,19 +267,40 @@ OverlaySet::getOverlay(const int32_t overlayNumber)
 AString 
 OverlaySet::toString() const
 {
-    AString msg = "Overlay Set:";
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
+}
+
+/**
+ * Get a text description of the window's content.
+ *
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+OverlaySet::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
+    descriptionOut.addLine("Overlay Set");
+    
     const int numOverlays = getNumberOfDisplayedOverlays();
     for (int32_t i = 0; i < numOverlays; i++) {
-        const AString overlayMsg = getOverlay(i)->toString();
-        if ( ! overlayMsg.isEmpty()) {
-            msg += ("\n   Overlay "
+        if (getOverlay(i)->isEnabled()) {
+            descriptionOut.pushIndentation();
+            
+            descriptionOut.addLine("Overlay "
                     + AString::number(i + 1)
-                    + ": "
-                    + overlayMsg);
+                    + ": ");
+            
+            descriptionOut.pushIndentation();
+            getOverlay(i)->getDescriptionOfContent(descriptionOut);
+            descriptionOut.popIndentation();
+            
+            descriptionOut.popIndentation();
         }
     }
-    return msg;
 }
+
 
 /**
  * Add a displayed overlay.  If the maximum

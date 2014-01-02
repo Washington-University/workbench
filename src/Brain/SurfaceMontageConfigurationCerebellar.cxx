@@ -37,6 +37,7 @@
 #undef __SURFACE_MONTAGE_CONFIGURATION_CEREBELLAR_DECLARE__
 
 #include "CaretAssert.h"
+#include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "Surface.h"
@@ -582,23 +583,41 @@ SurfaceMontageConfigurationCerebellar::restoreMembersFromScene(const SceneAttrib
 AString
 SurfaceMontageConfigurationCerebellar::toString() const
 {
-    AString msg;
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
+}
+
+/**
+ * Get a text description of the instance's content.
+ *
+ * @param descriptionOut
+ *    Description of the instance's content.
+ */
+void
+SurfaceMontageConfigurationCerebellar::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
+    descriptionOut.addLine("Cerebellar Montage: ");
     
-    msg.appendWithNewLine("Cerebellar Montage: ");
+    descriptionOut.pushIndentation();
     
     const Surface* firstSurface = getFirstSurfaceSelectionModel()->getSurface();
     if (firstSurface != NULL) {
         if (isFirstSurfaceEnabled()) {
-            msg.appendWithNewLine("Surface: "
-                                  + firstSurface->toString());
+            descriptionOut.addLine("Surface:");
+            descriptionOut.pushIndentation();
+            firstSurface->getDescriptionOfContent(descriptionOut);
+            descriptionOut.popIndentation();
         }
     }
     
     const Surface* secondSurface = getSecondSurfaceSelectionModel()->getSurface();
     if (secondSurface != NULL) {
         if (isSecondSurfaceEnabled()) {
-            msg.appendWithNewLine("Surface: "
-                                  + secondSurface->toString());
+            descriptionOut.addLine("Surface:");
+            descriptionOut.pushIndentation();
+            secondSurface->getDescriptionOfContent(descriptionOut);
+            descriptionOut.popIndentation();
         }
     }
     
@@ -617,9 +636,8 @@ SurfaceMontageConfigurationCerebellar::toString() const
         viewsMsg += " Ventral";
     }
     
-    msg.appendWithNewLine(viewsMsg);
+    descriptionOut.addLine(viewsMsg);
     
-    return msg;
+    descriptionOut.popIndentation();
 }
-
 

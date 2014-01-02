@@ -93,6 +93,9 @@ namespace caret {
         
         virtual AString toString() const;
         
+        virtual void getDescriptionOfContent(const int32_t tabIndex,
+                                             PlainTextStringBuilder& descriptionOut) const;
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);

@@ -1162,4 +1162,21 @@ ModelSurfaceMontage::toString() const
     return msg;
 }
 
+/**
+ * Get a text description of the window's content.
+ *
+ * @param tabIndex
+ *    Index of the tab for content description.
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+ModelSurfaceMontage::getDescriptionOfContent(const int32_t tabIndex,
+                                             PlainTextStringBuilder& descriptionOut) const
+{
+    const SurfaceMontageConfigurationAbstract* config = getSelectedConfiguration(tabIndex);
+    if (config != NULL) {
+        config->getDescriptionOfContent(descriptionOut);
+    }
+}
 

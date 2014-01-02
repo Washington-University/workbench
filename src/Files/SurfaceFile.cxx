@@ -43,6 +43,7 @@
 
 #include "CaretPointLocator.h"
 #include "GeodesicHelper.h"
+#include "PlainTextStringBuilder.h"
 #include "SignedDistanceHelper.h"
 #include "TopologyHelper.h"
 
@@ -1666,18 +1667,27 @@ SurfaceFile::addToDataFileContentInformation(DataFileContentInformation& dataFil
 AString
 SurfaceFile::toString() const
 {
-    AString msg;
-    
-    msg.appendWithNewLine("Surface: "
-                          + getFileNameNoPath());
-    msg.appendWithNewLine("   Structure: "
-                          + StructureEnum::toGuiName(getStructure()));
-    msg.appendWithNewLine("   Primary Type: "
-                          + SurfaceTypeEnum::toGuiName(getSurfaceType()));
-    msg.appendWithNewLine("   Secondary Type: "
-                          + SecondarySurfaceTypeEnum::toGuiName(getSecondaryType()));
-    msg.appendWithNewLine("");
-    return msg;
+    PlainTextStringBuilder tb;
+    getDescriptionOfContent(tb);
+    return tb.getText();
 }
 
+/**
+ * Get a text description of the instance's content.
+ *
+ * @param descriptionOut
+ *    Description of the instance's content.
+ */
+void
+SurfaceFile::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const
+{
+    descriptionOut.addLine("Surface: "
+                          + getFileNameNoPath());
+    descriptionOut.addLine("   Structure: "
+                          + StructureEnum::toGuiName(getStructure()));
+    descriptionOut.addLine("   Primary Type: "
+                          + SurfaceTypeEnum::toGuiName(getSurfaceType()));
+    descriptionOut.addLine("   Secondary Type: "
+                          + SecondarySurfaceTypeEnum::toGuiName(getSecondaryType()));
+}
 

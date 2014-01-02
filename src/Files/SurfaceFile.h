@@ -47,6 +47,7 @@ namespace caret {
     class GeodesicHelperBase;
     class GiftiDataArray;
     class Matrix4x4;
+    class PlainTextStringBuilder;
     class SignedDistanceHelper;
     class SignedDistanceHelperBase;
     class TopologyHelper;
@@ -191,6 +192,8 @@ namespace caret {
         
         virtual AString toString() const;
         
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
+    
     protected:
         /**
          * Validate the contents of the file after it

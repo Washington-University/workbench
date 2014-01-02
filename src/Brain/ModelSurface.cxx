@@ -278,4 +278,24 @@ ModelSurface::toDescriptiveString() const
     return msg;
 }
 
+/**
+ * Get a text description of the window's content.
+ *
+ * @param tabIndex
+ *    Index of the tab for content description.
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+ModelSurface::getDescriptionOfContent(const int32_t /*tabIndex*/,
+                                      PlainTextStringBuilder& descriptionOut) const
+{
+    AString msg;
+    
+    const Surface* surface = getSurface();
+    if (surface != NULL) {
+        surface->getDescriptionOfContent(descriptionOut);
+    }
+}
+
 

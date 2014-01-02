@@ -51,6 +51,7 @@ namespace caret {
     class ModelWholeBrain;
     class OverlaySet;
     class Palette;
+    class PlainTextStringBuilder;
     class SceneClassAssistant;
     class Surface;
     class ViewingTransformations;
@@ -72,6 +73,8 @@ namespace caret {
         void cloneBrowserTabContent(BrowserTabContent* tabToClone);
         
         virtual void receiveEvent(Event* event);
+        
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
         virtual AString toString() const;
         

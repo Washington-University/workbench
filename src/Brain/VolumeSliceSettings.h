@@ -43,6 +43,7 @@
 
 namespace caret {
 
+    class PlainTextStringBuilder;
     class SceneClassAssistant;
     class VolumeMappableInterface;
     class VolumeSliceCoordinateSelection;
@@ -141,7 +142,8 @@ namespace caret {
 
         virtual AString toString() const;
         
-        AString toStringForModelType(const ModelTypeEnum::Enum modelType);
+        virtual void getDescriptionOfContent(const ModelTypeEnum::Enum modelType,
+                                             PlainTextStringBuilder& descriptionOut) const;
         
     private:
         void copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj);

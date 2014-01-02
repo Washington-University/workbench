@@ -101,6 +101,21 @@ Model::toDescriptiveString() const
 }
 
 /**
+ * Get a text description of the window's content.
+ *
+ * @param tabIndex
+ *    Index of the tab for content description.
+ * @param descriptionOut
+ *    Description of the window's content.
+ */
+void
+Model::getDescriptionOfContent(const int32_t /*tabIndex*/,
+                               PlainTextStringBuilder& descriptionOut) const
+{
+    descriptionOut.addLine(getNameForGUI(true));
+}
+
+/**
  * Get the brain that created this controller.
  * @return The brain.
  */

@@ -95,6 +95,8 @@ namespace caret {
 
         virtual AString toString() const;
         
+        virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
