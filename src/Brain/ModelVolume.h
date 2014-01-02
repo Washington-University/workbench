@@ -56,8 +56,6 @@ namespace caret {
         
         void initializeOverlays();
         
-        virtual AString toDescriptiveString() const;
-        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);

@@ -63,8 +63,6 @@ namespace caret {
         
         virtual AString toString() const;
         
-        virtual AString toDescriptiveString() const;
-        
         virtual void getDescriptionOfContent(const int32_t tabIndex,
                                              PlainTextStringBuilder& descriptionOut) const;
         

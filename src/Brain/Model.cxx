@@ -74,8 +74,7 @@ Model::getControllerType() const
 }
 
 /**
- * Get a String for use in the GUI.  Use toDescriptiveString() for
- * information about this controller's content.
+ * Get a String for use in the GUI.
  *
  * @return String for use in the GUI.
  *
@@ -84,20 +83,6 @@ AString
 Model::toString() const
 {
        return getNameForGUI(true);
-}
-
-/**
- * Returns a descriptive string containing info about this instance.
- *
- * @return  String describing contents of this instance.
- *
- */
-AString
-Model::toDescriptiveString() const
-{
-    AString s = CaretObject::toString();
-    
-    return s;
 }
 
 /**
