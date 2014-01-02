@@ -74,7 +74,8 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
         myHelpText += SurfaceResamplingMethodEnum::toName(allEnums[i]) + "\n";
     }
     
-    myHelpText += AString("\nThe BARYCENTRIC method is recommended for anatomical surfaces, unless they are fairly rough, in order to minimize smoothing.  ") +
+    myHelpText += AString("\nThe BARYCENTRIC method is recommended for anatomical surfaces, unless they are fairly rough, in order to minimize smoothing.\n\n") +
+        "For cut surfaces (including flatmaps), use -surface-cut-resample.\n\n" +
         "Instead of resampling a spherical surface, the -surface-sphere-project-unproject command is recommended when applicable.";
     ret->setHelpText(myHelpText);
     return ret;

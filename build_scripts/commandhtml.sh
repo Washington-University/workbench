@@ -64,7 +64,7 @@ outPage="$outDir/`command_to_page_name -list-commands`"
 #header
 echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">' > "$outPage"
 echo '<HTML>' >> "$outPage"
-echo '<HEAD><TITLE>wb_command help information</TITLE></HEAD>' >> "$outPage"
+echo '<HEAD><TITLE>wb_command -list-commands help information</TITLE></HEAD>' >> "$outPage"
 echo '<BODY><pre>' >> "$outPage"
 #body
 readarray -t lines < <($exe -list-commands)
