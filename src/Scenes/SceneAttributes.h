@@ -75,6 +75,10 @@ namespace caret {
         
         void setAllLoadedFilesSavedToScene(const bool status);
         
+        bool isModifiedPaletteSettingsSavedToScene() const;
+        
+        void setModifiedPaletteSettingsSavedToScene(const bool status);
+        
         void addToErrorMessage(const AString& message) const;
         
         AString getErrorMessage() const;
@@ -101,6 +105,8 @@ namespace caret {
         bool m_specFileNameSavedToScene;
         
         bool m_allLoadedFilesSavedToScene;
+        
+        bool m_modifiedPaletteSettingsSavedToScene;
         
         mutable AString m_errorMessage;
         

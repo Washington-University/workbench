@@ -103,7 +103,7 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         
         s_previousSelections.m_addAllLoadedFiles          = true;
         s_previousSelections.m_addAllTabs                 = true;
-        s_previousSelections.m_addModifiedPaletteSettings = false;
+        s_previousSelections.m_addModifiedPaletteSettings = true;
         s_previousSelections.m_addSpecFileNameToScene     = true;
     }
     
@@ -472,6 +472,7 @@ SceneCreateReplaceDialog::okButtonClicked()
     sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
     sceneAttributes->setSpecFileNameSavedToScene(m_addSpecFileNameToSceneCheckBox->isChecked());
     sceneAttributes->setAllLoadedFilesSavedToScene(m_addAllLoadedFilesCheckBox->isChecked());
+    sceneAttributes->setModifiedPaletteSettingsSavedToScene(m_addModifiedPaletteSettingsCheckBox->isChecked());
     
     newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
                                                       "guiManager"));

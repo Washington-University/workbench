@@ -34,6 +34,10 @@
 #include "FastStatistics.h"
 #include "GiftiLabelTable.h"
 #include "Histogram.h"
+#include "PaletteColorMapping.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "SceneAttributes.h"
 #include "StringTableModel.h"
 
 using namespace caret;
@@ -223,6 +227,198 @@ CaretMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     dataRangeMinimumOut = -dataRangeMaximumOut;
     
     return false;
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                           SceneClass* sceneClass)
+{
+    CaretDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
+    if (isMappedWithPalette()) {
+        if (sceneAttributes->isModifiedPaletteSettingsSavedToScene()) {
+            std::vector<SceneClass*> pcmClassVector;
+            
+            const int32_t numMaps = getNumberOfMaps();
+            for (int32_t i = 0; i < numMaps; i++) {
+                const PaletteColorMapping* pcmConst = getMapPaletteColorMapping(i);
+                if (pcmConst->isModified()) {
+                    PaletteColorMapping* pcm = const_cast<PaletteColorMapping*>(pcmConst);
+                    
+                    try {
+                        const AString xml = pcm->encodeInXML();
+
+                        
+                        SceneClass* pcmClass = new SceneClass("savedPaletteColorMapping",
+                                                              "SavedPaletteColorMapping",
+                                                              1);
+                        pcmClass->addString("mapName",
+                                            getMapName(i));
+                        pcmClass->addInteger("mapIndex", i);
+                        pcmClass->addInteger("mapCount", numMaps);
+                        pcmClass->addString("mapColorMapping", xml);
+                        
+                        pcmClassVector.push_back(pcmClass);
+                    }
+                    catch (const XmlException& e) {
+                        sceneAttributes->addToErrorMessage("Failed to encode palette color mapping for file: "
+                                                           + getFileNameNoPath()
+                                                           + "  Map Name: "
+                                                           + getMapName(i)
+                                                           + "  Map Index: "
+                                                           + AString::number(i));
+                    }
+                }
+            }
+            
+            if ( ! pcmClassVector.empty()) {
+                SceneClassArray* pcmArray = new SceneClassArray("savedPaletteColorMappingArray",
+                                                                pcmClassVector);
+                sceneClass->addChild(pcmArray);
+            }
+        }
+    }
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                const SceneClass* sceneClass)
+{
+    CaretDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
+    if (isMappedWithPalette()) {
+        const int32_t numMaps = getNumberOfMaps();
+        const SceneClassArray* pcmArray = sceneClass->getClassArray("savedPaletteColorMappingArray");
+        if (pcmArray != NULL) {
+            const int32_t numElements = pcmArray->getNumberOfArrayElements();
+            for (int32_t i = 0; i < numElements; i++) {
+                const SceneClass* pcmClass = pcmArray->getClassAtIndex(i);
+                
+                const AString mapName = pcmClass->getStringValue("mapName");
+                const int32_t mapIndex = pcmClass->getIntegerValue("mapIndex", -1);
+                const int32_t mapCount = pcmClass->getIntegerValue("mapCount", -1);
+                const AString pcmString = pcmClass->getStringValue("mapColorMapping");
+                
+                int32_t restoreMapIndex = -1;
+                
+                /*
+                 * Try to find map that has the saved name AND index.
+                 */
+                if (restoreMapIndex < 0) {
+                    if ((mapIndex >= 0)
+                        && (mapIndex < numMaps)) {
+                        if (getMapName(mapIndex) == mapName) {
+                            restoreMapIndex = mapIndex;
+                        }
+                    }
+                }
+                
+                /*
+                 * If map count has not changed, give preference to
+                 * map index over map name
+                 */
+                if (mapCount == numMaps) {
+                    /*
+                     * Try to find map that has the saved map index.
+                     */
+                    if (restoreMapIndex < 0) {
+                        if ((mapIndex >= 0)
+                            && (mapIndex < numMaps)) {
+                            restoreMapIndex = mapIndex;
+                        }
+                    }
+                    
+                    /*
+                     * Try to find map that has the saved map name.
+                     */
+                    if (restoreMapIndex < 0) {
+                        if ( ! mapName.isEmpty()) {
+                            restoreMapIndex = getMapIndexFromName(mapName);
+                        }
+                    }
+                    
+                }
+                else {
+                    /*
+                     * Try to find map that has the saved map name.
+                     */
+                    if (restoreMapIndex < 0) {
+                        if ( ! mapName.isEmpty()) {
+                            restoreMapIndex = getMapIndexFromName(mapName);
+                        }
+                    }
+                    
+                    /*
+                     * Try to find map that has the saved map index.
+                     */
+                    if (restoreMapIndex < 0) {
+                        if ((mapIndex >= 0)
+                            && (mapIndex < numMaps)) {
+                            restoreMapIndex = mapIndex;
+                        }
+                    }
+                }
+                
+                
+                if (restoreMapIndex >= 0) {
+                    try {
+                        PaletteColorMapping pcm;
+                        pcm.decodeFromStringXML(pcmString);
+                        
+                        PaletteColorMapping* pcmMap = getMapPaletteColorMapping(restoreMapIndex);
+                        pcmMap->copy(pcm);
+                    }
+                    catch (const XmlException& e) {
+                        sceneAttributes->addToErrorMessage("Failed to decode palette color mapping for file: "
+                                                           + getFileNameNoPath()
+                                                           + "  Map Name: "
+                                                           + getMapName(i)
+                                                           + "  Map Index: "
+                                                           + AString::number(i));
+                    }
+                    
+                }
+                else {
+                    const AString msg = ("Unable to find map for restoring palette settings for file: "
+                                         + getFileNameNoPath()
+                                         + "  Map Name: "
+                                         + mapName
+                                         + "  Map Index: "
+                                         + AString::number(mapIndex));
+                    sceneAttributes->addToErrorMessage(msg);
+                }
+            }
+        }
+    }
 }
 
 /**

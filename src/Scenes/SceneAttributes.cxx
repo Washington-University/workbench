@@ -184,6 +184,38 @@ SceneAttributes::setAllLoadedFilesSavedToScene(const bool status)
 }
 
 /**
+ * @return Save modified palette settings to the scene.
+ *
+ * There are times the user wants to modify the palette settings
+ * for a map but not save the file or the file may not be savable.
+ * Thus, this option allows the user to save the palette settings
+ * to the scene.
+ */
+bool
+SceneAttributes::isModifiedPaletteSettingsSavedToScene() const
+{
+    return m_modifiedPaletteSettingsSavedToScene;
+}
+
+/**
+ * Set modified palettes saved to scene.
+ *
+ * There are times the user wants to modify the palette settings
+ * for a map but not save the file or the file may not be savable.
+ * Thus, this option allows the user to save the palette settings
+ * to the scene.
+ *
+ * @param status
+ *     New status.
+ */
+void
+SceneAttributes::setModifiedPaletteSettingsSavedToScene(const bool status)
+{
+    m_modifiedPaletteSettingsSavedToScene = status;
+}
+
+
+/**
  * Add a new message to the error message.  Each message is
  * separated by a newline.
  *

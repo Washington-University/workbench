@@ -389,7 +389,14 @@ namespace caret {
 
         CaretMappableDataFile& operator=(const CaretMappableDataFile&);
         
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
+        
     private:
+        
         void copyCaretMappableDataFile(const CaretMappableDataFile&);
     };
     
