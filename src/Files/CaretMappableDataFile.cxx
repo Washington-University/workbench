@@ -396,6 +396,7 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                         
                         PaletteColorMapping* pcmMap = getMapPaletteColorMapping(restoreMapIndex);
                         pcmMap->copy(pcm);
+                        pcmMap->clearModified();
                     }
                     catch (const XmlException& e) {
                         sceneAttributes->addToErrorMessage("Failed to decode palette color mapping for file: "
@@ -643,4 +644,63 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
         }
     }
 }
+
+/**
+ * @return True if any of the maps in this file contain a
+ * color mapping that possesses a modified status.
+ */
+bool
+CaretMappableDataFile::isModifiedPaletteColorMapping() const
+{
+    if (isMappedWithPalette()) {
+        const int32_t numMaps = getNumberOfMaps();
+        
+        for (int32_t i = 0; i < numMaps; i++) {
+            if (getMapPaletteColorMapping(i)->isModified()) {
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * @return True if the file is modified in any way EXCEPT for
+ * the palette color mapping.  Also see isModified().
+ */
+bool
+CaretMappableDataFile::isModifiedExcludingPaletteColorMapping() const
+{
+    if (CaretDataFile::isModified()) {
+        return true;
+    }
+    
+    return false;
+}
+
+
+/**
+ * @return True if the file is modified in any way including
+ * the palette color mapping.
+ *
+ * NOTE: While this method overrides that in the super class,
+ * it is NOT virtual here.  Thus subclasses cannot override
+ * this method and instead, subclasses should overrride
+ * isModifiedExcludingPaletteColorMapping().
+ */
+bool
+CaretMappableDataFile::isModified() const
+{
+    if (isModifiedExcludingPaletteColorMapping()) {
+        return true;
+    }
+    
+    if (isModifiedPaletteColorMapping()) {
+        return true;
+    }
+    
+    return false;
+}
+
 

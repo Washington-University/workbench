@@ -383,6 +383,15 @@ namespace caret {
         /* documented in cxx file */
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
+
+        /* documented in cxx file */
+        virtual bool isModifiedExcludingPaletteColorMapping() const;
+        
+        /* documented in cxx file. */
+        bool isModifiedPaletteColorMapping() const;
+        
+        /* documented in cxx file. */
+        bool isModified() const;
         
     protected:
         CaretMappableDataFile(const CaretMappableDataFile&);

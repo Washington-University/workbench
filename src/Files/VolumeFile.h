@@ -179,7 +179,7 @@ namespace caret {
         
         virtual void clearModified();
         
-        virtual bool isModified() const;
+        virtual bool isModifiedExcludingPaletteColorMapping() const;
         
         void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const;
         

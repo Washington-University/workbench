@@ -1413,18 +1413,21 @@ GiftiDataArray::clearModified()
 
 /**
  * Get the modification status.  Returns true if this object or
- * any of its children have been modified.
+ * any of its children have been modified.  
+ *
+ * DOES NOT include palette color mapping modification status.
+ *
  * @return - The modification status.
  *
  */
 bool
 GiftiDataArray::isModified() const
 {
-    if (this->paletteColorMapping != NULL) {
-        if (this->paletteColorMapping->isModified()) {
-            return true;
-        }
-    }
+//    if (this->paletteColorMapping != NULL) {
+//        if (this->paletteColorMapping->isModified()) {
+//            return true;
+//        }
+//    }
     return this->modifiedFlag;
 }
 
@@ -1661,6 +1664,7 @@ GiftiDataArray::getPaletteColorMapping()
                 CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
             }
         }
+        
         this->paletteColorMapping->clearModified();
     }
     
@@ -1688,8 +1692,9 @@ GiftiDataArray::getPaletteColorMapping() const
                 CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
             }
         }
+        
+        this->paletteColorMapping->clearModified();
     }
-    this->paletteColorMapping->clearModified();
     
     return this->paletteColorMapping;
 }

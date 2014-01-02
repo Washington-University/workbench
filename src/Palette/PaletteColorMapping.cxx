@@ -92,6 +92,7 @@ void
 PaletteColorMapping::copy(const PaletteColorMapping& pcm)
 {
     this->copyHelper(pcm);
+    setModified();
 }
 
 /**

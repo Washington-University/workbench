@@ -60,6 +60,7 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "CursorDisplayScoped.h"
 #include "CaretPreferences.h"
 #include "ElapsedTimer.h"
@@ -719,13 +720,66 @@ SceneDialog::checkForModifiedFiles()
     dataFileTypesToExclude.push_back(DataFileTypeEnum::SCENE);
     dataFileTypesToExclude.push_back(DataFileTypeEnum::SPECIFICATION);
     
+    std::vector<CaretDataFile*> allDataFiles;
+    GuiManager::get()->getBrain()->getAllDataFiles(allDataFiles);
+
+    AString modifiedDataFilesMessage;
+    AString modifiedPaletteFilesMessage;
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allDataFiles.begin();
+         iter != allDataFiles.end();
+         iter++) {
+        CaretDataFile* caretDataFile = *iter;
+        
+        CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+        
+        if (caretDataFile->isModified()) {
+            AString fileMsg = caretDataFile->getFileNameNoPath();
+            
+            /*
+             * Is modification just the palette color mapping?
+             */
+            bool paletteOnlyModFlag = false;
+            if (mappableDataFile != NULL) {
+                if (mappableDataFile->isModifiedPaletteColorMapping()) {
+                    if ( ! mappableDataFile->isModifiedExcludingPaletteColorMapping()) {
+                        paletteOnlyModFlag = true;
+                    }
+                }
+            }
+            
+            if (paletteOnlyModFlag) {
+                modifiedPaletteFilesMessage.appendWithNewLine("    " + fileMsg);
+            }
+            else {
+                modifiedDataFilesMessage.appendWithNewLine("    " + fileMsg);
+            }
+        }
+    }
+    
+    if ( ! modifiedDataFilesMessage.isEmpty()) {
+        modifiedDataFilesMessage.insert(0,
+                                        "These file(s)s contain modified data:\n");
+        modifiedDataFilesMessage.append("\n");
+    }
+    
+    if ( ! modifiedPaletteFilesMessage.isEmpty()) {
+        modifiedPaletteFilesMessage.insert(0,
+                                           "These file(s) contain modified palette color mapping.  It is not "
+                                           "necessary to save these file(s) if the save palette color mapping "
+                                           "option is selected on the scene creation dialog:\n");
+        modifiedPaletteFilesMessage.append("\n");
+    }
+
     bool result = true;
-    if (GuiManager::get()->getBrain()->areFilesModified(dataFileTypesToExclude)) {
-        result = WuQMessageBox::warningOkCancel(this,
-                                           "Files are modified and should be saved "
-                                           "before creating the scene.\n"
-                                           "\n"
-                                                "Continue creating scene?");
+    if (( ! modifiedDataFilesMessage.isEmpty())
+        || ( ! modifiedPaletteFilesMessage.isEmpty())) {
+
+        const AString msg = (modifiedDataFilesMessage
+                             + modifiedPaletteFilesMessage
+                             + "\nContinue creating the scene?");
+        result = WuQMessageBox::warningYesNo(this,
+                                             WuQtUtilities::createWordWrappedToolTipText(msg));
     }
 
     return result;

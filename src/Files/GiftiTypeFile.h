@@ -68,7 +68,7 @@ namespace caret {
         
         virtual void clearModified();
         
-        virtual bool isModified() const;
+        virtual bool isModifiedExcludingPaletteColorMapping() const;
         
         virtual bool isEmpty() const;
 

@@ -385,14 +385,16 @@ SceneCreateReplaceDialog::createSceneOptionsWidget()
                                          "play no role in reproducing the scene will be loaded.  If NOT "
                                          "selected, the scene may load more quickly.");
     
-    m_addModifiedPaletteSettingsCheckBox = new QCheckBox("Add modified palette settings to scene");
+    m_addModifiedPaletteSettingsCheckBox = new QCheckBox("Add modified palette color mapping to scene");
     m_addModifiedPaletteSettingsCheckBox->setChecked(s_previousSelections.m_addModifiedPaletteSettings);
     WuQtUtilities::setWordWrappedToolTip(m_addModifiedPaletteSettingsCheckBox,
-                                         "The palette settings are saved within each data files that maps "
+                                         "The palette color mapping is saved within each data files that maps "
                                          "its data to brainordinates.  However, there are instances in which "
-                                         "the user wants the scene to display the data with palette settings "
-                                         "that are different from those in the file.  If this option is "
-                                         "selected, modified palettes settings will be saved to the scene.");
+                                         "the user wants the scene to display the data with palette color mapping "
+                                         "that is different from that in the file.  If this option is "
+                                         "selected, modified palettes color mapping will be saved to the scene "
+                                         "and the data files with modified palette color mapping do not need "
+                                         "to be saved.");
     
     /*
      * Layout for scene options widgets

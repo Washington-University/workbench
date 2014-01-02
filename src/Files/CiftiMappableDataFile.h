@@ -295,7 +295,7 @@ namespace caret {
         
         virtual void clearModified();
         
-        virtual bool isModified() const;
+        virtual bool isModifiedExcludingPaletteColorMapping() const;
         
         virtual NiftiTimeUnitsEnum::Enum getMapIntervalUnits() const;
         

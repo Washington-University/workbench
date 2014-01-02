@@ -642,34 +642,27 @@ VolumeFile::clearModified()
 }
 
 /**
- * Return the modified status of this file.
+ * @eturn The modified status of this file.
+ *
+ * NOTE: DOES NOT include palette color mapping modified status.
  */
 bool
-VolumeFile::isModified() const
+VolumeFile::isModifiedExcludingPaletteColorMapping() const
 {
-    const int32_t numMaps = getNumberOfMaps();
-    if (isMappedWithPalette())
-    {
-        for (int32_t i = 0; i < numMaps; i++) {
-            const PaletteColorMapping* pcm = getMapPaletteColorMapping(i);
-            if (pcm->isModified()) {
-                return true;
-            }
-        }
+    if (CaretMappableDataFile::isModifiedExcludingPaletteColorMapping()) {
+        return true;
     }
-    else if (isMappedWithLabelTable()) {
+    if (VolumeBase::isModified()) {
+        return true;
+    }
+    
+    const int32_t numMaps = getNumberOfMaps();
+    if (isMappedWithLabelTable()) {
         for (int32_t i = 0; i < numMaps; i++) {
             if (getMapLabelTable(i)->isModified()) {
                 return true;
             }
         }
-    }
-    
-    if (CaretMappableDataFile::isModified()) {
-        return true;
-    }
-    if (VolumeBase::isModified()) {
-        return true;
     }
     
     return false;

@@ -1248,6 +1248,22 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                     if (caretDataFile->isModified()) {
                         if (isFileSavable) {
                             statusItem->setText("YES");
+                            
+                            /*
+                             * Is this a Caret Mappable Data file and is the modification
+                             * only in the palette color mapping?
+                             */
+                            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
+                            if (mapFile != NULL) {
+                                /*
+                                 * Is modification just the palette color mapping?
+                                 */
+                                if (mapFile->isModifiedPaletteColorMapping()) {
+                                    if ( ! mapFile->isModifiedExcludingPaletteColorMapping()) {
+                                        statusItem->setText("PALETTE");
+                                    }
+                                }
+                            }
                         }
                     }
                 }

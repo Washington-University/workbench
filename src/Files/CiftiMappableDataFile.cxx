@@ -3105,11 +3105,11 @@ CiftiMappableDataFile::clearModified()
 }
 
 /**
- * Is the object modified?
- * @return true if modified, else false.
+ * @return True if the file is modified in any way EXCEPT for
+ * the palette color mapping.  Also see isModified().
  */
 bool
-CiftiMappableDataFile::isModified() const
+CiftiMappableDataFile::isModifiedExcludingPaletteColorMapping() const
 {
     if (CaretMappableDataFile::isModified()) {
         return true;
@@ -3202,6 +3202,8 @@ CiftiMappableDataFile::MapContent::clearModifiedStatus()
 
 /**
  * @return Modification status.
+ *
+ * DOES NOT include modification status of palette.
  */
 bool
 CiftiMappableDataFile::MapContent::isModifiedStatus()
@@ -3216,11 +3218,7 @@ CiftiMappableDataFile::MapContent::isModifiedStatus()
         return true;
     }
     
-    if (m_paletteColorMapping != NULL) {
-        if (m_paletteColorMapping->isModified()) {
-            return true;
-        }
-    }
+    /* DO NOT include palette color mapping status ! */
     
     return false;
 }

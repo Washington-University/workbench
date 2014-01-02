@@ -107,19 +107,20 @@ GiftiTypeFile::clearModified()
 }
 
 /**
- * Is this file modified?
- *
- * @return true if modified, else false.
+ * @return True if any of the maps in this file contain a
+ * color mapping that possesses a modified status.
  */
-bool 
-GiftiTypeFile::isModified() const
+bool
+GiftiTypeFile::isModifiedExcludingPaletteColorMapping() const
 {
-    if (CaretDataFile::isModified()) {
+    if (CaretMappableDataFile::isModifiedExcludingPaletteColorMapping()) {
         return true;
     }
+    
     if (this->giftiFile->isModified()) {
         return true;
     }
+    
     return false;
 }
 
