@@ -1182,7 +1182,7 @@ SceneClassInfoWidget::setBackgroundForSelected(const bool selected)
 {
     if (selected) {
         setAutoFillBackground(true);
-        setBackgroundRole(QPalette::AlternateBase);
+        setBackgroundRole(QPalette::Highlight);
     }
     else {
         setAutoFillBackground(m_defaultAutoFillBackgroundStatus);
