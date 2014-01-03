@@ -948,11 +948,11 @@ SceneDialog::showSceneButtonClicked()
                             scene,
                             false);
         
-        const AString msg = ("Time to load scene: "
-                             + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
-                             + " seconds.");
-        WuQMessageBox::informationOk(m_showScenePushButton,
-                                     msg);
+//        const AString msg = ("Time to load scene: "
+//                             + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+//                             + " seconds.");
+//        WuQMessageBox::informationOk(m_showScenePushButton,
+//                                     msg);
     }
 }
 
