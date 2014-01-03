@@ -1145,18 +1145,38 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     
     m_previewImageLabel = new QLabel();
     
-    QVBoxLayout* rightLayout = new QVBoxLayout();
-    rightLayout->addWidget(m_nameLabel);
-    rightLayout->addWidget(m_descriptionLabel);
-    rightLayout->addStretch();
-    
-    QVBoxLayout* leftLayout = new QVBoxLayout();
-    leftLayout->addWidget(m_previewImageLabel);
-    leftLayout->addStretch();
-
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->addLayout(leftLayout);
-    layout->addLayout(rightLayout, 100);
+    bool nameOnTopFlag = false;
+    if (nameOnTopFlag) {
+        QHBoxLayout* bottomLayout = new QHBoxLayout();
+        bottomLayout->addWidget(m_previewImageLabel,
+                                0,
+                                Qt::AlignTop | Qt::AlignLeft);
+        bottomLayout->addWidget(m_descriptionLabel,
+                                100,
+                                Qt::AlignTop);
+        
+        QVBoxLayout* layout = new QVBoxLayout(this);
+        layout->addWidget(m_nameLabel,
+                          0,
+                          Qt::AlignTop | Qt::AlignLeft);
+        layout->addLayout(bottomLayout,
+                          100);
+    }
+    else {
+        QVBoxLayout* rightLayout = new QVBoxLayout();
+        rightLayout->addWidget(m_nameLabel);
+        rightLayout->addSpacing(10);
+        rightLayout->addWidget(m_descriptionLabel);
+        rightLayout->addStretch();
+        
+        QVBoxLayout* leftLayout = new QVBoxLayout();
+        leftLayout->addWidget(m_previewImageLabel);
+        leftLayout->addStretch();
+        
+        QHBoxLayout* layout = new QHBoxLayout(this);
+        layout->addLayout(leftLayout);
+        layout->addLayout(rightLayout, 100);
+    }
     
     setSizePolicy(sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed); //Minimum);
@@ -1209,7 +1229,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         && (m_sceneIndex >= 0)) {
         const SceneInfo* sceneInfo = m_scene->getSceneInfo();
         
-        m_nameLabel->setText("<html><b>Name</b>: "
+        m_nameLabel->setText("<html><b>NAME</b>:  "
                              + sceneInfo->getName()
                              + "</html>");
         
@@ -1226,7 +1246,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
             description = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
                                                                       + description);
             description.replace(replaceWithDescriptionBoldText,
-                                "<b>Description:</b><br>");
+                                "<b>DESCRIPTION:</b><br>");
         }
         
         m_descriptionLabel->setText(description);
