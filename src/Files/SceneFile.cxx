@@ -390,8 +390,8 @@ SceneFile::writeFile(const AString& filename) throw (DataFileException)
         // Format the version string so that it ends with at most one zero
         //
         const AString versionString = AString::number(SceneFile::getFileVersion(),
-                                                      1,
-                                                      'f');
+                                                      'f',
+                                                      1);
         
         //
         // Open the file
