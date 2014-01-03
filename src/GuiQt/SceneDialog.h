@@ -115,9 +115,6 @@ namespace caret {
         void highlightScene(const Scene* scene);
         
         QWidget* createMainPage();
-        QWidget* createOptionPage();
-        QWidget* createSceneCreateOptionsWidget();
-        QWidget* createSceneShowOptionsWidget();
         
         bool displayScenePrivate(SceneFile* sceneFile,
                                  Scene* scene,
@@ -138,10 +135,6 @@ namespace caret {
         QPushButton* m_showScenePushButton;
         
         QPushButton* m_showSceneImagePreviewPushButton;
-        
-        QComboBox* m_optionsShowSceneWindowBehaviorComboBox;
-        
-        QCheckBox* m_optionsCreateSceneAddSpecFileCheckBox;
         
         QWidget* m_sceneSelectionWidget;
         

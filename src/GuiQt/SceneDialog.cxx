@@ -44,7 +44,6 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
-#include <QTabWidget>
 #include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -105,10 +104,6 @@ SceneDialog::SceneDialog(QWidget* parent)
 {
     m_selectedSceneClassInfoIndex = -1;
     
-    QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(createMainPage(), "Scenes");
-    tabWidget->addTab(createOptionPage(), "Options");
-    
     /*
      * No apply buton
      */
@@ -117,7 +112,7 @@ SceneDialog::SceneDialog(QWidget* parent)
     /*
      * Set the dialog's widget
      */
-    this->setCentralWidget(tabWidget,
+    this->setCentralWidget(createMainPage(),
                            WuQDialog::SCROLL_AREA_NEVER);
 
     /*
@@ -465,65 +460,6 @@ SceneDialog::addNewSceneButtonClicked()
         Scene* newScene = SceneCreateReplaceDialog::createNewScene(m_addNewScenePushButton,
                                                                    sceneFile);
         loadScenesIntoDialog(newScene);
-        
-//        /*
-//         * Create dialog for scene creation
-//         */
-//        WuQDataEntryDialog newSceneDialog("New Scene",
-//                                          this);
-//        
-//        /*
-//         * Will want to valid data.
-//         */
-//        QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
-//                         this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
-//        
-//        /*
-//         * Name for scene
-//         */
-//        QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name", 
-//                                                                           "");
-//        newSceneNameLineEdit->selectAll();
-//        newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
-//        
-//        /*
-//         * Description
-//         */
-//        QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description", 
-//                                                                "", 
-//                                                                false);
-//        
-//        if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
-//            const AString newSceneName = newSceneNameLineEdit->text();
-//            Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
-//            Scene::setSceneBeingCreated(newScene);
-//            newScene->setName(newSceneName);
-//            newScene->setDescription(descriptionTextEdit->toPlainText());
-//            
-//            /*
-//             * Get all browser tabs and only save transformations for tabs
-//             * that are valid.
-//             */ 
-//            EventBrowserTabGetAll getAllTabs;
-//            EventManager::get()->sendEvent(getAllTabs.getPointer());
-//            std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
-//            
-//            SceneAttributes* sceneAttributes = newScene->getAttributes();
-//            sceneAttributes->setSceneFileName(sceneFile->getFileName());
-//            sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
-//            sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
-//            
-//            newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
-//                                                              "guiManager"));
-//            
-//            addImageToScene(newScene);
-//            
-//            sceneFile->addScene(newScene);
-//            
-//            Scene::setSceneBeingCreated(NULL);
-//            
-//            loadScenesIntoDialog(newScene);
-//        }
     }
 }
 
@@ -545,77 +481,6 @@ SceneDialog::replaceSceneButtonClicked()
                                                                              sceneFile,
                                                                              scene);
             loadScenesIntoDialog(newScene);
-            
-            
-//            /*
-//             * Create dialog for scene creation
-//             */
-//            WuQDataEntryDialog newSceneDialog("Replace Scene",
-//                                              this);
-//            
-//            /*
-//             * Will want to valid data.
-//             */
-//            QObject::connect(&newSceneDialog, SIGNAL(validateData(WuQDataEntryDialog*)),
-//                             this, SLOT(validateContentOfCreateSceneDialog(WuQDataEntryDialog*)));
-//            
-//            /*
-//             * Name for scene
-//             */
-//            QLineEdit* newSceneNameLineEdit = newSceneDialog.addLineEditWidget("Name",
-//                                                                               scene->getName());
-//            newSceneNameLineEdit->setObjectName("sceneNameLineEdit");
-//            
-//            /*
-//             * Description
-//             */
-//            QTextEdit* descriptionTextEdit = newSceneDialog.addTextEdit("Description",
-//                                                                        scene->getDescription(),
-//                                                                        false);
-//            
-//            /*
-//             * Error checking will not allow two scenes with the same name
-//             * so temporarily modify name of scene being replaced and restore
-//             * it if the user does not hit OK.
-//             */
-//            const AString savedSceneName = scene->getName();
-//            scene->setName("slkkjdlkfjaslfjdljfdkljdfjsdfj");
-//            
-//            if (newSceneDialog.exec() == WuQDataEntryDialog::Accepted) {
-//                const AString newSceneName = newSceneNameLineEdit->text();
-//                Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
-//                Scene::setSceneBeingCreated(newScene);
-//                newScene->setName(newSceneName);
-//                newScene->setDescription(descriptionTextEdit->toPlainText());
-//                
-//                /*
-//                 * Get all browser tabs and only save transformations for tabs
-//                 * that are valid.
-//                 */
-//                EventBrowserTabGetAll getAllTabs;
-//                EventManager::get()->sendEvent(getAllTabs.getPointer());
-//                std::vector<int32_t> tabIndices = getAllTabs.getBrowserTabIndices();
-//                
-//                SceneAttributes* sceneAttributes = newScene->getAttributes();
-//                sceneAttributes->setSceneFileName(sceneFile->getFileName());
-//                sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
-//                sceneAttributes->setSpecFileNameIncludedInScene(m_optionsCreateSceneAddSpecFileCheckBox->isChecked());
-//                
-//                newScene->addClass(GuiManager::get()->saveToScene(sceneAttributes,
-//                                                                  "guiManager"));
-//                
-//                addImageToScene(newScene);
-//                
-//                sceneFile->replaceScene(newScene,
-//                                        scene);
-//                
-//                Scene::setSceneBeingCreated(NULL);
-//                
-//                loadScenesIntoDialog(newScene);
-//            }
-//            else {
-//                scene->setName(savedSceneName);
-//            }
         }
     }
 }
@@ -943,79 +808,6 @@ SceneDialog::sceneWasDropped()
 }
 
 /**
- * Create the options page.
- * @return the options page.
- */
-QWidget* 
-SceneDialog::createOptionPage()
-{
-    /*
-     * Layout for page
-     */
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(createSceneCreateOptionsWidget());
-    layout->addWidget(createSceneShowOptionsWidget());
-    layout->addStretch();
-    
-    return widget;
-}
-
-/**
- * @return Create and return a widget with the create scenes options.
- */
-QWidget* 
-SceneDialog::createSceneCreateOptionsWidget()
-{
-    m_optionsCreateSceneAddSpecFileCheckBox = new QCheckBox("Add spec file name to scene");
-    m_optionsCreateSceneAddSpecFileCheckBox->setChecked(true);
-    
-    /*
-     * Create scene group box
-     */
-    const int COLUMN_LABEL = 0;
-    QGroupBox* createScenesOptionsGroupBox = new QGroupBox("Create scenes options");
-    QGridLayout* createScenesLayout = new QGridLayout(createScenesOptionsGroupBox);
-    const int createSceneRow = createScenesLayout->rowCount(); // should be zero
-    createScenesLayout->addWidget(m_optionsCreateSceneAddSpecFileCheckBox, createSceneRow, COLUMN_LABEL, 1, 2);
-    
-    return createScenesOptionsGroupBox;
-}
-
-/**
- * @return Create and return a widget with the show scenes options.
- */
-QWidget* 
-SceneDialog::createSceneShowOptionsWidget()
-{
-    /*
-     * Show scene window behavior combo box
-     */
-    QLabel* optionShowSceneWindowBehaviorLabel = new QLabel("Window positioning: ");
-    m_optionsShowSceneWindowBehaviorComboBox = new QComboBox();
-    m_optionsShowSceneWindowBehaviorComboBox->addItem("Ignore window positions from scene",
-                                                      (int)SceneAttributes::RESTORE_WINDOW_IGNORE_ALL_POSITIONS_AND_SIZES);
-    m_optionsShowSceneWindowBehaviorComboBox->addItem("Position windows relative to first window",
-                                                      (int)SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
-    m_optionsShowSceneWindowBehaviorComboBox->addItem("Use all window positions from scene",
-                                                      (int)SceneAttributes::RESTORE_WINDOW_USE_ALL_POSITIONS_AND_SIZES);
-    m_optionsShowSceneWindowBehaviorComboBox->setCurrentIndex(1);
-    
-    /*
-     * Show scene group box
-     */
-    const int COLUMN_LABEL = 0;
-    const int COLUMN_WIDGET = 1;
-    QGroupBox* showScenesOptionsGroupBox = new QGroupBox("Show scenes options");
-    QGridLayout* showScenesLayout = new QGridLayout(showScenesOptionsGroupBox);
-    const int showSceneRow = showScenesLayout->rowCount(); // should be zero
-    showScenesLayout->addWidget(optionShowSceneWindowBehaviorLabel, showSceneRow, COLUMN_LABEL);
-    showScenesLayout->addWidget(m_optionsShowSceneWindowBehaviorComboBox, showSceneRow, COLUMN_WIDGET);
-    
-    return showScenesOptionsGroupBox;
-}
-
-/**
  * Gets called to verify the content of the scene creation dialog.
  * @param sceneCreateDialog
  *    Scene creation dialog.
@@ -1277,16 +1069,12 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     }
     
     /*
-     * Window restoration behavior
+     * Setup scene attributes
      */
-    const int windowBehaviorIndex = m_optionsShowSceneWindowBehaviorComboBox->currentIndex();
-    const SceneAttributes::RestoreWindowBehavior windowBehavior
-    = static_cast<SceneAttributes::RestoreWindowBehavior>(m_optionsShowSceneWindowBehaviorComboBox->itemData(windowBehaviorIndex).toInt());
-    
     SceneAttributes* sceneAttributes = scene->getAttributes();
     sceneAttributes->setSceneFileName(sceneFileName);
     sceneAttributes->setSceneName(scene->getName());
-    sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(windowBehavior);
+    sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(SceneAttributes::RESTORE_WINDOW_POSITION_RELATIVE_TO_FIRST_AND_USE_SIZES);
     
     GuiManager::get()->restoreFromScene(sceneAttributes,
                                         guiManagerClass);
