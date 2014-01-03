@@ -3111,7 +3111,7 @@ CiftiMappableDataFile::clearModified()
 bool
 CiftiMappableDataFile::isModifiedExcludingPaletteColorMapping() const
 {
-    if (CaretMappableDataFile::isModified()) {
+    if (CaretMappableDataFile::isModifiedExcludingPaletteColorMapping()) {
         return true;
     }
     

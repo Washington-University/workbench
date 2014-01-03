@@ -63,6 +63,10 @@ namespace caret {
         
         void setSceneFileName(const AString& sceneFileName);
         
+        AString getSceneName() const;
+        
+        void setSceneName(const AString& name);
+        
         RestoreWindowBehavior getRestoreWindowBehaviorInSceneDisplay() const;
         
         void setWindowRestoreBehaviorInSceneDisplay(const RestoreWindowBehavior rwb);
@@ -99,6 +103,8 @@ namespace caret {
         std::vector<int32_t> m_indicesOfTabsForSavingToScene;
         
         AString m_sceneFileName;
+        
+        AString m_sceneName;
         
         RestoreWindowBehavior m_restoreWindowBehaviorInSceneDisplay;
         

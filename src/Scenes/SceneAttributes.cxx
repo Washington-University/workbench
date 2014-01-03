@@ -119,6 +119,27 @@ SceneAttributes::setSceneFileName(const AString& sceneFileName)
 }
 
 /**
+ * @return Name of the scene.
+ * May only have a value when restoring.
+ */
+AString
+SceneAttributes::getSceneName() const
+{
+    return m_sceneName;
+}
+
+/**
+ * Set the name of the scene that is being restored.
+ * @param sceneName
+ *    Name of scene.
+ */
+void
+SceneAttributes::setSceneName(const AString& sceneName)
+{
+    m_sceneName = sceneName;
+}
+
+/**
  * @return The window restoration behavior when displaying a scene.
  */
 SceneAttributes::RestoreWindowBehavior 

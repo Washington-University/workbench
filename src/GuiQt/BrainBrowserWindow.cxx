@@ -117,6 +117,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     m_viewTileTabsSelected = false;
     
+    m_sceneTileTabsConfigurationText = "From Scene: ";
+    m_sceneTileTabsConfiguration = new TileTabsConfiguration();
+    m_sceneTileTabsConfiguration->setName(m_sceneTileTabsConfigurationText);
+    
     m_defaultTileTabsConfiguration = new TileTabsConfiguration();
     m_defaultTileTabsConfiguration->setDefaultConfiguration(true);
     m_defaultTileTabsConfiguration->setName("All Tabs (Default)");
@@ -226,6 +230,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 BrainBrowserWindow::~BrainBrowserWindow()
 {
     delete m_defaultTileTabsConfiguration;
+    delete m_sceneTileTabsConfiguration;
     delete m_sceneAssistant;
 }
 
@@ -1065,21 +1070,39 @@ BrainBrowserWindow::processTileTabsMenuAboutToBeDisplayed()
     defaultAction->setData(QVariant(m_defaultTileTabsConfiguration->getUniqueIdentifier()));
     
     /*
+     * Add the scene configuration
+     */
+    QAction* sceneAction = m_tileTabsMenu->addAction(m_sceneTileTabsConfiguration->getName());
+    sceneAction->setCheckable(true);
+    sceneAction->setData(QVariant(m_sceneTileTabsConfiguration->getUniqueIdentifier()));
+    //sceneAction->setEnabled(false);
+    
+    bool haveSelectedTileTabsConfiguration = false;
+    
+    /*
      * Add the user defined Tile Tabs configurations
      */
-    bool haveSelectedTileTabsConfiguration = false;
-    for (int32_t i = 0; i < numConfigurations; i++) {
-        QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
-        action->setCheckable(true);
-        
-        if (m_selectedTileTabsConfigurationUniqueIdentifier == configurations[i]->getUniqueIdentifier()) {
-            action->setChecked(true);
-            haveSelectedTileTabsConfiguration = true;
+    if (numConfigurations > 0) {
+        m_tileTabsMenu->addSeparator();
+
+        for (int32_t i = 0; i < numConfigurations; i++) {
+            QAction* action = m_tileTabsMenu->addAction(configurations[i]->getName());
+            action->setCheckable(true);
+            
+            if (m_selectedTileTabsConfigurationUniqueIdentifier == configurations[i]->getUniqueIdentifier()) {
+                action->setChecked(true);
+                haveSelectedTileTabsConfiguration = true;
+            }
+            action->setData(QVariant(configurations[i]->getUniqueIdentifier()));
         }
-        action->setData(QVariant(configurations[i]->getUniqueIdentifier()));
     }
     
-    if (haveSelectedTileTabsConfiguration == false) {
+    if (m_selectedTileTabsConfigurationUniqueIdentifier == m_sceneTileTabsConfiguration->getUniqueIdentifier()) {
+        haveSelectedTileTabsConfiguration = true;
+        sceneAction->setChecked(true);
+    }
+    
+    if ( ! haveSelectedTileTabsConfiguration) {
         defaultAction->setChecked(true);
         m_selectedTileTabsConfigurationUniqueIdentifier = m_defaultTileTabsConfiguration->getUniqueIdentifier();
     }
@@ -1145,6 +1168,12 @@ BrainBrowserWindow::getSelectedTileTabsConfiguration()
          * Default configuration is selected
          */
         return m_defaultTileTabsConfiguration;
+    }
+    else if (m_selectedTileTabsConfigurationUniqueIdentifier == m_sceneTileTabsConfiguration->getUniqueIdentifier()) {
+        /*
+         * Scene's configuration is selected
+         */
+        return m_sceneTileTabsConfiguration;
     }
     else {
         /*
@@ -2739,10 +2768,17 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
 
 
     /*
-     * Save Tile Tabs
+     * Save the selected configuration as the scene configuration
      */
-    sceneClass->addString("m_selectedTileTabsConfigurationUniqueIdentifier",
-                          m_selectedTileTabsConfigurationUniqueIdentifier);
+    if (m_viewTileTabsSelected) {
+        const TileTabsConfiguration* tileTabs = getSelectedTileTabsConfiguration();
+        if (tileTabs != NULL) {
+            sceneClass->addString("m_sceneTileTabsConfiguration",
+                                  tileTabs->encodeInXML());
+        }
+    }
+    //sceneClass->addString("m_selectedTileTabsConfigurationUniqueIdentifier",
+    //                      m_selectedTileTabsConfigurationUniqueIdentifier);
     
     /*
      * Save toolbar
@@ -2898,6 +2934,20 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                           false);
         restoreToTabTiles = sceneClass->getBooleanValue("m_viewTileTabsAction",
                                                           false);
+        
+        /*
+         * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
+         */
+        if (restoreToTabTiles) {
+            const AString tileTabsConfigString = sceneClass->getStringValue("m_sceneTileTabsConfiguration");
+            if ( ! tileTabsConfigString.isEmpty()) {
+                m_sceneTileTabsConfiguration->decodeFromXML(tileTabsConfigString);
+                m_sceneTileTabsConfiguration->setName(m_sceneTileTabsConfigurationText
+                                                      + " "
+                                                      + sceneAttributes->getSceneName());
+                m_selectedTileTabsConfigurationUniqueIdentifier = m_sceneTileTabsConfiguration->getUniqueIdentifier();
+            }
+        }
     }
 
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
@@ -2975,7 +3025,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
     }
-    
 }
 
 /**

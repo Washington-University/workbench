@@ -471,6 +471,7 @@ SceneCreateReplaceDialog::okButtonClicked()
     
     SceneAttributes* sceneAttributes = newScene->getAttributes();
     sceneAttributes->setSceneFileName(m_sceneFile->getFileName());
+    sceneAttributes->setSceneName(newSceneName);
     sceneAttributes->setIndicesOfTabsForSavingToScene(tabIndices);
     sceneAttributes->setSpecFileNameSavedToScene(m_addSpecFileNameToSceneCheckBox->isChecked());
     sceneAttributes->setAllLoadedFilesSavedToScene(m_addAllLoadedFilesCheckBox->isChecked());

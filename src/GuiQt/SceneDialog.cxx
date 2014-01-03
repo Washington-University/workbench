@@ -711,7 +711,6 @@ SceneDialog::checkForModifiedFiles()
 {
     /*
      * Exclude all 
-     *   Connectivity Files
      *   Scene Files
      *   Spec Files
      */
@@ -730,6 +729,13 @@ SceneDialog::checkForModifiedFiles()
          iter != allDataFiles.end();
          iter++) {
         CaretDataFile* caretDataFile = *iter;
+        
+        const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
+        if (std::find(dataFileTypesToExclude.begin(),
+                      dataFileTypesToExclude.end(),
+                      dataFileType) != dataFileTypesToExclude.end()) {
+            continue;
+        }
         
         CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile);
         
@@ -759,7 +765,7 @@ SceneDialog::checkForModifiedFiles()
     
     if ( ! modifiedDataFilesMessage.isEmpty()) {
         modifiedDataFilesMessage.insert(0,
-                                        "These file(s)s contain modified data:\n");
+                                        "These file(s) contain modified data:\n");
         modifiedDataFilesMessage.append("\n");
     }
     
@@ -1279,6 +1285,7 @@ SceneDialog::displayScenePrivate(SceneFile* sceneFile,
     
     SceneAttributes* sceneAttributes = scene->getAttributes();
     sceneAttributes->setSceneFileName(sceneFileName);
+    sceneAttributes->setSceneName(scene->getName());
     sceneAttributes->setWindowRestoreBehaviorInSceneDisplay(windowBehavior);
     
     GuiManager::get()->restoreFromScene(sceneAttributes,
@@ -1418,10 +1425,27 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                              + sceneInfo->getName()
                              + "</html>");
         
-        m_descriptionLabel->setText("<html><b>Description</b>: "
-                                    + sceneInfo->getDescription()
-                                    + "</html>");
-        m_descriptionLabel->setWordWrap(true);
+        
+        AString description = sceneInfo->getDescription();
+        if ( ! description.isEmpty()) {
+            /*
+             * HTML formatting is needed so text is properly displayed.
+             * Want to put "Description" at beginning in bold but any
+             * HTML tags are converted to text.  So, after conversion to
+             * HTML, perform a replace to insert "Description" in bold.
+             */
+            const AString replaceWithDescriptionBoldText = "REPLACE_WITH_DESCRIPTION";
+            description = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
+                                                                      + description);
+            description.replace(replaceWithDescriptionBoldText,
+                                "<b>Description:</b><br>");
+        }
+        
+        m_descriptionLabel->setText(description);
+//        m_descriptionLabel->setText("<html><b>Description</b>: "
+//                                    + sceneInfo->getDescription()
+//                                    + "</html>");
+//        m_descriptionLabel->setWordWrap(true);
         
         QByteArray imageByteArray;
         AString imageBytesFormat;

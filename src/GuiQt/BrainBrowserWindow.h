@@ -35,7 +35,6 @@
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
-#include "TileTabsConfiguration.h"
 
 class QAction;
 class QActionGroup;
@@ -49,6 +48,7 @@ namespace caret {
     class BrowserTabContent;
     class PlainTextStringBuilder;
     class SceneClassAssistant;
+    class TileTabsConfiguration;
 
     
     /**
@@ -342,6 +342,8 @@ namespace caret {
         
         AString m_selectedTileTabsConfigurationUniqueIdentifier;
         TileTabsConfiguration* m_defaultTileTabsConfiguration;
+        TileTabsConfiguration* m_sceneTileTabsConfiguration;
+        AString m_sceneTileTabsConfigurationText;
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;
