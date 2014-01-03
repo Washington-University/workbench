@@ -329,7 +329,7 @@ SceneCreateReplaceDialog::addImageToScene(Scene* scene)
             
             compositeImageFile.resizeToMaximumWidth(512);
             
-            const AString PREFERRED_IMAGE_FORMAT = "jpg";
+            const AString PREFERRED_IMAGE_FORMAT = "png";
             
             QByteArray byteArray;
             compositeImageFile.getImageInByteArray(byteArray,
