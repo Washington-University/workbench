@@ -214,6 +214,7 @@ void SurfaceResamplingHelper::getResampleValidROI(float* output) const
 
 void SurfaceResamplingHelper::resampleCutSurface(const SurfaceFile* cutSurfaceIn, const SurfaceFile* currentSphere, const SurfaceFile* newSphere, SurfaceFile* surfaceOut)
 {
+    if (cutSurfaceIn->getNumberOfNodes() != currentSphere->getNumberOfNodes()) throw CaretException("input surface has different number of nodes than input sphere");
     if (!checkSphere(currentSphere) || !checkSphere(newSphere)) throw CaretException("input surfaces to SurfaceResamplingHelper must be spheres");
     SurfaceFile currentSphereMod, newSphereMod;
     changeRadius(100.0f, currentSphere, &currentSphereMod);
