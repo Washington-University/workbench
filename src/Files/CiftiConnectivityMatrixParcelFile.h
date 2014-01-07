@@ -65,19 +65,19 @@ namespace caret {
 
         virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const;
 
-        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
-                                                     const std::vector<int32_t>& nodeIndices,
-                                                     TimeLine& timeLineOut) throw (DataFileException) {this->isChartingEnabled();return false;};
+        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum /*structure*/,
+                                                     const std::vector<int32_t>& /*nodeIndices*/,
+                                                     TimeLine& /*timeLineOut*/) throw (DataFileException) {this->isChartingEnabled();return false;};
         
         
          
-        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum structure,
-                                             const int32_t nodeIndex,
-                                             TimeLine& timeLineOut) throw (DataFileException) {return false;};
+        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum /*structure*/,
+                                             const int32_t /*nodeIndex*/,
+                                             TimeLine& /*timeLineOut*/) throw (DataFileException) {return false;};
         
        
-        virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
-            TimeLine& timeLineOut) throw (DataFileException)  {return false;};
+        virtual bool loadChartForVoxelAtCoordinate(const float* /* xyz[3]*/,
+            TimeLine& /*timeLineOut*/) throw (DataFileException)  {return false;};
 
         
     public:

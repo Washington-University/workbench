@@ -265,8 +265,7 @@ namespace caret {
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const DRAW_MODE drawMode);
         
-        void drawAxesCrosshairs(const VolumeMappableInterface* volume,
-                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+        void drawAxesCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
         
         void drawAxesCrosshairsOrthoAndOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const VolumeSliceViewModeEnum::Enum sliceViewMode,

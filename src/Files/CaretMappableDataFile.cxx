@@ -280,7 +280,9 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                                                            + "  Map Name: "
                                                            + getMapName(i)
                                                            + "  Map Index: "
-                                                           + AString::number(i));
+                                                           + AString::number(i)
+                                                           + ".  "
+                                                           + e.whatString());
                     }
                 }
             }
@@ -404,9 +406,10 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                                            + "  Map Name: "
                                                            + getMapName(i)
                                                            + "  Map Index: "
-                                                           + AString::number(i));
+                                                           + AString::number(i)
+                                                           + ".  "
+                                                           + e.whatString());
                     }
-                    
                 }
                 else {
                     const AString msg = ("Unable to find map for restoring palette settings for file: "

@@ -425,7 +425,7 @@ void TimeCourseDialog::on_openTimeLineButton_clicked()
     this->updateDialog();
 }
 
-void TimeCourseDialog::on_TDHistoryList_itemActivated(QListWidgetItem* item)
+void TimeCourseDialog::on_TDHistoryList_itemActivated(QListWidgetItem* /*item*/)
 {
     /*for(int i = 0;i<tlV.count();i++)
     {

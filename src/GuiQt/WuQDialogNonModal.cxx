@@ -29,7 +29,7 @@
 #undef __WU_Q_DIALOG_NON_MODAL_DECLARE__
 
 #include "CaretAssert.h"
-
+#include "CaretLogger.h"
 using namespace caret;
 
 
@@ -207,9 +207,11 @@ WuQDialogNonModal::clicked(QAbstractButton* button)
 WuQDialogNonModal::NonModalDialogUserButtonResult 
 WuQDialogNonModal::userButtonPressed(QPushButton* userPushButton)
 {
-    CaretAssertMessage(0, "Subclass of WuQDialogNonModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
-                       + userPushButton->text()
-                       + "\"");
+    const AString msg = ("Subclass of WuQDialogNonModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
+                         + userPushButton->text()
+                         + "\"");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
     
     return RESULT_NONE;    
 }

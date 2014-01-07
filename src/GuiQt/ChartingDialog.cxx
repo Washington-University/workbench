@@ -83,7 +83,7 @@ void ChartingDialog::resizeEvent ( QResizeEvent * event)
 {
     QDialog::resizeEvent(event);
     if(showDialogFirstTime||!autoResizeMatrix)return;
-    QSize size = event->size();
+    //QSize size = event->size();
     int rowCount = getMatrixTableView()->model()->rowCount();
     int colCount = getMatrixTableView()->model()->columnCount();
     int matrixWidth = this->getMatrixTableView()->width()-this->getMatrixTableView()->verticalHeader()->width()-2;//size.width();
@@ -191,7 +191,7 @@ void ChartingDialog::adjustWindowSizeToMatrixSize()
 }
 
 
-void ChartingDialog::currentRowChanged(const QModelIndex & current, const QModelIndex & previous )
+void ChartingDialog::currentRowChanged(const QModelIndex & current, const QModelIndex & /*previous*/ )
 {
 	cmf->loadMapData(current.row());
 	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());
@@ -225,7 +225,7 @@ void ChartingDialog::updateMatrix()
 
 	cmf->getMatrixRGBA(rgba,pf);
 	int nrows = dim[1];
-	if(rgba.size() != nrows*ncols*4) return; //add error message
+	if(static_cast<int>(rgba.size()) != nrows*ncols*4) return; //add error message
 	std::vector<std::vector<QColor> > cMatrix;
 	cMatrix.resize(nrows);
 	for(int i = 0;i<nrows;i++) cMatrix[i].resize(ncols);
@@ -274,7 +274,7 @@ ChartingDialog::getMatrixTableView()
 
 #include <QMenu>
 #include <QAction>
-void ChartingDialog::customContextMenuRequestedSlot(const QPoint &pos)
+void ChartingDialog::customContextMenuRequestedSlot(const QPoint & /*pos*/)
 {
     QMenu menu;
     /*QAction *toggleToolBar = new QAction("Show Toolbar",&menu);
@@ -324,7 +324,7 @@ void caret::ChartingDialog::on_autoResizeMatrixCB_toggled(bool checked)
 
 void caret::ChartingDialog::on_comboBox_2_currentIndexChanged(int index)
 {
-    CiftiMappableDataFile::SelectionMode mode = this->cmf->getSelectionMode();
+    //CiftiMappableDataFile::SelectionMode mode = this->cmf->getSelectionMode();
 
     switch(index) {
     case CiftiMappableDataFile::SELECTION_MODE_NONE:

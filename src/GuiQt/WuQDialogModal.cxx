@@ -28,6 +28,7 @@
 #undef __WU_Q_DIALOG_MODAL_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 using namespace caret;
 
@@ -168,13 +169,14 @@ WuQDialogModal::clicked(QAbstractButton* button)
  *    The result that indicates action that should be taken
  *    as a result of the button being pressed.
  */
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 WuQDialogModal::ModalDialogUserButtonResult
 WuQDialogModal::userButtonPressed(QPushButton* userPushButton)
 {
-    CaretAssertMessage(0, "Subclass of WuQDialogModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
-                       + userPushButton->text()
-                       + "\"");
+    const AString msg = ("Subclass of WuQDialogModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
+                         + userPushButton->text()
+                         + "\"");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
 
     return RESULT_NONE;    
 }

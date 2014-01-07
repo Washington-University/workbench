@@ -177,7 +177,7 @@ CiftiMappableConnectivityMatrixDataFile::setMapDataLoadingEnabled(const int32_t 
  *     A vector that will contain the data for the map upon exit.
  */
 void
-CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t mapIndex,
+CiftiMappableConnectivityMatrixDataFile::getMapData(const int32_t /*mapIndex*/,
                                   std::vector<float>& dataOut) const
 {
     //int nCols = m_ciftiInterface->getNumberOfColumns();
@@ -962,8 +962,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
             CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
         }
 
-        CaretAssertVectorIndex(m_mapContent, 0);
-        m_mapContent[0]->invalidateColoring();
+        CaretAssertVectorIndex(m_mapContent, mapIndex);
+        m_mapContent[mapIndex]->invalidateColoring();
         
         m_connectivityDataLoaded->setVolumeXYZLoading(xyz);
     }
@@ -991,7 +991,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
                                                                            const int64_t volumeDimensionIJK[3],
                                                                            const std::vector<VoxelIJK>& voxelIndices) throw (DataFileException)
 {
-    CaretAssert(mapIndex == 0);
+    if (mapIndex != 0) { // eliminates compilation warning when compiled for release
+        CaretAssert(mapIndex == 0);
+    }
     
     if (isCiftiInterfaceValid() == false) {
         setLoadedRowDataToAllZeros();

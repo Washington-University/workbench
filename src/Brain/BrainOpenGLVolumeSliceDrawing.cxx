@@ -1761,7 +1761,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
-                                              const VolumeMappableInterface* volume,
+                                              const VolumeMappableInterface* /*volume*/,
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                               const DRAW_MODE drawMode)
 {
@@ -1797,8 +1797,7 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
                 glGetBooleanv(GL_DEPTH_TEST,
                               &depthBufferEnabled);
                 glPushMatrix();
-                drawAxesCrosshairs(volume,
-                                   sliceViewPlane);
+                drawAxesCrosshairs(sliceViewPlane);
                 glPopMatrix();
                 if (depthBufferEnabled) {
                     glEnable(GL_DEPTH_TEST);
@@ -3299,17 +3298,12 @@ BrainOpenGLVolumeSliceDrawing::drawDebugSquare()
 /**
  * Draw the axes crosshairs.
  *
- * @param volume
- *    The underlay volume.
  * @param sliceViewPlane
  *    The slice view plane.
  */
 void
-BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeMappableInterface* volume,
-                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
+BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
 {
-    CaretAssert(volume);
-    
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const bool drawCrosshairsFlag = prefs->isVolumeAxesCrosshairsDisplayed();
     const bool drawCrosshairLabelsFlag = prefs->isVolumeAxesLabelsDisplayed();

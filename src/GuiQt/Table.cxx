@@ -67,9 +67,9 @@ void Table::populate(std::vector< std::vector <QColor> > &colors)
 {
     model->setRowCount(colors.size());
     model->setColumnCount(colors[0].size());
-    for(int x = 0;x<colors.size();x++)
+    for(int x = 0;x<static_cast<int>(colors.size());x++)
     {
-        for(int y = 0;y<colors[x].size();y++)
+        for(int y = 0;y<static_cast<int>(colors[x].size());y++)
         {
             model->setData(model->index(x,y,QModelIndex()), colors[x][y], Qt::BackgroundColorRole);            
         }
@@ -85,7 +85,7 @@ Table::~Table()
 /*
 bool Table::viewportEvent(QEvent *event) {
     if (event->type() == QEvent::ToolTip) {
-        /*QHelpEvent *helpEvent = static_cast<QHelpEvent*>(event);
+        QHelpEvent *helpEvent = static_cast<QHelpEvent*>(event);
         QModelIndex index = indexAt(helpEvent->pos());
         if (index.isValid()) {
             QSize sizeHint = itemDelegate(index)->sizeHint(viewOptions(), index);
@@ -126,10 +126,10 @@ const QRect Table::adjustTableSize(
         size_t extraRightWidth = rightM + tv->frameWidth();
         size_t w = tv->verticalHeader()->width() + extraLeftWidth + extraRightWidth;
         size_t h = tv->horizontalHeader()->height() + extraTopHeight + extraBottomHeight;
-        for(size_t col = 0; col < maxCols; ++col) {
+        for(int col = 0; col < maxCols; ++col) {
             w += tv->columnWidth(col);
         }
-        for(size_t row = 0; row < maxRows; ++row ) {
+        for(int row = 0; row < maxRows; ++row ) {
             h += tv->rowHeight(row);
         }
 
