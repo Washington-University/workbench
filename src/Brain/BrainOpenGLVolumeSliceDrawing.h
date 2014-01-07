@@ -258,12 +258,6 @@ namespace caret {
         void setVolumeSliceViewingAndModelingTransformations(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                  const Plane& plane);
         
-//        void setVolumeSliceModelingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-//                                                  const DRAW_MODE drawMode,
-//                                                  Plane& planeOut,
-//                                                  const int32_t montageSliceIndex,
-//                                                  Matrix4x4& obliqueTransformationMatrixOut);
-        
         void drawDebugSquare();
         
         void drawLayers(const Plane& slicePlane,
@@ -274,20 +268,8 @@ namespace caret {
         void drawAxesCrosshairs(const VolumeMappableInterface* volume,
                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
         
-//        void drawAxesCrosshairsOblique(const Plane& slicePlane,
-//                                       const Matrix4x4& transformationMatrix,
-//                                const VolumeMappableInterface* volume,
-//                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-//                                const DRAW_MODE drawMode);
-        
-//        void drawAxesCrosshairsOrthogonal(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-//                                          const VolumeMappableInterface* volume,
-//                                          const bool drawCrosshairsFlag,
-//                                          const bool drawCrosshairLabelsFlag);
-        
         void drawAxesCrosshairsOrthoAndOblique(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const VolumeSliceViewModeEnum::Enum sliceViewMode,
-                                          const VolumeMappableInterface* volume,
                                           const bool drawCrosshairsFlag,
                                           const bool drawCrosshairLabelsFlag);
         
