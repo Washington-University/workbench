@@ -382,6 +382,8 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
             glPopMatrix();
             glMatrixMode(GL_PROJECTION);
             glPopMatrix();
+            
+            glMatrixMode(GL_MODELVIEW);
         }
         
         m_brain = NULL;

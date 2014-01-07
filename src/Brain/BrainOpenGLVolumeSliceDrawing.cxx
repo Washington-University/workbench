@@ -138,6 +138,8 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
         return;
     }
     
+    glMatrixMode(GL_MODELVIEW);
+    
     CaretAssert(fixedPipelineDrawing);
     CaretAssert(browserTabContent);
     
