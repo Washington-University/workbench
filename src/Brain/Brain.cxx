@@ -531,10 +531,11 @@ Brain::copyDisplayProperties(const int32_t sourceTabIndex,
 /**
  * Read a surface file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @param structureIn
@@ -544,15 +545,16 @@ Brain::copyDisplayProperties(const int32_t sourceTabIndex,
  * @return Pointer to file that was read.
  */
 Surface* 
-Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadSurfaceFile(const FileModeAddReadReload fileMode,
+                       CaretDataFile* caretDataFile,
                        const AString& filename,
                        const StructureEnum::Enum structureIn,
                        const bool markDataFileAsModified) throw (DataFileException)
 {
     Surface* surface = NULL;
     StructureEnum::Enum structure = StructureEnum::INVALID;
-    if (reloadThisFileIfNotNull != NULL) {
-        surface = dynamic_cast<Surface*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        surface = dynamic_cast<Surface*>(caretDataFile);
         CaretAssert(surface);
         
         /*
@@ -564,21 +566,44 @@ Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
         surface = new Surface();
     }
     
-    try {
-        surface->readFile(filename);
+    bool addFlag    = false;
+    bool readFlag   = false;
+    bool reloadFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag   = true;
+            reloadFlag = true;
+            break;
     }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            BrainStructure* bs = getBrainStructure(structure, true);
-            if (bs != NULL) {
-                bs->removeDataFile(surface);
+    
+    if (readFlag) {
+        try {
+            surface->readFile(filename);
+        }
+        catch (const DataFileException& dfe) {
+            if (reloadFlag) {
+                BrainStructure* bs = getBrainStructure(structure, true);
+                if (bs != NULL) {
+                    bs->removeWithoutDeleteDataFile(surface);
+                }
             }
-        }
-        else {
+            
             delete surface;
+            throw dfe;
         }
-        throw dfe;
     }
+    
+    if (addFlag) {
+        
+    }
+    
     
     bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
@@ -590,7 +615,7 @@ Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
     
     structure = surface->getStructure();
     if (structure == StructureEnum::INVALID) {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete surface;
         }
         AString message = "Structure in "
@@ -615,13 +640,12 @@ Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
                 initializeOverlaysFlag = true;
             }
         }
-        const bool isReloading = (reloadThisFileIfNotNull != NULL);
         bs->addSurface(surface,
-                       isReloading,
+                       addFlag,
                        initializeOverlaysFlag);
     }
     else {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete surface;
         }
         AString message = "Failed to create a BrainStructure for surface with structure "
@@ -643,10 +667,11 @@ Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a label file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @param structureIn
@@ -656,15 +681,16 @@ Brain::readSurfaceFile(CaretDataFile* reloadThisFileIfNotNull,
  * @return Pointer to file that was read.
  */
 LabelFile* 
-Brain::readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
+                     CaretDataFile* caretDataFile,
                      const AString& filename,
                      const StructureEnum::Enum structureIn,
                      const bool markDataFileAsModified) throw (DataFileException)
 {
     LabelFile* labelFile = NULL;
     StructureEnum::Enum structure = StructureEnum::INVALID;
-    if (reloadThisFileIfNotNull != NULL) {
-        labelFile = dynamic_cast<LabelFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        labelFile = dynamic_cast<LabelFile*>(caretDataFile);
         CaretAssert(labelFile);
         
         /*
@@ -676,21 +702,44 @@ Brain::readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
         labelFile = new LabelFile();
     }
 
-    try {
-        labelFile->readFile(filename);
+    bool addFlag    = false;
+    bool readFlag   = false;
+    bool reloadFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag   = true;
+            reloadFlag = true;
+            break;
     }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            BrainStructure* bs = getBrainStructure(structure, true);
-            if (bs != NULL) {
-                bs->removeDataFile(labelFile);
+    
+    if (readFlag) {
+        try {
+            labelFile->readFile(filename);
+        }
+        catch (const DataFileException& dfe) {
+            if (reloadFlag) {
+                BrainStructure* bs = getBrainStructure(structure, true);
+                if (bs != NULL) {
+                    bs->removeWithoutDeleteDataFile(labelFile);
+                }
             }
-        }
-        else {
+
             delete labelFile;
+            throw dfe;
         }
-        throw dfe;
     }
+    
+    if (addFlag) {
+        
+    }
+    
     
     bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
@@ -702,7 +751,7 @@ Brain::readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
     
     structure = labelFile->getStructure();
     if (structure == StructureEnum::INVALID) {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete labelFile;
         }
         AString message = "Structure in "
@@ -717,19 +766,18 @@ Brain::readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
     BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
-            const bool isReloading = (reloadThisFileIfNotNull != NULL);
             bs->addLabelFile(labelFile,
-                             isReloading);
+                             addFlag);
         }
         catch (const DataFileException& e) {
-            if (reloadThisFileIfNotNull == NULL) {
+            if (caretDataFile == NULL) {
                 delete labelFile;
             }
             throw e;
         }
     }
     else {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete labelFile;
         }
         AString message = "Must read a surface with structure "
@@ -751,10 +799,11 @@ Brain::readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a metric file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @param structureIn
@@ -764,15 +813,16 @@ Brain::readLabelFile(CaretDataFile* reloadThisFileIfNotNull,
  * @return Pointer to file that was read.
  */
 MetricFile* 
-Brain::readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadMetricFile(const FileModeAddReadReload fileMode,
+                      CaretDataFile* caretDataFile,
                       const AString& filename,
                       const StructureEnum::Enum structureIn,
                       const bool markDataFileAsModified) throw (DataFileException)
 {
     MetricFile* metricFile = NULL;
     StructureEnum::Enum structure = StructureEnum::INVALID;
-    if (reloadThisFileIfNotNull != NULL) {
-        metricFile = dynamic_cast<MetricFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        metricFile = dynamic_cast<MetricFile*>(caretDataFile);
         CaretAssert(metricFile);
         
         /*
@@ -784,21 +834,44 @@ Brain::readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
         metricFile = new MetricFile();
     }
 
-    try {
-        metricFile->readFile(filename);
+    bool addFlag    = false;
+    bool readFlag   = false;
+    bool reloadFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag   = true;
+            reloadFlag = true;
+            break;
     }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            BrainStructure* bs = getBrainStructure(structure, true);
-            if (bs != NULL) {
-                bs->removeDataFile(metricFile);
+    
+    if (readFlag) {
+        try {
+            metricFile->readFile(filename);
+        }
+        catch (const DataFileException& dfe) {
+            if (reloadFlag) {
+                BrainStructure* bs = getBrainStructure(structure, true);
+                if (bs != NULL) {
+                    bs->removeWithoutDeleteDataFile(metricFile);
+                }
             }
-        }
-        else {
+
             delete metricFile;
+            throw dfe;
         }
-        throw dfe;
     }
+    
+    if (addFlag) {
+        
+    }
+    
     
     bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
@@ -810,7 +883,7 @@ Brain::readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
     
     structure = metricFile->getStructure();
     if (structure == StructureEnum::INVALID) {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete metricFile;
         }
         AString message = "Structure in "
@@ -825,19 +898,18 @@ Brain::readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
     BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
-            const bool isReloading = (reloadThisFileIfNotNull != NULL);
             bs->addMetricFile(metricFile,
-                              isReloading);
+                              addFlag);
         }
         catch (const DataFileException& e) {
-            if (reloadThisFileIfNotNull == NULL) {
+            if (caretDataFile == NULL) {
                 delete metricFile;
             }
             throw e;
         }
     }
     else {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete metricFile;
         }
         AString message = "Must read a surface with structure "
@@ -859,10 +931,11 @@ Brain::readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read an RGBA file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @param structureIn
@@ -872,15 +945,16 @@ Brain::readMetricFile(CaretDataFile* reloadThisFileIfNotNull,
  * @return Pointer to file that was read.
  */
 RgbaFile* 
-Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadRgbaFile(const FileModeAddReadReload fileMode,
+                    CaretDataFile* caretDataFile,
                     const AString& filename,
                     const StructureEnum::Enum structureIn,
                     const bool markDataFileAsModified) throw (DataFileException)
 {
     RgbaFile* rgbaFile = NULL;
     StructureEnum::Enum structure = StructureEnum::INVALID;
-    if (reloadThisFileIfNotNull != NULL) {
-        rgbaFile = dynamic_cast<RgbaFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        rgbaFile = dynamic_cast<RgbaFile*>(caretDataFile);
         CaretAssert(rgbaFile);
         
         /*
@@ -892,21 +966,45 @@ Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
         rgbaFile = new RgbaFile();
     }
 
-    try {
-        rgbaFile->readFile(filename);
+    bool addFlag    = false;
+    bool readFlag   = false;
+    bool reloadFlag = false;
+    
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag  = true;
+            reloadFlag = true;
+            break;
     }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            BrainStructure* bs = getBrainStructure(structure, true);
-            if (bs != NULL) {
-                bs->removeDataFile(rgbaFile);
+    
+    if (readFlag) {
+        try {
+            rgbaFile->readFile(filename);
+        }
+        catch (const DataFileException& dfe) {
+            if (reloadFlag) {
+                BrainStructure* bs = getBrainStructure(structure, true);
+                if (bs != NULL) {
+                    bs->removeWithoutDeleteDataFile(rgbaFile);
+                }
             }
-        }
-        else {
+            
             delete rgbaFile;
+            throw dfe;
         }
-        throw dfe;
     }
+    
+    if (addFlag) {
+        
+    }
+    
     
     bool fileIsModified = false;
     if (structureIn != StructureEnum::INVALID) {
@@ -918,7 +1016,7 @@ Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
     
     structure = rgbaFile->getStructure();
     if (structure == StructureEnum::INVALID) {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete rgbaFile;
         }
         AString message = "Structure in "
@@ -933,19 +1031,18 @@ Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
     BrainStructure* bs = getBrainStructure(structure, false);
     if (bs != NULL) {
         try {
-            const bool isReloading = (reloadThisFileIfNotNull != NULL);
             bs->addRgbaFile(rgbaFile,
-                            isReloading);
+                            addFlag);
         }
         catch (const DataFileException& e) {
-            if (reloadThisFileIfNotNull == NULL) {
+            if (caretDataFile == NULL) {
                 delete rgbaFile;
             }
             throw e;
         }
     }
     else {
-        if (reloadThisFileIfNotNull == NULL) {
+        if (caretDataFile == NULL) {
             delete rgbaFile;
         }
         AString message = "Must read a surface with structure "
@@ -967,10 +1064,11 @@ Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a volume file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @return
@@ -979,35 +1077,54 @@ Brain::readRgbaFile(CaretDataFile* reloadThisFileIfNotNull,
  *    If reading failed.
  */
 VolumeFile*
-Brain::readVolumeFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
+                      CaretDataFile* caretDataFile,
                       const AString& filename) throw (DataFileException)
 {
     VolumeFile* vf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        vf = dynamic_cast<VolumeFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        vf = dynamic_cast<VolumeFile*>(caretDataFile);
         CaretAssert(vf);
     }
     else {
         vf = new VolumeFile();
     }
 
-    try {
-        vf->readFile(filename);
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
-    catch (const DataFileException& e) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
+    
+    if (readFlag) {
+        try {
+            vf->readFile(filename);
         }
-        else {
-            delete vf;
+        catch (const DataFileException& e) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete vf;
+            }
+            throw e;
         }
-        throw e;
     }
+    
     vf->clearModified();
     
     vf->updateScalarColoringForAllMaps(m_paletteFile);
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (addFlag) {
         m_volumeFiles.push_back(vf);
     }
     
@@ -1054,10 +1171,11 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
 /**
  * Read a border file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @return
@@ -1066,33 +1184,53 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
  *    If reading failed.
  */
 BorderFile*
-Brain::readBorderFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadBorderFile(const FileModeAddReadReload fileMode,
+                      CaretDataFile* caretDataFile,
                       const AString& filename) throw (DataFileException)
 {
     BorderFile* bf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        bf = dynamic_cast<BorderFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        bf = dynamic_cast<BorderFile*>(caretDataFile);
         CaretAssert(bf);
     }
     else {
         bf = new BorderFile();
     }
 
-    try {
-        bf->readFile(filename);
-        if (reloadThisFileIfNotNull == NULL) {
-            m_borderFiles.push_back(bf);
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            bf->readFile(filename);
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete bf;
+            }
+            throw dfe;
         }
     }
-    catch (DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete bf;
-        }
-        throw dfe;
+    
+    if (addFlag) {
+        m_borderFiles.push_back(bf);
     }
+    
     
     return bf;
 }
@@ -1100,43 +1238,64 @@ Brain::readBorderFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a foci file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 FociFile*
-Brain::readFociFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadFociFile(const FileModeAddReadReload fileMode,
+                    CaretDataFile* caretDataFile,
                     const AString& filename) throw (DataFileException)
 {
     FociFile* ff = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        ff = dynamic_cast<FociFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        ff = dynamic_cast<FociFile*>(caretDataFile);
         CaretAssert(ff);
     }
     else {
         ff = new FociFile();
     }
 
-    try {
-        ff->readFile(filename);
-        if (reloadThisFileIfNotNull == NULL) {
-            m_fociFiles.push_back(ff);
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            ff->readFile(filename);
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete ff;
+            }
+            throw dfe;
         }
     }
-    catch (DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete ff;
-        }
-        throw dfe;
+    
+    if (addFlag) {
+        m_fociFiles.push_back(ff);
     }
+    
     
     return ff;
 }
@@ -1179,10 +1338,11 @@ Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) 
 /**
  * Read a connectivity matrix dense file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @return
@@ -1191,34 +1351,52 @@ Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) 
  *    If reading failed.
  */
 CiftiConnectivityMatrixDenseFile*
-Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityDenseFile(const FileModeAddReadReload fileMode,
+                                 CaretDataFile* caretDataFile,
                                  const AString& filename) throw (DataFileException)
 {
     CiftiConnectivityMatrixDenseFile* cmdf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        cmdf = dynamic_cast<CiftiConnectivityMatrixDenseFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        cmdf = dynamic_cast<CiftiConnectivityMatrixDenseFile*>(caretDataFile);
         CaretAssert(cmdf);
     }
     else {
         cmdf = new CiftiConnectivityMatrixDenseFile();
     }
     
-    try {
-        cmdf->readFile(filename);
-        cmdf->clearModified();
-        validateCiftiMappableDataFile(cmdf);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete cmdf;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            cmdf->readFile(filename);
+            cmdf->clearModified();
+            validateCiftiMappableDataFile(cmdf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete cmdf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityMatrixDenseFiles.push_back(cmdf);
     }
     
@@ -1228,10 +1406,11 @@ Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a connectivity dense label file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @return
@@ -1240,33 +1419,51 @@ Brain::readConnectivityDenseFile(CaretDataFile* reloadThisFileIfNotNull,
  *    If reading failed.
  */
 CiftiBrainordinateLabelFile*
-Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityDenseLabelFile(const FileModeAddReadReload fileMode,
+                                      CaretDataFile* caretDataFile,
                                       const AString& filename) throw (DataFileException)
 {
     CiftiBrainordinateLabelFile* file = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        file = dynamic_cast<CiftiBrainordinateLabelFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        file = dynamic_cast<CiftiBrainordinateLabelFile*>(caretDataFile);
         CaretAssert(file);
     }
     else {
         file = new CiftiBrainordinateLabelFile();
     }
     
-    try {
-        file->readFile(filename);
-        validateCiftiMappableDataFile(file);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete file;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            file->readFile(filename);
+            validateCiftiMappableDataFile(file);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete file;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityDenseLabelFiles.push_back(file);
     }
     
@@ -1276,43 +1473,62 @@ Brain::readConnectivityDenseLabelFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a connectivity dense parcel file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiConnectivityMatrixDenseParcelFile*
-Brain::readConnectivityMatrixDenseParcelFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadReload fileMode,
+                                             CaretDataFile* caretDataFile,
                                              const AString& filename) throw (DataFileException)
 {
     CiftiConnectivityMatrixDenseParcelFile* file = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        file = dynamic_cast<CiftiConnectivityMatrixDenseParcelFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        file = dynamic_cast<CiftiConnectivityMatrixDenseParcelFile*>(caretDataFile);
         CaretAssert(file);
     }
     else {
         file = new CiftiConnectivityMatrixDenseParcelFile();
     }
 
-    try {
-        file->readFile(filename);
-        validateCiftiMappableDataFile(file);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete file;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            file->readFile(filename);
+            validateCiftiMappableDataFile(file);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete file;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityMatrixDenseParcelFiles.push_back(file);
     }
     
@@ -1388,43 +1604,62 @@ Brain::updateFiberTrajectoryMatchingFiberOrientationFiles()
 /**
  * Read a connectivity dense scalar file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiBrainordinateScalarFile*
-Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityDenseScalarFile(const FileModeAddReadReload fileMode,
+                                       CaretDataFile* caretDataFile,
                                        const AString& filename) throw (DataFileException)
 {
     CiftiBrainordinateScalarFile* clf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        clf = dynamic_cast<CiftiBrainordinateScalarFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        clf = dynamic_cast<CiftiBrainordinateScalarFile*>(caretDataFile);
         CaretAssert(clf);
     }
     else {
         clf = new CiftiBrainordinateScalarFile();
     }
     
-    try {
-        clf->readFile(filename);
-        validateCiftiMappableDataFile(clf);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete clf;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            clf->readFile(filename);
+            validateCiftiMappableDataFile(clf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete clf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityDenseScalarFiles.push_back(clf);
     }
     
@@ -1434,43 +1669,62 @@ Brain::readConnectivityDenseScalarFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a connectivity parcel data series file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiParcelSeriesFile*
-Brain::readConnectivityParcelSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
-                                       const AString& filename) throw (DataFileException)
+Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload fileMode,
+                                        CaretDataFile* caretDataFile,
+                                        const AString& filename) throw (DataFileException)
 {
     CiftiParcelSeriesFile* clf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        clf = dynamic_cast<CiftiParcelSeriesFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        clf = dynamic_cast<CiftiParcelSeriesFile*>(caretDataFile);
         CaretAssert(clf);
     }
     else {
         clf = new CiftiParcelSeriesFile();
     }
     
-    try {
-        clf->readFile(filename);
-        validateCiftiMappableDataFile(clf);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete clf;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            clf->readFile(filename);
+            validateCiftiMappableDataFile(clf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete clf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityParcelSeriesFiles.push_back(clf);
     }
     
@@ -1480,43 +1734,62 @@ Brain::readConnectivityParcelSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a connectivity parcel scalar file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiParcelScalarFile*
-Brain::readConnectivityParcelScalarFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityParcelScalarFile(const FileModeAddReadReload fileMode,
+                                        CaretDataFile* caretDataFile,
                                         const AString& filename) throw (DataFileException)
 {
     CiftiParcelScalarFile* clf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        clf = dynamic_cast<CiftiParcelScalarFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        clf = dynamic_cast<CiftiParcelScalarFile*>(caretDataFile);
         CaretAssert(clf);
     }
     else {
         clf = new CiftiParcelScalarFile();
     }
     
-    try {
-        clf->readFile(filename);
-        validateCiftiMappableDataFile(clf);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete clf;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            clf->readFile(filename);
+            validateCiftiMappableDataFile(clf);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete clf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityParcelScalarFiles.push_back(clf);
     }
     
@@ -1659,39 +1932,58 @@ Brain::getCiftiShapeMap(CiftiBrainordinateScalarFile* &ciftiScalarShapeFileOut,
 /**
  * Read a connectivity fiber orientation file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiFiberOrientationFile*
-Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityFiberOrientationFile(const FileModeAddReadReload fileMode,
+                                            CaretDataFile* caretDataFile,
                                             const AString& filename) throw (DataFileException)
 {
     CiftiFiberOrientationFile* cfof = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        cfof = dynamic_cast<CiftiFiberOrientationFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        cfof = dynamic_cast<CiftiFiberOrientationFile*>(caretDataFile);
         CaretAssert(cfof);
     }
     else {
         cfof = new CiftiFiberOrientationFile();
     }
     
-    try {
-        cfof->readFile(filename);
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
+    
+    if (readFlag) {
+        try {
+            cfof->readFile(filename);
         }
-        else {
-            delete cfof;
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete cfof;
+            }
+            throw dfe;
         }
-        throw dfe;
     }
     
     /*
@@ -1714,7 +2006,7 @@ Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNu
                                                                           belowLimit);
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (addFlag) {
         m_connectivityFiberOrientationFiles.push_back(cfof);
     }
     
@@ -1724,42 +2016,61 @@ Brain::readConnectivityFiberOrientationFile(CaretDataFile* reloadThisFileIfNotNu
 /**
  * Read a connectivity fiber trajectory file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiFiberTrajectoryFile*
-Brain::readConnectivityFiberTrajectoryFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReload fileMode,
+                                           CaretDataFile* caretDataFile,
                                            const AString& filename) throw (DataFileException)
 {
     CiftiFiberTrajectoryFile* cftf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        cftf = dynamic_cast<CiftiFiberTrajectoryFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        cftf = dynamic_cast<CiftiFiberTrajectoryFile*>(caretDataFile);
         CaretAssert(cftf);
     }
     else {
         cftf = new CiftiFiberTrajectoryFile();
     }
     
-    try {
-        cftf->readFile(filename);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete cftf;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            cftf->readFile(filename);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete cftf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityFiberTrajectoryFiles.push_back(cftf);
     }
     
@@ -1769,43 +2080,62 @@ Brain::readConnectivityFiberTrajectoryFile(CaretDataFile* reloadThisFileIfNotNul
 /**
  * Read a connectivity parcel file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiConnectivityMatrixParcelFile*
-Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload fileMode,
+                                        CaretDataFile* caretDataFile,
                                         const AString& filename) throw (DataFileException)
 {
     CiftiConnectivityMatrixParcelFile* file = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        file = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        file = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(caretDataFile);
         CaretAssert(file);
     }
     else {
         file = new CiftiConnectivityMatrixParcelFile();
     }
     
-    try {
-        file->readFile(filename);
-        validateCiftiMappableDataFile(file);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete file;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            file->readFile(filename);
+            validateCiftiMappableDataFile(file);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete file;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityMatrixParcelFiles.push_back(file);
     }
     
@@ -1815,43 +2145,62 @@ Brain::readConnectivityMatrixParcelFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a connectivity parcel dense file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiConnectivityMatrixParcelDenseFile*
-Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadReload fileMode,
+                                             CaretDataFile* caretDataFile,
                                              const AString& filename) throw (DataFileException)
 {
     CiftiConnectivityMatrixParcelDenseFile* file = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        file = dynamic_cast<CiftiConnectivityMatrixParcelDenseFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        file = dynamic_cast<CiftiConnectivityMatrixParcelDenseFile*>(caretDataFile);
         CaretAssert(file);
     }
     else {
         file = new CiftiConnectivityMatrixParcelDenseFile();
     }
     
-    try {
-        file->readFile(filename);
-        validateCiftiMappableDataFile(file);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete file;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            file->readFile(filename);
+            validateCiftiMappableDataFile(file);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete file;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityMatrixParcelDenseFiles.push_back(file);
     }
     
@@ -1861,43 +2210,62 @@ Brain::readConnectivityMatrixParcelDenseFile(CaretDataFile* reloadThisFileIfNotN
 /**
  * Read a connectivity data series file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 CiftiBrainordinateDataSeriesFile*
-Brain::readConnectivityDataSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadConnectivityDataSeriesFile(const FileModeAddReadReload fileMode,
+                                      CaretDataFile* caretDataFile,
                                       const AString& filename) throw (DataFileException)
 {
     CiftiBrainordinateDataSeriesFile* file = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        file = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        file = dynamic_cast<CiftiBrainordinateDataSeriesFile*>(caretDataFile);
         CaretAssert(file);
     }
     else {
         file = new CiftiBrainordinateDataSeriesFile();
     }
     
-    try {
-        file->readFile(filename);
-        validateCiftiMappableDataFile(file);
-    }
-    catch (const DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete file;
-        }
-        throw dfe;
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
     }
     
-    if (reloadThisFileIfNotNull == NULL) {
+    if (readFlag) {
+        try {
+            file->readFile(filename);
+            validateCiftiMappableDataFile(file);
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete file;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
         m_connectivityDataSeriesFiles.push_back(file);
     }
     
@@ -1907,62 +2275,108 @@ Brain::readConnectivityDataSeriesFile(CaretDataFile* reloadThisFileIfNotNull,
 /**
  * Read a palette file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 PaletteFile*
-Brain::readPaletteFile(CaretDataFile* /* reloadThisFileIfNotNull */,
+Brain::addReadOrReloadPaletteFile(const FileModeAddReadReload fileMode,
+                       CaretDataFile* /*caretDataFile*/,
                        const AString& /*filename*/) throw (DataFileException)
 {
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        
+    }
+    
+    if (addFlag) {
+        
+    }
+    
     throw DataFileException("Reading not implemented for: palette");
+    
     return NULL;
 }
 
 /**
  * Read a scene file.
  *
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param filename
  *    Name of the file.
  * @throws DataFileException
  *    If reading failed.
  */
 SceneFile*
-Brain::readSceneFile(CaretDataFile* reloadThisFileIfNotNull,
+Brain::addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
+                     CaretDataFile* caretDataFile,
                      const AString& filename) throw (DataFileException)
 {
     SceneFile* sf = NULL;
-    if (reloadThisFileIfNotNull != NULL) {
-        sf = dynamic_cast<SceneFile*>(reloadThisFileIfNotNull);
+    if (caretDataFile != NULL) {
+        sf = dynamic_cast<SceneFile*>(caretDataFile);
         CaretAssert(sf);
     }
     else {
         sf = new SceneFile();
     }
 
-    try {
-        sf->readFile(filename);
-        if (reloadThisFileIfNotNull == NULL) {
-            m_sceneFiles.push_back(sf);
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            sf->readFile(filename);
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete sf;
+            }
+            throw dfe;
         }
     }
-    catch (DataFileException& dfe) {
-        if (reloadThisFileIfNotNull != NULL) {
-            removeDataFile(reloadThisFileIfNotNull);
-        }
-        else {
-            delete sf;
-        }
-        throw dfe;
+    
+    if (addFlag) {
+        m_sceneFiles.push_back(sf);
     }
     
     return sf;
@@ -2723,7 +3137,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
                         throw DataFileException("Must load surface(s) with matching structure prior to label files");
                     }
                     brainStructure->addLabelFile(file,
-                                                 false);
+                                                 true);
                 }
                     break;
                 case DataFileTypeEnum::METRIC:
@@ -2737,7 +3151,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
                         throw DataFileException("Must load surface(s) with matching structure prior to metric files");
                     }
                     brainStructure->addMetricFile(file,
-                                                 false);
+                                                 true);
                 }
                     break;
                 case DataFileTypeEnum::PALETTE:
@@ -2756,7 +3170,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
                         throw DataFileException("Must load surface(s) with matching structure prior to label files");
                     }
                     brainStructure->addRgbaFile(file,
-                                                 false);
+                                                 true);
                 }
                     break;
                 case DataFileTypeEnum::SCENE:
@@ -2767,8 +3181,8 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
                 }
                     break;
                 case DataFileTypeEnum::SPECIFICATION:
-                    CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readOrReloadDataFile()");
-                    throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readOrReloadDataFile()");
+                    CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
+                    throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
                     break;
                 case DataFileTypeEnum::SURFACE:
                 {
@@ -2784,7 +3198,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
                                                            true);
                     }
                     brainStructure->addSurface(file,
-                                               false,
+                                               true,
                                                true);
                 }
                     break;
@@ -2801,14 +3215,6 @@ Brain::addDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
             }
             
             m_specFile->addCaretDataFile(caretDataFile);
-    
-//            m_specFile->addDataFile(dataFileType,
-//                                    structure,
-//                                    dataFileName,
-//                                    true,
-//                                    false,
-//                                    false);
-    
 }
 
 
@@ -3481,7 +3887,8 @@ Brain::processReloadDataFileEvent(EventDataFileReload* reloadDataFileEvent)
                                                      reloadDataFileEvent->getPassword());
     
     try {
-        readOrReloadDataFile(caretDataFile,
+        addReadOrReloadDataFile(FILE_MODE_RELOAD,
+                             caretDataFile,
                              caretDataFile->getDataFileType(),
                              caretDataFile->getStructure(),
                              caretDataFile->getFileName(),
@@ -3558,11 +3965,11 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 /**
  * Read, or reload a data file.
  *
- * @param reloadThisDataFileIfNotNull
- * @param reloadThisFileIfNotNull
- *    If this value is not NULL, reload this file instead of creating and
- *    adding a new file.  NOTE: if this file fails to reload, IT WILL BE
- *    deleted.
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param dataFileType
  *    Type of data file to read.
  * @param structure
@@ -3578,14 +3985,27 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
  *    If there is an error reading the file.
  */
 CaretDataFile*
-Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
-                             const DataFileTypeEnum::Enum dataFileType,
-                             const StructureEnum::Enum structure,
-                             const AString& dataFileName,
-                             const bool markDataFileAsModified) throw (DataFileException)
+Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
+                            CaretDataFile* caretDataFile,
+                            const DataFileTypeEnum::Enum dataFileType,
+                            const StructureEnum::Enum structure,
+                            const AString& dataFileName,
+                            const bool markDataFileAsModified) throw (DataFileException)
 {
     CaretDataFile* caretDataFileRead = NULL;
 
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            CaretAssert(caretDataFile != NULL);
+            break;
+        case FILE_MODE_READ:
+            CaretAssert(caretDataFile == NULL);
+            break;
+        case FILE_MODE_RELOAD:
+            CaretAssert(caretDataFile != NULL);
+            break;
+    }
+    
     try {
         
         ElapsedTimer et;
@@ -3593,89 +4013,108 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
         
         switch (dataFileType) {
             case DataFileTypeEnum::BORDER:
-                caretDataFileRead = readBorderFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadBorderFile(fileMode,
+                                                   caretDataFile,
                                                    dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                caretDataFileRead = readConnectivityDenseFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityDenseFile(fileMode,
+                                                              caretDataFile,
                                                               dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
-                caretDataFileRead = readConnectivityDenseLabelFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityDenseLabelFile(fileMode,
+                                                                   caretDataFile,
                                                                    dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
-                caretDataFileRead = readConnectivityMatrixDenseParcelFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityMatrixDenseParcelFile(fileMode,
+                                                                          caretDataFile,
                                                                           dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-                caretDataFileRead = readConnectivityDenseScalarFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityDenseScalarFile(fileMode,
+                                                                    caretDataFile,
                                                                         dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                caretDataFileRead = readConnectivityDataSeriesFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityDataSeriesFile(fileMode,
+                                                                   caretDataFile,
                                                                    dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
-                caretDataFileRead = readConnectivityFiberOrientationFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityFiberOrientationFile(fileMode,
+                                                                         caretDataFile,
                                                                          dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
-                caretDataFileRead = readConnectivityFiberTrajectoryFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityFiberTrajectoryFile(fileMode,
+                                                                        caretDataFile,
                                                                         dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
-                caretDataFileRead = readConnectivityMatrixParcelFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityMatrixParcelFile(fileMode,
+                                                                     caretDataFile,
                                                                      dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
-                caretDataFileRead = readConnectivityMatrixParcelDenseFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityMatrixParcelDenseFile(fileMode,
+                                                                          caretDataFile,
                                                                           dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-                caretDataFileRead = readConnectivityParcelScalarFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityParcelScalarFile(fileMode,
+                                                                     caretDataFile,
                                                                      dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-                caretDataFileRead = readConnectivityParcelSeriesFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadConnectivityParcelSeriesFile(fileMode,
+                                                                     caretDataFile,
                                                                          dataFileName);
                 break;
             case DataFileTypeEnum::FOCI:
-                caretDataFileRead = readFociFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadFociFile(fileMode,
+                                                 caretDataFile,
                                                  dataFileName);
                 break;
             case DataFileTypeEnum::LABEL:
-                caretDataFileRead = readLabelFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadLabelFile(fileMode,
+                                                  caretDataFile,
                                                   dataFileName,
                                                   structure,
                                                   markDataFileAsModified);
                 break;
             case DataFileTypeEnum::METRIC:
-                caretDataFileRead = readMetricFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadMetricFile(fileMode,
+                                                   caretDataFile,
                                                    dataFileName,
                                                    structure,
                                                    markDataFileAsModified);
                 break;
             case DataFileTypeEnum::PALETTE:
-                caretDataFileRead = readPaletteFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadPaletteFile(fileMode,
+                                                    caretDataFile,
                                                     dataFileName);
                 break;
             case DataFileTypeEnum::RGBA:
-                caretDataFileRead = readRgbaFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadRgbaFile(fileMode,
+                                                 caretDataFile,
                                                  dataFileName,
                                                  structure,
                                                  markDataFileAsModified);
                 break;
             case DataFileTypeEnum::SCENE:
-                caretDataFileRead = readSceneFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadSceneFile(fileMode,
+                                                  caretDataFile,
                                                   dataFileName);
                 break;
             case DataFileTypeEnum::SPECIFICATION:
-                CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readOrReloadDataFile()");
-                throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readOrReloadDataFile()");
+                CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
+                throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::addReadOrReloadDataFile()");
                 break;
             case DataFileTypeEnum::SURFACE:
-                caretDataFileRead = readSurfaceFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadSurfaceFile(fileMode,
+                                                    caretDataFile,
                                                     dataFileName,
                                                     structure,
                                                     markDataFileAsModified);
@@ -3684,7 +4123,8 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
                 throw DataFileException("Unable to read files of type");
                 break;
             case DataFileTypeEnum::VOLUME:
-                caretDataFileRead = readVolumeFile(reloadThisDataFileIfNotNull,
+                caretDataFileRead  = addReadOrReloadVolumeFile(fileMode,
+                                                   caretDataFile,
                                                    dataFileName);
                 break;
         }
@@ -3708,8 +4148,8 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
         CaretLogInfo(msg);
     }
     catch (const DataFileException& dfe) {
-        if (reloadThisDataFileIfNotNull != NULL) {
-            m_specFile->removeCaretDataFile(reloadThisDataFileIfNotNull);
+        if (caretDataFile != NULL) {
+            m_specFile->removeCaretDataFile(caretDataFile);
         }
         throw dfe;
     }
@@ -3720,6 +4160,11 @@ Brain::readOrReloadDataFile(CaretDataFile* reloadThisDataFileIfNotNull,
 /**
  * Read a data file.
  *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
  * @param dataFileType
  *    Type of data file to read.
  * @param structure
@@ -3757,7 +4202,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         }
     }
     
-    CaretDataFile* caretDataFileRead = readOrReloadDataFile(NULL,
+    CaretDataFile* caretDataFileRead = addReadOrReloadDataFile(FILE_MODE_READ,
+                                                            NULL,
                                                             dataFileType,
                                                             structure,
                                                             dataFileName,
@@ -4653,29 +5099,56 @@ Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
 }
 
 /**
- * Remove a data file from memory (does NOT delete file on disk.)
- * Searches all of the loaded files for given file, and, when found
- * deletes the file.
+ * Remove the data file from memory but DO NOT delete it.
+ *
  * @param caretDataFile
- *    Data file to remove.
+ *    Caret file that is removed from the Brain.  After calling this method
+ *    and the file was removed( true was returned), the caller is responsible
+ *    for deleting the file when it is no longer needed.
  * @return
- *    true if file was removed, else false.
+ *    True if the file was removed, else false.
  */
-bool 
-Brain::removeDataFile(CaretDataFile* caretDataFile)
+bool
+Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
 {
     if (caretDataFile == NULL) {
         return false;
     }
-
-    bool wasRemoved = false;
-    CaretDataFile* caretDataFileForRemovalFromSpecFile = caretDataFile;
     
+    const bool wasRemoved = removeWithoutDeleteDataFilePrivate(caretDataFile);
+    
+    if (wasRemoved) {
+        m_specFile->removeCaretDataFile(caretDataFile);
+        
+        updateAfterFilesAddedOrRemoved();
+    }
+    else {
+        CaretLogSevere("Software bug: failed to remove file type="
+                       + DataFileTypeEnum::toName(caretDataFile->getDataFileType())
+                       + " name="
+                       + caretDataFile->getFileName());
+    }
+    
+    return wasRemoved;
+}
+
+/**
+ * Remove the data file from memory but DO NOT delete it.
+ *
+ * @param caretDataFile
+ *    Caret file that is removed from the Brain.  After calling this method
+ *    and the file was removed( true was returned), the caller is responsible
+ *    for deleting the file when it is no longer needed.
+ * @return
+ *    True if the file was removed, else false.
+ */
+bool
+Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
+{
     const int32_t numBrainStructures = getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
-        if (getBrainStructure(i)->removeDataFile(caretDataFile)) {
-            wasRemoved = true;
-            caretDataFile = NULL;
+        if (getBrainStructure(i)->removeWithoutDeleteDataFile(caretDataFile)) {
+            return true;
         }
     }
     
@@ -4683,143 +5156,88 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
                                                                   m_borderFiles.end(),
                                                                   caretDataFile);
     if (borderIterator != m_borderFiles.end()) {
-        BorderFile* borderFile = *borderIterator;
-        delete borderFile;
         m_borderFiles.erase(borderIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiBrainordinateDataSeriesFile*>::iterator dataSeriesIterator = std::find(m_connectivityDataSeriesFiles.begin(),
-                                                                            m_connectivityDataSeriesFiles.end(),
-                                                                            caretDataFile);
+                                                                                            m_connectivityDataSeriesFiles.end(),
+                                                                                            caretDataFile);
     if (dataSeriesIterator != m_connectivityDataSeriesFiles.end()) {
-        CiftiBrainordinateDataSeriesFile* dataSeriesFile = *dataSeriesIterator;
-        
-        const AString name = dataSeriesFile->getFileName();
-        delete dataSeriesFile;
         m_connectivityDataSeriesFiles.erase(dataSeriesIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiBrainordinateLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
                                                                                       m_connectivityDenseLabelFiles.end(),
                                                                                       caretDataFile);
     if (connLabelIterator != m_connectivityDenseLabelFiles.end()) {
-        CiftiBrainordinateLabelFile* connFile = *connLabelIterator;
-        delete connFile;
         m_connectivityDenseLabelFiles.erase(connLabelIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiConnectivityMatrixDenseFile*>::iterator connDenseIterator = std::find(m_connectivityMatrixDenseFiles.begin(),
-                                                                                                       m_connectivityMatrixDenseFiles.end(),
-                                                                                                       caretDataFile);
+                                                                                           m_connectivityMatrixDenseFiles.end(),
+                                                                                           caretDataFile);
     if (connDenseIterator != m_connectivityMatrixDenseFiles.end()) {
-        CiftiConnectivityMatrixDenseFile* connFile = *connDenseIterator;
-        delete connFile;
         m_connectivityMatrixDenseFiles.erase(connDenseIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator connDenseParcelIterator = std::find(m_connectivityMatrixDenseParcelFiles.begin(),
-                                                                                 m_connectivityMatrixDenseParcelFiles.end(),
-                                                                                 caretDataFile);
+                                                                                                       m_connectivityMatrixDenseParcelFiles.end(),
+                                                                                                       caretDataFile);
     if (connDenseParcelIterator != m_connectivityMatrixDenseParcelFiles.end()) {
-        CiftiConnectivityMatrixDenseParcelFile* connFile = *connDenseParcelIterator;
-        delete connFile;
         m_connectivityMatrixDenseParcelFiles.erase(connDenseParcelIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiBrainordinateScalarFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
-                                                                            m_connectivityDenseScalarFiles.end(),
-                                                                            caretDataFile);
+                                                                                        m_connectivityDenseScalarFiles.end(),
+                                                                                        caretDataFile);
     if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
-        CiftiBrainordinateScalarFile* connFile = *connScalarIterator;
-        const AString name = connFile->getFileName();
-        
-        delete connFile;
         m_connectivityDenseScalarFiles.erase(connScalarIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
-                                                                            m_connectivityFiberOrientationFiles.end(),
-                                                                            caretDataFile);
-    bool remvovedFiberOrientationFile = false;
+                                                                                               m_connectivityFiberOrientationFiles.end(),
+                                                                                               caretDataFile);
     if (connFiberOrientationIterator != m_connectivityFiberOrientationFiles.end()) {
-        CiftiFiberOrientationFile* connFile = *connFiberOrientationIterator;
-        delete connFile;
         m_connectivityFiberOrientationFiles.erase(connFiberOrientationIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
-        
-        remvovedFiberOrientationFile = true;
+        return true;
     }
     
-//    /*
-//     * If any fiber orientation files are removed, need to unload
-//     * any fiber trajectories that were loaded since the trajectories
-//     * point to fiber orientations in the fiber orientation file
-//     * that was deleted.
-//     */
-//    if (remvovedFiberOrientationFile) {
-//        for (std::vector<CiftiFiberTrajectoryFile*>::iterator clfi = m_connectivityFiberTrajectoryFiles.begin();
-//             clfi != m_connectivityFiberTrajectoryFiles.end();
-//             clfi++) {
-//            CiftiFiberTrajectoryFile* clf = *clfi;
-//            clf->clearLoadedFiberOrientations();
-//        }
-//    }
-    
     std::vector<CiftiFiberTrajectoryFile*>::iterator connFiberTrajectoryIterator = std::find(m_connectivityFiberTrajectoryFiles.begin(),
-                                                                                            m_connectivityFiberTrajectoryFiles.end(),
-                                                                                            caretDataFile);
+                                                                                             m_connectivityFiberTrajectoryFiles.end(),
+                                                                                             caretDataFile);
     if (connFiberTrajectoryIterator != m_connectivityFiberTrajectoryFiles.end()) {
-        CiftiFiberTrajectoryFile* trajFile = *connFiberTrajectoryIterator;
-        delete trajFile;
         m_connectivityFiberTrajectoryFiles.erase(connFiberTrajectoryIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     std::vector<CiftiConnectivityMatrixParcelFile*>::iterator connParcelIterator = std::find(m_connectivityMatrixParcelFiles.begin(),
-                                                                                     m_connectivityMatrixParcelFiles.end(),
-                                                                                     caretDataFile);
+                                                                                             m_connectivityMatrixParcelFiles.end(),
+                                                                                             caretDataFile);
     if (connParcelIterator != m_connectivityMatrixParcelFiles.end()) {
-        CiftiConnectivityMatrixParcelFile* connFile = *connParcelIterator;
-        delete connFile;
         m_connectivityMatrixParcelFiles.erase(connParcelIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
-    }    
-
-    std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator connParcelDenseIterator = std::find(m_connectivityMatrixParcelDenseFiles.begin(),
-                                                                                     m_connectivityMatrixParcelDenseFiles.end(),
-                                                                                     caretDataFile);
-    if (connParcelDenseIterator != m_connectivityMatrixParcelDenseFiles.end()) {
-        CiftiConnectivityMatrixParcelDenseFile* connFile = *connParcelDenseIterator;
-        delete connFile;
-        m_connectivityMatrixParcelDenseFiles.erase(connParcelDenseIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
-
+    
+    std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator connParcelDenseIterator = std::find(m_connectivityMatrixParcelDenseFiles.begin(),
+                                                                                                       m_connectivityMatrixParcelDenseFiles.end(),
+                                                                                                       caretDataFile);
+    if (connParcelDenseIterator != m_connectivityMatrixParcelDenseFiles.end()) {
+        m_connectivityMatrixParcelDenseFiles.erase(connParcelDenseIterator);
+        return true;
+    }
+    
     std::vector<FociFile*>::iterator fociIterator = std::find(m_fociFiles.begin(),
-                                                                  m_fociFiles.end(),
-                                                                  caretDataFile);
+                                                              m_fociFiles.end(),
+                                                              caretDataFile);
     if (fociIterator != m_fociFiles.end()) {
-        FociFile* fociFile =  *fociIterator;
-        delete fociFile;
         m_fociFiles.erase(fociIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
     if (m_paletteFile == caretDataFile) {
@@ -4832,38 +5250,226 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
                                                                 m_sceneFiles.end(),
                                                                 caretDataFile);
     if (sceneIterator != m_sceneFiles.end()) {
-        SceneFile* sceneFile = *sceneIterator;
-        delete sceneFile;
         m_sceneFiles.erase(sceneIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
-    std::vector<VolumeFile*>::iterator volumeIterator = 
+    std::vector<VolumeFile*>::iterator volumeIterator =
     std::find(m_volumeFiles.begin(),
               m_volumeFiles.end(),
               caretDataFile);
     if (volumeIterator != m_volumeFiles.end()) {
-        VolumeFile* volumeFile = *volumeIterator;
-        delete volumeFile;
         m_volumeFiles.erase(volumeIterator);
-        wasRemoved = true;
-        caretDataFile = NULL;
+        return true;
     }
     
-    if (wasRemoved) {
-        m_specFile->removeCaretDataFile(caretDataFileForRemovalFromSpecFile);
-        
-        updateAfterFilesAddedOrRemoved();
-    }
-    else {
-        CaretLogSevere("Software bug: failed to remove file type="
-                       + DataFileTypeEnum::toName(caretDataFile->getDataFileType())
-                       + " name="
-                       + caretDataFile->getFileName());
-    }
+    return false;
+}
 
-    return wasRemoved;
+
+/**
+ * Remove AND DELETE a data file from memory (does NOT delete file on disk.)
+ * Searches all of the loaded files for given file, and, when found
+ * deletes the file.
+ *
+ * @param caretDataFile
+ *    Data file to remove.  After calling this method and the file was 
+ *    deleted (true was returned) this pointer is no longer valid.
+ * @return
+ *    true if file was removed, else false.
+ */
+bool 
+Brain::removeAndDeleteDataFile(CaretDataFile* caretDataFile)
+{
+    if (removeWithoutDeleteDataFile(caretDataFile)) {
+        delete caretDataFile;
+        return true;
+    }
+    
+    return false;
+    
+    
+//    if (caretDataFile == NULL) {
+//        return false;
+//    }
+//
+//    bool wasRemoved = false;
+//    CaretDataFile* caretDataFileForRemovalFromSpecFile = caretDataFile;
+//    
+//    const int32_t numBrainStructures = getNumberOfBrainStructures();
+//    for (int32_t i = 0; i < numBrainStructures; i++) {
+//        if (getBrainStructure(i)->removeAndDeleteDataFile(caretDataFile)) {
+//            wasRemoved = true;
+//            caretDataFile = NULL;
+//        }
+//    }
+//    
+//    std::vector<BorderFile*>::iterator borderIterator = std::find(m_borderFiles.begin(),
+//                                                                  m_borderFiles.end(),
+//                                                                  caretDataFile);
+//    if (borderIterator != m_borderFiles.end()) {
+//        BorderFile* borderFile = *borderIterator;
+//        delete borderFile;
+//        m_borderFiles.erase(borderIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiBrainordinateDataSeriesFile*>::iterator dataSeriesIterator = std::find(m_connectivityDataSeriesFiles.begin(),
+//                                                                            m_connectivityDataSeriesFiles.end(),
+//                                                                            caretDataFile);
+//    if (dataSeriesIterator != m_connectivityDataSeriesFiles.end()) {
+//        CiftiBrainordinateDataSeriesFile* dataSeriesFile = *dataSeriesIterator;
+//        
+//        const AString name = dataSeriesFile->getFileName();
+//        delete dataSeriesFile;
+//        m_connectivityDataSeriesFiles.erase(dataSeriesIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiBrainordinateLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
+//                                                                                      m_connectivityDenseLabelFiles.end(),
+//                                                                                      caretDataFile);
+//    if (connLabelIterator != m_connectivityDenseLabelFiles.end()) {
+//        CiftiBrainordinateLabelFile* connFile = *connLabelIterator;
+//        delete connFile;
+//        m_connectivityDenseLabelFiles.erase(connLabelIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiConnectivityMatrixDenseFile*>::iterator connDenseIterator = std::find(m_connectivityMatrixDenseFiles.begin(),
+//                                                                                                       m_connectivityMatrixDenseFiles.end(),
+//                                                                                                       caretDataFile);
+//    if (connDenseIterator != m_connectivityMatrixDenseFiles.end()) {
+//        CiftiConnectivityMatrixDenseFile* connFile = *connDenseIterator;
+//        delete connFile;
+//        m_connectivityMatrixDenseFiles.erase(connDenseIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator connDenseParcelIterator = std::find(m_connectivityMatrixDenseParcelFiles.begin(),
+//                                                                                 m_connectivityMatrixDenseParcelFiles.end(),
+//                                                                                 caretDataFile);
+//    if (connDenseParcelIterator != m_connectivityMatrixDenseParcelFiles.end()) {
+//        CiftiConnectivityMatrixDenseParcelFile* connFile = *connDenseParcelIterator;
+//        delete connFile;
+//        m_connectivityMatrixDenseParcelFiles.erase(connDenseParcelIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiBrainordinateScalarFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
+//                                                                            m_connectivityDenseScalarFiles.end(),
+//                                                                            caretDataFile);
+//    if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
+//        CiftiBrainordinateScalarFile* connFile = *connScalarIterator;
+//        const AString name = connFile->getFileName();
+//        
+//        delete connFile;
+//        m_connectivityDenseScalarFiles.erase(connScalarIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
+//                                                                            m_connectivityFiberOrientationFiles.end(),
+//                                                                            caretDataFile);
+//    if (connFiberOrientationIterator != m_connectivityFiberOrientationFiles.end()) {
+//        CiftiFiberOrientationFile* connFile = *connFiberOrientationIterator;
+//        delete connFile;
+//        m_connectivityFiberOrientationFiles.erase(connFiberOrientationIterator);
+//        return true;
+//    }
+//    
+//    std::vector<CiftiFiberTrajectoryFile*>::iterator connFiberTrajectoryIterator = std::find(m_connectivityFiberTrajectoryFiles.begin(),
+//                                                                                            m_connectivityFiberTrajectoryFiles.end(),
+//                                                                                            caretDataFile);
+//    if (connFiberTrajectoryIterator != m_connectivityFiberTrajectoryFiles.end()) {
+//        CiftiFiberTrajectoryFile* trajFile = *connFiberTrajectoryIterator;
+//        delete trajFile;
+//        m_connectivityFiberTrajectoryFiles.erase(connFiberTrajectoryIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<CiftiConnectivityMatrixParcelFile*>::iterator connParcelIterator = std::find(m_connectivityMatrixParcelFiles.begin(),
+//                                                                                     m_connectivityMatrixParcelFiles.end(),
+//                                                                                     caretDataFile);
+//    if (connParcelIterator != m_connectivityMatrixParcelFiles.end()) {
+//        CiftiConnectivityMatrixParcelFile* connFile = *connParcelIterator;
+//        delete connFile;
+//        m_connectivityMatrixParcelFiles.erase(connParcelIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }    
+//
+//    std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator connParcelDenseIterator = std::find(m_connectivityMatrixParcelDenseFiles.begin(),
+//                                                                                     m_connectivityMatrixParcelDenseFiles.end(),
+//                                                                                     caretDataFile);
+//    if (connParcelDenseIterator != m_connectivityMatrixParcelDenseFiles.end()) {
+//        CiftiConnectivityMatrixParcelDenseFile* connFile = *connParcelDenseIterator;
+//        delete connFile;
+//        m_connectivityMatrixParcelDenseFiles.erase(connParcelDenseIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//
+//    std::vector<FociFile*>::iterator fociIterator = std::find(m_fociFiles.begin(),
+//                                                                  m_fociFiles.end(),
+//                                                                  caretDataFile);
+//    if (fociIterator != m_fociFiles.end()) {
+//        FociFile* fociFile =  *fociIterator;
+//        delete fociFile;
+//        m_fociFiles.erase(fociIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    if (m_paletteFile == caretDataFile) {
+//        if (m_paletteFile != NULL) {
+//            throw DataFileException("Cannot remove PaletteFile at this time.");
+//        }
+//    }
+//    
+//    std::vector<SceneFile*>::iterator sceneIterator = std::find(m_sceneFiles.begin(),
+//                                                                m_sceneFiles.end(),
+//                                                                caretDataFile);
+//    if (sceneIterator != m_sceneFiles.end()) {
+//        SceneFile* sceneFile = *sceneIterator;
+//        delete sceneFile;
+//        m_sceneFiles.erase(sceneIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    std::vector<VolumeFile*>::iterator volumeIterator = 
+//    std::find(m_volumeFiles.begin(),
+//              m_volumeFiles.end(),
+//              caretDataFile);
+//    if (volumeIterator != m_volumeFiles.end()) {
+//        VolumeFile* volumeFile = *volumeIterator;
+//        delete volumeFile;
+//        m_volumeFiles.erase(volumeIterator);
+//        wasRemoved = true;
+//        caretDataFile = NULL;
+//    }
+//    
+//    if (wasRemoved) {
+//        m_specFile->removeCaretDataFile(caretDataFileForRemovalFromSpecFile);
+//        
+//        updateAfterFilesAddedOrRemoved();
+//    }
+//    else {
+//        CaretLogSevere("Software bug: failed to remove file type="
+//                       + DataFileTypeEnum::toName(caretDataFile->getDataFileType())
+//                       + " name="
+//                       + caretDataFile->getFileName());
+//    }
+//
+//    return wasRemoved;
 }
 
 /**

@@ -370,7 +370,7 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
      * If user cancels, delete the new border file and return
      */
     if (newBorderFileName.isEmpty()) {
-        brain->removeDataFile(newBorderFile);
+        brain->removeAndDeleteDataFile(newBorderFile);
         return;
     }
     

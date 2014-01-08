@@ -449,7 +449,7 @@ FociPropertiesEditorDialog::newFociFileButtonClicked()
      * If user cancels, delete the new focus file and return
      */
     if (newFociFileName.isEmpty()) {
-        brain->removeDataFile(newFociFile);
+        brain->removeAndDeleteDataFile(newFociFile);
         return;
     }
     

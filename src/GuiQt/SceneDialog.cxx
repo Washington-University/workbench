@@ -423,7 +423,7 @@ SceneDialog::newSceneFileButtonClicked()
      * If user cancels, delete the new scene file and return
      */
     if (newSceneFileName.isEmpty()) {
-        brain->removeDataFile(newSceneFile);
+        brain->removeAndDeleteDataFile(newSceneFile);
         return;
     }
     

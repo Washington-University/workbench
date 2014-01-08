@@ -386,14 +386,14 @@ SpecFile::addCaretDataFile(CaretDataFile* caretDataFile)
  * Remove a Caret Data File.
  *
  * @param If there is a a spec file entry with the given caret data file
- * remove it.  Note: file has likely already been deleted so only the
+ * remove it.  Note: file has likely already been deleted so use only the
  * the caret data file pointer but to not deference it.
  *
  * @param caretDataFile
  *    Caret data file that is removed from a spec file entry.
  */
 void
-SpecFile::removeCaretDataFile(CaretDataFile* caretDataFile)
+SpecFile::removeCaretDataFile(const CaretDataFile* caretDataFile)
 {
     CaretAssert(caretDataFile);
     

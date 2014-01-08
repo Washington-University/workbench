@@ -1720,7 +1720,7 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
                 return;
             }
         }
-        GuiManager::get()->getBrain()->removeDataFile(caretDataFile);
+        GuiManager::get()->getBrain()->removeAndDeleteDataFile(caretDataFile);
         loadSpecFileContentIntoDialog();
         updateGraphicWindowsAndUserInterface();
     }

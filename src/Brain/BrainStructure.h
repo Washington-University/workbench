@@ -78,19 +78,17 @@ namespace caret {
 
     public:
         void addLabelFile(LabelFile* labelFile,
-                          const bool isReloadingFile) throw (DataFileException);
+                          const bool addFileToBrainStructure) throw (DataFileException);
         
         void addMetricFile(MetricFile* metricFile,
-                           const bool isReloadingFile) throw (DataFileException);
+                           const bool addFileToBrainStructure) throw (DataFileException);
         
         void addRgbaFile(RgbaFile* rgbaFile,
-                         const bool isReloadingFile) throw (DataFileException);
+                         const bool addFileToBrainStructure) throw (DataFileException);
         
         void addSurface(Surface* surface,
-                        const bool isReloadingFile,
+                        const bool addFileToBrainStructure,
                         const bool initilizeOverlaysFlag) throw (DataFileException);
-        
-        void removeSurface(Surface* surface);
         
         int getNumberOfSurfaces() const;
         
@@ -156,8 +154,10 @@ namespace caret {
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) const;
         
-        bool removeDataFile(CaretDataFile* caretDataFile);
+        bool removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile);
         
+        //bool removeAndDeleteDataFile(CaretDataFile* caretDataFile);
+                
         bool getMetricShapeMap(MetricFile* &metricFileOut,
                                int32_t& shapeMapIndexOut) const;
         
@@ -172,7 +172,10 @@ namespace caret {
         
         const Surface* getSurfaceContainingTextInNamePrivate(const AString& text) const;
 
-        Brain* m_brain;        
+        bool removeAndMaybeDeleteSurface(Surface* surface,
+                           const bool deleteSurfaceFile);
+        
+        Brain* m_brain;
         
         StructureEnum::Enum m_structure;
         

@@ -108,7 +108,8 @@ BrainStructure::~BrainStructure()
     std::vector<Surface*> allSurfaces(m_surfaces);
     
     for (uint64_t i = 0; i < allSurfaces.size(); i++) {
-        removeSurface(allSurfaces[i]);
+        removeAndMaybeDeleteSurface(allSurfaces[i],
+                      true);
     }
     m_surfaces.clear();
     
@@ -149,16 +150,16 @@ BrainStructure::getStructure() const
  *
  * @param labelFile
  *    Label file that is added.
- * @param isReloadingFile
- *    If true, file is being 'reloaded' so it does not get added
- *    since it should already be in this brain structure.
+ * @param addFileToBrainStructure
+ *    If true, add the file to the brain structure.  This value is false
+ *    when a file is reloaded and already part of the brain structure.
  * @throw DataFileException
  *    If the number of nodes in the label file does not match
  *    the number of nodes in this brain structure.
  */
 void 
 BrainStructure::addLabelFile(LabelFile* labelFile,
-                             const bool isReloadingFile) throw (DataFileException)
+                             const bool addFileToBrainStructure) throw (DataFileException)
 {
     CaretAssert(labelFile);
     
@@ -193,7 +194,7 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
         throw e;        
     }
     
-    if (isReloadingFile == false) {
+    if (addFileToBrainStructure) {
         m_labelFiles.push_back(labelFile);
     }
 }
@@ -203,16 +204,16 @@ BrainStructure::addLabelFile(LabelFile* labelFile,
  *
  * @param metricFile
  *    Metric file that is added.
- * @param isReloadingFile
- *    If true, file is being 'reloaded' so it does not get added
- *    since it should already be in this brain structure.
+ * @param addFileToBrainStructure
+ *    If true, add the file to the brain structure.  This value is false
+ *    when a file is reloaded and already part of the brain structure.
  * @throw DataFileException
  *    If the number of nodes in the metric file does not match
  *    the number of nodes in this brain structure.
  */
 void 
 BrainStructure::addMetricFile(MetricFile* metricFile,
-                              const bool isReloadingFile) throw (DataFileException)
+                              const bool addFileToBrainStructure) throw (DataFileException)
 {
     CaretAssert(metricFile);
     
@@ -247,7 +248,7 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
         throw e;        
     }
     
-    if (isReloadingFile == false) {
+    if (addFileToBrainStructure) {
         m_metricFiles.push_back(metricFile);
     }
 }
@@ -257,16 +258,16 @@ BrainStructure::addMetricFile(MetricFile* metricFile,
  *
  * @param rgbaFile
  *    RGBA file that is added.
- * @param isReloadingFile
- *    If true, file is being 'reloaded' so it does not get added
- *    since it should already be in this brain structure.
+ * @param addFileToBrainStructure
+ *    If true, add the file to the brain structure.  This value is false
+ *    when a file is reloaded and already part of the brain structure.
  * @throw DataFileException
  *    If the number of nodes in the RGBA file does not match
  *    the number of nodes in this brain structure.
  */
 void 
 BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
-                            const bool isReloadingFile) throw (DataFileException)
+                            const bool addFileToBrainStructure) throw (DataFileException)
 {
     CaretAssert(rgbaFile);
     
@@ -302,7 +303,7 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
         throw e;        
     }
     
-    if (isReloadingFile == false) {
+    if (addFileToBrainStructure) {
         m_rgbaFiles.push_back(rgbaFile);
     }
 }
@@ -312,16 +313,16 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile,
  *
  * @param surface
  *    Surface that is added.
- * @param isReloadingFile
- *    If true, file is being 'reloaded' so it does not get added
- *    since it should already be in this brain structure.
+ * @param addFileToBrainStructure
+ *    If true, add the file to the brain structure.  This value is false
+ *    when a file is reloaded and already part of the brain structure.
  * @throw DataFileException
  *    If the number of nodes in the surface does not match
  *    the number of nodes in this brain structure.
  */
 void 
 BrainStructure::addSurface(Surface* surface,
-                           const bool isReloadingFile,
+                           const bool addFileToBrainStructure,
                            const bool initilizeOverlaysFlag) throw (DataFileException)
 {
     CaretAssert(surface);
@@ -363,7 +364,7 @@ BrainStructure::addSurface(Surface* surface,
     
     surface->setBrainStructure(this);
     
-    if (isReloadingFile == false) {
+    if (addFileToBrainStructure) {
         m_surfaces.push_back(surface);
         
         /*
@@ -386,14 +387,20 @@ BrainStructure::addSurface(Surface* surface,
 }
 
 /**
- * Remove a surface from this brain structure and delete both the surface
- * and its model.
+ * Remove a surface from this brain structure and the surface
+ * model and maybe delete the surface.
  * 
- * @surface
+ * @param surface
  *    Surface that is removed.
+ * @param deleteSurfaceFile
+ *    If true, delete the surface file.  If false, surface is removed 
+ *    but not delete and caller is responsible for deleting the surface.
+ * @return
+ *    True if the surface was removed, else false.
  */
-void 
-BrainStructure::removeSurface(Surface* surface)
+bool
+BrainStructure::removeAndMaybeDeleteSurface(Surface* surface,
+                              const bool deleteSurfaceFile)
 {
     CaretAssert(surface);
     
@@ -404,19 +411,27 @@ BrainStructure::removeSurface(Surface* surface)
     
     CaretAssertMessage((iter != m_surfaces.end()),
                        "Trying to delete surface not in brain structure.");
+    if (iter == m_surfaces.end()) {
+        CaretLogSevere("Trying to delete surface not in brain structure.");
+        return false;
+    }
     
-    std::map<Surface*, ModelSurface*>::iterator controllerIter = 
+    std::map<Surface*, ModelSurface*>::iterator modelIter =
         m_surfaceControllerMap.find(surface);
 
-    CaretAssertMessage((controllerIter != m_surfaceControllerMap.end()),
-                       "Surface does not map to a model controller");
+    CaretAssertMessage((modelIter != m_surfaceControllerMap.end()),
+                       "Surface does not map to a model");
+    if (modelIter == m_surfaceControllerMap.end()) {
+        CaretLogSevere("Surface does not map to a model");
+        return false;
+    }
 
-    ModelSurface* mdcs = controllerIter->second;
+    ModelSurface* mdcs = modelIter->second;
     
     /*
      * Remove from surface to controller map.
      */
-    m_surfaceControllerMap.erase(controllerIter);
+    m_surfaceControllerMap.erase(modelIter);
     
     /*
      * Remove the surface.
@@ -433,7 +448,12 @@ BrainStructure::removeSurface(Surface* surface)
      * Delete the controller and the surface.
      */
     delete mdcs;
-    delete surface;
+    
+    if (deleteSurfaceFile) {
+        delete surface;
+    }
+    
+    return true;
 }
 
 /**
@@ -1055,57 +1075,124 @@ BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut) co
 }
 
 /**
- * Remove a data file from memory (does NOT delete file on disk.)
+ * Remove the data file from memory but DO NOT delete it.
+ *
  * @param caretDataFile
- *    Data file to remove.
+ *    Caret file that is removed from the Brain.  After calling this method
+ *    and the file was removed( true was returned), the caller is responsible
+ *    for deleting the file when it is no longer needed.
  * @return
- *    true if file was written, else false.
+ *    True if the file was removed, else false.
  */
-bool 
-BrainStructure::removeDataFile(CaretDataFile* caretDataFile)
+bool
+BrainStructure::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
 {
-    std::vector<Surface*>::iterator surfaceIterator = 
-        std::find(m_surfaces.begin(),
-                  m_surfaces.end(),
-                  caretDataFile);
+    std::vector<Surface*>::iterator surfaceIterator =
+    std::find(m_surfaces.begin(),
+              m_surfaces.end(),
+              caretDataFile);
     if (surfaceIterator != m_surfaces.end()) {
         Surface* s = *surfaceIterator;
-        removeSurface(s);
+        removeAndMaybeDeleteSurface(s,
+                      false);
         return true;
     }
     
-    std::vector<LabelFile*>::iterator labelIterator = 
+    std::vector<LabelFile*>::iterator labelIterator =
     std::find(m_labelFiles.begin(),
               m_labelFiles.end(),
               caretDataFile);
     if (labelIterator != m_labelFiles.end()) {
-        delete caretDataFile;
         m_labelFiles.erase(labelIterator);
         return true;
     }
     
-    std::vector<MetricFile*>::iterator metricIterator = 
+    std::vector<MetricFile*>::iterator metricIterator =
     std::find(m_metricFiles.begin(),
               m_metricFiles.end(),
               caretDataFile);
     if (metricIterator != m_metricFiles.end()) {
-        delete caretDataFile;
         m_metricFiles.erase(metricIterator);
         return true;
     }
     
-    std::vector<RgbaFile*>::iterator rgbaIterator = 
+    std::vector<RgbaFile*>::iterator rgbaIterator =
     std::find(m_rgbaFiles.begin(),
               m_rgbaFiles.end(),
               caretDataFile);
     if (rgbaIterator != m_rgbaFiles.end()) {
-        delete caretDataFile;
         m_rgbaFiles.erase(rgbaIterator);
         return true;
     }
     
     return false;
 }
+
+
+///**
+// * Remove AND DELETE a data file from memory (does NOT delete file on disk.)
+// * Searches all of the loaded files for given file, and, when found
+// * deletes the file.
+// *
+// * @param caretDataFile
+// *    Data file to remove.  After calling this method and the file was
+// *    deleted (true was returned) this pointer is no longer valid.
+// * @return
+// *    true if file was removed, else false.
+// */
+//bool 
+//BrainStructure::removeAndDeleteDataFile(CaretDataFile* caretDataFile)
+//{
+//    if (removeWithoutDeleteDataFile(caretDataFile)) {
+//        delete caretDataFile;
+//        return true;
+//    }
+//    
+//    return false;
+
+//    std::vector<Surface*>::iterator surfaceIterator = 
+//        std::find(m_surfaces.begin(),
+//                  m_surfaces.end(),
+//                  caretDataFile);
+//    if (surfaceIterator != m_surfaces.end()) {
+//        Surface* s = *surfaceIterator;
+//        removeSurface(s);
+//        return true;
+//    }
+//    
+//    std::vector<LabelFile*>::iterator labelIterator = 
+//    std::find(m_labelFiles.begin(),
+//              m_labelFiles.end(),
+//              caretDataFile);
+//    if (labelIterator != m_labelFiles.end()) {
+//        delete caretDataFile;
+//        m_labelFiles.erase(labelIterator);
+//        return true;
+//    }
+//    
+//    std::vector<MetricFile*>::iterator metricIterator = 
+//    std::find(m_metricFiles.begin(),
+//              m_metricFiles.end(),
+//              caretDataFile);
+//    if (metricIterator != m_metricFiles.end()) {
+//        delete caretDataFile;
+//        m_metricFiles.erase(metricIterator);
+//        return true;
+//    }
+//    
+//    std::vector<RgbaFile*>::iterator rgbaIterator = 
+//    std::find(m_rgbaFiles.begin(),
+//              m_rgbaFiles.end(),
+//              caretDataFile);
+//    if (rgbaIterator != m_rgbaFiles.end()) {
+//        delete caretDataFile;
+//        m_rgbaFiles.erase(rgbaIterator);
+//        return true;
+//    }
+//    
+//    return false;
+
+//}
 
 /**
  * Find a map in a metric file that contains shape data.
