@@ -27,7 +27,6 @@ CommandC11xTesting.h
 CommandException.h
 CommandGiftiConvert.h
 CommandNiftiConvert.h
-CommandNiftiInformation.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
@@ -43,7 +42,6 @@ CommandC11xTesting.cxx
 CommandException.cxx
 CommandGiftiConvert.cxx
 CommandNiftiConvert.cxx
-CommandNiftiInformation.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
 CommandParser.cxx
