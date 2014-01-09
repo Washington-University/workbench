@@ -512,6 +512,8 @@ CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
         m_mapContent[0]->invalidateColoring();
     }
     m_connectivityDataLoaded->reset();
+    m_rowLoadedText.clear();
+    m_rowLoadedTextForMapName.clear();
 }
 
 /**
@@ -1211,6 +1213,7 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
     
     switch (m_connectivityDataLoaded->getMode()) {
         case ConnectivityDataLoaded::MODE_NONE:
+            setLoadedRowDataToAllZeros();
             break;
         case ConnectivityDataLoaded::MODE_ROW:
         {
