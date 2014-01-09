@@ -1348,6 +1348,16 @@ BrainBrowserWindowToolBar::updateToolBar()
             this->setVisible(true);
         }
     }
+    
+    /*
+     * Try to avoid resizing of Toolbar height when
+     * models are changed. Let it grow but never shrink.
+     */
+    const int sizeHintHeight = sizeHint().height();
+    const int actualHeight = height();
+    if (sizeHintHeight < actualHeight) {
+        setFixedHeight(sizeHintHeight);
+    }
 }
 
 /**
