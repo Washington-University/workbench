@@ -1355,7 +1355,7 @@ BrainBrowserWindowToolBar::updateToolBar()
      */
     const int sizeHintHeight = sizeHint().height();
     const int actualHeight = height();
-    if (sizeHintHeight < actualHeight) {
+    if (sizeHintHeight > actualHeight) {
         setFixedHeight(sizeHintHeight);
     }
 }
