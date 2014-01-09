@@ -1982,40 +1982,43 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
  
     ModelWholeBrain* wholeBrainController = browserTabContent->getDisplayedWholeBrainModel();
-    const int32_t tabNumber = browserTabContent->getTabNumber();
-    
-    this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(true);
-    
-    std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
-    wholeBrainController->getAvailableSurfaceTypes(availableSurfaceTypes);
-    
-    const SurfaceTypeEnum::Enum selectedSurfaceType = wholeBrainController->getSelectedSurfaceType(tabNumber);
-    
-    int32_t defaultIndex = 0;
-    this->wholeBrainSurfaceTypeComboBox->clear();
-    int32_t numSurfaceTypes = static_cast<int32_t>(availableSurfaceTypes.size());
-    for (int32_t i = 0; i < numSurfaceTypes; i++) {
-        const SurfaceTypeEnum::Enum st = availableSurfaceTypes[i];
-        if (st == selectedSurfaceType) {
-            defaultIndex = this->wholeBrainSurfaceTypeComboBox->count();
+    if (wholeBrainController != NULL) {
+        const int32_t tabNumber = browserTabContent->getTabNumber();
+        
+        this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(true);
+        
+        std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
+        wholeBrainController->getAvailableSurfaceTypes(availableSurfaceTypes);
+        
+        const SurfaceTypeEnum::Enum selectedSurfaceType = wholeBrainController->getSelectedSurfaceType(tabNumber);
+        
+        int32_t defaultIndex = 0;
+        this->wholeBrainSurfaceTypeComboBox->clear();
+        int32_t numSurfaceTypes = static_cast<int32_t>(availableSurfaceTypes.size());
+        for (int32_t i = 0; i < numSurfaceTypes; i++) {
+            const SurfaceTypeEnum::Enum st = availableSurfaceTypes[i];
+            if (st == selectedSurfaceType) {
+                defaultIndex = this->wholeBrainSurfaceTypeComboBox->count();
+            }
+            const AString name = SurfaceTypeEnum::toGuiName(st);
+            const int integerCode = SurfaceTypeEnum::toIntegerCode(st);
+            this->wholeBrainSurfaceTypeComboBox->addItem(name,
+                                                         integerCode);
         }
-        const AString name = SurfaceTypeEnum::toGuiName(st);
-        const int integerCode = SurfaceTypeEnum::toIntegerCode(st);
-        this->wholeBrainSurfaceTypeComboBox->addItem(name,
-                                                     integerCode);
+        if (defaultIndex < this->wholeBrainSurfaceTypeComboBox->count()) {
+            this->wholeBrainSurfaceTypeComboBox->setCurrentIndex(defaultIndex);
+        }
+        
+        this->wholeBrainSurfaceLeftCheckBox->setChecked(browserTabContent->isWholeBrainLeftEnabled());
+        this->wholeBrainSurfaceRightCheckBox->setChecked(browserTabContent->isWholeBrainRightEnabled());
+        this->wholeBrainSurfaceCerebellumCheckBox->setChecked(browserTabContent->isWholeBrainCerebellumEnabled());
+        
+        this->wholeBrainSurfaceSeparationLeftRightSpinBox->setValue(browserTabContent->getWholeBrainLeftRightSeparation());
+        this->wholeBrainSurfaceSeparationCerebellumSpinBox->setValue(browserTabContent->getWholeBrainCerebellumSeparation());
+        
+        this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(false);
     }
-    if (defaultIndex < this->wholeBrainSurfaceTypeComboBox->count()) {
-        this->wholeBrainSurfaceTypeComboBox->setCurrentIndex(defaultIndex);
-    }
     
-    this->wholeBrainSurfaceLeftCheckBox->setChecked(browserTabContent->isWholeBrainLeftEnabled());
-    this->wholeBrainSurfaceRightCheckBox->setChecked(browserTabContent->isWholeBrainRightEnabled());
-    this->wholeBrainSurfaceCerebellumCheckBox->setChecked(browserTabContent->isWholeBrainCerebellumEnabled());
-    
-    this->wholeBrainSurfaceSeparationLeftRightSpinBox->setValue(browserTabContent->getWholeBrainLeftRightSeparation());
-    this->wholeBrainSurfaceSeparationCerebellumSpinBox->setValue(browserTabContent->getWholeBrainCerebellumSeparation());
-    
-    this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(false);
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }

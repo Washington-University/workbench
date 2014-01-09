@@ -505,6 +505,85 @@ Brain::resetBrain()
 void 
 Brain::resetBrainKeepSceneFiles()
 {
+    /*
+     * Save all of the non-modified files so that loading
+     * of them can be avoided later
+     */
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    m_nonModifiedFilesForRestoringScene.clear();
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        CaretDataFile* caretDataFile = *iter;
+        if (caretDataFile->isModified()) {
+            continue;
+        }
+        
+        const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
+        
+        bool keepFileFlag = true;
+        switch (dataFileType) {
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::PALETTE:
+                keepFileFlag = false;
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SCENE:
+                keepFileFlag = false;
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                keepFileFlag = false;
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                keepFileFlag = false;
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+        }
+        
+        if (keepFileFlag) {
+            if (removeWithoutDeleteDataFile(caretDataFile)) {
+                m_nonModifiedFilesForRestoringScene.push_back(caretDataFile);
+            }
+        }
+    }
+    
+    
     resetBrain(RESET_BRAIN_KEEP_SCENE_FILES_YES,
                      RESET_BRAIN_KEEP_SPEC_FILE_NO);
 }
@@ -4153,6 +4232,8 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
         }
         throw dfe;
     }
+   
+    updateAfterFilesAddedOrRemoved();
     
     return caretDataFileRead;
 }
@@ -4248,7 +4329,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 //        }
 //    }
     
-    updateAfterFilesAddedOrRemoved();
+//    updateAfterFilesAddedOrRemoved();
     
     return caretDataFileRead;
 }
@@ -4473,8 +4554,9 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
                                       "Resetting brain");
     EventManager::get()->sendEvent(progressEvent.getPointer());
     
-    resetBrain(keepSceneFiles,
-                     keepSpecFile);
+    resetBrainKeepSceneFiles();
+//    resetBrain(keepSceneFiles,
+//                     keepSpecFile);
     
 //    /*
 //     * Set current directory to directory containing the scene file
@@ -4552,6 +4634,68 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    /*
+     * To speed file loading, non-modified files that were in memory
+     * prior to restoring the scene are saved.  This map matches
+     * an entry of a selected file to one of the non-modified in 
+     * memory data files.
+     */
+    std::map<const SpecFileDataFile*, CaretDataFile*> specFilesEntryToNonModifiedFile;
+    
+    /*
+     * Find non-modified files that match, by name, files that are to be
+     * loaded from the spec file and associate them for later use.
+     */
+    if ( ! m_nonModifiedFilesForRestoringScene.empty()) {
+        const int32_t numFileGroups = specFileToLoad->getNumberOfDataFileTypeGroups();
+        for (int32_t ig = 0; ig < numFileGroups; ig++) {
+            const SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroupByIndex(ig);
+            const int32_t numFiles = group->getNumberOfFiles();
+            for (int32_t iFile = 0; iFile < numFiles; iFile++) {
+                const SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
+                if (fileInfo->isLoadingSelected()) {
+                    AString filename = fileInfo->getFileName();
+                    
+                    for (std::vector<CaretDataFile*>::iterator iter = m_nonModifiedFilesForRestoringScene.begin();
+                         iter != m_nonModifiedFilesForRestoringScene.end();
+                         iter++) {
+                        CaretDataFile* caretDataFile = *iter;
+                        if (caretDataFile != NULL) {
+                            const AString nonModifiedFileName = caretDataFile->getFileName();
+                            if (nonModifiedFileName == filename) {
+                                specFilesEntryToNonModifiedFile.insert(std::make_pair(fileInfo,
+                                                                               caretDataFile));
+                                *iter = NULL;
+                                CaretLogFine("Scene loading matched previous file: "
+                                             + filename);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Delete any of the files that were in memory prior to loading the scene
+     * that are not part of the scene being loaded.
+     */
+    for (std::vector<CaretDataFile*>::iterator iter = m_nonModifiedFilesForRestoringScene.begin();
+         iter != m_nonModifiedFilesForRestoringScene.end();
+         iter++) {
+        CaretDataFile* caretDataFile = *iter;
+        if (caretDataFile != NULL) {
+            CaretLogFine("Scene loading removing previous file not needed: "
+                         + caretDataFile->getFileName());
+            delete caretDataFile;
+        }
+    }
+    m_nonModifiedFilesForRestoringScene.clear();
+    
+    
+    /*
+     * Load new files and add existing files that were previously loaded.
+     */
     const int32_t numFileGroups = specFileToLoad->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
         const SpecFileDataFileTypeGroup* group = specFileToLoad->getDataFileTypeGroupByIndex(ig);
@@ -4560,35 +4704,59 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
         for (int32_t iFile = 0; iFile < numFiles; iFile++) {
             const SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
             if (fileInfo->isLoadingSelected()) {
-                AString filename = fileInfo->getFileName();
-                const StructureEnum::Enum structure = fileInfo->getStructure();
-                
-                const QString msg = ("Loading "
-                                     + FileInformation(filename).getFileName());
-                progressEvent.setProgressMessage(msg);
-                EventManager::get()->sendEvent(progressEvent.getPointer());
-                if (progressEvent.isCancelled()) {
-                    resetBrain(keepSceneFiles,
-                               keepSpecFile);
-                    return;
-                }
-                
-                if (sceneFileOnNetwork) {
-                    if (DataFile::isFileOnNetwork(filename) == false) {
-                        const int32_t lastSlashIndex = sceneFileName.lastIndexOf("/");
-                        if (lastSlashIndex >= 0) {
-                            const AString newName = (sceneFileName.left(lastSlashIndex)
-                                                     + "/"
-                                                     + filename);
-                            filename = newName;
-                        }
-                    }
-                }
                 try {
-                    readDataFile(dataFileType,
-                                       structure, 
-                                       filename,
-                                       false);
+                    
+                    AString filename = fileInfo->getFileName();
+                    
+                    std::map<const SpecFileDataFile*, CaretDataFile*>::iterator specToFileIter = specFilesEntryToNonModifiedFile.find(fileInfo);
+                    if (specToFileIter != specFilesEntryToNonModifiedFile.end()) {
+                        const QString msg = ("Adding previous file "
+                                             + FileInformation(filename).getFileName());
+                        progressEvent.setProgressMessage(msg);
+                        EventManager::get()->sendEvent(progressEvent.getPointer());
+                        if (progressEvent.isCancelled()) {
+                            resetBrain(keepSceneFiles,
+                                       keepSpecFile);
+                            return;
+                        }
+                        
+                        CaretDataFile* caretDataFile = specToFileIter->second;
+                        addReadOrReloadDataFile(FILE_MODE_ADD,
+                                                caretDataFile,
+                                                caretDataFile->getDataFileType(),
+                                                caretDataFile->getStructure(),
+                                                filename,
+                                                false);
+                    }
+                    else {
+                        const StructureEnum::Enum structure = fileInfo->getStructure();
+                        
+                        const QString msg = ("Loading "
+                                             + FileInformation(filename).getFileName());
+                        progressEvent.setProgressMessage(msg);
+                        EventManager::get()->sendEvent(progressEvent.getPointer());
+                        if (progressEvent.isCancelled()) {
+                            resetBrain(keepSceneFiles,
+                                       keepSpecFile);
+                            return;
+                        }
+                        
+                        if (sceneFileOnNetwork) {
+                            if (DataFile::isFileOnNetwork(filename) == false) {
+                                const int32_t lastSlashIndex = sceneFileName.lastIndexOf("/");
+                                if (lastSlashIndex >= 0) {
+                                    const AString newName = (sceneFileName.left(lastSlashIndex)
+                                                             + "/"
+                                                             + filename);
+                                    filename = newName;
+                                }
+                            }
+                        }
+                        readDataFile(dataFileType,
+                                     structure,
+                                     filename,
+                                     false);
+                    }
                 }
                 catch (const DataFileException& e) {
                     sceneAttributes->addToErrorMessage(e.whatString());
@@ -5242,7 +5410,7 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
     
     if (m_paletteFile == caretDataFile) {
         if (m_paletteFile != NULL) {
-            throw DataFileException("Cannot remove PaletteFile at this time.");
+            CaretLogSevere("Cannot remove PaletteFile at this time.");
         }
     }
     

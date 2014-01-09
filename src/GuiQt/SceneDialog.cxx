@@ -941,8 +941,8 @@ SceneDialog::showSceneButtonClicked()
                                                this);
         progressDialog.setValue(0);
         
-        ElapsedTimer timer;
-        timer.start();
+//        ElapsedTimer timer;
+//        timer.start();
         
         displayScenePrivate(sceneFile,
                             scene,

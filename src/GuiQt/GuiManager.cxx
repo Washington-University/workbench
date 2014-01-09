@@ -1695,19 +1695,26 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     SceneWindowGeometry::setFirstBrowserWindowCoordinatesInvalid();
         
-    /*
-     * Reset the brain
-     */
-    Brain* brain = GuiManager::get()->getBrain();
-    brain->resetBrainKeepSceneFiles();
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
+//    /*
+//     * Reset the brain
+//     */
+//    Brain* brain = GuiManager::get()->getBrain();
+//    brain->resetBrainKeepSceneFiles();
+//    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
 
     /*
-     * Close all but one window
+     * Close all but one window and remove its tabs
      */
     BrainBrowserWindow* firstBrowserWindow = getActiveBrowserWindow();;
     if (firstBrowserWindow != NULL) {
         closeAllOtherWindows(firstBrowserWindow);
+        
+        /*
+         * Remove all tabs from window.
+         * The tab content will be deleted by the session manager.
+         */
+        std::vector<BrowserTabContent*> windowTabContent;
+        firstBrowserWindow->removeAndReturnAllTabs(windowTabContent);
     }
     
     /*

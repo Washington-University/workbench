@@ -178,6 +178,10 @@ void
 BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browserTabContent)
 {
     ModelSurfaceMontage* msm = browserTabContent->getDisplayedSurfaceMontageModel();
+    if (msm == NULL) {
+        return;
+    }
+    
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
     

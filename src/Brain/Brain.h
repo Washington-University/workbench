@@ -573,6 +573,8 @@ namespace caret {
         
         std::vector<CiftiBrainordinateDataSeriesFile*> m_connectivityDataSeriesFiles;
         
+        std::vector<CaretDataFile*> m_nonModifiedFilesForRestoringScene;
+        
         mutable AString m_currentDirectory;
         
         SpecFile* m_specFile;
