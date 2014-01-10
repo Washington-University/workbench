@@ -63,6 +63,7 @@ OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCreate.h
+OperationVolumeEstimateFWHM.h
 OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
@@ -118,6 +119,7 @@ OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCreate.cxx
+OperationVolumeEstimateFWHM.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx
