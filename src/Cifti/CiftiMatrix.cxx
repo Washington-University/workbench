@@ -133,13 +133,13 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
             CaretPointer<QTemporaryFile> tf(new QTemporaryFile());
             tf->setAutoRemove(true);
             m_cacheFile = tf;
-            m_cacheFile->open(QIODevice::ReadWrite);
+            if (!m_cacheFile->open(QIODevice::ReadWrite)) throw CiftiFileException("failed to open temporary file for writing");
         }
         else
         {
             CaretPointer<QFile> f(new QFile());
             f->setFileName(m_cacheFileName);
-            f->open(QIODevice::ReadWrite | QIODevice::Truncate);
+            if (!f->open(QIODevice::ReadWrite | QIODevice::Truncate)) throw CiftiFileException("failed to open file '" + m_cacheFileName + "' for writing");
             m_cacheFile = f;
         }
 
@@ -151,7 +151,7 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
         {
             m_file.grabNew(new QFile());
             m_file->setFileName(m_fileName);
-            m_file->open(QIODevice::ReadOnly);
+            if (!m_file->open(QIODevice::ReadOnly)) throw CiftiFileException("failed to open file '" + m_fileName + "' for reading");
             m_readFile = m_file;
         }
     }    
