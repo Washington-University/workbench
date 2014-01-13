@@ -752,14 +752,14 @@ void glfGetStringBoundsF(int fd, char *s, float *minx, float *miny, float *maxx,
   {
     *maxx = cw;
     *maxy = bottom;
-    anchor_proc(maxx, maxy, ap);
+    anchor_proc(*maxx, *maxy, ap);
   }
 
   if ((minx) && (miny))
   {
     *minx = minxx;
     *miny = top;
-    anchor_proc(maxx, maxy, ap);
+    anchor_proc(*maxx, *maxy, ap);
   }
 }
 
