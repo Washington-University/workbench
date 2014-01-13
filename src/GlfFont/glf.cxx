@@ -337,12 +337,12 @@ void glfDrawWiredSymbol(char s)
   float x, y;
   
   if ((curfont < 0) || (fonts[curfont] == NULL)) return;
-  if (fonts[curfont]->symbols[s] == NULL) return;
+  if (fonts[curfont]->symbols[(unsigned char)s] == NULL) return;
 
   glBegin(GL_LINE_LOOP);
-  tvp = fonts[curfont]->symbols[s]->vdata;
+  tvp = fonts[curfont]->symbols[(unsigned char)s]->vdata;
   cur_line = 0;
-  for (i=0; i<fonts[curfont]->symbols[s]->vertexs; i++)
+  for (i=0; i<fonts[curfont]->symbols[(unsigned char)s]->vertexs; i++)
   {
     x = *tvp;
     tvp++;
@@ -350,11 +350,11 @@ void glfDrawWiredSymbol(char s)
     tvp++;
     anchor_proc(x, y, ap);
     glVertex2f(x, y);
-    if (fonts[curfont]->symbols[s]->ldata[cur_line] == i)
+    if (fonts[curfont]->symbols[(unsigned char)s]->ldata[cur_line] == i)
     {
       glEnd();
       cur_line++;
-      if (cur_line < fonts[curfont]->symbols[s]->lines) glBegin(GL_LINE_LOOP);
+      if (cur_line < fonts[curfont]->symbols[(unsigned char)s]->lines) glBegin(GL_LINE_LOOP);
       else break; /* No more lines */
     }
   }
@@ -383,7 +383,7 @@ void DrawString(char *s, void (*funct) (char s))
   for (i=0; i<(int)strlen(s); i++)
   {
     if (s[i] != ' ') (*funct) (s[i]);
-    if ((fonts[curfont]->symbols[s[i]] == NULL) || (s[i] == ' '))
+    if ((fonts[curfont]->symbols[(unsigned char)s[i]] == NULL) || (s[i] == ' '))
       glTranslatef(SpaceSize, 0, 0);
     else
     {
@@ -392,9 +392,9 @@ void DrawString(char *s, void (*funct) (char s))
         if (s[i+1] == ' ') glTranslatef(SymbolDist, 0, 0);
         else
         {
-          if (fonts[curfont]->symbols[s[i+1]] == NULL) continue;
-          sda = fonts[curfont]->symbols[s[i]]->rightx;
-          sdb = -fonts[curfont]->symbols[s[i+1]]->leftx;
+          if (fonts[curfont]->symbols[(unsigned char)s[i+1]] == NULL) continue;
+          sda = fonts[curfont]->symbols[(unsigned char)s[i]]->rightx;
+          sdb = -fonts[curfont]->symbols[(unsigned char)s[i+1]]->leftx;
           glTranslatef(sda+sdb+SymbolDist, 0, 0);
         }
       }
@@ -430,13 +430,13 @@ void glfDrawSolidSymbol(char s)
 
   if ((curfont<0) || (fonts[curfont] == NULL)) return;
   
-  if (fonts[curfont]->symbols[s] == NULL) return;
+  if (fonts[curfont]->symbols[(unsigned char)s] == NULL) return;
 
-  b = fonts[curfont]->symbols[s]->fdata;
-  vp = fonts[curfont]->symbols[s]->vdata;
+  b = fonts[curfont]->symbols[(unsigned char)s]->fdata;
+  vp = fonts[curfont]->symbols[(unsigned char)s]->vdata;
   
   glBegin(GL_TRIANGLES);   
-  for (i=0; i<fonts[curfont]->symbols[s]->facets; i++)
+  for (i=0; i<fonts[curfont]->symbols[(unsigned char)s]->facets; i++)
   {
       for (j=0; j<3; j++)
       {
@@ -489,8 +489,9 @@ void glfDrawSolidStringF(int font_descriptor, char *s)
 
 /* ------------ 3D Wired text drawing ---------------------- */
 
-void glfDraw3DWiredSymbol(char s)
+void glfDraw3DWiredSymbol(char sIn)
 {
+    unsigned char s = (unsigned char)sIn; // JWH
   int i, cur_line;
   float *tvp; /* temp vertex pointer */
   float x, y;
@@ -582,10 +583,11 @@ void glfDraw3DWiredStringF(int font_descriptor, char *s)
 
 /* ------------ 3D Solid text drawing ---------------------- */
 
-void glfDraw3DSolidSymbol(char s)
+void glfDraw3DSolidSymbol(char sIn)
 {
+    unsigned char s = sIn;
   int i, j, cur_line, flag;
-  float x, y, bx, by;
+  float x, y, bx = 0, by = 0;
   unsigned char *b; /* Face pointer   */
   float *vp;        /* Vertex pointer */
   float *tvp;       /* temp vertex pointer */
@@ -593,7 +595,7 @@ void glfDraw3DSolidSymbol(char s)
   GLboolean light_temp;
   
   if ((curfont<0) || (fonts[curfont] == NULL)) return;
-  if (fonts[curfont]->symbols[(int)s] == NULL) return;
+  if (fonts[curfont]->symbols[s] == NULL) return;
 
   b = fonts[curfont]->symbols[s]->fdata;
   vp = fonts[curfont]->symbols[s]->vdata;
@@ -719,14 +721,14 @@ void glfGetStringBoundsF(int fd, char *s, float *minx, float *miny, float *maxx,
 
   if (font == NULL) return;
 
-  if (font->symbols[s[0]])
-    minxx = font->symbols[s[0]]->leftx;
+  if (font->symbols[(unsigned char)s[0]])
+    minxx = font->symbols[(unsigned char)s[0]]->leftx;
   else
     minxx = 0.0;
 
   for (i=0; i<(int)strlen(s); i++)
   {
-    if ((font->symbols[s[i]] == NULL) || (s[i] == ' '))
+    if ((font->symbols[(unsigned char)s[i]] == NULL) || (s[i] == ' '))
       cw += SpaceSize;
     else
     {
