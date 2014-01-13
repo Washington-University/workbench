@@ -357,7 +357,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
-    this->setFixedHeight(this->sizeHint().height());
+    //this->setFixedHeight(this->sizeHint().height());
 }
 
 /**
@@ -1350,13 +1350,17 @@ BrainBrowserWindowToolBar::updateToolBar()
     }
     
     /*
-     * Try to avoid resizing of Toolbar height when
-     * models are changed. Let it grow but never shrink.
+     * Try to avoid resizing of Toolbar widget (view, orientation, etc)
+     * height when models are changed. Let it grow but never shrink.
      */
-    const int sizeHintHeight = sizeHint().height();
-    const int actualHeight = height();
-    if (sizeHintHeight > actualHeight) {
-        setFixedHeight(sizeHintHeight);
+    if (isVisible()) {
+        if (m_toolbarWidget->isVisible()) {
+            const int sizeHintHeight = m_toolbarWidget->sizeHint().height();
+            const int actualHeight = m_toolbarWidget->height();
+            if (sizeHintHeight >= actualHeight) {
+                m_toolbarWidget->setFixedHeight(sizeHintHeight);
+            }
+        }
     }
 }
 
