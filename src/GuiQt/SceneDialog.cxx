@@ -331,21 +331,17 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     
     
     bool validScene   = false;
-    bool validPreview = false;
     if (validFile) {
         const Scene* scene = getSelectedScene();
         if (scene != NULL) {
             validScene = true;
-            const SceneInfo* sceneInfo = scene->getSceneInfo();
-            CaretAssert(scene);
-            validPreview = sceneInfo->hasImage();
         }
     }
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
-    m_showSceneImagePreviewPushButton->setEnabled(validPreview);
+    m_showSceneImagePreviewPushButton->setEnabled(validScene);
 }
 
 /**
@@ -969,48 +965,56 @@ SceneDialog::showImagePreviewButtonClicked()
         scene->getSceneInfo()->getImageBytes(imageByteArray,
                                              imageBytesFormat);
         
+        WuQDataEntryDialog ded(scene->getName(),
+                               m_showSceneImagePreviewPushButton,
+                               WuQDialog::SCROLL_AREA_AS_NEEDED);
+        ded.setCancelButtonText("");
+        ded.setOkButtonText("Close");
         
-        AString errorMessage;
-        
-        if (imageByteArray.length() > 0) {
-            try {
+        try {
+            if (imageByteArray.length() > 0) {
                 ImageFile imageFile;
                 imageFile.setImageFromByteArray(imageByteArray,
                                                 imageBytesFormat);
                 const QImage* image = imageFile.getAsQImage();
                 if (image != NULL) {
                     if (image->isNull()) {
-                        errorMessage = "Image is invalid (isNull)";
+                        CaretLogSevere("Preview image is invalid (isNull)");
                     }
                     else {
-                        WuQDataEntryDialog ded(scene->getName(),
-                                               m_showSceneImagePreviewPushButton,
-                                               WuQDialog::SCROLL_AREA_AS_NEEDED);
                         QLabel* imageLabel = new QLabel();
                         imageLabel->setPixmap(QPixmap::fromImage(*image));
                         ded.addWidget("",
                                       imageLabel);
-                        ded.setCancelButtonText("");
-                        ded.setOkButtonText("Close");
-                        ded.exec();
                     }
                 }
-                else {
-                    errorMessage = "Image is not valid (NULL pointer)";
-                }
-            }
-            catch (const DataFileException& dfe) {
-                errorMessage = dfe.whatString();
             }
             
-            if ( ! errorMessage.isEmpty()) {
-                WuQMessageBox::errorOk(m_showSceneImagePreviewPushButton,
-                                       errorMessage);
-            }
         }
+        catch (const DataFileException& dfe) {
+            CaretLogSevere("Converting preview to image: "
+                           + dfe.whatString());
+        }
+        
+        AString nameText;
+        AString descriptionText;
+        SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
+                                                                         nameText,
+                                                                         descriptionText);
+        QLabel* nameLabel = new QLabel(nameText);
+        ded.addWidget("",
+                      nameLabel);
+        
+        if (! descriptionText.isEmpty()) {
+            QLabel* descriptionLabel = new QLabel(descriptionText);
+            descriptionLabel->setWordWrap(true);
+            ded.addWidget("",
+                          descriptionLabel);
+        }
+        
+        ded.exec();
     }
 }
-
 
 /**
  * Display the given scene from the given scene file.
@@ -1126,12 +1130,6 @@ SceneDialog::receiveEvent(Event* event)
 SceneClassInfoWidget::SceneClassInfoWidget()
 : QGroupBox(0)
 {
-//    QWidget* w = new QWidget();
-//    setFrameShape(QFrame::Box);
-//    setFrameStyle(QFrame::Plain);
-//    setLineWidth(1);
-//    setMidLineWidth(0);
-    
     m_scene = NULL;
     m_sceneIndex = -1;
     
@@ -1144,42 +1142,34 @@ SceneClassInfoWidget::SceneClassInfoWidget()
     m_descriptionLabel->setWordWrap(true);
     
     m_previewImageLabel = new QLabel();
+    m_previewImageLabel->setContentsMargins(0, 0, 0, 0);
     
-    bool nameOnTopFlag = false;
-    if (nameOnTopFlag) {
-        QHBoxLayout* bottomLayout = new QHBoxLayout();
-        bottomLayout->addWidget(m_previewImageLabel,
-                                0,
-                                Qt::AlignTop | Qt::AlignLeft);
-        bottomLayout->addWidget(m_descriptionLabel,
-                                100,
-                                Qt::AlignTop);
-        
-        QVBoxLayout* layout = new QVBoxLayout(this);
-        layout->addWidget(m_nameLabel,
-                          0,
-                          Qt::AlignTop | Qt::AlignLeft);
-        layout->addLayout(bottomLayout,
-                          100);
-    }
-    else {
-        QVBoxLayout* rightLayout = new QVBoxLayout();
-        rightLayout->addWidget(m_nameLabel);
-        rightLayout->addSpacing(10);
-        rightLayout->addWidget(m_descriptionLabel);
-        rightLayout->addStretch();
-        
-        QVBoxLayout* leftLayout = new QVBoxLayout();
-        leftLayout->addWidget(m_previewImageLabel);
-        leftLayout->addStretch();
-        
-        QHBoxLayout* layout = new QHBoxLayout(this);
-        layout->addLayout(leftLayout);
-        layout->addLayout(rightLayout, 100);
-    }
+    m_rightSideWidget = new QWidget();
+    QVBoxLayout* rightLayout = new QVBoxLayout(m_rightSideWidget);
+    rightLayout->setContentsMargins(0, 0, 0, 0);
+    rightLayout->addWidget(m_nameLabel);
+    rightLayout->addSpacing(5);
+    rightLayout->addWidget(m_descriptionLabel);
+    rightLayout->addStretch();
     
+    m_leftSideWidget = new QWidget();
+    QVBoxLayout* leftLayout = new QVBoxLayout(m_leftSideWidget);
+    leftLayout->setContentsMargins(0, 0, 0, 0);
+    leftLayout->setSpacing(0);
+    leftLayout->addWidget(m_previewImageLabel);
+    leftLayout->addStretch();
+    
+    WuQtUtilities::matchWidgetHeights(m_leftSideWidget,
+                                      m_rightSideWidget);
+    
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 3, 0, 0);
+    layout->setSpacing(3);
+    layout->addWidget(m_leftSideWidget);
+    layout->addWidget(m_rightSideWidget, 100);
+
     setSizePolicy(sizePolicy().horizontalPolicy(),
-                  QSizePolicy::Fixed); //Minimum);
+                  QSizePolicy::Fixed);
 }
 
 /**
@@ -1227,33 +1217,13 @@ SceneClassInfoWidget::updateContent(Scene* scene,
     
     if ((m_scene != NULL)
         && (m_sceneIndex >= 0)) {
-        const SceneInfo* sceneInfo = m_scene->getSceneInfo();
-        
-        m_nameLabel->setText("<html><b>NAME</b>:  "
-                             + sceneInfo->getName()
-                             + "</html>");
-        
-        
-        AString description = sceneInfo->getDescription();
-        if ( ! description.isEmpty()) {
-            /*
-             * HTML formatting is needed so text is properly displayed.
-             * Want to put "Description" at beginning in bold but any
-             * HTML tags are converted to text.  So, after conversion to
-             * HTML, perform a replace to insert "Description" in bold.
-             */
-            const AString replaceWithDescriptionBoldText = "REPLACE_WITH_DESCRIPTION";
-            description = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
-                                                                      + description);
-            description.replace(replaceWithDescriptionBoldText,
-                                "<b>DESCRIPTION:</b><br>");
-        }
-        
-        m_descriptionLabel->setText(description);
-//        m_descriptionLabel->setText("<html><b>Description</b>: "
-//                                    + sceneInfo->getDescription()
-//                                    + "</html>");
-//        m_descriptionLabel->setWordWrap(true);
+        AString nameText;
+        AString descriptionText;
+        SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(scene->getSceneInfo(),
+                                                                         nameText,
+                                                                         descriptionText);
+        m_nameLabel->setText(nameText);
+        m_descriptionLabel->setText(descriptionText);
         
         QByteArray imageByteArray;
         AString imageBytesFormat;
@@ -1261,7 +1231,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                                                       imageBytesFormat);
         
         
-        const int maximumPreviewImageSize = 64;
+        const int previewImageWidth = 128;
         
         QImage  previewImage;
         bool    previewImageValid = false;
@@ -1271,7 +1241,7 @@ SceneClassInfoWidget::updateContent(Scene* scene,
                 ImageFile imageFile;
                 imageFile.setImageFromByteArray(imageByteArray,
                                                 imageBytesFormat);
-                imageFile.resizeToMaximumWidthOrHeight(maximumPreviewImageSize);
+                imageFile.resizeToWidth(previewImageWidth);
                 previewImage = *imageFile.getAsQImage();
                 previewImageValid = true;
             }
@@ -1284,18 +1254,68 @@ SceneClassInfoWidget::updateContent(Scene* scene,
         m_previewImageLabel->setAlignment(Qt::AlignHCenter
                                           | Qt::AlignTop);
         if (previewImageValid) {
-            //m_previewImageLabel->setText("");
             m_previewImageLabel->setPixmap(QPixmap::fromImage(previewImage));
+            m_leftSideWidget->setMaximumHeight(1000);
+            m_rightSideWidget->setMaximumHeight(m_leftSideWidget->sizeHint().height());
         }
         else {
             m_previewImageLabel->setText("<html>No preview<br>image</html>");
-            //m_previewImageLabel->setPixmap(QPixmap());
+            int32_t maxHeight = std::max(m_leftSideWidget->sizeHint().height(),
+                                              m_rightSideWidget->sizeHint().height());
+            maxHeight = std::min(maxHeight,
+                                    previewImageWidth);
+            m_leftSideWidget->setMaximumHeight(maxHeight);
+            m_rightSideWidget->setMaximumHeight(maxHeight);
         }
         
-        const int maximumLabelSize = maximumPreviewImageSize + 8;
-        m_previewImageLabel->setFixedWidth(maximumLabelSize);
+//        const int maximumLabelSize = maximumPreviewImageSize + 8;
+//        m_previewImageLabel->setFixedWidth(maximumLabelSize);
     }
 }
+
+/**
+ * Get formatted text for display of scene name and description.
+ *
+ * @param sceneInfo
+ *    Info for the scene.
+ * @param nameTextOut
+ *    Text for name.
+ * @param desciptionTextOut
+ *    Text for description.
+ */
+void
+SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
+                                                       AString& nameTextOut,
+                                                       AString& descriptionTextOut)
+{
+    CaretAssert(sceneInfo);
+    
+    AString name = sceneInfo->getName();
+    if (name.isEmpty()) {
+        name = "NAME IS MISSING !!!";
+    }
+    
+    nameTextOut = ("<html><b>NAME</b>:  "
+                   + name
+                   + "</html>");
+    AString description = sceneInfo->getDescription();
+    if ( ! description.isEmpty()) {
+        /*
+         * HTML formatting is needed so text is properly displayed.
+         * Want to put "Description" at beginning in bold but any
+         * HTML tags are converted to text.  So, after conversion to
+         * HTML, perform a replace to insert "Description" in bold.
+         */
+        const AString replaceWithDescriptionBoldText = "REPLACE_WITH_DESCRIPTION";
+        description = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
+                                                                  + description);
+        description.replace(replaceWithDescriptionBoldText,
+                            "<b>DESCRIPTION:</b><br>");
+    }
+    
+    descriptionTextOut = description;
+}
+
 
 /**
  * Called by Qt when the mouse is pressed.

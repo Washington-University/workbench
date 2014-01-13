@@ -50,6 +50,7 @@ namespace caret {
     class Scene;
     class SceneClassInfoWidget;
     class SceneFile;
+    class SceneInfo;
     class WuQDataEntryDialog;
     
     class SceneDialog : public WuQDialogNonModal, public EventListenerInterface {
@@ -166,6 +167,10 @@ namespace caret {
         
         bool isValid() const;
         
+        static void getFormattedTextForSceneNameAndDescription(const SceneInfo* sceneInfo,
+                                                               AString& nameTextOut,
+                                                               AString& descriptionTextOut);
+        
     signals:
         /**
          * Emited when user activates (double clicks) this widget.
@@ -183,6 +188,10 @@ namespace caret {
         virtual void mouseDoubleClickEvent(QMouseEvent* event);
         
     private:
+        QWidget* m_leftSideWidget;
+        
+        QWidget* m_rightSideWidget;
+        
         QLabel* m_previewImageLabel;
         
         QLabel* m_nameLabel;

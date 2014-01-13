@@ -981,6 +981,21 @@ ImageFile::getImageFileFilters(std::vector<AString>& imageFileFilters,
 }
 
 /**
+ * Resize the image to the given width while preserving the aspect ratio
+ * of the image.
+ *
+ * @param width
+ *     Width for image.
+ */
+void
+ImageFile::resizeToWidth(const int32_t width)
+{
+    CaretAssert(m_image);
+    *m_image = m_image->scaledToWidth(width,
+                                      Qt::SmoothTransformation);
+}
+
+/**
  * Resize the image so that its width is no larger than the given value.
  * If the image's current width is less than the given value, no
  * resizing takes place.
