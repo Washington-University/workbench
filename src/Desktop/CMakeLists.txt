@@ -92,6 +92,7 @@ Algorithms
 OperationsBase
 Qwt
 Brain
+GlfFont
 Files
 Palette
 Cifti

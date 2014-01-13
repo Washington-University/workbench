@@ -98,6 +98,7 @@ FiberOrientationSamplesLoader.h
 FiberOrientationSamplesVector.h
 FiberOrientationSymbolTypeEnum.h
 FociDrawingTypeEnum.h
+GlfFontTextRenderer.h
 IdentificationManager.h
 IdentificationStringBuilder.h
 IdentificationTextGenerator.h
@@ -199,6 +200,7 @@ FeatureColoringTypeEnum.cxx
 FiberOrientationSamplesLoader.cxx
 FiberOrientationSymbolTypeEnum.cxx
 FociDrawingTypeEnum.cxx
+GlfFontTextRenderer.cxx
 IdentificationManager.cxx
 IdentificationStringBuilder.cxx
 IdentificationTextGenerator.cxx
@@ -258,6 +260,7 @@ YokingGroupEnum.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files

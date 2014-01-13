@@ -43,7 +43,7 @@ namespace caret {
 
     class Border;
     class BrainOpenGL;
-    class BrainOpenGLWidgetTextRenderer;
+    class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class SelectionManager;
@@ -144,7 +144,7 @@ namespace caret {
         
         int lastMouseY;
         
-        BrainOpenGLWidgetTextRenderer* textRenderer;
+        BrainOpenGLTextRenderInterface* textRenderer;
         
         UserInputReceiverInterface* selectedUserInputProcessor;
         UserInputModeView* userInputViewModeProcessor;

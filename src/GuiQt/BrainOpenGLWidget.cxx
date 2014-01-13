@@ -54,6 +54,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GlfFontTextRenderer.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -67,6 +68,9 @@
 #include "UserInputModeBorders.h"
 #include "UserInputModeFoci.h"
 #include "UserInputModeView.h"
+
+#include "GlfFontTextRenderer.h"
+
 
 using namespace caret;
 
@@ -83,6 +87,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
     this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+    //this->textRenderer = new GlfFontTextRenderer();
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
