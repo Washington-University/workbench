@@ -64,6 +64,10 @@ namespace caret {
         GlfFontTextRenderer& operator=(const GlfFontTextRenderer&);
         
     private:
+        void saveStateOfOpenGL();
+        
+        void restoreStateOfOpenGL();
+        
 //        class FontData {
 //        public:
 //            FontData(QFont* font,
@@ -87,7 +91,7 @@ namespace caret {
         
         QString m_emptyNameFont;
         
-        int m_CourierFont;
+        int m_arialFont;
     };
     
 #ifdef __GLF_FONT_TEXT_RENDERER_DECLARE__

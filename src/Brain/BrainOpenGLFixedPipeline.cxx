@@ -450,6 +450,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             
             int viewport[4];
             viewportContent->getModelViewport(viewport);
+            glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
             this->drawAllPalettes(modelDisplayController->getBrain());
         }
     }

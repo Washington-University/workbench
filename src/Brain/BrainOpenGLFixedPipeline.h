@@ -398,21 +398,21 @@ namespace caret {
                                   const QString& text,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                  const int fontHeight = -1);
+                                  const int fontHeight = 12);
         
         void drawBoldTextWindowCoords(const int windowX,
                                   const int windowY,
                                   const QString& text,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                  const int fontHeight = -1);
+                                  const int fontHeight = 12);
         
         void drawTextWindowCoordsWithBackground(const int windowX,
                                       const int windowY,
                                       const QString& text,
                                       const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
                                       const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                      const int fontHeight = -1);
+                                      const int fontHeight = 12);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,

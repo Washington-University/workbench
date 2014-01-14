@@ -267,7 +267,6 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
                         vpHalfY - gap
                     };
                     
-                    
                     if (drawThreeSliceView) {
                         if (showAxesInAllSlicesViewBottomLeftFlag) {
                             drawOrientationAxes(allVP,

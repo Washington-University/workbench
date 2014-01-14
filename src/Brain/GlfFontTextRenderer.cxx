@@ -21,7 +21,47 @@
  *  along with CARET; if not, write to the Free Software 
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
- */ 
+ */
+/****************************************************************************
+ **
+ ** Copyright (C) 2012 Digia Plc and/or its subsidiary(-ies).
+ ** Contact: http://www.qt-project.org/legal
+ **
+ ** This file is part of the QtOpenGL module of the Qt Toolkit.
+ **
+ ** $QT_BEGIN_LICENSE:LGPL$
+ ** Commercial License Usage
+ ** Licensees holding valid commercial Qt licenses may use this file in
+ ** accordance with the commercial license agreement provided with the
+ ** Software or, alternatively, in accordance with the terms contained in
+ ** a written agreement between you and Digia.  For licensing terms and
+ ** conditions see http://qt.digia.com/licensing.  For further information
+ ** use the contact form at http://qt.digia.com/contact-us.
+ **
+ ** GNU Lesser General Public License Usage
+ ** Alternatively, this file may be used under the terms of the GNU Lesser
+ ** General Public License version 2.1 as published by the Free Software
+ ** Foundation and appearing in the file LICENSE.LGPL included in the
+ ** packaging of this file.  Please review the following information to
+ ** ensure the GNU Lesser General Public License version 2.1 requirements
+ ** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+ **
+ ** In addition, as a special exception, Digia gives you certain additional
+ ** rights.  These rights are described in the Digia Qt LGPL Exception
+ ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+ **
+ ** GNU General Public License Usage
+ ** Alternatively, this file may be used under the terms of the GNU
+ ** General Public License version 3.0 as published by the Free Software
+ ** Foundation and appearing in the file LICENSE.GPL included in the
+ ** packaging of this file.  Please review the following information to
+ ** ensure the GNU General Public License version 3.0 requirements will be
+ ** met: http://www.gnu.org/copyleft/gpl.html.
+ **
+ **
+ ** $QT_END_LICENSE$
+ **
+ ****************************************************************************/
 
 #define __GLF_FONT_TEXT_RENDERER_DECLARE__
 #include "GlfFontTextRenderer.h"
@@ -53,9 +93,12 @@ GlfFontTextRenderer::GlfFontTextRenderer()
     
     glfInit();
     
-    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/courier1.glf");
+    m_arialFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/arial1.glf"); // BEST MATCH
+//    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/chicago1.glf");  // BAD
+//    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/courier1.glf");  // OK
+//    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/times_new1.glf");  // OK
     
-    if (m_CourierFont == GLF_ERROR) {
+    if (m_arialFont == GLF_ERROR) {
         CaretAssert(0);
     }
 //    /*
@@ -105,7 +148,7 @@ GlfFontTextRenderer::drawString(char* str)
     
     glMatrixMode(GL_MODELVIEW);
     
-    glfSetCurrentFont(m_CourierFont);
+    glfSetCurrentFont(m_arialFont);
     float xmin,ymin,xmax,ymax;
     glfGetStringBounds(str, &xmin,&ymin,&xmax,&ymax);
     
@@ -158,81 +201,126 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const int fontHeightIn,
                                                       const AString& fontName)
 {
-//    drawString((char*)text.toLatin1().constData());
-//    return ;
+    if (text.isEmpty()) {
+        return;
+    }
     
+    saveStateOfOpenGL();
 
-    /* NEED TO DISABLE DEPTH */
+    /*
+     * Disable depth testing so text not occluded
+     */
+    glDisable(GL_DEPTH_TEST);
     
-    
+    /*
+     * Set the orthographic projection so that its origin is in the bottom
+     * left corner.  It needs to be there since we are drawing in window
+     * coordinates.  We do not know the true size of the window but that
+     * is okay since we can set the orthographic view so that the bottom
+     * left corner is the origin and the top right corner is the top
+     * right corner of the user's viewport.
+     */
     glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
     glLoadIdentity();
-    glOrtho(viewport[0],
-            (viewport[0] + viewport[2]),
-            viewport[1],
-            (viewport[1] + viewport[3]),
-            -100,
-             100);
-    glMatrixMode(GL_MODELVIEW);
+    glOrtho(0,
+               (viewport[0] + viewport[2]),
+               0,
+               (viewport[1] + viewport[3]),
+               0,
+               1);
     
+    /*
+     * Viewing projection is just the identity matrix since
+     * we are drawing in window coordinates.
+     */
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    /*
+     * Set the viewport so that its origin is in the bottom left corner
+     * at the top right corner is the top right corner of the user's 
+     * viewport.
+     */
+    glViewport(0,
+            0,
+               (viewport[0] + viewport[2]),
+            (viewport[1] + viewport[3]));
+
     const float fontHeight = ((fontHeightIn > 0) ? fontHeightIn : 14);
-    const float aspect = static_cast<float>(viewport[2]) / static_cast<float>(viewport[3]);
+    //const float aspect = static_cast<float>(viewport[2]) / static_cast<float>(viewport[3]);
+    //const float aspect = static_cast<float>(viewport[3]) / static_cast<float>(viewport[2]);
+    const float aspect = 1.0;
     const float fontSizeY = fontHeight;
     const float fontSizeX = fontHeight * aspect;
    
     char* str = (char*)text.toLatin1().constData();
-    glfSetCurrentFont(m_CourierFont);
+    glfSetCurrentFont(m_arialFont);
     float xmin,ymin,xmax,ymax;
     glfGetStringBounds(str, &xmin,&ymin,&xmax,&ymax);
-    const float width = (xmax - xmin) * fontSizeX;
-    const float height = (ymax - ymin) * fontSizeY;
+    const float width = (xmax - xmin) * (fontSizeX);
+    const float height = (ymax - ymin) * (fontSizeY);
     
     
-    int x = windowX;
+    int x = windowX + viewport[0];
     switch (alignmentX) {
         case X_LEFT:
+            x += (width / 2.0);
             break;
         case X_CENTER:
-            x -= width / 2;
             break;
         case X_RIGHT:
-            x -= width;
+            x -= (width / 2.0);
             break;
     }
 
     /*
      * Y-Coordinate of text
-     * Note that QGLWidget has origin at top left corner
      */
-    int y = windowY;
+    int y = windowY + viewport[1];
     switch (alignmentY) {
         case Y_BOTTOM:
+            y += (height / 2.0);
             break;
         case Y_CENTER:
-            y -= height / 2;
             break;
         case Y_TOP:
-            y -= height;
+            y -= (height / 2.0);
             break;
     }
     
+//    glPushMatrix();
+//    glLoadIdentity();
+//    glTranslatef(x, y, 0.0);
+//    glColor3f(1.0, 0.0, 0.0);
+//    glBegin(GL_QUADS);
+//    glVertex2f(((-width) / 2),
+//               ((-height) / 2));
+//    glVertex2f((( width) / 2),
+//               ((-height) / 2));
+//    glVertex2f((( width) / 2),
+//               (( height) / 2));
+//    glVertex2f(((-width) / 2),
+//               (( height) / 2));
+//    glEnd();
+//    glPopMatrix();
     
-    glMatrixMode(GL_MODELVIEW);
-    glColor3f(1.0, 0.0, 0.0);
     
-    glColor3f(1.0, 1.0, 1.0);
+//    glColor3f(1.0, 1.0, 1.0);
     
-    glPushMatrix();
-    glLoadIdentity();
+//    glPushMatrix();
+//    glLoadIdentity();
     glTranslatef(x, y, 0.0);
-    glScalef(fontSizeX / 2, fontSizeY / 2, 1.0);
+    const float scaleX = fontSizeX / 2.0 * 1.2;
+    const float scaleY = fontSizeY / 2.0 * 1.2;
+    glScalef(scaleX, scaleY, 1.0);
+    //glScalef(fontSizeX, fontSizeY, 1.0);
     glfDrawSolidString((char*)str);
-    glPopMatrix();
-    
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
+//    glfDrawWiredString((char*)str);
+//    glPopMatrix();
+//    
+//    glMatrixMode(GL_PROJECTION);
+//    glPopMatrix();
+//    glMatrixMode(GL_MODELVIEW);
 
     
 //    drawString((char*)text.toLatin1().constData());
@@ -282,6 +370,8 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
 //                               y,
 //                               text,
 //                               *font);
+    
+    restoreStateOfOpenGL();
 }
 
 /**
@@ -311,7 +401,72 @@ GlfFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                                      const int fontHeight,
                                                      const AString& fontName)
 {
-    drawString((char*)text.toLatin1().constData());
+    GLdouble modelMatrix[16];
+    GLdouble projectionMatrix[16];
+    GLint viewport[4];
+    
+    glGetDoublev(GL_MODELVIEW_MATRIX,
+                 modelMatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX,
+                 projectionMatrix);
+    glGetIntegerv(GL_VIEWPORT,
+                  viewport);
+    
+    GLdouble windowX, windowY, windowZ;
+    if (gluProject(modelX, modelY, modelZ,
+                   modelMatrix, projectionMatrix, viewport,
+                   &windowX, &windowY, &windowZ) == GL_TRUE) {
+        
+        saveStateOfOpenGL();
+        
+        /*
+         * Set the orthographic projection so that its origin is in the bottom
+         * left corner.  It needs to be there since we are drawing in window
+         * coordinates.  We do not know the true size of the window but that
+         * is okay since we can set the orthographic view so that the bottom
+         * left corner is the origin and the top right corner is the top
+         * right corner of the user's viewport.
+         */
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0,
+                (viewport[0] + viewport[2]),
+                0,
+                (viewport[1] + viewport[3]),
+                0,
+                1);
+        
+        /*
+         * Viewing projection is just the identity matrix since
+         * we are drawing in window coordinates.
+         */
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        
+        /*
+         * Set the viewport so that its origin is in the bottom left corner
+         * at the top right corner is the top right corner of the user's
+         * viewport.
+         */
+        glViewport(0,
+                   0,
+                   (viewport[0] + viewport[2]),
+                   (viewport[1] + viewport[3]));
+        
+        glTranslatef(windowX, windowY, -windowZ);
+        
+        const float scaleXY = fontHeight / 2.0 * 1.2;
+        glScalef(scaleXY, scaleXY, 1.0);
+        //glScalef(fontSizeX, fontSizeY, 1.0);
+        const char* str = text.toLatin1().constData();
+        glfDrawSolidString((char*)str);
+        
+        
+        restoreStateOfOpenGL();
+    }
+    else {
+        CaretLogSevere("gluProject() failed for drawing text at model coordinates.");
+    }
     
 //    /*
 //     * Find font
@@ -402,4 +557,47 @@ GlfFontTextRenderer::drawTextAtModelCoords(const double modelX,
 //    delete m_font;
 //}
 
+/**
+ * Save the state of OpenGL.
+ * Copied from Qt's qgl.cpp, qt_save_gl_state().
+ */
+void
+GlfFontTextRenderer::saveStateOfOpenGL()
+{
+    glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glMatrixMode(GL_TEXTURE);
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    
+    glShadeModel(GL_FLAT);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
+}
+
+/**
+ * Restore the state of OpenGL.
+ * Copied from Qt's qgl.cpp, qt_restore_gl_state().
+ */
+void
+GlfFontTextRenderer::restoreStateOfOpenGL()
+{
+    glMatrixMode(GL_TEXTURE);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glPopAttrib();
+    glPopClientAttrib();
+    
+}

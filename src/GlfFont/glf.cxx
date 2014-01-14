@@ -435,6 +435,11 @@ void glfDrawSolidSymbol(char s)
   b = fonts[curfont]->symbols[(unsigned char)s]->fdata;
   vp = fonts[curfont]->symbols[(unsigned char)s]->vdata;
   
+    float xMax = -10000.0;
+    float xMin =  10000.0;
+    float yMax = -10000.0;
+    float yMin =  10000.0;
+    
   glBegin(GL_TRIANGLES);   
   for (i=0; i<fonts[curfont]->symbols[(unsigned char)s]->facets; i++)
   {
@@ -446,6 +451,11 @@ void glfDrawSolidSymbol(char s)
         if (texturing == GLF_YES) glTexCoord2f((x+1)/2, (y+1)/2);
         glVertex2f(x, y);
         b++;
+          
+          if (x > xMax) xMax = x;
+          if (x < xMin) xMin = x;
+          if (y > yMax) yMax = y;
+          if (y < yMin) yMin = y;
       }
   }
   glEnd();

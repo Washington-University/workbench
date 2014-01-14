@@ -86,8 +86,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 {
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
-    this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
-    //this->textRenderer = new GlfFontTextRenderer();
+    //this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+    this->textRenderer = new GlfFontTextRenderer();
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
                                                                    windowIndex);
