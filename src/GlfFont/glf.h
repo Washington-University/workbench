@@ -47,6 +47,36 @@ extern "C" {
 /* Console constants */
 #define GLF_CONSOLE_CURSOR   30
 
+#define MAX_FONTS 256
+    
+    /* One symbol of font */
+    struct one_symbol
+    {
+        unsigned char vertexs; /* Number of vertexs         */
+        unsigned char facets;  /* Number of facets          */
+        unsigned char lines;   /* Number of lines in symbol */
+        
+        float *vdata;          /* Pointer to Vertex data    */
+        unsigned char *fdata;  /* Pointer to Facets data    */
+        unsigned char *ldata;  /* Pointer to Line data      */
+        
+        float leftx;           /* Smaller x coordinate      */
+        float rightx;          /* Right x coordinate        */
+        float topy;            /* Top y coordinate          */
+        float bottomy;         /* Bottom y coordinate       */
+    };
+    
+    /* Font structure */
+    struct glf_font
+    {
+        char font_name [97];
+        unsigned char sym_total;          /* Total symbols in font */
+        struct one_symbol *symbols[256];  /* Pointers to symbols   */
+    };
+    
+    int LittleEndian();
+    
+    
  /* Library initialization (must be called before any usage of library) */
 void glfInit(); 
 

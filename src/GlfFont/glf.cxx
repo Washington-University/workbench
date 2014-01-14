@@ -35,6 +35,7 @@
 #include <GL/glu.h>
 #endif
 
+#include "GlfQtFontReader.h"
 #include "glf.h"
 
 /* Defines */
@@ -54,37 +55,10 @@
     } \
 }
 
-#define MAX_FONTS 256
-
 /* Color structure */
 struct color
 {
   float r, g, b, a;
-};
-
-/* One symbol of font */
-struct one_symbol
-{
-  unsigned char vertexs; /* Number of vertexs         */
-  unsigned char facets;  /* Number of facets          */
-  unsigned char lines;   /* Number of lines in symbol */
-
-  float *vdata;          /* Pointer to Vertex data    */
-  unsigned char *fdata;  /* Pointer to Facets data    */
-  unsigned char *ldata;  /* Pointer to Line data      */
-
-  float leftx;           /* Smaller x coordinate      */
-  float rightx;          /* Right x coordinate        */
-  float topy;            /* Top y coordinate          */
-  float bottomy;         /* Bottom y coordinate       */
-};
-
-/* Font structure */
-struct glf_font
-{
-  char font_name [97];
-  unsigned char sym_total;          /* Total symbols in font */
-  struct one_symbol *symbols[256];  /* Pointers to symbols   */
 };
 
 /* Main variables */
@@ -274,7 +248,8 @@ int glfLoadFont(char *font_name)
     }
 
   if (!flag) return GLF_ERROR; /* Free font not found */
-  if (ReadFont(font_name, fonts[i]) == GLF_OK) 
+//  if (ReadFont(font_name, fonts[i]) == GLF_OK)
+  if (GlfQtFontReader::readFontFile(font_name, fonts[i]) == GLF_OK)
   {
     curfont = i; /* Set curfont to just loaded font */
     return i;
