@@ -91,6 +91,15 @@ BrainOpenGLWidgetTextRenderer::~BrainOpenGLWidgetTextRenderer()
 }
 
 /**
+ * @return The font system is valid.
+ */
+bool
+BrainOpenGLWidgetTextRenderer::isValid() const
+{
+    return true;
+}
+
+/**
  * Draw text at the given window coordinates.
  *
  * @param viewport

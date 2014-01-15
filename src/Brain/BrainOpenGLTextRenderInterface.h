@@ -137,6 +137,11 @@ namespace caret {
                                            const int fontHeight = 14,
                                            const AString& fontName = "") = 0;
         
+        /**
+         * @return The font system is valid.
+         */
+        virtual bool isValid() const = 0;
+
     private:
         BrainOpenGLTextRenderInterface(const BrainOpenGLTextRenderInterface&);
 

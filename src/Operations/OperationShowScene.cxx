@@ -51,6 +51,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "FileInformation.h"
+#include "GlfFontTextRenderer.h"
 #include "ImageFile.h"
 #include "OperationShowScene.h"
 #include "OperationException.h"
@@ -257,11 +258,21 @@ OperationShowScene::useParameters(OperationParameters* myParams,
     }
     Brain* brain = SessionManager::get()->getBrain(0);
     
+    BrainOpenGLTextRenderInterface* textRenderer = new GlfFontTextRenderer();
+    if (! textRenderer->isValid()) {
+        delete textRenderer;
+        textRenderer = NULL;
+        CaretLogConfig("GLF font system failed.");
+    }
     /*
      * Performs OpenGL Rendering
+     * Allocated dynamically so that it can be destroyed prior to OSMesa being
+     * destroyed.  Otherwise, if OpenGL is destroyed after OSMesa, errors
+     * will occur as the OpenGL context is invalid when things such as
+     * display lists or buffers are deleted.
      */
-    BrainOpenGLFixedPipeline brainOpenGL(NULL);
-    brainOpenGL.initializeOpenGL();
+    BrainOpenGLFixedPipeline* brainOpenGL = new BrainOpenGLFixedPipeline(textRenderer);
+    brainOpenGL->initializeOpenGL();
     
     /*
      * Restore windows
@@ -301,7 +312,7 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                 std::vector<BrainOpenGLViewportContent*> viewportContents;
                 viewportContents.push_back(&content);
                 
-                brainOpenGL.drawModels(viewportContents);
+                brainOpenGL->drawModels(viewportContents);
                 
                 const int32_t outputImageIndex = ((numBrowserClasses > 1)
                                              ? i
@@ -316,13 +327,17 @@ OperationShowScene::useParameters(OperationParameters* myParams,
         }
     }
     
+    if (textRenderer != NULL) {
+        delete textRenderer;
+    }
+    
+    delete brainOpenGL;
+    
     /*
      * Free image memory and Mesa context
      */
     delete[] imageBuffer;
     OSMesaDestroyContext(mesaContext);
-    
-
 }
 #endif // HAVE_OSMESA
 

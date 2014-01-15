@@ -30,11 +30,12 @@ IF (UNIX)
         FIND_PACKAGE(OpenGL)
     ENDIF (NOT APPLE)
 ENDIF (UNIX)
+
 #
-# Images
+# Resources
 #
-SET (IMAGE_RCS ./images/images.qrc)
-QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${IMAGE_RCS})
+SET (RESOURCES_QRC_FILE ../Resources/resources.qrc)
+QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
 
 #
 # Create the executable

@@ -24,6 +24,12 @@ INCLUDE (${QT_USE_FILE})
 set (EXE_NAME wb_command)
 
 #
+# Resources
+#
+SET (RESOURCES_QRC_FILE ../Resources/resources.qrc)
+QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
+
+#
 # Create the executable
 # Apple creates a bundle
 #
@@ -31,10 +37,12 @@ IF (APPLE)
    ADD_EXECUTABLE(${EXE_NAME}
       MACOSX_BUNDLE
       wb_command.cxx
+      ${IMAGE_RCS_SRCS}
    )
 ELSE (APPLE)
    ADD_EXECUTABLE(${EXE_NAME}
       wb_command.cxx
+      ${IMAGE_RCS_SRCS}
    )
 ENDIF (APPLE)
 
@@ -50,6 +58,7 @@ Operations
 Algorithms
 OperationsBase
 Brain
+GlfFont
 Files
 Palette
 Gifti
@@ -77,6 +86,7 @@ ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti

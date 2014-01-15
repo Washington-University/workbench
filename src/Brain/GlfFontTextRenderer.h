@@ -38,6 +38,8 @@ namespace caret {
         
         virtual ~GlfFontTextRenderer();
         
+        bool isValid() const;
+        
         void drawTextAtWindowCoords(const int viewport[4],
                                     const int windowX,
                                     const int windowY,
@@ -92,6 +94,8 @@ namespace caret {
         QString m_emptyNameFont;
         
         int m_arialFont;
+        
+        bool m_fontFileValid;
     };
     
 #ifdef __GLF_FONT_TEXT_RENDERER_DECLARE__

@@ -90,17 +90,23 @@ using namespace caret;
 GlfFontTextRenderer::GlfFontTextRenderer()
 : BrainOpenGLTextRenderInterface()
 {
-    
+    m_fontFileValid = false;
     glfInit();
     
-    m_arialFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/arial1.glf"); // BEST MATCH
+//    const AString arialFontFileName("/Users/john/caret7_development/caret7_source/src/GlfFont/arial1.glf");
+    const AString arialFontFileName(":/FontAreal1.glf");
+    m_arialFont = glfLoadFont((char*)arialFontFileName.toLatin1().constData()); // BEST MATCH
 //    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/chicago1.glf");  // BAD
 //    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/courier1.glf");  // OK
 //    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/times_new1.glf");  // OK
     
     if (m_arialFont == GLF_ERROR) {
-        CaretAssert(0);
+        CaretLogSevere("Unable to load font file " + arialFontFileName);
+        return;
     }
+    
+    m_fontFileValid = true;
+    
 //    /*
 //     * Find default font to use when the desired font name is emtpy
 //     */
@@ -168,6 +174,16 @@ GlfFontTextRenderer::drawString(char* str)
     glMatrixMode(GL_MODELVIEW);
     
 }
+
+/**
+ * @return The font system is valid.
+ */
+bool
+GlfFontTextRenderer::isValid() const
+{
+    return m_fontFileValid;
+}
+
 
 /**
  * Draw text at the given window coordinates.

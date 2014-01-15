@@ -41,6 +41,8 @@ namespace caret {
         
         virtual ~BrainOpenGLWidgetTextRenderer();
         
+        bool isValid() const;
+        
         void drawTextAtWindowCoords(const int viewport[4],
                                     const int windowX,
                                     const int windowY,
