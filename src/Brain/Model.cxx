@@ -68,7 +68,7 @@ Model::initializeMembersModel()
  * @return The type of model.
  */
 ModelTypeEnum::Enum 
-Model::getControllerType() const
+Model::getModelType() const
 {
     return m_modelType; 
 }
@@ -101,7 +101,7 @@ Model::getDescriptionOfContent(const int32_t /*tabIndex*/,
 }
 
 /**
- * Get the brain that created this controller.
+ * Get the brain that created this model.
  * @return The brain.
  */
 Brain*

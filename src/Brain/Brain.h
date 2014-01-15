@@ -74,6 +74,7 @@ namespace caret {
     class IdentificationManager;
     class LabelFile;
     class MetricFile;
+    class ModelChart;
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
@@ -531,11 +532,13 @@ namespace caret {
         
         AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
         
-        void updateVolumeSliceController();
+        void updateChartModel();
         
-        void updateWholeBrainController();
+        void updateVolumeSliceModel();
         
-        void updateSurfaceMontageController();
+        void updateWholeBrainModel();
+        
+        void updateSurfaceMontageModel();
         
         void updateFiberTrajectoryMatchingFiberOrientationFiles();
         
@@ -581,11 +584,13 @@ namespace caret {
         
         std::vector<VolumeFile*> m_volumeFiles;
         
-        ModelVolume* m_volumeSliceController;
+        ModelChart* m_modelChart;
         
-        ModelWholeBrain* m_wholeBrainController;
+        ModelVolume* m_volumeSliceModel;
         
-        ModelSurfaceMontage* m_surfaceMontageController;
+        ModelWholeBrain* m_wholeBrainModel;
+        
+        ModelSurfaceMontage* m_surfaceMontageModel;
         
         ChartingDataManager* m_chartingDataManager;
         

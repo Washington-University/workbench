@@ -942,9 +942,7 @@ OverlaySet::findOverlayFiles(const std::vector<StructureEnum::Enum>& matchToStru
 
 
 /**
- * Initialize the overlays for the model display controller.
- * @param mdc
- *    Model Display Controller.
+ * Initialize the overlays.
  */
 void
 OverlaySet::initializeOverlays()

@@ -56,7 +56,7 @@ namespace caret {
         
         virtual ~SurfaceNodeColoring();
         
-        float* colorSurfaceNodes(Model* modelDisplayController,
+        float* colorSurfaceNodes(Model* model,
                                  Surface* surface,
                                  const int32_t browserTabIndex);
         

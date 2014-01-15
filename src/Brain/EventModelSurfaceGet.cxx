@@ -31,7 +31,7 @@ using namespace caret;
  * Constructor.
  */
 EventModelSurfaceGet::EventModelSurfaceGet(const Surface* surface)
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET),
+: Event(EventTypeEnum::EVENT_MODEL_SURFACE_GET),
   surface(surface)
 {
     CaretAssert(surface);
@@ -46,22 +46,27 @@ EventModelSurfaceGet::~EventModelSurfaceGet()
 }
 
 /**
- * @return The model display controller surface that was found.
+ * @return The model surface that was found.
  */
 ModelSurface* 
 EventModelSurfaceGet::getModelSurface()
 {
-    return this->modelDisplayControllerSurface;
-}
-
-void 
-EventModelSurfaceGet::setModelSurface(ModelSurface* modelDisplayControllerSurface)
-{
-    this->modelDisplayControllerSurface = modelDisplayControllerSurface;
+    return m_modelSurface;
 }
 
 /**
- * @return Returns the surface for which the model display controller surface is requested.
+ * Set the model surface.
+ * @param modelSurface
+ *    Model surface that matches the specified surface.
+ */
+void
+EventModelSurfaceGet::setModelSurface(ModelSurface* modelSurface)
+{
+    m_modelSurface = modelSurface;
+}
+
+/**
+ * @return Returns the surface for which the model surface is requested.
  */
 const Surface* 
 EventModelSurfaceGet::getSurface() const

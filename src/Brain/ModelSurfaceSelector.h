@@ -1,5 +1,5 @@
-#ifndef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR__H_
-#define __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR__H_
+#ifndef __MODEL_SURFACE_SELECTOR__H_
+#define __MODEL_SURFACE_SELECTOR__H_
 
 /*LICENSE_START*/
 /* 
@@ -43,21 +43,21 @@ namespace caret {
         
         virtual ~ModelSurfaceSelector();
         
-        ModelSurface* getSelectedSurfaceController();
+        ModelSurface* getSelectedSurfaceModel();
         
         StructureEnum::Enum getSelectedStructure();
         
-        void setSelectedSurfaceController(ModelSurface* surfaceController);
+        void setSelectedSurfaceModel(ModelSurface* surfaceModel);
         
         void setSelectedStructure(const StructureEnum::Enum selectedStructure);
         
         void getSelectableStructures(
                         std::vector<StructureEnum::Enum>& selectableSructuresOut) const;
                                      
-        void getSelectableSurfaceControllers(
-                        std::vector<ModelSurface*>& selectableSurfaceControllersOut) const;
+        void getSelectableSurfaceModels(
+                        std::vector<ModelSurface*>& selectableSurfaceModelsOut) const;
         
-        void updateSelector(const std::vector<Model*> modelDisplayControllers);
+        void updateSelector(const std::vector<Model*> modelDisplayModels);
         
         AString toString() const;
         
@@ -80,18 +80,18 @@ namespace caret {
         
         StructureEnum::Enum m_defaultStructure;
         
-        std::vector<ModelSurface*> m_allSurfaceControllers;
+        std::vector<ModelSurface*> m_allSurfaceModels;
                             
-        std::vector<ModelSurface*> m_availableSurfaceControllers;
+        std::vector<ModelSurface*> m_availableSurfaceModels;
         
-        ModelSurface* m_selectedSurfaceController;
+        ModelSurface* m_selectedSurfaceModel;
         
-        std::map<StructureEnum::Enum, ModelSurface*> m_previousSelectedSurfaceController;
+        std::map<StructureEnum::Enum, ModelSurface*> m_previousSelectedSurfaceModel;
     };
     
-#ifdef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__
+#ifdef __MODEL_SURFACE_SELECTOR_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__
+#endif // __MODEL_SURFACE_SELECTOR_DECLARE__
 
 } // namespace
-#endif  //__MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR__H_
+#endif  //__MODEL_SURFACE_SELECTOR__H_

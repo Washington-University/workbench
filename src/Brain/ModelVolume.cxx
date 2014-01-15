@@ -40,7 +40,7 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain - brain to which this volume controller belongs.
+ * @param brain - brain to which this volume model belongs.
  *
  */
 ModelVolume::ModelVolume(Brain* brain)
@@ -87,7 +87,7 @@ ModelVolume::getNameForGUI(const bool /*includeStructureFlag*/) const
 
 /**
  * @return The name that should be displayed in the tab
- * displaying this model controller.
+ * displaying this model.
  */
 AString 
 ModelVolume::getNameForBrowserTab() const
@@ -129,12 +129,12 @@ ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 
 
 /**
- * Update the controller.
+ * Update the model.
  * @param windowTabNumber
  *    Tab number of window.
  */
 void 
-ModelVolume::updateController(const int32_t /*windowTabNumber*/)
+ModelVolume::updateModel(const int32_t /*windowTabNumber*/)
 {
 }
 
@@ -176,7 +176,7 @@ ModelVolume::getOverlaySet(const int tabIndex) const
 }
 
 /**
- * Initilize the overlays for this controller.
+ * Initilize the overlays for this model.
  */
 void 
 ModelVolume::initializeOverlays()

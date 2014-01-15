@@ -97,8 +97,8 @@ SurfaceNodeColoring::toString() const
 /**
  * Assign color components to surface nodes.
  * If colors are currently valid, no changes are made to the surface coloring.
- * @param modelDisplayController
- *     Model controller that is displayed.  If NULL use find ModelSurface
+ * @param model
+ *     Model that is displayed.  If NULL use find ModelSurface
  *     for the surface.  This case occurs when needing surface coloring 
  *     when surface outline is drawn on volume slices.
  * @param surface
@@ -107,17 +107,15 @@ SurfaceNodeColoring::toString() const
  *     Index of tab in which model is displayed.
  */
 float* 
-SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
+SurfaceNodeColoring::colorSurfaceNodes(Model* model,
                                        Surface* surface,
                                        const int32_t browserTabIndex)
 {
-//    CaretAssert(modelDisplayController);
     CaretAssert(surface);
 
-    ModelSurface* surfaceController = dynamic_cast<ModelSurface*>(modelDisplayController);
-    ModelSurfaceMontage* surfaceMontageController = dynamic_cast<ModelSurfaceMontage*>(modelDisplayController);
-//    ModelVolume* volumeController = dynamic_cast<ModelVolume*>(modelDisplayController);
-    ModelWholeBrain* wholeBrainController = dynamic_cast<ModelWholeBrain*>(modelDisplayController);
+    ModelSurface* surfaceModel = dynamic_cast<ModelSurface*>(model);
+    ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<ModelSurfaceMontage*>(model);
+    ModelWholeBrain* wholeBrainModel = dynamic_cast<ModelWholeBrain*>(model);
     
     OverlaySet* overlaySet = NULL;
     float* rgba = NULL;
@@ -127,22 +125,22 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     BrowserTabContent* browserTabContent = getBrowserTab.getBrowserTab();
     
     Brain* brain = NULL;
-    if (modelDisplayController != NULL) {
-        brain = modelDisplayController->getBrain();
+    if (model != NULL) {
+        brain = model->getBrain();
     }
     
     /*
-     * For a NULL controller, find and use the surface controller for the
-     * surface and in the same tab as the volume controller.  This typically 
+     * For a NULL model, find and use the surface model for the
+     * surface and in the same tab as the volume model.  This typically
      * occurs when the volume surface outline is drawn over a volume slice.
      */
-    if (modelDisplayController == NULL) {
+    if (model == NULL) {
         EventModelSurfaceGet surfaceGet(surface);
         EventManager::get()->sendEvent(surfaceGet.getPointer());
-        surfaceController = surfaceGet.getModelSurface();
-        CaretAssert(surfaceController);
-        if (surfaceController != NULL) {
-            brain = surfaceController->getBrain();
+        surfaceModel = surfaceGet.getModelSurface();
+        CaretAssert(surfaceModel);
+        if (surfaceModel != NULL) {
+            brain = surfaceModel->getBrain();
         }
         
         /*
@@ -152,41 +150,34 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
         if (browserTabContent != NULL) {
             ModelWholeBrain* wholeBrain = browserTabContent->getDisplayedWholeBrainModel();
             if (wholeBrain != NULL) {
-                wholeBrainController = wholeBrain;
-                brain = wholeBrainController->getBrain();
-                surfaceController = NULL;
+                wholeBrainModel = wholeBrain;
+                brain = wholeBrainModel->getBrain();
+                surfaceModel = NULL;
             }
             ModelSurfaceMontage* surfMont = browserTabContent->getDisplayedSurfaceMontageModel();
             if (surfMont != NULL) {
-                surfaceMontageController = surfMont;
-                brain = surfaceMontageController->getBrain();
-                surfaceController = NULL;
+                surfaceMontageModel = surfMont;
+                brain = surfaceMontageModel->getBrain();
+                surfaceModel = NULL;
             }
         }
     }
     
     /*
-     * Get coloring and overlays for the valid controller.
+     * Get coloring and overlays for the valid model.
      */
-    if (surfaceController != NULL) {
+    if (surfaceModel != NULL) {
         rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
-        overlaySet = surfaceController->getOverlaySet(browserTabIndex);
+        overlaySet = surfaceModel->getOverlaySet(browserTabIndex);
     }
-    else if (surfaceMontageController != NULL) {
+    else if (surfaceMontageModel != NULL) {
         rgba = surface->getSurfaceMontageNodeColoringRgbaForBrowserTab(browserTabIndex);
-        overlaySet = surfaceMontageController->getOverlaySet(browserTabIndex);
+        overlaySet = surfaceMontageModel->getOverlaySet(browserTabIndex);
     }
-    else if (wholeBrainController != NULL) {
+    else if (wholeBrainModel != NULL) {
         rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
-        overlaySet = wholeBrainController->getOverlaySet(browserTabIndex);
+        overlaySet = wholeBrainModel->getOverlaySet(browserTabIndex);
     }
-//    else if (volumeController != NULL) {
-//        // nothing since surfaceController enabled above
-//    }
-//    else {
-//        
-//        //CaretAssertMessage(0, "Unknown controller type: " + modelDisplayController->getNameForGUI(false));
-//    }
     
     CaretAssert(overlaySet);
     
@@ -204,14 +195,6 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     if (brain != NULL) {
         displayPropertiesLabels = brain->getDisplayPropertiesLabels();
     }
-//    if (browserTabContent != NULL) {
-//        if (modelDisplayController != NULL) {
-//            Brain* brain = modelDisplayController->getBrain();
-//            if (brain != NULL) {
-//                displayPropertiesLabels = brain->getDisplayPropertiesLabels();
-//            }
-//        }
-//    }
     
     const int numNodes = surface->getNumberOfNodes();
     const int numColorComponents = numNodes * 4;
@@ -226,17 +209,17 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
                             overlaySet, 
                             rgbaColor);
     
-    if (surfaceController != NULL) {
+    if (surfaceModel != NULL) {
         surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex,
                                                          rgbaColor);
         rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
     }
-    else if (surfaceMontageController != NULL) {
+    else if (surfaceMontageModel != NULL) {
         surface->setSurfaceMontageNodeColoringRgbaForBrowserTab(browserTabIndex,
                                                                 rgbaColor);
         rgba = surface->getSurfaceMontageNodeColoringRgbaForBrowserTab(browserTabIndex);
     }
-    else if (wholeBrainController != NULL) {
+    else if (wholeBrainModel != NULL) {
         surface->setWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex, 
                                                             rgbaColor);
         rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);

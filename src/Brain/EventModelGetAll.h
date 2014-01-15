@@ -35,7 +35,7 @@ namespace caret {
     class ModelSurface;
     
     
-    /// Event for getting model display controllers
+    /// Event for getting models
     class EventModelGetAll : public Event {
         
     public:
@@ -43,11 +43,11 @@ namespace caret {
         
         virtual ~EventModelGetAll();
         
-        void addModels(const std::vector<Model*>& modelDisplayControllers);
+        void addModels(const std::vector<Model*>& modelsToAdd);
 
         const std::vector<Model*> getModels() const;
         
-        bool isModelValid(const Model* modelDisplayController) const;
+        bool isModelValid(const Model* model) const;
         
         Model* getFirstModel() const;
         
@@ -58,7 +58,7 @@ namespace caret {
         
         EventModelGetAll& operator=(const EventModelGetAll&);
         
-        std::vector<Model*> modelDisplayControllers;
+        std::vector<Model*> m_models;
     };
 
 } // namespace

@@ -610,7 +610,7 @@ GuiManager::getModelInBrowserWindow(const int32_t browserWindowIndex)
                                                                                 true);
     Model* model = NULL;
     if (browserTabContent != NULL) {
-        model = browserTabContent->getModelControllerForDisplay();
+        model = browserTabContent->getModelForDisplay();
     }
     return model;
 }

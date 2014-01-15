@@ -1,5 +1,5 @@
-#ifndef __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
-#define __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
+#ifndef __EVENT_MODEL_ADD_H__
+#define __EVENT_MODEL_ADD_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -31,11 +31,11 @@ namespace caret {
 
     class Model;
     
-    /// Event for adding model display controllers
+    /// Event for adding models
     class EventModelAdd : public Event {
         
     public:
-        EventModelAdd(Model* modelDisplayController);
+        EventModelAdd(Model* model);
         
         virtual ~EventModelAdd();
         
@@ -46,9 +46,9 @@ namespace caret {
         
         EventModelAdd& operator=(const EventModelAdd&);
         
-        Model* modelDisplayController;
+        Model* m_model;
     };
 
 } // namespace
 
-#endif // __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
+#endif // __EVENT_MODEL_ADD_H__

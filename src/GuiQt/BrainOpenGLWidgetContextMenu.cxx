@@ -175,7 +175,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
 //        const bool haveChartableFiles = (chartableFiles.empty() == false);
 //        ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
 //    
-//        Model* model = this->browserTabContent->getModelControllerForDisplay();
+//        Model* model = this->browserTabContent->getModelForDisplay();
 //        if (model != NULL) {
 //            std::vector<CaretMappableDataFile*> allMappableLabelFiles;
 //            

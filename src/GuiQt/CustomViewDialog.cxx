@@ -671,7 +671,7 @@ CustomViewDialog::transformValueChanged()
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
-            Model* model = btc->getModelControllerForDisplay();
+            Model* model = btc->getModelForDisplay();
             if (model != NULL) {
                 Matrix4x4 rotationMatrix;
                 rotationMatrix.setRotation(rotX, rotY, rotZ);
@@ -752,7 +752,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
-            Model* model = btc->getModelControllerForDisplay();
+            Model* model = btc->getModelForDisplay();
             if (model != NULL) {
                 const float* panning = btc->getTranslation();
                 const Matrix4x4 rotationMatrix = btc->getRotationMatrix();

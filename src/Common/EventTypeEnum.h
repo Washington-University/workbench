@@ -86,14 +86,14 @@ public:
         EVENT_IMAGE_CAPTURE,
         /** request display of map scalar color data mapping editor */
         EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
-        /** model display controllers - ADD */
-        EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
-        /** model display controllers - DELETE */
-        EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
-        /** model display controllers - get all*/
-        EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
-        /** model display controller surface get */
-        EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET,
+        /** model - ADD */
+        EVENT_MODEL_ADD,
+        /** model  - DELETE */
+        EVENT_MODEL_DELETE,
+        /** model - get all*/
+        EVENT_MODEL_GET_ALL,
+        /** model surface - get */
+        EVENT_MODEL_SURFACE_GET,
         /** open file request from the operating system (Mac only) for now */
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Read the selected files in a spec file */

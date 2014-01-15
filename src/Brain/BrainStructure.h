@@ -191,8 +191,8 @@ namespace caret {
         
         std::vector<RgbaFile*> m_rgbaFiles;
         
-        /** Maps a surface to its model controller */
-        std::map<Surface*, ModelSurface*> m_surfaceControllerMap; 
+        /** Maps a surface to its model */
+        std::map<Surface*, ModelSurface*> m_surfaceModelMap; 
         
         /** Unique number assigned to each brain structure. */
         int64_t m_brainStructureIdentifier;

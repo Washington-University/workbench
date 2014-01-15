@@ -29,12 +29,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param model
+ *     Model to add.
  */
-EventModelAdd::EventModelAdd(Model* modelDisplayController)
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD)
+EventModelAdd::EventModelAdd(Model* model)
+: Event(EventTypeEnum::EVENT_MODEL_ADD)
 {
-    this->modelDisplayController = modelDisplayController;
-    CaretAssert(this->modelDisplayController);
+    m_model = model;
+    CaretAssert(m_model);
 }
 
 /**
@@ -46,13 +49,11 @@ EventModelAdd::~EventModelAdd()
 }
 
 /**
- * Get the model display controller that is to be added.
- * 
- * @return Model display controller that is to be added.
+ * @return Model that is to be added.
  */
 Model* 
 EventModelAdd::getModel()
 {
-    return this->modelDisplayController;
+    return m_model;
 }
 

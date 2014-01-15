@@ -30,11 +30,11 @@ using namespace caret;
 /**
  * Constructor.
  */
-EventModelDelete::EventModelDelete(Model* modelDisplayController)
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE)
+EventModelDelete::EventModelDelete(Model* model)
+: Event(EventTypeEnum::EVENT_MODEL_DELETE)
 {
-    this->modelDisplayController = modelDisplayController;
-    CaretAssert(this->modelDisplayController);
+    m_model = model;
+    CaretAssert(m_model);
 }
 
 /**
@@ -46,13 +46,11 @@ EventModelDelete::~EventModelDelete()
 }
 
 /**
- * Get the model display controller that is to be deleted.
- * 
- * @return Model display controller that is to be deleted.
+ * @return Model that is to be deleted.
  */
 Model* 
 EventModelDelete::getModel()
 {
-    return this->modelDisplayController;
+    return m_model;
 }
 

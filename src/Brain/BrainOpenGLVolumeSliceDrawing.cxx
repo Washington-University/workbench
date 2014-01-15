@@ -147,7 +147,7 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
      * Initialize class members which help reduce the number of 
      * parameters that are passed to methods.
      */
-    Model* model = browserTabContent->getModelControllerForDisplay();
+    Model* model = browserTabContent->getModelForDisplay();
     CaretAssert(model);
     
     m_brain = model->getBrain();
@@ -159,7 +159,7 @@ BrainOpenGLVolumeSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawi
     
     m_browserTabContent = browserTabContent;
     
-    m_paletteFile = browserTabContent->getModelControllerForDisplay()->getBrain()->getPaletteFile();
+    m_paletteFile = browserTabContent->getModelForDisplay()->getBrain()->getPaletteFile();
     CaretAssert(m_paletteFile);
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
@@ -1089,7 +1089,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 
                 float* nodeColoringRGBA = NULL;
                 if (surfaceColorFlag) {
-                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL, /*modelDisplayController*/
+                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
                                                                                     surface,
                                                                                     colorSourceBrowserTabIndex);
                 }

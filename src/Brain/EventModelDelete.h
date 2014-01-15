@@ -1,5 +1,5 @@
-#ifndef __EVENT_MODEL_DISPLAY_CONTROLLER_DELETE_H__
-#define __EVENT_MODEL_DISPLAY_CONTROLLER_DELETE_H__
+#ifndef __EVENT_MODEL_DELETE_H__
+#define __EVENT_MODEL_DELETE_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -31,11 +31,11 @@ namespace caret {
     
     class Model;
     
-    /// Event for deleting model display controllers
+    /// Event for deleting models
     class EventModelDelete : public Event {
         
     public:
-        EventModelDelete(Model* modelDisplayController);
+        EventModelDelete(Model* model);
         
         virtual ~EventModelDelete();
         
@@ -46,9 +46,9 @@ namespace caret {
         
         EventModelDelete& operator=(const EventModelDelete&);
         
-        Model* modelDisplayController;
+        Model* m_model;
     };
     
 } // namespace
 
-#endif // __EVENT_MODEL_DISPLAY_CONTROLLER_DELETE_H__
+#endif // __EVENT_MODEL_DELETE_H__

@@ -44,11 +44,11 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param surface - surface for this controller.
+ * @param surface - surface for this model.
  *
  */
 ModelSurface::ModelSurface(Brain* brain,
-                                                             Surface* surface)
+                           Surface* surface)
 : Model(ModelTypeEnum::MODEL_TYPE_SURFACE,
                          brain)
 {
@@ -57,7 +57,7 @@ ModelSurface::ModelSurface(Brain* brain,
     m_surface = surface;
     
     EventManager::get()->addEventListener(this, 
-                                          EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET);
+                                          EventTypeEnum::EVENT_MODEL_SURFACE_GET);
 }
 
 /**
@@ -77,18 +77,18 @@ ModelSurface::~ModelSurface()
 void 
 ModelSurface::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET) {
-        EventModelSurfaceGet* getSurfaceControllerEvent =
+    if (event->getEventType() == EventTypeEnum::EVENT_MODEL_SURFACE_GET) {
+        EventModelSurfaceGet* getSurfaceEvent =
         dynamic_cast<EventModelSurfaceGet*>(event);
-        CaretAssert(getSurfaceControllerEvent);
+        CaretAssert(getSurfaceEvent);
         
         
         /*
-         * Looking this controller?
+         * Looking for this model?
          */
-        if (getSurfaceControllerEvent->getSurface() == getSurface()) {
-            getSurfaceControllerEvent->setModelSurface(this);
-            getSurfaceControllerEvent->setEventProcessed();
+        if (getSurfaceEvent->getSurface() == getSurface()) {
+            getSurfaceEvent->setModelSurface(this);
+            getSurfaceEvent->setEventProcessed();
         }
     }
     else {     
@@ -103,8 +103,8 @@ ModelSurface::initializeMembersModelSurface()
 }
 
 /**
- * Get the surface in this controller.
- * @return  Surface in this controller.
+ * Get the surface in this model.
+ * @return  Surface in this model.
  */
 Surface*
 ModelSurface::getSurface()
@@ -113,8 +113,8 @@ ModelSurface::getSurface()
 }
 
 /**
- * Get the surface in this controller.
- * @return  Surface in this controller.
+ * Get the surface in this model.
+ * @return  Surface in this model.
  */
 const Surface*
 ModelSurface::getSurface() const
@@ -145,7 +145,7 @@ ModelSurface::getNameForGUI(const bool includeStructureFlag) const
 
 /**
  * @return The name that should be displayed in the tab
- * displaying this model controller.
+ * displaying this model.
  */
 AString 
 ModelSurface::getNameForBrowserTab() const
@@ -219,7 +219,7 @@ ModelSurface::getOverlaySet(const int tabIndex) const
 }
 
 /**
- * Initilize the overlays for this controller.
+ * Initilize the overlays for this model.
  */
 void 
 ModelSurface::initializeOverlays()

@@ -1,5 +1,5 @@
-#ifndef __EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET_H__
-#define __EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET_H__
+#ifndef __EVENT_MODEL_SURFACE_GET_H__
+#define __EVENT_MODEL_SURFACE_GET_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -34,7 +34,7 @@ namespace caret {
     class ModelSurface;
     class Surface;
     
-    /// Find the Surface Controller that contains a specific Surface.
+    /// Find the Surface model that contains a specific Surface.
     class EventModelSurfaceGet : public Event {
         
     public:
@@ -44,7 +44,7 @@ namespace caret {
         
         ModelSurface* getModelSurface();
         
-        void setModelSurface(ModelSurface* modelDisplayControllerSurface);
+        void setModelSurface(ModelSurface* modelSurface);
         
         const Surface* getSurface() const;
         
@@ -53,11 +53,11 @@ namespace caret {
         
         EventModelSurfaceGet& operator=(const EventModelSurfaceGet&);
         
-        ModelSurface* modelDisplayControllerSurface;
+        ModelSurface* m_modelSurface;
         
         const Surface* surface;
     };
 
 } // namespace
 
-#endif // __EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET_H__
+#endif // __EVENT_MODEL_SURFACE_GET_H__

@@ -249,7 +249,7 @@ void MovieDialog::processRotateTransformation(const double dx, const double dy, 
 	if (browserTabContent == NULL) {
 		return;
 	}
-    Model* modelController = browserTabContent->getModelControllerForDisplay();
+    Model* modelController = browserTabContent->getModelForDisplay();
     if (modelController != NULL) {
 //        const int32_t tabIndex = browserTabContent->getTabNumber();
             
@@ -779,7 +779,7 @@ void MovieDialog::processUpdateSurfaceInterpolation()
         m_surface2->setCoordinates(coords);
 		m_surface2->invalidateNormals();
 		m_surface2->computeNormals();
-        btc1->getSurfaceModelSelector()->setSelectedSurfaceController(btc2->getSurfaceModelSelector()->getSelectedSurfaceController());
+        btc1->getSurfaceModelSelector()->setSelectedSurfaceModel(btc2->getSurfaceModelSelector()->getSelectedSurfaceModel());
         btc1->getSurfaceModelSelector()->setSelectedStructure(btc2->getSurfaceModelSelector()->getSelectedStructure());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());        
     }

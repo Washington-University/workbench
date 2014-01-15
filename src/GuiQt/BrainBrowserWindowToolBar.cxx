@@ -53,6 +53,7 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowToolBarChart.h"
 #include "BrainBrowserWindowToolBarSurfaceMontage.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -80,6 +81,7 @@
 #include "EventUpdateYokedWindows.h"
 #include "GuiManager.h"
 #include "Model.h"
+#include "ModelChart.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -270,6 +272,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->viewWidget = this->createViewWidget();
     this->orientationWidget = this->createOrientationWidget();
+    this->chartOptionsWidget = createChartOptionsWidget();
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
@@ -279,7 +282,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     this->clippingWidget = this->createClippingWidget();
-    // this->chartWidget = this->createChartWidget();
     
     /*
      * Layout the toolbar's widgets.
@@ -304,13 +306,13 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->volumeMontageWidget, 0, Qt::AlignLeft);
     
+    this->toolbarWidgetLayout->addWidget(this->chartOptionsWidget, 0, Qt::AlignLeft);
+    
     this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->clippingWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
-
-   // this->toolbarWidgetLayout->addWidget(this->chartWidget, 0, Qt::AlignLeft);
 
     this->toolbarWidgetLayout->addStretch();
 
@@ -356,8 +358,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CREATE_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_YOKED_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    
-    //this->setFixedHeight(this->sizeHint().height());
 }
 
 /**
@@ -425,7 +425,6 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->modeWidgetGroup->clear();
     this->windowWidgetGroup->clear();
     this->singleSurfaceSelectionWidgetGroup->clear();
-//    this->surfaceMontageSelectionWidgetGroup->clear();
     this->volumeMontageWidgetGroup->clear();
     this->volumePlaneWidgetGroup->clear();
     this->clippingWidgetGroup->clear();
@@ -517,43 +516,6 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
 {
     addOrInsertNewTab(tabContent,
                       -1);
-//    CaretAssert(tabContent);
-//    
-//    this->tabBar->blockSignals(true);
-//    
-//    const int32_t tabContentIndex = tabContent->getTabNumber();
-//    
-//    int32_t newTabIndex = -1;
-//    const int32_t numTabs = this->tabBar->count();
-//    if (numTabs <= 0) {
-//        newTabIndex = this->tabBar->addTab("NewTab");
-//    }
-//    else {
-//        int insertIndex = 0;
-//        for (int32_t i = 0; i < numTabs; i++) {
-//            if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
-//                insertIndex = i + 1;
-//            }
-//        }
-//        if (insertIndex >= numTabs) {
-//            newTabIndex = this->tabBar->addTab("NewTab");
-//        }
-//        else {
-//            this->tabBar->insertTab(insertIndex, "NewTab");
-//            newTabIndex = insertIndex;
-//        }
-//    }
-//    
-//    this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
-//    
-//    const int32_t numOpenTabs = this->tabBar->count();
-//    this->tabBar->setTabsClosable(numOpenTabs > 1);
-//    
-//    this->updateTabName(newTabIndex);
-//    
-//    this->tabBar->setCurrentIndex(newTabIndex);
-//    
-//    this->tabBar->blockSignals(false);
 }
 
 /**
@@ -664,38 +626,39 @@ BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
 void 
 BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
 {
-    EventModelGetAll eventAllControllers;
-    EventManager::get()->sendEvent(eventAllControllers.getPointer());
+    EventModelGetAll eventAllModels;
+    EventManager::get()->sendEvent(eventAllModels.getPointer());
     
-    const std::vector<Model*> allControllers =
-       eventAllControllers.getModels();
+    const std::vector<Model*> allModels =
+       eventAllModels.getModels();
 
-    ModelSurface* leftSurfaceController = NULL;
+    ModelSurface* leftSurfaceModel = NULL;
     ModelSurface* leftSurfaceInflated = NULL;
     ModelSurface* leftSurfaceVeryInflated = NULL;
     int32_t leftSurfaceTypeCode = 1000000;
     
-    ModelSurface* rightSurfaceController = NULL;
+    ModelSurface* rightSurfaceModel = NULL;
     ModelSurface* rightSurfaceInflated = NULL;
     ModelSurface* rightSurfaceVeryInflated = NULL;
     int32_t rightSurfaceTypeCode = 1000000;
 
-    ModelSurface* cerebellumSurfaceController = NULL;
+    ModelSurface* cerebellumSurfaceModel = NULL;
     ModelSurface* cerebellumSurfaceInflated = NULL;
     ModelSurface* cerebellumSurfaceVeryInflated = NULL;
     int32_t cerebellumSurfaceTypeCode = 1000000;
     
-    ModelSurfaceMontage* surfaceMontageController = NULL;
-    ModelVolume* volumeController = NULL;
-    ModelWholeBrain* wholeBrainController = NULL;
+    ModelChart* chartModel = NULL;
+    ModelSurfaceMontage* surfaceMontageModel = NULL;
+    ModelVolume* volumeModel = NULL;
+    ModelWholeBrain* wholeBrainModel = NULL;
     
-    for (std::vector<Model*>::const_iterator iter = allControllers.begin();
-         iter != allControllers.end();
+    for (std::vector<Model*>::const_iterator iter = allModels.begin();
+         iter != allModels.end();
          iter++) {
-        ModelSurface* surfaceController =
+        ModelSurface* surfaceModel =
             dynamic_cast<ModelSurface*>(*iter);
-        if (surfaceController != NULL) {
-            Surface* surface = surfaceController->getSurface();
+        if (surfaceModel != NULL) {
+            Surface* surface = surfaceModel->getSurface();
             StructureEnum::Enum structure = surface->getStructure();
             SurfaceTypeEnum::Enum surfaceType = surface->getSurfaceType();
             const int32_t surfaceTypeCode = SurfaceTypeEnum::toIntegerCode(surfaceType);
@@ -703,38 +666,38 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             switch (structure) {
                 case StructureEnum::CEREBELLUM:
                     if (surfaceTypeCode < cerebellumSurfaceTypeCode) {
-                        cerebellumSurfaceController = surfaceController;
+                        cerebellumSurfaceModel = surfaceModel;
                         cerebellumSurfaceTypeCode = surfaceTypeCode;
                     }
                     if (surfaceType == SurfaceTypeEnum::INFLATED) {
-                        cerebellumSurfaceInflated = surfaceController;
+                        cerebellumSurfaceInflated = surfaceModel;
                     }
                     else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
-                        cerebellumSurfaceVeryInflated = surfaceController;
+                        cerebellumSurfaceVeryInflated = surfaceModel;
                     }
                     break;
                 case StructureEnum::CORTEX_LEFT:
                     if (surfaceTypeCode < leftSurfaceTypeCode) {
-                        leftSurfaceController = surfaceController;
+                        leftSurfaceModel = surfaceModel;
                         leftSurfaceTypeCode = surfaceTypeCode;
                     }
                     if (surfaceType == SurfaceTypeEnum::INFLATED) {
-                        leftSurfaceInflated = surfaceController;
+                        leftSurfaceInflated = surfaceModel;
                     }
                     else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
-                        leftSurfaceVeryInflated = surfaceController;
+                        leftSurfaceVeryInflated = surfaceModel;
                     }
                     break;
                 case StructureEnum::CORTEX_RIGHT:
                     if (surfaceTypeCode < rightSurfaceTypeCode) {
-                        rightSurfaceController = surfaceController;
+                        rightSurfaceModel = surfaceModel;
                         rightSurfaceTypeCode = surfaceTypeCode;
                     }
                     if (surfaceType == SurfaceTypeEnum::INFLATED) {
-                        rightSurfaceInflated = surfaceController;
+                        rightSurfaceInflated = surfaceModel;
                     }
                     else if (surfaceType == SurfaceTypeEnum::VERY_INFLATED) {
-                        rightSurfaceVeryInflated = surfaceController;
+                        rightSurfaceVeryInflated = surfaceModel;
                     }
                     break;
                 default:
@@ -742,13 +705,16 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             }
         }
         else if (dynamic_cast<ModelSurfaceMontage*>(*iter) != NULL) {
-            surfaceMontageController = dynamic_cast<ModelSurfaceMontage*>(*iter);
+            surfaceMontageModel = dynamic_cast<ModelSurfaceMontage*>(*iter);
         }
         else if (dynamic_cast<ModelVolume*>(*iter) != NULL) {
-            volumeController = dynamic_cast<ModelVolume*>(*iter);
+            volumeModel = dynamic_cast<ModelVolume*>(*iter);
         }
         else if (dynamic_cast<ModelWholeBrain*>(*iter) != NULL) {
-            wholeBrainController = dynamic_cast<ModelWholeBrain*>(*iter);
+            wholeBrainModel = dynamic_cast<ModelWholeBrain*>(*iter);
+        }
+        else if (dynamic_cast<ModelChart*>(*iter)) {
+            chartModel = dynamic_cast<ModelChart*>(*iter);
         }
         else {
             CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
@@ -756,41 +722,41 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     }
     
     if (cerebellumSurfaceInflated != NULL) {
-        cerebellumSurfaceController = cerebellumSurfaceInflated;
+        cerebellumSurfaceModel = cerebellumSurfaceInflated;
     }
     else if (cerebellumSurfaceVeryInflated != NULL) {
-        cerebellumSurfaceController = cerebellumSurfaceVeryInflated;
+        cerebellumSurfaceModel = cerebellumSurfaceVeryInflated;
     }
     if (leftSurfaceInflated != NULL) {
-        leftSurfaceController = leftSurfaceInflated;
+        leftSurfaceModel = leftSurfaceInflated;
     }
     else if (leftSurfaceVeryInflated != NULL) {
-        leftSurfaceController = leftSurfaceVeryInflated;
+        leftSurfaceModel = leftSurfaceVeryInflated;
     }
     if (rightSurfaceInflated != NULL) {
-        rightSurfaceController = rightSurfaceInflated;
+        rightSurfaceModel = rightSurfaceInflated;
     }
     else if (rightSurfaceVeryInflated != NULL) {
-        rightSurfaceController = rightSurfaceVeryInflated;
+        rightSurfaceModel = rightSurfaceVeryInflated;
     }
     
     int32_t numberOfTabsNeeded = 0;
-    if (surfaceMontageController != NULL) {
+    if (surfaceMontageModel != NULL) {
         numberOfTabsNeeded++;
     }
-    if (volumeController != NULL) {
+    if (volumeModel != NULL) {
         numberOfTabsNeeded++;
     }
-    if (wholeBrainController != NULL) {
+    if (wholeBrainModel != NULL) {
         numberOfTabsNeeded++;
     }
-    if (leftSurfaceController != NULL) {
+    if (leftSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
-    if (rightSurfaceController != NULL) {
+    if (rightSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
-    if (cerebellumSurfaceController != NULL) {
+    if (cerebellumSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
     
@@ -802,17 +768,17 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     
     int32_t tabIndex = 0;
     tabIndex = loadIntoTab(tabIndex,
-                           surfaceMontageController);
+                           surfaceMontageModel);
     tabIndex = loadIntoTab(tabIndex,
-                           volumeController);
+                           volumeModel);
     tabIndex = loadIntoTab(tabIndex,
-                           wholeBrainController);
+                           wholeBrainModel);
     tabIndex = loadIntoTab(tabIndex,
-                           leftSurfaceController);
+                           leftSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,
-                           rightSurfaceController);
+                           rightSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,
-                           cerebellumSurfaceController);
+                           cerebellumSurfaceModel);
     
     const int numTabs = this->tabBar->count();
     if (numTabs > 0) {
@@ -890,7 +856,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
  *   Index of tab into which controller is loaded.  A
  *   new tab will be created, if needed.
  * @param controller
- *   Controller that is to be displayed in the tab.  If
+ *   Model that is to be displayed in the tab.  If
  *   NULL, this method does nothing.
  * @return
  *   Index of next tab after controller is displayed.
@@ -918,13 +884,13 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         
         void* p = this->tabBar->tabData(tabIndex).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
-        btc->setSelectedModelType(controller->getControllerType());
+        btc->setSelectedModelType(controller->getModelType());
         
-        ModelSurface* surfaceController =
+        ModelSurface* surfaceModel =
         dynamic_cast<ModelSurface*>(controller);
-        if (surfaceController != NULL) {
-            btc->getSurfaceModelSelector()->setSelectedStructure(surfaceController->getSurface()->getStructure());
-            btc->getSurfaceModelSelector()->setSelectedSurfaceController(surfaceController);
+        if (surfaceModel != NULL) {
+            btc->getSurfaceModelSelector()->setSelectedStructure(surfaceModel->getSurface()->getStructure());
+            btc->getSurfaceModelSelector()->setSelectedSurfaceModel(surfaceModel);
             btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_SURFACE);
         }
         this->updateTabName(tabIndex);
@@ -1019,7 +985,7 @@ BrainBrowserWindowToolBar::removeTabWithContent(BrowserTabContent* browserTabCon
             this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
             this->tabClosed(i);
             if (this->tabBar->count() <= 0) {
-                EventManager::get()->removeAllEventsFromListener(this);  // ignore update requests
+                EventManager::get()->removeAllEventsFromListener(this);
             }
             break;
         }
@@ -1241,7 +1207,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     EventModelGetAll getAllModelsEvent;
     EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
     if (getAllModelsEvent.getFirstModel() == NULL) {
-        //for (int i = (this->tabBar->count() - 1); i >= 1; i--) {
         for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
             this->removeTab(i);
         }
@@ -1261,8 +1226,10 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
     
+    bool showChartWidget = false;
+    
     bool showClippingWidget = true;
-    bool showToolsWidget = true;
+    bool showModeWidget = true;
     bool showWindowWidget = true;
     
     switch (viewModel) {
@@ -1287,6 +1254,9 @@ BrainBrowserWindowToolBar::updateToolBar()
             showVolumeIndicesWidget = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
+            showChartWidget = true;
+            showClippingWidget = false;
+            showModeWidget = false;
             break;
     }
     
@@ -1300,6 +1270,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->wholeBrainSurfaceOptionsWidget->setVisible(false);
     this->singleSurfaceSelectionWidget->setVisible(false);
     this->surfaceMontageSelectionWidget->setVisible(false);
+    this->chartOptionsWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
@@ -1311,10 +1282,11 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
+    this->chartOptionsWidget->setVisible(showChartWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
-    this->modeWidget->setVisible(showToolsWidget);
+    this->modeWidget->setVisible(showModeWidget);
     this->clippingWidget->setVisible(showClippingWidget);
     this->windowWidget->setVisible(showWindowWidget);
 
@@ -1324,6 +1296,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         this->updateVolumeIndicesWidget(browserTabContent);
         this->updateSingleSurfaceOptionsWidget(browserTabContent);
         this->updateSurfaceMontageOptionsWidget(browserTabContent);
+        this->updateChartOptionsWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
@@ -1372,37 +1345,37 @@ BrainBrowserWindowToolBar::updateToolBar()
 QWidget* 
 BrainBrowserWindowToolBar::createViewWidget()
 {
+    this->viewModeChartRadioButton = new QRadioButton("Chart");
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
     this->viewModeSurfaceMontageRadioButton = new QRadioButton("Montage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
-    //this->viewModeChartRadioButton = new QRadioButton("Chart");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
+    layout->addWidget(this->viewModeChartRadioButton);
     layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
     layout->addWidget(this->viewModeSurfaceRadioButton);
-    //layout->addWidget(this->viewModeChartRadioButton);
     layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
+    viewModeRadioButtonGroup->addButton(this->viewModeChartRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeWholeBrainRadioButton);
-    //viewModeRadioButtonGroup->addButton(this->viewModeChartRadioButton);
     QObject::connect(viewModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(viewModeRadioButtonClicked(QAbstractButton*)));
     
     this->viewWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->viewWidgetGroup->add(this->viewModeChartRadioButton);
     this->viewWidgetGroup->add(this->viewModeSurfaceRadioButton);
     this->viewWidgetGroup->add(this->viewModeSurfaceMontageRadioButton);
     this->viewWidgetGroup->add(this->viewModeVolumeRadioButton);
     this->viewWidgetGroup->add(this->viewModeWholeBrainRadioButton);
-    //this->viewWidgetGroup->add(this->viewModeChartRadioButton);
     
     QWidget* w = this->createToolWidget("View", 
                                         widget, 
@@ -1440,7 +1413,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
         this->viewModeSurfaceMontageRadioButton->setEnabled(browserTabContent->isSurfaceMontageModelValid());
         this->viewModeVolumeRadioButton->setEnabled(browserTabContent->isVolumeSliceModelValid());
         this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
-        //this->viewModeChartRadioButton->setEnabled(browserTabContent->isChartValid());
+        this->viewModeChartRadioButton->setEnabled(browserTabContent->isChartModelValid());
     }
     
     switch (modelType) {
@@ -1580,7 +1553,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                                         this, 
                                                                                         SLOT(orientationAnteriorPosteriorToolButtonTriggered(bool)));
     
-    this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT", //"Reset",
+    this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT",
                                                                          "Reset the view to dorsal and remove any panning or zooming", 
                                                                          this, 
                                                                          this, 
@@ -1667,8 +1640,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
 /**
  * Update the orientation widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTabContent)
@@ -1683,7 +1656,7 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
     
     this->orientationWidgetGroup->blockAllSignals(true);
     
-    const Model* mdc = this->getDisplayedModelController();
+    const Model* mdc = this->getDisplayedModel();
     if (mdc != NULL) {
         const ModelSurface* mdcs = dynamic_cast<const ModelSurface*>(mdc);
         const ModelSurfaceMontage* mdcsm = dynamic_cast<const ModelSurfaceMontage*>(mdc);
@@ -1736,7 +1709,7 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
             showDualViewOrientationButtons = true;
         }
         else if (mdcv != NULL) {
-            // nothing
+            /* nothing */
         }
         else if (mdcwb != NULL) {
             leftRightFlag = true;
@@ -1984,8 +1957,8 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
 /**
  * Update the whole brain surface options widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabContent* browserTabContent)
@@ -1995,16 +1968,16 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     }
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
  
-    ModelWholeBrain* wholeBrainController = browserTabContent->getDisplayedWholeBrainModel();
-    if (wholeBrainController != NULL) {
+    ModelWholeBrain* wholeBrainModel = browserTabContent->getDisplayedWholeBrainModel();
+    if (wholeBrainModel != NULL) {
         const int32_t tabNumber = browserTabContent->getTabNumber();
         
         this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(true);
         
         std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
-        wholeBrainController->getAvailableSurfaceTypes(availableSurfaceTypes);
+        wholeBrainModel->getAvailableSurfaceTypes(availableSurfaceTypes);
         
-        const SurfaceTypeEnum::Enum selectedSurfaceType = wholeBrainController->getSelectedSurfaceType(tabNumber);
+        const SurfaceTypeEnum::Enum selectedSurfaceType = wholeBrainModel->getSelectedSurfaceType(tabNumber);
         
         int32_t defaultIndex = 0;
         this->wholeBrainSurfaceTypeComboBox->clear();
@@ -2175,8 +2148,8 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
 /**
  * Update the volume indices widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browserTabContent*/)
@@ -2193,21 +2166,20 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
     const int32_t tabIndex = btc->getTabNumber();
     
     VolumeMappableInterface* vf = NULL;
-    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
-    if (volumeController != NULL) {
-        if (this->getDisplayedModelController() == volumeController) {
-            vf = volumeController->getUnderlayVolumeFile(tabIndex);
-            //sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
+    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
+    if (volumeModel != NULL) {
+        if (this->getDisplayedModel() == volumeModel) {
+            vf = volumeModel->getUnderlayVolumeFile(tabIndex);
             this->volumeIndicesAxialCheckBox->setVisible(false);
             this->volumeIndicesCoronalCheckBox->setVisible(false);
             this->volumeIndicesParasagittalCheckBox->setVisible(false);            
         }
     }
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController != NULL) {
-        if (this->getDisplayedModelController() == wholeBrainController) {
-            vf = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel != NULL) {
+        if (this->getDisplayedModel() == wholeBrainModel) {
+            vf = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
             this->volumeIndicesAxialCheckBox->setVisible(true);
             this->volumeIndicesCoronalCheckBox->setVisible(true);
             this->volumeIndicesParasagittalCheckBox->setVisible(true);
@@ -2240,14 +2212,14 @@ BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
     const int32_t tabIndex = btc->getTabNumber();
     
     VolumeMappableInterface* vf = NULL;
-    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
-    if (volumeController != NULL) {
-        vf = volumeController->getUnderlayVolumeFile(tabIndex);
+    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
+    if (volumeModel != NULL) {
+        vf = volumeModel->getUnderlayVolumeFile(tabIndex);
     }
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController != NULL) {
-        vf = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel != NULL) {
+        vf = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
     }
     
     if (vf != NULL) {
@@ -2475,8 +2447,8 @@ BrainBrowserWindowToolBar::modeInputModeActionTriggered(QAction* action)
 /**
  * Update the tools widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabContent*/)
@@ -2494,7 +2466,7 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
 
     switch (getInputModeEvent.getUserInputMode()) {
         case UserInputReceiverInterface::INVALID:
-            // may get here when program is exiting and widgets are being destroyed
+            /* may get here when program is exiting and widgets are being destroyed */
             break;
         case UserInputReceiverInterface::BORDERS:
             this->modeInputModeBordersAction->setChecked(true);
@@ -2593,8 +2565,8 @@ BrainBrowserWindowToolBar::createWindowWidget()
 /**
  * Update the window widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabContent)
@@ -2617,6 +2589,40 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
 }
 
 
+/**
+ * Create the chart options widget.
+ *
+ * @return
+ *    Widget containing the chart options.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createChartOptionsWidget()
+{
+    m_chartToolBarComponent = new BrainBrowserWindowToolBarChart(this);
+    QWidget* w = this->createToolWidget("Chart",
+                                        m_chartToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the chart options options widget.
+ *
+ * @param browserTabContent
+ *   The active model display (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateChartOptionsWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->chartOptionsWidget->isHidden()) {
+        return;
+    }
+    
+    m_chartToolBarComponent->updateContent(browserTabContent);
+}
 
 /**
  * Create the single surface options widget.
@@ -2636,7 +2642,7 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
                      SLOT(surfaceSelectionControlChanged(const StructureEnum::Enum,
                                                          ModelSurface*)));
     
-    this->surfaceSurfaceSelectionControl->setMinimumWidth(150); //275);
+    this->surfaceSurfaceSelectionControl->setMinimumWidth(150);
     this->surfaceSurfaceSelectionControl->setMaximumWidth(1200);
     
     QWidget* widget = new QWidget();
@@ -2688,73 +2694,6 @@ QWidget*
 BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
 {
     m_surfaceMontageToolBarComponent = new BrainBrowserWindowToolBarSurfaceMontage(this);
-    
-//    this->surfaceMontageLeftCheckBox = new QCheckBox("Left");
-//    QObject::connect(this->surfaceMontageLeftCheckBox, SIGNAL(toggled(bool)),
-//                     this, SLOT(surfaceMontageCheckBoxSelected(bool)));
-//    
-//    this->surfaceMontageRightCheckBox = new QCheckBox("Right");
-//    QObject::connect(this->surfaceMontageRightCheckBox, SIGNAL(toggled(bool)),
-//                     this, SLOT(surfaceMontageCheckBoxSelected(bool)));
-//    
-//    this->surfaceMontageFirstSurfaceCheckBox = new QCheckBox(" ");
-//    QObject::connect(this->surfaceMontageFirstSurfaceCheckBox, SIGNAL(toggled(bool)),
-//                     this, SLOT(surfaceMontageCheckBoxSelected(bool)));
-//    
-//    this->surfaceMontageSecondSurfaceCheckBox = new QCheckBox(" ");
-//    QObject::connect(this->surfaceMontageSecondSurfaceCheckBox, SIGNAL(toggled(bool)),
-//                     this, SLOT(surfaceMontageCheckBoxSelected(bool)));
-//    
-//    this->surfaceMontageLeftSurfaceViewController = new SurfaceSelectionViewController(this);
-//    QObject::connect(this->surfaceMontageLeftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
-//                     this, SLOT(surfaceMontageLeftSurfaceSelected(Surface*)));
-//    
-//    this->surfaceMontageLeftSecondSurfaceViewController = new SurfaceSelectionViewController(this);
-//    QObject::connect(this->surfaceMontageLeftSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
-//                     this, SLOT(surfaceMontageLeftSecondSurfaceSelected(Surface*)));
-//    
-//    this->surfaceMontageRightSurfaceViewController = new SurfaceSelectionViewController(this);
-//    QObject::connect(this->surfaceMontageRightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
-//                     this, SLOT(surfaceMontageRightSurfaceSelected(Surface*)));
-//
-//    this->surfaceMontageRightSecondSurfaceViewController = new SurfaceSelectionViewController(this);
-//    QObject::connect(this->surfaceMontageRightSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
-//                     this, SLOT(surfaceMontageRightSecondSurfaceSelected(Surface*)));
-//    
-//    int32_t columnIndex = 0;
-//    const int32_t COLUMN_ONE_TWO     = columnIndex++;
-//    const int32_t COLUMN_INDEX_LEFT  = columnIndex++;
-//    const int32_t COLUMN_INDEX_RIGHT = columnIndex++;
-//    
-//    QWidget* widget = new QWidget();
-//    QGridLayout* layout = new QGridLayout(widget);
-//    layout->setColumnStretch(0,   0);
-//    layout->setColumnStretch(1, 100);
-//    layout->setColumnStretch(2, 100);
-//    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
-//    int row = layout->rowCount();
-//    layout->addWidget(surfaceMontageLeftCheckBox, row, COLUMN_INDEX_LEFT, Qt::AlignHCenter);
-//    layout->addWidget(surfaceMontageRightCheckBox, row, COLUMN_INDEX_RIGHT, Qt::AlignHCenter);
-//    row = layout->rowCount();
-//    layout->addWidget(this->surfaceMontageFirstSurfaceCheckBox, row, COLUMN_ONE_TWO);
-//    layout->addWidget(this->surfaceMontageLeftSurfaceViewController->getWidget(), row, COLUMN_INDEX_LEFT);
-//    layout->addWidget(this->surfaceMontageRightSurfaceViewController->getWidget(), row, COLUMN_INDEX_RIGHT);
-//    row = layout->rowCount();
-//    layout->addWidget(this->surfaceMontageSecondSurfaceCheckBox, row, COLUMN_ONE_TWO);
-//    layout->addWidget(this->surfaceMontageLeftSecondSurfaceViewController->getWidget(), row, COLUMN_INDEX_LEFT);
-//    layout->addWidget(this->surfaceMontageRightSecondSurfaceViewController->getWidget(), row, COLUMN_INDEX_RIGHT);
-//    row = layout->rowCount();
-//    
-//    this->surfaceMontageSelectionWidgetGroup = new WuQWidgetObjectGroup(this);
-//    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageLeftSurfaceViewController->getWidget());
-//    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageLeftSecondSurfaceViewController->getWidget());
-//    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageRightSurfaceViewController->getWidget());
-//    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageRightSecondSurfaceViewController->getWidget());
-//    this->surfaceMontageSelectionWidgetGroup->add(surfaceMontageLeftCheckBox);
-//    this->surfaceMontageSelectionWidgetGroup->add(surfaceMontageRightCheckBox);
-//    this->surfaceMontageSelectionWidgetGroup->add(surfaceMontageFirstSurfaceCheckBox);
-//    this->surfaceMontageSelectionWidgetGroup->add(surfaceMontageSecondSurfaceCheckBox);
-    
     QWidget* w = this->createToolWidget("Montage Selection", 
                                         m_surfaceMontageToolBarComponent, 
                                         WIDGET_PLACEMENT_LEFT, 
@@ -2763,28 +2702,6 @@ BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
     w->setVisible(false);
     return w;
 }
-
-///**
-// * Called when surface montage checkbox is toggled.
-// * @param status
-// *    New status of check box.
-// */
-//void 
-//BrainBrowserWindowToolBar::surfaceMontageCheckBoxSelected(bool /*status*/)
-//{
-//    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//    const int32_t tabIndex = btc->getTabNumber();
-//    ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-//    if (msm != NULL) {
-//        msm->setLeftEnabled(tabIndex, this->surfaceMontageLeftCheckBox->isChecked());
-//        msm->setRightEnabled(tabIndex, this->surfaceMontageRightCheckBox->isChecked());
-//        msm->setFirstSurfaceEnabled(tabIndex, this->surfaceMontageFirstSurfaceCheckBox->isChecked());
-//        msm->setSecondSurfaceEnabled(tabIndex, this->surfaceMontageSecondSurfaceCheckBox->isChecked());
-//    }
-//    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//    this->updateUserInterface();
-//    this->updateGraphicsWindow();
-//}
 
 /**
  * Update the surface montage options widget.
@@ -2800,118 +2717,7 @@ BrainBrowserWindowToolBar::updateSurfaceMontageOptionsWidget(BrowserTabContent* 
     }
 
     m_surfaceMontageToolBarComponent->updateContent(browserTabContent);
-    
-//    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-//    
-//    this->surfaceMontageSelectionWidgetGroup->blockAllSignals(true);
-//    
-//    ModelSurfaceMontage* msm = browserTabContent->getDisplayedSurfaceMontageModel();
-//    const int32_t tabIndex = browserTabContent->getTabNumber();
-//    SurfaceSelectionModel* leftSurfaceSelectionModel = NULL;
-//    SurfaceSelectionModel* leftSecondSurfaceSelectionModel = NULL;
-//    SurfaceSelectionModel* rightSurfaceSelectionModel = NULL;
-//    SurfaceSelectionModel* rightSecondSurfaceSelectionModel = NULL;
-//    if (msm != NULL) {
-//        this->surfaceMontageLeftCheckBox->setChecked(msm->isLeftEnabled(tabIndex));
-//        this->surfaceMontageRightCheckBox->setChecked(msm->isRightEnabled(tabIndex));
-//        this->surfaceMontageFirstSurfaceCheckBox->setChecked(msm->isFirstSurfaceEnabled(tabIndex));
-//        this->surfaceMontageSecondSurfaceCheckBox->setChecked(msm->isSecondSurfaceEnabled(tabIndex));
-//        
-//        leftSurfaceSelectionModel = msm->getLeftSurfaceSelectionModel(tabIndex);
-//        leftSecondSurfaceSelectionModel = msm->getLeftSecondSurfaceSelectionModel(tabIndex);
-//        rightSurfaceSelectionModel = msm->getRightSurfaceSelectionModel(tabIndex);
-//        rightSecondSurfaceSelectionModel = msm->getRightSecondSurfaceSelectionModel(tabIndex);
-//    }
-//    this->surfaceMontageLeftSurfaceViewController->updateControl(leftSurfaceSelectionModel);
-//    this->surfaceMontageLeftSecondSurfaceViewController->updateControl(leftSecondSurfaceSelectionModel);
-//    this->surfaceMontageRightSurfaceViewController->updateControl(rightSurfaceSelectionModel);
-//    this->surfaceMontageRightSecondSurfaceViewController->updateControl(rightSecondSurfaceSelectionModel);
-//    
-//    this->surfaceMontageSelectionWidgetGroup->blockAllSignals(false);
-//    
-//    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
-
-///** 
-// * Called when montage left surface is selected.
-// * @param surface
-// *    Surface that was selected.
-// */
-//void 
-//BrainBrowserWindowToolBar::surfaceMontageLeftSurfaceSelected(Surface* surface)
-//{
-//    if (surface != NULL) {
-//        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//        const int32_t tabIndex = btc->getTabNumber();
-//        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-//        if (msm != NULL) {
-//            msm->getLeftSurfaceSelectionModel(tabIndex)->setSurface(surface);
-//        }
-//        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//        this->updateGraphicsWindow();
-//    }
-//}
-//
-///** 
-// * Called when montage left second surface is selected.
-// * @param surface
-// *    Surface that was selected.
-// */
-//void 
-//BrainBrowserWindowToolBar::surfaceMontageLeftSecondSurfaceSelected(Surface* surface)
-//{
-//    if (surface != NULL) {
-//        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//        const int32_t tabIndex = btc->getTabNumber();
-//        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-//        if (msm != NULL) {
-//            msm->getLeftSecondSurfaceSelectionModel(tabIndex)->setSurface(surface);
-//        }
-//        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//        this->updateGraphicsWindow();
-//    }
-//}
-//
-///** 
-// * Called when montage right surface is selected.
-// * @param surface
-// *    Surface that was selected.
-// */
-//void 
-//BrainBrowserWindowToolBar::surfaceMontageRightSurfaceSelected(Surface* surface)
-//{
-//    if (surface != NULL) {
-//        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//        const int32_t tabIndex = btc->getTabNumber();
-//        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-//        if (msm != NULL) {
-//            msm->getRightSurfaceSelectionModel(tabIndex)->setSurface(surface);
-//        }
-//        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//        this->updateGraphicsWindow();
-//    }
-//}
-//
-///** 
-// * Called when montage right second surface is selected.
-// * @param surface
-// *    Surface that was selected.
-// */
-//void 
-//BrainBrowserWindowToolBar::surfaceMontageRightSecondSurfaceSelected(Surface* surface)
-//{
-//    if (surface != NULL) {
-//        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-//        const int32_t tabIndex = btc->getTabNumber();
-//        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
-//        if (msm != NULL) {
-//            msm->getRightSecondSurfaceSelectionModel(tabIndex)->setSurface(surface);
-//        }
-//        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-//        this->updateGraphicsWindow();
-//    }
-//}
-
 
 /**
  * Create the volume montage widget.
@@ -2982,8 +2788,8 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
 /**
  * Update the volume montage widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browserTabContent*/)
@@ -3176,8 +2982,8 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
 /**
  * Update the volume plane orientation widget.
  * 
- * @param modelDisplayController
- *   The active model display controller (may be NULL).
+ * @param browserTabContent
+ *   Content of browser tab.
  */
 void 
 BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserTabContent*/)
@@ -3246,7 +3052,6 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                                             const WidgetPlacement contentPlacement,
                                             const int /*horizontalStretching*/)
 {
-    //QLabel* nameLabel = new QLabel("<html><b>" + name + "<b></html>");
     QLabel* nameLabel = new QLabel("<html>" + name + "</html>");
     
     QWidget* w = new QWidget();
@@ -3256,7 +3061,6 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     switch (contentPlacement) {
         case WIDGET_PLACEMENT_BOTTOM:
-            //layout->addStretch();
             layout->setRowStretch(0, 100);
             layout->setRowStretch(1, 0);
             layout->addWidget(childWidget, 1, 0, 1, 2);
@@ -3265,7 +3069,6 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
             layout->setRowStretch(1, 100);
             layout->setRowStretch(0, 0);
             layout->addWidget(childWidget, 0, 0, 1, 2);
-            //layout->addStretch();
             break;
         case WIDGET_PLACEMENT_NONE:
             layout->setRowStretch(0, 0);
@@ -3340,7 +3143,10 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
         return;
     }
     
-    if (this->viewModeSurfaceRadioButton->isChecked()) {
+    if (this->viewModeChartRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_CHART);
+    }
+    else if (this->viewModeSurfaceRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_SURFACE);
     }
     else if (this->viewModeSurfaceMontageRadioButton->isChecked()) {
@@ -3457,7 +3263,7 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->resetView();
     
-    Model* mdc = btc->getModelControllerForDisplay();
+    Model* mdc = btc->getModelForDisplay();
     if (mdc != NULL) {
         this->updateVolumeIndicesWidget(btc);
         this->updateGraphicsWindow();
@@ -3566,8 +3372,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
 
@@ -3577,8 +3383,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
         bool isValid = false;
         const SurfaceTypeEnum::Enum surfaceType = SurfaceTypeEnum::fromIntegerCode(integerCode, &isValid);
         if (isValid) {
-            wholeBrainController->setSelectedSurfaceType(tabIndex, surfaceType);
-            this->updateVolumeIndicesWidget(btc); // slices may get deselected
+            wholeBrainModel->setSelectedSurfaceType(tabIndex, surfaceType);
+            this->updateVolumeIndicesWidget(btc); /* slices may get deselected */
             this->updateGraphicsWindow();
             this->updateOtherYokedWindows();
         }
@@ -3596,8 +3402,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     
@@ -3616,8 +3422,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     const int32_t tabIndex = btc->getTabNumber();
@@ -3626,12 +3432,12 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
     BrainStructure* brainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
     if (brainStructure != NULL) {
         std::vector<Surface*> surfaces;
-        brainStructure->getSurfacesOfType(wholeBrainController->getSelectedSurfaceType(tabIndex),
+        brainStructure->getSurfacesOfType(wholeBrainModel->getSelectedSurfaceType(tabIndex),
                                           surfaces);
         
         const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
         if (numSurfaces > 0) {
-            Surface* selectedSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_LEFT,
+            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_LEFT,
                                                                                 tabIndex);
             QMenu menu;
             QActionGroup* actionGroup = new QActionGroup(&menu);
@@ -3650,7 +3456,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftToolButtonTriggered(bool /*check
                 QList<QAction*> actionList = actionGroup->actions();
                 for (int32_t i = 0; i < numSurfaces; i++) {
                     if (result == actionList.at(i)) {
-                        wholeBrainController->setSelectedSurface(StructureEnum::CORTEX_LEFT,
+                        wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_LEFT,
                                                                  tabIndex, 
                                                                  surfaces[i]);
                         this->updateGraphicsWindow();
@@ -3675,8 +3481,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*chec
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     const int32_t tabIndex = btc->getTabNumber();
@@ -3685,12 +3491,12 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*chec
     BrainStructure* brainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
     if (brainStructure != NULL) {
         std::vector<Surface*> surfaces;
-        brainStructure->getSurfacesOfType(wholeBrainController->getSelectedSurfaceType(tabIndex),
+        brainStructure->getSurfacesOfType(wholeBrainModel->getSelectedSurfaceType(tabIndex),
                                           surfaces);
         
         const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
         if (numSurfaces > 0) {
-            Surface* selectedSurface = wholeBrainController->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
+            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CORTEX_RIGHT,
                                                                                 tabIndex);
             QMenu menu;
             QActionGroup* actionGroup = new QActionGroup(&menu);
@@ -3709,7 +3515,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightToolButtonTriggered(bool /*chec
                 QList<QAction*> actionList = actionGroup->actions();
                 for (int32_t i = 0; i < numSurfaces; i++) {
                     if (result == actionList.at(i)) {
-                        wholeBrainController->setSelectedSurface(StructureEnum::CORTEX_RIGHT,
+                        wholeBrainModel->setSelectedSurface(StructureEnum::CORTEX_RIGHT,
                                                                  tabIndex, 
                                                                  surfaces[i]);
                         this->updateGraphicsWindow();
@@ -3734,8 +3540,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /
     this->checkUpdateCounter();
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     const int32_t tabIndex = btc->getTabNumber();
@@ -3744,12 +3550,12 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /
     BrainStructure* brainStructure = brain->getBrainStructure(StructureEnum::CEREBELLUM, false);
     if (brainStructure != NULL) {
         std::vector<Surface*> surfaces;
-        brainStructure->getSurfacesOfType(wholeBrainController->getSelectedSurfaceType(tabIndex),
+        brainStructure->getSurfacesOfType(wholeBrainModel->getSelectedSurfaceType(tabIndex),
                                           surfaces);
         
         const int32_t numSurfaces = static_cast<int32_t>(surfaces.size());
         if (numSurfaces > 0) {
-            Surface* selectedSurface = wholeBrainController->getSelectedSurface(StructureEnum::CEREBELLUM,
+            Surface* selectedSurface = wholeBrainModel->getSelectedSurface(StructureEnum::CEREBELLUM,
                                                                                 tabIndex);
             QMenu menu;
             QActionGroup* actionGroup = new QActionGroup(&menu);
@@ -3768,7 +3574,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumToolButtonTriggered(bool /
                 QList<QAction*> actionList = actionGroup->actions();
                 for (int32_t i = 0; i < numSurfaces; i++) {
                     if (result == actionList.at(i)) {
-                        wholeBrainController->setSelectedSurface(StructureEnum::CEREBELLUM,
+                        wholeBrainModel->setSelectedSurface(StructureEnum::CEREBELLUM,
                                                                  tabIndex, 
                                                                  surfaces[i]);
                         this->updateGraphicsWindow();
@@ -3792,8 +3598,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int /*stat
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     
@@ -3813,8 +3619,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int /
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     
@@ -3834,8 +3640,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
 
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     
@@ -3855,8 +3661,8 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
 
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController == NULL) {
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
         return;
     }
     
@@ -4010,17 +3816,17 @@ BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
     const int32_t tabIndex = btc->getTabNumber();
     
     VolumeMappableInterface* underlayVolumeFile = NULL;
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController != NULL) {
-        if (this->getDisplayedModelController() == wholeBrainController) {
-            underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel != NULL) {
+        if (this->getDisplayedModel() == wholeBrainModel) {
+            underlayVolumeFile = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
         }
     }
     
-    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
-    if (volumeController != NULL) {
-        if (this->getDisplayedModelController() == volumeController) {
-            underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
+    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
+    if (volumeModel != NULL) {
+        if (this->getDisplayedModel() == volumeModel) {
+            underlayVolumeFile = volumeModel->getUnderlayVolumeFile(tabIndex);
         }
     }
     
@@ -4053,17 +3859,17 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
     const int32_t tabIndex = btc->getTabNumber();
     
     VolumeMappableInterface* underlayVolumeFile = NULL;
-    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainController != NULL) {
-        if (this->getDisplayedModelController() == wholeBrainController) {
-            underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel != NULL) {
+        if (this->getDisplayedModel() == wholeBrainModel) {
+            underlayVolumeFile = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
         }
     }
     
-    ModelVolume* volumeController = btc->getDisplayedVolumeModel();
-    if (volumeController != NULL) {
-        if (this->getDisplayedModelController() == volumeController) {
-            underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
+    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
+    if (volumeModel != NULL) {
+        if (this->getDisplayedModel() == volumeModel) {
+            underlayVolumeFile = volumeModel->getUnderlayVolumeFile(tabIndex);
         }
     }
     
@@ -4109,19 +3915,19 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged()
  * Called when a single surface control is changed.
  * @param structure
  *      Structure that is selected.
- * @param surfaceController
- *     Controller that is selected.
+ * @param surfaceModel
+ *     Model that is selected.
  */
 void 
 BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
                                     const StructureEnum::Enum structure,
-                                    ModelSurface* surfaceController)
+                                    ModelSurface* surfaceModel)
 {
-    if (surfaceController != NULL) {
+    if (surfaceModel != NULL) {
         BrowserTabContent* btc = this->getTabContentFromSelectedTab();
         ModelSurfaceSelector* surfaceModelSelector = btc->getSurfaceModelSelector();
         surfaceModelSelector->setSelectedStructure(structure);
-        surfaceModelSelector->setSelectedSurfaceController(surfaceController);
+        surfaceModelSelector->setSelectedSurfaceModel(surfaceModel);
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         this->updateUserInterface();
         this->updateGraphicsWindow();
@@ -4253,11 +4059,6 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int /*i*/)
     
     btc->setMontageNumberOfRows(this->montageRowsSpinBox->value());
     
-    /*
-     * When yoked, need to update other toolbars.
-     */
-   // EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
-
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
 }
@@ -4272,8 +4073,6 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int /*i*/)
     this->checkUpdateCounter();
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     btc->setMontageNumberOfColumns(this->montageColumnsSpinBox->value());
-    
-        //EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().getPointer());
     
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
@@ -4493,19 +4292,19 @@ BrainBrowserWindowToolBar::getTabContentFromTab(const int tabIndex)
 }
 
 /**
- * Get the model display controller displayed in the selected tab.
+ * Get the model displayed in the selected tab.
  * @return
- *     Model display controller in the selected tab or NULL if 
+ *     Model in the selected tab or NULL if 
  *     no model is displayed.
  */
 Model* 
-BrainBrowserWindowToolBar::getDisplayedModelController()
+BrainBrowserWindowToolBar::getDisplayedModel()
 {
     Model* mdc = NULL;
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     if (btc != NULL) {
-        mdc = btc->getModelControllerForDisplay();
+        mdc = btc->getModelForDisplay();
     }
     
     return mdc;
@@ -4648,7 +4447,6 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
                 }
                 this->insertTabAtIndex(tabContent,
                                        iTab);
-                //this->addNewTab(tabContent);
             }
             else {
                 sceneAttributes->addToErrorMessage("Toolbar in window "
@@ -4807,147 +4605,6 @@ BrainBrowserWindowToolBar::createClippingWidget()
     return w;
 }
 
-/**
- * @return The chart widget.
- */
-QWidget*
-BrainBrowserWindowToolBar::createChartWidget()
-{
-    QLabel* axisLabel = new QLabel("Axis ");
-    QLabel* minLabel = new QLabel("Min");
-    QLabel* maxLabel = new QLabel("Max");
-
-    const int   minExtentBoxWidth = 65;
-    const int   maxExtentBoxWidth = 65;
-    const float xMinExtent = 0.0;
-    const float xMaxExtent = 1000.0;
-    const float yMinExtent = 0.0;
-    const float yMaxExtent = 1000.0;
-    const float ExtentsStep = 1.0;
-    const int   ExtentsDecimals = 1;
-
-    this->xMinExtentSpinBox = new QDoubleSpinBox();
-    this->xMaxExtentSpinBox = new QDoubleSpinBox();
-    this->yMinExtentSpinBox = new QDoubleSpinBox();
-    this->yMaxExtentSpinBox = new QDoubleSpinBox();
-    this->autoFitTimeLinesCB = new QCheckBox("Autofit Plot");
-    this->showAverageCB = new QCheckBox("Show Average");
-    this->zoomXAxisCB = new QCheckBox("Zoom X Axis");
-    this->zoomYAxisCB = new QCheckBox("Zoom Y Axis");
-
-    this->clearChartPB = new QToolButton();
-    this->clearChartPB->setText("Clear Chart");
-    this->resetViewPB = new QToolButton();
-    this->resetViewPB->setText("Reset View");
-    this->openTimeLinePB = new QToolButton();
-    this->openTimeLinePB->setText("Open...");
-    this->exportTimeLinePB = new QToolButton();
-    this->exportTimeLinePB->setText("Export...");
-    
-    
-    this->xMinExtentSpinBox->setRange(xMinExtent, xMaxExtent);
-    this->xMinExtentSpinBox->setSingleStep(ExtentsStep);
-    this->xMinExtentSpinBox->setDecimals(ExtentsDecimals);
-    this->xMinExtentSpinBox->setFixedWidth(minExtentBoxWidth);
-
-    this->xMaxExtentSpinBox->setRange(xMinExtent, xMaxExtent);
-    this->xMaxExtentSpinBox->setSingleStep(ExtentsStep);
-    this->xMaxExtentSpinBox->setDecimals(ExtentsDecimals);
-    this->xMaxExtentSpinBox->setFixedWidth(maxExtentBoxWidth);
-    this->xMaxExtentSpinBox->setValue(1000.0);
-
-    this->yMinExtentSpinBox->setRange(yMinExtent, yMaxExtent);
-    this->yMinExtentSpinBox->setSingleStep(ExtentsStep);
-    this->yMinExtentSpinBox->setDecimals(ExtentsDecimals);
-    this->yMinExtentSpinBox->setFixedWidth(minExtentBoxWidth);
-
-    this->yMaxExtentSpinBox->setRange(yMinExtent, yMaxExtent);
-    this->yMaxExtentSpinBox->setSingleStep(ExtentsStep);
-    this->yMaxExtentSpinBox->setDecimals(ExtentsDecimals);
-    this->yMaxExtentSpinBox->setFixedWidth(maxExtentBoxWidth);
-    this->yMaxExtentSpinBox->setValue(1000.0);
-
-    this->clearChartPB->setFixedWidth(minExtentBoxWidth);
-    this->resetViewPB->setFixedWidth(maxExtentBoxWidth);
-    this->openTimeLinePB->setFixedWidth(minExtentBoxWidth);
-    this->exportTimeLinePB->setFixedWidth(maxExtentBoxWidth);    
-    
-
-    QObject::connect(this->xMinExtentSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(extentsControlChanged()));
-    QObject::connect(this->xMaxExtentSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(extentsControlChanged()));
-    QObject::connect(this->yMinExtentSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(extentsControlChanged()));
-    QObject::connect(this->yMaxExtentSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(extentsControlChanged()));
-
-
-    
-    this->extentsWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->extentsWidgetGroup->add(this->xMinExtentSpinBox);
-    this->extentsWidgetGroup->add(this->xMaxExtentSpinBox);
-    this->extentsWidgetGroup->add(this->yMinExtentSpinBox);
-    this->extentsWidgetGroup->add(this->yMaxExtentSpinBox);
-
-    this->extentsWidgetGroup->add(this->clearChartPB);
-    this->extentsWidgetGroup->add(this->resetViewPB);
-    this->extentsWidgetGroup->add(this->openTimeLinePB);
-    this->extentsWidgetGroup->add(this->exportTimeLinePB);
-
-    this->extentsWidgetGroup->add(this->autoFitTimeLinesCB);
-    this->extentsWidgetGroup->add(this->showAverageCB);
-    this->extentsWidgetGroup->add(this->zoomXAxisCB);
-    this->extentsWidgetGroup->add(this->zoomYAxisCB);
-
-    QWidget* widget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
-    int row = 0;
-    gridLayout->addWidget(axisLabel, row, 0 , Qt::AlignHCenter);
-    gridLayout->addWidget(minLabel, row, 1, Qt::AlignLeft);
-    gridLayout->addWidget(maxLabel, row, 2, Qt::AlignLeft);
-    row++;
-    gridLayout->addWidget(new QLabel("X: "), row, 0);
-    gridLayout->addWidget(this->xMinExtentSpinBox, row, 1);
-    gridLayout->addWidget(this->xMaxExtentSpinBox, row, 2);
-    gridLayout->addWidget(this->autoFitTimeLinesCB, row, 3, Qt::AlignCenter);
-    row++;
-    gridLayout->addWidget(new QLabel("Y: "), row, 0);
-    gridLayout->addWidget(this->yMinExtentSpinBox, row, 1);
-    gridLayout->addWidget(this->yMaxExtentSpinBox, row, 2);
-    gridLayout->addWidget(this->showAverageCB, row, 3);
-    row++;
-    gridLayout->addWidget(this->clearChartPB, row, 1);
-    gridLayout->addWidget(this->resetViewPB, row, 2);
-    gridLayout->addWidget(this->zoomXAxisCB, row, 3);
-    row++;
-    gridLayout->addWidget(this->openTimeLinePB, row, 1);
-    gridLayout->addWidget(this->exportTimeLinePB, row, 2);
-    gridLayout->addWidget(this->zoomYAxisCB, row, 3);
-    row++;
-
-    widget->setSizePolicy(QSizePolicy::Fixed,
-                          QSizePolicy::Fixed);
-    
-    
-    QWidget* w = this->createToolWidget("Chart",
-                                        widget,
-                                        WIDGET_PLACEMENT_LEFT,
-                                        WIDGET_PLACEMENT_TOP,
-                                        0);
-    return w;
-}
-/**
- * Update the clipping widgets.
- * @param browserTabContent
- *    Currently displayed content.
- */
-void extentsControlChanged()
-{
-
-
-}
 
 /**
  * Update the clipping widgets.

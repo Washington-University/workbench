@@ -701,8 +701,6 @@ BrainBrowserWindow::createMenus()
     menubar->addMenu(createMenuHelp());
 }
 
-//const QString developerMenuTextOpenSpecTable = "Open Spec File";
-
 /**
  * @return Create and return the developer menu.
  */
@@ -907,38 +905,7 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
                                   e.whatString());
             return;
         }
-        
-//        if (errorMessages.isEmpty()) {
-//            SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-//                                                                           this);
-//            if (sfd->exec() == QDialog::Accepted) {
-//                EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-//                                                             &specFile);
-//                
-//                ProgressReportingDialog::runEvent(&readSpecFileEvent,
-//                                                  this,
-//                                                  specFile.getFileNameNoPath());
-//                
-//                if (readSpecFileEvent.isError()) {
-//                    if (errorMessages.isEmpty() == false) {
-//                        errorMessages += "\n";
-//                    }
-//                    errorMessages += readSpecFileEvent.getErrorMessage();
-//                }
-//            }
-//            
-//            delete sfd;
-//            sfd = NULL;
-//            
-//            m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-//        }
-        
-//        if (errorMessages.isEmpty() == false) {
-//            QMessageBox::critical(this, 
-//                                  "ERROR", 
-//                                  errorMessages);
-//        }
-        
+
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -1292,7 +1259,7 @@ BrainBrowserWindow::processSurfaceMenuInformation()
     if (btc != NULL) {
         AString txt = "";
         
-        Model* mdc = btc->getModelControllerForDisplay();
+        Model* mdc = btc->getModelForDisplay();
         ModelSurface* mdcs = dynamic_cast<ModelSurface*>(mdc);
         if (mdcs != NULL) {
             txt += mdcs->getSurface()->getInformation();
@@ -1885,9 +1852,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
      * (4) All other files.
      */
     std::vector<std::pair<AString, DataFileTypeEnum::Enum> > filesToLoad;
-//    if (specFileName.isEmpty() == false) {
-//        filenamesToLoad.push_back(specFileName);
-//    }
     const int32_t numVolumeFiles = static_cast<int32_t>(volumeFileNames.size());
     for (int32_t i = 0; i < numVolumeFiles; i++) {
         filesToLoad.push_back(std::make_pair(volumeFileNames[i],
@@ -1908,16 +1872,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                            
 
     bool createDefaultTabsFlag = false;
-//    switch (loadSpecFileMode) {
-//        case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
-//            createDefaultTabsFlag = true;
-//            break;
-//        case LOAD_SPEC_FILE_WITH_DIALOG:
-//            break;
-//        case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
-//            createDefaultTabsFlag = true;
-//            break;
-//    }
     
     /*
      * If there are no models loaded, will want to create default tabs.
@@ -2107,13 +2061,6 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                                                         EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
     EventBrowserWindowCreateTabs createTabsEvent(tabMode);
     EventManager::get()->sendEvent(createTabsEvent.getPointer());
-//    if (specFileWasLoaded) {
-//        const EventBrowserWindowCreateTabs::Mode tabMode = (createDefaultTabsFlag ?
-//                                                  EventBrowserWindowCreateTabs::MODE_LOADED_SPEC_FILE :
-//                                                  EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);
-//        EventBrowserWindowCreateTabs createTabsEvent(tabMode);
-//        EventManager::get()->sendEvent(createTabsEvent.getPointer());
-//    }
     
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
@@ -2160,10 +2107,6 @@ BrainBrowserWindow::processManageSaveLoadedFiles()
     Brain* brain = GuiManager::get()->getBrain();
     SpecFileManagementDialog::runManageFilesDialog(brain,
                                                    this);
-//    ManageLoadedFilesDialog manageLoadedFile(this,
-//                                             GuiManager::get()->getBrain(),
-//                                             false);
-//    manageLoadedFile.exec();
 }
 
 /**
@@ -2545,14 +2488,6 @@ BrainBrowserWindow::processShowFeaturesToolBox(bool status)
     else {
         m_featuresToolBoxAction->setToolTip("Show Features Toolbox");
     }
-//    if (status) {
-//        AString title = m_featuresToolBoxTitle;
-//        if (m_featuresToolBox->isFloating()) {
-//            title += (" "
-//                      + AString::number(m_browserWindowIndex + 1));
-//        }
-//        m_featuresToolBox->setWindowTitle(title);
-//    }
 }
 
 /**

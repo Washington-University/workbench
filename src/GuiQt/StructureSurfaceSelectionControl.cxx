@@ -103,7 +103,7 @@ StructureSurfaceSelectionControl::structureSelected(int currentIndex)
     
     emitSelectionChangedSignal();
 //    emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
-//                          this->surfaceControllerSelector->getSelectedSurfaceController());
+//                          this->surfaceControllerSelector->getSelectedSurfaceModel());
 
     this->updateControlAfterSelection();
 }
@@ -115,11 +115,11 @@ StructureSurfaceSelectionControl::surfaceControllerSelected(int currentIndex)
                 && (currentIndex < this->surfaceControllerSelectionComboBox->count()));
     void* pointer = this->surfaceControllerSelectionComboBox->itemData(currentIndex).value<void*>();
     ModelSurface* surfaceController = (ModelSurface*)pointer;
-    this->surfaceControllerSelector->setSelectedSurfaceController(surfaceController);
+    this->surfaceControllerSelector->setSelectedSurfaceModel(surfaceController);
     
     emitSelectionChangedSignal();
 //    emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
-//                          this->surfaceControllerSelector->getSelectedSurfaceController());
+//                          this->surfaceControllerSelector->getSelectedSurfaceModel());
 }
 
 /**
@@ -132,7 +132,7 @@ StructureSurfaceSelectionControl::emitSelectionChangedSignal()
     const bool structureHasFocus = this->structureSelectionComboBox->hasFocus();
     const bool surfaceHasFocus   = this->surfaceControllerSelectionComboBox->hasFocus();
     emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
-                          this->surfaceControllerSelector->getSelectedSurfaceController());
+                          this->surfaceControllerSelector->getSelectedSurfaceModel());
     if (structureHasFocus) {
         this->structureSelectionComboBox->setFocus();
     }
@@ -147,9 +147,9 @@ StructureSurfaceSelectionControl::emitSelectionChangedSignal()
  * @return The selected mode surface.
  */
 ModelSurface* 
-StructureSurfaceSelectionControl::getSelectedSurfaceController()
+StructureSurfaceSelectionControl::getSelectedSurfaceModel()
 {
-    return this->surfaceControllerSelector->getSelectedSurfaceController();
+    return this->surfaceControllerSelector->getSelectedSurfaceModel();
 }
 
 /**
@@ -163,10 +163,10 @@ StructureSurfaceSelectionControl::getSelectedStructure()
 
 /*
 void 
-StructureSurfaceSelectionControl::setSelectedSurfaceController(
+StructureSurfaceSelectionControl::setSelectedSurfaceModel(
                         ModelSurface* surfaceController)
 {
-    this->surfaceControllerSelector->setSelectedSurfaceController(surfaceController);
+    this->surfaceControllerSelector->setSelectedSurfaceModel(surfaceController);
     this->updateControl();
 }
 
@@ -201,11 +201,11 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
         return;
     }
     
-    std::vector<ModelSurface*> availableSurfaceControllers;
+    std::vector<ModelSurface*> availableSurfaceModels;
     std::vector<StructureEnum::Enum> availableStructures;
     
     this->surfaceControllerSelector->getSelectableStructures(availableStructures);
-    this->surfaceControllerSelector->getSelectableSurfaceControllers(availableSurfaceControllers);
+    this->surfaceControllerSelector->getSelectableSurfaceModels(availableSurfaceModels);
     
     Surface* volumeInteractionSurface = NULL;
     
@@ -238,11 +238,11 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
      * Update the surface selection.
      */
     ModelSurface* selectedSurfaceController =
-        this->surfaceControllerSelector->getSelectedSurfaceController();
+        this->surfaceControllerSelector->getSelectedSurfaceModel();
     int32_t defaultSurfaceIndex = -1;
     int32_t volumeInteractionSurfaceIndex = -1;
-    for (std::vector<ModelSurface*>::const_iterator iter = availableSurfaceControllers.begin();
-         iter != availableSurfaceControllers.end();
+    for (std::vector<ModelSurface*>::const_iterator iter = availableSurfaceModels.begin();
+         iter != availableSurfaceModels.end();
          iter++) {
         ModelSurface* surfaceController = *iter;
         this->surfaceControllerSelectionComboBox->addItem(surfaceController->getNameForGUI(allSelected),

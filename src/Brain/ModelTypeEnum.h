@@ -42,6 +42,8 @@ public:
     enum Enum {
         /** Invalid */
         MODEL_TYPE_INVALID,
+        /** Chart */
+        MODEL_TYPE_CHART,
         /** Surface */
         MODEL_TYPE_SURFACE,
         /** Surface Montage */
@@ -49,9 +51,7 @@ public:
         /** Volume Slices */
         MODEL_TYPE_VOLUME_SLICES,
         /** Whole Brain */
-        MODEL_TYPE_WHOLE_BRAIN,
-        /** Chart */
-        MODEL_TYPE_CHART
+        MODEL_TYPE_WHOLE_BRAIN
     };
 
 

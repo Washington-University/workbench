@@ -73,6 +73,7 @@
 #include "IdentificationManager.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
+#include "ModelChart.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -118,9 +119,10 @@ Brain::Brain()
     m_specFile->setFileName("");
     m_specFile->clearModified();
     
-    m_surfaceMontageController = NULL;
-    m_volumeSliceController = NULL;
-    m_wholeBrainController = NULL;
+    m_modelChart = NULL;
+    m_surfaceMontageModel = NULL;
+    m_volumeSliceModel = NULL;
+    m_wholeBrainModel = NULL;
     
     m_displayPropertiesBorders = new DisplayPropertiesBorders();
     m_displayProperties.push_back(m_displayPropertiesBorders);
@@ -206,14 +208,17 @@ Brain::~Brain()
     delete m_chartingDataManager;
     delete m_fiberOrientationSamplesLoader;
     delete m_paletteFile;
-    if (m_surfaceMontageController != NULL) {
-        delete m_surfaceMontageController;
+    if (m_modelChart != NULL) {
+        delete m_modelChart;
     }
-    if (m_volumeSliceController != NULL) {
-        delete m_volumeSliceController;
+    if (m_surfaceMontageModel != NULL) {
+        delete m_surfaceMontageModel;
     }
-    if (m_wholeBrainController != NULL) {
-        delete m_wholeBrainController;
+    if (m_volumeSliceModel != NULL) {
+        delete m_volumeSliceModel;
+    }
+    if (m_wholeBrainModel != NULL) {
+        delete m_wholeBrainModel;
     }
 
     delete m_selectionManager;
@@ -3071,22 +3076,6 @@ Brain::getAllCiftiConnectivityMatrixFiles(std::vector<CiftiMappableConnectivityM
             allCiftiConnectivityMatrixFiles.push_back(cmdf);
         }
     }
-//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-//                                           m_connectivityMatrixDenseFiles.begin(),
-//                                           m_connectivityMatrixDenseFiles.end());
-//    
-//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-//                                           m_connectivityMatrixDenseParcelFiles.begin(),
-//                                           m_connectivityMatrixDenseParcelFiles.end());
-//    
-//    
-//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-//                                           m_connectivityMatrixParcelFiles.begin(),
-//                                           m_connectivityMatrixParcelFiles.end());
-//    
-//    allCiftiConnectivityMatrixFiles.insert(allCiftiConnectivityMatrixFiles.end(),
-//                                           m_connectivityMatrixParcelDenseFiles.begin(),
-//                                           m_connectivityMatrixParcelDenseFiles.end());
 }
 
 /**
@@ -3314,9 +3303,6 @@ Brain::addBorderFile()
 {
     BorderFile* bf = new BorderFile();
     addDataFile(bf);
-//    bf->setFileName(updateFileNameForWriting(bf->getFileName()));
-//    m_borderFiles.push_back(bf);
-//    m_specFile->addCaretDataFile(bf);
     return bf;
 }
 
@@ -3554,10 +3540,6 @@ Brain::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                                       borderPointIndex,
                                                       distanceToNearestBorderPoint);
         if (valid) {
-//            std::cout << "Brain: Border: " << qPrintable(border->getName())
-//            << " point index: " << borderPointIndex
-//            << " distance: " << distanceToBorderPointOut << std::endl;
-            
             if (distanceToNearestBorderPoint < distanceToBorderPointOut) {
                 CaretAssert(border);
                 CaretAssert(borderIndex >= 0);
@@ -3595,9 +3577,6 @@ Brain::addFociFile()
 {
     FociFile* ff = new FociFile();
     addDataFile(ff);
-//    ff->setFileName(updateFileNameForWriting(ff->getFileName()));
-//    m_fociFiles.push_back(ff);
-//    m_specFile->addCaretDataFile(ff);
     return ff;
 }
 
@@ -3631,9 +3610,6 @@ Brain::addSceneFile()
 {
     SceneFile* sf = new SceneFile();
     addDataFile(sf);
-//    sf->setFileName(updateFileNameForWriting(sf->getFileName()));
-//    m_sceneFiles.push_back(sf);
-//    m_specFile->addCaretDataFile(sf);
     return sf;
 }
 
@@ -3824,10 +3800,27 @@ Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
 }
 
 /**
- * Update the volume slice controller.
+ * Update the chart model.
+ */
+void
+Brain::updateChartModel()
+{
+    if (m_modelChart == NULL) {
+        m_modelChart = new ModelChart(this);
+        EventModelAdd eventAddModel(m_modelChart);
+        EventManager::get()->sendEvent(eventAddModel.getPointer());
+        
+        if (m_isSpecFileBeingRead == false) {
+            m_modelChart->initializeOverlays();
+        }
+    }
+}
+
+/**
+ * Update the volume slice model.
  */
 void 
-Brain::updateVolumeSliceController()
+Brain::updateVolumeSliceModel()
 {
     bool isValid = false;
     std::vector<CaretMappableDataFile*> allCaretMappableDataFiles;
@@ -3844,38 +3837,33 @@ Brain::updateVolumeSliceController()
         }
     }
     
-//    bool isValid = false;
-//    if (getNumberOfVolumeFiles() > 0) {
-//        isValid = true;
-//    }
-    
     if (isValid) {
-        if (m_volumeSliceController == NULL) {
-            m_volumeSliceController = new ModelVolume(this);
-            EventModelAdd eventAddModel(m_volumeSliceController);
+        if (m_volumeSliceModel == NULL) {
+            m_volumeSliceModel = new ModelVolume(this);
+            EventModelAdd eventAddModel(m_volumeSliceModel);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
 
             if (m_isSpecFileBeingRead == false) {
-                m_volumeSliceController->initializeOverlays();
+                m_volumeSliceModel->initializeOverlays();
             }
         }
     }
     else {
-        if (m_volumeSliceController != NULL) {
-            EventModelDelete eventDeleteModel(m_volumeSliceController);
+        if (m_volumeSliceModel != NULL) {
+            EventModelDelete eventDeleteModel(m_volumeSliceModel);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete m_volumeSliceController;
-            m_volumeSliceController = NULL;
+            delete m_volumeSliceModel;
+            m_volumeSliceModel = NULL;
         }
     }
     
 }
 
 /**
- * Update the whole brain controller.
+ * Update the whole brain model.
  */
 void 
-Brain::updateWholeBrainController()
+Brain::updateWholeBrainModel()
 {
     bool isValid = false;
     if ((getNumberOfBrainStructures() > 0)
@@ -3884,31 +3872,31 @@ Brain::updateWholeBrainController()
     }
      
     if (isValid) {
-        if (m_wholeBrainController == NULL) {
-            m_wholeBrainController = new ModelWholeBrain(this);
-            EventModelAdd eventAddModel(m_wholeBrainController);
+        if (m_wholeBrainModel == NULL) {
+            m_wholeBrainModel = new ModelWholeBrain(this);
+            EventModelAdd eventAddModel(m_wholeBrainModel);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
             
             if (m_isSpecFileBeingRead == false) {
-                m_wholeBrainController->initializeOverlays();
+                m_wholeBrainModel->initializeOverlays();
             }
         }
     }
     else {
-        if (m_wholeBrainController != NULL) {
-            EventModelDelete eventDeleteModel(m_wholeBrainController);
+        if (m_wholeBrainModel != NULL) {
+            EventModelDelete eventDeleteModel(m_wholeBrainModel);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete m_wholeBrainController;
-            m_wholeBrainController = NULL;
+            delete m_wholeBrainModel;
+            m_wholeBrainModel = NULL;
         }
     }    
 }
 
 /**
- * Update the surface montage controller
+ * Update the surface montage model
  */
 void 
-Brain::updateSurfaceMontageController()
+Brain::updateSurfaceMontageModel()
 {
     bool isValid = false;
     if (getNumberOfBrainStructures() > 0) {
@@ -3916,22 +3904,22 @@ Brain::updateSurfaceMontageController()
     }
     
     if (isValid) {
-        if (m_surfaceMontageController == NULL) {
-            m_surfaceMontageController = new ModelSurfaceMontage(this);
-            EventModelAdd eventAddModel(m_surfaceMontageController);
+        if (m_surfaceMontageModel == NULL) {
+            m_surfaceMontageModel = new ModelSurfaceMontage(this);
+            EventModelAdd eventAddModel(m_surfaceMontageModel);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
             
             if (m_isSpecFileBeingRead == false) {
-                m_surfaceMontageController->initializeOverlays();
+                m_surfaceMontageModel->initializeOverlays();
             }
         }
     }
     else {
-        if (m_surfaceMontageController != NULL) {
-            EventModelDelete eventDeleteModel(m_surfaceMontageController);
+        if (m_surfaceMontageModel != NULL) {
+            EventModelDelete eventDeleteModel(m_surfaceMontageModel);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete m_surfaceMontageController;
-            m_surfaceMontageController = NULL;
+            delete m_surfaceMontageModel;
+            m_surfaceMontageModel = NULL;
         }
     }
 }
@@ -4290,47 +4278,6 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                                                             dataFileName,
                                                             markDataFileAsModified);
     
-    
-//    if (addDataFileToSpecFile) {
-//        if (m_specFileName.isEmpty() == false) {
-//            FileInformation specFileInfo(m_specFileName);
-//            QString relativePathDataFileName = SystemUtilities::relativePath(dataFileName,
-//                                                                             specFileInfo.getPathName());
-//            
-//            StructureEnum::Enum dataFileStructure = structure;
-//            if (dataFileStructure == StructureEnum::INVALID) {
-//                if (caretDataFileRead != NULL) {
-//                    dataFileStructure = caretDataFileRead->getStructure();
-//                }
-//                else {
-//                    dataFileStructure = StructureEnum::ALL;
-//                }
-//            }
-//            try {
-//                SpecFile sf;
-//                sf.readFile(m_specFileName);
-//                sf.addDataFile(dataFileType,
-//                               dataFileStructure,
-//                               relativePathDataFileName,
-//                               true,
-//                               false,
-//                               false);
-//                sf.writeFile(m_specFileName);
-//            }
-//            catch (const DataFileException& e) {
-//                addToSpecFileErrorMessageOut = ("Unable to add file \""
-//                                             + dataFileName
-//                                             + "\" to SpecFile \""
-//                                             + m_specFileName
-//                                             + "\", Error:"
-//                                             + e.whatString());
-//                CaretLogWarning(addToSpecFileErrorMessageOut);
-//            }
-//        }
-//    }
-    
-//    updateAfterFilesAddedOrRemoved();
-    
     return caretDataFileRead;
 }
 
@@ -4340,9 +4287,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void
 Brain::updateAfterFilesAddedOrRemoved()
 {
-    updateVolumeSliceController();
-    updateWholeBrainController();
-    updateSurfaceMontageController();
+    updateChartModel();
+    updateVolumeSliceModel();
+    updateWholeBrainModel();
+    updateSurfaceMontageModel();
     
     updateFiberTrajectoryMatchingFiberOrientationFiles();
 }
@@ -4467,11 +4415,6 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     if (errorMessage.isEmpty() == false) {
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
-    
-//    if (m_paletteFile != NULL) {
-//        delete m_paletteFile;
-//    }
-//    m_paletteFile = new PaletteFile();
     m_paletteFile->setFileName(updateFileNameForWriting(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
     
@@ -4510,15 +4453,6 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         bs->initializeOverlays();
     }
     
-/*
-    EventBrowserTabGetAll getAllTabs;
-    EventManager::get()->sendEvent(getAllTabs.getPointer());
-    const int32_t numTabs = getAllTabs.getNumberOfBrowserTabs();
-    for (int32_t i = 0; i < numTabs; i++) {
-        BrowserTabContent* btc = getAllTabs.getBrowserTab(i);
-        btc->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(this, false);
-    }
-*/    
     CaretLogInfo("Time to read files from spec file (in Brain) \""
                  + sf->getFileNameNoPath()
                  + "\" was "
@@ -4555,35 +4489,6 @@ Brain::loadSpecFileFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(progressEvent.getPointer());
     
     resetBrainKeepSceneFiles();
-//    resetBrain(keepSceneFiles,
-//                     keepSpecFile);
-    
-//    /*
-//     * Set current directory to directory containing the scene file
-//     * if the current spec file is not a valid file
-//     */
-//    
-//    const AString currentSpecFileName = m_specFile->getFileName();
-//    FileInformation currentSpecFileInfo(currentSpecFileName);
-//    if (currentSpecFileInfo.exists() == false) {
-//        
-//    }
-//    /*
-//     * Try to set to current directory
-//     */
-//    const AString previousSpecFileName = m_specFile->getFileName();
-//    delete m_specFile;
-//    m_specFile = new SpecFile(*specFileToLoad);
-//    FileInformation newSpecFileInfo(m_specFile->getFileName());
-//    if (newSpecFileInfo.isAbsolute()) {
-//        setCurrentDirectory(newSpecFileInfo.getPathName());
-//    }
-//    else {
-//        if (previousSpecFileName.endsWith(m_specFile->getFileName()) == false) {
-//            FileInformation oldSpecFileInfo(previousSpecFileName);
-//            setCurrentDirectory(oldSpecFileInfo.getPathName());
-//        }
-//    }
 
     /*
      * Try to set to current directory
@@ -5455,189 +5360,6 @@ Brain::removeAndDeleteDataFile(CaretDataFile* caretDataFile)
     }
     
     return false;
-    
-    
-//    if (caretDataFile == NULL) {
-//        return false;
-//    }
-//
-//    bool wasRemoved = false;
-//    CaretDataFile* caretDataFileForRemovalFromSpecFile = caretDataFile;
-//    
-//    const int32_t numBrainStructures = getNumberOfBrainStructures();
-//    for (int32_t i = 0; i < numBrainStructures; i++) {
-//        if (getBrainStructure(i)->removeAndDeleteDataFile(caretDataFile)) {
-//            wasRemoved = true;
-//            caretDataFile = NULL;
-//        }
-//    }
-//    
-//    std::vector<BorderFile*>::iterator borderIterator = std::find(m_borderFiles.begin(),
-//                                                                  m_borderFiles.end(),
-//                                                                  caretDataFile);
-//    if (borderIterator != m_borderFiles.end()) {
-//        BorderFile* borderFile = *borderIterator;
-//        delete borderFile;
-//        m_borderFiles.erase(borderIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiBrainordinateDataSeriesFile*>::iterator dataSeriesIterator = std::find(m_connectivityDataSeriesFiles.begin(),
-//                                                                            m_connectivityDataSeriesFiles.end(),
-//                                                                            caretDataFile);
-//    if (dataSeriesIterator != m_connectivityDataSeriesFiles.end()) {
-//        CiftiBrainordinateDataSeriesFile* dataSeriesFile = *dataSeriesIterator;
-//        
-//        const AString name = dataSeriesFile->getFileName();
-//        delete dataSeriesFile;
-//        m_connectivityDataSeriesFiles.erase(dataSeriesIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiBrainordinateLabelFile*>::iterator connLabelIterator = std::find(m_connectivityDenseLabelFiles.begin(),
-//                                                                                      m_connectivityDenseLabelFiles.end(),
-//                                                                                      caretDataFile);
-//    if (connLabelIterator != m_connectivityDenseLabelFiles.end()) {
-//        CiftiBrainordinateLabelFile* connFile = *connLabelIterator;
-//        delete connFile;
-//        m_connectivityDenseLabelFiles.erase(connLabelIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiConnectivityMatrixDenseFile*>::iterator connDenseIterator = std::find(m_connectivityMatrixDenseFiles.begin(),
-//                                                                                                       m_connectivityMatrixDenseFiles.end(),
-//                                                                                                       caretDataFile);
-//    if (connDenseIterator != m_connectivityMatrixDenseFiles.end()) {
-//        CiftiConnectivityMatrixDenseFile* connFile = *connDenseIterator;
-//        delete connFile;
-//        m_connectivityMatrixDenseFiles.erase(connDenseIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiConnectivityMatrixDenseParcelFile*>::iterator connDenseParcelIterator = std::find(m_connectivityMatrixDenseParcelFiles.begin(),
-//                                                                                 m_connectivityMatrixDenseParcelFiles.end(),
-//                                                                                 caretDataFile);
-//    if (connDenseParcelIterator != m_connectivityMatrixDenseParcelFiles.end()) {
-//        CiftiConnectivityMatrixDenseParcelFile* connFile = *connDenseParcelIterator;
-//        delete connFile;
-//        m_connectivityMatrixDenseParcelFiles.erase(connDenseParcelIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiBrainordinateScalarFile*>::iterator connScalarIterator = std::find(m_connectivityDenseScalarFiles.begin(),
-//                                                                            m_connectivityDenseScalarFiles.end(),
-//                                                                            caretDataFile);
-//    if (connScalarIterator != m_connectivityDenseScalarFiles.end()) {
-//        CiftiBrainordinateScalarFile* connFile = *connScalarIterator;
-//        const AString name = connFile->getFileName();
-//        
-//        delete connFile;
-//        m_connectivityDenseScalarFiles.erase(connScalarIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
-//                                                                            m_connectivityFiberOrientationFiles.end(),
-//                                                                            caretDataFile);
-//    if (connFiberOrientationIterator != m_connectivityFiberOrientationFiles.end()) {
-//        CiftiFiberOrientationFile* connFile = *connFiberOrientationIterator;
-//        delete connFile;
-//        m_connectivityFiberOrientationFiles.erase(connFiberOrientationIterator);
-//        return true;
-//    }
-//    
-//    std::vector<CiftiFiberTrajectoryFile*>::iterator connFiberTrajectoryIterator = std::find(m_connectivityFiberTrajectoryFiles.begin(),
-//                                                                                            m_connectivityFiberTrajectoryFiles.end(),
-//                                                                                            caretDataFile);
-//    if (connFiberTrajectoryIterator != m_connectivityFiberTrajectoryFiles.end()) {
-//        CiftiFiberTrajectoryFile* trajFile = *connFiberTrajectoryIterator;
-//        delete trajFile;
-//        m_connectivityFiberTrajectoryFiles.erase(connFiberTrajectoryIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<CiftiConnectivityMatrixParcelFile*>::iterator connParcelIterator = std::find(m_connectivityMatrixParcelFiles.begin(),
-//                                                                                     m_connectivityMatrixParcelFiles.end(),
-//                                                                                     caretDataFile);
-//    if (connParcelIterator != m_connectivityMatrixParcelFiles.end()) {
-//        CiftiConnectivityMatrixParcelFile* connFile = *connParcelIterator;
-//        delete connFile;
-//        m_connectivityMatrixParcelFiles.erase(connParcelIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }    
-//
-//    std::vector<CiftiConnectivityMatrixParcelDenseFile*>::iterator connParcelDenseIterator = std::find(m_connectivityMatrixParcelDenseFiles.begin(),
-//                                                                                     m_connectivityMatrixParcelDenseFiles.end(),
-//                                                                                     caretDataFile);
-//    if (connParcelDenseIterator != m_connectivityMatrixParcelDenseFiles.end()) {
-//        CiftiConnectivityMatrixParcelDenseFile* connFile = *connParcelDenseIterator;
-//        delete connFile;
-//        m_connectivityMatrixParcelDenseFiles.erase(connParcelDenseIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//
-//    std::vector<FociFile*>::iterator fociIterator = std::find(m_fociFiles.begin(),
-//                                                                  m_fociFiles.end(),
-//                                                                  caretDataFile);
-//    if (fociIterator != m_fociFiles.end()) {
-//        FociFile* fociFile =  *fociIterator;
-//        delete fociFile;
-//        m_fociFiles.erase(fociIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    if (m_paletteFile == caretDataFile) {
-//        if (m_paletteFile != NULL) {
-//            throw DataFileException("Cannot remove PaletteFile at this time.");
-//        }
-//    }
-//    
-//    std::vector<SceneFile*>::iterator sceneIterator = std::find(m_sceneFiles.begin(),
-//                                                                m_sceneFiles.end(),
-//                                                                caretDataFile);
-//    if (sceneIterator != m_sceneFiles.end()) {
-//        SceneFile* sceneFile = *sceneIterator;
-//        delete sceneFile;
-//        m_sceneFiles.erase(sceneIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    std::vector<VolumeFile*>::iterator volumeIterator = 
-//    std::find(m_volumeFiles.begin(),
-//              m_volumeFiles.end(),
-//              caretDataFile);
-//    if (volumeIterator != m_volumeFiles.end()) {
-//        VolumeFile* volumeFile = *volumeIterator;
-//        delete volumeFile;
-//        m_volumeFiles.erase(volumeIterator);
-//        wasRemoved = true;
-//        caretDataFile = NULL;
-//    }
-//    
-//    if (wasRemoved) {
-//        m_specFile->removeCaretDataFile(caretDataFileForRemovalFromSpecFile);
-//        
-//        updateAfterFilesAddedOrRemoved();
-//    }
-//    else {
-//        CaretLogSevere("Software bug: failed to remove file type="
-//                       + DataFileTypeEnum::toName(caretDataFile->getDataFileType())
-//                       + " name="
-//                       + caretDataFile->getFileName());
-//    }
-//
-//    return wasRemoved;
 }
 
 /**

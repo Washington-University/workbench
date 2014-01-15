@@ -213,9 +213,9 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const QString& text,
                                                       const TextAlignmentX alignmentX,
                                                       const TextAlignmentY alignmentY,
-                                                      const TextStyle textStyle,
+                                                      const TextStyle /*textStyle*/,
                                                       const int fontHeightIn,
-                                                      const AString& fontName)
+                                                      const AString& /*fontName*/)
 {
     if (text.isEmpty()) {
         return;
@@ -413,9 +413,9 @@ GlfFontTextRenderer::drawTextAtModelCoords(const double modelX,
                                                      const double modelY,
                                                      const double modelZ,
                                                      const QString& text,
-                                                     const TextStyle textStyle,
+                                                     const TextStyle /*textStyle*/,
                                                      const int fontHeight,
-                                                     const AString& fontName)
+                                                     const AString& /*fontName*/)
 {
     GLdouble modelMatrix[16];
     GLdouble projectionMatrix[16];

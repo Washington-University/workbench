@@ -33,7 +33,7 @@ using namespace caret;
  * Constructor.
  */
 EventModelGetAll::EventModelGetAll()
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL)
+: Event(EventTypeEnum::EVENT_MODEL_GET_ALL)
 {
 }
 
@@ -46,46 +46,46 @@ EventModelGetAll::~EventModelGetAll()
 }
 
 /**
- * Add model display controllers.
+ * Add models.
  
- * @param modelDisplayControllersToAdd
- *    These model display controllers are added.
+ * @param modelsToAdd
+ *    These model added.
  */
 void 
 EventModelGetAll::addModels(
-        const std::vector<Model*>& modelDisplayControllersToAdd)
+        const std::vector<Model*>& modelsToAdd)
 {
-    this->modelDisplayControllers.insert(this->modelDisplayControllers.end(),
-                                         modelDisplayControllersToAdd.begin(),
-                                         modelDisplayControllersToAdd.end());
+    m_models.insert(m_models.end(),
+                    modelsToAdd.begin(),
+                    modelsToAdd.end());
 }
 
 /**
- * Get the model display controllers. 
+ * Get the model.
  *
- * @return vector containing the model display controllers.
+ * @return vector containing the model.
  */
 const std::vector<Model*> 
 EventModelGetAll::getModels() const
 {
-    return this->modelDisplayControllers;
+    return this->m_models;
 }
 
 /**
- * Is a model display controller valid?
+ * Is a model valid?
  *
- * @param modelDisplayController
- *    Model display controller that is checked for validity.
+ * @param model
+ *    Model that is checked for validity.
  * 
  * @return true if valid, else false.
  */
 bool 
 EventModelGetAll::isModelValid(
-        const Model* modelDisplayController) const
+        const Model* model) const
 {
-    if (std::find(this->modelDisplayControllers.begin(), 
-                  this->modelDisplayControllers.end(), 
-                  modelDisplayController) != this->modelDisplayControllers.end()) { 
+    if (std::find(this->m_models.begin(), 
+                  this->m_models.end(), 
+                  model) != m_models.end()) {
         return true;
     }
     
@@ -93,35 +93,35 @@ EventModelGetAll::isModelValid(
 }
 
 /**
- * Get the first model display controller.
+ * Get the first model.
  * 
- * @return Pointer to first model controller or
- *    NULL if there are no model controllers.
+ * @return Pointer to first model or
+ *    NULL if there are no model.
  */
 Model* 
 EventModelGetAll::getFirstModel() const
 {
-    if (this->modelDisplayControllers.empty() == false) {
-        return this->modelDisplayControllers[0];
+    if (m_models.empty() == false) {
+        return m_models[0];
     }
     
     return NULL;
 }
 
 /**
- * Get the first model display controller surface.
+ * Get the first model  surface.
  * 
- * @return Pointer to first model controller surface or
- *    NULL if there are no model controller surfaces.
+ * @return Pointer to first model surface or
+ *    NULL if there are no model surfaces.
  */
 ModelSurface* 
 EventModelGetAll::getFirstModelSurface() const
 {
     ModelSurface* surfaceModelOut = NULL;
     
-    const int32_t numModels = static_cast<int32_t>(this->modelDisplayControllers.size());
+    const int32_t numModels = static_cast<int32_t>(m_models.size());
     for (int32_t i = 0; i < numModels; i++) {
-        surfaceModelOut = dynamic_cast<ModelSurface*>(this->modelDisplayControllers[i]);
+        surfaceModelOut = dynamic_cast<ModelSurface*>(m_models[i]);
         if (surfaceModelOut != NULL) {
             break;
         }

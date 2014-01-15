@@ -95,8 +95,8 @@ namespace caret {
         /** The browser tabs */
         BrowserTabContent* m_browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
         
-        /** Holds valid model display controllers */
-        std::vector<Model*> m_modelDisplayControllers;
+        /** Holds valid models */
+        std::vector<Model*> m_models;
         
         /** Holds all loaded brains */
         std::vector<Brain*> m_brains;

@@ -76,9 +76,9 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_ADD);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DELETE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_GET_ALL);
     
     Brain* brain = new Brain();
     m_brains.push_back(brain);
@@ -258,7 +258,7 @@ SessionManager::receiveEvent(Event* event)
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (m_browserTabs[i] == NULL) {
                 BrowserTabContent* tab = new BrowserTabContent(i);
-                tab->update(m_modelDisplayControllers);
+                tab->update(m_models);
                 m_browserTabs[i] = tab;
                 tabEvent->setBrowserTab(tab);
                 createdTab = true;
@@ -311,18 +311,18 @@ SessionManager::receiveEvent(Event* event)
             }
         }
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD) {
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_ADD) {
         EventModelAdd* addModelsEvent =
         dynamic_cast<EventModelAdd*>(event);
         CaretAssert(addModelsEvent);
         
         addModelsEvent->setEventProcessed();
         
-        m_modelDisplayControllers.push_back(addModelsEvent->getModel());
+        m_models.push_back(addModelsEvent->getModel());
 
         updateBrowserTabContents();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE) {
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DELETE) {
         EventModelDelete* deleteModelsEvent =
         dynamic_cast<EventModelDelete*>(event);
         CaretAssert(deleteModelsEvent);
@@ -332,25 +332,25 @@ SessionManager::receiveEvent(Event* event)
         Model* model = deleteModelsEvent->getModel();
         
         std::vector<Model*>::iterator iter =
-        std::find(m_modelDisplayControllers.begin(),
-                  m_modelDisplayControllers.end(),
+        std::find(m_models.begin(),
+                  m_models.end(),
                   model);
         
-        CaretAssertMessage(iter != m_modelDisplayControllers.end(),
-                           "Trying to delete non-existent model controller");
+        CaretAssertMessage(iter != m_models.end(),
+                           "Trying to delete non-existent model");
         
-        m_modelDisplayControllers.erase(iter);
+        m_models.erase(iter);
         
         updateBrowserTabContents();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL) {
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_GET_ALL) {
         EventModelGetAll* getModelsEvent =
         dynamic_cast<EventModelGetAll*>(event);
         CaretAssert(getModelsEvent);
         
         getModelsEvent->setEventProcessed();
         
-        getModelsEvent->addModels(m_modelDisplayControllers);
+        getModelsEvent->addModels(m_models);
     }
 }
 
@@ -362,7 +362,7 @@ SessionManager::updateBrowserTabContents()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         if (m_browserTabs[i] != NULL) {
-            m_browserTabs[i]->update(m_modelDisplayControllers);
+            m_browserTabs[i]->update(m_models);
         }
     }
 }
@@ -581,7 +581,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         const SceneClass* browserTabClass = browserTabArray->getClassAtIndex(i);
         
         BrowserTabContent* tab = new BrowserTabContent(i);
-        tab->update(m_modelDisplayControllers);
+        tab->update(m_models);
         tab->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(m_brains[0], 
                                                                              false);
         tab->restoreFromScene(sceneAttributes, 

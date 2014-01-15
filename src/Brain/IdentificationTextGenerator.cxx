@@ -654,13 +654,17 @@ IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappab
     for (std::vector<BrowserTabContent*>::const_iterator tabIter = allTabs.begin();
          tabIter != allTabs.end();
          tabIter++) {
-        std::vector<int32_t> mapIndices;
-        (*tabIter)->getOverlaySet()->getSelectedMapIndicesForFile(caretMappableDataFile,
-                                                                  false,
-                                                                  mapIndices);
-        mapIndicesOut.insert(mapIndicesOut.end(),
-                             mapIndices.begin(),
-                             mapIndices.end());
+        BrowserTabContent* tabContent = *tabIter;
+        OverlaySet* overlaySet = tabContent->getOverlaySet();
+        if (overlaySet != NULL) {
+            std::vector<int32_t> mapIndices;
+            overlaySet->getSelectedMapIndicesForFile(caretMappableDataFile,
+                                                     false,
+                                                     mapIndices);
+            mapIndicesOut.insert(mapIndicesOut.end(),
+                                 mapIndices.begin(),
+                                 mapIndices.end());
+        }
     }
     
     /*

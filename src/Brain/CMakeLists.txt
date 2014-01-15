@@ -107,6 +107,7 @@ IdentifiedItem.h
 IdentifiedItemNode.h
 LabelDrawingTypeEnum.h
 Model.h
+ModelChart.h
 ModelSurface.h
 ModelSurfaceMontage.h
 ModelSurfaceSelector.h
@@ -209,6 +210,7 @@ IdentifiedItem.cxx
 IdentifiedItemNode.cxx
 LabelDrawingTypeEnum.cxx
 Model.cxx
+ModelChart.cxx
 ModelSurface.cxx
 ModelSurfaceMontage.cxx
 ModelSurfaceSelector.cxx

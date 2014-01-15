@@ -158,21 +158,21 @@ EventTypeEnum::initialize()
                                      "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW",
                                      "Request display of map scalar data color mapping editor"));
     
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
-                                     "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
-                                     "Add a model display controller"));
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_ADD, 
+                                     "EVENT_MODEL_ADD", 
+                                     "Add a model"));
     
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_DELETE, 
-                                    "EVENT_MODEL_DISPLAY_CONTROLLER_DELETE", 
-                                    "Delete a model display controller"));
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_DELETE, 
+                                    "EVENT_MODEL_DELETE", 
+                                    "Delete a model"));
     
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL, 
-                                    "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
-                                    "Get all model display controllers"));
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_GET_ALL, 
+                                    "EVENT_MODEL_GET_ALL", 
+                                    "Get all models"));
 
-    enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET, 
-                                     "EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET", 
-                                     "Get a specific model display controller surface"));
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_SURFACE_GET, 
+                                     "EVENT_MODEL_SURFACE_GET", 
+                                     "Get a specific model surface"));
     
     enumData.push_back(EventTypeEnum(EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
                                      "EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE",

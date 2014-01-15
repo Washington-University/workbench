@@ -550,34 +550,41 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * loaded and model being viewed is allows drawing of volume surface
          * outline.
          */
+        int defaultTabIndex = -1;
+        bool enableLayers = true;
         bool enableVolumeSurfaceOutline = false;
         EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
         //const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
         BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
-//        if (numItemsInWindow =
-//            windowContent = browserContentEvent.getTabContentToDraw(0);
-//        }
-//        else if (numItemsInWindow > 1) {
-////            const int tabIndex =browserContentEvent.get
-//        }
             if (windowContent != NULL) {
                 switch (windowContent->getSelectedModelType()) {
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                        defaultTabIndex = m_overlayTabIndex;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        defaultTabIndex = m_overlayTabIndex;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                        defaultTabIndex = m_overlayTabIndex;
                         enableVolumeSurfaceOutline = (haveSurfaces
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                        defaultTabIndex = m_overlayTabIndex;
                         enableVolumeSurfaceOutline = (haveSurfaces
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
+                        defaultTabIndex = m_chartTabIndex;
+                        enableLayers = false;
+                        enableVolumeSurfaceOutline = false;
+                        haveBorders = false;
+                        haveFibers  = false;
+                        haveFoci    = false;
+                        haveLabels  = false;
                         break;
                 }
             }
@@ -596,18 +603,30 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_fociTabIndex >= 0) m_tabWidget->setTabEnabled(m_fociTabIndex, haveFoci);
         if (m_labelTabIndex >= 0) m_tabWidget->setTabEnabled(m_labelTabIndex, haveLabels);
         
-        //ensure overlays is always enabled if it exists, and do it after everything else just in case some uninitialized tab index clobbers it above
-        if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, true);
+        if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         
-        int curTab = m_tabWidget->currentIndex();
-        if (!m_tabWidget->isTabEnabled(curTab))
-        {
-            for (int i = 0; i < m_tabWidget->count(); ++i)
-            {
-                if (m_tabWidget->isTabEnabled(i))
-                {
-                    m_tabWidget->setTabEnabled(i, true);
-                    break;
+        /*
+         * Switch selected tab if it is not valid
+         */
+        bool tabIndexValid = false;
+        const int32_t tabIndex = m_tabWidget->currentIndex();
+        if ((tabIndex >= 0)
+            && (tabIndex < m_tabWidget->count())) {
+            if (m_tabWidget->isTabEnabled(tabIndex)) {
+                tabIndexValid = true;
+            }
+        }
+        
+        if ( ! tabIndexValid) {
+            if (m_tabWidget->isTabEnabled(defaultTabIndex)) {
+                m_tabWidget->setCurrentIndex(defaultTabIndex);
+            }
+            else {
+                for (int i = 0; i < m_tabWidget->count(); ++i) {
+                    if (m_tabWidget->isTabEnabled(i)) {
+                        m_tabWidget->setCurrentIndex(i);
+                        break;
+                    }
                 }
             }
         }

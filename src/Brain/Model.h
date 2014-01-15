@@ -35,11 +35,11 @@ namespace caret {
     class OverlaySet;
     class PlainTextStringBuilder;
     
-    /// Base class for controlling a model
+    /// Base class for a model
     class Model : public CaretObject, public SceneableInterface {
         
     protected:
-        Model(const ModelTypeEnum::Enum controllerType,
+        Model(const ModelTypeEnum::Enum modelType,
                                Brain* brain);
         
         virtual ~Model();
@@ -55,7 +55,7 @@ namespace caret {
         
         Brain* getBrain();
         
-        ModelTypeEnum::Enum getControllerType() const;
+        ModelTypeEnum::Enum getModelType() const;
         
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
@@ -90,7 +90,7 @@ namespace caret {
         virtual void restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                       const SceneClass* sceneClass) = 0;
         
-        /** Brain which contains the controller */
+        /** Brain which contains the model */
         Brain* m_brain;
         
     private:

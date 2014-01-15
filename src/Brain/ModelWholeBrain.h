@@ -86,7 +86,7 @@ namespace caret {
         ModelWholeBrain& operator=(const ModelWholeBrain&);
         
     private:
-        void updateController();
+        void updateModel();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;

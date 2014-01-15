@@ -43,6 +43,7 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class Matrix4x4;
+    class ModelChart;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelSurfaceSelector;
@@ -96,9 +97,9 @@ namespace caret {
         
         void setSelectedModelType(ModelTypeEnum::Enum selectedModelType);
         
-        const Model* getModelControllerForDisplay() const;
+        const Model* getModelForDisplay() const;
         
-        Model* getModelControllerForDisplay();
+        Model* getModelForDisplay();
         
         ModelSurface* getDisplayedSurfaceModel();
         
@@ -124,7 +125,9 @@ namespace caret {
         
         void getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayedDataFilesOut);
         
-        void update(const std::vector<Model*> modelDisplayControllers);
+        void update(const std::vector<Model*> models);
+        
+        bool isChartModelValid() const;
         
         bool isSurfaceModelValid() const;
         
@@ -352,6 +355,9 @@ namespace caret {
         
         /** The surface montage model */
         ModelSurfaceMontage* m_surfaceMontageModel;
+        
+        /** The chart model */
+        ModelChart* m_chartModel;
         
         /** 
          * Name requested by user interface - reflects contents 

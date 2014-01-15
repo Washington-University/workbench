@@ -47,11 +47,11 @@ namespace caret {
         
         virtual ~StructureSurfaceSelectionControl();
 
-        ModelSurface* getSelectedSurfaceController();
+        ModelSurface* getSelectedSurfaceModel();
         
         StructureEnum::Enum getSelectedStructure();
         
-        //void setSelectedSurfaceController(ModelSurface* surfaceController);
+        //void setSelectedSurfaceModel(ModelSurface* surfaceController);
         
         //void setSelectedStructure(const StructureEnum::Enum selectedStructure);
         

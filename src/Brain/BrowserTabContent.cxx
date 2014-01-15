@@ -49,6 +49,7 @@
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
+#include "ModelChart.h"
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelSurfaceSelector.h"
@@ -93,6 +94,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeModel = NULL;
     m_wholeBrainModel = NULL;
     m_surfaceMontageModel = NULL;
+    m_chartModel = NULL;
     m_guiName = "";
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
@@ -213,12 +215,13 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
 {
     CaretAssert(tabToClone);
     m_surfaceModelSelector->setSelectedStructure(tabToClone->m_surfaceModelSelector->getSelectedStructure());
-    m_surfaceModelSelector->setSelectedSurfaceController(tabToClone->m_surfaceModelSelector->getSelectedSurfaceController());
+    m_surfaceModelSelector->setSelectedSurfaceModel(tabToClone->m_surfaceModelSelector->getSelectedSurfaceModel());
 
     m_selectedModelType = tabToClone->m_selectedModelType;
     m_volumeModel = tabToClone->m_volumeModel;
     m_wholeBrainModel = tabToClone->m_wholeBrainModel;
     m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
+    m_chartModel = tabToClone->m_chartModel;
     m_yokingGroup = tabToClone->m_yokingGroup;
     
     *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
@@ -229,7 +232,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     *m_obliqueVolumeRotationMatrix = *tabToClone->m_obliqueVolumeRotationMatrix;
     
-    Model* model = getModelControllerForDisplay();
+    Model* model = getModelForDisplay();
     
     const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
     if (overlaySetToClone != NULL) {
@@ -290,10 +293,10 @@ BrowserTabContent::getName() const
         s += m_userName;
     }
     else {
-        const Model* displayedController =
-            getModelControllerForDisplay();
-        if (displayedController != NULL) {
-            const AString name = displayedController->getNameForBrowserTab();
+        const Model* displayedModel =
+            getModelForDisplay();
+        if (displayedModel != NULL) {
+            const AString name = displayedModel->getNameForBrowserTab();
             s += name;
         }
     }
@@ -352,14 +355,14 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
     
     descriptionOut.pushIndentation();
     
-    const Model* model = getModelControllerForDisplay();
+    const Model* model = getModelForDisplay();
     
     if (model != NULL) {
         bool surfaceFlag    = false;
         bool surfaceMontageFlag = false;
         bool wholeBrainFlag = false;
         bool volumeFlag     = false;
-        switch (model->getControllerType()) {
+        switch (model->getModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
@@ -421,7 +424,7 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
         if (wholeBrainFlag
             || volumeFlag) {
             descriptionOut.pushIndentation();
-            m_volumeSliceSettings->getDescriptionOfContent(model->getControllerType(),
+            m_volumeSliceSettings->getDescriptionOfContent(model->getModelType(),
                                                            descriptionOut);
             descriptionOut.popIndentation();
         }
@@ -457,13 +460,13 @@ BrowserTabContent::setSelectedModelType(ModelTypeEnum::Enum selectedModelType)
 }
 
 /**
- * Get the model controller for DISPLAY.
+ * Get the model for DISPLAY.
  * 
- * @return  Pointer to displayed controller or NULL
+ * @return  Pointer to displayed model or NULL
  *          if none are available.
  */   
 Model* 
-BrowserTabContent::getModelControllerForDisplay()
+BrowserTabContent::getModelForDisplay()
 {
     Model* mdc = NULL;
     
@@ -471,7 +474,7 @@ BrowserTabContent::getModelControllerForDisplay()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            mdc = m_surfaceModelSelector->getSelectedSurfaceController();
+            mdc = m_surfaceModelSelector->getSelectedSurfaceModel();
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             mdc = m_surfaceMontageModel;
@@ -483,6 +486,7 @@ BrowserTabContent::getModelControllerForDisplay()
             mdc = m_wholeBrainModel;
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
+            mdc = m_chartModel;
             break;
     }
     
@@ -490,13 +494,13 @@ BrowserTabContent::getModelControllerForDisplay()
 }
 
 /**
- * Get the model controller for DISPLAY.
+ * Get the model model for DISPLAY.
  * 
- * @return  Pointer to displayed controller or NULL
+ * @return  Pointer to displayed model or NULL
  *          if none are available.
  */   
 const Model* 
-BrowserTabContent::getModelControllerForDisplay() const
+BrowserTabContent::getModelForDisplay() const
 {
     Model* mdc = NULL;
     
@@ -504,7 +508,7 @@ BrowserTabContent::getModelControllerForDisplay() const
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            mdc = m_surfaceModelSelector->getSelectedSurfaceController();
+            mdc = m_surfaceModelSelector->getSelectedSurfaceModel();
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             mdc = m_surfaceMontageModel;
@@ -516,6 +520,7 @@ BrowserTabContent::getModelControllerForDisplay() const
             mdc = m_wholeBrainModel;
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
+            mdc = m_chartModel;
             break;
     }
     
@@ -533,7 +538,7 @@ ModelSurface*
 BrowserTabContent::getDisplayedSurfaceModel()
 {
     ModelSurface* mdcs =
-        dynamic_cast<ModelSurface*>(getModelControllerForDisplay());
+        dynamic_cast<ModelSurface*>(getModelForDisplay());
     return mdcs;
 }
 
@@ -548,7 +553,7 @@ const ModelSurface*
 BrowserTabContent::getDisplayedSurfaceModel() const
 {
     const ModelSurface* mdcs =
-    dynamic_cast<const ModelSurface*>(getModelControllerForDisplay());
+    dynamic_cast<const ModelSurface*>(getModelForDisplay());
     return mdcs;
 }
 
@@ -563,7 +568,7 @@ ModelVolume*
 BrowserTabContent::getDisplayedVolumeModel()
 {
     ModelVolume* mdcv =
-        dynamic_cast<ModelVolume*>(getModelControllerForDisplay());
+        dynamic_cast<ModelVolume*>(getModelForDisplay());
     return mdcv;
 }
 
@@ -597,7 +602,7 @@ BrowserTabContent::isCerebellumDisplayed() const
 bool
 BrowserTabContent::isVolumeSlicesDisplayed() const
 {
-    const ModelVolume* mdcv = dynamic_cast<const ModelVolume*>(getModelControllerForDisplay());
+    const ModelVolume* mdcv = dynamic_cast<const ModelVolume*>(getModelForDisplay());
     
     const bool volumeFlag = (mdcv != NULL);
     return volumeFlag;
@@ -609,7 +614,7 @@ BrowserTabContent::isVolumeSlicesDisplayed() const
 bool
 BrowserTabContent::isWholeBrainDisplayed() const
 {
-    const ModelWholeBrain* mwb = dynamic_cast<const ModelWholeBrain*>(getModelControllerForDisplay());
+    const ModelWholeBrain* mwb = dynamic_cast<const ModelWholeBrain*>(getModelForDisplay());
     const bool wholeBrainFlag = (mwb != NULL);
     return wholeBrainFlag;
 }
@@ -625,7 +630,7 @@ ModelWholeBrain*
 BrowserTabContent::getDisplayedWholeBrainModel()
 {
     ModelWholeBrain* mdcwb =
-        dynamic_cast<ModelWholeBrain*>(getModelControllerForDisplay());
+        dynamic_cast<ModelWholeBrain*>(getModelForDisplay());
     return mdcwb;
 
 }
@@ -639,7 +644,7 @@ ModelSurfaceMontage*
 BrowserTabContent::getDisplayedSurfaceMontageModel()
 {
     ModelSurfaceMontage* mdcsm =
-    dynamic_cast<ModelSurfaceMontage*>(getModelControllerForDisplay());
+    dynamic_cast<ModelSurfaceMontage*>(getModelForDisplay());
     return mdcsm;
 }
 
@@ -652,7 +657,7 @@ const ModelSurfaceMontage*
 BrowserTabContent::getDisplayedSurfaceMontageModel() const
 {
     const ModelSurfaceMontage* mdcsm =
-    dynamic_cast<const ModelSurfaceMontage*>(getModelControllerForDisplay());
+    dynamic_cast<const ModelSurfaceMontage*>(getModelForDisplay());
     return mdcsm;
 }
 
@@ -685,9 +690,9 @@ BrowserTabContent::getSurfaceModelSelector()
 OverlaySet* 
 BrowserTabContent::getOverlaySet()
 {
-    Model* modelDisplayController = getModelControllerForDisplay();
-    if (modelDisplayController != NULL) {
-       return modelDisplayController->getOverlaySet(m_tabNumber);
+    Model* model = getModelForDisplay();
+    if (model != NULL) {
+       return model->getOverlaySet(m_tabNumber);
     }
     return NULL;
 }
@@ -700,9 +705,9 @@ BrowserTabContent::getOverlaySet()
 const OverlaySet*
 BrowserTabContent::getOverlaySet() const
 {
-    const Model* modelDisplayController = getModelControllerForDisplay();
-    if (modelDisplayController != NULL) {
-        return modelDisplayController->getOverlaySet(m_tabNumber);
+    const Model* model = getModelForDisplay();
+    if (model != NULL) {
+        return model->getOverlaySet(m_tabNumber);
     }
     return NULL;
 }
@@ -722,27 +727,29 @@ BrowserTabContent::getTabNumber() const
  * Update the selected models.
  */
 void 
-BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
+BrowserTabContent::update(const std::vector<Model*> models)
 {
-    m_surfaceModelSelector->updateSelector(modelDisplayControllers);
+    m_surfaceModelSelector->updateSelector(models);
     
-    const int32_t numModels = static_cast<int32_t>(modelDisplayControllers.size());
+    const int32_t numModels = static_cast<int32_t>(models.size());
     
     ModelVolume* previousVolumeModel = m_volumeModel;
     
     m_allSurfaceModels.clear();
-    m_surfaceModelSelector->getSelectableSurfaceControllers(m_allSurfaceModels);
+    m_surfaceModelSelector->getSelectableSurfaceModels(m_allSurfaceModels);
     m_volumeModel = NULL;
     m_wholeBrainModel = NULL;
     m_surfaceMontageModel = NULL;
+    m_chartModel = NULL;
     
     for (int i = 0; i < numModels; i++) {
-        Model* mdc = modelDisplayControllers[i];
+        Model* mdc = models[i];
         
         ModelSurface* mdcs = dynamic_cast<ModelSurface*>(mdc);
         ModelVolume* mdcv = dynamic_cast<ModelVolume*>(mdc);
         ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(mdc);
         ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(mdc);
+        ModelChart* mdch = dynamic_cast<ModelChart*>(mdc);
         
         if (mdcs != NULL) {
             /* nothing to do since the surface model selector handles surfaces */
@@ -759,6 +766,10 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
             CaretAssertMessage((m_surfaceMontageModel == NULL), "There is more than one surface montage model.");
             m_surfaceMontageModel = mdcsm;
         }
+        else if (mdch != NULL) {
+            CaretAssertMessage((m_chartModel == NULL), "There is more than one surface chart model.");
+            m_chartModel = mdch;
+        }
         else {
             CaretAssertMessage(0, (AString("Unknown type of brain model.") + mdc->getNameForGUI(true)));
         }
@@ -768,7 +779,7 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            if (m_surfaceModelSelector->getSelectedSurfaceController() == NULL) {
+            if (m_surfaceModelSelector->getSelectedSurfaceModel() == NULL) {
                 m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
@@ -788,11 +799,14 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
             }
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
+            if (m_chartModel == NULL) {
+                m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
+            }
             break;
     }
     
     if (m_selectedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
-        if (m_surfaceModelSelector->getSelectedSurfaceController() != NULL) {
+        if (m_surfaceModelSelector->getSelectedSurfaceModel() != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE;
         }
         else if (m_volumeModel != NULL) {
@@ -803,6 +817,9 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
         }
         else if (m_surfaceMontageModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
+        }
+        else if (m_chartModel != NULL) {
+            m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
         }
     }
     
@@ -836,6 +853,18 @@ BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
             }
         }
     }
+}
+
+/**
+ * Is the chart model selection valid?
+ *
+ * @return bool indicating validity.
+ */
+bool
+BrowserTabContent::isChartModelValid() const
+{
+    bool valid = (m_chartModel != NULL);
+    return valid;
 }
 
 /**
@@ -900,7 +929,7 @@ BrowserTabContent::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
-        Model* model = getModelControllerForDisplay();
+        Model* model = getModelForDisplay();
         if (model == NULL) {
             return;
         }
@@ -1021,7 +1050,7 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
 {
     displayedDataFilesOut.clear();
  
-    Model* model = getModelControllerForDisplay();
+    Model* model = getModelForDisplay();
     if (model == NULL) {
         return;
     }
@@ -1666,12 +1695,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             0.0
                         };
                         
-//                        const AString posString = (" center: "
-//                                             + AString::fromNumbers(viewportCenter, 3, ",")
-//                                             + " old: "
-//                                             + AString::fromNumbers(oldPos, 3, ",")
-//                                             + " mouse: "
-//                                             + AString::fromNumbers(newPos, 3, ","));
                         /*
                          * Compute normal vector from viewport center to
                          * old mouse position to new mouse position.
@@ -1688,11 +1711,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                         bool isCounterClockwise = false;
                         if (normalDirection[2] > 0.0) {
                             isCounterClockwise = true;
-//                            std::cout << "CCW" << qPrintable(posString) << std::endl;
                         }
                         else if (normalDirection[2] < 0.0) {
                             isClockwise = true;
-//                            std::cout << "CW" << qPrintable(posString) << std::endl;
                         }
                         
                         if (isClockwise
@@ -1748,63 +1769,6 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 }
                 
                 setObliqueVolumeRotationMatrix(rotationMatrix);
-                
-//                if (mouseDeltaY != 0) {
-//                    Matrix4x4 rotationMatrix = getObliqueVolumeRotationMatrix(); //  m_volumeSliceViewingTransformation->getRotationMatrix();
-//                    switch (slicePlane) {
-//                        case VolumeSliceViewPlaneEnum::ALL:
-//                        {
-//                            rotationMatrix.rotateX(-mouseDeltaY);
-//                            rotationMatrix.rotateY(mouseDeltaX);
-//                        }
-//                            break;
-//                        case VolumeSliceViewPlaneEnum::AXIAL:
-//                        {
-//                            Matrix4x4 rotation;
-//                            rotation.rotateZ(mouseDeltaY);
-//                            rotationMatrix.premultiply(rotation);
-//                        }
-//                            break;
-//                        case VolumeSliceViewPlaneEnum::CORONAL:
-//                        {
-//                            Matrix4x4 rotation;
-//                            rotation.rotateY(mouseDeltaY);
-//                            rotationMatrix.premultiply(rotation);
-//                        }
-//                            break;
-//                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                        {
-//                            Matrix4x4 rotation;
-//                            rotation.rotateX(mouseDeltaY);
-//                            rotationMatrix.premultiply(rotation);
-//                        }
-//                            break;
-//                    }
-//                    setObliqueVolumeRotationMatrix(rotationMatrix);
-////                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
-//                    
-////                    Matrix4x4 rotation;
-////                    switch (slicePlane) {
-////                        case VolumeSliceViewPlaneEnum::ALL:
-////                            rotation.rotateX(-mouseDY);
-////                            rotation.rotateY(mouseDX);
-////                            break;
-////                        case VolumeSliceViewPlaneEnum::AXIAL:
-////                            rotation.rotateZ(mouseDY);
-////                            break;
-////                        case VolumeSliceViewPlaneEnum::CORONAL:
-////                            rotation.rotateY(mouseDY);
-////                            break;
-////                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-////                            rotation.rotateX(mouseDY);
-////                            break;
-////                    }
-////
-////                    Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
-////                    rotationMatrix.premultiply(rotation);
-////                    m_volumeSliceViewingTransformation->setRotationMatrix(rotationMatrix);
-//                }
-                
             }
                 break;
             case VolumeSliceViewModeEnum::ORTHOGONAL:
@@ -2371,8 +2335,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
             matrixOut.getMatrixForOpenGL(rotationMatrixOut);
             return;
         }
-//            rotationX +=  90.0;
-//            rotationY -= 180.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
             break;
@@ -2387,7 +2349,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
             matrixOut.getMatrixForOpenGL(rotationMatrixOut);
             return;
         }
-//            rotationX -= 90.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
         {
@@ -2400,8 +2361,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
             matrixOut.getMatrixForOpenGL(rotationMatrixOut);
             return;
         }
-//            rotationY += 180.0;
-//            rotationZ += 180.0;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
             rotationX =     0.0;
@@ -2438,94 +2397,6 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
                        rotationZ);
     matrix.getMatrixForOpenGL(rotationMatrixOut);
 }
-
-//void
-//BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEnum::Enum projectionViewType,
-//                                                      float translationOut[3],
-//                                                      double rotationMatrixOut[16],
-//                                                      float& scalingOut) const
-//{
-//    if (isVolumeSlicesDisplayed()) {
-//        m_volumeSliceViewingTransformation->getTranslation(translationOut);
-//        
-//        Matrix4x4 rotationMatrix = m_volumeSliceViewingTransformation->getRotationMatrix();
-//        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
-//        
-//        scalingOut = m_volumeSliceViewingTransformation->getScaling();
-//    }
-//    else if (isCerebellumDisplayed()) {
-//        m_cerebellumViewingTransformation->getTranslation(translationOut);
-//        
-//        Matrix4x4 rotationMatrix = m_cerebellumViewingTransformation->getRotationMatrix();
-//        
-//        
-//        
-//        rotationMatrix.getMatrixForOpenGL(rotationMatrixOut);
-//        
-//        scalingOut = m_cerebellumViewingTransformation->getScaling();
-//    }
-//    else {
-//        m_viewingTransformation->getTranslation(translationOut);
-//        
-//        Matrix4x4 rotationMatrix = m_viewingTransformation->getRotationMatrix();
-//        double rotationX, rotationY, rotationZ;
-//        rotationMatrix.getRotation(rotationX,
-//                                   rotationY,
-//                                   rotationZ);
-//        const double rotationFlippedX = -rotationX;
-//        const double rotationFlippedY = 180.0 - rotationY;
-//        
-//        switch (projectionViewType) {
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-//                rotationY += 180.0;
-//                rotationZ += 180.0;
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-//                rotationX -= 90.0;
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
-//                rotationX =     0.0;
-//                rotationY =     0.0;
-//                rotationZ =     0.0;
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
-//                rotationX =     0.0;
-//                rotationY =     0.0;
-//                rotationZ =     0.0;
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
-//                rotationX = rotationFlippedX;
-//                rotationY = rotationFlippedY;
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
-//                rotationX = rotationFlippedX;
-//                rotationY = rotationFlippedY;
-//                break;
-//            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
-//                rotationX =   0.0;
-//                rotationY = 180.0;
-//                rotationZ =   0.0;
-//                break;
-//        }
-//        
-//        Matrix4x4 matrix;
-//        matrix.setRotation(rotationX,
-//                           rotationY,
-//                           rotationZ);
-//        matrix.getMatrixForOpenGL(rotationMatrixOut);
-//        
-//        scalingOut = m_viewingTransformation->getScaling();
-//    }
-//}
-
 
 /**
  * Place the transformations for the given window tab into
@@ -2660,7 +2531,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         float scaling;
         float rotationMatrix[4][4];
         
-        const Model* model = getModelControllerForDisplay();
+        const Model* model = getModelForDisplay();
         if (model != NULL) {
             const bool valid = model->getOldSceneTransformation(m_tabNumber,
                                                                 translation,

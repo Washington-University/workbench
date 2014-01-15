@@ -45,7 +45,7 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain - brain to which this whole brain controller belongs.
+ * @param brain - brain to which this whole brain model belongs.
  *
  */
 ModelWholeBrain::ModelWholeBrain(Brain* brain)
@@ -103,7 +103,7 @@ ModelWholeBrain::~ModelWholeBrain()
 void 
 ModelWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut)
 {
-    updateController();
+    updateModel();
     
     surfaceTypesOut.clear();
     surfaceTypesOut.insert(surfaceTypesOut.end(),
@@ -121,23 +121,23 @@ ModelWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& su
 SurfaceTypeEnum::Enum 
 ModelWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
 {
-    updateController();
+    updateModel();
     return m_selectedSurfaceType[windowTabNumber];    
 }
 
 /**
- * Update this controller.
+ * Update this model.
  */
 void 
-ModelWholeBrain::updateController()
+ModelWholeBrain::updateModel()
 {
     /*
-     * Get all model controllers to find loaded surface types.
+     * Get all model to find loaded surface types.
      */
-    EventModelGetAll eventGetControllers;
-    EventManager::get()->sendEvent(eventGetControllers.getPointer());
-    const std::vector<Model*> allControllers =
-        eventGetControllers.getModels();
+    EventModelGetAll eventGetModels;
+    EventManager::get()->sendEvent(eventGetModels.getPointer());
+    const std::vector<Model*> allModels =
+        eventGetModels.getModels();
 
     /*
      * Get ALL possible surface types.
@@ -150,13 +150,13 @@ ModelWholeBrain::updateController()
     /*
      * Find surface types that are actually used.
      */
-    for (std::vector<Model*>::const_iterator iter = allControllers.begin();
-         iter != allControllers.end();
+    for (std::vector<Model*>::const_iterator iter = allModels.begin();
+         iter != allModels.end();
          iter++) {
-        ModelSurface* surfaceController = 
+        ModelSurface* surfaceModel =
             dynamic_cast<ModelSurface*>(*iter);
-        if (surfaceController != NULL) {
-            SurfaceTypeEnum::Enum surfaceType = surfaceController->getSurface()->getSurfaceType();
+        if (surfaceModel != NULL) {
+            SurfaceTypeEnum::Enum surfaceType = surfaceModel->getSurface()->getSurfaceType();
             
             for (int i = 0; i < numEnumTypes; i++) {
                 if (allSurfaceTypes[i] == surfaceType) {
@@ -213,7 +213,7 @@ ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
                                                          const SurfaceTypeEnum::Enum surfaceType)
 {
     m_selectedSurfaceType[windowTabNumber] = surfaceType;
-    updateController();
+    updateModel();
 }
 
 /**
@@ -232,7 +232,7 @@ ModelWholeBrain::getNameForGUI(const bool /*includeStructureFlag*/) const
 
 /**
  * @return The name that should be displayed in the tab
- * displaying this model controller.
+ * displaying this model.
  */
 AString 
 ModelWholeBrain::getNameForBrowserTab() const
@@ -413,7 +413,7 @@ ModelWholeBrain::getOverlaySet(const int tabIndex) const
 }
 
 /**
- * Initilize the overlays for this controller.
+ * Initilize the overlays for this model.
  */
 void 
 ModelWholeBrain::initializeOverlays()

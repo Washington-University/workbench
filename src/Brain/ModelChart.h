@@ -1,5 +1,5 @@
-#ifndef __MODEL_DISPLAY_CONTROLLER_VOLUME_H__
-#define __MODEL_DISPLAY_CONTROLLER_VOLUME_H__
+#ifndef __MODEL_CHART_H__
+#define __MODEL_CHART_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -31,30 +31,28 @@
 
 namespace caret {
 
-    class Brain;
-    class SceneClassAssistant;
-    class OverlaySetArray;
-    class VolumeMappableInterface;
-    
-    /// Controls the display of a volumes.
-    class ModelVolume : public Model, public EventListenerInterface {
+    /// Controls the display of a chart.
+    class ModelChart : public Model, public EventListenerInterface  {
         
-    public:        
-        ModelVolume(Brain* brain);
+    public:
+        ModelChart(Brain* brain);
         
-        virtual ~ModelVolume();
+        virtual ~ModelChart();
         
-        VolumeMappableInterface* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
+        void initializeOverlays();
         
-        void updateModel(const int32_t windowTabNumber);
+        AString getNameForGUI(const bool includeStructureFlag) const;
         
-        void receiveEvent(Event* event);
+        virtual AString getNameForBrowserTab() const;
         
         OverlaySet* getOverlaySet(const int tabIndex);
         
         const OverlaySet* getOverlaySet(const int tabIndex) const;
         
-        void initializeOverlays();
+        virtual void receiveEvent(Event* event);
+        
+        virtual void getDescriptionOfContent(const int32_t tabIndex,
+                                             PlainTextStringBuilder& descriptionOut) const;
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -62,27 +60,16 @@ namespace caret {
         
         virtual void restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                               const SceneClass* sceneClass);
-    private:
-        ModelVolume(const ModelVolume&);
-        
-        ModelVolume& operator=(const ModelVolume&);
         
     private:
+        ModelChart(const ModelChart&);
         
-    public:
-        AString getNameForGUI(const bool includeStructureFlag) const;
+        ModelChart& operator=(const ModelChart&);
         
-        virtual AString getNameForBrowserTab() const;
+        void initializeMembersModelChart();
         
-    private:
-        VolumeMappableInterface* m_lastVolumeFile;
-
-        /** Overlays sets for this model and for each tab */
-        OverlaySetArray* m_overlaySetArray;
-        
-        SceneClassAssistant* m_sceneAssistant;
     };
 
 } // namespace
 
-#endif // __MODEL_DISPLAY_CONTROLLER_VOLUME_H__
+#endif // __MODEL_CHART_H__

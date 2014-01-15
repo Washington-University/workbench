@@ -50,7 +50,7 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param surface - surface for this controller.
+ * @param surface - surface for this model.
  *
  */
 ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
@@ -114,182 +114,6 @@ ModelSurfaceMontage::initializeSelectedSurfaces()
     }
 }
 
-///**
-// * @return Is  enabled?
-// */
-//bool 
-//ModelSurfaceMontage::isLeftEnabled(const int tabIndex) const
-//{
-//    CaretAssertArrayIndex(m_leftEnabled, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_leftEnabled[tabIndex];
-//}
-//
-///**
-// * Set  enabled
-// * @param tabIndex
-// *    Index of tab.
-// * @param enabled
-// *    New status
-// */
-//void 
-//ModelSurfaceMontage::setLeftEnabled(const int tabIndex,
-//                                                 const bool enabled)
-//{
-//    CaretAssertArrayIndex(m_leftEnabled, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//
-//    m_leftEnabled[tabIndex] = enabled;
-//}
-
-///**
-// * @return Is  enabled?
-// */
-//bool
-//ModelSurfaceMontage::isRightEnabled(const int tabIndex) const
-//{
-//    CaretAssertArrayIndex(m_rightEnabled,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          tabIndex);
-//    return m_rightEnabled[tabIndex];
-//}
-//
-///**
-// * Set  enabled
-// * @param tabIndex
-// *    Index of tab.
-// * @param enabled
-// *    New status
-// */
-//void
-//ModelSurfaceMontage::setRightEnabled(const int tabIndex,
-//                                                 const bool enabled)
-//{
-//    CaretAssertArrayIndex(m_rightEnabled,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          tabIndex);
-//    
-//    m_rightEnabled[tabIndex] = enabled;
-//}
-//
-///**
-// * @return Is  enabled?
-// */
-//bool
-//ModelSurfaceMontage::isFirstSurfaceEnabled(const int tabIndex) const
-//{
-//    CaretAssertArrayIndex(m_firstSurfaceEnabled,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          tabIndex);
-//    return m_firstSurfaceEnabled[tabIndex];
-//}
-//
-///**
-// * Set  enabled
-// * @param tabIndex
-// *    Index of tab.
-// * @param enabled
-// *    New status
-// */
-//void
-//ModelSurfaceMontage::setFirstSurfaceEnabled(const int tabIndex,
-//                                                 const bool enabled)
-//{
-//    CaretAssertArrayIndex(m_firstSurfaceEnabled,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          tabIndex);
-//    
-//    m_firstSurfaceEnabled[tabIndex] = enabled;
-//}
-//
-///**
-// * @return Is  enabled?
-// */
-//bool
-//ModelSurfaceMontage::isSecondSurfaceEnabled(const int tabIndex) const
-//{
-//    CaretAssertArrayIndex(m_secondSurfaceEnabled,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          tabIndex);
-//    return m_secondSurfaceEnabled[tabIndex];
-//}
-//
-///**
-// * Set  enabled
-// * @param tabIndex
-// *    Index of tab.
-// * @param enabled
-// *    New status
-// */
-//void
-//ModelSurfaceMontage::setSecondSurfaceEnabled(const int tabIndex,
-//                                                 const bool enabled)
-//{
-//    CaretAssertArrayIndex(m_secondSurfaceEnabled,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-//                          tabIndex);
-//    
-//    m_secondSurfaceEnabled[tabIndex] = enabled;
-//}
-//
-///**
-// * @param tabIndex
-// *    Index of tab.
-// * @return the left surface selection in this controller.
-// */
-//SurfaceSelectionModel*
-//ModelSurfaceMontage::getLeftSurfaceSelectionModel(const int tabIndex)
-//{
-//    CaretAssertArrayIndex(m_leftSurfaceSelectionModel, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_leftSurfaceSelectionModel[tabIndex];
-//}
-//
-///**
-// * @param tabIndex
-// *    Index of tab.
-// * @return the left second surface selection in this controller.
-// */
-//SurfaceSelectionModel*
-//ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel(const int tabIndex)
-//{
-//    CaretAssertArrayIndex(m_leftSecondSurfaceSelectionModel, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_leftSecondSurfaceSelectionModel[tabIndex];
-//}
-//
-///**
-// * @param tabIndex
-// *    Index of tab.
-// * @return the right surface selection in this controller.
-// */
-//SurfaceSelectionModel*
-//ModelSurfaceMontage::getRightSurfaceSelectionModel(const int tabIndex)
-//{
-//    CaretAssertArrayIndex(m_rightSurfaceSelectionModel, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_rightSurfaceSelectionModel[tabIndex];
-//}
-//
-///**
-// * @param tabIndex
-// *    Index of tab.
-// * @return the right second surface selection in this controller.
-// */
-//SurfaceSelectionModel*
-//ModelSurfaceMontage::getRightSecondSurfaceSelectionModel(const int tabIndex)
-//{
-//    CaretAssertArrayIndex(m_rightSecondSurfaceSelectionModel, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_rightSecondSurfaceSelectionModel[tabIndex];
-//}
-
 /**
  * Get the name for use in a GUI.
  *
@@ -308,7 +132,7 @@ ModelSurfaceMontage::getNameForGUI(const bool /*includeStructureFlag*/) const
 
 /**
  * @return The name that should be displayed in the tab
- * displaying this model controller.
+ * displaying this model.
  */
 AString 
 ModelSurfaceMontage::getNameForBrowserTab() const
@@ -345,7 +169,7 @@ ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 }
 
 /**
- * Initilize the overlays for this controller.
+ * Initilize the overlays for this model.
  */
 void 
 ModelSurfaceMontage::initializeOverlays()

@@ -36,7 +36,6 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
 #include "FiberTrajectoryColorModel.h"
-#include "Model.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SelectionItemDataTypeEnum.h"
 #include "StructureEnum.h"
@@ -68,6 +67,7 @@ namespace caret {
     class Plane;
     class Surface;
     class Model;
+    class ModelChart;
     class ModelSurface;
     class ModelSurfaceMontage;
     class ModelVolume;
@@ -174,7 +174,11 @@ namespace caret {
         
         void initializeMembersBrainOpenGL();
         
-        void drawSurfaceController(ModelSurface* surfaceController,
+        void drawChartModel(BrowserTabContent* browserTabContent,
+                            ModelChart* chartModel,
+                            const int32_t viewport[4]);
+        
+        void drawSurfaceModel(ModelSurface* surfaceModel,
                                    const int32_t viewport[4]);
         
         void drawSurface(Surface* surface,
@@ -228,8 +232,8 @@ namespace caret {
         
         void drawFiberTrajectories(const Plane* plane);
         
-        void drawVolumeController(BrowserTabContent* browserTabContent,
-                                  ModelVolume* volumeController,
+        void drawVolumeModel(BrowserTabContent* browserTabContent,
+                                  ModelVolume* volumeModel,
                                   const int32_t viewport[4]);
         
         void drawVolumeAxesCrosshairs(
@@ -250,7 +254,7 @@ namespace caret {
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
         
         void drawVolumeSurfaceOutlines(Brain* brain,
-                                       Model* modelDisplayController,
+                                       Model* modelDisplayModel,
                                        BrowserTabContent* browserTabContent,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
@@ -274,8 +278,8 @@ namespace caret {
                                  Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);
         
-        void drawWholeBrainController(BrowserTabContent* browserTabContent,
-                                      ModelWholeBrain* wholeBrainController,
+        void drawWholeBrainModel(BrowserTabContent* browserTabContent,
+                                      ModelWholeBrain* wholeBrainModel,
                                       const int32_t viewport[4]);
         
         void drawSurfaceMontageModel(BrowserTabContent* browserTabContent,
@@ -297,7 +301,7 @@ namespace caret {
                                                  const ProjectionViewTypeEnum::Enum projectionType,
                                                  const float halfWindowHeight);
         
-        void checkForOpenGLError(const Model* modelController,
+        void checkForOpenGLError(const Model* modelModel,
                                  const AString& msg);
         
         void enableLighting();
@@ -345,7 +349,7 @@ namespace caret {
         void applyViewingTransformations(const float objectCenterXYZ[3],
                                          const ProjectionViewTypeEnum::Enum projectionViewType);
         
-        void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
+        void applyViewingTransformationsVolumeSlice(const ModelVolume* modelVolume,
                                          const int32_t tabIndex,
                                          const VolumeSliceViewPlaneEnum::Enum viewPlane);
         

@@ -368,18 +368,18 @@ BrainStructure::addSurface(Surface* surface,
         m_surfaces.push_back(surface);
         
         /*
-         * Create a model controller for the surface.
+         * Create a model for the surface.
          */
         ModelSurface* mdcs = new ModelSurface(m_brain,
                                               surface);
-        m_surfaceControllerMap.insert(std::make_pair(surface, mdcs));
+        m_surfaceModelMap.insert(std::make_pair(surface, mdcs));
         
         if (initilizeOverlaysFlag) {
             initializeOverlays();
         }
         
         /*
-         * Send the controller added event.
+         * Send the model added event.
          */
         EventModelAdd addEvent(mdcs);
         EventManager::get()->sendEvent(addEvent.getPointer());
@@ -417,11 +417,11 @@ BrainStructure::removeAndMaybeDeleteSurface(Surface* surface,
     }
     
     std::map<Surface*, ModelSurface*>::iterator modelIter =
-        m_surfaceControllerMap.find(surface);
+        m_surfaceModelMap.find(surface);
 
-    CaretAssertMessage((modelIter != m_surfaceControllerMap.end()),
+    CaretAssertMessage((modelIter != m_surfaceModelMap.end()),
                        "Surface does not map to a model");
-    if (modelIter == m_surfaceControllerMap.end()) {
+    if (modelIter == m_surfaceModelMap.end()) {
         CaretLogSevere("Surface does not map to a model");
         return false;
     }
@@ -429,9 +429,9 @@ BrainStructure::removeAndMaybeDeleteSurface(Surface* surface,
     ModelSurface* mdcs = modelIter->second;
     
     /*
-     * Remove from surface to controller map.
+     * Remove from surface to model map.
      */
-    m_surfaceControllerMap.erase(modelIter);
+    m_surfaceModelMap.erase(modelIter);
     
     /*
      * Remove the surface.
@@ -439,13 +439,13 @@ BrainStructure::removeAndMaybeDeleteSurface(Surface* surface,
     m_surfaces.erase(iter);
     
     /*
-     * Send the controller deleted event.
+     * Send the model deleted event.
      */
     EventModelDelete deleteEvent(mdcs);
     EventManager::get()->sendEvent(deleteEvent.getPointer());
     
     /*
-     * Delete the controller and the surface.
+     * Delete the model and the surface.
      */
     delete mdcs;
     
@@ -1320,10 +1320,6 @@ OverlaySet*
 BrainStructure::getOverlaySet(const int tabIndex)
 {
     return m_overlaySetArray->getOverlaySet(tabIndex);
-//    CaretAssertArrayIndex(m_overlaySet, 
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_overlaySet[tabIndex];
 }
 
 /**
@@ -1337,22 +1333,15 @@ const OverlaySet*
 BrainStructure::getOverlaySet(const int tabIndex) const
 {
     return m_overlaySetArray->getOverlaySet(tabIndex);
-//    CaretAssertArrayIndex(m_overlaySet,
-//                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-//                          tabIndex);
-//    return m_overlaySet[tabIndex];
 }
 
 /**
- * Initilize the overlays for this controller.
+ * Initilize the overlays for this model.
  */
 void 
 BrainStructure::initializeOverlays()
 {
     m_overlaySetArray->initializeOverlaySelections();
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        m_overlaySet[i]->initializeOverlays();
-//    }
 }
 
 /**

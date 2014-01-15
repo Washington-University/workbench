@@ -54,6 +54,7 @@ class QToolButton;
 
 namespace caret {
     
+    class BrainBrowserWindowToolBarChart;
     class BrainBrowserWindowToolBarSurfaceMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
@@ -112,9 +113,7 @@ namespace caret {
         BrowserTabContent* getTabContentFromSelectedTab();
         BrowserTabContent* getTabContentFromTab(const int tabIndex);
         
-//        ModelVolumeInterface* getModelVolumeForViewSelections();
-        
-        Model* getDisplayedModelController();
+        Model* getDisplayedModel();
         
         int32_t loadIntoTab(const int32_t tabIndex,
                             Model* controller);
@@ -131,12 +130,12 @@ namespace caret {
         QWidget* createVolumeIndicesWidget();
         QWidget* createModeWidget();
         QWidget* createWindowWidget();
+        QWidget* createChartOptionsWidget();
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createSurfaceMontageOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         QWidget* createClippingWidget();
-        QWidget* createChartWidget();
         
         ModelTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
@@ -146,6 +145,7 @@ namespace caret {
         void updateWindowWidget(BrowserTabContent* browserTabContent);
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
+        void updateChartOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
         void updateClippingWidget(BrowserTabContent* browserTabContent);
@@ -167,8 +167,7 @@ namespace caret {
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
         QWidget* clippingWidget;
-        QWidget* chartWidget;
-        //QWidget* spacerWidget;
+        QWidget* chartOptionsWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
         WuQWidgetObjectGroup* orientationWidgetGroup;
@@ -177,11 +176,9 @@ namespace caret {
         WuQWidgetObjectGroup* modeWidgetGroup;
         WuQWidgetObjectGroup* windowWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
-//        WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
         WuQWidgetObjectGroup* clippingWidgetGroup;
-        WuQWidgetObjectGroup* extentsWidgetGroup;
         
         QWidget* fullToolBarWidget;
         QWidget* m_toolbarWidget;
@@ -371,23 +368,9 @@ namespace caret {
         void surfaceSelectionControlChanged(const StructureEnum::Enum,
                                             ModelSurface*);
         
-    private: /*SM*/
+    private:
+        BrainBrowserWindowToolBarChart* m_chartToolBarComponent;
         BrainBrowserWindowToolBarSurfaceMontage* m_surfaceMontageToolBarComponent;
-//        SurfaceSelectionViewController* surfaceMontageLeftSurfaceViewController;
-//        SurfaceSelectionViewController* surfaceMontageLeftSecondSurfaceViewController;
-//        SurfaceSelectionViewController* surfaceMontageRightSurfaceViewController;
-//        SurfaceSelectionViewController* surfaceMontageRightSecondSurfaceViewController;
-//        QCheckBox* surfaceMontageLeftCheckBox;
-//        QCheckBox* surfaceMontageRightCheckBox;
-//        QCheckBox* surfaceMontageFirstSurfaceCheckBox;
-//        QCheckBox* surfaceMontageSecondSurfaceCheckBox;
-//        
-//    private slots:
-//        void surfaceMontageLeftSurfaceSelected(Surface*);
-//        void surfaceMontageLeftSecondSurfaceSelected(Surface*);
-//        void surfaceMontageRightSurfaceSelected(Surface*);
-//        void surfaceMontageRightSecondSurfaceSelected(Surface*);
-//        void surfaceMontageCheckBoxSelected(bool);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;
@@ -447,28 +430,7 @@ namespace caret {
         QDoubleSpinBox* clippingXCoordSpinBox;
         QDoubleSpinBox* clippingYCoordSpinBox;
         QDoubleSpinBox* clippingZCoordSpinBox;
-        
-    private:
 
-        QDoubleSpinBox *xMinExtentSpinBox;
-        QDoubleSpinBox *xMaxExtentSpinBox;
-        QDoubleSpinBox *yMinExtentSpinBox;
-        QDoubleSpinBox *yMaxExtentSpinBox;
-        QSpinBox *lineWidthSpinBox;
-        QCheckBox *autoFitTimeLinesCB;
-        QCheckBox *zoomXAxisCB;
-        QCheckBox *zoomYAxisCB;
-
-        QCheckBox *showAverageCB;
-        QToolButton *clearChartPB;
-        QToolButton *resetViewPB;
-        QToolButton *openTimeLinePB;
-        QToolButton *exportTimeLinePB;
-
-
-    private slots:
-        void extentsControlChanged() {}
-    private:
         int32_t browserWindowIndex;
         
     private slots:
@@ -476,6 +438,7 @@ namespace caret {
         
     private:
         friend class BrainBrowserWindow;
+        friend class BrainBrowserWindowToolBarChart;
         friend class BrainBrowserWindowToolBarComponent;
         friend class BrainBrowserWindowToolBarSurfaceMontage;
         
