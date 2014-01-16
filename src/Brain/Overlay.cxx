@@ -642,14 +642,20 @@ Overlay::saveToScene(const SceneAttributes* sceneAttributes,
                               selectedMapUniqueID);
         sceneClass->addString("selectedMapName",
                               selectedMapFile->getMapName(selectedMapIndex));
+        sceneClass->addInteger("selectedMapIndex",
+                               selectedMapIndex);
     }
     else {
+        sceneClass->addPathName("selectedMapFileNameWithPath",
+                                "");
         sceneClass->addString("selectedMapFile",
                               "");
         sceneClass->addString("selectedMapUniqueID",
                               "");
         sceneClass->addString("selectedMapName",
                               "");
+        sceneClass->addInteger("selectedMapIndex",
+                               -1);
     }
     
     return sceneClass;
@@ -699,6 +705,8 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                                    "");
     const AString selectedMapName = sceneClass->getStringValue("selectedMapName",
                                                                    "");
+    const int32_t selectedMapIndex = sceneClass->getIntegerValue("selectedMapIndex",
+                                                                 -1);
     
     bool found = false;
 
@@ -710,54 +718,136 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * First try to find file by filename INCLUDING path and map by unique ID
      */
-    if (selectedMapFileNameWithPath.isEmpty() == false) {
-        if (selectedMapUniqueID.isEmpty() == false) {
-            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
-                 iter != mapFiles.end();
-                 iter++) {
-                CaretMappableDataFile* mapFile = *iter;
-                const AString fileName = mapFile->getFileName();
-                if (fileName == selectedMapFileNameWithPath) {
-                    CaretMappableDataFile* mapFile = *iter;
-                    matchedMapFile = mapFile;
+
+    /*
+     * Find map by unique ID, map index, and map file
+     */
+    CaretMappableDataFile* foundUniqueIdMapFile = NULL;
+    int32_t foundUniqueIdMapIndex= -1;
+    CaretMappableDataFile* foundMapNameFile = NULL;
+    int32_t foundMapNameIndex  = -1;
+    CaretMappableDataFile* foundMapIndexFile = NULL;
+    int32_t foundMapIndex = -1;
+    
+    /*
+     * Try to match files twice.  First time by name with path, then 
+     * by name without path.
+     */
+    for (int iTries = 0; iTries < 2; iTries++) {
+        for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+             iter != mapFiles.end();
+             iter++) {
+            CaretMappableDataFile* mapFile = *iter;
+            
+            bool testIt = false;
+            switch (iTries) {
+                case 0: {
+                    const AString fileName = mapFile->getFileName();
+                    if (fileName == selectedMapFileNameWithPath) {
+                        testIt = true;
+                    }
+                };
                     
-                    const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
-                    if (mapIndex >= 0) {
-                        setSelectionData(mapFile, 
-                                         mapIndex);
-                        found = true;
-                        break;
+                case 1: {
+                    const AString fileName = mapFile->getFileNameNoPath();
+                    if (fileName == selectedMapFileName) {
+                        testIt = true;
+                    }
+                };
+            }
+            
+            
+            if (testIt) {
+                CaretMappableDataFile* mapFile = *iter;
+                matchedMapFile = mapFile;
+                
+                if (foundUniqueIdMapIndex < 0) {
+                    const int uniqueIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
+                    if (uniqueIndex >= 0) {
+                        foundUniqueIdMapFile  = mapFile;
+                        foundUniqueIdMapIndex = uniqueIndex;
+                    }
+                }
+                
+                if (foundMapNameIndex < 0) {
+                    if ( ! selectedMapName.isEmpty()) {
+                        const int mapNameIndex = mapFile->getMapIndexFromName(selectedMapName);
+                        if (mapNameIndex >= 0) {
+                            foundMapNameFile  = mapFile;
+                            foundMapNameIndex = mapNameIndex;
+                        }
+                    }
+                    
+                }
+                
+                if (foundMapIndex < 0) {
+                    if (selectedMapIndex >= 0) {
+                        if (selectedMapIndex < mapFile->getNumberOfMaps()) {
+                            foundMapIndexFile = mapFile;
+                            foundMapIndex     = selectedMapIndex;
+                        }
                     }
                 }
             }
         }
     }
     
-    /*
-     * Second try to find file by filename WITHOUT path and map by unique ID
-     */
-    if (found == false) {
-        if (selectedMapUniqueID.isEmpty() == false) {
-            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
-                 iter != mapFiles.end();
-                 iter++) {
-                CaretMappableDataFile* mapFile = *iter;
-                const AString fileName = mapFile->getFileNameNoPath();
-                if (fileName == selectedMapFileName) {
-                    CaretMappableDataFile* mapFile = *iter;
-                    matchedMapFile = mapFile;
-                    
-                    const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
-                    if (mapIndex >= 0) {
-                        setSelectionData(mapFile,
-                                         mapIndex);
-                        found = true;
-                        break;
-                    }
-                }
+    if (! found) {
+        if (foundUniqueIdMapIndex >= 0) {
+            if (foundUniqueIdMapFile != NULL) {
+                setSelectionData(foundUniqueIdMapFile,
+                                 foundUniqueIdMapIndex);
+                found = true;
             }
         }
     }
+    
+    if (! found) {
+        if (foundMapIndex >= 0) {
+            if (foundMapIndexFile != NULL) {
+                setSelectionData(foundMapIndexFile,
+                                 foundMapIndex);
+                found = true;
+            }
+        }
+    }
+    
+    if (! found) {
+        if (foundMapNameIndex >= 0) {
+            if (foundMapNameFile != NULL) {
+                setSelectionData(foundMapNameFile,
+                                 foundMapNameIndex);
+                found = true;
+            }
+        }
+    }
+    
+    
+//    /*
+//     * Second try to find file by filename WITHOUT path and map by unique ID
+//     */
+//    if (found == false) {
+//        if (selectedMapUniqueID.isEmpty() == false) {
+//            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+//                 iter != mapFiles.end();
+//                 iter++) {
+//                CaretMappableDataFile* mapFile = *iter;
+//                const AString fileName = mapFile->getFileNameNoPath();
+//                if (fileName == selectedMapFileName) {
+//                    CaretMappableDataFile* mapFile = *iter;
+//                    matchedMapFile = mapFile;
+//                    
+//                    const int mapIndex = mapFile->getMapIndexFromUniqueID(selectedMapUniqueID);
+//                    if (mapIndex >= 0) {
+//                        setSelectionData(mapFile,
+//                                         mapIndex);
+//                        found = true;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     if (found == false) {
         /*
