@@ -31,6 +31,8 @@
 
 namespace caret {
 
+    class OverlaySetArray;
+    
     /// Controls the display of a chart.
     class ModelChart : public Model, public EventListenerInterface  {
         
@@ -66,8 +68,10 @@ namespace caret {
         
         ModelChart& operator=(const ModelChart&);
         
-        void initializeMembersModelChart();
+        /** Overlays sets for this model and for each tab */
+        OverlaySetArray* m_overlaySetArray;
         
+        SceneClassAssistant* m_sceneAssistant;
     };
 
 } // namespace

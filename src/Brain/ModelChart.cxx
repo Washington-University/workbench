@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "ModelChart.h"
+#include "OverlaySetArray.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -41,10 +42,13 @@ using namespace caret;
  *
  */
 ModelChart::ModelChart(Brain* brain)
-: Model(ModelTypeEnum::MODEL_TYPE_SURFACE,
+: Model(ModelTypeEnum::MODEL_TYPE_CHART,
                          brain)
 {
-    initializeMembersModelChart();
+    std::vector<StructureEnum::Enum> overlaySurfaceStructures;
+    m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
+                                            Overlay::INCLUDE_VOLUME_FILES_YES,
+                                            "Volume View");
 }
 
 /**
@@ -52,6 +56,7 @@ ModelChart::ModelChart(Brain* brain)
  */
 ModelChart::~ModelChart()
 {
+    delete m_overlaySetArray;
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -63,11 +68,6 @@ ModelChart::~ModelChart()
  */
 void 
 ModelChart::receiveEvent(Event* /*event*/)
-{
-}
-
-void
-ModelChart::initializeMembersModelChart()
 {
 }
 
@@ -105,9 +105,9 @@ ModelChart::getNameForBrowserTab() const
  *   Overlay set at the given tab index.
  */
 OverlaySet* 
-ModelChart::getOverlaySet(const int /*tabIndex*/)
+ModelChart::getOverlaySet(const int tabIndex)
 {
-    return NULL;
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -118,9 +118,9 @@ ModelChart::getOverlaySet(const int /*tabIndex*/)
  *   Overlay set at the given tab index.
  */
 const OverlaySet* 
-ModelChart::getOverlaySet(const int /*tabIndex*/) const
+ModelChart::getOverlaySet(const int tabIndex) const
 {
-    return NULL;
+    return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
 /**
@@ -129,6 +129,7 @@ ModelChart::getOverlaySet(const int /*tabIndex*/) const
 void 
 ModelChart::initializeOverlays()
 {
+    m_overlaySetArray->initializeOverlaySelections();
 }
 
 /**
