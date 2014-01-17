@@ -200,7 +200,7 @@ ImageFile::setDotsPerMeter(const int x,
                            const int y)
 {
     m_image->setDotsPerMeterX(x);
-    m_image->setDotsPerMeterX(y);
+    m_image->setDotsPerMeterY(y);
 }
 
 
