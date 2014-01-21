@@ -1351,6 +1351,8 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     
+    this->viewModeChartRadioButton->setVisible(false);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 2);
