@@ -27,7 +27,7 @@ echo "Finished doxygen generation" >> ${ERROR_FILE} 2>&1
 #
 # Send output as email
 #
-cat ${ERROR_FILE} | mail -v -s 'Caret7 Doxygen Build Result' john@brainvis.wustl.edu jschindl@brainvis.wustl.edu tsc5yc@mst.edu
+cat ${ERROR_FILE} | mail -v -s 'Caret7 Doxygen Build Result' john@brainvis.wustl.edu tsc5yc@mst.edu
 
 echo "Sent mail"
 

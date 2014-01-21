@@ -33,7 +33,7 @@ echo "Finished linux64 Redhat script" >> ${ERROR_FILE} 2>&1
 #
 MAIL_ERROR_FILE=${BUILD_ROOT_DIR}/mail_result_build_linux64_rh.txt
 rm -f ${MAIL_ERROR_FILE}
-cat ${ERROR_FILE} | mail -v -s 'Caret7 Linux 64 Redhat Build Result' john@brainvis.wustl.edu jschindl@brainvis.wustl.edu tsc5yc@mst.edu >> ${MAIL_ERROR_FILE} 2>&1
+cat ${ERROR_FILE} | mail -v -s 'Caret7 Linux 64 Redhat Build Result' john@brainvis.wustl.edu tsc5yc@mst.edu >> ${MAIL_ERROR_FILE} 2>&1
 
 echo "Sent mail"
 
