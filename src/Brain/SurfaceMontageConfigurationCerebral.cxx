@@ -732,4 +732,39 @@ SurfaceMontageConfigurationCerebral::getDescriptionOfContent(PlainTextStringBuil
     descriptionOut.popIndentation();
 }
 
+/**
+ * Copy the given configuration to this configurtion.
+ *
+ * @param configuration.
+ *    Configuration that is copied.
+ */
+void
+SurfaceMontageConfigurationCerebral::copyConfiguration(SurfaceMontageConfigurationAbstract* configuration)
+{
+    SurfaceMontageConfigurationAbstract::copyConfiguration(configuration);
+    
+    SurfaceMontageConfigurationCerebral* cerebralConfiguration = dynamic_cast<SurfaceMontageConfigurationCerebral*>(configuration);
+    CaretAssert(cerebralConfiguration);
+
+    m_leftFirstSurfaceSelectionModel->setSurface(cerebralConfiguration->m_leftFirstSurfaceSelectionModel->getSurface());
+    
+    m_leftSecondSurfaceSelectionModel->setSurface(cerebralConfiguration->m_leftSecondSurfaceSelectionModel->getSurface());
+    
+    m_rightFirstSurfaceSelectionModel->setSurface(cerebralConfiguration->m_rightFirstSurfaceSelectionModel->getSurface());
+    
+    m_rightSecondSurfaceSelectionModel->setSurface(cerebralConfiguration->m_rightSecondSurfaceSelectionModel->getSurface());
+    
+    m_leftEnabled = cerebralConfiguration->m_leftEnabled;
+    
+    m_rightEnabled = cerebralConfiguration->m_rightEnabled;
+    
+    m_firstSurfaceEnabled = cerebralConfiguration->m_firstSurfaceEnabled;
+    
+    m_secondSurfaceEnabled = cerebralConfiguration->m_secondSurfaceEnabled;
+    
+    m_lateralEnabled = cerebralConfiguration->m_lateralEnabled;
+    
+    m_medialEnabled = cerebralConfiguration->m_medialEnabled;
+}
+
 

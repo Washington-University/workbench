@@ -1004,3 +1004,28 @@ ModelSurfaceMontage::getDescriptionOfContent(const int32_t tabIndex,
     }
 }
 
+/**
+ * Copy the tab content from the source tab index to the
+ * destination tab index.
+ *
+ * @param sourceTabIndex
+ *    Source from which tab content is copied.
+ * @param destinationTabIndex
+ *    Destination to which tab content is copied.
+ */
+void
+ModelSurfaceMontage::copyTabContent(const int32_t sourceTabIndex,
+                      const int32_t destinationTabIndex)
+{
+    Model::copyTabContent(sourceTabIndex,
+                          destinationTabIndex);
+    
+    CaretAssertArrayIndex(m_selectedConfigurationType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, sourceTabIndex);
+    CaretAssertArrayIndex(m_selectedConfigurationType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, destinationTabIndex);
+    
+    m_cerebellarConfiguration[destinationTabIndex]->copyConfiguration(m_cerebellarConfiguration[sourceTabIndex]);
+    m_cerebralConfiguration[destinationTabIndex]->copyConfiguration(m_cerebralConfiguration[sourceTabIndex]);
+    m_flatMapsConfiguration[destinationTabIndex]->copyConfiguration(m_flatMapsConfiguration[sourceTabIndex]);
+    m_selectedConfigurationType[destinationTabIndex] = m_selectedConfigurationType[sourceTabIndex];
+}
+

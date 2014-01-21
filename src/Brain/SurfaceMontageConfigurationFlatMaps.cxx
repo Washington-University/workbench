@@ -388,4 +388,30 @@ SurfaceMontageConfigurationFlatMaps::getDescriptionOfContent(PlainTextStringBuil
     }
 }
 
+/**
+ * Copy the given configuration to this configurtion.
+ *
+ * @param configuration.
+ *    Configuration that is copied.
+ */
+void
+SurfaceMontageConfigurationFlatMaps::copyConfiguration(SurfaceMontageConfigurationAbstract* configuration)
+{
+    SurfaceMontageConfigurationAbstract::copyConfiguration(configuration);
+
+    SurfaceMontageConfigurationFlatMaps* flatConfiguration = dynamic_cast<SurfaceMontageConfigurationFlatMaps*>(configuration);
+    CaretAssert(flatConfiguration);
+
+    m_leftSurfaceSelectionModel->setSurface(flatConfiguration->m_leftSurfaceSelectionModel->getSurface());
+    
+    m_rightSurfaceSelectionModel->setSurface(flatConfiguration->m_rightSurfaceSelectionModel->getSurface());
+    
+    m_cerebellumSurfaceSelectionModel->setSurface(flatConfiguration->m_cerebellumSurfaceSelectionModel->getSurface());
+    
+    m_leftEnabled = flatConfiguration->m_leftEnabled;
+    
+    m_rightEnabled = flatConfiguration->m_rightEnabled;
+    
+    m_cerebellumEnabled = flatConfiguration->m_cerebellumEnabled;
+}
 

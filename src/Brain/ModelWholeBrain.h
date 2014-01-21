@@ -74,6 +74,9 @@ namespace caret {
                                             
         virtual void initializeSelectedSurfaces();
         
+        virtual void copyTabContent(const int32_t sourceTabIndex,
+                                    const int32_t destinationTabIndex);
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);

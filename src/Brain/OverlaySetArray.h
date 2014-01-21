@@ -58,6 +58,8 @@ namespace caret {
         
         void initializeOverlaySelections();
         
+        void copyOverlaySet(const int32_t sourceTabIndex,
+                            const int32_t destinationTabIndex);
     private:
         OverlaySetArray(const OverlaySetArray&);
 

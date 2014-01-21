@@ -53,6 +53,9 @@ namespace caret {
         virtual void getDescriptionOfContent(const int32_t tabIndex,
                                              PlainTextStringBuilder& descriptionOut) const;
         
+        virtual void copyTabContent(const int32_t sourceTabIndex,
+                                    const int32_t destinationTabIndex);
+        
     private:
         ModelSurface(const ModelSurface&);
         

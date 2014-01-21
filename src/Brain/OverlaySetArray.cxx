@@ -195,3 +195,24 @@ OverlaySetArray::receiveEvent(Event* event)
     }
 }
 
+/**
+ * Copy the overlay set from the source tab index to the
+ * destination tab index.
+ *
+ * @param sourceTabIndex
+ *    Source from which tab content is copied.
+ * @param destinationTabIndex
+ *    Destination to which tab content is copied.
+ */
+void
+OverlaySetArray::copyOverlaySet(const int32_t sourceTabIndex,
+                    const int32_t destinationTabIndex)
+{
+    CaretAssertVectorIndex(m_overlaySets, sourceTabIndex);
+    CaretAssertVectorIndex(m_overlaySets, destinationTabIndex);
+    
+    const OverlaySet* sourceOverlaySet = m_overlaySets[sourceTabIndex];
+    OverlaySet* destinationOverlaySet = m_overlaySets[destinationTabIndex];
+    destinationOverlaySet->copyOverlaySet(sourceOverlaySet);
+}
+

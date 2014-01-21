@@ -227,3 +227,22 @@ ModelVolume::restoreModelSpecificInformationFromScene(const SceneAttributes* sce
                                      sceneClass);
 }
 
+/**
+ * Copy the tab content from the source tab index to the
+ * destination tab index.
+ *
+ * @param sourceTabIndex
+ *    Source from which tab content is copied.
+ * @param destinationTabIndex
+ *    Destination to which tab content is copied.
+ */
+void
+ModelVolume::copyTabContent(const int32_t sourceTabIndex,
+                      const int32_t destinationTabIndex)
+{
+    Model::copyTabContent(sourceTabIndex,
+                          destinationTabIndex);
+    m_overlaySetArray->copyOverlaySet(sourceTabIndex,
+                                      destinationTabIndex);
+}
+

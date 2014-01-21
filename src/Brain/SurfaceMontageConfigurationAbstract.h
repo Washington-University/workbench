@@ -88,6 +88,8 @@ namespace caret {
         
         void getSurfaceMontageViewportsForTransformation(std::vector<const SurfaceMontageViewport*>& surfaceMontageViewports) const;
         
+        virtual void copyConfiguration(SurfaceMontageConfigurationAbstract* configuration);
+        
     private:
         SurfaceMontageConfigurationAbstract(const SurfaceMontageConfigurationAbstract&);
 

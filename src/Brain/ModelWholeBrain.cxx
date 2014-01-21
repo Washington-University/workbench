@@ -569,10 +569,40 @@ ModelWholeBrain::restoreModelSpecificInformationFromScene(const SceneAttributes*
     }
 
     /*
-     * Need tpo do after
+     * Need to do after
      */
     m_sceneAssistant->restoreMembers(sceneAttributes, 
                                      sceneClass);
+}
+
+/**
+ * Copy the tab content from the source tab index to the
+ * destination tab index.
+ *
+ * @param sourceTabIndex
+ *    Source from which tab content is copied.
+ * @param destinationTabIndex
+ *    Destination to which tab content is copied.
+ */
+void
+ModelWholeBrain::copyTabContent(const int32_t sourceTabIndex,
+                      const int32_t destinationTabIndex)
+{
+    Model::copyTabContent(sourceTabIndex,
+                          destinationTabIndex);
+
+    CaretAssertArrayIndex(m_selectedSurfaceType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, sourceTabIndex);
+    CaretAssertArrayIndex(m_selectedSurfaceType, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, destinationTabIndex);
+    
+    m_selectedSurface[destinationTabIndex] = m_selectedSurface[sourceTabIndex];
+    m_selectedSurfaceType[destinationTabIndex] = m_selectedSurfaceType[sourceTabIndex];
+    m_leftEnabled[destinationTabIndex] = m_leftEnabled[sourceTabIndex];
+    m_rightEnabled[destinationTabIndex] = m_rightEnabled[sourceTabIndex];
+    m_cerebellumEnabled[destinationTabIndex] = m_cerebellumEnabled[sourceTabIndex];
+    m_leftRightSeparation[destinationTabIndex] = m_leftRightSeparation[sourceTabIndex];
+    m_cerebellumSeparation[destinationTabIndex] = m_cerebellumSeparation[sourceTabIndex];
+    m_overlaySetArray->copyOverlaySet(sourceTabIndex,
+                                      destinationTabIndex);
     
 }
 

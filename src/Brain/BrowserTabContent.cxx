@@ -218,10 +218,26 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_surfaceModelSelector->setSelectedSurfaceModel(tabToClone->m_surfaceModelSelector->getSelectedSurfaceModel());
 
     m_selectedModelType = tabToClone->m_selectedModelType;
-    m_volumeModel = tabToClone->m_volumeModel;
-    m_wholeBrainModel = tabToClone->m_wholeBrainModel;
-    m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
-    m_chartModel = tabToClone->m_chartModel;
+
+    /*
+     *
+     */
+    EventModelGetAll allModelsEvent;
+    EventManager::get()->sendEvent(allModelsEvent.getPointer());
+    std::vector<Model*> allModels = allModelsEvent.getModels();
+    for (std::vector<Model*>::iterator modelIter = allModels.begin();
+         modelIter != allModels.end();
+         modelIter++) {
+        Model* model = *modelIter;
+        model->copyTabContent(tabToClone->m_tabNumber,
+                              m_tabNumber);
+    }
+    
+//    m_volumeModel = tabToClone->m_volumeModel;
+//    m_wholeBrainModel = tabToClone->m_wholeBrainModel;
+//    m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
+//    m_chartModel = tabToClone->m_chartModel;
+    
     m_yokingGroup = tabToClone->m_yokingGroup;
     
     *m_cerebellumViewingTransformation = *tabToClone->m_cerebellumViewingTransformation;
@@ -234,13 +250,13 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     Model* model = getModelForDisplay();
     
-    const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
-    if (overlaySetToClone != NULL) {
-        OverlaySet* overlaySet = getOverlaySet();
-        if (overlaySet != NULL) {
-            overlaySet->copyOverlaySet(overlaySetToClone);
-        }
-    }
+//    const OverlaySet* overlaySetToClone = tabToClone->getOverlaySet();
+//    if (overlaySetToClone != NULL) {
+//        OverlaySet* overlaySet = getOverlaySet();
+//        if (overlaySet != NULL) {
+//            overlaySet->copyOverlaySet(overlaySetToClone);
+//        }
+//    }
     
     if (model != NULL) {
         Brain* brain = model->getBrain();

@@ -276,4 +276,21 @@ SurfaceMontageConfigurationAbstract::getSurfaceMontageViewportsForTransformation
     }
 }
 
+/**
+ * Copy the given configuration to this configurtion.
+ *
+ * @param configuration.
+ *    Configuration that is copied.
+ */
+void
+SurfaceMontageConfigurationAbstract::copyConfiguration(SurfaceMontageConfigurationAbstract* configuration)
+{
+    CaretAssert(m_configurationType == configuration->m_configurationType);
+    
+    m_overlaySet->copyOverlaySet(configuration->m_overlaySet);
+    m_layoutOrientation = configuration->m_layoutOrientation;
+    m_surfaceMontageViewports = configuration->m_surfaceMontageViewports;
+}
+
+
 

@@ -641,3 +641,30 @@ SurfaceMontageConfigurationCerebellar::getDescriptionOfContent(PlainTextStringBu
     descriptionOut.popIndentation();
 }
 
+/**
+ * Copy the given configuration to this configurtion.
+ *
+ * @param configuration.
+ *    Configuration that is copied.
+ */
+void
+SurfaceMontageConfigurationCerebellar::copyConfiguration(SurfaceMontageConfigurationAbstract* configuration)
+{
+    SurfaceMontageConfigurationCerebellar* cerebellarConfiguration = dynamic_cast<SurfaceMontageConfigurationCerebellar*>(configuration);
+    CaretAssert(cerebellarConfiguration);
+    
+    SurfaceMontageConfigurationAbstract::copyConfiguration(configuration);
+    
+    m_firstSurfaceSelectionModel->setSurface(cerebellarConfiguration->m_firstSurfaceSelectionModel->getSurface());
+    m_secondSurfaceSelectionModel->setSurface(cerebellarConfiguration->m_secondSurfaceSelectionModel->getSurface());
+    
+    m_firstSurfaceEnabled = cerebellarConfiguration->m_firstSurfaceEnabled;
+    m_secondSurfaceEnabled = cerebellarConfiguration->m_secondSurfaceEnabled;
+    
+    m_dorsalEnabled = cerebellarConfiguration->m_dorsalEnabled;
+    m_ventralEnabled = cerebellarConfiguration->m_ventralEnabled;
+    m_posteriorEnabled = cerebellarConfiguration->m_posteriorEnabled;
+    m_anteriorEnabled = cerebellarConfiguration->m_anteriorEnabled;
+}
+
+

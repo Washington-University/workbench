@@ -86,6 +86,8 @@ namespace caret {
         
         virtual bool isValid();
         
+        virtual void copyConfiguration(SurfaceMontageConfigurationAbstract* configuration);
+        
     private:
         SurfaceMontageConfigurationCerebellar(const SurfaceMontageConfigurationCerebellar&);
 
