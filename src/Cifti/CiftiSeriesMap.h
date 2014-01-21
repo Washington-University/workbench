@@ -75,6 +75,18 @@ namespace caret
                     temp.m_start == m_start &&
                     temp.m_step == m_step);
         }
+        bool approximateMatch(const CiftiIndexMap& rhs) const
+        {
+            switch (rhs.getType())
+            {
+                case SCALARS://maybe?
+                case SERIES:
+                case LABELS://maybe?
+                    return getLength() == rhs.getLength();
+                default:
+                    return false;
+            }
+        }
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;

@@ -405,6 +405,11 @@ bool CiftiBrainModelsMap::operator==(const CiftiIndexMap& rhs) const
     return (m_modelsInfo == myrhs.m_modelsInfo);//NOTE: these are sorted by index range, so this works
 }
 
+bool CiftiBrainModelsMap::approximateMatch(const CiftiIndexMap& rhs) const
+{
+    return (*this) == rhs;//there is no user-specified metadata, and it cannot match other types, so use ==
+}
+
 bool CiftiBrainModelsMap::BrainModelPriv::operator==(const BrainModelPriv& rhs) const
 {
     if (m_brainStructure != rhs.m_brainStructure) return false;

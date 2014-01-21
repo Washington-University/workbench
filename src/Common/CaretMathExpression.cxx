@@ -63,7 +63,7 @@ AString CaretMathExpression::getExpressionHelpInfo()
         "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.  " +
         "The <= and >= operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
         "Comparison operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
-        "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, ie '((0 < x) < 5)', " +
+        "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, i.e. '((0 < x) < 5)', " +
         "which will always return 1, as both possible results of a comparison are less than 5.  A warning is generated if an expression of this type is detected.  " +
         "Use '(x > 0) * (x < 5)' to get the desired behavior.\n\n" +
         "Whitespace between elements is ignored, 'sin(2*x)' is equivalent to ' sin ( 2 * x ) ', but 's in(2*x)' is an error.  " +

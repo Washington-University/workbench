@@ -58,10 +58,10 @@ void CiftiXMLNew::copyHelper(const CiftiXMLNew& rhs)
     }
 }
 
-const CiftiIndexMap& CiftiXMLNew::getMap(const int& direction) const
+const CiftiIndexMap* CiftiXMLNew::getMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
-    return *(m_indexMaps[direction]);
+    return m_indexMaps[direction];
 }
 
 GiftiMetaData* CiftiXMLNew::getFileMetadata() const
@@ -92,40 +92,48 @@ const CiftiBrainModelsMap& CiftiXMLNew::getBrainModelsMap(const int& direction) 
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(getMappingType(direction) == CiftiIndexMap::BRAIN_MODELS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiBrainModelsMap&>(getMap(direction));//let release throw bad_cast
+    return dynamic_cast<const CiftiBrainModelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
 }
 
 const CiftiLabelsMap& CiftiXMLNew::getLabelsMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(getMappingType(direction) == CiftiIndexMap::LABELS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiLabelsMap&>(getMap(direction));//let release throw bad_cast
+    return dynamic_cast<const CiftiLabelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
 }
 
 const CiftiParcelsMap& CiftiXMLNew::getParcelsMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(getMappingType(direction) == CiftiIndexMap::PARCELS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiParcelsMap&>(getMap(direction));//let release throw bad_cast
+    return dynamic_cast<const CiftiParcelsMap&>(*getMap(direction));//let release throw bad_cast or segfault
 }
 
 const CiftiScalarsMap& CiftiXMLNew::getScalarsMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(getMappingType(direction) == CiftiIndexMap::SCALARS);//assert so we catch it in debug
-    return dynamic_cast<const CiftiScalarsMap&>(getMap(direction));//let release throw bad_cast
+    return dynamic_cast<const CiftiScalarsMap&>(*getMap(direction));//let release throw bad_cast or segfault
 }
 
 const CiftiSeriesMap& CiftiXMLNew::getSeriesMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
     CaretAssert(getMappingType(direction) == CiftiIndexMap::SERIES);//assert so we catch it in debug
-    return dynamic_cast<const CiftiSeriesMap&>(getMap(direction));//let release throw bad_cast
+    return dynamic_cast<const CiftiSeriesMap&>(*getMap(direction));//let release throw bad_cast or segfault
+}
+
+int64_t CiftiXMLNew::getDimensionLength(const int& direction) const
+{
+    const CiftiIndexMap* tempMap = getMap(direction);
+    CaretAssert(tempMap != NULL);
+    return tempMap->getLength();
 }
 
 CiftiIndexMap::MappingType CiftiXMLNew::getMappingType(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
+    CaretAssert(m_indexMaps[direction] != NULL);
     return m_indexMaps[direction]->getType();
 }
 
@@ -137,7 +145,6 @@ void CiftiXMLNew::setMap(const int& direction, const CiftiIndexMap& mapIn)
 
 void CiftiXMLNew::setNumberOfDimensions(const int& num)
 {
-    m_indexMaps.clear();//not sure if we should do this, but for now, prevent lazy usage
     m_indexMaps.resize(num);
 }
 

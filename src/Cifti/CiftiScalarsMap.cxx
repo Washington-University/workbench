@@ -86,6 +86,19 @@ void CiftiScalarsMap::setMapName(const int64_t& index, const AString& mapName)
     m_maps[index].m_name = mapName;
 }
 
+bool CiftiScalarsMap::approximateMatch(const CiftiIndexMap& rhs) const
+{
+    switch (rhs.getType())
+    {
+        case SCALARS:
+        case SERIES://maybe?
+        case LABELS:
+            return getLength() == rhs.getLength();
+        default:
+            return false;
+    }
+}
+
 bool CiftiScalarsMap::operator==(const CiftiIndexMap& rhs) const
 {
     if (rhs.getType() != getType()) return false;

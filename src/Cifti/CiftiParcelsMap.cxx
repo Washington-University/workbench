@@ -219,6 +219,28 @@ bool CiftiParcelsMap::hasVolumeData() const
     return false;
 }
 
+bool CiftiParcelsMap::approximateMatch(const CiftiIndexMap& rhs) const
+{
+    if (rhs.getType() != getType()) return false;
+    const CiftiParcelsMap& myrhs = dynamic_cast<const CiftiParcelsMap&>(rhs);
+    CaretAssert(!m_ignoreVolSpace && !myrhs.m_ignoreVolSpace);
+    if (m_haveVolumeSpace != myrhs.m_haveVolumeSpace) return false;
+    if (m_haveVolumeSpace && m_volSpace != myrhs.m_volSpace) return false;
+    if (m_surfInfo.size() != myrhs.m_surfInfo.size()) return false;//as below, return false if they won't write the mapping part to xml the same - 1 to 1 compare only requires 1 simple loop
+    for (map<StructureEnum::Enum, SurfaceInfo>::const_iterator iter = m_surfInfo.begin(); iter != m_surfInfo.end(); ++iter)
+    {
+        map<StructureEnum::Enum, SurfaceInfo>::const_iterator rhsiter = myrhs.m_surfInfo.find(iter->first);
+        if (rhsiter == myrhs.m_surfInfo.end()) return false;//technically, they might still have the same meaning, if the surface isn't used, but they will still write differently, so false
+        if (iter->second.m_numNodes != rhsiter->second.m_numNodes) return false;
+    }
+    if (m_parcels.size() != myrhs.m_parcels.size()) return false;
+    for (int64_t i = 0; i < (int64_t)m_parcels.size(); ++i)
+    {
+        if (!m_parcels[i].approximateMatch(myrhs.m_parcels[i])) return false;
+    }
+    return true;
+}
+
 bool CiftiParcelsMap::operator==(const CiftiIndexMap& rhs) const
 {
     if (rhs.getType() != getType()) return false;
@@ -239,6 +261,13 @@ bool CiftiParcelsMap::operator==(const CiftiIndexMap& rhs) const
 bool CiftiParcelsMap::Parcel::operator==(const CiftiParcelsMap::Parcel& rhs) const
 {
     if (m_name != rhs.m_name) return false;
+    if (m_voxelIndices != rhs.m_voxelIndices) return false;
+    return (m_surfaceNodes == rhs.m_surfaceNodes);
+}
+
+//same, but don't test name
+bool CiftiParcelsMap::Parcel::approximateMatch(const CiftiParcelsMap::Parcel& rhs) const
+{
     if (m_voxelIndices != rhs.m_voxelIndices) return false;
     return (m_surfaceNodes == rhs.m_surfaceNodes);
 }

@@ -65,7 +65,7 @@ void CiftiXML::testNewXML(const QString& xmlString)
         {
             for (int i = 0; i < test1.getNumberOfDimensions(); ++i)
             {
-                if (test1.getMap(i) != test2.getMap(i))
+                if (*(test1.getMap(i)) != *(test2.getMap(i)))
                 {
                     CaretLogWarning("comparison in new cifti xml failed, dimension " + AString::number(i) + " not equal");
                 }
@@ -122,7 +122,7 @@ void CiftiXML::testNewXML(const QByteArray& xmlBytes)
         {
             for (int i = 0; i < test1.getNumberOfDimensions(); ++i)
             {
-                if (test1.getMap(i) != test2.getMap(i))
+                if (*(test1.getMap(i)) != *(test2.getMap(i)))
                 {
                     CaretLogWarning("comparison in new cifti xml failed, dimension " + AString::number(i) + " not equal");
                 }

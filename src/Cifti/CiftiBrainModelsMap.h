@@ -87,6 +87,7 @@ namespace caret
         MappingType getType() const { return BRAIN_MODELS; }
         int64_t getLength() const;
         bool operator==(const CiftiIndexMap& rhs) const;
+        bool approximateMatch(const CiftiIndexMap& rhs) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;

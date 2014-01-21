@@ -49,6 +49,7 @@ namespace caret
         virtual int64_t getLength() const = 0;
         virtual bool operator==(const CiftiIndexMap& rhs) const = 0;//used to check for merging mappings when writing the XML - must compare EVERYTHING that goes into the XML
         bool operator!=(const CiftiIndexMap& rhs) const { return !((*this) == rhs); }
+        virtual bool approximateMatch(const CiftiIndexMap& rhs) const = 0;//check if things like doing index-wise math would make sense
         virtual void readXML1(QXmlStreamReader& xml) = 0;//mainly to shorten the type-specific code in CiftiXML
         virtual void readXML2(QXmlStreamReader& xml) = 0;
         virtual void writeXML1(QXmlStreamWriter& xml) const = 0;

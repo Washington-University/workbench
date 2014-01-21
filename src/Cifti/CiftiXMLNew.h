@@ -59,7 +59,7 @@ namespace caret
         };
         int getNumberOfDimensions() const { return m_indexMaps.size(); }
         const CiftiVersion& getParsedVersion() const { return m_parsedVersion; }
-        const CiftiIndexMap& getMap(const int& direction) const;
+        const CiftiIndexMap* getMap(const int& direction) const;//can return null in unfilled XML object
         GiftiMetaData* getFileMetadata() const;//HACK: allow modification of palette and metadata within XML without setting the xml on a file again
         PaletteColorMapping* getFilePalette() const;
         
@@ -69,6 +69,7 @@ namespace caret
         const CiftiParcelsMap& getParcelsMap(const int& direction) const;
         const CiftiScalarsMap& getScalarsMap(const int& direction) const;
         const CiftiSeriesMap& getSeriesMap(const int& direction) const;
+        int64_t getDimensionLength(const int& direction) const;
         
         void setNumberOfDimensions(const int& num);
         void setMap(const int& direction, const CiftiIndexMap& mapIn);
