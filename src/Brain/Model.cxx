@@ -404,8 +404,8 @@ Model::getOldSceneTransformation(const int tabIndex,
  *    Destination to which tab content is copied.
  */
 void
-Model::copyTabContent(const int32_t sourceTabIndex,
-                      const int32_t destinationTabIndex)
+Model::copyTabContent(const int32_t /*sourceTabIndex*/,
+                      const int32_t /*destinationTabIndex*/)
 {
     
 }

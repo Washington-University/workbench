@@ -821,3 +821,4 @@ void MovieDialog::CleanupInterpolation()
 		coordsCount = 0;
 	}
 }
+
