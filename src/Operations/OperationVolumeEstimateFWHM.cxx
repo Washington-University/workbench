@@ -196,7 +196,7 @@ Vector3D OperationVolumeEstimateFWHM::estimateFWHM(const VolumeFile* input, cons
         }
     }
     float dirvariance[3];
-    float sigmas[3];
+    float fwhms[3];
     float globalvariance = globalaccum / globalCount;
     const VolumeSpace& volSpace = input->getVolumeSpace();
     Vector3D spacingVecs[4];
@@ -209,7 +209,7 @@ Vector3D OperationVolumeEstimateFWHM::estimateFWHM(const VolumeFile* input, cons
         } else {
             dirvariance[i] = 0.0;//avoid NaNs
         }
-        sigmas[i] = spacingVecs[i].length() * sqrt(-1.0f / (4.0f * log(1.0f - dirvariance[i] / (2.0f * globalvariance))));
+        fwhms[i] = spacingVecs[i].length() * sqrt(-2.0f * log(2.0f) / log(1.0f - dirvariance[i] / (2.0f * globalvariance)));
     }
     Vector3D ret;
     VolumeSpace::OrientTypes myorient[3];
@@ -220,15 +220,15 @@ Vector3D OperationVolumeEstimateFWHM::estimateFWHM(const VolumeFile* input, cons
         {
             case VolumeSpace::LEFT_TO_RIGHT:
             case VolumeSpace::RIGHT_TO_LEFT:
-                ret[0] = sigmas[i];
+                ret[0] = fwhms[i];
                 break;
             case VolumeSpace::POSTERIOR_TO_ANTERIOR:
             case VolumeSpace::ANTERIOR_TO_POSTERIOR:
-                ret[1] = sigmas[i];
+                ret[1] = fwhms[i];
                 break;
             case VolumeSpace::INFERIOR_TO_SUPERIOR:
             case VolumeSpace::SUPERIOR_TO_INFERIOR:
-                ret[2] = sigmas[i];
+                ret[2] = fwhms[i];
                 break;
         }
     }
