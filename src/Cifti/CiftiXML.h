@@ -137,14 +137,14 @@ namespace caret {
         * write the Cifti XML data to the supplied QString
         * @param text
         */
-        void writeXML(QString &text) const { QXmlStreamWriter xml(&text); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root); testNewXML(text); }//we don't use the old writer in testing, so it won't recurse
+        void writeXML(QString &text) const { text = ""; QXmlStreamWriter xml(&text); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root); testNewXML(text); }//we don't use the old writer in testing, so it won't recurse
         /**
         * writeXML
         *
         * write the Cifti XML data to the supplied byte array.
         * @param bytes
         */
-        void writeXML(QByteArray &bytes) const { QXmlStreamWriter xml(&bytes); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root); testNewXML(bytes); }
+        void writeXML(QByteArray &bytes) const { bytes.clear(); QXmlStreamWriter xml(&bytes); CiftiXMLWriter myWriter; myWriter.writeCiftiXML(xml,m_root); testNewXML(bytes); }
         
         static void testNewXML(const QString& xmlString);
         static void testNewXML(const QByteArray& xmlString);
