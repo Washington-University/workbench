@@ -3504,8 +3504,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                 horizontalAxisEndXYZ[0]   += bigValue;
             }
             
-            verticalBottomText = "D";
-            verticalTopText    = "V";
+            verticalBottomText = "V";
+            verticalTopText    = "D";
             verticalAxisRGBA = paraRGBA;
             if (obliqueModeFlag) {
                 verticalAxisStartXYZ[1] -= bigValue;
@@ -3529,8 +3529,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                 horizontalAxisEndXYZ[1]   += bigValue;
             }
             
-            verticalBottomText = "D";
-            verticalTopText    = "V";
+            verticalBottomText = "V";
+            verticalTopText    = "D";
             verticalAxisRGBA = coronalRGBA;
             if (obliqueModeFlag) {
                 verticalAxisStartXYZ[1] -= bigValue;
