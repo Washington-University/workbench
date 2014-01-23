@@ -713,7 +713,7 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
                               + ") ("
                               + AString::fromNumbers(xyz, 3, ",")
                               + ")");
-        idText.addLine(true, boldText, text);
+        idText.addLine(false, boldText, text);
     }
 }
 
