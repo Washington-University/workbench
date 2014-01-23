@@ -101,7 +101,7 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* /*
     SelectionManager* selectionManager =
     openGLWidget->performIdentification(mouseClickX,
                                         mouseClickY,
-                                        true);
+                                        false);
     
     GuiManager::get()->processIdentification(selectionManager,
                                              openGLWidget);    
