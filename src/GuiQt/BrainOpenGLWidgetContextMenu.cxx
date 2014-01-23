@@ -1850,7 +1850,7 @@ BrainOpenGLWidgetContextMenu::editVolumeFocusSelected()
 void 
 BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
 {    
-    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
+//    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     GuiManager::get()->processIdentification(this->selectionManager,
                                              this->parentOpenGLWidget);    
 
