@@ -42,6 +42,7 @@
 #include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
 #include "Brain.h"
+#include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "ChartableInterface.h"
@@ -96,18 +97,18 @@ using namespace caret;
  */
 /**
  * Constructor.
- * @param identificationManager
- *    The identification manager, provides data under the cursor.
- * @param parent
- *    Parent on which the menu is displayed.
+ * @param selectionManager
+ *    The selection manager, provides data under the cursor.
+ * @param parentOpenGLWidget
+ *    Parent OpenGL Widget on which the menu is displayed.
  */
-BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* identificationManager,
+BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* selectionManager,
                                                            BrowserTabContent* browserTabContent,
-                                                           QWidget* parent)
-: QMenu(parent)
+                                                           BrainOpenGLWidget* parentOpenGLWidget)
+: QMenu(parentOpenGLWidget)
 {
-    this->parentWidget = parent;
-    this->identificationManager = identificationManager;
+    this->parentOpenGLWidget = parentOpenGLWidget;
+    this->selectionManager = selectionManager;
     this->browserTabContent = browserTabContent;
     
     /*
@@ -133,7 +134,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
 //    /*
 //     * Identify Node
 //     */
-//    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+//    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
 //    
 //    std::vector<QAction*> ciftiConnectivityActions;
 //    QActionGroup* ciftiConnectivityActionGroup = new QActionGroup(this);
@@ -411,7 +412,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* ide
     
 //    std::vector<QAction*> createActions;
 //    
-    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
+    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
 //
 //    /*
 //     * Create focus at surface node or at ID symbol
@@ -597,7 +598,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
     /*
      * Identify Border
      */
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     if (borderID->isValid()) {
         const QString text = ("Identify Border ("
                               + borderID->getBorder()->getName()
@@ -612,7 +613,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
     /*
      * Identify Surface Focus
      */
-    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     if (focusID->isValid()) {
         const QString text = ("Identify Surface Focus ("
                               + focusID->getFocus()->getName()
@@ -627,7 +628,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
     /*
      * Identify Node
      */
-    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     if (surfaceID->isValid()) {
         const int32_t nodeIndex = surfaceID->getNodeNumber();
         const Surface* surface = surfaceID->getSurface();
@@ -647,7 +648,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
     /*
      * Identify Voxel
      */
-    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
+    SelectionItemVoxel* idVoxel = this->selectionManager->getVoxelIdentification();
     if (idVoxel->isValid()) {
         int64_t ijk[3];
         idVoxel->getVoxelIJK(ijk);
@@ -664,7 +665,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
     /*
      * Identify Volume Focus
      */
-    SelectionItemFocusVolume* focusVolID = this->identificationManager->getVolumeFocusIdentification();
+    SelectionItemFocusVolume* focusVolID = this->selectionManager->getVolumeFocusIdentification();
     if (focusVolID->isValid()) {
         const QString text = ("Identify Volume Focus ("
                               + focusVolID->getFocus()->getName()
@@ -686,7 +687,7 @@ BrainOpenGLWidgetContextMenu::addIdentificationActions()
 void
 BrainOpenGLWidgetContextMenu::addBorderRegionOfInterestActions()
 {
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     
     QList<QAction*> borderActions;
     
@@ -738,7 +739,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
     Brain* brain = NULL;
     
     float voxelXYZ[3] = { 0.0, 0.0, 0.0 };
-    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
+    SelectionItemVoxel* idVoxel = this->selectionManager->getVoxelIdentification();
     if (idVoxel->isValid()) {
         double voxelXYZDouble[3];
         idVoxel->getModelXYZ(voxelXYZDouble);
@@ -753,7 +754,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
     int32_t surfaceNodeIndex = -1;
     int32_t surfaceNumberOfNodes = -1;
     StructureEnum::Enum surfaceStructure = StructureEnum::INVALID;
-    SelectionItemSurfaceNode* idNode = this->identificationManager->getSurfaceNodeIdentification();
+    SelectionItemSurfaceNode* idNode = this->selectionManager->getSurfaceNodeIdentification();
     if (idNode->isValid()) {
         surface = idNode->getSurface();
         surfaceNodeIndex = idNode->getNodeNumber();
@@ -1009,11 +1010,11 @@ BrainOpenGLWidgetContextMenu::addFociActions()
 {
     QList<QAction*> fociCreateActions;
     
-    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
-    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
-    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
-    SelectionItemVoxel* idVoxel = this->identificationManager->getVoxelIdentification();
-    SelectionItemFocusVolume* focusVolID = this->identificationManager->getVolumeFocusIdentification();
+    const SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
+    SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
+    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
+    SelectionItemVoxel* idVoxel = this->selectionManager->getVoxelIdentification();
+    SelectionItemFocusVolume* focusVolID = this->selectionManager->getVolumeFocusIdentification();
     
     
     /*
@@ -1273,7 +1274,7 @@ BrainOpenGLWidgetContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
 void
 BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
 {
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Border* border = borderID->getBorder();
     Surface* surface = borderID->getSurface();
     
@@ -1344,7 +1345,7 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
 //void 
 //BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
 //{
-//    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+//    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
 //    Border* border = borderID->getBorder();
 //    Surface* surface = borderID->getSurface();
 //    
@@ -1509,7 +1510,7 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
 void 
 BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
 {
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Border* border = borderID->getBorder();
     Surface* surface = borderID->getSurface();
     
@@ -1685,10 +1686,10 @@ BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
 void 
 BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
 {
-    SelectionItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
     Brain* brain = borderID->getBrain();
-    this->identificationManager->clearOtherSelectedItems(borderID);
-    const AString idMessage = this->identificationManager->getIdentificationText(brain);
+    this->selectionManager->clearOtherSelectedItems(borderID);
+    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1701,7 +1702,7 @@ BrainOpenGLWidgetContextMenu::identifySurfaceBorderSelected()
 void
 BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
 {
-    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     const Surface* surface = surfaceID->getSurface();
     const int32_t nodeIndex = surfaceID->getNodeNumber();
     const float* xyz = surface->getCoordinate(nodeIndex);
@@ -1718,7 +1719,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceFocusSelected()
     focus->setComment(comment);
     FociPropertiesEditorDialog::createFocus(focus,
                                             this->browserTabContent,
-                                            this->parentWidget);
+                                            this->parentOpenGLWidget);
 }
 
 
@@ -1729,7 +1730,7 @@ void
 BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
 {
     SelectionItemSurfaceNodeIdentificationSymbol* nodeSymbolID =
-        this->identificationManager->getSurfaceNodeIdentificationSymbol();
+        this->selectionManager->getSurfaceNodeIdentificationSymbol();
     
     const Surface* surface = nodeSymbolID->getSurface();
     const int32_t nodeIndex = nodeSymbolID->getNodeNumber();
@@ -1747,7 +1748,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
     focus->setComment(comment);
     FociPropertiesEditorDialog::createFocus(focus,
                                             this->browserTabContent,
-                                            this->parentWidget);
+                                            this->parentOpenGLWidget);
 }
 /**
  * Called to create a focus at a voxel location
@@ -1755,7 +1756,7 @@ BrainOpenGLWidgetContextMenu::createSurfaceIDSymbolFocusSelected()
 void
 BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
 {
-    SelectionItemVoxel* voxelID = this->identificationManager->getVoxelIdentification();
+    SelectionItemVoxel* voxelID = this->selectionManager->getVoxelIdentification();
     const VolumeMappableInterface* vf = voxelID->getVolumeFile();
     int64_t ijk[3];
     voxelID->getVoxelIJK(ijk);
@@ -1777,7 +1778,7 @@ BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
     
     FociPropertiesEditorDialog::createFocus(focus,
                                             this->browserTabContent,
-                                            this->parentWidget);
+                                            this->parentOpenGLWidget);
 }
 
 
@@ -1787,10 +1788,10 @@ BrainOpenGLWidgetContextMenu::createVolumeFocusSelected()
 void
 BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
 {
-    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     Brain* brain = focusID->getBrain();
-    this->identificationManager->clearOtherSelectedItems(focusID);
-    const AString idMessage = this->identificationManager->getIdentificationText(brain);
+    this->selectionManager->clearOtherSelectedItems(focusID);
+    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1803,10 +1804,10 @@ BrainOpenGLWidgetContextMenu::identifySurfaceFocusSelected()
 void
 BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
 {
-    SelectionItemFocusVolume* focusID = this->identificationManager->getVolumeFocusIdentification();
+    SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
     Brain* brain = focusID->getBrain();
-    this->identificationManager->clearOtherSelectedItems(focusID);
-    const AString idMessage = this->identificationManager->getIdentificationText(brain);
+    this->selectionManager->clearOtherSelectedItems(focusID);
+    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1819,13 +1820,13 @@ BrainOpenGLWidgetContextMenu::identifyVolumeFocusSelected()
 void
 BrainOpenGLWidgetContextMenu::editSurfaceFocusSelected()
 {
-    SelectionItemFocusSurface* focusID = this->identificationManager->getSurfaceFocusIdentification();
+    SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     Focus* focus = focusID->getFocus();
     FociFile* fociFile = focusID->getFociFile();
     
     FociPropertiesEditorDialog::editFocus(fociFile,
                                           focus,
-                                          this->parentWidget);
+                                          this->parentOpenGLWidget);
 }
 
 /**
@@ -1834,13 +1835,13 @@ BrainOpenGLWidgetContextMenu::editSurfaceFocusSelected()
 void
 BrainOpenGLWidgetContextMenu::editVolumeFocusSelected()
 {
-    SelectionItemFocusVolume* focusID = this->identificationManager->getVolumeFocusIdentification();
+    SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
     Focus* focus = focusID->getFocus();
     FociFile* fociFile = focusID->getFociFile();
     
     FociPropertiesEditorDialog::editFocus(fociFile,
                                           focus,
-                                          this->parentWidget);
+                                          this->parentOpenGLWidget);
 }
 
 /**
@@ -1849,10 +1850,17 @@ BrainOpenGLWidgetContextMenu::editVolumeFocusSelected()
 void 
 BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
 {    
-    SelectionItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
+    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
+    GuiManager::get()->processIdentification(this->selectionManager,
+                                             this->parentOpenGLWidget);    
+
+/*
+ *
+ *
+ *
     Brain* brain = surfaceID->getBrain();
-    this->identificationManager->clearOtherSelectedItems(surfaceID);
-    const AString idMessage = this->identificationManager->getIdentificationText(brain);
+    this->selectionManager->clearOtherSelectedItems(surfaceID);
+    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     Surface* surface = surfaceID->getSurface();
     const StructureEnum::Enum structure = surface->getStructure();
@@ -1864,6 +1872,9 @@ BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
                                                         surfaceID->getNodeNumber()));
     
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
+*
+*
+*/
 }
 
 /**
@@ -1872,10 +1883,10 @@ BrainOpenGLWidgetContextMenu::identifySurfaceNodeSelected()
 void 
 BrainOpenGLWidgetContextMenu::identifyVoxelSelected()
 {
-    SelectionItemVoxel* voxelID = this->identificationManager->getVoxelIdentification();
+    SelectionItemVoxel* voxelID = this->selectionManager->getVoxelIdentification();
     Brain* brain = voxelID->getBrain();
-    this->identificationManager->clearOtherSelectedItems(voxelID);
-    const AString idMessage = this->identificationManager->getIdentificationText(brain);
+    this->selectionManager->clearOtherSelectedItems(voxelID);
+    const AString idMessage = this->selectionManager->getIdentificationText(brain);
     
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->addIdentifiedItem(new IdentifiedItem(idMessage));
@@ -1899,7 +1910,7 @@ BrainOpenGLWidgetContextMenu::removeAllNodeIdentificationSymbolsSelected()
 void
 BrainOpenGLWidgetContextMenu::removeNodeIdentificationSymbolSelected()
 {
-   SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = identificationManager->getSurfaceNodeIdentificationSymbol();
+   SelectionItemSurfaceNodeIdentificationSymbol* idSymbol = selectionManager->getSurfaceNodeIdentificationSymbol();
     if (idSymbol->isValid()) {
         Surface* surface = idSymbol->getSurface();
         

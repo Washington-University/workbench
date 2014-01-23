@@ -47,6 +47,7 @@ class QAction;
 namespace caret {
 
     class Brain;
+    class BrainOpenGLWidget;
     class BrowserTabContent;
     class CaretMappableDataFile;
     class CiftiConnectivityMatrixDataFileManager;
@@ -61,9 +62,9 @@ namespace caret {
         Q_OBJECT
 
     public:
-        BrainOpenGLWidgetContextMenu(SelectionManager* identificationManager,
+        BrainOpenGLWidgetContextMenu(SelectionManager* selectionManager,
                                      BrowserTabContent* browserTabContent,
-                                     QWidget* parent);
+                                     BrainOpenGLWidget* parentOpenGLWidget);
         
         virtual ~BrainOpenGLWidgetContextMenu();
         
@@ -167,13 +168,13 @@ namespace caret {
         void addActionsToMenu(QList<QAction*>& actionsToAdd,
                               const bool addSeparatorBeforeActions);
         
+        BrainOpenGLWidget* parentOpenGLWidget;
+
         std::vector<ParcelConnectivity*> parcelConnectivities;
         
-        SelectionManager* identificationManager;
+        SelectionManager* selectionManager;
         
         BrowserTabContent* browserTabContent;
-        
-        QWidget* parentWidget;
     };
     
 #ifdef __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
