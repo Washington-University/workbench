@@ -40,14 +40,14 @@ void StatisticsTest::execute()
 {
     srand(time(NULL));
     const int NUM_ELEMENTS = 1 << 20;
-    float myData[NUM_ELEMENTS];
+    vector<float> myData(NUM_ELEMENTS);//dynamically allocate to not take lots of stack space
     for (int i = 0; i < NUM_ELEMENTS; ++i)
     {
         myData[i] = (rand() * 100.0f / RAND_MAX) - 50.0f;
     }
     DescriptiveStatistics myFullStats;
-    myFullStats.update(myData, NUM_ELEMENTS);
-    FastStatistics myFastStats(myData, NUM_ELEMENTS);
+	myFullStats.update(myData.data(), NUM_ELEMENTS);
+    FastStatistics myFastStats(myData.data(), NUM_ELEMENTS);
     float exacttolerance = myFullStats.getPopulationStandardDeviation() * 0.000001f;
     float approxtolerance = myFullStats.getPopulationStandardDeviation() * 0.01f;
     if (abs(myFullStats.getMinimumValue() - myFastStats.getMin()) > exacttolerance)

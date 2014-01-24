@@ -75,10 +75,11 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
         //the idea is to have m_provenance set before the command executes, so it can be overridden, but have m_parentProvenance set AFTER the processing is complete
         //the parent provenance should never be generated manually
         m_parentProvenance = "";//in case someone tries to use the same instance more than once
-        //this gets set on output files during writeOutput
+		m_workingDir = QDir::currentPath();//get the current path, in case some stupid command changes the working directory
+        //these get set on output files during writeOutput (and for on-disk in provenanceBeforeOperation)
         parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
         parameters.verifyAllParametersProcessed();
-        checkOutputs(myOutAssoc);//check for input on-disk files used as output on-disk files
+        makeOnDiskOutputs(myOutAssoc);//check for input on-disk files used as output on-disk files
         //code to show what arguments map to what parameters should go here
         if (m_doProvenance) provenanceBeforeOperation(myOutAssoc);
         m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
@@ -148,36 +149,26 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::CIFTI:
             {
                 FileInformation myInfo(nextArg);
-                map<AString, CaretPointer<CiftiFile> >::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
-                if (iter == m_inputCiftiNames.end())
+                CaretPointer<CiftiFile> myFile(new CiftiFile());
+                myFile->openFile(nextArg, ON_DISK);
+                m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
+                if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                 {
-                    CaretPointer<CiftiFile> myFile(new CiftiFile());
-                    myFile->openFile(nextArg, ON_DISK);
-                    m_inputCiftiNames.insert(pair<AString, CaretPointer<CiftiFile> >(myInfo.getCanonicalFilePath(), myFile));//track all input cifti names and respective files, so that we can convert inputs to in-memory on collision
-                    if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
+                    const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
+                    if (md != NULL)
                     {
-                        const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
-                        if (md != NULL)
+                        map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
+                        if (iter != md->end() && iter->second != "")
                         {
-                            map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
-                            if (iter != md->end() && iter->second != "")
-                            {
-                                m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
-                            }
+                            m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
                         }
                     }
-                    ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
-                    if (debug)
-                    {
-                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
-                        cout << nextArg << endl;
-                    }
-                } else {//NOTE: if duplicate input cifti names are found, we actually reuse the same object - if we ever read multiple cifti files in parallel, this could be a problem
-                    ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = iter->second;
-                    if (debug)
-                    {
-                        cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> found to have same name as another cifti input, reusing object";
-                    }
+                }
+                ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
                 }
                 break;
             }
@@ -358,12 +349,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         switch (myComponent->m_outputList[i]->getType())//set the immediate provenance metadata so that it can be overridden, but the parent provenance metadata can be incomplete at this point and should not be overridden
         {
             case OperationParametersEnum::CIFTI:
-            {
-                CiftiParameter* myParam = (CiftiParameter*)myComponent->m_outputList[i];
-                myParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
-                myParam->m_parameter->setCiftiCacheFile(nextArg);
-                break;//we do the metadata stuff in provenanceForOnDiskOutputs() for this type
-            }
+                break;//we create this in makeOnDiskOutputs(), and do the metadata stuff in provenanceForOnDiskOutputs() for this type
             case OperationParametersEnum::FOCI:
             {
                 CaretPointer<FociFile>& myFile = ((FociParameter*)(myComponent->m_outputList[i]))->m_parameter;
@@ -487,7 +473,6 @@ void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAsso
     {
         versionProvenance += versionInfo[i] + "\n";
     }
-    AString workingDir = QDir::currentPath();
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
@@ -500,13 +485,13 @@ void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAsso
                 CiftiXML myXML;
                 myXML.resetColumnsToTimepoints(1.0f, 1);
                 myXML.applyColumnMapToRows();
-                map<AString, AString>* md = myXML.getFileMetaData();
-                (*md)[PROVENANCE_NAME] = m_provenance;
-                (*md)[PROGRAM_PROVENANCE_NAME] = versionProvenance;//cifti is on-disk, so set all provenance now, because we can't later
-                (*md)[CWD_PROVENANCE_NAME] = workingDir;
+                map<AString, AString>* mymd = myXML.getFileMetaData();
+                (*mymd)[PROVENANCE_NAME] = m_provenance;
+                (*mymd)[PROGRAM_PROVENANCE_NAME] = versionProvenance;//cifti is on-disk, so set all provenance now, because we can't later
+                (*mymd)[CWD_PROVENANCE_NAME] = m_workingDir;
                 if (m_parentProvenance != "")
                 {
-                    (*md)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
+                    (*mymd)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
                 }
                 myFile->setCiftiXML(myXML, false);//tells it to use this new metadata, rather than copying metadata from the old XML (which is default so that provenance metadata persists through naive usage)
                 break;
@@ -561,7 +546,6 @@ void CommandParser::provenanceAfterOperation(const vector<OutputAssoc>& outAssoc
     {
         versionProvenance += versionInfo[i] + "\n";
     }
-    AString workingDir = QDir::currentPath();
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
         AbstractParameter* myParam = outAssociation[i].m_param;
@@ -604,7 +588,7 @@ void CommandParser::provenanceAfterOperation(const vector<OutputAssoc>& outAssoc
         if (md != NULL)
         {
             md->set(PROGRAM_PROVENANCE_NAME, versionProvenance);
-            md->set(CWD_PROVENANCE_NAME, workingDir);
+            md->set(CWD_PROVENANCE_NAME, m_workingDir);
             if (m_parentProvenance != "")
             {
                 md->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
@@ -613,7 +597,7 @@ void CommandParser::provenanceAfterOperation(const vector<OutputAssoc>& outAssoc
     }
 }
 
-void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
+void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
 {
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
@@ -622,13 +606,17 @@ void CommandParser::checkOutputs(const vector<OutputAssoc>& outAssociation)
         {
             case OperationParametersEnum::CIFTI:
             {
+				CiftiParameter* myCiftiParam = (CiftiParameter*)myParam;
                 FileInformation myInfo(outAssociation[i].m_fileName);
-                map<AString, CaretPointer<CiftiFile> >::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
+                set<AString>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
                 if (iter != m_inputCiftiNames.end())
                 {
-                    CaretLogInfo("Converting file '" + iter->first + "' to in-memory due to collision with output file");
-                    iter->second->convertToInMemory();
-                }
+                    CaretLogInfo("Computing output file '" + outAssociation[i].m_fileName + "' in memory due to collision with input file");
+ 					myCiftiParam->m_parameter.grabNew(new CiftiFile(IN_MEMORY));
+               } else {
+					myCiftiParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
+					myCiftiParam->m_parameter->setCiftiCacheFile(outAssociation[i].m_fileName);
+				}
                 break;
             }
             default:
@@ -650,7 +638,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::CIFTI:
             {
                 CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;//we can't set metadata here because the XML is already on disk, see provenanceForOnDiskOutputs
-                myFile->writeFile(outAssociation[i].m_fileName);//this is basically a noop, we opened ON_DISK and set cache file to this name back in parseComponent
+                myFile->writeFile(outAssociation[i].m_fileName);//this is basically a noop unless outputs and inputs collide, we opened ON_DISK and set cache file to this name back in makeOnDiskOutputs
                 break;
             }
             case OperationParametersEnum::DOUBLE:

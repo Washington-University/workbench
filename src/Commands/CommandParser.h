@@ -32,17 +32,17 @@
 #include "CommandException.h"
 #include "ProgramParametersException.h"
 #include <vector>
-#include <map>
+#include <set>
 
 namespace caret {
 
     class CommandParser : public CommandOperation, OperationParserInterface
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
-        AString m_provenance, m_parentProvenance;
+        AString m_provenance, m_parentProvenance, m_workingDir;
         bool m_doProvenance;
         const static AString PROVENANCE_NAME, PARENT_PROVENANCE_NAME, PROGRAM_PROVENANCE_NAME, CWD_PROVENANCE_NAME;//TODO: put this elsewhere?
-        std::map<AString, CaretPointer<CiftiFile> > m_inputCiftiNames;
+        std::set<AString> m_inputCiftiNames;
         struct OutputAssoc
         {//how the output is stored is up to the parser, in the GUI it should load into memory without writing to disk
             AString m_fileName;
@@ -53,7 +53,7 @@ namespace caret {
         void parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
         void provenanceBeforeOperation(const std::vector<OutputAssoc>& outAssociation);
         void provenanceAfterOperation(const std::vector<OutputAssoc>& outAssociation);
-        void checkOutputs(const std::vector<OutputAssoc>& outAssociation);//ensures on-disk inputs aren't used as on-disk outputs
+        void makeOnDiskOutputs(const std::vector<OutputAssoc>& outAssociation);//ensures on-disk inputs aren't used as on-disk outputs, converting outputs to in-memory when needed
         void writeOutput(const std::vector<OutputAssoc>& outAssociation);
         AString getIndentString(int desired);
         void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);
