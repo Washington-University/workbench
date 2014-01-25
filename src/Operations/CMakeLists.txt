@@ -36,6 +36,7 @@ OperationConvertWarpfield.h
 OperationEstimateFiberBinghams.h
 OperationException.h
 OperationFileInformation.h
+OperationFociGetProjectionVertex.h
 OperationFociListCoords.h
 OperationLabelMask.h
 OperationMetadataRemoveProvenance.h
@@ -92,6 +93,7 @@ OperationConvertWarpfield.cxx
 OperationException.cxx
 OperationEstimateFiberBinghams.cxx
 OperationFileInformation.cxx
+OperationFociGetProjectionVertex.cxx
 OperationFociListCoords.cxx
 OperationLabelMask.cxx
 OperationMetadataRemoveProvenance.cxx
