@@ -61,20 +61,20 @@ namespace caret {
 
 namespace caret {
     
-   class CaretMutex : public QMutex
-   {
-   public:
-        CaretMutex(RecursionMode mode = NonRecursive);
+    class CaretMutex : public QMutex
+    {
+    public:
+        CaretMutex(RecursionMode mode = NonRecursive) : QMutex(mode) { }
         CaretMutex(const CaretMutex&) : QMutex() { };//allow copy, assign, but make them do nothing other than default construct
         CaretMutex& operator=(const CaretMutex&) { return *this; };
-   };
+    };
    
-   class CaretMutexLocker : public QMutexLocker
-   {
-   public:
-      CaretMutexLocker(CaretMutex* theMutex);
-   };
-   
+    class CaretMutexLocker : public QMutexLocker
+    {
+    public:
+        CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(theMutex) { }
+    };
+
 }
 
 #endif

@@ -119,7 +119,6 @@ CaretException.cxx
 CaretHttpManager.cxx
 CaretLogger.cxx
 CaretMathExpression.cxx
-CaretMutex.cxx
 CaretObject.cxx
 CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
