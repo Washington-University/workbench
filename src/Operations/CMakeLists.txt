@@ -42,6 +42,7 @@ OperationLabelMask.h
 OperationMetadataRemoveProvenance.h
 OperationMetadataStringReplace.h
 OperationMetricConvert.h
+OperationMetricEstimateFWHM.h
 OperationMetricLabelImport.h
 OperationMetricMask.h
 OperationMetricMath.h
@@ -99,6 +100,7 @@ OperationLabelMask.cxx
 OperationMetadataRemoveProvenance.cxx
 OperationMetadataStringReplace.cxx
 OperationMetricConvert.cxx
+OperationMetricEstimateFWHM.cxx
 OperationMetricLabelImport.cxx
 OperationMetricMask.cxx
 OperationMetricMath.cxx

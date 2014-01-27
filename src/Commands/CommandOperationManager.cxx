@@ -135,6 +135,7 @@
 #include "OperationMetadataRemoveProvenance.h"
 #include "OperationMetadataStringReplace.h"
 #include "OperationMetricConvert.h"
+#include "OperationMetricEstimateFWHM.h"
 #include "OperationMetricLabelImport.h"
 #include "OperationMetricMask.h"
 #include "OperationMetricMath.h"
@@ -330,6 +331,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataRemoveProvenance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataStringReplace()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricConvert()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
