@@ -81,6 +81,7 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabNew.h
 EventCaretMappableDataFilesGet.h
+EventChartsNewNotification.h
 EventDataFileRead.h
 EventDataFileReload.h
 EventIdentificationHighlightLocation.h
@@ -187,6 +188,7 @@ EventBrowserTabNew.cxx
 EventDataFileRead.cxx
 EventDataFileReload.cxx
 EventCaretMappableDataFilesGet.cxx
+EventChartsNewNotification.cxx
 EventIdentificationHighlightLocation.cxx
 EventNodeDataFilesGet.cxx
 EventModelAdd.cxx
@@ -262,6 +264,7 @@ YokingGroupEnum.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/FilesBase

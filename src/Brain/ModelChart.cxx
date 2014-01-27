@@ -28,6 +28,10 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ChartData.h"
+#include "ChartModelLineSeries.h"
+#include "EventBrowserTabGetAll.h"
+#include "EventChartsNewNotification.h"
 #include "EventManager.h"
 #include "ModelChart.h"
 #include "OverlaySet.h"
@@ -50,6 +54,23 @@ ModelChart::ModelChart(Brain* brain)
     m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
                                             Overlay::INCLUDE_VOLUME_FILES_YES,
                                             "Volume View");
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
+        
+        m_chartModelDataSeries[i] =
+        new ChartModelLineSeries(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        
+        m_chartModelTimeSeries[i] =
+        new ChartModelLineSeries(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+    }
+    
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION);
 }
 
 /**
@@ -59,6 +80,12 @@ ModelChart::~ModelChart()
 {
     delete m_overlaySetArray;
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete m_chartModelDataSeries[i];
+        
+        delete m_chartModelTimeSeries[i];
+    }
 }
 
 /**
@@ -68,8 +95,50 @@ ModelChart::~ModelChart()
  *     The event that the receive can respond to.
  */
 void 
-ModelChart::receiveEvent(Event* /*event*/)
+ModelChart::receiveEvent(Event* event)
 {
+    if (event->getEventType() == EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION) {
+        EventChartsNewNotification* newChartsEvent =
+        dynamic_cast<EventChartsNewNotification*>(event);
+        
+        EventBrowserTabGetAll allTabsEvent;
+        EventManager::get()->sendEvent(allTabsEvent.getPointer());
+        
+        const std::vector<int32_t> tabIndices = allTabsEvent.getBrowserTabIndices();
+        for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+             iter != tabIndices.end();
+             iter++) {
+            const int32_t tabIndex = *iter;
+            
+            std::vector<QSharedPointer<ChartData> > chartDatas =
+            newChartsEvent->getChartDatasForTabIndex(tabIndex);
+            
+            if ( ! chartDatas.empty()) {
+                std::cout << "New charts for tab " << tabIndex << std::endl;
+                
+                for (std::vector<QSharedPointer<ChartData> >::iterator iter = chartDatas.begin();
+                     iter != chartDatas.end();
+                     iter++) {
+                    QSharedPointer<ChartData> cdm = *iter;
+                    const ChartDataTypeEnum::Enum chartDataDataType = cdm->getChartDataType();
+                    switch (chartDataDataType) {
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            CaretAssert(0);
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+                            CaretAssert(0);
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                            m_chartModelDataSeries[tabIndex]->addChartData(cdm);
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                            m_chartModelTimeSeries[tabIndex]->addChartData(cdm);
+                            break;
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -108,6 +177,9 @@ ModelChart::getNameForBrowserTab() const
 OverlaySet* 
 ModelChart::getOverlaySet(const int tabIndex)
 {
+    CaretAssertArrayIndex(m_overlaySetArray,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
     return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
@@ -121,6 +193,9 @@ ModelChart::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelChart::getOverlaySet(const int tabIndex) const
 {
+    CaretAssertArrayIndex(m_overlaySetArray,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
     return m_overlaySetArray->getOverlaySet(tabIndex);
 }
 
@@ -202,6 +277,106 @@ ModelChart::copyTabContent(const int32_t sourceTabIndex,
     
     m_overlaySetArray->copyOverlaySet(sourceTabIndex,
                                       destinationTabIndex);
+}
+
+/**
+ * Set the type of chart selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @param dataType
+ *    Type of data for chart.
+ */
+void
+ModelChart::setSelectedChartDataType(const int32_t tabIndex,
+                              const ChartDataTypeEnum::Enum dataType)
+{
+    CaretAssertArrayIndex(m_selectedChartDataType,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_selectedChartDataType[tabIndex] = dataType;
+}
+
+/**
+ * Get the type of chart selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Chart type in the given tab.
+ */
+ChartDataTypeEnum::Enum
+ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_selectedChartDataType,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_selectedChartDataType[tabIndex];
+}
+
+/**
+ * Get the chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Chart model in the given tab or none if not valid.
+ */
+ChartModel*
+ModelChart::getSelectedChartModel(const int32_t tabIndex)
+{
+    const ChartModel* model = getSelectedChartModelHelper(tabIndex);
+    if (model == NULL) {
+        return NULL;
+    }
+    ChartModel* nonConstModel = const_cast<ChartModel*>(model);
+    return nonConstModel;
+}
+
+/**
+ * Get the chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Chart model in the given tab or none if not valid.
+ */
+const ChartModel*
+ModelChart::getSelectedChartModel(const int32_t tabIndex) const
+{
+    return getSelectedChartModelHelper(tabIndex);
+}
+
+/**
+ * Get the chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Chart model in the given tab or none if not valid.
+ */
+const ChartModel*
+ModelChart::getSelectedChartModelHelper(const int32_t tabIndex) const
+{
+    const ChartDataTypeEnum::Enum chartType = getSelectedChartDataType(tabIndex);
+    
+    ChartModel* model = NULL;
+    
+    switch (chartType) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            model = m_chartModelDataSeries[tabIndex];
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            model = m_chartModelTimeSeries[tabIndex];
+            break;
+    }
+    
+    return model;
+    
 }
 
 

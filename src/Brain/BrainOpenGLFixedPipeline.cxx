@@ -433,7 +433,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             ModelVolume* volumeModel = dynamic_cast<ModelVolume*>(model);
             ModelWholeBrain* wholeBrainModel = dynamic_cast<ModelWholeBrain*>(model);
             if (modelChart != NULL) {
-                drawChartModel(browserTabContent, modelChart, viewport);
+                drawChartData(browserTabContent, modelChart, viewport);
                 modelAllowsPalettes = false;
             }
             else if (surfaceModel != NULL) {
@@ -4880,11 +4880,20 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
  *    The viewport (x, y, width, height)
  */
 void
-BrainOpenGLFixedPipeline::drawChartModel(BrowserTabContent* browserTabContent,
+BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                     ModelChart* chartModel,
                     const int32_t viewport[4])
 {
-    drawTextWindowCoords(100, 100, "Chart",
+    CaretAssert(browserTabContent);
+    CaretAssert(chartModel);
+    
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    const ChartDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartDataType(tabIndex);
+    
+    const AString msg = ("Chart in tab "
+                         + AString::number(tabIndex + 1)
+                         + ChartDataTypeEnum::toGuiName(chartDataType));
+    drawTextWindowCoords(100, 100, msg,
                          BrainOpenGLTextRenderInterface::X_LEFT,
                          BrainOpenGLTextRenderInterface::Y_BOTTOM);
 }

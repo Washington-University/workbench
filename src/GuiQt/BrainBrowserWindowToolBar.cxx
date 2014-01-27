@@ -46,9 +46,10 @@
 #include <QSpinBox>
 #include <QTabBar>
 #include <QTextEdit>
+#include <QTimer>
 #include <QToolButton>
-#include <QtWebKit/QtWebKit>
-#include <QtWebKit/QWebView>
+//#include <QtWebKit/QtWebKit>
+//#include <QtWebKit/QWebView>
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -647,7 +648,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     ModelSurface* cerebellumSurfaceVeryInflated = NULL;
     int32_t cerebellumSurfaceTypeCode = 1000000;
     
-    ModelChart* chartModel = NULL;
+    ModelChart* chartData = NULL;
     ModelSurfaceMontage* surfaceMontageModel = NULL;
     ModelVolume* volumeModel = NULL;
     ModelWholeBrain* wholeBrainModel = NULL;
@@ -714,7 +715,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             wholeBrainModel = dynamic_cast<ModelWholeBrain*>(*iter);
         }
         else if (dynamic_cast<ModelChart*>(*iter)) {
-            chartModel = dynamic_cast<ModelChart*>(*iter);
+            chartData = dynamic_cast<ModelChart*>(*iter);
         }
         else {
             CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
@@ -1351,7 +1352,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("All");
     
-    this->viewModeChartRadioButton->setVisible(false);
+//    this->viewModeChartRadioButton->setVisible(false);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);

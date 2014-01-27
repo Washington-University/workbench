@@ -532,7 +532,7 @@ namespace caret {
         
         AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
         
-        void updateChartModel();
+        void updateChartData();
         
         void updateVolumeSliceModel();
         

@@ -70,7 +70,7 @@ using namespace caret;
 
 /**
  * \class caret::ChartSetViewController 
- * \brief View-Controller for the ChartModel
+ * \brief View-Controller for the ChartData
  * \ingroup GuiQt
  */
  

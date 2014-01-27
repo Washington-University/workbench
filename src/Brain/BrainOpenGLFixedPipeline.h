@@ -174,8 +174,8 @@ namespace caret {
         
         void initializeMembersBrainOpenGL();
         
-        void drawChartModel(BrowserTabContent* browserTabContent,
-                            ModelChart* chartModel,
+        void drawChartData(BrowserTabContent* browserTabContent,
+                            ModelChart* chartData,
                             const int32_t viewport[4]);
         
         void drawSurfaceModel(ModelSurface* surfaceModel,

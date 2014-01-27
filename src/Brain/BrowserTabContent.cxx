@@ -36,6 +36,8 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ChartData.h"
+#include "ChartModelLineSeries.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GroupAndNameHierarchyName.h"
@@ -236,7 +238,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
 //    m_volumeModel = tabToClone->m_volumeModel;
 //    m_wholeBrainModel = tabToClone->m_wholeBrainModel;
 //    m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
-//    m_chartModel = tabToClone->m_chartModel;
+//    m_chartData = tabToClone->m_chartData;
     
     m_yokingGroup = tabToClone->m_yokingGroup;
     
@@ -541,6 +543,34 @@ BrowserTabContent::getModelForDisplay() const
     }
     
     return mdc;
+}
+
+/**
+ * Get the displayed chart model.
+ *
+ * @return  Pointer to displayed chart model or
+ *          NULL if the displayed model is NOT a
+ *          chart.
+ */
+ModelChart*
+BrowserTabContent::getDisplayedChartModel()
+{
+    ModelChart* mc = dynamic_cast<ModelChart*>(getModelForDisplay());
+    return mc;
+}
+
+/**
+ * Get the displayed chart model.
+ *
+ * @return  Pointer to displayed chart model or
+ *          NULL if the displayed model is NOT a
+ *          chart.
+ */
+const ModelChart*
+BrowserTabContent::getDisplayedChartModel() const
+{
+    const ModelChart* mc = dynamic_cast<const ModelChart*>(getModelForDisplay());
+    return mc;
 }
 
 /**
@@ -3190,7 +3220,7 @@ BrowserTabContent::getWholeBrainCerebellumSeparation() const
 }
 
 /**
- * Set the separation between the cerebellum and the eft and right surfaces.
+ * Set the separation between the cerebellum and the left and right surfaces.
  * @param separation
  *     New value for separation.
  */

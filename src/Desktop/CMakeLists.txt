@@ -95,6 +95,7 @@ Qwt
 Brain
 GlfFont
 Files
+Charting
 Palette
 Cifti
 Gifti

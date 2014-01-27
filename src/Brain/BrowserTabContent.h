@@ -101,6 +101,10 @@ namespace caret {
         
         Model* getModelForDisplay();
         
+        ModelChart* getDisplayedChartModel();
+        
+        const ModelChart* getDisplayedChartModel() const;
+        
         ModelSurface* getDisplayedSurfaceModel();
         
         const ModelSurface* getDisplayedSurfaceModel() const;
@@ -416,6 +420,7 @@ namespace caret {
         
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;
+        
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

@@ -91,6 +91,7 @@ Cifti
 Gifti
 Nifti
 FilesBase
+Charting
 Palette
 Scenes
 Xml

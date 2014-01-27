@@ -34,6 +34,9 @@
  */
 /*LICENSE_END*/
 
+#define QT_SHAREDPOINTER_TRACK_POINTERS
+#include <QSharedPointer>
+
 #include "ChartTypeEnum.h"
 #include "DataFileException.h"
 #include "StructureEnum.h"
@@ -41,6 +44,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class ChartData;
     class TimeLine;
     
     /**
@@ -97,6 +101,23 @@ namespace caret {
 
         virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const = 0;
 
+        
+        /**
+         * Load a charting model for the surface with the given structure and node index.
+         *
+         * @param structure
+         *     The surface's structure.
+         * @param nodeIndex
+         *     Index of the node.
+         * @return 
+         *     A QSharedPointer for the model.  If the data FAILED to load,
+         *     QSharedPointer::isNull() will return true.  
+         */
+        virtual QSharedPointer<ChartData> loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                                                   const int32_t nodeIndex) throw (DataFileException) = 0;
+        
+        
+        
         
         /**
          * Load the average of chart data for a group of surface nodes

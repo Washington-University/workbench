@@ -302,6 +302,27 @@ CiftiBrainordinateScalarFile::loadAverageChartForSurfaceNodes(const StructureEnu
 }
 
 /**
+ * Load a charting model for the surface with the given structure and node index.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @return
+ *     A QSharedPointer for the model.  If the data FAILED to load,
+ *     QSharedPointer::isNull() will return true.
+ */
+QSharedPointer<ChartData>
+CiftiBrainordinateScalarFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                               const int32_t nodeIndex) throw (DataFileException)
+{
+    QSharedPointer<ChartData> chartData;
+    
+    return chartData;
+}
+
+
+/**
  * Load chart data for a surface node
  * Note: This method will return a chart even if charting for
  * this file is disabled.

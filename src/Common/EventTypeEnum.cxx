@@ -1,4 +1,3 @@
-
 /*LICENSE_START*/
 /* 
  *  Copyright 1995-2011 Washington University School of Medicine 
@@ -113,6 +112,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_GET, 
                                      "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
                                      "Get all Caret Mappable data files"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_CHARTS_NEW_NOTIFICATION,
+                                     "EVENT_CHARTS_NEW_NOTIFICATION",
+                                     "Notification that new charts are available"));
     
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ, 
                                     "EVENT_DATA_FILE_READ", 

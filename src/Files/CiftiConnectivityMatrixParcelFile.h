@@ -39,7 +39,7 @@
 
 namespace caret {
 
-    class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile, public ChartableInterface {
+    class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile /*, public ChartableInterface*/ {
         
     public:
         CiftiConnectivityMatrixParcelFile();
@@ -51,33 +51,33 @@ namespace caret {
 
         CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
 
-        virtual CaretMappableDataFile* getCaretMappableDataFile() ;
-
-        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
-
-        virtual bool isChartingEnabled() const;
-
-        virtual bool isChartingSupported() const;
-
-        virtual void setChartingEnabled(const bool enabled);
-
-        virtual ChartTypeEnum::Enum getDefaultChartType() const;
-
-        virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const;
-
-        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum /*structure*/,
-                                                     const std::vector<int32_t>& /*nodeIndices*/,
-                                                     TimeLine& /*timeLineOut*/) throw (DataFileException) {this->isChartingEnabled();return false;};
-        
-        
-         
-        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum /*structure*/,
-                                             const int32_t /*nodeIndex*/,
-                                             TimeLine& /*timeLineOut*/) throw (DataFileException) {return false;};
-        
-       
-        virtual bool loadChartForVoxelAtCoordinate(const float* /* xyz[3]*/,
-            TimeLine& /*timeLineOut*/) throw (DataFileException)  {return false;};
+//        virtual CaretMappableDataFile* getCaretMappableDataFile() ;
+//
+//        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
+//
+//        virtual bool isChartingEnabled() const;
+//
+//        virtual bool isChartingSupported() const;
+//
+//        virtual void setChartingEnabled(const bool enabled);
+//
+//        virtual ChartTypeEnum::Enum getDefaultChartType() const;
+//
+//        virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const;
+//
+//        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum /*structure*/,
+//                                                     const std::vector<int32_t>& /*nodeIndices*/,
+//                                                     TimeLine& /*timeLineOut*/) throw (DataFileException) {this->isChartingEnabled();return false;};
+//        
+//        
+//         
+//        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum /*structure*/,
+//                                             const int32_t /*nodeIndex*/,
+//                                             TimeLine& /*timeLineOut*/) throw (DataFileException) {return false;};
+//        
+//       
+//        virtual bool loadChartForVoxelAtCoordinate(const float* /* xyz[3]*/,
+//            TimeLine& /*timeLineOut*/) throw (DataFileException)  {return false;};
 
         
     public:

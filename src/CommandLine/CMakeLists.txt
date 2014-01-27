@@ -64,6 +64,7 @@ Palette
 Gifti
 Cifti
 Nifti
+Charting
 FilesBase
 Scenes
 Xml

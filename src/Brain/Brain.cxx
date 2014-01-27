@@ -3803,7 +3803,7 @@ Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
  * Update the chart model.
  */
 void
-Brain::updateChartModel()
+Brain::updateChartData()
 {
     if (m_modelChart == NULL) {
         m_modelChart = new ModelChart(this);
@@ -4287,7 +4287,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void
 Brain::updateAfterFilesAddedOrRemoved()
 {
-    updateChartModel();
+    updateChartData();
     updateVolumeSliceModel();
     updateWholeBrainModel();
     updateSurfaceMontageModel();

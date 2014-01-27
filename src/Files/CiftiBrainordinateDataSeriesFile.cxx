@@ -36,6 +36,7 @@
 #include "CiftiBrainordinateDataSeriesFile.h"
 #undef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
 
+#include "ChartDataCartesian.h"
 #include "SceneClass.h"
 #include "TimeLine.h"
 
@@ -213,6 +214,126 @@ CiftiBrainordinateDataSeriesFile::loadAverageChartForSurfaceNodes(const Structur
     }
     
     return false;
+}
+
+///**
+// * Load a charting model for the surface with the given structure and node index.
+// *
+// * @param structure
+// *     The surface's structure.
+// * @param nodeIndex
+// *     Index of the node.
+// * @return
+// *     A QSharedPointer for the model.  If the data FAILED to load,
+// *     QSharedPointer::isNull() will return true.
+// */
+//QSharedPointer<ChartData>
+//CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+//                                                                           const int32_t nodeIndex) throw (DataFileException)
+//{
+//    QSharedPointer<ChartData> chartData;
+//    ChartDataCartesian* chartData = NULL;
+//
+//    try {
+//        std::vector<float> data;
+//        if (getSeriesDataForSurfaceNode(structure,
+//                                        nodeIndex,
+//                                        data)) {
+//            const int64_t numData = static_cast<int64_t>(data.size());
+//            
+//            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_SERIES,
+//                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+//                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//            
+//            for (int64_t i = 0; i < numData; i++) {
+//                chartData->addPoint(i,
+//                                    data[i]);
+//            }
+//            
+//            float timeStart, timeStep;
+//            getMapIntervalStartAndStep(timeStart,
+//                                       timeStep);
+//            chartData->setTimeStartInSecondsAxisX(timeStart);
+//            chartData->setTimeStepInSecondsAxisX(timeStep);
+//            
+//            const AString description = (getFileNameNoPath()
+//                                         + " node "
+//                                         + AString::number(nodeIndex));
+//            chartData->setDescription(description);
+//            
+//            chartData = QSharedPointer<ChartData>(chartData);
+//        }
+//    }
+//    catch (const DataFileException& dfe) {
+//        if (chartData != NULL) {
+//            delete chartData;
+//            chartData = NULL;
+//        }
+//        
+//        throw dfe;
+//    }
+//    
+//    return chartData;
+//}
+
+/**
+ * Load a charting model for the surface with the given structure and node index.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @return
+ *     A QSharedPointer for the model.  If the data FAILED to load,
+ *     QSharedPointer::isNull() will return true.
+ */
+QSharedPointer<ChartData>
+CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                               const int32_t nodeIndex) throw (DataFileException)
+{
+    QSharedPointer<ChartData> chartDataPointer;
+    ChartDataCartesian* chartData = NULL;
+    
+    try {
+        std::vector<float> data;
+        if (getSeriesDataForSurfaceNode(structure,
+                                        nodeIndex,
+                                        data)) {
+            const int64_t numData = static_cast<int64_t>(data.size());
+            
+            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            
+            for (int64_t i = 0; i < numData; i++) {
+                chartData->addPoint(i,
+                                    data[i]);
+            }
+            
+            float timeStart, timeStep;
+            getMapIntervalStartAndStep(timeStart,
+                                       timeStep);
+            chartData->setTimeStartInSecondsAxisX(timeStart);
+            chartData->setTimeStepInSecondsAxisX(timeStep);
+            
+            const AString description = (getFileNameNoPath()
+                                         + " node "
+                                         + AString::number(nodeIndex));
+            chartData->setDescription(description);
+            
+            chartDataPointer = QSharedPointer<ChartData>(chartData);
+        }
+    }
+    catch (const DataFileException& dfe) {
+        if (chartData != NULL) {
+            delete chartData;
+            chartData = NULL;
+        }
+        
+        throw dfe;
+    }
+    
+    return chartDataPointer;
 }
 
 /**

@@ -25,12 +25,14 @@
  * 
  */ 
 
-
+#include "ChartDataTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "Model.h"
 
 namespace caret {
 
+    class ChartModel;
+    class ChartModelLineSeries;
     class OverlaySetArray;
     
     /// Controls the display of a chart.
@@ -53,6 +55,15 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
+        ChartDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
+        
+        void setSelectedChartDataType(const int32_t tabIndex,
+                                      const ChartDataTypeEnum::Enum dataType);
+        
+        ChartModel* getSelectedChartModel(const int32_t tabIndex);
+        
+        const ChartModel* getSelectedChartModel(const int32_t tabIndex) const;
+        
         virtual void getDescriptionOfContent(const int32_t tabIndex,
                                              PlainTextStringBuilder& descriptionOut) const;
         
@@ -71,8 +82,18 @@ namespace caret {
         
         ModelChart& operator=(const ModelChart&);
         
+        const ChartModel* getSelectedChartModelHelper(const int32_t tabIndex) const;
+        
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
+        
+        mutable ChartDataTypeEnum::Enum m_selectedChartDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Chart model for data-series data */
+        ChartModelLineSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Chart model for time-series data */
+        ChartModelLineSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SceneClassAssistant* m_sceneAssistant;
     };
