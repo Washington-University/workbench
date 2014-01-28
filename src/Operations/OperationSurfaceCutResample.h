@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-if the operation takes no mandatory parameters, uncomment the line below for takesParameters(), otherwise delete it
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-OperationSurfaceCutResample     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_SURFACE_CUT_RESAMPLE    : uppercase of operation name, with underscore between words, used in #ifdef guards
--surface-cut-resample   : switch for the command line to use, often hyphenated version of operation name, lowercase, minus "operation"
-RESAMPLE A CUT SURFACE : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-next, make OperationSurfaceCutResample.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationSurfaceCutResample/g' | sed 's/-[c]ommand-switch/-surface-cut-resample/g' | sed 's/[S]HORT DESCRIPTION/RESAMPLE A CUT SURFACE/g' > OperationSurfaceCutResample.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationSurfaceCutResample/g' | sed 's/-[c]ommand-switch/-surface-cut-resample/g' | sed 's/[S]HORT DESCRIPTION/RESAMPLE A CUT SURFACE/g' > Operations/OperationSurfaceCutResample.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationSurfaceCutResample/g' | sed 's/-[c]ommand-switch/-surface-cut-resample/g' | sed 's|[S]HORT DESCRIPTION|RESAMPLE A CUT SURFACE|g' > src/Operations/OperationSurfaceCutResample.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationSurfaceCutResample.h
-OperationSurfaceCutResample.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationSurfaceCutResample.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCutResample()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {

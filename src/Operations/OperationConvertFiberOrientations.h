@@ -36,7 +36,6 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
-        //static bool takesParameters() { return false; };
     };
 
     typedef TemplateAutoOperation<OperationConvertFiberOrientations> AutoOperationConvertFiberOrientations;

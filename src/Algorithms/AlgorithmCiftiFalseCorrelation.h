@@ -25,42 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-AlgorithmCiftiFalseCorrelation     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_CIFTI_FALSE_CORRELATION    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--cifti-false-correlation   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-COMPARE CORRELATION LOCALLY AND ACROSS/THROUGH SULCI/GYRI : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-next, make AlgorithmCiftiFalseCorrelation.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiFalseCorrelation/g' | sed 's/-[c]ommand-switch/-cifti-false-correlation/g' | sed 's/[S]HORT DESCRIPTION/COMPARE CORRELATION LOCALLY AND ACROSS/THROUGH SULCI/GYRI/g' > AlgorithmCiftiFalseCorrelation.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiFalseCorrelation/g' | sed 's/-[c]ommand-switch/-cifti-false-correlation/g' | sed 's/[S]HORT DESCRIPTION/COMPARE CORRELATION LOCALLY AND ACROSS/THROUGH SULCI/GYRI/g' > Algorithms/AlgorithmCiftiFalseCorrelation.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiFalseCorrelation/g' | sed 's/-[c]ommand-switch/-cifti-false-correlation/g' | sed 's|[S]HORT DESCRIPTION|COMPARE CORRELATION LOCALLY AND ACROSS/THROUGH SULCI/GYRI|g' > src/Algorithms/AlgorithmCiftiFalseCorrelation.cxx
-
-or manually copy and replace
-
-next, implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-add these into Algorithms/CMakeLists.txt:
-
-AlgorithmCiftiFalseCorrelation.h
-AlgorithmCiftiFalseCorrelation.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "AlgorithmCiftiFalseCorrelation.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFalseCorrelation()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractAlgorithm.h"
 
 namespace caret {
