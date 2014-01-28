@@ -119,17 +119,17 @@ ChartDataTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_ADJACENCY_MATRIX, 
-                                    "CHART_DATA_TYPE_ADJACENCY_MATRIX", 
-                                    ""));
-    
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_DATA_SERIES, 
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_DATA_SERIES,
                                     "CHART_DATA_TYPE_DATA_SERIES", 
-                                    ""));
+                                    "Data Series"));
     
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_TIME_SERIES, 
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_ADJACENCY_MATRIX,
+                                         "CHART_DATA_TYPE_ADJACENCY_MATRIX",
+                                         "Matrix"));
+    
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_TIME_SERIES,
                                     "CHART_DATA_TYPE_TIME_SERIES", 
-                                    ""));
+                                    "Time Series"));
     
 }
 

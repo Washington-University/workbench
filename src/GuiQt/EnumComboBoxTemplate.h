@@ -175,7 +175,7 @@ namespace caret {
         /**
          * @return The actual widget.
          */
-        QWidget* getWidget() {
+        virtual QWidget* getWidget() {
             return m_itemComboBox;
         }
         

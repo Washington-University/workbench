@@ -69,6 +69,8 @@ namespace caret {
         
         virtual ~ChartModel();
         
+        ChartDataTypeEnum::Enum getChartDataType() const;
+        
         SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE getSupportForMultipleChartDisplay() const;
         
         void addChartData(QSharedPointer<ChartData>& chartData);

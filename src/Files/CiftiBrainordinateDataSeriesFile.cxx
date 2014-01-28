@@ -36,6 +36,7 @@
 #include "CiftiBrainordinateDataSeriesFile.h"
 #undef __CIFTI_BRAINORDINATE_DATA_SERIES_FILE_DECLARE__
 
+#include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "SceneClass.h"
 #include "TimeLine.h"
@@ -301,27 +302,75 @@ CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnu
                                         data)) {
             const int64_t numData = static_cast<int64_t>(data.size());
             
-            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-            
-            for (int64_t i = 0; i < numData; i++) {
-                chartData->addPoint(i,
-                                    data[i]);
+            bool timeSeriesFlag = false;
+            bool dataSeriesFlag = false;
+            float convertTimeToSeconds = 1.0;
+            switch (getMapIntervalUnits()) {
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                    timeSeriesFlag = true;
+                    convertTimeToSeconds = 1000.0;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                    convertTimeToSeconds = 1.0;
+                    timeSeriesFlag = true;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                    dataSeriesFlag = true;
+                    break;
+                case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                    convertTimeToSeconds = 1000000.0;
+                    timeSeriesFlag = true;
+                    break;
             }
             
-            float timeStart, timeStep;
-            getMapIntervalStartAndStep(timeStart,
-                                       timeStep);
-            chartData->setTimeStartInSecondsAxisX(timeStart);
-            chartData->setTimeStepInSecondsAxisX(timeStep);
+            if (dataSeriesFlag) {
+                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            }
+            else if (timeSeriesFlag) {
+                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            }
             
-            const AString description = (getFileNameNoPath()
-                                         + " node "
-                                         + AString::number(nodeIndex));
-            chartData->setDescription(description);
-            
-            chartDataPointer = QSharedPointer<ChartData>(chartData);
+            if (chartData != NULL) {
+                float timeStart = 0.0;
+                float timeStep  = 1.0;
+                if (timeSeriesFlag) {
+                    getMapIntervalStartAndStep(timeStart,
+                                               timeStep);
+                    timeStart *= convertTimeToSeconds;
+                    timeStep  *= convertTimeToSeconds;
+                    chartData->setTimeStartInSecondsAxisX(timeStart);
+                    chartData->setTimeStepInSecondsAxisX(timeStep);
+                }
+                
+                for (int64_t i = 0; i < numData; i++) {
+                    float xValue = i;
+                    
+                    if (timeSeriesFlag) {
+                        xValue = timeStart + (i * timeStep);
+                    }
+                    
+                    chartData->addPoint(xValue,
+                                        data[i]);
+                }
+                
+                const AString description = (getFileNameNoPath()
+                                             + " node "
+                                             + AString::number(nodeIndex));
+                chartData->setDescription(description);
+                
+                chartDataPointer = QSharedPointer<ChartData>(chartData);
+            }
+            else {
+                CaretLogSevere("New type of units for data series flag, needs updating for charting");
+            }
         }
     }
     catch (const DataFileException& dfe) {

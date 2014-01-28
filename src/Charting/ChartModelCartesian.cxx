@@ -38,6 +38,8 @@
 
 #include "CaretAssert.h"
 #include "ChartAxis.h"
+#include "ChartDataCartesian.h"
+
 using namespace caret;
 
 
@@ -65,7 +67,9 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
              ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES)
 {
     getLeftAxis()->setAxisUnits(dataAxisUnitsX);
+    getLeftAxis()->setVisible(true);
     getBottomAxis()->setAxisUnits(dataAxisUnitsY);
+    getBottomAxis()->setVisible(true);
 }
 
 /**
@@ -111,7 +115,6 @@ ChartModelCartesian::operator=(const ChartModelCartesian& obj)
 void 
 ChartModelCartesian::copyHelperChartModelCartesian(const ChartModelCartesian& obj)
 {
-    
 }
 
 /**
@@ -120,6 +123,44 @@ ChartModelCartesian::copyHelperChartModelCartesian(const ChartModelCartesian& ob
 void
 ChartModelCartesian::resetAxesToDefaultRange()
 {
+    float boundsMinX = 0.0;
+    float boundsMaxX = 0.0;
+    float boundsMinY = 0.0;
+    float boundsMaxY = 0.0;
+
+    const std::vector<QSharedPointer<ChartData> >  allData = getChartDatasForDisplay();
+    if ( ! allData.empty()) {
+        boundsMinX =  std::numeric_limits<float>::max();
+        boundsMaxX = -std::numeric_limits<float>::max();
+        boundsMinY =  std::numeric_limits<float>::max();
+        boundsMaxY = -std::numeric_limits<float>::max();
+        
+        for (std::vector<QSharedPointer<ChartData> >::const_iterator iter = allData.begin();
+             iter != allData.end();
+             iter++) {
+            QSharedPointer<ChartData> chartData = *iter;
+            ChartDataCartesian* cartesianData = dynamic_cast<ChartDataCartesian*>(chartData.data());
+            CaretAssert(cartesianData);
+            
+            float xMin, xMax, yMin, yMax;
+            cartesianData->getBounds(xMin, xMax, yMin, yMax);
+            
+            if (xMin < boundsMinX) boundsMinX = xMin;
+            if (xMax > boundsMaxX) boundsMaxX = xMax;
+            if (yMin < boundsMinY) boundsMinY = yMin;
+            if (yMax > boundsMaxY) boundsMaxY = yMax;
+        }
+    }
     
+    ChartAxis* ba = getBottomAxis();
+    if (ba->isAutoRangeScale()) {
+        ba->setMinimumValue(boundsMinX);
+        ba->setMaximumValue(boundsMaxX);
+    }
+    ChartAxis* la = getLeftAxis();
+    if (la->isAutoRangeScale()) {
+        la->setMinimumValue(boundsMinY);
+        la->setMaximumValue(boundsMaxY);
+    }
 }
 

@@ -50,14 +50,16 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartAxis::ChartAxis()
-: CaretObject()
+ChartAxis::ChartAxis(const Axis axis)
+: CaretObject(),
+m_axis(axis)
 {
-    m_axisUnits     = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
-    m_labelFontSize = 12;
-    m_visible       = false;
-    m_minimumValue  = 0.0;
-    m_maximumValue  = 0.0;
+    m_autoRangeScale = true;
+    m_axisUnits      = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+    m_labelFontSize  = 12;
+    m_visible        = false;
+    m_minimumValue   = 0.0;
+    m_maximumValue   = 0.0;
 }
 
 /**
@@ -66,6 +68,16 @@ ChartAxis::ChartAxis()
 ChartAxis::~ChartAxis()
 {
 }
+
+/**
+ * @return The location of the axis.
+ */
+ChartAxis::Axis
+ChartAxis::getAxis() const
+{
+    return m_axis;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -81,9 +93,9 @@ ChartAxis::toString() const
  * @return Text for axis label.
  */
 AString
-ChartAxis::getLabel() const
+ChartAxis::getText() const
 {
-    return m_labelText;
+    return m_text;
 }
 
 /**
@@ -93,9 +105,9 @@ ChartAxis::getLabel() const
  *   New text for label.
  */
 void
-ChartAxis::setLable(const AString& text)
+ChartAxis::setText(const AString& text)
 {
-    m_labelText = text;
+    m_text = text;
 }
 
 /**
@@ -216,4 +228,26 @@ ChartAxis::setVisible(const bool visible)
 {
     m_visible = visible;
 }
+
+/**
+ * Is auto range scale selected (scale matches data)
+ */
+bool
+ChartAxis::isAutoRangeScale() const
+{
+    return m_autoRangeScale;
+}
+
+/**
+ * Set auto range scale selected (scale matches data)
+ *
+ * @param autoRangeScale
+ *    New status.
+ */
+void
+ChartAxis::setAutoRangeScale(const bool autoRangeScale)
+{
+    m_autoRangeScale = autoRangeScale;
+}
+
 

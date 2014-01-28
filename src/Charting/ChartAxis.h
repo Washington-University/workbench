@@ -44,13 +44,22 @@ namespace caret {
     class ChartAxis : public CaretObject {
         
     public:
-        ChartAxis();
+        enum Axis {
+            AXIS_BOTTOM,
+            AXIS_LEFT,
+            AXIS_RIGHT,
+            AXIS_TOP
+        };
+        
+        ChartAxis(const Axis axis);
         
         virtual ~ChartAxis();
         
-        AString getLabel() const;
+        Axis getAxis() const;
         
-        void setLable(const AString& text);
+        AString getText() const;
+        
+        void setText(const AString& text);
         
         ChartAxisUnitsEnum::Enum getAxisUnits() const;
 
@@ -70,6 +79,10 @@ namespace caret {
         
         void setLabelFontSize(const float fontSize);
         
+        bool isAutoRangeScale() const;
+        
+        void setAutoRangeScale(const bool autoRangeScale);
+        
         bool isVisible() const;
         
         void setVisible(const bool visible);
@@ -86,7 +99,9 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        AString m_labelText;
+        const Axis m_axis;
+        
+        AString m_text;
         
         ChartAxisUnitsEnum::Enum m_axisUnits;
         
@@ -97,6 +112,8 @@ namespace caret {
         int32_t m_labelFontSize;
         
         bool m_visible;
+        
+        bool m_autoRangeScale;
         
         // ADD_NEW_MEMBERS_HERE
 

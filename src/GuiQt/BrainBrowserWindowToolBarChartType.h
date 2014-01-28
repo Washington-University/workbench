@@ -1,3 +1,5 @@
+#ifndef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_H__
+#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_H__
 
 /*LICENSE_START*/
 /*
@@ -32,50 +34,56 @@
  */
 /*LICENSE_END*/
 
-#define __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_DECLARE__
-#include "BrainBrowserWindowToolBarChart.h"
-#undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_DECLARE__
+class QButtonGroup;
+class QRadioButton;
 
-#include "CaretAssert.h"
-using namespace caret;
+#include "BrainBrowserWindowToolBarComponent.h"
 
+namespace caret {
 
+    class EnumComboBoxTemplate;
     
-/**
- * \class caret::BrainBrowserWindowToolBarChart
- * \brief Chart Component of Brain Browser Window ToolBar
- * \ingroup GuiQt
- */
+    class BrainBrowserWindowToolBarChartType : public BrainBrowserWindowToolBarComponent {
+        Q_OBJECT
+        
+    public:
+        BrainBrowserWindowToolBarChartType(BrainBrowserWindowToolBar* parentToolBar);
+        
+        virtual ~BrainBrowserWindowToolBarChartType();
+        
+        virtual void updateContent(BrowserTabContent* browserTabContent);
+        
+    private slots:
+        void chartTypeRadioButtonClicked(int);
+        
+    private:
+        BrainBrowserWindowToolBarChartType(const BrainBrowserWindowToolBarChartType&);
 
-/**
- * Constructor.
- *
- * @param parentToolBar
- *    parent toolbar.
- */
-BrainBrowserWindowToolBarChart::BrainBrowserWindowToolBarChart(BrainBrowserWindowToolBar* parentToolBar)
-: BrainBrowserWindowToolBarComponent(parentToolBar),
-m_parentToolBar(parentToolBar)
-{
+        BrainBrowserWindowToolBarChartType& operator=(const BrainBrowserWindowToolBarChartType&);
+        
+    public:
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+        // ADD_NEW_MEMBERS_HERE
+
+        BrainBrowserWindowToolBar* m_parentToolBar;
+        
+        QButtonGroup* m_chartTypeButtonGroup;
+        
+        QRadioButton* m_chartMatrixTypeRadioButton;
+        
+        QRadioButton* m_chartDataSeriesTypeRadioButton;
+        
+        QRadioButton* m_chartTimeSeriesTypeRadioButton;
+        
+    };
     
-}
-
-/**
- * Destructor.
- */
-BrainBrowserWindowToolBarChart::~BrainBrowserWindowToolBarChart()
-{
-}
-
-/**
- * Update content of this tool bar component.
- *
- * @param browserTabContent
- *     Content of the browser tab.
- */
-void
-BrainBrowserWindowToolBarChart::updateContent(BrowserTabContent* browserTabContent)
-{
     
-}
+#ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_DECLARE__
 
+} // namespace
+#endif  //__BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_H__

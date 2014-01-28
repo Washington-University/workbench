@@ -28,6 +28,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ChartAxis.h"
 #include "ChartData.h"
 #include "ChartModelLineSeries.h"
 #include "EventBrowserTabGetAll.h"
@@ -62,11 +63,15 @@ ModelChart::ModelChart(Brain* brain)
         new ChartModelLineSeries(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
                                  ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
                                  ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
+        m_chartModelDataSeries[i]->getBottomAxis()->setText("Map Index");
         
         m_chartModelTimeSeries[i] =
         new ChartModelLineSeries(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
                                  ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
                                  ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
+        m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
     }
     
     EventManager::get()->addEventListener(this,

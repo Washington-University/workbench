@@ -33,7 +33,8 @@ BrainBrowserWindow.h
 BrainBrowserWindowComboBox.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
-BrainBrowserWindowToolBarChart.h
+BrainBrowserWindowToolBarChartAxes.h
+BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarComponent.h
 BrainBrowserWindowToolBarSurfaceMontage.h
 BrainOpenGLWidget.h
@@ -141,7 +142,8 @@ BrainBrowserWindow.h
 BrainBrowserWindowComboBox.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
-BrainBrowserWindowToolBarChart.h
+BrainBrowserWindowToolBarChartAxes.h
+BrainBrowserWindowToolBarChartType.h
 BrainBrowserWindowToolBarComponent.h
 BrainBrowserWindowToolBarSurfaceMontage.h
 BrainOpenGLWidget.h
@@ -271,7 +273,8 @@ BrainBrowserWindow.cxx
 BrainBrowserWindowComboBox.cxx
 BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
-BrainBrowserWindowToolBarChart.cxx
+BrainBrowserWindowToolBarChartAxes.cxx
+BrainBrowserWindowToolBarChartType.cxx
 BrainBrowserWindowToolBarComponent.cxx
 BrainBrowserWindowToolBarSurfaceMontage.cxx
 BrainOpenGLWidget.cxx

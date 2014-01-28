@@ -38,6 +38,7 @@
 
 #include "CaretAssert.h"
 #include "ChartAxis.h"
+#include "ChartData.h"
 
 using namespace caret;
 
@@ -66,10 +67,10 @@ ChartModel::ChartModel(const ChartDataTypeEnum::Enum chartDataType,
 m_chartDataType(chartDataType),
 m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
 {
-    m_bottomAxis = new ChartAxis();
-    m_leftAxis   = new ChartAxis();
-    m_rightAxis  = new ChartAxis();
-    m_topAxis    = new ChartAxis();
+    m_bottomAxis = new ChartAxis(ChartAxis::AXIS_BOTTOM);
+    m_leftAxis   = new ChartAxis(ChartAxis::AXIS_LEFT);
+    m_rightAxis  = new ChartAxis(ChartAxis::AXIS_RIGHT);
+    m_topAxis    = new ChartAxis(ChartAxis::AXIS_TOP);
     
     switch (m_supportsMultipleChartDisplayType) {
         case SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO:
@@ -86,6 +87,10 @@ m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
  */
 ChartModel::~ChartModel()
 {
+    delete m_bottomAxis;
+    delete m_leftAxis;
+    delete m_rightAxis;
+    delete m_topAxis;
 }
 
 /**
@@ -129,6 +134,15 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
 }
 
 /**
+ * @return The chart data type.
+ */
+ChartDataTypeEnum::Enum
+ChartModel::getChartDataType() const
+{
+    return m_chartDataType;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -162,6 +176,8 @@ ChartModel::addChartData(QSharedPointer<ChartData>& chartData)
     if (static_cast<int32_t>(m_chartDatas.size()) > m_maximumNumberOfChartDatasToDisplay) {
         m_chartDatas.resize(m_maximumNumberOfChartDatasToDisplay);
     }
+    
+    resetAxesToDefaultRange();
 }
 
 /**
