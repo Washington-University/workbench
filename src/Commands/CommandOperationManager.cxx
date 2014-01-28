@@ -64,6 +64,7 @@
 #include "AlgorithmLabelMerge.h"
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmMetricDilate.h"
+#include "AlgorithmMetricEstimateFWHM.h"
 #include "AlgorithmMetricExtrema.h"
 #include "AlgorithmMetricFalseCorrelation.h"
 #include "AlgorithmMetricFillHoles.h"
@@ -95,6 +96,7 @@
 #include "AlgorithmVolumeAffineResample.h"
 #include "AlgorithmVolumeAllLabelsToROIs.h"
 #include "AlgorithmVolumeDilate.h"
+#include "AlgorithmVolumeEstimateFWHM.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeFillHoles.h"
 #include "AlgorithmVolumeGradient.h"
@@ -135,7 +137,6 @@
 #include "OperationMetadataRemoveProvenance.h"
 #include "OperationMetadataStringReplace.h"
 #include "OperationMetricConvert.h"
-#include "OperationMetricEstimateFWHM.h"
 #include "OperationMetricLabelImport.h"
 #include "OperationMetricMask.h"
 #include "OperationMetricMath.h"
@@ -158,7 +159,6 @@
 #include "OperationSurfaceInformation.h"
 #include "OperationSurfaceVertexAreas.h"
 #include "OperationVolumeCreate.h"
-#include "OperationVolumeEstimateFWHM.h"
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumeMath.h"
 #include "OperationVolumePalette.h"
@@ -260,6 +260,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFillHoles()));
@@ -291,6 +292,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeDilate()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
@@ -331,7 +333,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataRemoveProvenance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataStringReplace()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricConvert()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMath()));
@@ -356,7 +357,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCreate()));
-    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));

@@ -42,7 +42,6 @@ OperationLabelMask.h
 OperationMetadataRemoveProvenance.h
 OperationMetadataStringReplace.h
 OperationMetricConvert.h
-OperationMetricEstimateFWHM.h
 OperationMetricLabelImport.h
 OperationMetricMask.h
 OperationMetricMath.h
@@ -65,7 +64,6 @@ OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCreate.h
-OperationVolumeEstimateFWHM.h
 OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
@@ -100,7 +98,6 @@ OperationLabelMask.cxx
 OperationMetadataRemoveProvenance.cxx
 OperationMetadataStringReplace.cxx
 OperationMetricConvert.cxx
-OperationMetricEstimateFWHM.cxx
 OperationMetricLabelImport.cxx
 OperationMetricMask.cxx
 OperationMetricMath.cxx
@@ -123,7 +120,6 @@ OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCreate.cxx
-OperationVolumeEstimateFWHM.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx

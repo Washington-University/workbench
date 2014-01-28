@@ -22,8 +22,8 @@
  *
  */
 
-#include "OperationVolumeEstimateFWHM.h"
-#include "OperationException.h"
+#include "AlgorithmVolumeEstimateFWHM.h"
+#include "AlgorithmException.h"
 
 #include <cmath>
 #include <iostream>
@@ -31,17 +31,17 @@
 using namespace caret;
 using namespace std;
 
-AString OperationVolumeEstimateFWHM::getCommandSwitch()
+AString AlgorithmVolumeEstimateFWHM::getCommandSwitch()
 {
     return "-volume-estimate-fwhm";
 }
 
-AString OperationVolumeEstimateFWHM::getShortDescription()
+AString AlgorithmVolumeEstimateFWHM::getShortDescription()
 {
     return "ESTIMATE FWHM SMOOTHNESS OF A VOLUME";
 }
 
-OperationParameters* OperationVolumeEstimateFWHM::getParameters()
+OperationParameters* AlgorithmVolumeEstimateFWHM::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addVolumeParameter(1, "volume", "the input volume");
@@ -59,7 +59,7 @@ OperationParameters* OperationVolumeEstimateFWHM::getParameters()
     return ret;
 }
 
-void OperationVolumeEstimateFWHM::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmVolumeEstimateFWHM::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     VolumeFile* myVol = myParams->getVolume(1);
@@ -70,7 +70,7 @@ void OperationVolumeEstimateFWHM::useParameters(OperationParameters* myParams, P
         roiVol = roiVolOpt->getVolume(1);
         if (!roiVol->matchesVolumeSpace(myVol))
         {
-            throw OperationException("roi volume does not match the space of the input volume");
+            throw AlgorithmException("roi volume does not match the space of the input volume");
         }
     }
     OptionalParameter* subvolSelect = myParams->getOptionalParameter(3);
@@ -80,7 +80,7 @@ void OperationVolumeEstimateFWHM::useParameters(OperationParameters* myParams, P
         subvolNum = (int)myVol->getMapIndexFromNameOrNumber(subvolSelect->getString(1));
         if (subvolNum < 0)
         {
-            throw OperationException("invalid subvolume specified");
+            throw AlgorithmException("invalid subvolume specified");
         }
     }
     vector<int64_t> dims;
@@ -108,11 +108,11 @@ void OperationVolumeEstimateFWHM::useParameters(OperationParameters* myParams, P
     }
 }
 
-Vector3D OperationVolumeEstimateFWHM::estimateFWHM(const VolumeFile* input, const VolumeFile* roi, const int64_t& brickIndex, const int64_t& component)
+Vector3D AlgorithmVolumeEstimateFWHM::estimateFWHM(const VolumeFile* input, const VolumeFile* roi, const int64_t& brickIndex, const int64_t& component)
 {
     if (roi != NULL && !roi->matchesVolumeSpace(input))
     {
-        throw OperationException("roi volume does not match the space of the input volume");
+        throw AlgorithmException("roi volume does not match the space of the input volume");
     }
     vector<int64_t> dims;
     input->getDimensions(dims);
@@ -153,7 +153,7 @@ Vector3D OperationVolumeEstimateFWHM::estimateFWHM(const VolumeFile* input, cons
             }
         }
     }
-    if (globalCount == 0) throw OperationException("ROI is empty or volume file has no voxels");
+    if (globalCount == 0) throw AlgorithmException("ROI is empty or volume file has no voxels");
     float dirmean[3];
     for (int i = 0; i < 3; ++i)
     {

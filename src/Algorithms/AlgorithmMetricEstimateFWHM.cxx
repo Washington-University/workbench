@@ -22,8 +22,8 @@
  *
  */
 
-#include "OperationMetricEstimateFWHM.h"
-#include "OperationException.h"
+#include "AlgorithmMetricEstimateFWHM.h"
+#include "AlgorithmException.h"
 
 #include "DescriptiveStatistics.h"
 #include "MetricFile.h"
@@ -35,17 +35,17 @@
 using namespace caret;
 using namespace std;
 
-AString OperationMetricEstimateFWHM::getCommandSwitch()
+AString AlgorithmMetricEstimateFWHM::getCommandSwitch()
 {
     return "-metric-estimate-fwhm";
 }
 
-AString OperationMetricEstimateFWHM::getShortDescription()
+AString AlgorithmMetricEstimateFWHM::getShortDescription()
 {
     return "ESTIMATE FWHM SMOOTHNESS OF A METRIC FILE";
 }
 
-OperationParameters* OperationMetricEstimateFWHM::getParameters()
+OperationParameters* AlgorithmMetricEstimateFWHM::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to use for distance and neighbor information");
@@ -65,7 +65,7 @@ OperationParameters* OperationMetricEstimateFWHM::getParameters()
     return ret;
 }
 
-void OperationMetricEstimateFWHM::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmMetricEstimateFWHM::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     SurfaceFile* mySurf = myParams->getSurface(1);
@@ -84,7 +84,7 @@ void OperationMetricEstimateFWHM::useParameters(OperationParameters* myParams, P
         columnNum = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
         if (columnNum < 0 || columnNum >= numColumns)
         {
-            throw OperationException("invalid column specified");
+            throw AlgorithmException("invalid column specified");
         }
     }
     if (columnNum == -1)
@@ -102,7 +102,7 @@ void OperationMetricEstimateFWHM::useParameters(OperationParameters* myParams, P
     }
 }
 
-float OperationMetricEstimateFWHM::estimateFWHM(const SurfaceFile* mySurf, const MetricFile* input, const MetricFile* roi, const int64_t& column)
+float AlgorithmMetricEstimateFWHM::estimateFWHM(const SurfaceFile* mySurf, const MetricFile* input, const MetricFile* roi, const int64_t& column)
 {
     CaretAssert(column >= 0 && column < input->getNumberOfColumns());
     int numNodes = input->getNumberOfNodes();
@@ -112,7 +112,7 @@ float OperationMetricEstimateFWHM::estimateFWHM(const SurfaceFile* mySurf, const
     {
         if (roi->getNumberOfNodes() != numNodes)
         {
-            throw OperationException("roi metric has a different number of nodes than the input metric");
+            throw AlgorithmException("roi metric has a different number of nodes than the input metric");
         }
         roiCol = roi->getValuePointerForColumn(0);
     }

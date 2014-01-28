@@ -1,5 +1,5 @@
-#ifndef __OPERATION_VOLUME_ESTIMATE_FWHM_H__
-#define __OPERATION_VOLUME_ESTIMATE_FWHM_H__
+#ifndef __ALGORITHM_VOLUME_ESTIMATE_FWHM_H__
+#define __ALGORITHM_VOLUME_ESTIMATE_FWHM_H__
 
 /*LICENSE_START*/
 /*
@@ -25,14 +25,14 @@
  *
  */
 
-#include "AbstractOperation.h"
+#include "AbstractAlgorithm.h"
 
 #include "Vector3D.h"
 #include "VolumeFile.h"
 
 namespace caret {
     
-    class OperationVolumeEstimateFWHM : public AbstractOperation
+    class AlgorithmVolumeEstimateFWHM : public AbstractAlgorithm
     {
     public:
         static OperationParameters* getParameters();
@@ -43,8 +43,8 @@ namespace caret {
         static Vector3D estimateFWHM(const VolumeFile* input, const VolumeFile* roi = NULL, const int64_t& brickIndex = 0, const int64_t& component = 0);
     };
 
-    typedef TemplateAutoOperation<OperationVolumeEstimateFWHM> AutoOperationVolumeEstimateFWHM;
+    typedef TemplateAutoOperation<AlgorithmVolumeEstimateFWHM> AutoAlgorithmVolumeEstimateFWHM;
 
 }
 
-#endif //__OPERATION_VOLUME_ESTIMATE_FWHM_H__
+#endif //__ALGORITHM_VOLUME_ESTIMATE_FWHM_H__

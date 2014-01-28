@@ -55,6 +55,7 @@ AlgorithmLabelDilate.h
 AlgorithmLabelMerge.h
 AlgorithmLabelResample.h
 AlgorithmMetricDilate.h
+AlgorithmMetricEstimateFWHM.h
 AlgorithmMetricExtrema.h
 AlgorithmMetricFalseCorrelation.h
 AlgorithmMetricFillHoles.h
@@ -87,6 +88,7 @@ AlgorithmSurfaceWedgeVolume.h
 AlgorithmVolumeAffineResample.h
 AlgorithmVolumeAllLabelsToROIs.h
 AlgorithmVolumeDilate.h
+AlgorithmVolumeEstimateFWHM.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
 AlgorithmVolumeGradient.h
@@ -142,6 +144,7 @@ AlgorithmLabelDilate.cxx
 AlgorithmLabelMerge.cxx
 AlgorithmLabelResample.cxx
 AlgorithmMetricDilate.cxx
+AlgorithmMetricEstimateFWHM.cxx
 AlgorithmMetricExtrema.cxx
 AlgorithmMetricFalseCorrelation.cxx
 AlgorithmMetricFillHoles.cxx
@@ -174,6 +177,7 @@ AlgorithmSurfaceWedgeVolume.cxx
 AlgorithmVolumeAffineResample.cxx
 AlgorithmVolumeAllLabelsToROIs.cxx
 AlgorithmVolumeDilate.cxx
+AlgorithmVolumeEstimateFWHM.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx
 AlgorithmVolumeGradient.cxx

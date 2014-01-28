@@ -1,5 +1,5 @@
-#ifndef __OPERATION_METRIC_ESTIMATE_FWHM_H__
-#define __OPERATION_METRIC_ESTIMATE_FWHM_H__
+#ifndef __ALGORITHM_METRIC_ESTIMATE_FWHM_H__
+#define __ALGORITHM_METRIC_ESTIMATE_FWHM_H__
 
 /*LICENSE_START*/
 /*
@@ -25,11 +25,11 @@
  *
  */
 
-#include "AbstractOperation.h"
+#include "AbstractAlgorithm.h"
 
 namespace caret {
     
-    class OperationMetricEstimateFWHM : public AbstractOperation
+    class AlgorithmMetricEstimateFWHM : public AbstractOperation
     {
     public:
         static OperationParameters* getParameters();
@@ -40,8 +40,8 @@ namespace caret {
         static float estimateFWHM(const SurfaceFile* mySurf, const MetricFile* input, const MetricFile* roi = NULL, const int64_t& column = 0);
     };
 
-    typedef TemplateAutoOperation<OperationMetricEstimateFWHM> AutoOperationMetricEstimateFWHM;
+    typedef TemplateAutoOperation<AlgorithmMetricEstimateFWHM> AutoAlgorithmMetricEstimateFWHM;
 
 }
 
-#endif //__OPERATION_METRIC_ESTIMATE_FWHM_H__
+#endif //__ALGORITHM_METRIC_ESTIMATE_FWHM_H__
