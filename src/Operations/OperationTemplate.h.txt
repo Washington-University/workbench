@@ -28,8 +28,6 @@
 /*
 file->save as... and enter what you will name the class, plus .h
 
-if the operation takes no mandatory parameters, uncomment the line below for takesParameters(), otherwise delete it
-
 find and replace these strings, without matching "whole word only" (plain text mode):
 
 OperationName     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
@@ -74,7 +72,6 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
-        //static bool takesParameters() { return false; };
     };
 
     typedef TemplateAutoOperation<OperationName> AutoOperationName;
