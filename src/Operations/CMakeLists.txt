@@ -23,6 +23,7 @@ OperationBackendAverageROICorrelation.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
+OperationCiftiEstimateFWHM.h
 OperationCiftiLabelImport.h
 OperationCiftiMath.h
 OperationCiftiPalette.h
@@ -79,6 +80,7 @@ OperationBackendAverageROICorrelation.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
+OperationCiftiEstimateFWHM.cxx
 OperationCiftiLabelImport.cxx
 OperationCiftiMath.cxx
 OperationCiftiPalette.cxx
