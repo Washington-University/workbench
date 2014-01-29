@@ -127,7 +127,7 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
         const int numBrainClasses = brainArray->getNumberOfArrayElements();
         for (int j = 0; j < numBrainClasses; ++j)
         {
-            const SceneClass* brainClass = brainArray->getClassAtIndex(i);
+            const SceneClass* brainClass = brainArray->getClassAtIndex(j);
             const SceneClass* specClass = brainClass->getClass("specFile");
             if (specClass == NULL)
             {
