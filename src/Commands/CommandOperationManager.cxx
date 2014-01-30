@@ -604,7 +604,8 @@ void CommandOperationManager::printHelpInfo()
     cout << endl << "Global options (can be added to any command):" << endl;
     cout << "   -disable-provenance   don't generate provenance info in output files" << endl;
     cout << endl;
-    cout << "If the first argument is not recognized, all processing commands that start with the argument are displayed" << endl;
+    cout << "If the first argument is not recognized, all processing commands that start" << endl;
+    cout << "   with the argument are displayed" << endl;
     cout << endl;
 }
 
