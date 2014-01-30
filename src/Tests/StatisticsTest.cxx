@@ -46,7 +46,7 @@ void StatisticsTest::execute()
         myData[i] = (rand() * 100.0f / RAND_MAX) - 50.0f;
     }
     DescriptiveStatistics myFullStats;
-	myFullStats.update(myData.data(), NUM_ELEMENTS);
+    myFullStats.update(myData.data(), NUM_ELEMENTS);
     FastStatistics myFastStats(myData.data(), NUM_ELEMENTS);
     float exacttolerance = myFullStats.getPopulationStandardDeviation() * 0.000001f;
     float approxtolerance = myFullStats.getPopulationStandardDeviation() * 0.01f;

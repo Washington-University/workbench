@@ -75,7 +75,7 @@ AString CaretMathExpression::getExpressionHelpInfo()
     MathFunctionEnum::getAllEnums(myFuncs);
     for (int i = 0; i < (int)myFuncs.size(); ++i)
     {
-        ret += MathFunctionEnum::toName(myFuncs[i]) + ": " + MathFunctionEnum::toExplanation(myFuncs[i]) + "\n";
+        ret += "   " + MathFunctionEnum::toName(myFuncs[i]) + ": " + MathFunctionEnum::toExplanation(myFuncs[i]) + "\n";
     }
     return ret;
 }

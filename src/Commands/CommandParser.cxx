@@ -75,7 +75,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
         //the idea is to have m_provenance set before the command executes, so it can be overridden, but have m_parentProvenance set AFTER the processing is complete
         //the parent provenance should never be generated manually
         m_parentProvenance = "";//in case someone tries to use the same instance more than once
-		m_workingDir = QDir::currentPath();//get the current path, in case some stupid command changes the working directory
+        m_workingDir = QDir::currentPath();//get the current path, in case some stupid command changes the working directory
         //these get set on output files during writeOutput (and for on-disk in provenanceBeforeOperation)
         parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
         parameters.verifyAllParametersProcessed();
@@ -606,17 +606,17 @@ void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
         {
             case OperationParametersEnum::CIFTI:
             {
-				CiftiParameter* myCiftiParam = (CiftiParameter*)myParam;
+                CiftiParameter* myCiftiParam = (CiftiParameter*)myParam;
                 FileInformation myInfo(outAssociation[i].m_fileName);
                 set<AString>::iterator iter = m_inputCiftiNames.find(myInfo.getCanonicalFilePath());
                 if (iter != m_inputCiftiNames.end())
                 {
                     CaretLogInfo("Computing output file '" + outAssociation[i].m_fileName + "' in memory due to collision with input file");
- 					myCiftiParam->m_parameter.grabNew(new CiftiFile(IN_MEMORY));
+                    myCiftiParam->m_parameter.grabNew(new CiftiFile(IN_MEMORY));
                } else {
-					myCiftiParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
-					myCiftiParam->m_parameter->setCiftiCacheFile(outAssociation[i].m_fileName);
-				}
+                    myCiftiParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
+                    myCiftiParam->m_parameter->setCiftiCacheFile(outAssociation[i].m_fileName);
+                }
                 break;
             }
             default:
@@ -786,8 +786,8 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
                 {//crawl in reverse until a space, or reaching curIndex - change this if you want hyphenation to take place more often than lines without any spaces
                     --endIndex;
                 }
-                if (in[endIndex] == ' ')
-                {//found a space, break line at the space
+                if (endIndex > curIndex)
+                {//found a space we can break at
                     while (endIndex > curIndex && in[endIndex] == ' ')
                     {//don't print any of the spaces
                         --endIndex;
@@ -806,9 +806,12 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
             }
         }
         curIndex = endIndex;
-        while (curIndex < in.size() && in[curIndex] == ' ')
-        {//skip spaces
-            ++curIndex;
+        if (haveAddedBreak)//don't skip spaces after literal newlines
+        {
+            while (curIndex < in.size() && in[curIndex] == ' ')
+            {//skip spaces
+                ++curIndex;
+            }
         }
     }
     return ret;
