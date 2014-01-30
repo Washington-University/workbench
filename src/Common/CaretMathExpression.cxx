@@ -60,7 +60,7 @@ AString CaretMathExpression::getExpressionHelpInfo()
     AString ret = AString("Expressions consist of constants, variables, operators, parentheses, and functions, in infix notation, such as 'exp(-x + 3) * scale'.  ") +
         "Variables are strings of any length, using the characters a-z, A-Z, 0-9, and _, but may not take the name of a named constant.  " +
         "Currently, there is only one named constant, PI.  " +
-        "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except for ^ which is exponentiation (ie, pow(x, y)), and takes higher precedence than the rest.  " +
+        "The operators are +, -, *, /, ^, >, <, >=, <=.  These behave as in C, except that ^ is exponentiation, i.e. pow(x, y), and takes higher precedence than the rest.  " +
         "The <= and >= operators are given a small amount of wiggle room, equal to one millionth of the smaller of the absolute values of the values being compared.\n\n" +
         "Comparison operators return 0 or 1, you can do masking with expressions like 'x * (mask > 0)'.  " +
         "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, i.e. '((0 < x) < 5)', " +
