@@ -216,21 +216,22 @@ CiftiParcelSeriesFile::loadAverageChartForSurfaceNodes(const StructureEnum::Enum
 }
 
 /**
- * Load a charting model for the surface with the given structure and node index.
+ * Load charting data for the surface with the given structure and node index.
  *
  * @param structure
  *     The surface's structure.
  * @param nodeIndex
  *     Index of the node.
  * @return
- *     A QSharedPointer for the model.  If the data FAILED to load,
- *     QSharedPointer::isNull() will return true.
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will return true.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
  */
-QSharedPointer<ChartData>
+ChartData*
 CiftiParcelSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex) throw (DataFileException)
 {
-    QSharedPointer<ChartData> chartData;
+    ChartData* chartData = NULL;
     
     return chartData;
 }

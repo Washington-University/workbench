@@ -47,7 +47,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
 #include "ChartAxis.h"
-#include "ChartModelLineSeries.h"
+#include "ChartModelDataSeries.h"
 #include "ModelChart.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -273,7 +273,7 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
         if (chart != NULL) {
             const ChartDataTypeEnum::Enum chartType = chart->getChartDataType();
             
-            ChartModelLineSeries* lineSeriesChart = NULL;
+            ChartModelDataSeries* lineSeriesChart = NULL;
             
             switch (chartType) {
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
@@ -281,10 +281,10 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
                 case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                    lineSeriesChart = dynamic_cast<ChartModelLineSeries*>(chart);
+                    lineSeriesChart = dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                    lineSeriesChart = dynamic_cast<ChartModelLineSeries*>(chart);
+                    lineSeriesChart = dynamic_cast<ChartModelDataSeries*>(chart);
                     break;
             }
             

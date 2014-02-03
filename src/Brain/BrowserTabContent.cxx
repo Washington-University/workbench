@@ -37,7 +37,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartData.h"
-#include "ChartModelLineSeries.h"
+#include "ChartModelDataSeries.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GroupAndNameHierarchyName.h"

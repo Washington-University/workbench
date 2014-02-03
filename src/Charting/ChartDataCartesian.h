@@ -53,9 +53,7 @@ namespace caret {
         
         virtual ~ChartDataCartesian();
         
-        ChartDataCartesian(const ChartDataCartesian& obj);
-
-        ChartDataCartesian& operator=(const ChartDataCartesian& obj);
+        virtual ChartData* clone();
         
         void addPoint(const float x,
                       const float y);
@@ -93,10 +91,24 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass);
+        
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass);
+        
+        
     private:
+        ChartDataCartesian(const ChartDataCartesian& obj);
+        
+        ChartDataCartesian& operator=(const ChartDataCartesian& obj);
+        
         void copyHelperChartDataCartesian(const ChartDataCartesian& obj);
 
-        void destroyAllPoints();
+        void initializeMembersChartDataCartesian();
+        
+        void removeAllPoints();
         
         std::vector<ChartPoint*> m_points;
         
@@ -104,9 +116,9 @@ namespace caret {
         
         mutable bool m_boundsValid;
         
-        const ChartAxisUnitsEnum::Enum m_dataAxisUnitsX;
+        ChartAxisUnitsEnum::Enum m_dataAxisUnitsX;
         
-        const ChartAxisUnitsEnum::Enum m_dataAxisUnitsY;
+        ChartAxisUnitsEnum::Enum m_dataAxisUnitsY;
         
         CaretColorEnum::Enum m_color;
         
@@ -118,12 +130,17 @@ namespace caret {
         
         AString m_encodedDataSource;
         
+        static int32_t caretColorIndex;
+        
+        SceneClassAssistant* m_sceneAssistant;
+        
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __CHART_DATA_CARTESIAN_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int32_t ChartDataCartesian::caretColorIndex = 0;
 #endif // __CHART_DATA_CARTESIAN_DECLARE__
 
 } // namespace

@@ -382,9 +382,9 @@ SceneClass::addStringArray(const AString& name,
                                    const AString values[],
                                    const int32_t arrayNumberOfElements)
 {
-    addChild(new SceneEnumeratedTypeArray(name,
-                                          values,
-                                          arrayNumberOfElements));
+    addChild(new SceneStringArray(name,
+                                  values,
+                                  arrayNumberOfElements));
 }
 
 /**

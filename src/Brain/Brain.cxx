@@ -184,6 +184,8 @@ Brain::Brain()
     m_selectionManager = new SelectionManager();
 
     m_identificationManager = new IdentificationManager();
+    
+    updateChartModel();
 }
 
 /**
@@ -489,6 +491,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_identificationManager->removeAllIdentifiedItems();
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
+    
+    if (m_modelChart != NULL) {
+        m_modelChart->reset();
+    }
     
     updateAfterFilesAddedOrRemoved();
 }
@@ -3803,7 +3809,7 @@ Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
  * Update the chart model.
  */
 void
-Brain::updateChartData()
+Brain::updateChartModel()
 {
     if (m_modelChart == NULL) {
         m_modelChart = new ModelChart(this);
@@ -4287,7 +4293,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void
 Brain::updateAfterFilesAddedOrRemoved()
 {
-    updateChartData();
+    updateChartModel();
     updateVolumeSliceModel();
     updateWholeBrainModel();
     updateSurfaceMontageModel();
@@ -4902,6 +4908,25 @@ Brain::receiveEvent(Event* event)
         }
     }
 }
+
+/**
+ * @return The chart model (warning may be NULL!)
+ */
+ModelChart*
+Brain::getChartModel()
+{
+    return m_modelChart;
+}
+
+/**
+ * @return The chart model (warning may be NULL!)
+ */
+const ModelChart*
+Brain::getChartModel() const
+{
+    return m_modelChart;
+}
+
 
 /**
  * @return The charting data manager.

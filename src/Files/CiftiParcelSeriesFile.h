@@ -56,7 +56,7 @@ namespace caret {
         
         virtual bool isChartingSupported() const;
         
-        virtual QSharedPointer<ChartData> loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartData* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                                    const int32_t nodeIndex) throw (DataFileException);
         
         virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,

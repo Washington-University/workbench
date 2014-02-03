@@ -10,22 +10,26 @@ PROJECT(Charting)
 ADD_LIBRARY(Charting
 ChartAxis.h
 ChartAxisUnitsEnum.h
-ChartModel.h
-ChartModelCartesian.h
-ChartModelLineSeries.h
 ChartData.h
 ChartDataCartesian.h
+ChartDataSource.h
+ChartDataSourceModeEnum.h
 ChartDataTypeEnum.h
+ChartModel.h
+ChartModelCartesian.h
+ChartModelDataSeries.h
 ChartPoint.h
 
 ChartAxis.cxx
 ChartAxisUnitsEnum.cxx
-ChartModel.cxx
-ChartModelCartesian.cxx
-ChartModelLineSeries.cxx
 ChartData.cxx
 ChartDataCartesian.cxx
+ChartDataSource.cxx
+ChartDataSourceModeEnum.cxx
 ChartDataTypeEnum.cxx
+ChartModel.cxx
+ChartModelCartesian.cxx
+ChartModelDataSeries.cxx
 ChartPoint.cxx
 )
 
@@ -35,5 +39,6 @@ ChartPoint.cxx
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Scenes
 )
 

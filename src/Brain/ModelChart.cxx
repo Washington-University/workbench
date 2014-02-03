@@ -28,18 +28,23 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "ChartAxis.h"
+#include "ChartableInterface.h"
 #include "ChartData.h"
-#include "ChartModelLineSeries.h"
+#include "ChartDataSource.h"
+#include "ChartModelDataSeries.h"
 #include "EventBrowserTabGetAll.h"
-#include "EventChartsNewNotification.h"
 #include "EventManager.h"
 #include "ModelChart.h"
 #include "OverlaySet.h"
 #include "OverlaySetArray.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SurfaceFile.h"
 
 using namespace caret;
 
@@ -54,25 +59,9 @@ ModelChart::ModelChart(Brain* brain)
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;
     m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
                                             Overlay::INCLUDE_VOLUME_FILES_YES,
-                                            "Volume View");
-    
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
-        
-        m_chartModelDataSeries[i] =
-        new ChartModelLineSeries(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-        m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
-        m_chartModelDataSeries[i]->getBottomAxis()->setText("Map Index");
-        
-        m_chartModelTimeSeries[i] =
-        new ChartModelLineSeries(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-        m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
-        m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
-    }
+                                            "Chart View");
+
+    initializeCharts();
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION);
@@ -86,10 +75,125 @@ ModelChart::~ModelChart()
     delete m_overlaySetArray;
     EventManager::get()->removeAllEventsFromListener(this);
     
+    removeAllCharts();    
+}
+
+void
+ModelChart::initializeCharts()
+{
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete m_chartModelDataSeries[i];
+        m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
         
-        delete m_chartModelTimeSeries[i];
+        m_chartModelDataSeries[i] =
+        new ChartModelDataSeries(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
+        m_chartModelDataSeries[i]->getBottomAxis()->setText("Map Index");
+        
+        m_chartModelTimeSeries[i] =
+        new ChartModelDataSeries(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
+        m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
+    }    
+}
+
+/**
+ * Reset this model.
+ */
+void
+ModelChart::reset()
+{
+    removeAllCharts();
+    
+    initializeCharts();
+}
+
+/**
+ * Remove all of the charts.
+ */
+void
+ModelChart::removeAllCharts()
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        if (m_chartModelDataSeries[i] != NULL) {
+            delete m_chartModelDataSeries[i];
+            m_chartModelDataSeries[i] = NULL;
+        }
+        
+        if (m_chartModelTimeSeries[i] != NULL) {
+            delete m_chartModelTimeSeries[i];
+            m_chartModelTimeSeries[i] = NULL;
+        }
+    }
+}
+
+/**
+ * Load chart data for a surface node.
+ *
+ * @param structure
+ *     The surface structure
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param nodeIndex
+ *     Index of node.
+ * @throws
+ *     DataFileException if there is an error loading data.
+ */
+void
+ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                        const int32_t surfaceNumberOfNodes,
+                                        const int32_t nodeIndex) throw (DataFileException)
+{
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    const std::vector<int32_t> tabIndices = allTabsEvent.getBrowserTabIndices();
+    
+    std::vector<ChartableInterface*> chartFiles;
+    m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    
+    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+         fileIter != chartFiles.end();
+         fileIter++) {
+        ChartableInterface* chartFile = *fileIter;
+
+        CaretAssert(chartFile);
+        ChartData* chartData = chartFile->loadChartDataForSurfaceNode(structure,
+                                               nodeIndex);
+        if (chartData != NULL) {
+            ChartDataSource* dataSource = chartData->getChartDataSource();
+            dataSource->setSurfaceNode(chartFile->getCaretMappableDataFile()->getFileName(),
+                                       StructureEnum::toName(structure),
+                                       surfaceNumberOfNodes,
+                                       nodeIndex);
+            
+            const ChartDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
+            
+            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+                 iter != tabIndices.end();
+                 iter++) {
+                const int32_t tabIndex = *iter;
+                
+                switch (chartDataDataType) {
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        CaretAssert(0);
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+                        CaretAssert(0);
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                        m_chartModelDataSeries[tabIndex]->addChartData(chartData);
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                        m_chartModelTimeSeries[tabIndex]->addChartData(chartData);
+                        break;
+                }
+            }
+            
+            delete chartData;
+        }
     }
 }
 
@@ -102,48 +206,6 @@ ModelChart::~ModelChart()
 void 
 ModelChart::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION) {
-        EventChartsNewNotification* newChartsEvent =
-        dynamic_cast<EventChartsNewNotification*>(event);
-        
-        EventBrowserTabGetAll allTabsEvent;
-        EventManager::get()->sendEvent(allTabsEvent.getPointer());
-        
-        const std::vector<int32_t> tabIndices = allTabsEvent.getBrowserTabIndices();
-        for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
-             iter != tabIndices.end();
-             iter++) {
-            const int32_t tabIndex = *iter;
-            
-            std::vector<QSharedPointer<ChartData> > chartDatas =
-            newChartsEvent->getChartDatasForTabIndex(tabIndex);
-            
-            if ( ! chartDatas.empty()) {
-                std::cout << "New charts for tab " << tabIndex << std::endl;
-                
-                for (std::vector<QSharedPointer<ChartData> >::iterator iter = chartDatas.begin();
-                     iter != chartDatas.end();
-                     iter++) {
-                    QSharedPointer<ChartData> cdm = *iter;
-                    const ChartDataTypeEnum::Enum chartDataDataType = cdm->getChartDataType();
-                    switch (chartDataDataType) {
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                            CaretAssert(0);
-                            break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
-                            CaretAssert(0);
-                            break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                            m_chartModelDataSeries[tabIndex]->addChartData(cdm);
-                            break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                            m_chartModelTimeSeries[tabIndex]->addChartData(cdm);
-                            break;
-                    }
-                }
-            }
-        }
-    }
 }
 
 /**
@@ -225,10 +287,16 @@ ModelChart::initializeOverlays()
  *    SceneClass to which model specific information is added.
  */
 void 
-ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* /*sceneAttributes*/,
-                                                      SceneClass* /*sceneClass*/)
+ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
+                                                      SceneClass* sceneClass)
 {
-    /* nothing to add to scene */
+    std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    
+    std::set<AString> validChartDataIDs;
+    saveChartModelsToScene(sceneAttributes,
+                           sceneClass,
+                           tabIndices,
+                           validChartDataIDs);
 }
 
 /**
@@ -243,11 +311,122 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* /*sceneAt
  *     sceneClass from which model specific information is obtained.
  */
 void 
-ModelChart::restoreModelSpecificInformationFromScene(const SceneAttributes* /*sceneAttributes*/,
-                                                           const SceneClass* /*sceneClass*/)
+ModelChart::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
+                                                           const SceneClass* sceneClass)
 {
-    /* nothing to restore from scene */
+    /*
+     * Restore the chart models
+     */
+    restoreChartModelsFromScene(sceneAttributes,
+                                sceneClass);
+    
 }
+
+/**
+ * Save chart models to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param sceneClass
+ *    SceneClass to which model specific information is added.
+ */
+void
+ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
+                            SceneClass* sceneClass,
+                            const std::vector<int32_t>& tabIndices,
+                            std::set<AString>& validChartDataIDsOut)
+{
+    validChartDataIDsOut.clear();
+    
+    std::vector<SceneClass*> chartClassVector;
+    
+    for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+         tabIter != tabIndices.end();
+         tabIter++) {
+        const int32_t tabIndex = *tabIter;
+        
+        ChartModel* chartModel = getSelectedChartModel(tabIndex);
+        SceneClass* chartModelClass = chartModel->saveToScene(sceneAttributes,
+                                                              "chartModel");
+        if (chartModelClass == NULL) {
+            continue;
+        }
+        
+        SceneClass* chartClassContainer = new SceneClass("chartClassContainer",
+                                                "ChartClassContainer",
+                                                1);
+        chartClassContainer->addInteger("tabIndex", tabIndex);
+        chartClassContainer->addEnumeratedType<ChartDataTypeEnum,ChartDataTypeEnum::Enum>("chartDataType",
+                                                                                 getSelectedChartDataType(tabIndex));
+        chartClassContainer->addClass(chartModelClass);
+        
+        chartClassVector.push_back(chartClassContainer);
+    }
+
+    if ( ! chartClassVector.empty()) {
+        SceneClassArray* modelArray = new SceneClassArray("modelArray",
+                                                      chartClassVector);
+        sceneClass->addChild(modelArray);
+    }
+}
+
+/**
+ * Restore the chart models from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass from which model specific information is obtained.
+ */
+void
+ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
+                                 const SceneClass* sceneClass)
+{
+    const SceneClassArray* modelArray = sceneClass->getClassArray("modelArray");
+    if (modelArray != NULL) {
+        const int numElements = modelArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numElements; i++) {
+            const SceneClass* chartClassContainer = modelArray->getClassAtIndex(i);
+            if (chartClassContainer != NULL) {
+                const int32_t tabIndex = chartClassContainer->getIntegerValue("tabIndex", -1);
+                const ChartDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
+                                                                                                        ChartDataTypeEnum::CHART_DATA_TYPE_INVALID);
+                const SceneClass* chartModelClass = chartClassContainer->getClass("chartModel");
+                
+                if ((tabIndex >= 0)
+                    && (chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
+                    && (chartModelClass != NULL)) {
+                    CaretAssertArrayIndex(m_chartModelDataSeries,
+                                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                          tabIndex);
+                    
+                    switch (chartDataType) {
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+                            CaretAssert(0);
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                            m_chartModelDataSeries[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                               chartModelClass);
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                            m_chartModelTimeSeries[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                               chartModelClass);
+                            break;
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * Get a text description of the window's content.

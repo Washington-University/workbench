@@ -37,16 +37,43 @@
 
 #include "CaretObject.h"
 #include "ChartDataTypeEnum.h"
+#include "SceneableInterface.h"
 
 
 namespace caret {
 
-    class ChartData : public CaretObject {
+    class ChartDataSource;
+    class SceneClassAssistant;
+    
+    class ChartData : public CaretObject, public SceneableInterface {
         
     public:
+        static ChartData* newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataType);
+        
         virtual ~ChartData();
         
+        /**
+         * At times a copy of chart data will be needed BUT it must be
+         * the proper subclass so copy constructor and assignment operator
+         * will no function when this abstract, base class is used.  Each
+         * subclass will override this method so that the returned class
+         * is of the proper type.
+         *
+         * @return Copy of this instance that is the actual subclass.
+         */
+        virtual ChartData* clone() = 0;
+        
         ChartDataTypeEnum::Enum getChartDataType() const;
+        
+        const ChartDataSource* getChartDataSource() const;
+        
+        ChartDataSource* getChartDataSource();
+        
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
         
         // ADD_NEW_METHODS_HERE
 
@@ -58,10 +85,47 @@ namespace caret {
         
         ChartData& operator=(const ChartData& obj);
         
+        /**
+         * Save subclass data to the scene.  sceneClass
+         * will be valid and any scene data should be added to it.
+         *
+         * @param sceneAttributes
+         *    Attributes for the scene.  Scenes may be of different types
+         *    (full, generic, etc) and the attributes should be checked when
+         *    restoring the scene.
+         *
+         * @param sceneClass
+         *     sceneClass to which data members should be added.
+         */
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass) = 0;
+        
+        /**
+         * Restore file data from the scene.  The scene class
+         * will be valid and any scene data may be obtained from it.
+         *
+         * @param sceneAttributes
+         *    Attributes for the scene.  Scenes may be of different types
+         *    (full, generic, etc) and the attributes should be checked when
+         *    restoring the scene.
+         *
+         * @param sceneClass
+         *     sceneClass for the instance of a class that implements
+         *     this interface.  Will NEVER be NULL.
+         */
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass) = 0;
+        
     private:
+        void initializeMembersChartData();
+        
         void copyHelperChartData(const ChartData& obj);
 
-        const ChartDataTypeEnum::Enum m_chartDataType;
+        SceneClassAssistant* m_sceneAssistant;
+
+        ChartDataTypeEnum::Enum m_chartDataType;
+        
+        ChartDataSource* m_chartDataSource;
         
         // ADD_NEW_MEMBERS_HERE
 

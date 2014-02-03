@@ -37,6 +37,11 @@
 #undef __CHART_DATA_DECLARE__
 
 #include "CaretAssert.h"
+#include "ChartDataCartesian.h"
+#include "ChartDataSource.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
+
 using namespace caret;
 
 
@@ -57,7 +62,7 @@ ChartData::ChartData(const ChartDataTypeEnum::Enum chartDataType)
 : CaretObject(),
 m_chartDataType(chartDataType)
 {
-    
+    initializeMembersChartData();
 }
 
 /**
@@ -65,7 +70,24 @@ m_chartDataType(chartDataType)
  */
 ChartData::~ChartData()
 {
+    delete m_sceneAssistant;
+    delete m_chartDataSource;
 }
+
+/**
+ * Initialize members of a new instance.
+ */
+void
+ChartData::initializeMembersChartData()
+{
+    m_chartDataSource = new ChartDataSource();
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_chartDataSource",
+                          "ChartDataSource",
+                          m_chartDataSource);
+}
+
 
 /**
  * Copy constructor.
@@ -76,6 +98,8 @@ ChartData::ChartData(const ChartData& obj)
 : CaretObject(obj),
 m_chartDataType(obj.m_chartDataType)
 {
+    initializeMembersChartData();
+    
     this->copyHelperChartData(obj);
 }
 
@@ -104,8 +128,97 @@ ChartData::operator=(const ChartData& obj)
 void 
 ChartData::copyHelperChartData(const ChartData& obj)
 {
-    CaretAssert(0);
+    m_chartDataType    = obj.m_chartDataType;
+    *m_chartDataSource = *obj.m_chartDataSource;
 }
+
+/**
+ * Create a new instance of a chart for the given data type.
+ *
+ * @param chartDataType
+ *    Type of chart data.
+ * @return
+ *    Pointer to new instance.
+ */
+ChartData*
+ChartData::newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataType)
+{
+    ChartData* chartData = NULL;
+    
+    switch (chartDataType) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+            CaretAssert(0);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            chartData = new ChartDataCartesian(chartDataType,
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            chartData = new ChartDataCartesian(chartDataType,
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME);
+            break;
+    }
+    
+    return chartData;
+}
+
+
+/**
+ * Save information specific to this type of model to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of instance in the scene.
+ */
+SceneClass*
+ChartData::saveToScene(const SceneAttributes* sceneAttributes,
+                                          const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ChartData",
+                                            1);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    saveSubClassDataToScene(sceneAttributes,
+                            sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore information specific to the type of model from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass from which model specific information is obtained.
+ */
+void
+ChartData::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                               const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    restoreSubClassDataFromScene(sceneAttributes,
+                                 sceneClass);
+}
+
 
 /**
  * @return The chart data model type.
@@ -115,6 +228,25 @@ ChartData::getChartDataType() const
 {
     return m_chartDataType;
 }
+
+/**
+ * @return The source of the chart data (const method).
+ */
+const ChartDataSource*
+ChartData::getChartDataSource() const
+{
+    return m_chartDataSource;
+}
+
+/**
+ * @return The source of the chart data.
+ */
+ChartDataSource*
+ChartData::getChartDataSource()
+{
+    return m_chartDataSource;
+}
+
 
 /**
  * Get a description of this object's content.

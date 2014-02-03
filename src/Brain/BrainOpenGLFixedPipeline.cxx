@@ -41,6 +41,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrainOpenGLShapeCone.h"
@@ -4888,14 +4889,12 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     CaretAssert(chartModel);
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
-    const ChartDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartDataType(tabIndex);
+    ChartModel* chart = chartModel->getSelectedChartModel(tabIndex);
     
-    const AString msg = ("Chart in tab "
-                         + AString::number(tabIndex + 1)
-                         + ChartDataTypeEnum::toGuiName(chartDataType));
-    drawTextWindowCoords(100, 100, msg,
-                         BrainOpenGLTextRenderInterface::X_LEFT,
-                         BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    if (chart != NULL) {
+        BrainOpenGLChartDrawingFixedPipeline chartDrawing;
+        chartDrawing.drawChart(viewport, this->textRenderer, chart);
+    }
 }
 
 /**

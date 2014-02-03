@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_MODEL_LINE_SERIES_DECLARE__
-#include "ChartModelLineSeries.h"
-#undef __CHART_MODEL_LINE_SERIES_DECLARE__
+#define __CHART_MODEL_DATA_SERIES_DECLARE__
+#include "ChartModelDataSeries.h"
+#undef __CHART_MODEL_DATA_SERIES_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -42,7 +42,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartModelLineSeries 
+ * \class caret::ChartModelDataSeries 
  * \brief Chart model for line series charts.
  * \ingroup Charting
  */
@@ -57,7 +57,7 @@ using namespace caret;
  * @param dataAxisUnitsY
  *    Units for the Y-axis.
  */
-ChartModelLineSeries::ChartModelLineSeries(const ChartDataTypeEnum::Enum chartDataDataType,
+ChartModelDataSeries::ChartModelDataSeries(const ChartDataTypeEnum::Enum chartDataDataType,
                                                                                  const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                                                                  const ChartAxisUnitsEnum::Enum dataAxisUnitsY)
 : ChartModelCartesian(chartDataDataType,
@@ -70,7 +70,7 @@ ChartModelLineSeries::ChartModelLineSeries(const ChartDataTypeEnum::Enum chartDa
 /**
  * Destructor.
  */
-ChartModelLineSeries::~ChartModelLineSeries()
+ChartModelDataSeries::~ChartModelDataSeries()
 {
 }
 
@@ -79,10 +79,10 @@ ChartModelLineSeries::~ChartModelLineSeries()
  * @param obj
  *    Object that is copied.
  */
-ChartModelLineSeries::ChartModelLineSeries(const ChartModelLineSeries& obj)
+ChartModelDataSeries::ChartModelDataSeries(const ChartModelDataSeries& obj)
 : ChartModelCartesian(obj)
 {
-    this->copyHelperChartModelLineSeries(obj);
+    this->copyHelperChartModelDataSeries(obj);
 }
 
 /**
@@ -92,12 +92,12 @@ ChartModelLineSeries::ChartModelLineSeries(const ChartModelLineSeries& obj)
  * @return 
  *    Reference to this object.
  */
-ChartModelLineSeries&
-ChartModelLineSeries::operator=(const ChartModelLineSeries& obj)
+ChartModelDataSeries&
+ChartModelDataSeries::operator=(const ChartModelDataSeries& obj)
 {
     if (this != &obj) {
         ChartModelCartesian::operator=(obj);
-        this->copyHelperChartModelLineSeries(obj);
+        this->copyHelperChartModelDataSeries(obj);
     }
     return *this;    
 }
@@ -108,7 +108,7 @@ ChartModelLineSeries::operator=(const ChartModelLineSeries& obj)
  *    Object that is copied.
  */
 void 
-ChartModelLineSeries::copyHelperChartModelLineSeries(const ChartModelLineSeries& obj)
+ChartModelDataSeries::copyHelperChartModelDataSeries(const ChartModelDataSeries& obj)
 {
     
 }

@@ -36,17 +36,18 @@
 
 #include <deque>
 
-#include <QSharedPointer>
-
 #include "CaretObject.h"
 #include "ChartDataTypeEnum.h"
+#include "SceneableInterface.h"
 
 
 namespace caret {
 
     class ChartAxis;
     class ChartData;
-    class ChartModel : public CaretObject {
+    class SceneClassAssistant;
+    
+    class ChartModel : public CaretObject, public SceneableInterface {
         
     public:
         /** 
@@ -73,13 +74,16 @@ namespace caret {
         
         SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE getSupportForMultipleChartDisplay() const;
         
-        void addChartData(QSharedPointer<ChartData>& chartData);
+        void addChartData(ChartData* chartData);
+        
+        void replaceChartData(ChartData* before,
+                              ChartData* after);
         
         virtual int32_t getMaximumNumberOfChartDatasToDisplay() const;
         
         void setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay);
         
-        std::vector<QSharedPointer<ChartData> > getChartDatasForDisplay() const;
+        std::vector<ChartData*> getChartDatasForDisplay() const;
         
         ChartAxis* getLeftAxis();
         
@@ -99,6 +103,11 @@ namespace caret {
         
         virtual void resetAxesToDefaultRange() = 0;
         
+        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
+        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
 
         // ADD_NEW_METHODS_HERE
 
@@ -107,11 +116,13 @@ namespace caret {
     private:
         void copyHelperChartModel(const ChartModel& obj);
         
+        void removeChartData();
+        
         const ChartDataTypeEnum::Enum m_chartDataType;
         
         const SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE m_supportsMultipleChartDisplayType;
         
-        std::deque<QSharedPointer<ChartData> > m_chartDatas;
+        std::deque<ChartData*> m_chartDatas;
         
         int32_t m_maximumNumberOfChartDatasToDisplay;
         
@@ -122,6 +133,11 @@ namespace caret {
         ChartAxis* m_bottomAxis;
         
         ChartAxis* m_topAxis;
+        
+        /** helps with scene save/restore */
+        SceneClassAssistant* m_sceneAssistant;
+        
+        std::vector<AString> m_chartDataUniqueIdentifiersFromScene;
         
         // ADD_NEW_MEMBERS_HERE
 

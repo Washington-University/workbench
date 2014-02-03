@@ -39,8 +39,7 @@
 #include "Brain.h"
 #include "ChartableInterface.h"
 #include "CaretAssert.h"
-#include "EventChartsNewNotification.h"
-#include "EventManager.h"
+#include "ModelChart.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -141,6 +140,11 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
 {
     CaretAssert(surfaceFile);
     
+    ModelChart* modelChart = m_brain->getChartModel();
+    modelChart->loadChartDataForSurfaceNode(surfaceFile->getStructure(),
+                                            surfaceFile->getNumberOfNodes(),
+                                            nodeIndex);
+    
     timeLinesOut.clear();
     
     std::vector<ChartableInterface*> chartFiles;
@@ -153,14 +157,10 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
     
     const StructureEnum::Enum structure = surfaceFile->getStructure();
     
-    std::vector<QSharedPointer<ChartData> > chartDatasVector;
-    
     for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
          fileIter != chartFiles.end();
          fileIter++) {
-        
-        
-        
+
         ChartableInterface* chartFile = *fileIter;
         TimeLine timeLine;
         if (chartFile->loadChartForSurfaceNode(structure,
@@ -168,18 +168,6 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
                                                timeLine)) {
             timeLinesOut.push_back(timeLine);
         }
-        
-        CaretAssert(chartFile);
-        QSharedPointer<ChartData> chartData =
-            chartFile->loadChartDataForSurfaceNode(structure,
-                                                nodeIndex);
-        if ( ! chartData.isNull()) {
-            chartDatasVector.push_back(chartData);
-        }
-    }
-    
-    if ( ! chartDatasVector.empty()) {
-        EventManager::get()->sendEvent(EventChartsNewNotification(chartDatasVector).getPointer());
     }
 }
 

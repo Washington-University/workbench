@@ -201,6 +201,10 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        ModelChart* getChartModel();
+        
+        const ModelChart* getChartModel() const;
+        
         ChartingDataManager* getChartingDataManager();
         
         const ChartingDataManager* getChartingDataManager() const;
@@ -532,7 +536,7 @@ namespace caret {
         
         AString updateFileNameForWriting(const AString& filename) throw (DataFileException);
         
-        void updateChartData();
+        void updateChartModel();
         
         void updateVolumeSliceModel();
         

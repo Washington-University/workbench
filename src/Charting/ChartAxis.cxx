@@ -37,6 +37,9 @@
 #undef __CHART_AXIS_DECLARE__
 
 #include "CaretAssert.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
+
 using namespace caret;
 
 
@@ -54,12 +57,7 @@ ChartAxis::ChartAxis(const Axis axis)
 : CaretObject(),
 m_axis(axis)
 {
-    m_autoRangeScale = true;
-    m_axisUnits      = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
-    m_labelFontSize  = 12;
-    m_visible        = false;
-    m_minimumValue   = 0.0;
-    m_maximumValue   = 0.0;
+    initializeMembersChartAxis();
 }
 
 /**
@@ -67,7 +65,78 @@ m_axis(axis)
  */
 ChartAxis::~ChartAxis()
 {
+    delete m_sceneAssistant;
 }
+
+/**
+ * Initialize members of a new instance.
+ */
+void
+ChartAxis::initializeMembersChartAxis()
+{
+    m_autoRangeScale = true;
+    m_axisUnits      = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
+    m_labelFontSize  = 12;
+    m_visible        = false;
+    m_minimumValue   = 0.0;
+    m_maximumValue   = 0.0;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_autoRangeScale", &m_autoRangeScale);
+    m_sceneAssistant->add("m_labelFontSize", &m_labelFontSize);
+    m_sceneAssistant->add("m_visible", &m_visible);
+    m_sceneAssistant->add("m_minimumValue", &m_minimumValue);
+    m_sceneAssistant->add("m_maximumValue", &m_maximumValue);
+    m_sceneAssistant->add("m_text", &m_text);
+}
+
+/**
+ * Copy constructor.
+ * @param obj
+ *    Object that is copied.
+ */
+ChartAxis::ChartAxis(const ChartAxis& obj)
+: CaretObject(obj)
+{
+    initializeMembersChartAxis();
+    copyHelperChartAxis(obj);
+}
+
+/**
+ * Assignment operator.
+ * @param obj
+ *    Data copied from obj to this.
+ * @return
+ *    Reference to this object.
+ */
+ChartAxis&
+ChartAxis::operator=(const ChartAxis& obj)
+{
+    if (this != &obj) {
+        CaretObject::operator=(obj);
+        this->copyHelperChartAxis(obj);
+    }
+    return *this;
+    
+}
+
+/**
+ * Helps with copying an object of this type.
+ * @param obj
+ *    Object that is copied.
+ */
+void
+ChartAxis::copyHelperChartAxis(const ChartAxis& obj)
+{
+    m_axis           = obj.m_axis;
+    m_autoRangeScale = obj.m_autoRangeScale;
+    m_axisUnits      = obj.m_axisUnits;
+    m_labelFontSize  = obj.m_labelFontSize;
+    m_visible        = obj.m_visible;
+    m_minimumValue   = obj.m_minimumValue;
+    m_maximumValue   = obj.m_maximumValue;
+}
+
 
 /**
  * @return The location of the axis.
@@ -249,5 +318,59 @@ ChartAxis::setAutoRangeScale(const bool autoRangeScale)
 {
     m_autoRangeScale = autoRangeScale;
 }
+
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+ChartAxis::saveToScene(const SceneAttributes* sceneAttributes,
+                        const AString& instanceName)
+{
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ChartAxis",
+                                            1);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+ChartAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
+                             const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+}
+
+
 
 

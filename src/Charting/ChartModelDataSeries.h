@@ -1,3 +1,5 @@
+#ifndef __CHART_MODEL_DATA_SERIES_H__
+#define __CHART_MODEL_DATA_SERIES_H__
 
 /*LICENSE_START*/
 /*
@@ -32,51 +34,39 @@
  */
 /*LICENSE_END*/
 
-#define __EVENT_CHARTS_NEW_NOTIFICATION_DECLARE__
-#include "EventChartsNewNotification.h"
-#undef __EVENT_CHARTS_NEW_NOTIFICATION_DECLARE__
 
-#include "CaretAssert.h"
-#include "EventTypeEnum.h"
-
-using namespace caret;
+#include "ChartModelCartesian.h"
 
 
+
+namespace caret {
+
+    class ChartModelDataSeries : public ChartModelCartesian {
+        
+    public:
+        ChartModelDataSeries(const ChartDataTypeEnum::Enum chartDataDataType,
+                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
+                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+        
+        virtual ~ChartModelDataSeries();
+        
+        ChartModelDataSeries(const ChartModelDataSeries& obj);
+
+        ChartModelDataSeries& operator=(const ChartModelDataSeries& obj);
+        
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+        void copyHelperChartModelDataSeries(const ChartModelDataSeries& obj);
+
+        // ADD_NEW_MEMBERS_HERE
+
+    };
     
-/**
- * \class caret::EventChartsNewNotification 
- * \brief This event provides new chart models that have become available.
- * \ingroup Brain
- */
+#ifdef __CHART_MODEL_DATA_SERIES_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CHART_MODEL_DATA_SERIES_DECLARE__
 
-/**
- * Constructor.
- */
-EventChartsNewNotification::EventChartsNewNotification(std::vector<QSharedPointer<ChartData> >& chartDatas)
-: Event(EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION)
-{
-    m_chartDatas = chartDatas;
-}
-
-/**
- * Destructor.
- */
-EventChartsNewNotification::~EventChartsNewNotification()
-{
-}
-
-/**
- * Get the chart data models that are valid for the given tab.
- *
- * @param tabIndex
- *    Index of tab.
- * @return
- *    Chart data models for the given tab.
- */
-std::vector<QSharedPointer<ChartData> >
-EventChartsNewNotification::getChartDatasForTabIndex(const int32_t tabIndex) const
-{
-    return m_chartDatas;
-}
-
-
+} // namespace
+#endif  //__CHART_MODEL_DATA_SERIES_H__

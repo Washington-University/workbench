@@ -1,5 +1,5 @@
-#ifndef __CHART_MODEL_LINE_SERIES_H__
-#define __CHART_MODEL_LINE_SERIES_H__
+#ifndef __BRAIN_OPEN_G_L_CHART_DRAWING_INTERFACE_H__
+#define __BRAIN_OPEN_G_L_CHART_DRAWING_INTERFACE_H__
 
 /*LICENSE_START*/
 /*
@@ -35,38 +35,56 @@
 /*LICENSE_END*/
 
 
-#include "ChartModelCartesian.h"
+#include "AString.h"
 
-
+/**
+ * \class caret::BrainOpenGLTextRenderInterface
+ * \brief Interface for drawing charts with OpenGL.
+ * \ingroup Brain
+ */
 
 namespace caret {
 
-    class ChartModelLineSeries : public ChartModelCartesian {
+    class BrainOpenGLTextRenderInterface;
+    class ChartModel;
+    
+    class BrainOpenGLChartDrawingInterface {
         
     public:
-        ChartModelLineSeries(const ChartDataTypeEnum::Enum chartDataDataType,
-                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+        BrainOpenGLChartDrawingInterface() { }
         
-        virtual ~ChartModelLineSeries();
+        virtual ~BrainOpenGLChartDrawingInterface() { }
         
-        ChartModelLineSeries(const ChartModelLineSeries& obj);
+        /**
+         * Draw the given chart in the given viewport.
+         *
+         * @param viewport
+         *     Viewport for the chart.
+         * @param textRenderer
+         *     Text rendering.
+         * @param chart
+         *     Chart that is drawn.
+         */
+        virtual void drawChart(const int32_t viewport[4],
+                               BrainOpenGLTextRenderInterface* textRenderer,
+                               ChartModel* chart) = 0;
+    private:
+        BrainOpenGLChartDrawingInterface(const BrainOpenGLChartDrawingInterface&);
 
-        ChartModelLineSeries& operator=(const ChartModelLineSeries& obj);
+        BrainOpenGLChartDrawingInterface& operator=(const BrainOpenGLChartDrawingInterface&);
         
+    public:
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        void copyHelperChartModelLineSeries(const ChartModelLineSeries& obj);
-
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_MODEL_LINE_SERIES_DECLARE__
+#ifdef __BRAIN_OPEN_G_L_CHART_DRAWING_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_LINE_SERIES_DECLARE__
+#endif // __BRAIN_OPEN_G_L_CHART_DRAWING_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__CHART_MODEL_LINE_SERIES_H__
+#endif  //__BRAIN_OPEN_G_L_CHART_DRAWING_INTERFACE_H__

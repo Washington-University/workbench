@@ -1,5 +1,5 @@
-#ifndef __CHART_AXIS_H__
-#define __CHART_AXIS_H__
+#ifndef __CHART_DATA_SOURCE_H__
+#define __CHART_DATA_SOURCE_H__
 
 /*LICENSE_START*/
 /*
@@ -36,62 +36,28 @@
 
 
 #include "CaretObject.h"
-
-#include "ChartAxisUnitsEnum.h"
+#include "ChartDataSourceModeEnum.h"
 #include "SceneableInterface.h"
 
 namespace caret {
-    class SceneClassAssistant;
 
-    class ChartAxis : public CaretObject, public SceneableInterface {
+    class SceneClassAssistant;
+    
+    class ChartDataSource : public CaretObject, public SceneableInterface {
         
     public:
-        enum Axis {
-            AXIS_BOTTOM,
-            AXIS_LEFT,
-            AXIS_RIGHT,
-            AXIS_TOP
-        };
+        ChartDataSource();
         
-        ChartAxis(const Axis axis);
-        
-        virtual ~ChartAxis();
-        
-        ChartAxis(const ChartAxis&);
-        
-        ChartAxis& operator=(const ChartAxis&);
-        
-        Axis getAxis() const;
-        
-        AString getText() const;
-        
-        void setText(const AString& text);
-        
-        ChartAxisUnitsEnum::Enum getAxisUnits() const;
+        void setSurfaceNode(const AString& chartableFileName,
+                            const AString& surfaceStructureName,
+                            const int32_t surfaceNumberOfNodes,
+                            const int32_t nodeIndex);
 
-        void setAxisUnits(const ChartAxisUnitsEnum::Enum axisUnits);
+        virtual ~ChartDataSource();
         
-        float getMinimumValue() const;
+        ChartDataSource(const ChartDataSource&);
         
-        void setMinimumValue(const float minimumValue);
-        
-        float getMaximumValue() const;
-        
-        void setMaximumValue(const float maximumValue);
-        
-        bool isMinimumMaximumValueValid();
-        
-        int32_t getLabelFontSize() const;
-        
-        void setLabelFontSize(const float fontSize);
-        
-        bool isAutoRangeScale() const;
-        
-        void setAutoRangeScale(const bool autoRangeScale);
-        
-        bool isVisible() const;
-        
-        void setVisible(const bool visible);
+        ChartDataSource& operator=(const ChartDataSource&);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -99,8 +65,22 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        ChartDataSourceModeEnum::Enum getDataSourceMode() const;
+        
+        AString getChartableFileName() const;
+        
+        void getSurfaceNode(AString& surfaceStructureName,
+                            int32_t& surfaceNumberOfNodes,
+                            int32_t& nodeIndex) const;
+        
+        void getSurfaceNodeAverage(AString& surfaceStructureName,
+                                   int32_t& surfaceNumberOfNodes,
+                                   std::vector<int32_t>& nodeIndices) const;
+        
+        void getVolumeVoxel(int64_t ijk[3]) const;
+        
     private:
-        void copyHelperChartAxis(const ChartAxis& obj);
+        void copyHelperChartDataSource(const ChartDataSource& obj);
         
     public:
 
@@ -109,34 +89,31 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void initializeMembersChartAxis();
+        void initializeMembersChartDataSource();
         
-        Axis m_axis;
-        
-        AString m_text;
-        
-        ChartAxisUnitsEnum::Enum m_axisUnits;
-        
-        float m_maximumValue;
-        
-        float m_minimumValue;
-        
-        int32_t m_labelFontSize;
-        
-        bool m_visible;
-        
-        bool m_autoRangeScale;
-        
-        /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;
+        
+        ChartDataSourceModeEnum::Enum m_dataSourceMode;
+        
+        AString m_chartableFileName;
+        
+        int32_t m_surfaceNumberOfNodes;
+        
+        AString m_surfaceStructureName;
+        
+        std::vector<int32_t> m_nodeIndicesAverage;
+        
+        int32_t m_nodeIndex;
+        
+        int32_t m_voxelIJK[3];
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_AXIS_DECLARE__
+#ifdef __CHART_DATA_SOURCE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_AXIS_DECLARE__
+#endif // __CHART_DATA_SOURCE_DECLARE__
 
 } // namespace
-#endif  //__CHART_AXIS_H__
+#endif  //__CHART_DATA_SOURCE_H__

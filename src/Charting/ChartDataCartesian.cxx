@@ -38,8 +38,12 @@
 
 #include <limits>
 
+#include <QTextStream>
+
 #include "CaretAssert.h"
 #include "ChartPoint.h"
+#include "SceneClass.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -68,12 +72,7 @@ ChartDataCartesian::ChartDataCartesian(const ChartDataTypeEnum::Enum chartDataTy
 m_dataAxisUnitsX(dataAxisUnitsX),
 m_dataAxisUnitsY(dataAxisUnitsY)
 {
-    m_boundsValid       = false;
-    m_color             = CaretColorEnum::BLACK;
-    m_description       = "";
-    m_encodedDataSource = "";
-    m_timeStartInSecondsAxisX = 0.0;
-    m_timeStepInSecondsAxisX  = 1.0;
+    initializeMembersChartDataCartesian();
 }
 
 /**
@@ -81,14 +80,70 @@ m_dataAxisUnitsY(dataAxisUnitsY)
  */
 ChartDataCartesian::~ChartDataCartesian()
 {
-    destroyAllPoints();
+    removeAllPoints();
+    
+    delete m_sceneAssistant;
 }
 
 /**
- * Destroy (remove) all points in the model.
+ * Initialize members of a new instance.
  */
 void
-ChartDataCartesian::destroyAllPoints()
+ChartDataCartesian::initializeMembersChartDataCartesian()
+{
+    m_boundsValid       = false;
+    m_color             = CaretColorEnum::RED;
+    m_description       = "";
+    m_encodedDataSource = "";
+    m_timeStartInSecondsAxisX = 0.0;
+    m_timeStepInSecondsAxisX  = 1.0;
+    
+    std::vector<CaretColorEnum::Enum> colorEnums;
+    CaretColorEnum::getAllEnums(colorEnums);
+    const int32_t numCaretColors = static_cast<int32_t>(colorEnums.size());
+    
+    bool colorFound = false;
+    while ( ! colorFound) {
+        ChartDataCartesian::caretColorIndex++;
+        if (ChartDataCartesian::caretColorIndex >= numCaretColors) {
+            ChartDataCartesian::caretColorIndex = 0;
+        }
+        
+        if (colorEnums[ChartDataCartesian::caretColorIndex] == CaretColorEnum::BLACK) {
+            /* do not use black */
+        }
+        else if (colorEnums[ChartDataCartesian::caretColorIndex] == CaretColorEnum::WHITE) {
+            /* do not use white */
+        }
+        else {
+            m_color = colorEnums[ChartDataCartesian::caretColorIndex];
+            colorFound = true;
+        }
+    }
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    
+    m_sceneAssistant->add<ChartAxisUnitsEnum, ChartAxisUnitsEnum::Enum>("m_dataAxisUnitsX",
+                                                                &m_dataAxisUnitsX);
+    m_sceneAssistant->add<ChartAxisUnitsEnum, ChartAxisUnitsEnum::Enum>("m_dataAxisUnitsY",
+                                                                &m_dataAxisUnitsY);
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_color",
+                                                                &m_color);
+    m_sceneAssistant->add("m_description",
+                          &m_description);
+    m_sceneAssistant->add("m_encodedDataSource",
+                          &m_encodedDataSource);
+    m_sceneAssistant->add("m_timeStartInSecondsAxisX",
+                          &m_timeStartInSecondsAxisX);
+    m_sceneAssistant->add("m_timeStepInSecondsAxisX",
+                          &m_timeStepInSecondsAxisX);
+}
+
+/**
+ * Remove all points in the model.
+ */
+void
+ChartDataCartesian::removeAllPoints()
 {
     for (std::vector<ChartPoint*>::const_iterator iter = m_points.begin();
          iter != m_points.end();
@@ -100,6 +155,21 @@ ChartDataCartesian::destroyAllPoints()
     m_boundsValid = false;
 }
 
+/**
+ * At times a copy of chart data will be needed BUT it must be
+ * the proper subclass so copy constructor and assignment operator
+ * will no function when this abstract, base class is used.  Each
+ * subclass will override this method so that the returned class
+ * is of the proper type.
+ *
+ * @return Copy of this instance that is the actual subclass.
+ */
+ChartData*
+ChartDataCartesian::clone()
+{
+    ChartDataCartesian* cloneCopy = new ChartDataCartesian(*this);
+    return cloneCopy;
+}
 
 /**
  * Copy constructor.
@@ -111,6 +181,7 @@ ChartDataCartesian::ChartDataCartesian(const ChartDataCartesian& obj)
 m_dataAxisUnitsX(obj.m_dataAxisUnitsX),
 m_dataAxisUnitsY(obj.m_dataAxisUnitsY)
 {
+    initializeMembersChartDataCartesian();
     this->copyHelperChartDataCartesian(obj);
 }
 
@@ -139,7 +210,10 @@ ChartDataCartesian::operator=(const ChartDataCartesian& obj)
 void 
 ChartDataCartesian::copyHelperChartDataCartesian(const ChartDataCartesian& obj)
 {
-    destroyAllPoints();
+    m_dataAxisUnitsX = obj.m_dataAxisUnitsX;
+    m_dataAxisUnitsY = obj.m_dataAxisUnitsY;
+    
+    removeAllPoints();
 
     for (std::vector<ChartPoint*>::const_iterator iter = obj.m_points.begin();
          iter != obj.m_points.end();
@@ -148,7 +222,12 @@ ChartDataCartesian::copyHelperChartDataCartesian(const ChartDataCartesian& obj)
         m_points.push_back(new ChartPoint(*cp));
     }
 
-    m_boundsValid = false;
+    m_boundsValid       = false;
+    m_color             = obj.m_color;
+    m_description       = obj.m_description;
+    m_encodedDataSource = obj.m_encodedDataSource;
+    m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
+    m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
 }
 
 /**
@@ -361,5 +440,105 @@ void
 ChartDataCartesian::setEncodedDataSource(const AString& encodedDataSource)
 {
     m_encodedDataSource = encodedDataSource;
+}
+
+/**
+ * Save subclass data to the scene.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+ChartDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                     SceneClass* sceneClass)
+{
+    SceneClass* chartDataCartesian = new SceneClass("chartDataCartesian",
+                                               "ChartDataCartesian",
+                                               1);
+    
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  chartDataCartesian);
+    
+    const int32_t numPoints2D = getNumberOfPoints();
+    if (numPoints2D > 0) {
+        chartDataCartesian->addInteger("numberOfPoints2D",
+                                       numPoints2D);
+        
+        AString pointString;
+        pointString.reserve(numPoints2D * 2 * 10);
+        QTextStream textStream(&pointString,
+                               QIODevice::WriteOnly);
+        
+        for (int32_t i = 0; i < numPoints2D; i++) {
+            const float* xy = m_points[i]->getXY();
+            textStream << xy[0] << " " << xy[1] << " ";
+        }
+        
+        chartDataCartesian->addString("points2D",
+                                      pointString);
+    }
+    
+    sceneClass->addClass(chartDataCartesian);
+}
+
+/**
+ * Restore file data from the scene.  The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+ChartDataCartesian::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                          const SceneClass* sceneClass)
+{
+    removeAllPoints();
+    
+    const SceneClass* chartDataCartesian = sceneClass->getClass("chartDataCartesian");
+    if (chartDataCartesian == NULL) {
+        return;
+    }
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes, chartDataCartesian);
+    
+    const int32_t numPoints2D = chartDataCartesian->getIntegerValue("numberOfPoints2D",
+                                                                  -1);
+    
+    if (numPoints2D > 0) {
+        AString pointString = chartDataCartesian->getStringValue("points2D",
+                                                                       "");
+        if ( ! pointString.isEmpty()) {
+            float x, y;
+            QTextStream textStream(&pointString,
+                                   QIODevice::ReadOnly);
+            for (int32_t i = 0; i < numPoints2D; i++) {
+                if (textStream.atEnd()) {
+                    sceneAttributes->addToErrorMessage("Tried to read "
+                                                       + AString::number(numPoints2D)
+                                                       + " but only got "
+                                                       + AString::number(i)
+                                                       + " for "
+                                                       + m_description);
+                    break;
+                }
+                
+                textStream >> x;
+                textStream >> y;
+                m_points.push_back(new ChartPoint(x, y));
+            }
+        }
+    }
 }
 

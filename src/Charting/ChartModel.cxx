@@ -39,6 +39,11 @@
 #include "CaretAssert.h"
 #include "ChartAxis.h"
 #include "ChartData.h"
+#include "ChartDataSource.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
+#include "SceneClassAssistant.h"
+#include "SceneStringArray.h"
 
 using namespace caret;
 
@@ -80,6 +85,14 @@ m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
             m_maximumNumberOfChartDatasToDisplay = 5;
             break;
     }
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_bottomAxis", "ChartAxis", m_bottomAxis);
+    m_sceneAssistant->add("m_leftAxis", "ChartAxis", m_leftAxis);
+    m_sceneAssistant->add("m_rightAxis", "ChartAxis", m_rightAxis);
+    m_sceneAssistant->add("m_topAxis", "ChartAxis", m_topAxis);
+    m_sceneAssistant->add("m_maximumNumberOfChartDatasToDisplay",
+                          &m_maximumNumberOfChartDatasToDisplay);
 }
 
 /**
@@ -87,11 +100,29 @@ m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
  */
 ChartModel::~ChartModel()
 {
+    delete m_sceneAssistant;
+    
     delete m_bottomAxis;
     delete m_leftAxis;
     delete m_rightAxis;
     delete m_topAxis;
+    
+    removeChartData();
 }
+
+/**
+ * Remove the data data.
+ */
+void
+ChartModel::removeChartData()
+{
+    for (std::deque<ChartData*>::iterator iter = m_chartDatas.begin();
+         iter != m_chartDatas.end();
+         iter++) {
+        delete *iter;
+    }
+}
+
 
 /**
  * Copy constructor.
@@ -130,7 +161,7 @@ ChartModel::operator=(const ChartModel& obj)
 void
 ChartModel::copyHelperChartModel(const ChartModel& obj)
 {
-    
+    CaretAssert(0);
 }
 
 /**
@@ -169,9 +200,11 @@ ChartModel::getSupportForMultipleChartDisplay() const
  *     Model that is added.
  */
 void
-ChartModel::addChartData(QSharedPointer<ChartData>& chartData)
+ChartModel::addChartData(ChartData* chartData)
 {
-    m_chartDatas.push_back(chartData);
+    CaretAssert(chartData);
+    
+    m_chartDatas.push_back(chartData->clone());
     
     if (static_cast<int32_t>(m_chartDatas.size()) > m_maximumNumberOfChartDatasToDisplay) {
         m_chartDatas.resize(m_maximumNumberOfChartDatasToDisplay);
@@ -183,17 +216,17 @@ ChartModel::addChartData(QSharedPointer<ChartData>& chartData)
 /**
  * @return The chart data models that should be displayed.
  */
-std::vector<QSharedPointer<ChartData> >
+std::vector<ChartData*>
 ChartModel::getChartDatasForDisplay() const
 {
-    std::vector<QSharedPointer<ChartData> > modelsOut;
+    std::vector<ChartData*> datasOut;
     
     int32_t counter = 0;
     
-    for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
+    for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
-        modelsOut.push_back(*iter);
+        datasOut.push_back(*iter);
         
         counter++;
         if (counter >= m_maximumNumberOfChartDatasToDisplay) {
@@ -201,7 +234,7 @@ ChartModel::getChartDatasForDisplay() const
         }
     }
     
-    return modelsOut;
+    return datasOut;
 }
 
 
@@ -310,4 +343,87 @@ ChartModel::getTopAxis() const
     return m_topAxis;
 }
 
+/**
+ * Create a scene for an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    saving the scene.
+ *
+ * @param instanceName
+ *    Name of the class' instance.
+ *
+ * @return Pointer to SceneClass object representing the state of
+ *    this object.  Under some circumstances a NULL pointer may be
+ *    returned.  Caller will take ownership of returned object.
+ */
+SceneClass*
+ChartModel::saveToScene(const SceneAttributes* sceneAttributes,
+                     const AString& instanceName)
+{
+    const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+    
+    if (numChartData <= 0) {
+        return NULL;
+    }
+    
+    SceneClass* sceneClass = new SceneClass(instanceName,
+                                            "ChartModel",
+                                            1);
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
+    std::vector<SceneClass*> chartDataSceneClassVector;
+    
+    for (int32_t i = 0; i < numChartData; i++) {
+        const AString name = ("m_chartDatas[" + AString::number(i) + "]");
+        SceneClass* sc = m_chartDatas[i]->saveToScene(sceneAttributes,
+                                                      name);
+        chartDataSceneClassVector.push_back(sc);
+    }
 
+    SceneClassArray* chartDataArray = new SceneClassArray("chartDataArray",
+                                                          chartDataSceneClassVector);
+    sceneClass->addChild(chartDataArray);
+    
+    return sceneClass;
+}
+
+/**
+ * Restore the state of an instance of a class.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
+                          const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    
+    removeChartData();
+    
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
+    /*
+     * Restore my ChartData
+     */
+    const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
+    const int32_t numChartData = chartDataArray->getNumberOfArrayElements();
+    for (int32_t i = 0; i < numChartData; i++) {
+        const SceneClass* chartDataClass = chartDataArray->getClassAtIndex(i);
+        ChartData* chartData = ChartData::newChartDataForChartDataType(m_chartDataType);
+        chartData->restoreFromScene(sceneAttributes, chartDataClass);
+        m_chartDatas.push_back(chartData);
+    }
+}

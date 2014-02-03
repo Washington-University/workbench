@@ -115,6 +115,7 @@ ChartModelCartesian::operator=(const ChartModelCartesian& obj)
 void 
 ChartModelCartesian::copyHelperChartModelCartesian(const ChartModelCartesian& obj)
 {
+    CaretAssert(0);
 }
 
 /**
@@ -128,18 +129,18 @@ ChartModelCartesian::resetAxesToDefaultRange()
     float boundsMinY = 0.0;
     float boundsMaxY = 0.0;
 
-    const std::vector<QSharedPointer<ChartData> >  allData = getChartDatasForDisplay();
+    const std::vector<ChartData*>  allData = getChartDatasForDisplay();
     if ( ! allData.empty()) {
         boundsMinX =  std::numeric_limits<float>::max();
         boundsMaxX = -std::numeric_limits<float>::max();
         boundsMinY =  std::numeric_limits<float>::max();
         boundsMaxY = -std::numeric_limits<float>::max();
         
-        for (std::vector<QSharedPointer<ChartData> >::const_iterator iter = allData.begin();
+        for (std::vector<ChartData*>::const_iterator iter = allData.begin();
              iter != allData.end();
              iter++) {
-            QSharedPointer<ChartData> chartData = *iter;
-            ChartDataCartesian* cartesianData = dynamic_cast<ChartDataCartesian*>(chartData.data());
+            ChartData* chartData = *iter;
+            ChartDataCartesian* cartesianData = dynamic_cast<ChartDataCartesian*>(chartData);
             CaretAssert(cartesianData);
             
             float xMin, xMax, yMin, yMax;

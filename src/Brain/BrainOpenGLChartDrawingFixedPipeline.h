@@ -1,5 +1,5 @@
-#ifndef __EVENT_CHARTS_NEW_NOTIFICATION_H__
-#define __EVENT_CHARTS_NEW_NOTIFICATION_H__
+#ifndef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_H__
+#define __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_H__
 
 /*LICENSE_START*/
 /*
@@ -34,43 +34,55 @@
  */
 /*LICENSE_END*/
 
-#include "QSharedPointer.h"
 
-#include "Event.h"
+#include "BrainOpenGLChartDrawingInterface.h"
 
 
 
 namespace caret {
 
-    class ChartData;
+    class ChartModelDataSeries;
     
-    class EventChartsNewNotification : public Event {
+    class BrainOpenGLChartDrawingFixedPipeline : public BrainOpenGLChartDrawingInterface {
         
     public:
-        EventChartsNewNotification(std::vector<QSharedPointer<ChartData> >& chartDatas);
+        BrainOpenGLChartDrawingFixedPipeline();
         
-        virtual ~EventChartsNewNotification();
+        virtual ~BrainOpenGLChartDrawingFixedPipeline();
         
-        std::vector<QSharedPointer<ChartData> > getChartDatasForTabIndex(const int32_t tabIndex) const;
-
+        virtual void drawChart(const int32_t viewport[4],
+                               BrainOpenGLTextRenderInterface* textRenderer,
+                               ChartModel* chart);
     private:
-        EventChartsNewNotification(const EventChartsNewNotification&);
+        BrainOpenGLChartDrawingFixedPipeline(const BrainOpenGLChartDrawingFixedPipeline&);
 
-        EventChartsNewNotification& operator=(const EventChartsNewNotification&);
+        BrainOpenGLChartDrawingFixedPipeline& operator=(const BrainOpenGLChartDrawingFixedPipeline&);
+        
+        void drawChartGraphics(const int32_t viewport[4],
+                               BrainOpenGLTextRenderInterface* textRenderer,
+                               ChartModel* chart);
+        
+        void drawChartGraphicsLineSeries(const int32_t viewport[4],
+                                         BrainOpenGLTextRenderInterface* textRenderer,
+                                         ChartModelDataSeries* chart);
+        
+        void restoreStateOfOpenGL();
+        
+        void saveStateOfOpenGL();
+        
         
     public:
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        std::vector<QSharedPointer<ChartData> > m_chartDatas;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __EVENT_CHARTS_NEW_NOTIFICATION_DECLARE__
+#ifdef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __EVENT_CHARTS_NEW_NOTIFICATION_DECLARE__
+#endif // __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
 } // namespace
-#endif  //__EVENT_CHARTS_NEW_NOTIFICATION_H__
+#endif  //__BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_H__

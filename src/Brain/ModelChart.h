@@ -25,15 +25,20 @@
  * 
  */ 
 
+#include <set>
+
 #include "ChartDataTypeEnum.h"
+#include "DataFileException.h"
 #include "EventListenerInterface.h"
 #include "Model.h"
 
 namespace caret {
 
+    class ChartData;
     class ChartModel;
-    class ChartModelLineSeries;
+    class ChartModelDataSeries;
     class OverlaySetArray;
+    class SurfaceFile;
     
     /// Controls the display of a chart.
     class ModelChart : public Model, public EventListenerInterface  {
@@ -48,6 +53,10 @@ namespace caret {
         AString getNameForGUI(const bool includeStructureFlag) const;
         
         virtual AString getNameForBrowserTab() const;
+        
+        void loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                         const int32_t surfaceNumberOfNodes,
+                                         const int32_t nodeIndex) throw (DataFileException);
         
         OverlaySet* getOverlaySet(const int tabIndex);
         
@@ -70,6 +79,8 @@ namespace caret {
         virtual void copyTabContent(const int32_t sourceTabIndex,
                                     const int32_t destinationTabIndex);
         
+        void reset();
+        
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass);
@@ -82,7 +93,19 @@ namespace caret {
         
         ModelChart& operator=(const ModelChart&);
         
+        void initializeCharts();
+        
+        void removeAllCharts();
+        
         const ChartModel* getSelectedChartModelHelper(const int32_t tabIndex) const;
+        
+        void saveChartModelsToScene(const SceneAttributes* sceneAttributes,
+                                    SceneClass* sceneClass,
+                                    const std::vector<int32_t>& tabIndices,
+                                    std::set<AString>& validChartDataIDsOut);
+        
+        void restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
+                                         const SceneClass* sceneClass);
         
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
@@ -90,11 +113,12 @@ namespace caret {
         mutable ChartDataTypeEnum::Enum m_selectedChartDataType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Chart model for data-series data */
-        ChartModelLineSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        ChartModelDataSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Chart model for time-series data */
-        ChartModelLineSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
+        ChartModelDataSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+
+
         SceneClassAssistant* m_sceneAssistant;
     };
 

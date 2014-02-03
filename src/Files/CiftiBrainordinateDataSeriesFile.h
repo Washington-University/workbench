@@ -56,7 +56,7 @@ namespace caret {
         
         virtual bool isChartingSupported() const;
         
-        virtual QSharedPointer<ChartData> loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartData* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                                    const int32_t nodeIndex) throw (DataFileException);
         
         
@@ -89,7 +89,6 @@ namespace caret {
         
         virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                               const SceneClass* sceneClass);
-        
     public:
 
         // ADD_NEW_METHODS_HERE

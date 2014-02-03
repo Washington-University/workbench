@@ -70,7 +70,6 @@ CiftiBrainordinateDataSeriesFile::CiftiBrainordinateDataSeriesFile()
  */
 CiftiBrainordinateDataSeriesFile::~CiftiBrainordinateDataSeriesFile()
 {
-    
 }
 
 /**
@@ -278,21 +277,21 @@ CiftiBrainordinateDataSeriesFile::loadAverageChartForSurfaceNodes(const Structur
 //}
 
 /**
- * Load a charting model for the surface with the given structure and node index.
+ * Load charting data for the surface with the given structure and node index.
  *
  * @param structure
  *     The surface's structure.
  * @param nodeIndex
  *     Index of the node.
  * @return
- *     A QSharedPointer for the model.  If the data FAILED to load,
- *     QSharedPointer::isNull() will return true.
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will return true.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
  */
-QSharedPointer<ChartData>
+ChartData*
 CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex) throw (DataFileException)
 {
-    QSharedPointer<ChartData> chartDataPointer;
     ChartDataCartesian* chartData = NULL;
     
     try {
@@ -365,8 +364,6 @@ CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnu
                                              + " node "
                                              + AString::number(nodeIndex));
                 chartData->setDescription(description);
-                
-                chartDataPointer = QSharedPointer<ChartData>(chartData);
             }
             else {
                 CaretLogSevere("New type of units for data series flag, needs updating for charting");
@@ -382,7 +379,7 @@ CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnu
         throw dfe;
     }
     
-    return chartDataPointer;
+    return chartData;
 }
 
 /**

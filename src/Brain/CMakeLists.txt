@@ -50,6 +50,8 @@ ADD_LIBRARY(Brain
 BorderDrawingTypeEnum.h
 Brain.h
 BrainOpenGL.h
+BrainOpenGLChartDrawingInterface.h
+BrainOpenGLChartDrawingFixedPipeline.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLPrimitiveDrawing.h
 BrainOpenGLShape.h
@@ -81,7 +83,6 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabNew.h
 EventCaretMappableDataFilesGet.h
-EventChartsNewNotification.h
 EventDataFileRead.h
 EventDataFileReload.h
 EventIdentificationHighlightLocation.h
@@ -157,6 +158,7 @@ YokingGroupEnum.h
 BorderDrawingTypeEnum.cxx
 Brain.cxx
 BrainOpenGL.cxx
+BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLPrimitiveDrawing.cxx
 BrainOpenGLShape.cxx
@@ -188,7 +190,6 @@ EventBrowserTabNew.cxx
 EventDataFileRead.cxx
 EventDataFileReload.cxx
 EventCaretMappableDataFilesGet.cxx
-EventChartsNewNotification.cxx
 EventIdentificationHighlightLocation.cxx
 EventNodeDataFilesGet.cxx
 EventModelAdd.cxx
