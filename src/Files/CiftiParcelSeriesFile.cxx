@@ -182,8 +182,8 @@ CiftiParcelSeriesFile::loadAverageChartForSurfaceNodes(const StructureEnum::Enum
                 
                 for (int64_t iData = 0; iData < numData; iData++) {
                     dataAverage[iData] += data[iData];
-                    numValidNodes += 1.0;
                 }
+                numValidNodes += 1.0;
             }
         }
     }
@@ -198,7 +198,7 @@ CiftiParcelSeriesFile::loadAverageChartForSurfaceNodes(const StructureEnum::Enum
         timeLineOut.y.resize(numData);
         for (int64_t i = 0; i < numData; i++) {
             timeLineOut.x[i] = i;
-            timeLineOut.y[i] = data[i];
+            timeLineOut.y[i] = dataAverage[i];
         }
         timeLineOut.nodeid = 0;
         timeLineOut.type = AVERAGE;
