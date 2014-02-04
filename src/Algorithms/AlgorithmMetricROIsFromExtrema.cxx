@@ -246,7 +246,7 @@ void AlgorithmMetricROIsFromExtrema::processMap(const float* data, vector<float>
 {
     for (int j = 0; j < numNodes; ++j)
     {
-        if ((roiData != NULL || roiData[j] > 0.0f) && data[j] != 0.0f)
+        if ((roiData == NULL || roiData[j] > 0.0f) && data[j] != 0.0f)
         {
             vector<int32_t> nodeList;
             vector<float> distList;
