@@ -131,6 +131,142 @@ ModelChart::removeAllCharts()
 }
 
 /**
+ * Load chart data for an average of surface nodes.
+ *
+ * @param structure
+ *     The surface structure
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in surface.
+ * @param nodeIndices
+ *     Indices of node.
+ * @throws
+ *     DataFileException if there is an error loading data.
+ */
+void
+ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                         const int32_t surfaceNumberOfNodes,
+                                         const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    std::vector<int32_t> tabIndices;
+    std::vector<ChartableInterface*> chartFiles;
+    getTabsAndChartFilesForChartLoading(tabIndices,
+                                        chartFiles);
+    
+    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+         fileIter != chartFiles.end();
+         fileIter++) {
+        ChartableInterface* chartFile = *fileIter;
+        
+        CaretAssert(chartFile);
+        ChartData* chartData = chartFile->loadAverageChartDataForSurfaceNodes(structure,
+                                                                              nodeIndices);
+        if (chartData != NULL) {
+            ChartDataSource* dataSource = chartData->getChartDataSource();
+            dataSource->setSurfaceNodeAverage(chartFile->getCaretMappableDataFile()->getFileName(),
+                                              StructureEnum::toName(structure),
+                                              surfaceNumberOfNodes, nodeIndices);
+            
+            addChartToChartModels(chartFile,
+                                  tabIndices,
+                                  chartData);
+            
+            delete chartData;
+        }
+    }    
+}
+
+/**
+ * Load chart data for voxel at the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @throws
+ *     DataFileException if there is an error loading data.
+ */
+void
+ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    std::vector<int32_t> tabIndices;
+    std::vector<ChartableInterface*> chartFiles;
+    getTabsAndChartFilesForChartLoading(tabIndices,
+                                        chartFiles);
+    
+    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+         fileIter != chartFiles.end();
+         fileIter++) {
+        ChartableInterface* chartFile = *fileIter;
+        
+        CaretAssert(chartFile);
+        ChartData* chartData = chartFile->loadChartDataForVoxelAtCoordinate(xyz);
+        if (chartData != NULL) {
+            ChartDataSource* dataSource = chartData->getChartDataSource();
+            dataSource->setVolumeVoxel(chartFile->getCaretMappableDataFile()->getFileName(),
+                                       xyz);
+            
+            addChartToChartModels(chartFile,
+                                  tabIndices,
+                                  chartData);
+            
+            delete chartData;
+        }
+    }
+}
+
+/**
+ * Add the chart to the given tabs.
+ *
+ * @param tabIndices
+ *    Indices of tabs for chart data
+ */
+void
+ModelChart::addChartToChartModels(ChartableInterface* chartableFile,
+                                  const std::vector<int32_t>& tabIndices,
+                                  ChartData* chartData)
+{
+    const ChartDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
+    
+    for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+         iter != tabIndices.end();
+         iter++) {
+        const int32_t tabIndex = *iter;
+        
+        switch (chartDataDataType) {
+            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                CaretAssert(0);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+                CaretAssert(0);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                m_chartModelDataSeries[tabIndex]->addChartData(chartData);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                m_chartModelTimeSeries[tabIndex]->addChartData(chartData);
+                break;
+        }
+    }
+}
+
+/**
+ * Get tabs and chart files for loading chart data.
+ *
+ * @param tabIndicesOut
+ *    Tabs for which chart data is loaded.
+ * @param chartFileOut
+ *    Chart file from which data is loaded.
+ */
+void
+ModelChart::getTabsAndChartFilesForChartLoading(std::vector<int32_t>& tabIndicesOut,
+                                         std::vector<ChartableInterface*>& chartFilesOut) const
+{
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    tabIndicesOut = allTabsEvent.getBrowserTabIndices();
+    
+    m_brain->getAllChartableDataFilesWithChartingEnabled(chartFilesOut);
+}
+
+/**
  * Load chart data for a surface node.
  *
  * @param structure
@@ -147,12 +283,10 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                         const int32_t surfaceNumberOfNodes,
                                         const int32_t nodeIndex) throw (DataFileException)
 {
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-    const std::vector<int32_t> tabIndices = allTabsEvent.getBrowserTabIndices();
-    
+    std::vector<int32_t> tabIndices;
     std::vector<ChartableInterface*> chartFiles;
-    m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    getTabsAndChartFilesForChartLoading(tabIndices,
+                                        chartFiles);
     
     for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
          fileIter != chartFiles.end();
@@ -169,28 +303,9 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                        surfaceNumberOfNodes,
                                        nodeIndex);
             
-            const ChartDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
-            
-            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
-                 iter != tabIndices.end();
-                 iter++) {
-                const int32_t tabIndex = *iter;
-                
-                switch (chartDataDataType) {
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                        CaretAssert(0);
-                        break;
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
-                        CaretAssert(0);
-                        break;
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                        m_chartModelDataSeries[tabIndex]->addChartData(chartData);
-                        break;
-                    case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                        m_chartModelTimeSeries[tabIndex]->addChartData(chartData);
-                        break;
-                }
-            }
+            addChartToChartModels(chartFile,
+                                  tabIndices,
+                                  chartData);
             
             delete chartData;
         }

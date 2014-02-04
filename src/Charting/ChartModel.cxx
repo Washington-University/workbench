@@ -204,9 +204,20 @@ ChartModel::addChartData(ChartData* chartData)
 {
     CaretAssert(chartData);
     
-    m_chartDatas.push_back(chartData->clone());
+    m_chartDatas.push_front(chartData->clone());
     
-    if (static_cast<int32_t>(m_chartDatas.size()) > m_maximumNumberOfChartDatasToDisplay) {
+    const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+    
+    /*
+     * If needed, remove extra items at end of deque
+     */
+    if (numChartData > m_maximumNumberOfChartDatasToDisplay) {
+        for (int32_t i = m_maximumNumberOfChartDatasToDisplay;
+             i < numChartData;
+             i++) {
+            delete m_chartDatas[i];
+            m_chartDatas[i] = NULL;
+        }
         m_chartDatas.resize(m_maximumNumberOfChartDatasToDisplay);
     }
     

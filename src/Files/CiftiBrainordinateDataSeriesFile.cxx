@@ -216,66 +216,6 @@ CiftiBrainordinateDataSeriesFile::loadAverageChartForSurfaceNodes(const Structur
     return false;
 }
 
-///**
-// * Load a charting model for the surface with the given structure and node index.
-// *
-// * @param structure
-// *     The surface's structure.
-// * @param nodeIndex
-// *     Index of the node.
-// * @return
-// *     A QSharedPointer for the model.  If the data FAILED to load,
-// *     QSharedPointer::isNull() will return true.
-// */
-//QSharedPointer<ChartData>
-//CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
-//                                                                           const int32_t nodeIndex) throw (DataFileException)
-//{
-//    QSharedPointer<ChartData> chartData;
-//    ChartDataCartesian* chartData = NULL;
-//
-//    try {
-//        std::vector<float> data;
-//        if (getSeriesDataForSurfaceNode(structure,
-//                                        nodeIndex,
-//                                        data)) {
-//            const int64_t numData = static_cast<int64_t>(data.size());
-//            
-//            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_SERIES,
-//                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-//                                                    ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-//            
-//            for (int64_t i = 0; i < numData; i++) {
-//                chartData->addPoint(i,
-//                                    data[i]);
-//            }
-//            
-//            float timeStart, timeStep;
-//            getMapIntervalStartAndStep(timeStart,
-//                                       timeStep);
-//            chartData->setTimeStartInSecondsAxisX(timeStart);
-//            chartData->setTimeStepInSecondsAxisX(timeStep);
-//            
-//            const AString description = (getFileNameNoPath()
-//                                         + " node "
-//                                         + AString::number(nodeIndex));
-//            chartData->setDescription(description);
-//            
-//            chartData = QSharedPointer<ChartData>(chartData);
-//        }
-//    }
-//    catch (const DataFileException& dfe) {
-//        if (chartData != NULL) {
-//            delete chartData;
-//            chartData = NULL;
-//        }
-//        
-//        throw dfe;
-//    }
-//    
-//    return chartData;
-//}
-
 /**
  * Load charting data for the surface with the given structure and node index.
  *
@@ -292,95 +232,140 @@ ChartData*
 CiftiBrainordinateDataSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex) throw (DataFileException)
 {
-    ChartDataCartesian* chartData = NULL;
+    ChartData* chartData = helpLoadChartDataForSurfaceNode(structure,
+                                                           nodeIndex);
+    return chartData;
     
-    try {
-        std::vector<float> data;
-        if (getSeriesDataForSurfaceNode(structure,
-                                        nodeIndex,
-                                        data)) {
-            const int64_t numData = static_cast<int64_t>(data.size());
-            
-            bool timeSeriesFlag = false;
-            bool dataSeriesFlag = false;
-            float convertTimeToSeconds = 1.0;
-            switch (getMapIntervalUnits()) {
-                case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                    break;
-                case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                    timeSeriesFlag = true;
-                    convertTimeToSeconds = 1000.0;
-                    break;
-                case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                    break;
-                case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                    convertTimeToSeconds = 1.0;
-                    timeSeriesFlag = true;
-                    break;
-                case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-                    dataSeriesFlag = true;
-                    break;
-                case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                    convertTimeToSeconds = 1000000.0;
-                    timeSeriesFlag = true;
-                    break;
-            }
-            
-            if (dataSeriesFlag) {
-                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-            }
-            else if (timeSeriesFlag) {
-                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
-                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
-                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-            }
-            
-            if (chartData != NULL) {
-                float timeStart = 0.0;
-                float timeStep  = 1.0;
-                if (timeSeriesFlag) {
-                    getMapIntervalStartAndStep(timeStart,
-                                               timeStep);
-                    timeStart *= convertTimeToSeconds;
-                    timeStep  *= convertTimeToSeconds;
-                    chartData->setTimeStartInSecondsAxisX(timeStart);
-                    chartData->setTimeStepInSecondsAxisX(timeStep);
-                }
-                
-                for (int64_t i = 0; i < numData; i++) {
-                    float xValue = i;
-                    
-                    if (timeSeriesFlag) {
-                        xValue = timeStart + (i * timeStep);
-                    }
-                    
-                    chartData->addPoint(xValue,
-                                        data[i]);
-                }
-                
-                const AString description = (getFileNameNoPath()
-                                             + " node "
-                                             + AString::number(nodeIndex));
-                chartData->setDescription(description);
-            }
-            else {
-                CaretLogSevere("New type of units for data series flag, needs updating for charting");
-            }
-        }
-    }
-    catch (const DataFileException& dfe) {
-        if (chartData != NULL) {
-            delete chartData;
-            chartData = NULL;
-        }
-        
-        throw dfe;
-    }
-    
+//    ChartDataCartesian* chartData = NULL;
+//    
+//    try {
+//        std::vector<float> data;
+//        if (getSeriesDataForSurfaceNode(structure,
+//                                        nodeIndex,
+//                                        data)) {
+//            const int64_t numData = static_cast<int64_t>(data.size());
+//            
+//            bool timeSeriesFlag = false;
+//            bool dataSeriesFlag = false;
+//            float convertTimeToSeconds = 1.0;
+//            switch (getMapIntervalUnits()) {
+//                case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+//                    break;
+//                case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+//                    timeSeriesFlag = true;
+//                    convertTimeToSeconds = 1000.0;
+//                    break;
+//                case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+//                    break;
+//                case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+//                    convertTimeToSeconds = 1.0;
+//                    timeSeriesFlag = true;
+//                    break;
+//                case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+//                    dataSeriesFlag = true;
+//                    break;
+//                case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+//                    convertTimeToSeconds = 1000000.0;
+//                    timeSeriesFlag = true;
+//                    break;
+//            }
+//            
+//            if (dataSeriesFlag) {
+//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//            }
+//            else if (timeSeriesFlag) {
+//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//            }
+//            
+//            if (chartData != NULL) {
+//                float timeStart = 0.0;
+//                float timeStep  = 1.0;
+//                if (timeSeriesFlag) {
+//                    getMapIntervalStartAndStep(timeStart,
+//                                               timeStep);
+//                    timeStart *= convertTimeToSeconds;
+//                    timeStep  *= convertTimeToSeconds;
+//                    chartData->setTimeStartInSecondsAxisX(timeStart);
+//                    chartData->setTimeStepInSecondsAxisX(timeStep);
+//                }
+//                
+//                for (int64_t i = 0; i < numData; i++) {
+//                    float xValue = i;
+//                    
+//                    if (timeSeriesFlag) {
+//                        xValue = timeStart + (i * timeStep);
+//                    }
+//                    
+//                    chartData->addPoint(xValue,
+//                                        data[i]);
+//                }
+//                
+//                const AString description = (getFileNameNoPath()
+//                                             + " node "
+//                                             + AString::number(nodeIndex));
+//                chartData->setDescription(description);
+//            }
+//            else {
+//                const AString msg = "New type of units for data series flag, needs updating for charting";
+//                CaretAssertMessage(0, msg);
+//                throw DataFileException(msg);
+//            }
+//        }
+//    }
+//    catch (const DataFileException& dfe) {
+//        if (chartData != NULL) {
+//            delete chartData;
+//            chartData = NULL;
+//        }
+//        
+//        throw dfe;
+//    }
+//    
+//    return chartData;
+}
+
+/**
+ * Load average charting data for the surface with the given structure and node indices.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndices
+ *     Indices of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiBrainordinateDataSeriesFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                                      const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    ChartData* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
+                                                                  nodeIndices);
     return chartData;
 }
+
+/**
+ * Load charting data for the voxel enclosing the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiBrainordinateDataSeriesFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    ChartData* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
+    return chartData;
+}
+
 
 /**
  * Load chart data for a surface node.

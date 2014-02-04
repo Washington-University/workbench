@@ -80,9 +80,9 @@ ChartDataSource::initializeMembersChartDataSource()
 {
     m_dataSourceMode = ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID;
     m_nodeIndex = -1;
-    m_voxelIJK[0] = -1;
-    m_voxelIJK[1] = -1;
-    m_voxelIJK[2] = -1;
+    m_voxelXYZ[0] = 0.0;
+    m_voxelXYZ[1] = 0.0;
+    m_voxelXYZ[2] = 0.0;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<ChartDataSourceModeEnum, ChartDataSourceModeEnum::Enum>("m_dataSourceMode",
@@ -93,8 +93,8 @@ ChartDataSource::initializeMembersChartDataSource()
                           &m_surfaceNumberOfNodes);
     m_sceneAssistant->add("m_surfaceStructureName",
                           &m_surfaceStructureName);
-    m_sceneAssistant->addArray("m_voxelIJK",
-                               m_voxelIJK, 3, -1);
+    m_sceneAssistant->addArray("m_voxelXYZ",
+                               m_voxelXYZ, 3, -1);
 }
 
 /**
@@ -141,9 +141,9 @@ ChartDataSource::copyHelperChartDataSource(const ChartDataSource& obj)
     m_surfaceNumberOfNodes = obj.m_surfaceNumberOfNodes;
     m_surfaceStructureName = obj.m_surfaceStructureName;
     m_nodeIndicesAverage   = obj.m_nodeIndicesAverage;
-    m_voxelIJK[0]          = obj.m_voxelIJK[0];
-    m_voxelIJK[1]          = obj.m_voxelIJK[1];
-    m_voxelIJK[2]          = obj.m_voxelIJK[2];
+    m_voxelXYZ[0]          = obj.m_voxelXYZ[0];
+    m_voxelXYZ[1]          = obj.m_voxelXYZ[1];
+    m_voxelXYZ[2]          = obj.m_voxelXYZ[2];
 }
 
 /**
@@ -215,10 +215,12 @@ ChartDataSource::getSurfaceNode(AString& surfaceStructureName,
 /**
  * Get the surface node average data source.
  *
- * @param chartableFileName
- *    Name of the chartable file.
+ * @param surfaceStructureName
+ *    Name of surface structure.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in the surface.
  * @param nodeIndices
- *    Indices of the surface nodes.
+ *    Indices of the surface node.
  */
 void
 ChartDataSource::getSurfaceNodeAverage(AString& surfaceStructureName,
@@ -231,7 +233,47 @@ ChartDataSource::getSurfaceNodeAverage(AString& surfaceStructureName,
 }
 
 /**
+ * Get the surface node average data source.
+ *
+ * @param chartableFileName
+ *    Name of the chartable file.
+ * @param surfaceStructureName
+ *    Name of surface structure.
+ * @param surfaceNumberOfNodes
+ *    Number of nodes in the surface.
+ * @param nodeIndices
+ *    Indices of the surface node.
+ */
+void
+ChartDataSource::setSurfaceNodeAverage(const AString& chartableFileName,
+                                       const AString& surfaceStructureName,
+                           const int32_t surfaceNumberOfNodes,
+                           const std::vector<int32_t>& nodeIndices)
+{
+    m_dataSourceMode = ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX;
+    m_chartableFileName = chartableFileName;
+    m_surfaceStructureName = surfaceStructureName;
+    m_surfaceNumberOfNodes = surfaceNumberOfNodes;
+    m_nodeIndicesAverage   = nodeIndices;
+}
+
+
+/**
  * Get the volume voxel data source.
+ *
+ * @param ijk
+ *    Indices of the voxel.
+ */
+void
+ChartDataSource::getVolumeVoxel(float xyz[3]) const
+{
+    xyz[0] = m_voxelXYZ[0];
+    xyz[1] = m_voxelXYZ[1];
+    xyz[2] = m_voxelXYZ[2];
+}
+
+/**
+ * Set the volume voxel data source.
  *
  * @param chartableFileName
  *    Name of the chartable file.
@@ -239,11 +281,14 @@ ChartDataSource::getSurfaceNodeAverage(AString& surfaceStructureName,
  *    Indices of the voxel.
  */
 void
-ChartDataSource::getVolumeVoxel(int64_t ijk[3]) const
+ChartDataSource::setVolumeVoxel(const AString& chartableFileName,
+                                const float xyz[3])
 {
-    ijk[0] = m_voxelIJK[0];
-    ijk[1] = m_voxelIJK[1];
-    ijk[2] = m_voxelIJK[2];
+    m_dataSourceMode = ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK;
+    m_chartableFileName = chartableFileName;
+    m_voxelXYZ[0] = xyz[0];
+    m_voxelXYZ[1] = xyz[1];
+    m_voxelXYZ[2] = xyz[2];
 }
 
 /**

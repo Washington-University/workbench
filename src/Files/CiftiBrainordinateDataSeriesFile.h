@@ -59,6 +59,11 @@ namespace caret {
         virtual ChartData* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                                    const int32_t nodeIndex) throw (DataFileException);
         
+        virtual ChartData* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                               const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+        
+        virtual ChartData* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        
         
         virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
                                                      const std::vector<int32_t>& nodeIndices,

@@ -36,6 +36,7 @@
 #include "CiftiParcelScalarFile.h"
 #undef __CIFTI_PARCEL_SCALAR_FILE_DECLARE__
 
+#include "ChartDataCartesian.h"
 #include "ChartTypeEnum.h"
 #include "CiftiFile.h"
 #include "CiftiInterface.h"
@@ -211,8 +212,81 @@ ChartData*
 CiftiParcelScalarFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex) throw (DataFileException)
 {
-    ChartData* chartData = NULL;
+    ChartData* chartData = helpLoadChartDataForSurfaceNode(structure,
+                                                           nodeIndex);
+    return chartData;
     
+//    ChartDataCartesian* chartData = NULL;
+//    
+//    try {
+//        std::vector<float> data;
+//        if (getSeriesDataForSurfaceNode(structure,
+//                                        nodeIndex,
+//                                        data)) {
+//            const int64_t numData = static_cast<int64_t>(data.size());
+//            
+//            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+//                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+//                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//            for (int64_t i = 0; i < numData; i++) {
+//                float xValue = i;
+//                chartData->addPoint(xValue,
+//                                    data[i]);
+//            }
+//            
+//            const AString description = (getFileNameNoPath()
+//                                         + " node "
+//                                         + AString::number(nodeIndex));
+//            chartData->setDescription(description);
+//        }
+//    }
+//    catch (const DataFileException& dfe) {
+//        if (chartData != NULL) {
+//            delete chartData;
+//            chartData = NULL;
+//        }
+//        
+//        throw dfe;
+//    }
+//    
+//    return chartData;
+}
+
+/**
+ * Load average charting data for the surface with the given structure and node indices.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndices
+ *     Indices of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiParcelScalarFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                                      const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    ChartData* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
+                                                                  nodeIndices);
+    return chartData;
+}
+
+/**
+ * Load charting data for the voxel enclosing the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiParcelScalarFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    ChartData* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
 }
 

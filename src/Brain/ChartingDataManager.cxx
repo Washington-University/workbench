@@ -93,6 +93,11 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
 {
     CaretAssert(surfaceFile);
     
+    ModelChart* modelChart = m_brain->getChartModel();
+    modelChart->loadAverageChartDataForSurfaceNodes(surfaceFile->getStructure(),
+                                                    surfaceFile->getNumberOfNodes(),
+                                                    nodeIndices);
+    
     timeLinesOut.clear();
     
     std::vector<ChartableInterface*> chartFiles;
@@ -190,6 +195,9 @@ ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3],
                                                    const bool requireChartingEnableInFiles,
                                                    QList<TimeLine>& timeLinesOut) const throw (DataFileException)
 {
+    ModelChart* modelChart = m_brain->getChartModel();
+    modelChart->loadChartDataForVoxelAtCoordinate(xyz);
+    
     timeLinesOut.clear();
     
     std::vector<ChartableInterface*> chartFiles;

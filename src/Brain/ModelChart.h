@@ -37,6 +37,7 @@ namespace caret {
     class ChartData;
     class ChartModel;
     class ChartModelDataSeries;
+    class ChartableInterface;
     class OverlaySetArray;
     class SurfaceFile;
     
@@ -57,6 +58,12 @@ namespace caret {
         void loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                          const int32_t surfaceNumberOfNodes,
                                          const int32_t nodeIndex) throw (DataFileException);
+        
+        void loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                 const int32_t surfaceNumberOfNodes,
+                                                               const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+        
+        void loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         OverlaySet* getOverlaySet(const int tabIndex);
         
@@ -93,6 +100,10 @@ namespace caret {
         
         ModelChart& operator=(const ModelChart&);
         
+        void addChartToChartModels(ChartableInterface* chartableFile,
+                                   const std::vector<int32_t>& tabIndices,
+                                   ChartData* chartData);
+
         void initializeCharts();
         
         void removeAllCharts();
@@ -106,7 +117,10 @@ namespace caret {
         
         void restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass);
-        
+
+        void getTabsAndChartFilesForChartLoading(std::vector<int32_t>& tabIndicesOut,
+                                                 std::vector<ChartableInterface*>& chartFilesOut) const;
+
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
         

@@ -40,6 +40,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ChartDataCartesian.h"
 #include "CiftiFacade.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFile.h"
@@ -3517,4 +3518,384 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
         }
     }
 }
+
+/**
+ * Create cartesian chart data from the given data.
+ *
+ * @param 
+ *     Data for the Y-axis.
+ * @param loadingMessage
+ *     Message describing the data that was loaded.
+ */
+ChartDataCartesian*
+CiftiMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data,
+                                                    const AString& loadingMessage) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    
+    const int64_t numData = static_cast<int64_t>(data.size());
+    
+    /*
+     * Some files may have time data
+     */
+    bool timeSeriesFlag = false;
+    bool dataSeriesFlag = false;
+    bool mayHaveTimeUnitsFlag = false;
+    switch (getDataFileType()) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            dataSeriesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            mayHaveTimeUnitsFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            dataSeriesFlag = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            mayHaveTimeUnitsFlag = true;
+            break;
+        default:
+            const AString msg("Has a new type of connectivity file for chart data loading been added?");
+            CaretAssertMessage(0, msg);
+            CaretLogSevere(msg);
+            throw DataFileException(msg);
+            break;
+    }
+    
+    float convertTimeToSeconds = 1.0;
+    if (mayHaveTimeUnitsFlag) {
+        switch (getMapIntervalUnits()) {
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+                timeSeriesFlag = true;
+                convertTimeToSeconds = 1000.0;
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+                convertTimeToSeconds = 1.0;
+                timeSeriesFlag = true;
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+                dataSeriesFlag = true;
+                break;
+            case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+                convertTimeToSeconds = 1000000.0;
+                timeSeriesFlag = true;
+                break;
+        }
+        
+        if (timeSeriesFlag) {
+            dataSeriesFlag = false;
+        }
+    }
+    
+    if (dataSeriesFlag) {
+        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+    }
+    else if (timeSeriesFlag) {
+        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+    }
+    else {
+        const AString msg = "New type of units for data series flag, needs updating for charting";
+        CaretAssertMessage(0, msg);
+        throw DataFileException(msg);
+    }
+    
+    if (chartData != NULL) {
+        float timeStart = 0.0;
+        float timeStep  = 1.0;
+        if (timeSeriesFlag) {
+            getMapIntervalStartAndStep(timeStart,
+                                       timeStep);
+            timeStart *= convertTimeToSeconds;
+            timeStep  *= convertTimeToSeconds;
+            chartData->setTimeStartInSecondsAxisX(timeStart);
+            chartData->setTimeStepInSecondsAxisX(timeStep);
+        }
+        
+        for (int64_t i = 0; i < numData; i++) {
+            float xValue = i;
+            
+            if (timeSeriesFlag) {
+                xValue = timeStart + (i * timeStep);
+            }
+            
+            chartData->addPoint(xValue,
+                                data[i]);
+        }
+        
+        const AString description = (getFileNameNoPath()
+                                     + " "
+                                     + loadingMessage);
+        chartData->setDescription(description);
+    }
+    
+    return chartData;
+}
+
+/**
+ * Help load charting data for the surface with the given structure and node average.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndices
+ *     Indices of nodes for averaging.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will return true.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiMappableDataFile::helpLoadChartDataForSurfaceNodeAverage(const StructureEnum::Enum structure,
+                                                              const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    
+    try {
+        const int32_t numberOfNodes = static_cast<int32_t>(nodeIndices.size());
+        if (numberOfNodes > 0) {
+            std::vector<double> dataSum;
+            int32_t dataSumSize = 0;
+            int32_t dataAverageCount = 0;
+            
+            std::vector<float> data;
+            bool firstNodeFlag = true;
+            
+            for (int32_t i = 0; i < numberOfNodes; i++) {
+                if (getSeriesDataForSurfaceNode(structure,
+                                                nodeIndices[i],
+                                                data)) {
+                    if (firstNodeFlag) {
+                        firstNodeFlag = false;
+                        
+                        dataSumSize = static_cast<int32_t>(data.size());
+                        if (dataSumSize > 0) {
+                            dataSum.resize(dataSumSize,
+                                               0.0);
+                        }
+                    }
+                    
+                    CaretAssert(dataSumSize == static_cast<int32_t>(data.size()));
+                    
+                    for (int32_t j = 0; j < dataSumSize; j++) {
+                        dataSum[j] += data[j];
+                    }
+                    dataAverageCount++;
+                }
+            }
+            
+            if ((dataAverageCount > 0)
+                && (dataSumSize > 0)) {
+                std::vector<float> dataAverage(dataSumSize);
+                for (int32_t k = 0; k < dataSumSize; k++) {
+                    dataAverage[k] = dataSum[k] / dataAverageCount;
+                }
+                const AString loadMessage = ("average of "
+                                             + AString::number(dataAverageCount)
+                                             + " nodes");
+                chartData = helpCreateCartesianChartData(dataAverage,
+                                                         loadMessage);
+            }
+        }
+    }
+    catch (const DataFileException& dfe) {
+        if (chartData != NULL) {
+            delete chartData;
+            chartData = NULL;
+        }
+        
+        throw dfe;
+    }
+    
+    return chartData;
+}
+
+/**
+ * Help load charting data for the voxel at the given coordinate.
+ *
+ * @param xyz
+ *     The voxel coordinate.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will return true.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiMappableDataFile::helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    
+    try {
+        std::vector<float> data;
+        if (getSeriesDataForVoxelAtCoordinate(xyz, data)) {
+            const AString loadMessage = ("voxel XYZ "
+                                         + AString::fromNumbers(xyz, 3, ","));
+            chartData = helpCreateCartesianChartData(data,
+                                                     loadMessage);
+    
+        }
+    }
+    catch (const DataFileException& dfe) {
+        if (chartData != NULL) {
+            delete chartData;
+            chartData = NULL;
+        }
+        
+        throw dfe;
+    }
+    
+    return chartData;
+}
+
+/**
+ * Help load charting data for the surface with the given structure and node index.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will return true.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartData*
+CiftiMappableDataFile::helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                              const int32_t nodeIndex) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    
+    try {
+        std::vector<float> data;
+        if (getSeriesDataForSurfaceNode(structure,
+                                        nodeIndex,
+                                        data)) {
+            
+            const AString loadMessage = ("node "
+                                         + AString::number(nodeIndex));
+            chartData = helpCreateCartesianChartData(data,
+                                                     loadMessage);
+//            const int64_t numData = static_cast<int64_t>(data.size());
+//            
+//            
+//            /*
+//             * Some files may have time data
+//             */
+//            bool timeSeriesFlag = false;
+//            bool dataSeriesFlag = false;
+//            bool mayHaveTimeUnitsFlag = false;
+//            switch (getDataFileType()) {
+//                case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+//                    dataSeriesFlag = true;
+//                    break;
+//                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+//                    mayHaveTimeUnitsFlag = true;
+//                    break;
+//                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+//                    dataSeriesFlag = true;
+//                    break;
+//                case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+//                    mayHaveTimeUnitsFlag = true;
+//                    break;
+//                default:
+//                    const AString msg("Has a new type of connectivity file for chart data loading been added?");
+//                    CaretAssertMessage(0, msg);
+//                    CaretLogSevere(msg);
+//                    throw DataFileException(msg);
+//                    break;
+//            }
+//            
+//            float convertTimeToSeconds = 1.0;
+//            if (mayHaveTimeUnitsFlag) {
+//                switch (getMapIntervalUnits()) {
+//                    case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+//                        break;
+//                    case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+//                        timeSeriesFlag = true;
+//                        convertTimeToSeconds = 1000.0;
+//                        break;
+//                    case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+//                        break;
+//                    case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+//                        convertTimeToSeconds = 1.0;
+//                        timeSeriesFlag = true;
+//                        break;
+//                    case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+//                        dataSeriesFlag = true;
+//                        break;
+//                    case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+//                        convertTimeToSeconds = 1000000.0;
+//                        timeSeriesFlag = true;
+//                        break;
+//                }
+//                
+//                if (timeSeriesFlag) {
+//                    dataSeriesFlag = false;
+//                }
+//            }
+//            
+//            if (dataSeriesFlag) {
+//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//            }
+//            else if (timeSeriesFlag) {
+//                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//            }
+//            else {
+//                const AString msg = "New type of units for data series flag, needs updating for charting";
+//                CaretAssertMessage(0, msg);
+//                throw DataFileException(msg);
+//            }
+//            
+//            if (chartData != NULL) {
+//                float timeStart = 0.0;
+//                float timeStep  = 1.0;
+//                if (timeSeriesFlag) {
+//                    getMapIntervalStartAndStep(timeStart,
+//                                               timeStep);
+//                    timeStart *= convertTimeToSeconds;
+//                    timeStep  *= convertTimeToSeconds;
+//                    chartData->setTimeStartInSecondsAxisX(timeStart);
+//                    chartData->setTimeStepInSecondsAxisX(timeStep);
+//                }
+//                
+//                for (int64_t i = 0; i < numData; i++) {
+//                    float xValue = i;
+//                    
+//                    if (timeSeriesFlag) {
+//                        xValue = timeStart + (i * timeStep);
+//                    }
+//                    
+//                    chartData->addPoint(xValue,
+//                                        data[i]);
+//                }
+//                
+//                const AString description = (getFileNameNoPath()
+//                                             + " node "
+//                                             + AString::number(nodeIndex));
+//                chartData->setDescription(description);
+//            }
+        }
+    }
+    catch (const DataFileException& dfe) {
+        if (chartData != NULL) {
+            delete chartData;
+            chartData = NULL;
+        }
+        
+        throw dfe;
+    }
+    
+    return chartData;
+}
+
 

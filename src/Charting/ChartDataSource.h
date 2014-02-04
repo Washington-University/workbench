@@ -48,11 +48,6 @@ namespace caret {
     public:
         ChartDataSource();
         
-        void setSurfaceNode(const AString& chartableFileName,
-                            const AString& surfaceStructureName,
-                            const int32_t surfaceNumberOfNodes,
-                            const int32_t nodeIndex);
-
         virtual ~ChartDataSource();
         
         ChartDataSource(const ChartDataSource&);
@@ -73,11 +68,24 @@ namespace caret {
                             int32_t& surfaceNumberOfNodes,
                             int32_t& nodeIndex) const;
         
+        void setSurfaceNode(const AString& chartableFileName,
+                            const AString& surfaceStructureName,
+                            const int32_t surfaceNumberOfNodes,
+                            const int32_t nodeIndex);
+        
         void getSurfaceNodeAverage(AString& surfaceStructureName,
                                    int32_t& surfaceNumberOfNodes,
                                    std::vector<int32_t>& nodeIndices) const;
         
-        void getVolumeVoxel(int64_t ijk[3]) const;
+        void setSurfaceNodeAverage(const AString& chartableFileName,
+                                   const AString& surfaceStructureName,
+                                   const int32_t surfaceNumberOfNodes,
+                                   const std::vector<int32_t>& nodeIndices);
+        
+        void getVolumeVoxel(float xyz[3]) const;
+        
+        void setVolumeVoxel(const AString& chartableFileName,
+                            const float xyz[3]);
         
     private:
         void copyHelperChartDataSource(const ChartDataSource& obj);
@@ -105,7 +113,7 @@ namespace caret {
         
         int32_t m_nodeIndex;
         
-        int32_t m_voxelIJK[3];
+        float m_voxelXYZ[3];
         
         // ADD_NEW_MEMBERS_HERE
 

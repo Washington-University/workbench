@@ -42,6 +42,8 @@
 
 namespace caret {
     
+    class ChartData;
+    class ChartDataCartesian;
     class CiftiFacade;
     class CiftiFiberTrajectoryFile;
     class CiftiInterface;
@@ -337,8 +339,22 @@ namespace caret {
             std::vector<float>& dataOut) const;
 
         virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
-        
+    
+    private:
+        ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data,
+                                                const AString& loadingMessage) throw (DataFileException);
+    
     protected:
+        ChartData* helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                       const int32_t nodeIndex) throw (DataFileException);
+        
+        ChartData* helpLoadChartDataForSurfaceNodeAverage(const StructureEnum::Enum structure,
+                                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+        
+        ChartData* helpLoadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        
+        
+
         /** The CIFTI XML (Do not delete since points to data in m_ciftiInterface */
         //CiftiXML* m_ciftiXML;
         class MapContent : public CaretObject {
