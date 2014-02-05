@@ -335,7 +335,7 @@ int32_t
 GiftiLabelTable::generateUnusedKey() const
 {
     const int32_t numKeys = labelsMap.size();
-    LABELS_MAP::const_reverse_iterator rbegin = labelsMap.rbegin();//reverse end is largest key
+    LABELS_MAP::const_reverse_iterator rbegin = labelsMap.rbegin();//reverse begin is largest key
     if (numKeys > 0 && rbegin->first > 0)//there is at least one positive key
     {
         if (rbegin->first < numKeys)
@@ -468,12 +468,13 @@ void
 GiftiLabelTable::deleteUnusedLabels(const std::set<int32_t>& usedLabelKeys)
 {
     LABELS_MAP newMap;
+    int32_t unassignedKey = getUnassignedLabelKey();
     for (LABELS_MAP_ITERATOR iter = this->labelsMap.begin();
          iter != this->labelsMap.end();
          iter++) {
         int32_t key = iter->first;
         GiftiLabel* gl = iter->second;
-        if (key == 0 || usedLabelKeys.find(key) != usedLabelKeys.end()) {//label 0 is reserved (sort of), and gets a free pass
+        if (key == unassignedKey || usedLabelKeys.find(key) != usedLabelKeys.end()) {//unassigned key gets a free pass
             newMap.insert(std::make_pair(key, gl));
         }
         else {
@@ -502,7 +503,7 @@ GiftiLabelTable::insertLabel(const GiftiLabel* labelIn)
     }
     if (key == 0)
     {//key 0 is reserved (sort of)
-       CaretLogWarning("Label 0 DELETED!");
+        issueLabelKeyZeroWarning(label->getName());
     }
     
     /*

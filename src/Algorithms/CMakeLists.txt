@@ -53,6 +53,7 @@ AlgorithmGiftiLabelAddPrefix.h
 AlgorithmGiftiLabelToROI.h
 AlgorithmLabelDilate.h
 AlgorithmLabelMerge.h
+AlgorithmLabelModifyKeys.h
 AlgorithmLabelResample.h
 AlgorithmMetricDilate.h
 AlgorithmMetricEstimateFWHM.h
@@ -142,6 +143,7 @@ AlgorithmGiftiLabelAddPrefix.cxx
 AlgorithmGiftiLabelToROI.cxx
 AlgorithmLabelDilate.cxx
 AlgorithmLabelMerge.cxx
+AlgorithmLabelModifyKeys.cxx
 AlgorithmLabelResample.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricEstimateFWHM.cxx

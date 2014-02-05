@@ -207,6 +207,8 @@ public:
     
 //    bool hasLabelsWithInvalidGroupNameHierarchy() const;
     
+    int32_t generateUnusedKey() const;
+    
 private:
     void issueLabelKeyZeroWarning(const AString& name) const;
     
@@ -219,8 +221,6 @@ private:
 
     LABELS_MAP labelsMap;
 
-    int32_t generateUnusedKey() const;
-    
     /**tracks modification status */
     bool modifiedFlag;
 

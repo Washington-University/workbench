@@ -50,7 +50,7 @@ OperationParameters* AlgorithmLabelMerge::getParameters()
     ParameterComponent* labelOpt = ret->createRepeatableParameter(2, "-label", "specify an input label file");
     labelOpt->addLabelParameter(1, "label-in", "a label file to use columns from");
     OptionalParameter* columnOpt = labelOpt->createOptionalParameter(2, "-column", "select a single column to use");
-    columnOpt->addStringParameter(1, "subvol", "the column number or name");
+    columnOpt->addStringParameter(1, "column", "the column number or name");
 
     ret->setHelpText(
         AString("Takes one or more label files and constructs a new label file by concatenating columns from them.  ") +
@@ -73,11 +73,11 @@ void AlgorithmLabelMerge::useParameters(OperationParameters* myParams, ProgressO
     {
         LabelFile* myLabel = myInputs[i]->getLabel(1);
         labelList.push_back(myLabel);
-        OptionalParameter* subvolOpt = myInputs[i]->getOptionalParameter(2);
-        if (subvolOpt->m_present)
+        OptionalParameter* columnOpt = myInputs[i]->getOptionalParameter(2);
+        if (columnOpt->m_present)
         {
-            int index = myLabel->getMapIndexFromNameOrNumber(subvolOpt->getString(1));
-            if (index == -1) throw AlgorithmException("subvolume '" + subvolOpt->getString(1) + "' not found in file '" + myLabel->getFileName() + "'");
+            int index = myLabel->getMapIndexFromNameOrNumber(columnOpt->getString(1));
+            if (index == -1) throw AlgorithmException("column '" + columnOpt->getString(1) + "' not found in file '" + myLabel->getFileName() + "'");
             indexList.push_back(index);
         } else {
             indexList.push_back(-1);

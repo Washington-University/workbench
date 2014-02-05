@@ -62,6 +62,7 @@
 #include "AlgorithmGiftiLabelToROI.h"
 #include "AlgorithmLabelDilate.h"
 #include "AlgorithmLabelMerge.h"
+#include "AlgorithmLabelModifyKeys.h"
 #include "AlgorithmLabelResample.h"
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricEstimateFWHM.h"
@@ -259,6 +260,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmGiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelMerge()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricEstimateFWHM()));
