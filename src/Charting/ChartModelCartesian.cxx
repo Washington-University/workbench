@@ -113,9 +113,8 @@ ChartModelCartesian::operator=(const ChartModelCartesian& obj)
  *    Object that is copied.
  */
 void 
-ChartModelCartesian::copyHelperChartModelCartesian(const ChartModelCartesian& obj)
+ChartModelCartesian::copyHelperChartModelCartesian(const ChartModelCartesian& /*obj*/)
 {
-    CaretAssert(0);
 }
 
 /**

@@ -147,6 +147,7 @@ ChartData::newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataT
     
     switch (chartDataType) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
             CaretAssert(0);

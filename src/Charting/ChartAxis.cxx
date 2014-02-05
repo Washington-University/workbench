@@ -129,12 +129,13 @@ void
 ChartAxis::copyHelperChartAxis(const ChartAxis& obj)
 {
     m_axis           = obj.m_axis;
-    m_autoRangeScale = obj.m_autoRangeScale;
+    m_text           = obj.m_text;
     m_axisUnits      = obj.m_axisUnits;
+    m_maximumValue   = obj.m_maximumValue;
+    m_minimumValue   = obj.m_minimumValue;
     m_labelFontSize  = obj.m_labelFontSize;
     m_visible        = obj.m_visible;
-    m_minimumValue   = obj.m_minimumValue;
-    m_maximumValue   = obj.m_maximumValue;
+    m_autoRangeScale = obj.m_autoRangeScale;
 }
 
 

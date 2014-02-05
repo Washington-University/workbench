@@ -121,6 +121,7 @@ ChartModel::removeChartData()
          iter++) {
         delete *iter;
     }
+    m_chartDatas.clear();
 }
 
 
@@ -161,7 +162,22 @@ ChartModel::operator=(const ChartModel& obj)
 void
 ChartModel::copyHelperChartModel(const ChartModel& obj)
 {
-    CaretAssert(0);
+    m_chartDataType = obj.m_chartDataType;
+    m_supportsMultipleChartDisplayType   = obj.m_supportsMultipleChartDisplayType;
+    m_maximumNumberOfChartDatasToDisplay = obj.m_maximumNumberOfChartDatasToDisplay;
+    *m_leftAxis   = *obj.m_leftAxis;
+    *m_rightAxis  = *obj.m_rightAxis;
+    *m_bottomAxis = *obj.m_bottomAxis;
+    *m_topAxis    = *obj.m_topAxis;
+    
+    removeChartData();
+    
+    for (std::deque<ChartData*>::const_iterator iter = obj.m_chartDatas.begin();
+         iter != obj.m_chartDatas.end();
+         iter++) {
+        ChartData* cd = *iter;
+        m_chartDatas.push_front(cd->clone());
+    }
 }
 
 /**
@@ -211,15 +227,24 @@ ChartModel::addChartData(ChartData* chartData)
     /*
      * If needed, remove extra items at end of deque
      */
-    if (numChartData > m_maximumNumberOfChartDatasToDisplay) {
-        for (int32_t i = m_maximumNumberOfChartDatasToDisplay;
-             i < numChartData;
-             i++) {
-            delete m_chartDatas[i];
-            m_chartDatas[i] = NULL;
+    const int32_t numToRemove = numChartData - m_maximumNumberOfChartDatasToDisplay;
+    if (numToRemove > 0) {
+        for (int32_t i = 0; i < numToRemove; i++) {
+            ChartData* cd = m_chartDatas.back();
+            m_chartDatas.pop_back();
+            delete cd;
         }
-        m_chartDatas.resize(m_maximumNumberOfChartDatasToDisplay);
     }
+    
+//    if (numChartData > m_maximumNumberOfChartDatasToDisplay) {
+//        for (int32_t i = m_maximumNumberOfChartDatasToDisplay;
+//             i < numChartData;
+//             i++) {
+//            delete m_chartDatas[i];
+//            m_chartDatas[i] = NULL;
+//        }
+//        m_chartDatas.resize(m_maximumNumberOfChartDatasToDisplay);
+//    }
     
     resetAxesToDefaultRange();
 }

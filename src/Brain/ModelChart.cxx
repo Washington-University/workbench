@@ -576,6 +576,10 @@ ModelChart::copyTabContent(const int32_t sourceTabIndex,
     
     m_overlaySetArray->copyOverlaySet(sourceTabIndex,
                                       destinationTabIndex);
+    
+    m_selectedChartDataType[destinationTabIndex] = m_selectedChartDataType[sourceTabIndex];
+    *m_chartModelDataSeries[destinationTabIndex] = *m_chartModelDataSeries[sourceTabIndex];
+    *m_chartModelTimeSeries[destinationTabIndex] = *m_chartModelTimeSeries[sourceTabIndex];
 }
 
 /**

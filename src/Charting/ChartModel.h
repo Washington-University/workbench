@@ -118,9 +118,9 @@ namespace caret {
         
         void removeChartData();
         
-        const ChartDataTypeEnum::Enum m_chartDataType;
+        ChartDataTypeEnum::Enum m_chartDataType;
         
-        const SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE m_supportsMultipleChartDisplayType;
+        SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE m_supportsMultipleChartDisplayType;
         
         std::deque<ChartData*> m_chartDatas;
         
@@ -136,8 +136,6 @@ namespace caret {
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;
-        
-        std::vector<AString> m_chartDataUniqueIdentifiersFromScene;
         
         // ADD_NEW_MEMBERS_HERE
 

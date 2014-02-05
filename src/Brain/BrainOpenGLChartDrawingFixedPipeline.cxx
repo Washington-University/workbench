@@ -260,6 +260,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(const int32_t 
          chartIter++) {
         ChartData* chartData = *chartIter;
         ChartDataCartesian* chartDataCart = dynamic_cast<ChartDataCartesian*>(chartData);
+        CaretAssert(chartDataCart);
         
         CaretColorEnum::Enum color = chartDataCart->getColor();
         glColor3fv(CaretColorEnum::toRGB(color));

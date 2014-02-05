@@ -108,7 +108,7 @@ ChartModelDataSeries::operator=(const ChartModelDataSeries& obj)
  *    Object that is copied.
  */
 void 
-ChartModelDataSeries::copyHelperChartModelDataSeries(const ChartModelDataSeries& obj)
+ChartModelDataSeries::copyHelperChartModelDataSeries(const ChartModelDataSeries& /*obj*/)
 {
     
 }
