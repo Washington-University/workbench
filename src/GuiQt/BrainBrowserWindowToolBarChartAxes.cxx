@@ -230,7 +230,7 @@ BrainBrowserWindowToolBarChartAxes::createAxisWidgets(QGridLayout* gridLayout,
 //        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
 //    }
 //    else if (m_chartMatrixTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX;
+//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX;
 //    }
 //    else if (m_chartTimeSeriesTypeRadioButton->isChecked()) {
 //        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
@@ -278,7 +278,7 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
             switch (chartType) {
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                     lineSeriesChart = dynamic_cast<ChartModelDataSeries*>(chart);
@@ -336,7 +336,7 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
 //        switch (chartType) {
 //            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
 //                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+//            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
 //                m_chartMatrixTypeRadioButton->setChecked(true);
 //                break;
 //            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:

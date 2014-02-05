@@ -235,7 +235,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 CaretAssert(0);
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                 CaretAssert(0);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
@@ -524,7 +524,7 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                     switch (chartDataType) {
                         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                             break;
-                        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                             CaretAssert(0);
                             break;
                         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
@@ -687,7 +687,7 @@ ModelChart::getSelectedChartModelHelper(const int32_t tabIndex) const
     switch (chartType) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
             model = m_chartModelDataSeries[tabIndex];
@@ -700,5 +700,4 @@ ModelChart::getSelectedChartModelHelper(const int32_t tabIndex) const
     return model;
     
 }
-
 

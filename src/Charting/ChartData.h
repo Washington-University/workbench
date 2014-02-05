@@ -61,7 +61,7 @@ namespace caret {
          *
          * @return Copy of this instance that is the actual subclass.
          */
-        virtual ChartData* clone() = 0;
+        virtual ChartData* clone() const = 0;
         
         ChartDataTypeEnum::Enum getChartDataType() const;
         

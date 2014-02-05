@@ -1,5 +1,5 @@
-#ifndef __CHART_DATA_CARTESIAN_H__
-#define __CHART_DATA_CARTESIAN_H__
+#ifndef __CHART_DATA_MATRIX_H__
+#define __CHART_DATA_MATRIX_H__
 
 /*LICENSE_START*/
 /*
@@ -34,102 +34,90 @@
  */
 /*LICENSE_END*/
 
-#include "CaretColorEnum.h"
-#include "ChartAxisUnitsEnum.h"
+
 #include "ChartData.h"
 
 
 
 namespace caret {
 
-    class ChartPoint;
-    
-    class ChartDataCartesian : public ChartData {
+    class ChartDataMatrix : public ChartData {
         
     public:
-        ChartDataCartesian(const ChartDataTypeEnum::Enum chartDataType,
-                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+        ChartDataMatrix();
         
-        virtual ~ChartDataCartesian();
+        virtual ~ChartDataMatrix();
+        
+        ChartDataMatrix(const ChartDataMatrix& obj);
+
+        ChartDataMatrix& operator=(const ChartDataMatrix& obj);
         
         virtual ChartData* clone() const;
         
-        void addPoint(const float x,
-                      const float y);
+        void setMatrix(const float* matrixData,
+                       const float* matrixRGBA,
+                       const int32_t numberOfRows,
+                       const int32_t numberOfColumns);
         
-        int32_t getNumberOfPoints() const;
+        int32_t getNumberOfRows() const;
         
-        const ChartPoint* getPointAtIndex(const int32_t pointIndex) const;
+        int32_t getNumberOfColumns() const;
         
-        void getBounds(float& xMinimumOut,
-                       float& xMaximumOut,
-                       float& yMinimumOut,
-                       float& yMaximumOut) const;
+        float getMatrixElement(const int32_t row,
+                               const int32_t column) const;
         
-        ChartAxisUnitsEnum::Enum getDataAxisUnitsX();
+        void getMatrixElementRGBA(const int32_t row,
+                                  const int32_t column,
+                                  float rgbaOut[4]) const;
         
-        ChartAxisUnitsEnum::Enum getDataAxisUnitsY();
-        
-        CaretColorEnum::Enum getColor();
-        
-        float getTimeStartInSecondsAxisX() const;
-        
-        void setTimeStartInSecondsAxisX(const float timeStart);
-        
-        float getTimeStepInSecondsAxisX() const;
-        
-        void setTimeStepInSecondsAxisX(const float timeStep);
-
         // ADD_NEW_METHODS_HERE
 
-    protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
         
         virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                   const SceneClass* sceneClass);
         
-        
     private:
-        ChartDataCartesian(const ChartDataCartesian& obj);
-        
-        ChartDataCartesian& operator=(const ChartDataCartesian& obj);
-        
-        void copyHelperChartDataCartesian(const ChartDataCartesian& obj);
+        void copyHelperChartDataMatrix(const ChartDataMatrix& obj);
 
-        void initializeMembersChartDataCartesian();
+        void initializeMembersChartDataMatrix();
         
-        void removeAllPoints();
+        void clearMatrixData();
         
-        std::vector<ChartPoint*> m_points;
-        
-        mutable float m_bounds[6];
-        
-        mutable bool m_boundsValid;
-        
-        ChartAxisUnitsEnum::Enum m_dataAxisUnitsX;
-        
-        ChartAxisUnitsEnum::Enum m_dataAxisUnitsY;
-        
-        CaretColorEnum::Enum m_color;
-        
-        float m_timeStartInSecondsAxisX;
-        
-        float m_timeStepInSecondsAxisX;
-        
-        static int32_t caretColorIndex;
+        /**
+         * Get offset of a matrix data element.
+         *
+         * @param row
+         *     Row in the matrix.
+         * @param column
+         *     Column in the matrix.
+         * @return 
+         *     Offset of a matrix element.
+         */
+        inline int32_t getMatrixOffset(const int32_t row,
+                                       const int32_t column) const {
+            const int32_t offset = (row * m_numberOfColumns) + column;
+            return offset;
+        }
         
         SceneClassAssistant* m_sceneAssistant;
         
-
+        int32_t m_numberOfRows;
+        
+        int32_t m_numberOfColumns;
+        
+        std::vector<float> m_matrixData;
+        
+        std::vector<float> m_matrixRGBA;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_DATA_CARTESIAN_DECLARE__
-    int32_t ChartDataCartesian::caretColorIndex = 0;
-#endif // __CHART_DATA_CARTESIAN_DECLARE__
+#ifdef __CHART_DATA_MATRIX_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CHART_DATA_MATRIX_DECLARE__
 
 } // namespace
-#endif  //__CHART_DATA_CARTESIAN_H__
+#endif  //__CHART_DATA_MATRIX_H__

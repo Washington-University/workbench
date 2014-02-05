@@ -50,8 +50,8 @@ public:
     enum Enum {
         /** Invalid */
         CHART_DATA_TYPE_INVALID,
-        /** Adjacency Matrix (connectivity) */
-        CHART_DATA_TYPE_ADJACENCY_MATRIX,
+        /** Matrix (connectivity) */
+        CHART_DATA_TYPE_MATRIX,
         /** Data Series */
         CHART_DATA_TYPE_DATA_SERIES,
         /** Time Series */

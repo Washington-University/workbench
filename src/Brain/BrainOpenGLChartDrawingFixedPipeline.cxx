@@ -200,7 +200,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(const int32_t viewport[4
     switch (chart->getChartDataType()) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
             CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:

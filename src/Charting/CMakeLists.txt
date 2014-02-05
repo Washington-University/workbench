@@ -12,24 +12,28 @@ ChartAxis.h
 ChartAxisUnitsEnum.h
 ChartData.h
 ChartDataCartesian.h
+ChartDataMatrix.h
 ChartDataSource.h
 ChartDataSourceModeEnum.h
 ChartDataTypeEnum.h
 ChartModel.h
 ChartModelCartesian.h
 ChartModelDataSeries.h
+ChartModelMatrix.h
 ChartPoint.h
 
 ChartAxis.cxx
 ChartAxisUnitsEnum.cxx
 ChartData.cxx
 ChartDataCartesian.cxx
+ChartDataMatrix.cxx
 ChartDataSource.cxx
 ChartDataSourceModeEnum.cxx
 ChartDataTypeEnum.cxx
 ChartModel.cxx
 ChartModelCartesian.cxx
 ChartModelDataSeries.cxx
+ChartModelMatrix.cxx
 ChartPoint.cxx
 )
 

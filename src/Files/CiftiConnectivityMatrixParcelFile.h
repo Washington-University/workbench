@@ -39,6 +39,9 @@
 
 namespace caret {
 
+    class ChartDataMatrix;
+    class PaletteFile;
+    
     class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile /*, public ChartableInterface*/ {
         
     public:
@@ -51,6 +54,8 @@ namespace caret {
 
         CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
 
+        ChartDataMatrix* getMatrixChart(const PaletteFile* paletteFile);
+        
 //        virtual CaretMappableDataFile* getCaretMappableDataFile() ;
 //
 //        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;

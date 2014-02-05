@@ -1,5 +1,5 @@
-#ifndef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_H__
-#define __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_H__
+#ifndef __CHART_MODEL_MATRIX_H__
+#define __CHART_MODEL_MATRIX_H__
 
 /*LICENSE_START*/
 /*
@@ -35,59 +35,35 @@
 /*LICENSE_END*/
 
 
-#include "BrainOpenGLChartDrawingInterface.h"
-
-
+#include "ChartModel.h"
 
 namespace caret {
 
-    class ChartModelDataSeries;
-    class ChartModelMatrix;
-    
-    class BrainOpenGLChartDrawingFixedPipeline : public BrainOpenGLChartDrawingInterface {
+    class ChartModelMatrix : public ChartModel {
         
     public:
-        BrainOpenGLChartDrawingFixedPipeline();
+        ChartModelMatrix();
         
-        virtual ~BrainOpenGLChartDrawingFixedPipeline();
+        virtual ~ChartModelMatrix();
         
-        virtual void drawChart(const int32_t viewport[4],
-                               BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart);
-    private:
-        BrainOpenGLChartDrawingFixedPipeline(const BrainOpenGLChartDrawingFixedPipeline&);
+        ChartModelMatrix(const ChartModelMatrix& obj);
 
-        BrainOpenGLChartDrawingFixedPipeline& operator=(const BrainOpenGLChartDrawingFixedPipeline&);
+        ChartModelMatrix& operator=(const ChartModelMatrix& obj);
         
-        void drawChartGraphics(const int32_t viewport[4],
-                               BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart);
-        
-        void drawChartGraphicsLineSeries(const int32_t viewport[4],
-                                         BrainOpenGLTextRenderInterface* textRenderer,
-                                         ChartModelDataSeries* chart);
-        
-        void drawChartGraphicsMatrix(const int32_t viewport[4],
-                                     BrainOpenGLTextRenderInterface* textRenderer,
-                                     ChartModelMatrix* chart);
-
-        void restoreStateOfOpenGL();
-        
-        void saveStateOfOpenGL();
-        
-        
-    public:
+        void resetAxesToDefaultRange();
 
         // ADD_NEW_METHODS_HERE
 
     private:
+        void copyHelperChartModelMatrix(const ChartModelMatrix& obj);
+
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
+#ifdef __CHART_MODEL_MATRIX_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
+#endif // __CHART_MODEL_MATRIX_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_H__
+#endif  //__CHART_MODEL_MATRIX_H__

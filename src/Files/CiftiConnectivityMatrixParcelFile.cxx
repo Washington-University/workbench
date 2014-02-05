@@ -36,6 +36,16 @@
 #include "CiftiConnectivityMatrixParcelFile.h"
 #undef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_DECLARE__
 
+#include "CaretLogger.h"
+#include "ChartDataMatrix.h"
+#include "CiftiFacade.h"
+#include "CiftiInterface.h"
+#include "FastStatistics.h"
+#include "NodeAndVoxelColoring.h"
+#include "Palette.h"
+#include "PaletteColorMapping.h"
+#include "PaletteFile.h"
+
 using namespace caret;
 
 
@@ -72,6 +82,69 @@ CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
     
 }
 
+/**
+ * @return Chart matrix for the content of the parcel connectivity.
+ */
+ChartDataMatrix*
+CiftiConnectivityMatrixParcelFile::getMatrixChart(const PaletteFile* paletteFile)
+{
+    ChartDataMatrix* chartMatrix = NULL;
+    
+    CaretAssertVectorIndex(m_mapContent,
+                           0);
+    
+    const int32_t numberOfColumns = m_ciftiFacade->getNumberOfColumns();
+    const int32_t numberOfRows = m_ciftiFacade->getNumberOfRows();
+    const int32_t numberOfElements = numberOfColumns * numberOfRows;
+    if (numberOfElements <= 0) {
+        return chartMatrix;
+    }
+    
+    std::vector<float> matrixData(numberOfElements);
+    
+    
+    for (int32_t i = 0; i < numberOfRows; i++)
+    {
+        m_ciftiInterface->getRow(&matrixData[i * numberOfColumns], i);
+    }
+    
+    const int32_t numberOfElementsRGBA = numberOfElements * 4;
+    std::vector<float> matrixRGBA(numberOfElementsRGBA);
+    
+    PaletteColorMapping *paletteColorMapping = m_ciftiFacade->getPaletteColorMappingForMapOrSeriesIndex(0);
+    FastStatistics fastStatistics;
+    CaretAssert(paletteColorMapping);
+    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+    const Palette* palette = paletteFile->getPaletteByName(paletteName);
+    
+    if (palette != NULL) {
+        fastStatistics.update(&matrixData[0],
+                              matrixData.size());
+        
+        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
+                                                      paletteColorMapping,
+                                                      palette,
+                                                      &matrixData[0],
+                                                      &matrixData[0],
+                                                      matrixData.size(),
+                                                      &matrixRGBA[0]);
+    }
+    else {
+        CaretLogSevere("Coloring not available for matrix chart.");
+        
+        std::fill(matrixRGBA.begin(),
+                  matrixRGBA.end(),
+                  0.0);
+    }
+    
+    chartMatrix = new ChartDataMatrix();
+    chartMatrix->setMatrix(&matrixData[0],
+                           &matrixRGBA[0],
+                           numberOfRows,
+                           numberOfColumns);
+    
+    return chartMatrix;
+}
 
 ///**
 // * @return Is charting enabled for this file?

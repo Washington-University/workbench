@@ -159,7 +159,7 @@ ChartDataCartesian::removeAllPoints()
  * @return Copy of this instance that is the actual subclass.
  */
 ChartData*
-ChartDataCartesian::clone()
+ChartDataCartesian::clone() const
 {
     ChartDataCartesian* cloneCopy = new ChartDataCartesian(*this);
     return cloneCopy;

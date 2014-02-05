@@ -76,9 +76,6 @@ namespace caret {
         
         void addChartData(ChartData* chartData);
         
-        void replaceChartData(ChartData* before,
-                              ChartData* after);
-        
         virtual int32_t getMaximumNumberOfChartDatasToDisplay() const;
         
         void setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay);

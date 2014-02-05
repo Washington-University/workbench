@@ -38,6 +38,7 @@ namespace caret {
     class ChartModel;
     class ChartModelDataSeries;
     class ChartableInterface;
+    class CiftiConnectivityMatrixParcelFile;
     class OverlaySetArray;
     class SurfaceFile;
     
@@ -87,6 +88,8 @@ namespace caret {
                                     const int32_t destinationTabIndex);
         
         void reset();
+        
+        void updateMatrixCharts(std::vector<CiftiConnectivityMatrixParcelFile*>& parcelFiles);
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,

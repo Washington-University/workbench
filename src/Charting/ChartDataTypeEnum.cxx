@@ -127,8 +127,8 @@ ChartDataTypeEnum::initialize()
                                     "CHART_DATA_TYPE_DATA_SERIES", 
                                     "Data Series"));
     
-    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_ADJACENCY_MATRIX,
-                                         "CHART_DATA_TYPE_ADJACENCY_MATRIX",
+    enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_MATRIX,
+                                         "CHART_DATA_TYPE_MATRIX",
                                          "Matrix"));
     
     enumData.push_back(ChartDataTypeEnum(CHART_DATA_TYPE_TIME_SERIES,

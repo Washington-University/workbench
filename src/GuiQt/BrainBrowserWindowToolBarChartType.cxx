@@ -67,7 +67,7 @@ BrainBrowserWindowToolBarChartType::BrainBrowserWindowToolBarChartType(BrainBrow
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    m_chartMatrixTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX));
+    m_chartMatrixTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX));
     
     m_chartDataSeriesTypeRadioButton = new QRadioButton(ChartDataTypeEnum::toGuiName(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES));
 
@@ -107,7 +107,7 @@ BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int)
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
     }
     else if (m_chartMatrixTypeRadioButton->isChecked()) {
-        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX;
+        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX;
     }
     else if (m_chartTimeSeriesTypeRadioButton->isChecked()) {
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
@@ -148,7 +148,7 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
         switch (chartType) {
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_ADJACENCY_MATRIX:
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                 m_chartMatrixTypeRadioButton->setChecked(true);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
