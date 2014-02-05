@@ -195,7 +195,8 @@ ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<Ch
     const int32_t numTimeSeriesFiles = static_cast<int32_t>(timeSeriesFiles.size());
     for (int32_t i = 0; i < numTimeSeriesFiles; i++) {
         if (i >= static_cast<int32_t>(this->timeSeriesViewControllers.size())) {
-            this->timeSeriesViewControllers.push_back(new ConnectivityTimeSeriesViewController(this->orientation,
+            this->timeSeriesViewControllers.push_back(new ConnectivityTimeSeriesViewController(this->browserWindowIndex,
+                                                                                               this->orientation,
                                                                                        this->viewControllerGridLayout,
                                                                                        this));            
         }

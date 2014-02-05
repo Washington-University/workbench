@@ -1635,6 +1635,8 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
         return false;
     }
     
+    const int32_t tabIndex = this->browserTabContent->getTabNumber();
+    
     /*
      * Exit if any data series graph is enabled.
      */
@@ -1642,7 +1644,7 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
          iter != chartFiles.end();
          iter++) {
         ChartableInterface* chartFile = *iter;
-        if (chartFile->isChartingEnabled()) {
+        if (chartFile->isChartingEnabled(tabIndex)) {
             return false;
         }
     }
@@ -1654,7 +1656,8 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
          iter != chartFiles.end();
          iter++) {
         ChartableInterface* chartFile = *iter;
-        chartFile->setChartingEnabled(true);
+        chartFile->setChartingEnabled(tabIndex,
+                                      true);
     }
 
     return true;
@@ -1666,6 +1669,8 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
 void
 BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
 {
+    const int32_t tabIndex = this->browserTabContent->getTabNumber();
+    
     Brain* brain = GuiManager::get()->getBrain();
     std::vector<ChartableInterface*> chartFiles;
     brain->getAllChartableDataFiles(chartFiles);
@@ -1673,7 +1678,8 @@ BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
          iter != chartFiles.end();
          iter++) {
         ChartableInterface* chartFile = *iter;
-        chartFile->setChartingEnabled(true);
+        chartFile->setChartingEnabled(tabIndex,
+                                      true);
         TimeCourseDialog* tcd = GuiManager::get()->getTimeCourseDialog(chartFile);
         tcd->setTimeSeriesGraphEnabled(true);
         tcd->show();

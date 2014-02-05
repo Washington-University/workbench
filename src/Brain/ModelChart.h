@@ -26,6 +26,7 @@
  */ 
 
 #include <set>
+#include <map>
 
 #include "ChartDataTypeEnum.h"
 #include "DataFileException.h"
@@ -120,8 +121,7 @@ namespace caret {
         void restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass);
 
-        void getTabsAndChartFilesForChartLoading(std::vector<int32_t>& tabIndicesOut,
-                                                 std::vector<ChartableInterface*>& chartFilesOut) const;
+        void getTabsAndChartFilesForChartLoading(std::map<ChartableInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const;
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;

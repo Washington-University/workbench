@@ -67,9 +67,9 @@ namespace caret {
         virtual const CaretMappableDataFile* getCaretMappableDataFile() const = 0;
         
         /**
-         * @return Is charting enabled for this file?
+         * @return Is charting enabled for this file in the given tab?
          */
-        virtual bool isChartingEnabled() const = 0;
+        virtual bool isChartingEnabled(const int32_t tabIndex) const = 0;
         
         /**
          * @return Return true if the file's current state supports
@@ -79,12 +79,13 @@ namespace caret {
         virtual bool isChartingSupported() const = 0;
         
         /**
-         * Set charting enabled for this file.
+         * Set charting enabled for this file in the given tab
          *
          * @param enabled
          *    New status for charting enabled.
          */
-        virtual void setChartingEnabled(const bool enabled) = 0;
+        virtual void setChartingEnabled(const int32_t tabIndex,
+                                        const bool enabled) = 0;
 
         /**
          * Returns the Default Chart Type

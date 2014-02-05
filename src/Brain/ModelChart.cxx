@@ -147,15 +147,14 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                                          const int32_t surfaceNumberOfNodes,
                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    std::vector<int32_t> tabIndices;
-    std::vector<ChartableInterface*> chartFiles;
-    getTabsAndChartFilesForChartLoading(tabIndices,
-                                        chartFiles);
+    std::map<ChartableInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
-         fileIter != chartFiles.end();
-         fileIter++) {
-        ChartableInterface* chartFile = *fileIter;
+    for (std::map<ChartableInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+         fileTabIter != chartFileEnabledTabs.end();
+         fileTabIter++) {
+        ChartableInterface* chartFile = fileTabIter->first;
+        const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
         ChartData* chartData = chartFile->loadAverageChartDataForSurfaceNodes(structure,
@@ -185,15 +184,14 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
 void
 ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
-    std::vector<int32_t> tabIndices;
-    std::vector<ChartableInterface*> chartFiles;
-    getTabsAndChartFilesForChartLoading(tabIndices,
-                                        chartFiles);
+    std::map<ChartableInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
-         fileIter != chartFiles.end();
-         fileIter++) {
-        ChartableInterface* chartFile = *fileIter;
+    for (std::map<ChartableInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+         fileTabIter != chartFileEnabledTabs.end();
+         fileTabIter++) {
+        ChartableInterface* chartFile = fileTabIter->first;
+        const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
         ChartData* chartData = chartFile->loadChartDataForVoxelAtCoordinate(xyz);
@@ -251,20 +249,41 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
 /**
  * Get tabs and chart files for loading chart data.
  *
- * @param tabIndicesOut
- *    Tabs for which chart data is loaded.
- * @param chartFileOut
- *    Chart file from which data is loaded.
+ * @param chartFileEnabledTabsOut
+ *    Map with first being a chartable file and the second being
+ *    tabs for which that chartable file is enabled.
  */
 void
-ModelChart::getTabsAndChartFilesForChartLoading(std::vector<int32_t>& tabIndicesOut,
-                                         std::vector<ChartableInterface*>& chartFilesOut) const
+ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
 {
+    chartFileEnabledTabsOut.clear();
+    
     EventBrowserTabGetAll allTabsEvent;
     EventManager::get()->sendEvent(allTabsEvent.getPointer());
-    tabIndicesOut = allTabsEvent.getBrowserTabIndices();
+    std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
     
-    m_brain->getAllChartableDataFilesWithChartingEnabled(chartFilesOut);
+    std::vector<ChartableInterface*> chartFiles;
+    m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    
+    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+         iter != chartFiles.end();
+         iter++) {
+        ChartableInterface* cf = *iter;
+        std::vector<int32_t> chartFileTabIndices;
+        
+        for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
+             tabIter != validTabIndices.end();
+             tabIter++) {
+            const int32_t tabIndex = *tabIter;
+            if (cf->isChartingEnabled(tabIndex)) {
+                chartFileTabIndices.push_back(tabIndex);
+            }
+        }
+        
+        if ( ! chartFileTabIndices.empty()) {
+            chartFileEnabledTabsOut.insert(std::make_pair(cf, chartFileTabIndices));
+        }
+    }
 }
 
 /**
@@ -284,15 +303,14 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                         const int32_t surfaceNumberOfNodes,
                                         const int32_t nodeIndex) throw (DataFileException)
 {
-    std::vector<int32_t> tabIndices;
-    std::vector<ChartableInterface*> chartFiles;
-    getTabsAndChartFilesForChartLoading(tabIndices,
-                                        chartFiles);
+    std::map<ChartableInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
-         fileIter != chartFiles.end();
-         fileIter++) {
-        ChartableInterface* chartFile = *fileIter;
+    for (std::map<ChartableInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+         fileTabIter != chartFileEnabledTabs.end();
+         fileTabIter++) {
+        ChartableInterface* chartFile = fileTabIter->first;
+        const std::vector<int32_t>  tabIndices = fileTabIter->second;
 
         CaretAssert(chartFile);
         ChartData* chartData = chartFile->loadChartDataForSurfaceNode(structure,

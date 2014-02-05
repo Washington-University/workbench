@@ -35,6 +35,7 @@
 /*LICENSE_END*/
 
 
+#include "BrainConstants.h"
 #include "ChartableInterface.h"
 #include "CiftiMappableDataFile.h"
 
@@ -54,9 +55,10 @@ namespace caret {
         static CiftiBrainordinateScalarFile* newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
                                                                                              AString& errorMessageOut);
 
-        virtual bool isChartingEnabled() const;
+        virtual bool isChartingEnabled(const int32_t tabIndex) const;
         
-        virtual void setChartingEnabled(const bool enabled);
+        virtual void setChartingEnabled(const int32_t tabIndex,
+                                        const bool enabled);
         
         virtual bool isChartingSupported() const;
 
@@ -105,7 +107,7 @@ namespace caret {
 
     private:
 
-        bool m_chartingEnabled;
+        bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -39,6 +39,7 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "SceneClass.h"
+#include "SceneClassArray.h"
 #include "TimeLine.h"
 
 using namespace caret;
@@ -62,7 +63,9 @@ CiftiParcelSeriesFile::CiftiParcelSeriesFile()
                         CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
                         CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
 {
-    m_chartingEnabled = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
 }
 
 /**
@@ -103,9 +106,12 @@ CiftiParcelSeriesFile::updateScalarColoringForAllMaps(const PaletteFile* /*palet
  * @return Is charting enabled for this file?
  */
 bool
-CiftiParcelSeriesFile::isChartingEnabled() const
+CiftiParcelSeriesFile::isChartingEnabled(const int32_t tabIndex) const
 {
-    return m_chartingEnabled;
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_chartingEnabledForTab[tabIndex];
 }
 
 /**
@@ -130,9 +136,13 @@ CiftiParcelSeriesFile::isChartingSupported() const
  *    New status for charting enabled.
  */
 void
-CiftiParcelSeriesFile::setChartingEnabled(const bool enabled)
+CiftiParcelSeriesFile::setChartingEnabled(const int32_t tabIndex,
+                                          const bool enabled)
 {
-    m_chartingEnabled = enabled;
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_chartingEnabledForTab[tabIndex] = enabled;
 }
 
 ChartTypeEnum::Enum CiftiParcelSeriesFile::getDefaultChartType() const
@@ -490,8 +500,9 @@ CiftiParcelSeriesFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
-    sceneClass->addBoolean("m_chartingEnabled",
-                           m_chartingEnabled);
+    sceneClass->addBooleanArray("m_chartingEnabledForTab",
+                                m_chartingEnabledForTab,
+                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
 }
 
 /**
@@ -515,8 +526,22 @@ CiftiParcelSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     
-    m_chartingEnabled = sceneClass->getBooleanValue("m_chartingEnabled",
-                                                    false);
+    const SceneClassArray* tabArray = sceneClass->getClassArray("m_chartingEnabledForTab");
+    if (tabArray != NULL) {
+        sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
+                                         m_chartingEnabledForTab,
+                                         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    }
+    else {
+        /*
+         * Obsolete value when charting was not 'per tab'
+         */
+        const bool chartingEnabled = sceneClass->getBooleanValue("m_chartingEnabled",
+                                                                 false);
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_chartingEnabledForTab[i] = chartingEnabled;
+        }
+    }
 }
 
 

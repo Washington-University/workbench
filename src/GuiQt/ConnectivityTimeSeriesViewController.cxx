@@ -51,6 +51,7 @@
 #include <QSpinBox>
 
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
@@ -83,11 +84,15 @@ using namespace caret;
 /**
  * Constructor.
  */
-ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const Qt::Orientation orientation,
+ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const int32_t browserWindowIndex,
+                                                                           const Qt::Orientation orientation,
                                                                    QGridLayout* gridLayout,
                                                                    QObject* parent)
 : QObject(parent)
 {
+    m_browserWindowIndex = browserWindowIndex;
+    CaretAssert(m_browserWindowIndex >= 0);
+    
     this->chartableDataFile = NULL;
     this->previousChartableDataFile = NULL;
     
@@ -199,6 +204,13 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
     this->chartableDataFile = chartableDataFile;
     if (this->chartableDataFile != NULL) {        
 
+        BrowserTabContent* browserTabContent =
+        GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+        if (browserTabContent == NULL) {
+            return;
+        }
+        const int32_t browserTabIndex = browserTabContent->getTabNumber();
+        
         Qt::CheckState enabledState = Qt::Unchecked;
         
         CaretMappableDataFile* mappableDataFile = dynamic_cast<CaretMappableDataFile*>(this->chartableDataFile);
@@ -206,7 +218,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* c
         this->fileNameLineEdit->setText(mappableDataFile->getFileName());
 
         enabledState = Qt::Unchecked;
-        if(this->chartableDataFile->isChartingEnabled()) {
+        if(this->chartableDataFile->isChartingEnabled(browserTabIndex)) {
             enabledState = Qt::Checked;
         }
 
@@ -273,7 +285,15 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
         }
         else
         {
-            this->chartableDataFile->setChartingEnabled(status);
+            BrowserTabContent* browserTabContent =
+            GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+            if (browserTabContent == NULL) {
+                return;
+            }
+            const int32_t browserTabIndex = browserTabContent->getTabNumber();
+            
+            this->chartableDataFile->setChartingEnabled(browserTabIndex,
+                                                        status);
             GuiManager::get()->getTimeCourseDialog(this->chartableDataFile)->setTimeSeriesGraphEnabled(status);
             this->updateOtherConnectivityTimeSeriesViewControllers();
         }        

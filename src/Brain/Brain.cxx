@@ -2618,7 +2618,7 @@ Brain::getAllChartableDataFiles(std::vector<ChartableInterface*>& chartableDataF
 /**
  * Get all of the Chartable Data Files.  Only files that implement the
  * ChartableInterface, return true for ChartableInterface::isChartingSupported(),
- * AND return true for ChartableInterface::isChartingEnabled()
+ * AND return true for ChartableInterface::isChartingEnabled() for any tab index
  * are included in the returned files.
  *
  * @param chartableDataFilesOut
@@ -2632,14 +2632,23 @@ Brain::getAllChartableDataFilesWithChartingEnabled(std::vector<ChartableInterfac
     std::vector<CaretDataFile*> allFiles;
     getAllDataFiles(allFiles);
     
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    const std::vector<int32_t> tabIndices = allTabsEvent.getBrowserTabIndices();
+    const int32_t numTabs = static_cast<int32_t>(tabIndices.size());
+    
     for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
          iter != allFiles.end();
          iter++) {
         ChartableInterface* chartFile = dynamic_cast<ChartableInterface*>(*iter);
         if (chartFile != NULL) {
             if (chartFile->isChartingSupported()) {
-                if (chartFile->isChartingEnabled()) {
-                    chartableDataFilesOut.push_back(chartFile);
+                for (int32_t iTab = 0; iTab < numTabs; iTab++) {
+                    const int32_t tabIndex = tabIndices[iTab];
+                    if (chartFile->isChartingEnabled(tabIndex)) {
+                        chartableDataFilesOut.push_back(chartFile);
+                        break;
+                    }
                 }
             }
         }

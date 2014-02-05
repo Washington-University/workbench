@@ -61,7 +61,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        ConnectivityTimeSeriesViewController(const Qt::Orientation orientation,
+        ConnectivityTimeSeriesViewController(const int32_t browserWindowIndex,
+                                             const Qt::Orientation orientation,
                                          QGridLayout* gridLayout,
                                          QObject* parent);
         
@@ -92,6 +93,8 @@ namespace caret {
         
         void updateOtherConnectivityTimeSeriesViewControllers();
 
+        int32_t m_browserWindowIndex;
+        
         ChartableInterface* chartableDataFile;
         
         ChartableInterface* previousChartableDataFile;
