@@ -82,8 +82,7 @@ namespace caret {
                                QDoubleSpinBox*& maximumValueSpinBox,
                                WuQWidgetObjectGroup*& widgetGroup);
         
-        void updateAxisWidgets(const ChartModelCartesian* chart,
-                               const ChartAxis* chartAxis,
+        void updateAxisWidgets(const ChartAxis* chartAxis,
                                QLabel* nameLabel,
                                QCheckBox* autoRangeScaleCheckBox,
                                QDoubleSpinBox* minimumValueSpinBox,

@@ -100,8 +100,7 @@ namespace caret {
         
         ModelChart& operator=(const ModelChart&);
         
-        void addChartToChartModels(ChartableInterface* chartableFile,
-                                   const std::vector<int32_t>& tabIndices,
+        void addChartToChartModels(const std::vector<int32_t>& tabIndices,
                                    ChartData* chartData);
 
         void initializeCharts();

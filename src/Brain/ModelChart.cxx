@@ -166,8 +166,7 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                                               StructureEnum::toName(structure),
                                               surfaceNumberOfNodes, nodeIndices);
             
-            addChartToChartModels(chartFile,
-                                  tabIndices,
+            addChartToChartModels(tabIndices,
                                   chartData);
             
             delete chartData;
@@ -203,8 +202,7 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFil
             dataSource->setVolumeVoxel(chartFile->getCaretMappableDataFile()->getFileName(),
                                        xyz);
             
-            addChartToChartModels(chartFile,
-                                  tabIndices,
+            addChartToChartModels(tabIndices,
                                   chartData);
             
             delete chartData;
@@ -217,12 +215,15 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFil
  *
  * @param tabIndices
  *    Indices of tabs for chart data
+ * @param chartData
+ *    Chart data that is added.
  */
 void
-ModelChart::addChartToChartModels(ChartableInterface* chartableFile,
-                                  const std::vector<int32_t>& tabIndices,
+ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
                                   ChartData* chartData)
 {
+    CaretAssert(chartData);
+    
     const ChartDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
     
     for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
@@ -303,8 +304,7 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                        surfaceNumberOfNodes,
                                        nodeIndex);
             
-            addChartToChartModels(chartFile,
-                                  tabIndices,
+            addChartToChartModels(tabIndices,
                                   chartData);
             
             delete chartData;
@@ -319,7 +319,7 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
  *     The event that the receive can respond to.
  */
 void 
-ModelChart::receiveEvent(Event* event)
+ModelChart::receiveEvent(Event* /*event*/)
 {
 }
 
@@ -552,10 +552,29 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
  *    Description of the window's content.
  */
 void
-ModelChart::getDescriptionOfContent(const int32_t /*tabIndex*/,
-                                      PlainTextStringBuilder& descriptionOut) const
+ModelChart::getDescriptionOfContent(const int32_t tabIndex,
+                                    PlainTextStringBuilder& descriptionOut) const
 {
-    descriptionOut.addLine("Chart");
+    const ChartModel* chartModel = getSelectedChartModel(tabIndex);
+    if (chartModel != NULL) {
+        descriptionOut.addLine("Chart Type: "
+                               + ChartDataTypeEnum::toGuiName(chartModel->getChartDataType()));
+
+        descriptionOut.pushIndentation();
+        
+        const std::vector<ChartData*> cdVec = chartModel->getChartDatasForDisplay();
+        for (std::vector<ChartData*>::const_iterator iter = cdVec.begin();
+             iter != cdVec.end();
+             iter++) {
+            const ChartData* cd = *iter;
+            descriptionOut.addLine(cd->getChartDataSource()->toString());
+        }
+        
+        descriptionOut.popIndentation();
+    }
+    else {
+        descriptionOut.addLine("No charts to display");
+    }
 }
 
 /**

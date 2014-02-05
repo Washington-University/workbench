@@ -41,6 +41,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "FileInformation.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
@@ -59,7 +60,8 @@ using namespace caret;
  * Constructor.
  */
 ChartDataSource::ChartDataSource()
-: CaretObject()
+: CaretObject(),
+SceneableInterface()
 {
     initializeMembersChartDataSource();
 }
@@ -103,7 +105,8 @@ ChartDataSource::initializeMembersChartDataSource()
  *    Object that is copied.
  */
 ChartDataSource::ChartDataSource(const ChartDataSource& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeMembersChartDataSource();
     
@@ -298,7 +301,33 @@ ChartDataSource::setVolumeVoxel(const AString& chartableFileName,
 AString
 ChartDataSource::toString() const
 {
-    return "ChartDataSource";
+    AString s;
+    switch (m_dataSourceMode) {
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+            s += ("Node "
+                  + AString::number(m_nodeIndex));
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+            s += ("Average of "
+                  + AString::number(m_nodeIndicesAverage.size())
+                  + " nodes");
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+            s += ("Voxel XYZ ("
+                  + AString::fromNumbers(m_voxelXYZ, 3, ",")
+                  + ")");
+            break;
+    }
+    
+    if ( ! s.isEmpty()) {
+        FileInformation fileInfo(m_chartableFileName);
+        s += (" from "
+              + fileInfo.getFileName());
+    }
+    
+    return s;
 }
 
 /**

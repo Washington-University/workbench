@@ -60,6 +60,7 @@ using namespace caret;
  */
 ChartData::ChartData(const ChartDataTypeEnum::Enum chartDataType)
 : CaretObject(),
+SceneableInterface(),
 m_chartDataType(chartDataType)
 {
     initializeMembersChartData();
@@ -96,6 +97,7 @@ ChartData::initializeMembersChartData()
  */
 ChartData::ChartData(const ChartData& obj)
 : CaretObject(obj),
+SceneableInterface(obj),
 m_chartDataType(obj.m_chartDataType)
 {
     initializeMembersChartData();

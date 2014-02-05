@@ -80,14 +80,6 @@ namespace caret {
         float getTimeStepInSecondsAxisX() const;
         
         void setTimeStepInSecondsAxisX(const float timeStep);
-        
-        AString getDescription() const;
-        
-        void setDescription(const AString& description);
-        
-        AString getEncodedDataSource() const;
-        
-        void setEncodedDataSource(const AString& encodedDataSource);
 
         // ADD_NEW_METHODS_HERE
 
@@ -125,10 +117,6 @@ namespace caret {
         float m_timeStartInSecondsAxisX;
         
         float m_timeStepInSecondsAxisX;
-        
-        AString m_description;
-        
-        AString m_encodedDataSource;
         
         static int32_t caretColorIndex;
         

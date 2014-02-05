@@ -69,6 +69,7 @@ using namespace caret;
 ChartModel::ChartModel(const ChartDataTypeEnum::Enum chartDataType,
                                                              const SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE supportsMultipleChartDisplayType)
 : CaretObject(),
+SceneableInterface(),
 m_chartDataType(chartDataType),
 m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
 {
@@ -132,6 +133,7 @@ ChartModel::removeChartData()
  */
 ChartModel::ChartModel(const ChartModel& obj)
 : CaretObject(obj),
+SceneableInterface(obj),
 m_chartDataType(obj.m_chartDataType),
 m_supportsMultipleChartDisplayType(obj.m_supportsMultipleChartDisplayType)
 {

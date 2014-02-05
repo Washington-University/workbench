@@ -289,32 +289,28 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
             }
             
             if (lineSeriesChart != NULL) {
-                updateAxisWidgets(lineSeriesChart,
-                                  lineSeriesChart->getLeftAxis(),
+                updateAxisWidgets(lineSeriesChart->getLeftAxis(),
                                   m_leftAxisLabel,
                                   m_leftAxisAutoRangeScaleCheckBox,
                                   m_leftAxisMinimumValueSpinBox,
                                   m_leftAxisMaximumValueSpinBox,
                                   m_leftAxisWidgetGroup);
                 
-                updateAxisWidgets(lineSeriesChart,
-                                  lineSeriesChart->getBottomAxis(),
+                updateAxisWidgets(lineSeriesChart->getBottomAxis(),
                                   m_bottomAxisLabel,
                                   m_bottomAxisAutoRangeScaleCheckBox,
                                   m_bottomAxisMinimumValueSpinBox,
                                   m_bottomAxisMaximumValueSpinBox,
                                   m_bottomAxisWidgetGroup);
                 
-//                updateAxisWidgets(lineSeriesChart,
-//                                  lineSeriesChart->getRightAxis(),
+//                updateAxisWidgets(lineSeriesChart->getRightAxis(),
 //                                  m_rightAxisLabel,
 //                                  m_rightAxisAutoRangeScaleCheckBox,
 //                                  m_rightAxisMinimumValueSpinBox,
 //                                  m_rightAxisMaximumValueSpinBox,
 //                                  m_rightAxisWidgetGroup);
 //                
-//                updateAxisWidgets(lineSeriesChart,
-//                                  lineSeriesChart->getTopAxis(),
+//                updateAxisWidgets(lineSeriesChart->getTopAxis(),
 //                                  m_topAxisLabel,
 //                                  m_topAxisAutoRangeScaleCheckBox,
 //                                  m_topAxisMinimumValueSpinBox,
@@ -384,8 +380,6 @@ BrainBrowserWindowToolBarChartAxes::getCartesianChart()
 /**
  * Update the widgets for an axis.
  *
- * @param chart
- *    Chart whose axes are updated.
  * @param chartAxis
  *    Source axis containing data.
  * @param nameLabel
@@ -400,8 +394,7 @@ BrainBrowserWindowToolBarChartAxes::getCartesianChart()
  *    Widget group for the axis' widgets.
  */
 void
-BrainBrowserWindowToolBarChartAxes::updateAxisWidgets(const ChartModelCartesian* chart,
-                                                      const ChartAxis* chartAxis,
+BrainBrowserWindowToolBarChartAxes::updateAxisWidgets(const ChartAxis* chartAxis,
                                                       QLabel* nameLabel,
                                                       QCheckBox* autoRangeScaleCheckBox,
                                                       QDoubleSpinBox* minimumValueSpinBox,
@@ -498,8 +491,8 @@ BrainBrowserWindowToolBarChartAxes::bottomAxisValueChanged(double /*value*/)
         m_bottomAxisAutoRangeScaleCheckBox->setChecked(false);
         ChartAxis* axis = cartesianChart->getBottomAxis();
         axis->setAutoRangeScale(false);
-        axis->setMinimumValue(m_leftAxisMinimumValueSpinBox->value());
-        axis->setMaximumValue(m_leftAxisMaximumValueSpinBox->value());
+        axis->setMinimumValue(m_bottomAxisMinimumValueSpinBox->value());
+        axis->setMaximumValue(m_bottomAxisMaximumValueSpinBox->value());
         invalidateColoringAndUpdateGraphicsWindow();
     }
 }

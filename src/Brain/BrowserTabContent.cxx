@@ -376,12 +376,14 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
     const Model* model = getModelForDisplay();
     
     if (model != NULL) {
+        bool chartFlag      = false;
         bool surfaceFlag    = false;
         bool surfaceMontageFlag = false;
         bool wholeBrainFlag = false;
         bool volumeFlag     = false;
         switch (model->getModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
+                chartFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_INVALID:
                 break;
@@ -399,7 +401,11 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
                 break;
         }
         
-        if (volumeFlag) {
+        if (chartFlag) {
+            model->getDescriptionOfContent(tabIndex,
+                                           descriptionOut);
+        }
+        else if (volumeFlag) {
             descriptionOut.addLine("Volume Slice View");
         }
         else if (wholeBrainFlag) {
@@ -447,7 +453,9 @@ BrowserTabContent::getDescriptionOfContent(PlainTextStringBuilder& descriptionOu
             descriptionOut.popIndentation();
         }
         
-        getOverlaySet()->getDescriptionOfContent(descriptionOut);
+        if ( ! chartFlag) {
+            getOverlaySet()->getDescriptionOfContent(descriptionOut);
+        }
     }
     
     descriptionOut.popIndentation();

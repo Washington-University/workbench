@@ -228,7 +228,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(const int32_t viewport[4
  */
 void
 BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(const int32_t viewport[4],
-                         BrainOpenGLTextRenderInterface* textRenderer,
+                         BrainOpenGLTextRenderInterface* /*textRenderer*/,
                          ChartModelDataSeries* chart)
 {
     CaretAssert(chart);
@@ -237,6 +237,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(const int32_t 
     if (chartVector.empty()) {
         return;
     }
+ 
+    glViewport(viewport[0],
+               viewport[1],
+               viewport[2],
+               viewport[3]);
     
     const ChartAxis* leftAxis = chart->getLeftAxis();
     const ChartAxis* bottomAxis = chart->getBottomAxis();

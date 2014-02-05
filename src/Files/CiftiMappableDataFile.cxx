@@ -3524,12 +3524,9 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
  *
  * @param 
  *     Data for the Y-axis.
- * @param loadingMessage
- *     Message describing the data that was loaded.
  */
 ChartDataCartesian*
-CiftiMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data,
-                                                    const AString& loadingMessage) throw (DataFileException)
+CiftiMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException)
 {
     ChartDataCartesian* chartData = NULL;
     
@@ -3629,11 +3626,6 @@ CiftiMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& da
             chartData->addPoint(xValue,
                                 data[i]);
         }
-        
-        const AString description = (getFileNameNoPath()
-                                     + " "
-                                     + loadingMessage);
-        chartData->setDescription(description);
     }
     
     return chartData;
@@ -3696,11 +3688,7 @@ CiftiMappableDataFile::helpLoadChartDataForSurfaceNodeAverage(const StructureEnu
                 for (int32_t k = 0; k < dataSumSize; k++) {
                     dataAverage[k] = dataSum[k] / dataAverageCount;
                 }
-                const AString loadMessage = ("average of "
-                                             + AString::number(dataAverageCount)
-                                             + " nodes");
-                chartData = helpCreateCartesianChartData(dataAverage,
-                                                         loadMessage);
+                chartData = helpCreateCartesianChartData(dataAverage);
             }
         }
     }
@@ -3734,10 +3722,7 @@ CiftiMappableDataFile::helpLoadChartDataForVoxelAtCoordinate(const float xyz[3])
     try {
         std::vector<float> data;
         if (getSeriesDataForVoxelAtCoordinate(xyz, data)) {
-            const AString loadMessage = ("voxel XYZ "
-                                         + AString::fromNumbers(xyz, 3, ","));
-            chartData = helpCreateCartesianChartData(data,
-                                                     loadMessage);
+            chartData = helpCreateCartesianChartData(data);
     
         }
     }
@@ -3777,10 +3762,7 @@ CiftiMappableDataFile::helpLoadChartDataForSurfaceNode(const StructureEnum::Enum
                                         nodeIndex,
                                         data)) {
             
-            const AString loadMessage = ("node "
-                                         + AString::number(nodeIndex));
-            chartData = helpCreateCartesianChartData(data,
-                                                     loadMessage);
+            chartData = helpCreateCartesianChartData(data);
 //            const int64_t numData = static_cast<int64_t>(data.size());
 //            
 //            

@@ -93,8 +93,6 @@ ChartDataCartesian::initializeMembersChartDataCartesian()
 {
     m_boundsValid       = false;
     m_color             = CaretColorEnum::RED;
-    m_description       = "";
-    m_encodedDataSource = "";
     m_timeStartInSecondsAxisX = 0.0;
     m_timeStepInSecondsAxisX  = 1.0;
     
@@ -129,10 +127,6 @@ ChartDataCartesian::initializeMembersChartDataCartesian()
                                                                 &m_dataAxisUnitsY);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_color",
                                                                 &m_color);
-    m_sceneAssistant->add("m_description",
-                          &m_description);
-    m_sceneAssistant->add("m_encodedDataSource",
-                          &m_encodedDataSource);
     m_sceneAssistant->add("m_timeStartInSecondsAxisX",
                           &m_timeStartInSecondsAxisX);
     m_sceneAssistant->add("m_timeStepInSecondsAxisX",
@@ -224,8 +218,6 @@ ChartDataCartesian::copyHelperChartDataCartesian(const ChartDataCartesian& obj)
 
     m_boundsValid       = false;
     m_color             = obj.m_color;
-    m_description       = obj.m_description;
-    m_encodedDataSource = obj.m_encodedDataSource;
     m_timeStartInSecondsAxisX = obj.m_timeStartInSecondsAxisX;
     m_timeStepInSecondsAxisX  = obj.m_timeStepInSecondsAxisX;
 }
@@ -402,47 +394,6 @@ ChartDataCartesian::getColor()
 }
 
 /**
- * @return Description of chart
- */
-AString
-ChartDataCartesian::getDescription() const
-{
-    return m_description;
-}
-
-/**
- * Set description of chart.
- *
- * @param description
- *    New value for chart description
- */
-void
-ChartDataCartesian::setDescription(const AString& description)
-{
-    m_description = description;
-}
-
-/**
- * @return Source of data encoded as a string.
- */
-AString
-ChartDataCartesian::getEncodedDataSource() const
-{
-    return m_encodedDataSource;
-}
-
-/**
- * Set source of data encoded as a string.
- * @param encodedDataSource
- *    New value for source of data encoded as a string.
- */
-void
-ChartDataCartesian::setEncodedDataSource(const AString& encodedDataSource)
-{
-    m_encodedDataSource = encodedDataSource;
-}
-
-/**
  * Save subclass data to the scene.  sceneClass
  * will be valid and any scene data should be added to it.
  *
@@ -528,9 +479,7 @@ ChartDataCartesian::restoreSubClassDataFromScene(const SceneAttributes* sceneAtt
                     sceneAttributes->addToErrorMessage("Tried to read "
                                                        + AString::number(numPoints2D)
                                                        + " but only got "
-                                                       + AString::number(i)
-                                                       + " for "
-                                                       + m_description);
+                                                       + AString::number(i));
                     break;
                 }
                 

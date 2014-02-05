@@ -55,6 +55,7 @@ using namespace caret;
  */
 ChartAxis::ChartAxis(const Axis axis)
 : CaretObject(),
+SceneableInterface(),
 m_axis(axis)
 {
     initializeMembersChartAxis();
@@ -96,7 +97,8 @@ ChartAxis::initializeMembersChartAxis()
  *    Object that is copied.
  */
 ChartAxis::ChartAxis(const ChartAxis& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     initializeMembersChartAxis();
     copyHelperChartAxis(obj);
