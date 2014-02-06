@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __CHART_MODEL_CARTESIAN_DECLARE__
 #include "ChartModelCartesian.h"
 #undef __CHART_MODEL_CARTESIAN_DECLARE__
@@ -39,6 +41,7 @@
 #include "CaretAssert.h"
 #include "ChartAxis.h"
 #include "ChartDataCartesian.h"
+#include "ChartScaleAutoRanging.h"
 
 using namespace caret;
 
@@ -152,6 +155,9 @@ ChartModelCartesian::resetAxesToDefaultRange()
         }
     }
     
+    ChartScaleAutoRanging::adjustAxisDefaultRange(boundsMinX, boundsMaxX);
+    ChartScaleAutoRanging::adjustAxisDefaultRange(boundsMinY, boundsMaxY);
+
     ChartAxis* ba = getBottomAxis();
     if (ba->isAutoRangeScale()) {
         ba->setMinimumValue(boundsMinX);
@@ -162,5 +168,5 @@ ChartModelCartesian::resetAxesToDefaultRange()
         la->setMinimumValue(boundsMinY);
         la->setMaximumValue(boundsMaxY);
     }
+    
 }
-

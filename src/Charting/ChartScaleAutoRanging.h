@@ -1,5 +1,5 @@
-#ifndef __CHART_MODEL_CARTESIAN_H__
-#define __CHART_MODEL_CARTESIAN_H__
+#ifndef __CHART_SCALE_AUTO_RANGING_H__
+#define __CHART_SCALE_AUTO_RANGING_H__
 
 /*LICENSE_START*/
 /*
@@ -35,42 +35,55 @@
 /*LICENSE_END*/
 
 
-#include "ChartAxisUnitsEnum.h"
-#include "ChartModel.h"
+#include "CaretObject.h"
+
 
 
 namespace caret {
 
-    class ChartModelCartesian : public ChartModel {
+    class ChartScaleAutoRanging : public CaretObject {
         
     public:
-        ChartModelCartesian(const ChartDataTypeEnum::Enum chartDataType,
-                                               const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                               const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+        static void adjustAxisDefaultRange(float& minValueInOut,
+                                           float& maxValueInOut);
         
-        virtual ~ChartModelCartesian();
         
-        ChartModelCartesian(const ChartModelCartesian& obj);
-
-        ChartModelCartesian& operator=(const ChartModelCartesian& obj);
-        
-        virtual void resetAxesToDefaultRange();
-        
-
-        // ADD_NEW_METHODS_HERE
-
     private:
-        void copyHelperChartModelCartesian(const ChartModelCartesian& obj);
-
-        void adjustAxisDefaultRange(float& minValue,
-                                    float& maxValue);
+        ChartScaleAutoRanging();
+        
+        virtual ~ChartScaleAutoRanging();
+        
+        ChartScaleAutoRanging(const ChartScaleAutoRanging&);
+        
+        ChartScaleAutoRanging& operator=(const ChartScaleAutoRanging&);
+        
+    public:
+        
+        // ADD_NEW_METHODS_HERE
+        
+        virtual AString toString() const;
+        
+    private:
+        static double adjustValueMagnitude(const double valueIn,
+                                           const double rangeIn,
+                                           const bool increaseMagnitudeFlag);
+        
+        static bool isZero(const double value);
+        
+        static double adjustValueUp(double valueIn,
+                                    const double range);
+        
+        static double adjustValueDown(double valueIn,
+                                      const double range);
+        
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_MODEL_CARTESIAN_DECLARE__
+#ifdef __CHART_SCALE_AUTO_RANGING_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_CARTESIAN_DECLARE__
+#endif // __CHART_SCALE_AUTO_RANGING_DECLARE__
 
 } // namespace
-#endif  //__CHART_MODEL_CARTESIAN_H__
+#endif  //__CHART_SCALE_AUTO_RANGING_H__

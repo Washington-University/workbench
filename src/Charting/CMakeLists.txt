@@ -21,6 +21,7 @@ ChartModelCartesian.h
 ChartModelDataSeries.h
 ChartModelMatrix.h
 ChartPoint.h
+ChartScaleAutoRanging.h
 
 ChartAxis.cxx
 ChartAxisUnitsEnum.cxx
@@ -35,6 +36,7 @@ ChartModelCartesian.cxx
 ChartModelDataSeries.cxx
 ChartModelMatrix.cxx
 ChartPoint.cxx
+ChartScaleAutoRanging.cxx
 )
 
 #
