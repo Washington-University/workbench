@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #undef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
@@ -42,6 +44,7 @@
 #include "ChartAxis.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
+#include "CaretLogger.h"
 #include "ChartModelDataSeries.h"
 #include "ChartPoint.h"
 
@@ -85,9 +88,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                                                 BrainOpenGLTextRenderInterface* textRenderer,
                                                 ChartModel* chart)
 {
-    if (chart == NULL) {
-        return;
-    }
     
     saveStateOfOpenGL();
     
@@ -96,107 +96,362 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
     const int32_t vpWidth  = viewport[2];
     const int32_t vpHeight = viewport[3];
     
+    int32_t chartGraphicsDrawingViewport[4] = {
+        vpX,
+        vpY,
+        vpWidth,
+        vpHeight
+    };
+    
+    
+    /*
+     * Margin is region around the chart in which 
+     * the axes legends, values, and ticks are drawn.
+     */
     const int32_t marginSize = 30;
     
-    if ((vpX > (marginSize * 3))
-        && (vpY > (marginSize * 3))) {
+    /*
+     * Ensure that there is sufficient space for the axes data display.
+     */
+    if ((vpWidth > (marginSize * 3))
+        && (vpHeight > (marginSize * 3))) {
         
         /* Draw legends and grids */
+        drawChartAxis(vpX,
+                      vpY,
+                      vpWidth,
+                      vpHeight,
+                      marginSize,
+                      textRenderer,
+                      chart->getLeftAxis());
+        
+        drawChartAxis(vpX,
+                      vpY,
+                      vpWidth,
+                      vpHeight,
+                      marginSize,
+                      textRenderer,
+                      chart->getRightAxis());
+        
+        drawChartAxis(vpX,
+                      vpY,
+                      vpWidth,
+                      vpHeight,
+                      marginSize,
+                      textRenderer,
+                      chart->getBottomAxis());
+        
+        drawChartAxis(vpX,
+                      vpY,
+                      vpWidth,
+                      vpHeight,
+                      marginSize,
+                      textRenderer,
+                      chart->getTopAxis());
+        
+        
+        drawChartAxesGrid(vpX,
+                          vpY,
+                          vpWidth,
+                          vpHeight,
+                          marginSize,
+                          chartGraphicsDrawingViewport);
+        
+//        const float gridLineWidth = 2;
+//        const float halfGridLineWidth = gridLineWidth / 2.0;
+//
+//        const float gridLeft   = vpX + marginSize;
+//        const float gridRight  = vpX + vpWidth - marginSize;
+//        const float gridBottom = vpY + marginSize;
+//        const float gridTop    = vpY + vpHeight - marginSize;
+//        
+//        glMatrixMode(GL_PROJECTION);
+//        glLoadIdentity();
+//        glOrtho(vpX, (vpX + vpWidth),
+//                vpY, (vpY + vpHeight),
+//                -1.0, 1.0);
+//        
+//        glMatrixMode(GL_MODELVIEW);
+//        glLoadIdentity();
+//        
+//        glLineWidth(gridLineWidth);
+//        
+//        glColor3f(1.0, 1.0, 1.0);
+//        glBegin(GL_LINES);
+//        
+//        /* bottom line */
+//        glVertex3f(gridLeft,  gridBottom + halfGridLineWidth, 0.0);
+//        glVertex3f(gridRight, gridBottom + halfGridLineWidth, 0.0);
+//        
+//        /* right line */
+//        glVertex3f(gridRight - halfGridLineWidth, gridBottom, 0.0);
+//        glVertex3f(gridRight - halfGridLineWidth, gridTop,    0.0);
+//        
+//        /* top line */
+//        glVertex3f(gridRight, gridTop - halfGridLineWidth, 0.0);
+//        glVertex3f(gridLeft,  gridTop - halfGridLineWidth, 0.0);
+//        
+//        /* left line */
+//        glVertex3f(gridLeft + halfGridLineWidth, gridTop,    0.0);
+//        glVertex3f(gridLeft + halfGridLineWidth, gridBottom, 0.0);
+//        
+//        glEnd();
+//
+//        /*
+//         * Region inside the grid's box
+//         */
+//        const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + std::ceil(gridLineWidth  + 1.0));
+//        const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - std::floor(gridLineWidth + 1.0));
+//        const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + std::ceil(gridLineWidth  + 1.0));
+//        const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - std::floor(gridLineWidth + 1.0));
+//        
+//        const int32_t graphicsWidth = graphicsRight - graphicsLeft;
+//        const int32_t graphicsHeight = graphicsTop  - graphicsBottom;
+//        chartGraphicsDrawingViewport[0] = graphicsLeft;
+//        chartGraphicsDrawingViewport[1] = graphicsBottom;
+//        chartGraphicsDrawingViewport[2] = graphicsWidth;
+//        chartGraphicsDrawingViewport[3] = graphicsHeight;
     }
     
-    const int32_t chartViewport[4] = {
-        vpX + marginSize,
-        vpY + marginSize,
-        vpWidth  - (marginSize * 2),
-        vpHeight - (marginSize * 2)
-    };
-
-    drawChartGraphics(chartViewport,
-                      textRenderer,
-                      chart);
+    glViewport(chartGraphicsDrawingViewport[0],
+               chartGraphicsDrawingViewport[1],
+               chartGraphicsDrawingViewport[2],
+               chartGraphicsDrawingViewport[3]);
+    
+    if (chart != NULL) {
+        drawChartGraphics(textRenderer,
+                          chart);
+    }
     
     restoreStateOfOpenGL();
 }
 
 /**
- * Draw graphics for the given chart in the given viewport.
+ * Draw the chart axes grid/box
  *
- * @param viewport
- *     Viewport for the chart.
+ * @param vpX
+ *     Viewport X
+ * @param vpY
+ *     Viewport Y
+ * @param vpWidth
+ *     Viewport width
+ * @param vpHeight
+ *     Viewport height
+ * @param marginSize
+ *     Margin around grid/box
+ * @param textRenderer
+ *     Text rendering.
+ * @param axis
+ *     Axis that is drawn.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
+                                                    const float vpY,
+                                                    const float vpWidth,
+                                                    const float vpHeight,
+                                                    const float marginSize,
+                                                    BrainOpenGLTextRenderInterface* textRenderer,
+                                                    const ChartAxis* axis)
+{
+    CaretAssert(axis);
+
+    if ( ! axis->isVisible()) {
+        return;
+    }
+    
+    const AString text = axis->getText();
+    if (text.isEmpty()) {
+        return;
+    }
+    
+    const float minValue = axis->getMinimumValue();
+    const float maxValue = axis->getMaximumValue();
+    
+    float textCenterX = 0;
+    float textCenterY = 0;
+    
+    int32_t textVpX = vpX;
+    int32_t textVpY = vpY;
+    int32_t textVpWidth = vpWidth;
+    int32_t textVpHeight = vpHeight;
+    
+    bool drawTextVerticalFlag = false;
+    
+    switch (axis->getAxis()) {
+        case ChartAxis::AXIS_BOTTOM:
+            textVpX = vpX;
+            textVpY = vpY;;
+            textVpWidth = vpWidth;
+            textVpHeight = marginSize;
+            textCenterX = vpX + (vpWidth / 2.0);
+            textCenterY = vpY + (marginSize / 2.0);
+            break;
+        case ChartAxis::AXIS_LEFT:
+            textVpX = vpX;
+            textVpY = vpY;
+            textVpWidth = marginSize;
+            textVpHeight = vpHeight;
+            textCenterX = (marginSize / 2.0);
+            textCenterY = (vpHeight / 2.0);
+            drawTextVerticalFlag = true;
+            break;
+        case ChartAxis::AXIS_RIGHT:
+            CaretAssert(0);
+            drawTextVerticalFlag = true;
+            break;
+        case ChartAxis::AXIS_TOP:
+            textVpX = vpX;
+            textVpY = vpY + vpHeight - marginSize;
+            textVpWidth = vpWidth;
+            textVpHeight = marginSize;
+            textCenterX = (vpWidth / 2.0);
+            textCenterY = (marginSize / 2.0);
+            break;
+    }
+    
+    glViewport(textVpX,
+               textVpY,
+               textVpWidth,
+               textVpHeight);
+    
+    glMatrixMode(GL_PROJECTION);
+    glOrtho(0, textVpWidth, 0, textVpHeight, -1.0, 1.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    glColor3f(1.0, 1.0, 0.0);
+    
+    const int viewport[4] = {
+        textVpX,
+        textVpY,
+        textVpWidth,
+        textVpHeight
+    };
+    
+    if (drawTextVerticalFlag) {
+        textRenderer->drawVerticalTextAtWindowCoords(viewport,
+                                                     textCenterX,
+                                                     textCenterY,
+                                                     text,
+                                                     BrainOpenGLTextRenderInterface::X_CENTER,
+                                                     BrainOpenGLTextRenderInterface::Y_CENTER);
+    }
+    else {
+        textRenderer->drawTextAtWindowCoords(viewport,
+                                             textCenterX,
+                                             textCenterY,
+                                             text,
+                                             BrainOpenGLTextRenderInterface::X_CENTER,
+                                             BrainOpenGLTextRenderInterface::Y_CENTER);
+    }
+//    textRenderer->drawTextAtModelCoords(textCenterX,
+//                                        textCenterY,
+//                                        0.0,
+//                                        text);
+}
+
+
+/**
+ * Draw the chart axes grid/box
+ *
+ * @param vpX
+ *     Viewport X
+ * @param vpY
+ *     Viewport Y
+ * @param vpWidth
+ *     Viewport width
+ * @param vpHeight
+ *     Viewport height
+ * @param marginSize
+ *     Margin around grid/box
+ * @param chartGraphicsDrawingViewportOut
+ *     Output containing viewport for drawing chart graphics within
+ *     the box/grid
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::drawChartAxesGrid(const float vpX,
+                       const float vpY,
+                       const float vpWidth,
+                       const float vpHeight,
+                       const float marginSize,
+                       int32_t chartGraphicsDrawingViewportOut[4])
+{
+    
+    const float gridLineWidth = 2;
+    const float halfGridLineWidth = gridLineWidth / 2.0;
+    
+    const float gridLeft   = vpX + marginSize;
+    const float gridRight  = vpX + vpWidth - marginSize;
+    const float gridBottom = vpY + marginSize;
+    const float gridTop    = vpY + vpHeight - marginSize;
+    
+    glViewport(vpX,
+               vpY,
+               vpWidth,
+               vpHeight);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(vpX, (vpX + vpWidth),
+            vpY, (vpY + vpHeight),
+            -1.0, 1.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    glLineWidth(gridLineWidth);
+    
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_LINES);
+    
+    /* bottom line */
+    glVertex3f(gridLeft,  gridBottom + halfGridLineWidth, 0.0);
+    glVertex3f(gridRight, gridBottom + halfGridLineWidth, 0.0);
+    
+    /* right line */
+    glVertex3f(gridRight - halfGridLineWidth, gridBottom, 0.0);
+    glVertex3f(gridRight - halfGridLineWidth, gridTop,    0.0);
+    
+    /* top line */
+    glVertex3f(gridRight, gridTop - halfGridLineWidth, 0.0);
+    glVertex3f(gridLeft,  gridTop - halfGridLineWidth, 0.0);
+    
+    /* left line */
+    glVertex3f(gridLeft + halfGridLineWidth, gridTop,    0.0);
+    glVertex3f(gridLeft + halfGridLineWidth, gridBottom, 0.0);
+    
+    glEnd();
+    
+    /*
+     * Region inside the grid's box
+     */
+    const int32_t graphicsLeft   = static_cast<int32_t>(gridLeft   + std::ceil(gridLineWidth  + 1.0));
+    const int32_t graphicsRight  = static_cast<int32_t>(gridRight  - std::floor(gridLineWidth + 1.0));
+    const int32_t graphicsBottom = static_cast<int32_t>(gridBottom + std::ceil(gridLineWidth  + 1.0));
+    const int32_t graphicsTop    = static_cast<int32_t>(gridTop    - std::floor(gridLineWidth + 1.0));
+    
+    const int32_t graphicsWidth = graphicsRight - graphicsLeft;
+    const int32_t graphicsHeight = graphicsTop  - graphicsBottom;
+    chartGraphicsDrawingViewportOut[0] = graphicsLeft;
+    chartGraphicsDrawingViewportOut[1] = graphicsBottom;
+    chartGraphicsDrawingViewportOut[2] = graphicsWidth;
+    chartGraphicsDrawingViewportOut[3] = graphicsHeight;
+}
+/**
+ * Draw graphics for the given chart.
+ *
  * @param textRenderer
  *     Text rendering.
  * @param chart
  *     Chart that is drawn.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(const int32_t viewport[4],
-                     BrainOpenGLTextRenderInterface* textRenderer,
-                     ChartModel* chart)
+BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
+                                                        ChartModel* chart)
 {
     CaretAssert(chart);
-    
-    glViewport(viewport[0],
-               viewport[1],
-               viewport[2],
-               viewport[3]);
-    
-    glColor3f(1.0, 1.0, 1.0);
-    
-    float left   = viewport[0];
-    float right  = left + viewport[2];
-    float bottom = viewport[1];
-    float top    = bottom + viewport[3];
-    
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(left, right,
-            bottom, top,
-            -1.0, 1.0);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    const float lineWidth = 2.0;
-    glLineWidth(lineWidth);
-    const float halfLineWidth = lineWidth / 2.0;
-    const float boxLeft = left;
-    const float boxRight = right;
-    const float boxBottom = bottom;
-    const float boxTop = top;
-    
-    
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_LINES);
-
-    /* bottom line */
-    glVertex3f(boxLeft,  boxBottom + halfLineWidth, 0.0);
-    glVertex3f(boxRight, boxBottom + halfLineWidth, 0.0);
-    
-    /* right line */
-    glVertex3f(boxRight - halfLineWidth, boxBottom, 0.0);
-    glVertex3f(boxRight - halfLineWidth, boxTop,    0.0);
-    
-    /* top line */
-    glVertex3f(boxRight, boxTop - halfLineWidth, 0.0);
-    glVertex3f(boxLeft,  boxTop - halfLineWidth, 0.0);
-
-    /* left line */
-    glVertex3f(boxLeft + halfLineWidth, boxTop,    0.0);
-    glVertex3f(boxLeft + halfLineWidth, boxBottom, 0.0);
-    
-    glEnd();
-    
-    const int32_t chartViewport[4] = {
-        viewport[0] + lineWidth,
-        viewport[1] + lineWidth,
-        viewport[2] - (lineWidth * 2.0),
-        viewport[3] - (lineWidth * 2.0)
-    };
-    glViewport(chartViewport[0],
-               chartViewport[1],
-               chartViewport[2],
-               chartViewport[3]);
-    
+        
     switch (chart->getChartDataType()) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
@@ -204,32 +459,27 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(const int32_t viewport[4
             CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            drawChartGraphicsLineSeries(viewport,
-                                        textRenderer,
+            drawChartGraphicsLineSeries(textRenderer,
                                         dynamic_cast<ChartModelDataSeries*>(chart));
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-            drawChartGraphicsLineSeries(viewport,
-                                        textRenderer,
+            drawChartGraphicsLineSeries(textRenderer,
                                         dynamic_cast<ChartModelDataSeries*>(chart));
             break;
     }
 }
 
 /**
- * Draw graphics for the given line series chart in the given viewport.
+ * Draw graphics for the given line series chart.
  *
- * @param viewport
- *     Viewport for the chart.
  * @param textRenderer
  *     Text rendering.
  * @param chart
  *     Chart that is drawn.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(const int32_t viewport[4],
-                         BrainOpenGLTextRenderInterface* /*textRenderer*/,
-                         ChartModelDataSeries* chart)
+BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTextRenderInterface* /*textRenderer*/,
+                                                                  ChartModelDataSeries* chart)
 {
     CaretAssert(chart);
     
@@ -238,11 +488,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(const int32_t 
         return;
     }
  
-    glViewport(viewport[0],
-               viewport[1],
-               viewport[2],
-               viewport[3]);
-    
     const ChartAxis* leftAxis = chart->getLeftAxis();
     const ChartAxis* bottomAxis = chart->getBottomAxis();
     
@@ -289,6 +534,21 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(const int32_t 
 //    glVertex3f((xMin + xMax) / 2.0, yMax, 0.0);
 //    glEnd();
     
+}
+
+/**
+ * Draw graphics for the matrix chart..
+ *
+ * @param textRenderer
+ *     Text rendering.
+ * @param chart
+ *     Chart that is drawn.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* /*textRenderer*/,
+                                                              ChartModelMatrix* /*chart*/)
+{
+    CaretAssert(0);
 }
 
 

@@ -112,6 +112,56 @@ namespace caret {
                                             const AString& fontName = "") = 0;
         
         /**
+         * Draw text at the given window coordinates.
+         *
+         * @param viewport
+         *   The current viewport.
+         * @param windowX
+         *   X-coordinate in the window of first text character
+         *   using the 'alignment'
+         * @param windowY
+         *   Y-coordinate in the window at which bottom of text is placed.
+         * @param text
+         *   Text that is to be drawn.
+         * @param alignmentX
+         *   Alignment of text in X
+         * @param alignmentY
+         *   Alignment of text in Y
+         * @param textStyle
+         *   Style of the text.
+         * @param fontHeight
+         *   Height of the text.
+         * @param fontName
+         *   Name of the font.
+         */
+        virtual void drawVerticalTextAtWindowCoords(const int viewport[4],
+                                            const int windowX,
+                                            const int windowY,
+                                            const QString& text,
+                                            const TextAlignmentX alignmentX,
+                                            const TextAlignmentY alignmentY,
+                                            const TextStyle textStyle = NORMAL,
+                                            const int fontHeight = 14,
+                                            const AString& fontName = "")
+        {
+            const int32_t numChars = text.length();
+            int y = windowY + ((numChars * fontHeight) / 2.0);
+            
+            for (int32_t i = 0; i < text.length(); i++) {
+                drawTextAtWindowCoords(viewport,
+                                       windowX,
+                                       y,
+                                       text[i],
+                                       alignmentX,
+                                       alignmentY,
+                                       textStyle,
+                                       fontHeight,
+                                       fontName);
+                y -= fontHeight;
+            }
+        }
+        
+       /**
          * Draw text at the given model coordinates.
          *
          * @param modelX

@@ -41,6 +41,7 @@
 
 namespace caret {
 
+    class ChartAxis;
     class ChartModelDataSeries;
     class ChartModelMatrix;
     
@@ -59,18 +60,30 @@ namespace caret {
 
         BrainOpenGLChartDrawingFixedPipeline& operator=(const BrainOpenGLChartDrawingFixedPipeline&);
         
-        void drawChartGraphics(const int32_t viewport[4],
-                               BrainOpenGLTextRenderInterface* textRenderer,
+        void drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
                                ChartModel* chart);
         
-        void drawChartGraphicsLineSeries(const int32_t viewport[4],
-                                         BrainOpenGLTextRenderInterface* textRenderer,
+        void drawChartGraphicsLineSeries( BrainOpenGLTextRenderInterface* textRenderer,
                                          ChartModelDataSeries* chart);
         
-        void drawChartGraphicsMatrix(const int32_t viewport[4],
-                                     BrainOpenGLTextRenderInterface* textRenderer,
+        void drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartModelMatrix* chart);
 
+        void drawChartAxesGrid(const float vpX,
+                               const float vpY,
+                               const float vpWidth,
+                               const float vpHeight,
+                               const float marginSize,
+                               int32_t chartGraphicsDrawingViewportOut[4]);
+        
+        void drawChartAxis(const float vpX,
+                           const float vpY,
+                           const float vpWidth,
+                           const float vpHeight,
+                           const float marginSize,
+                           BrainOpenGLTextRenderInterface* textRenderer,
+                           const ChartAxis* axis);
+        
         void restoreStateOfOpenGL();
         
         void saveStateOfOpenGL();
