@@ -165,7 +165,7 @@ void CiftiSeriesMap::writeXML1(QXmlStreamWriter& xml) const
     }
     xml.writeAttribute("IndicesMapToDataType", "CIFTI_INDEX_TYPE_TIME_POINTS");
     float mult = 1.0f;
-    AString unitString = "NIFTI_UNITS_SEC";
+    QString unitString = "NIFTI_UNITS_SEC";
     float test = m_step;
     if (test == 0.0f) test = m_start;
     if (test != 0.0f)
@@ -180,8 +180,8 @@ void CiftiSeriesMap::writeXML1(QXmlStreamWriter& xml) const
         }
     }
     xml.writeAttribute("TimeStepUnits", unitString);
-    xml.writeAttribute("TimeStart", AString::number(mult * m_start, 'f', 10));//even though it is nonstandard, write it, always
-    xml.writeAttribute("TimeStep", AString::number(mult * m_step, 'f', 10));
+    xml.writeAttribute("TimeStart", QString::number(mult * m_start, 'f', 10));//even though it is nonstandard, write it, always
+    xml.writeAttribute("TimeStep", QString::number(mult * m_step, 'f', 10));
 }
 
 void CiftiSeriesMap::writeXML2(QXmlStreamWriter& xml) const
@@ -196,7 +196,7 @@ void CiftiSeriesMap::writeXML2(QXmlStreamWriter& xml) const
         exponent = 3 * (int)floor((log10(test) - log10(0.05f)) / 3.0f);//some magic to get the exponent that is a multiple of 3 that puts the test value in [0.05, 50]
     }
     float mult = pow(10.0f, -exponent);
-    AString unitString;
+    QString unitString;
     switch (m_unit)
     {
         case HERTZ:
@@ -212,9 +212,9 @@ void CiftiSeriesMap::writeXML2(QXmlStreamWriter& xml) const
             unitString = "SECOND";
             break;
     }
-    xml.writeAttribute("NumberOfSeriesPoints", AString::number(m_length));
-    xml.writeAttribute("SeriesExponent", AString::number(exponent));
-    xml.writeAttribute("SeriesStart", AString::number(mult * m_start, 'f', 10));
-    xml.writeAttribute("SeriesStep", AString::number(mult * m_step, 'f', 10));
+    xml.writeAttribute("NumberOfSeriesPoints", QString::number(m_length));
+    xml.writeAttribute("SeriesExponent", QString::number(exponent));
+    xml.writeAttribute("SeriesStart", QString::number(mult * m_start, 'f', 10));
+    xml.writeAttribute("SeriesStep", QString::number(mult * m_step, 'f', 10));
     xml.writeAttribute("SeriesUnit", unitString);
 }

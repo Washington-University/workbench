@@ -148,7 +148,7 @@ void CiftiXMLNew::setNumberOfDimensions(const int& num)
     m_indexMaps.resize(num);
 }
 
-void CiftiXMLNew::readXML(const AString& text)
+void CiftiXMLNew::readXML(const QString& text)
 {
     QXmlStreamReader xml(text);
     readXML(xml);
@@ -547,9 +547,9 @@ QByteArray CiftiXMLNew::writeXMLToQByteArray(const CiftiVersion& writingVersion)
     return ret;
 }
 
-AString CiftiXMLNew::writeXMLToString(const CiftiVersion& writingVersion) const
+QString CiftiXMLNew::writeXMLToString(const CiftiVersion& writingVersion) const
 {
-    AString ret;
+    QString ret;
     QXmlStreamWriter xml(&ret);
     xml.setAutoFormatting(true);
     writeXML(xml, writingVersion);
@@ -582,7 +582,7 @@ void CiftiXMLNew::writeMatrix1(QXmlStreamWriter& xml) const
     VolumeSpace volSpace;
     for (int i = 0; i < numDims; ++i)
     {
-        if (m_indexMaps[i] == NULL) throw CaretException("dimension " + AString::number(i) + " was not given a mapping");
+        if (m_indexMaps[i] == NULL) throw CaretException("dimension " + QString::number(i) + " was not given a mapping");
         switch (m_indexMaps[i]->getType())
         {
             case CiftiIndexMap::BRAIN_MODELS:
@@ -643,7 +643,7 @@ void CiftiXMLNew::writeMatrix1(QXmlStreamWriter& xml) const
             used[i] = true;
             int outputNum = i;
             if (outputNum < 2) outputNum = 1 - outputNum;//ie, swap 0 and 1
-            AString appliesTo = AString::number(outputNum);//initialize containing just the current dimension
+            QString appliesTo = QString::number(outputNum);//initialize containing just the current dimension
             for (int j = i + 1; j < numDims; ++j)//compare to all later unused dimensions for deduplication
             {//technically, shouldn't need to check for previously used as long as equality is exact, but means maybe fewer comparisons, and to prevent a bug in == from getting stranger behavior
                 if (!used[j])
@@ -652,7 +652,7 @@ void CiftiXMLNew::writeMatrix1(QXmlStreamWriter& xml) const
                     {
                         outputNum = j;
                         if (outputNum < 2) outputNum = 1 - outputNum;
-                        appliesTo += "," + AString::number(outputNum);
+                        appliesTo += "," + QString::number(outputNum);
                         used[j] = true;
                     }
                 }
@@ -671,7 +671,7 @@ void CiftiXMLNew::writeMatrix2(QXmlStreamWriter& xml) const
     int numDims = (int)m_indexMaps.size();
     for (int i = 0; i < numDims; ++i)
     {
-        if (m_indexMaps[i] == NULL) throw CaretException("dimension " + AString::number(i) + " was not given a mapping");
+        if (m_indexMaps[i] == NULL) throw CaretException("dimension " + QString::number(i) + " was not given a mapping");
     }
     xml.writeStartElement("Matrix");
     if (m_filePalette != NULL)
@@ -685,14 +685,14 @@ void CiftiXMLNew::writeMatrix2(QXmlStreamWriter& xml) const
         if (!used[i])
         {
             used[i] = true;
-            AString appliesTo = AString::number(i);//initialize containing just the current dimension
+            QString appliesTo = QString::number(i);//initialize containing just the current dimension
             for (int j = i + 1; j < numDims; ++j)//compare to all later unused dimensions for deduplication
             {//technically, shouldn't need to check for previously used as long as equality is exact, but means maybe fewer comparisons, and to prevent a bug in == from getting stranger behavior
                 if (!used[j])
                 {
                     if ((*m_indexMaps[i]) == (*m_indexMaps[j]))
                     {
-                        appliesTo += "," + AString::number(j);
+                        appliesTo += "," + QString::number(j);
                         used[j] = true;
                     }
                 }

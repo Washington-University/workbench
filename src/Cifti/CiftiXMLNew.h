@@ -26,7 +26,6 @@
  */
 /*LICENSE_END*/
 
-#include "AString.h"
 #include "CaretPointer.h"
 #include "CiftiIndexMap.h"
 #include "CiftiVersion.h"
@@ -75,10 +74,10 @@ namespace caret
         void setMap(const int& direction, const CiftiIndexMap& mapIn);
         
         void readXML(QXmlStreamReader& xml);
-        void readXML(const AString& text);
+        void readXML(const QString& text);
         void readXML(const QByteArray& data);
         
-        AString writeXMLToString(const CiftiVersion& writingVersion = CiftiVersion()) const;
+        QString writeXMLToString(const CiftiVersion& writingVersion = CiftiVersion()) const;
         QByteArray writeXMLToQByteArray(const CiftiVersion& writingVersion = CiftiVersion()) const;
         void writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersion = CiftiVersion()) const;
         

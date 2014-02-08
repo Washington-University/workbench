@@ -43,7 +43,7 @@ GiftiMetaData* CiftiScalarsMap::getMapMetadata(const int64_t& index) const
     return &(m_maps[index].m_metaData);
 }
 
-const AString& CiftiScalarsMap::getMapName(const int64_t& index) const
+const QString& CiftiScalarsMap::getMapName(const int64_t& index) const
 {
     CaretAssertVectorIndex(m_maps, index);
     return m_maps[index].m_name;
@@ -80,7 +80,7 @@ void CiftiScalarsMap::setLength(const int64_t& length)
     m_maps.resize(length);
 }
 
-void CiftiScalarsMap::setMapName(const int64_t& index, const AString& mapName)
+void CiftiScalarsMap::setMapName(const int64_t& index, const QString& mapName)
 {
     CaretAssertVectorIndex(m_maps, index);
     m_maps[index].m_name = mapName;

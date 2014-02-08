@@ -535,7 +535,7 @@ CiftiParcelsMap::Parcel CiftiParcelsMap::readParcel2(QXmlStreamReader& xml)
 vector<int64_t> CiftiParcelsMap::readIndexArray(QXmlStreamReader& xml)
 {
     vector<int64_t> ret;
-    AString text = xml.readElementText();//raises error if it encounters a start element
+    QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
     QStringList separated = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
     int64_t numElems = separated.size();
@@ -561,7 +561,7 @@ void CiftiParcelsMap::writeXML1(QXmlStreamWriter& xml) const
     {
         xml.writeStartElement("Surface");
         xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(iter->first));
-        xml.writeAttribute("SurfaceNumberOfNodes", AString::number(iter->second.m_numNodes));
+        xml.writeAttribute("SurfaceNumberOfNodes", QString::number(iter->second.m_numNodes));
         xml.writeEndElement();
     }
     int64_t numParcels = m_parcels.size();
@@ -575,7 +575,7 @@ void CiftiParcelsMap::writeXML1(QXmlStreamWriter& xml) const
             xml.writeStartElement("VoxelIndicesIJK");
             for (set<VoxelIJK>::const_iterator iter = m_parcels[i].m_voxelIndices.begin(); iter != m_parcels[i].m_voxelIndices.end(); ++iter)
             {
-                xml.writeCharacters(AString::number(iter->m_ijk[0]) + " " + AString::number(iter->m_ijk[1]) + " " + AString::number(iter->m_ijk[2]) + "\n");
+                xml.writeCharacters(QString::number(iter->m_ijk[0]) + " " + QString::number(iter->m_ijk[1]) + " " + QString::number(iter->m_ijk[2]) + "\n");
             }
             xml.writeEndElement();
         }
@@ -586,11 +586,11 @@ void CiftiParcelsMap::writeXML1(QXmlStreamWriter& xml) const
                 xml.writeStartElement("Nodes");
                 xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(iter->first));
                 set<int64_t>::const_iterator iter2 = iter->second.begin();//which also allows us to write the first one outside the loop, to not add whitespace on the front or back
-                xml.writeCharacters(AString::number(*iter2));
+                xml.writeCharacters(QString::number(*iter2));
                 ++iter2;
                 for (; iter2 != iter->second.end(); ++iter2)
                 {
-                    xml.writeCharacters(" " + AString::number(*iter2));
+                    xml.writeCharacters(" " + QString::number(*iter2));
                 }
                 xml.writeEndElement();
             }
@@ -611,7 +611,7 @@ void CiftiParcelsMap::writeXML2(QXmlStreamWriter& xml) const
     {
         xml.writeStartElement("Surface");
         xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(iter->first));
-        xml.writeAttribute("SurfaceNumberOfVertices", AString::number(iter->second.m_numNodes));
+        xml.writeAttribute("SurfaceNumberOfVertices", QString::number(iter->second.m_numNodes));
         xml.writeEndElement();
     }
     int64_t numParcels = m_parcels.size();
@@ -625,7 +625,7 @@ void CiftiParcelsMap::writeXML2(QXmlStreamWriter& xml) const
             xml.writeStartElement("VoxelIndicesIJK");
             for (set<VoxelIJK>::const_iterator iter = m_parcels[i].m_voxelIndices.begin(); iter != m_parcels[i].m_voxelIndices.end(); ++iter)
             {
-                xml.writeCharacters(AString::number(iter->m_ijk[0]) + " " + AString::number(iter->m_ijk[1]) + " " + AString::number(iter->m_ijk[2]) + "\n");
+                xml.writeCharacters(QString::number(iter->m_ijk[0]) + " " + QString::number(iter->m_ijk[1]) + " " + QString::number(iter->m_ijk[2]) + "\n");
             }
             xml.writeEndElement();
         }
@@ -636,11 +636,11 @@ void CiftiParcelsMap::writeXML2(QXmlStreamWriter& xml) const
                 xml.writeStartElement("Vertices");
                 xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(iter->first));
                 set<int64_t>::const_iterator iter2 = iter->second.begin();//which also allows us to write the first one outside the loop, to not add whitespace on the front or back
-                xml.writeCharacters(AString::number(*iter2));
+                xml.writeCharacters(QString::number(*iter2));
                 ++iter2;
                 for (; iter2 != iter->second.end(); ++iter2)
                 {
-                    xml.writeCharacters(" " + AString::number(*iter2));
+                    xml.writeCharacters(" " + QString::number(*iter2));
                 }
                 xml.writeEndElement();
             }

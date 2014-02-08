@@ -28,7 +28,6 @@
 
 #include "CiftiIndexMap.h"
 
-#include "AString.h"
 #include "CaretCompact3DLookup.h"
 #include "StructureEnum.h"
 #include "VolumeSpace.h"
@@ -47,7 +46,7 @@ namespace caret
         {
             std::map<StructureEnum::Enum, std::set<int64_t> > m_surfaceNodes;
             std::set<VoxelIJK> m_voxelIndices;
-            AString m_name;
+            QString m_name;
             bool operator==(const Parcel& rhs) const;
             bool operator!=(const Parcel& rhs) const { return !((*this) == rhs); }
             bool approximateMatch(const Parcel& rhs) const;

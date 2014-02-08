@@ -473,10 +473,10 @@ void CiftiBrainModelsMap::readXML1(QXmlStreamReader& xml)
         {
             if (parsedModels[i].m_offset < curOffset)
             {
-                xml.raiseError("models overlap at index " + AString::number(parsedModels[i].m_offset) + ", model " + AString::number(i));
+                xml.raiseError("models overlap at index " + QString::number(parsedModels[i].m_offset) + ", model " + QString::number(i));
                 return;
             } else {
-                xml.raiseError("index " + AString::number(curOffset) + " is not assigned to any model");
+                xml.raiseError("index " + QString::number(curOffset) + " is not assigned to any model");
                 return;
             }
         }
@@ -543,10 +543,10 @@ void CiftiBrainModelsMap::readXML2(QXmlStreamReader& xml)
         {
             if (parsedModels[i].m_offset < curOffset)
             {
-                xml.raiseError("models overlap at index " + AString::number(parsedModels[i].m_offset) + ", model " + AString::number(i));
+                xml.raiseError("models overlap at index " + QString::number(parsedModels[i].m_offset) + ", model " + QString::number(i));
                 return;
             } else {
-                xml.raiseError("index " + AString::number(curOffset) + " is not assigned to any model");
+                xml.raiseError("index " + QString::number(curOffset) + " is not assigned to any model");
                 return;
             }
         }
@@ -810,7 +810,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel2(QXmlStreamReader& x
 vector<int64_t> CiftiBrainModelsMap::ParseHelperModel::readIndexArray(QXmlStreamReader& xml)
 {
     vector<int64_t> ret;
-    AString text = xml.readElementText();//raises error if it encounters a start element
+    QString text = xml.readElementText();//raises error if it encounters a start element
     if (xml.hasError()) return ret;
     QStringList separated = text.split(QRegExp("\\s+"), QString::SkipEmptyParts);
     int64_t numElems = separated.size();
@@ -837,32 +837,32 @@ void CiftiBrainModelsMap::writeXML1(QXmlStreamWriter& xml) const
     {
         const BrainModelPriv& myModel = m_modelsInfo[i];
         xml.writeStartElement("BrainModel");
-        xml.writeAttribute("IndexOffset", AString::number(myModel.m_modelStart));
-        xml.writeAttribute("IndexCount", AString::number(myModel.m_modelEnd - myModel.m_modelStart));
+        xml.writeAttribute("IndexOffset", QString::number(myModel.m_modelStart));
+        xml.writeAttribute("IndexCount", QString::number(myModel.m_modelEnd - myModel.m_modelStart));
         xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(myModel.m_brainStructure));
         if (myModel.m_type == SURFACE)
         {
             xml.writeAttribute("ModelType", "CIFTI_MODEL_TYPE_SURFACE");
-            xml.writeAttribute("SurfaceNumberOfNodes", AString::number(myModel.m_surfaceNumberOfNodes));
+            xml.writeAttribute("SurfaceNumberOfNodes", QString::number(myModel.m_surfaceNumberOfNodes));
             xml.writeStartElement("NodeIndices");
-            AString text = "";
+            QString text = "";
             int64_t numNodes = (int64_t)myModel.m_nodeIndices.size();
             for (int64_t j = 0; j < numNodes; ++j)
             {
                 if (j != 0) text += " ";
-                text += AString::number(myModel.m_nodeIndices[j]);
+                text += QString::number(myModel.m_nodeIndices[j]);
             }
             xml.writeCharacters(text);
             xml.writeEndElement();
         } else {
             xml.writeAttribute("ModelType", "CIFTI_MODEL_TYPE_VOXELS");
             xml.writeStartElement("VoxelIndicesIJK");
-            AString text = "";
+            QString text = "";
             int64_t listSize = (int64_t)myModel.m_voxelIndicesIJK.size();
             CaretAssert(listSize % 3 == 0);
             for (int64_t j = 0; j < listSize; j += 3)
             {
-                text += AString::number(myModel.m_voxelIndicesIJK[j]) + " " + AString::number(myModel.m_voxelIndicesIJK[j + 1]) + " " + AString::number(myModel.m_voxelIndicesIJK[j + 2]) + "\n";
+                text += QString::number(myModel.m_voxelIndicesIJK[j]) + " " + QString::number(myModel.m_voxelIndicesIJK[j + 1]) + " " + QString::number(myModel.m_voxelIndicesIJK[j + 2]) + "\n";
             }
             xml.writeCharacters(text);
             xml.writeEndElement();
@@ -884,32 +884,32 @@ void CiftiBrainModelsMap::writeXML2(QXmlStreamWriter& xml) const
     {
         const BrainModelPriv& myModel = m_modelsInfo[i];
         xml.writeStartElement("BrainModel");
-        xml.writeAttribute("IndexOffset", AString::number(myModel.m_modelStart));
-        xml.writeAttribute("IndexCount", AString::number(myModel.m_modelEnd - myModel.m_modelStart));
+        xml.writeAttribute("IndexOffset", QString::number(myModel.m_modelStart));
+        xml.writeAttribute("IndexCount", QString::number(myModel.m_modelEnd - myModel.m_modelStart));
         xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(myModel.m_brainStructure));
         if (myModel.m_type == SURFACE)
         {
             xml.writeAttribute("ModelType", "CIFTI_MODEL_TYPE_SURFACE");
-            xml.writeAttribute("SurfaceNumberOfVertices", AString::number(myModel.m_surfaceNumberOfNodes));
+            xml.writeAttribute("SurfaceNumberOfVertices", QString::number(myModel.m_surfaceNumberOfNodes));
             xml.writeStartElement("VertexIndices");
-            AString text = "";
+            QString text = "";
             int64_t numNodes = (int64_t)myModel.m_nodeIndices.size();
             for (int64_t j = 0; j < numNodes; ++j)
             {
                 if (j != 0) text += " ";
-                text += AString::number(myModel.m_nodeIndices[j]);
+                text += QString::number(myModel.m_nodeIndices[j]);
             }
             xml.writeCharacters(text);
             xml.writeEndElement();
         } else {
             xml.writeAttribute("ModelType", "CIFTI_MODEL_TYPE_VOXELS");
             xml.writeStartElement("VoxelIndicesIJK");
-            AString text = "";
+            QString text = "";
             int64_t listSize = (int64_t)myModel.m_voxelIndicesIJK.size();
             CaretAssert(listSize % 3 == 0);
             for (int64_t j = 0; j < listSize; j += 3)
             {
-                text += AString::number(myModel.m_voxelIndicesIJK[j]) + " " + AString::number(myModel.m_voxelIndicesIJK[j + 1]) + " " + AString::number(myModel.m_voxelIndicesIJK[j + 2]) + "\n";
+                text += QString::number(myModel.m_voxelIndicesIJK[j]) + " " + QString::number(myModel.m_voxelIndicesIJK[j + 1]) + " " + QString::number(myModel.m_voxelIndicesIJK[j + 2]) + "\n";
             }
             xml.writeCharacters(text);
             xml.writeEndElement();

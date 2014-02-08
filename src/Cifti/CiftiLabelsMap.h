@@ -28,7 +28,6 @@
 
 #include "CiftiIndexMap.h"
 
-#include "AString.h"
 #include "CaretPointer.h"
 #include "GiftiMetaData.h"
 #include "GiftiLabelTable.h"
@@ -43,9 +42,9 @@ namespace caret
     public:
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of label table and metadata within XML without setting the xml on a file again
         GiftiLabelTable* getMapLabelTable(const int64_t& index) const;
-        const AString& getMapName(const int64_t& index) const;
+        const QString& getMapName(const int64_t& index) const;
         
-        void setMapName(const int64_t& index, const AString& mapName);
+        void setMapName(const int64_t& index, const QString& mapName);
         void setLength(const int64_t& length);
         void clear();//do we need this?
         
@@ -61,7 +60,7 @@ namespace caret
     private:
         struct LabelMap
         {
-            AString m_name;
+            QString m_name;
             mutable GiftiMetaData m_metaData;//we need a better way to change metadata in an in-memory file
             mutable GiftiLabelTable m_labelTable;//ditto
             bool operator==(const LabelMap& rhs) const;

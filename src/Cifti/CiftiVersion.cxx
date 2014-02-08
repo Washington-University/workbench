@@ -40,7 +40,7 @@ CiftiVersion::CiftiVersion(const int16_t& major, const int16_t& minor)
     m_minor = minor;
 }
 
-CiftiVersion::CiftiVersion(const AString& versionString)
+CiftiVersion::CiftiVersion(const QString& versionString)
 {
     int result = versionString.indexOf('.');
     bool ok = false;
@@ -104,9 +104,9 @@ bool CiftiVersion::operator>=(const caret::CiftiVersion& rhs) const
     return false;
 }
 
-AString CiftiVersion::toString() const
+QString CiftiVersion::toString() const
 {
-    AString ret = AString::number(m_major);
-    if (m_minor != 0) ret += "." + AString::number(m_minor);
+    QString ret = QString::number(m_major);
+    if (m_minor != 0) ret += "." + QString::number(m_minor);
     return ret;
 }

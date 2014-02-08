@@ -26,7 +26,7 @@
  */
 /*LICENSE_END*/
 
-#include "AString.h"
+#include <QString>
 
 #include "stdint.h"
 
@@ -41,8 +41,8 @@ namespace caret
         
         CiftiVersion();
         CiftiVersion(const int16_t& major, const int16_t& minor);
-        CiftiVersion(const AString& versionString);
-        AString toString() const;
+        CiftiVersion(const QString& versionString);
+        QString toString() const;
         bool operator<(const CiftiVersion& rhs) const;
         bool operator>(const CiftiVersion& rhs) const;
         bool operator==(const CiftiVersion& rhs) const;
