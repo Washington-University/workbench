@@ -1247,7 +1247,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
         mappingNegativeDenominator = 1.0;
     }
 
-    for (int32_t i = 0; i < numberOfData; i++) {
+    for (int64_t i = 0; i < numberOfData; i++) {
         float scalar    = dataValues[i];
         
         /*
@@ -1346,7 +1346,7 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
         mappingNegativeDenominator = 1.0;
     }
     
-    for (int32_t i = 0; i < numberOfData; i++) {
+    for (int64_t i = 0; i < numberOfData; i++) {
         float scalar    = dataValues[i];
         
         /*
