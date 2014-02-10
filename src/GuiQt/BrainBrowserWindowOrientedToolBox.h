@@ -13,7 +13,6 @@ class QTabWidget;
 
 namespace caret {
     class BorderSelectionViewController;
-    class ChartSetViewController;
     class ConnectivityManagerViewController;
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
@@ -65,8 +64,6 @@ namespace caret {
         
         BorderSelectionViewController* m_borderSelectionViewController;
 
-        ChartSetViewController* m_ChartSetViewController;
-        
         CiftiConnectivityMatrixViewController* m_connectivityMatrixViewController;
         
         ConnectivityManagerViewController* m_timeSeriesViewController;
@@ -90,8 +87,6 @@ namespace caret {
         
         int32_t m_borderTabIndex;
 
-        int32_t m_chartTabIndex;
-        
         int32_t m_connectivityTabIndex;
         
         int32_t m_timeSeriesTabIndex;

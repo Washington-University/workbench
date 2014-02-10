@@ -18,7 +18,6 @@
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ChartableInterface.h"
-#include "ChartSetViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
 #include "ConnectivityManagerViewController.h"
 #include "EventBrowserWindowContentGet.h"
@@ -106,7 +105,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + AString::number(browserWindowIndex));
     
     m_borderSelectionViewController = NULL;
-    m_ChartSetViewController = NULL;
     m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fociSelectionViewController = NULL;
@@ -118,7 +116,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_tabWidget = new QTabWidget();
     
     m_borderTabIndex = -1;
-    m_chartTabIndex = -1;
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
     m_fociTabIndex = -1;
@@ -147,12 +144,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_timeSeriesTabIndex = addToTabWidget(m_timeSeriesViewController,
                              "Charting");
     }
-    /*if (1) {//isChartsToolBox) {
-        m_ChartSetViewController = new ChartSetViewController(orientation,
-                                                        browserWindowIndex);
-        m_chartTabIndex = addToTabWidget(m_ChartSetViewController,
-                                               "Chart");                                                        
-    }*/
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                                 this);
@@ -578,7 +569,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
-                        defaultTabIndex = m_chartTabIndex;
                         enableLayers = false;
                         enableVolumeSurfaceOutline = false;
                         haveBorders = false;
