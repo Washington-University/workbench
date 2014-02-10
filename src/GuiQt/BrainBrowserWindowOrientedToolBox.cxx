@@ -18,8 +18,8 @@
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ChartableInterface.h"
+#include "ChartSelectionViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
-#include "ConnectivityManagerViewController.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -61,7 +61,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     bool isFeaturesToolBox  = false;
     bool isOverlayToolBox = false;
-    //bool isChartsToolBox = false;
+    bool isChartsToolBox = false;
     Qt::Orientation orientation = Qt::Horizontal;
     AString toolboxTypeName = "";
     switch (toolBoxType) {
@@ -73,25 +73,15 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
+            isChartsToolBox = true;
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayHorizontal";
             break;
         case TOOL_BOX_OVERLAYS_VERTICAL:
             orientation = Qt::Vertical;
+            isChartsToolBox = true;
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayVertical";
-            break;
-        case TOOL_BOX_CHARTS_HORIZONTAL:
-            /*orientation = Qt::Horizontal;
-            isChartsToolBox = true;
-            toggleViewAction()->setText("Charts Toolbox");*/
-            toolboxTypeName = "ChartHorizontal";
-            break;
-        case TOOL_BOX_CHARTS_VERTICAL:
-            /*orientation = Qt::Vertical;
-            isChartsToolBox = true;
-            toggleViewAction()->setText("Charts Toolbox");*/
-            toolboxTypeName = "ChartVertical";
             break;
     }
     
@@ -105,23 +95,23 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + AString::number(browserWindowIndex));
     
     m_borderSelectionViewController = NULL;
+    m_chartSelectionViewController = NULL;
     m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fociSelectionViewController = NULL;
     m_labelSelectionViewController = NULL;
     m_overlaySetViewController = NULL;
-    m_timeSeriesViewController = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new QTabWidget();
     
     m_borderTabIndex = -1;
+    m_chartSelectionTabIndex = -1;
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
     m_fociTabIndex = -1;
     m_labelTabIndex = -1;
     m_overlayTabIndex = -1;
-    m_timeSeriesTabIndex = -1;
     m_volumeSurfaceOutlineTabIndex = -1;
     
     if (isOverlayToolBox) {
@@ -132,17 +122,17 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                        "Layers");
     }
     if (isOverlayToolBox) {
+        m_chartSelectionViewController = new ChartSelectionViewController(orientation,
+                                                                          browserWindowIndex,
+                                                                          this);
+        m_chartSelectionTabIndex = addToTabWidget(m_chartSelectionViewController,
+                                                  "Charts");
+    }
+    if (isOverlayToolBox) {
         m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(orientation,
                                                                                        this);
         m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
-    }
-    if (isOverlayToolBox) {
-        m_timeSeriesViewController = new ConnectivityManagerViewController(orientation,
-                                                                               browserWindowIndex,
-                                                                               DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-        m_timeSeriesTabIndex = addToTabWidget(m_timeSeriesViewController,
-                             "Charting");
     }
     if (isFeaturesToolBox) {
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
@@ -569,6 +559,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
+                        defaultTabIndex = m_chartSelectionTabIndex;
                         enableLayers = false;
                         enableVolumeSurfaceOutline = false;
                         haveBorders = false;
@@ -584,8 +575,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
+        if (m_chartSelectionTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartSelectionTabIndex, haveChartFiles);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
-        if (m_timeSeriesTabIndex >= 0) m_tabWidget->setTabEnabled(m_timeSeriesTabIndex, haveChartFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
         if (m_borderTabIndex >= 0) m_tabWidget->setTabEnabled(m_borderTabIndex, haveBorders);

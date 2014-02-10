@@ -13,7 +13,7 @@ class QTabWidget;
 
 namespace caret {
     class BorderSelectionViewController;
-    class ConnectivityManagerViewController;
+    class ChartSelectionViewController;
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
     class FociSelectionViewController;
@@ -29,8 +29,6 @@ namespace caret {
             TOOL_BOX_FEATURES,
             TOOL_BOX_OVERLAYS_HORIZONTAL,
             TOOL_BOX_OVERLAYS_VERTICAL,
-            TOOL_BOX_CHARTS_HORIZONTAL,
-            TOOL_BOX_CHARTS_VERTICAL
         };
         
         BrainBrowserWindowOrientedToolBox(const int32_t browserWindowIndex,
@@ -66,7 +64,7 @@ namespace caret {
 
         CiftiConnectivityMatrixViewController* m_connectivityMatrixViewController;
         
-        ConnectivityManagerViewController* m_timeSeriesViewController;
+        ChartSelectionViewController* m_chartSelectionViewController;
         
         FiberOrientationSelectionViewController* m_fiberOrientationViewController;
         
@@ -81,7 +79,6 @@ namespace caret {
         QString m_toolBoxTitle;
         
         int32_t m_browserWindowIndex;
-
                 
         int32_t m_overlayTabIndex;
         
@@ -89,7 +86,7 @@ namespace caret {
 
         int32_t m_connectivityTabIndex;
         
-        int32_t m_timeSeriesTabIndex;
+        int32_t m_chartSelectionTabIndex;
         
         int32_t m_fiberOrientationTabIndex;
         
