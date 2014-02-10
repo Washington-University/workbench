@@ -42,7 +42,7 @@ namespace caret {
                                             const Palette* palette,
                                             const float* scalars,
                                             const float* scalarThresholds,
-                                            const int32_t numberOfScalars,
+                                            const int64_t numberOfScalars,
                                             float* rgbaOut,
                                             const bool ignoreThresholding = false);
         
@@ -51,7 +51,7 @@ namespace caret {
                                             const Palette* palette,
                                             const float* scalars,
                                             const float* scalarThresholds,
-                                            const int32_t numberOfScalars,
+                                            const int64_t numberOfScalars,
                                             float* rgbaOut,
                                             const bool ignoreThresholding = false);
         
@@ -60,7 +60,7 @@ namespace caret {
 //                                            const Palette* palette,
 //                                            const float* scalars,
 //                                            const float* scalarThresholds,
-//                                            const int32_t numberOfScalars,
+//                                            const int64_t numberOfScalars,
 //                                            uint8_t* rgbaOut,
 //                                            const bool ignoreThresholding = false);
         
@@ -69,7 +69,7 @@ namespace caret {
                                             const Palette* palette,
                                             const float* scalars,
                                             const float* scalarThresholds,
-                                            const int32_t numberOfScalars,
+                                            const int64_t numberOfScalars,
                                             uint8_t* rgbaOut,
                                             const bool ignoreThresholding = false);
         
@@ -78,22 +78,22 @@ namespace caret {
         
         static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                const int32_t* labelIndices,
-                                               const int32_t numberOfIndices,
+                                               const int64_t numberOfIndices,
                                                float* rgbv);
         
         static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                const float* labelIndices,
-                                               const int32_t numberOfIndices,
+                                               const int64_t numberOfIndices,
                                                float* rgbv);
         
         static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                const int32_t* labelIndices,
-                                               const int32_t numberOfIndices,
+                                               const int64_t numberOfIndices,
                                                uint8_t* rgbv);
         
         static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                const float* labelIndices,
-                                               const int32_t numberOfIndices,
+                                               const int64_t numberOfIndices,
                                                uint8_t* rgbv);
         
         static void convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,

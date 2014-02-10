@@ -100,7 +100,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
                                               const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
-                                              const int32_t numberOfScalars,
+                                              const int64_t numberOfScalars,
                                               float* rgbaOut,
                                               const bool ignoreThresholding)
 {
@@ -168,9 +168,9 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     /*
      * Color all scalars.
      */
-	for (int32_t i = 0; i < numberOfScalars; i++) {
+	for (int64_t i = 0; i < numberOfScalars; i++) {
 
-        const int32_t i4 = i * 4;
+        const int64_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
         rgbaOut[i4+1] =  0.0;
         rgbaOut[i4+2] =  0.0;
@@ -278,7 +278,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
 //                         const Palette* palette,
 //                         const float* scalarValues,
 //                         const float* thresholdValues,
-//                         const int32_t numberOfScalars,
+//                         const int64_t numberOfScalars,
 //                         uint8_t* rgbaOut,
 //                         const bool ignoreThresholding)
 //    : m_semaphore(semaphore),
@@ -314,7 +314,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
 //    const Palette* m_palette;
 //    const float* m_scalarValues;
 //    const float* m_thresholdValues;
-//    const int32_t m_numberOfScalars;
+//    const int64_t m_numberOfScalars;
 //    uint8_t* m_rgbaOut;
 //    const bool m_ignoreThresholding;
 //};
@@ -350,7 +350,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
 //                                              const Palette* palette,
 //                                              const float* scalarValues,
 //                                              const float* thresholdValues,
-//                                              const int32_t numberOfScalars,
+//                                              const int64_t numberOfScalars,
 //                                              uint8_t* rgbaOut,
 //                                              const bool ignoreThresholding)
 //{
@@ -462,7 +462,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
-                                              const int32_t numberOfScalars,
+                                              const int64_t numberOfScalars,
                                               float* rgbaOut,
                                               const bool ignoreThresholding)
 {
@@ -546,8 +546,8 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
      * Color all scalars.
      */
 #pragma omp CARET_FOR
-	for (int32_t i = 0; i < numberOfScalars; i++) {
-        const int32_t i4 = i * 4;
+	for (int64_t i = 0; i < numberOfScalars; i++) {
+        const int64_t i4 = i * 4;
         rgbaOut[i4]   =  0.0;
         rgbaOut[i4+1] =  0.0;
         rgbaOut[i4+2] =  0.0;
@@ -698,7 +698,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
-                                              const int32_t numberOfScalars,
+                                              const int64_t numberOfScalars,
                                               uint8_t* rgbaOut,
                                               const bool ignoreThresholding)
 {
@@ -743,26 +743,26 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 void
 NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                  const float* labelIndices,
-                                                 const int32_t numberOfIndices,
+                                                 const int64_t numberOfIndices,
                                                  float* rgbv)
 {
     /*
      * Invalidate all coloring.
      */
-    for (int32_t i = 0; i < numberOfIndices; i++) {
+    for (int64_t i = 0; i < numberOfIndices; i++) {
         rgbv[i*4+3] = 0.0;
     }
     /*
      * Assign colors from labels to nodes
      */
     float labelRGBA[4];
-	for (int32_t i = 0; i < numberOfIndices; i++) {
-        const int32_t labelIndex = static_cast<int32_t>(labelIndices[i]);
+	for (int64_t i = 0; i < numberOfIndices; i++) {
+        const int64_t labelIndex = static_cast<int64_t>(labelIndices[i]);
         const GiftiLabel* gl = labelTable->getLabel(labelIndex);
         if (gl != NULL) {
             gl->getColor(labelRGBA);
             if (labelRGBA[3] > 0.0) {
-                const int32_t i4 = i * 4;
+                const int64_t i4 = i * 4;
                 rgbv[i4]   = labelRGBA[0];
                 rgbv[i4+1] = labelRGBA[1];
                 rgbv[i4+2] = labelRGBA[2];
@@ -787,25 +787,25 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
 void
 NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                  const int32_t* labelIndices,
-                                                 const int32_t numberOfIndices,
+                                                 const int64_t numberOfIndices,
                                                  float* rgbv)
 {
     /*
      * Invalidate all coloring.
      */
-    for (int32_t i = 0; i < numberOfIndices; i++) {
+    for (int64_t i = 0; i < numberOfIndices; i++) {
         rgbv[i*4+3] = 0.0;
     }   
     /*
      * Assign colors from labels to nodes
      */
     float labelRGBA[4];
-	for (int32_t i = 0; i < numberOfIndices; i++) {
+	for (int64_t i = 0; i < numberOfIndices; i++) {
         const GiftiLabel* gl = labelTable->getLabel(labelIndices[i]);
         if (gl != NULL) {
             gl->getColor(labelRGBA);
             if (labelRGBA[3] > 0.0) {
-                const int32_t i4 = i * 4;
+                const int64_t i4 = i * 4;
                 rgbv[i4]   = labelRGBA[0];
                 rgbv[i4+1] = labelRGBA[1];
                 rgbv[i4+2] = labelRGBA[2];
@@ -830,7 +830,7 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
 void
 NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                  const int32_t* labelIndices,
-                                                 const int32_t numberOfIndices,
+                                                 const int64_t numberOfIndices,
                                                  uint8_t* rgbv)
 {
     if (numberOfIndices <= 0) {
@@ -870,7 +870,7 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
 void
 NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                  const float* labelIndices,
-                                                 const int32_t numberOfIndices,
+                                                 const int64_t numberOfIndices,
                                                  uint8_t* rgbv)
 {
     if (numberOfIndices <= 0) {
