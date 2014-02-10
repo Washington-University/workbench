@@ -69,9 +69,9 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
 : ChartModel(chartDataType,
              ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES)
 {
-    getLeftAxis()->setAxisUnits(dataAxisUnitsX);
+    getLeftAxis()->setAxisUnits(dataAxisUnitsY);
     getLeftAxis()->setVisible(true);
-    getBottomAxis()->setAxisUnits(dataAxisUnitsY);
+    getBottomAxis()->setAxisUnits(dataAxisUnitsX);
     getBottomAxis()->setVisible(true);
 }
 

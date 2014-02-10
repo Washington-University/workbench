@@ -121,11 +121,11 @@ ChartAxisUnitsEnum::initialize()
 
     enumData.push_back(ChartAxisUnitsEnum(CHART_AXIS_UNITS_NONE, 
                                     "CHART_AXIS_UNITS_NONE", 
-                                    ""));
+                                    "None"));
     
-    enumData.push_back(ChartAxisUnitsEnum(CHART_AXIS_UNITS_TIME, 
-                                    "CHART_AXIS_UNITS_TIME", 
-                                    ""));
+    enumData.push_back(ChartAxisUnitsEnum(CHART_AXIS_UNITS_TIME_SECONDS, 
+                                    "CHART_AXIS_UNITS_TIME_SECONDS", 
+                                    "Time"));
     
 }
 

@@ -71,6 +71,8 @@ namespace caret {
 
         void setAxisUnits(const ChartAxisUnitsEnum::Enum axisUnits);
         
+        AString getAxisUnitsSuffix() const;
+        
         float getMinimumValue() const;
         
         void setMinimumValue(const float minimumValue);

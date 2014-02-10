@@ -288,7 +288,7 @@ CiftiParcelSeriesFile::loadChartDataForSurfaceNode(const StructureEnum::Enum str
 //            }
 //            else if (timeSeriesFlag) {
 //                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
-//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+//                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
 //                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
 //            }
 //            

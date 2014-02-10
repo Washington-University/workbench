@@ -93,7 +93,7 @@ ModelChart::initializeCharts()
         
         m_chartModelTimeSeries[i] =
         new ChartModelDataSeries(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME,
+                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
                                  ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
         m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
         m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");

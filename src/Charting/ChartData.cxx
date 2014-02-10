@@ -162,7 +162,7 @@ ChartData::newChartDataForChartDataType(const ChartDataTypeEnum::Enum chartDataT
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
             chartData = new ChartDataCartesian(chartDataType,
                                                ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME);
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS);
             break;
     }
     

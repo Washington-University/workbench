@@ -84,6 +84,8 @@ namespace caret {
                            BrainOpenGLTextRenderInterface* textRenderer,
                            const ChartAxis* axis);
         
+        AString axisValueToText(const float axisValue) const;
+        
         void restoreStateOfOpenGL();
         
         void saveStateOfOpenGL();
@@ -94,6 +96,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        float m_foregroundColor[4];
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

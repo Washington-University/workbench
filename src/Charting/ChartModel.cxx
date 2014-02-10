@@ -252,7 +252,8 @@ ChartModel::addChartData(ChartData* chartData)
 }
 
 /**
- * @return The chart data models that should be displayed.
+ * @return The chart data models that should be displayed.  Chart data is
+ * ordered from newest to oldest.
  */
 std::vector<ChartData*>
 ChartModel::getChartDatasForDisplay() const

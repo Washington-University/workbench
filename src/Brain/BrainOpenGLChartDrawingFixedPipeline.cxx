@@ -45,8 +45,10 @@
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "ChartModelDataSeries.h"
 #include "ChartPoint.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -88,8 +90,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                                                 BrainOpenGLTextRenderInterface* textRenderer,
                                                 ChartModel* chart)
 {
-    
     saveStateOfOpenGL();
+    
+    const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+    preferences->getColorForeground(m_foregroundColor);
+    m_foregroundColor[3] = 1.0;
     
     const int32_t vpX      = viewport[0];
     const int32_t vpY      = viewport[1];
@@ -230,13 +235,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
  * Draw the chart axes grid/box
  *
  * @param vpX
- *     Viewport X
+ *     Viewport X for all chart content
  * @param vpY
- *     Viewport Y
+ *     Viewport Y for all chart content
  * @param vpWidth
- *     Viewport width
+ *     Viewport width for all chart content
  * @param vpHeight
- *     Viewport height
+ *     Viewport height for all chart content
  * @param marginSize
  *     Margin around grid/box
  * @param textRenderer
@@ -259,96 +264,222 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
         return;
     }
     
-    const AString text = axis->getText();
-    if (text.isEmpty()) {
-        return;
-    }
     
     const float minValue = axis->getMinimumValue();
     const float maxValue = axis->getMaximumValue();
     
-    float textCenterX = 0;
-    float textCenterY = 0;
+    const AString axisText = axis->getText();
+    float axisTextCenterX = 0;
+    float axisTextCenterY = 0;
+    bool drawAxisTextVerticalFlag = false;
     
-    int32_t textVpX = vpX;
-    int32_t textVpY = vpY;
-    int32_t textVpWidth = vpWidth;
-    int32_t textVpHeight = vpHeight;
+    /*
+     * Viewport for axis name and numeric values
+     */
+    int32_t axisVpX = vpX;
+    int32_t axisVpY = vpY;
+    int32_t axisVpWidth = vpWidth;
+    int32_t axisVpHeight = vpHeight;
     
-    bool drawTextVerticalFlag = false;
+    
+    float minimumValueTextXY[2] = { 0.0, 0.0 };
+    float maximumValueTextXY[2] = { 0.0, 0.0 };
+    BrainOpenGLTextRenderInterface::TextAlignmentX minValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+    BrainOpenGLTextRenderInterface::TextAlignmentY minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+    BrainOpenGLTextRenderInterface::TextAlignmentX maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+    BrainOpenGLTextRenderInterface::TextAlignmentY maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
     
     switch (axis->getAxis()) {
         case ChartAxis::AXIS_BOTTOM:
-            textVpX = vpX;
-            textVpY = vpY;;
-            textVpWidth = vpWidth;
-            textVpHeight = marginSize;
-            textCenterX = vpX + (vpWidth / 2.0);
-            textCenterY = vpY + (marginSize / 2.0);
+            axisVpX = vpX;
+            axisVpY = vpY;
+            axisVpWidth = vpWidth;
+            axisVpHeight = marginSize;
+            axisTextCenterX = (vpWidth / 2.0);
+            axisTextCenterY = (marginSize / 2.0);
+            
+            minimumValueTextXY[0] = marginSize;
+            minimumValueTextXY[1] = marginSize;
+            maximumValueTextXY[0] = vpWidth - marginSize;
+            maximumValueTextXY[1] = marginSize;
+            
+            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
+            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
             break;
         case ChartAxis::AXIS_LEFT:
-            textVpX = vpX;
-            textVpY = vpY;
-            textVpWidth = marginSize;
-            textVpHeight = vpHeight;
-            textCenterX = (marginSize / 2.0);
-            textCenterY = (vpHeight / 2.0);
-            drawTextVerticalFlag = true;
+            axisVpX = vpX;
+            axisVpY = vpY;
+            axisVpWidth = marginSize;
+            axisVpHeight = vpHeight;
+            axisTextCenterX = (marginSize / 2.0);
+            axisTextCenterY = (vpHeight / 2.0);
+            
+            minimumValueTextXY[0] = marginSize;
+            minimumValueTextXY[1] = marginSize;
+            maximumValueTextXY[0] = marginSize;
+            maximumValueTextXY[1] = vpHeight - marginSize;
+            
+            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+            drawAxisTextVerticalFlag = true;
             break;
         case ChartAxis::AXIS_RIGHT:
-            CaretAssert(0);
-            drawTextVerticalFlag = true;
+            axisVpX = vpX + vpWidth - marginSize;
+            axisVpY = vpY;
+            axisVpWidth = marginSize;
+            axisVpHeight = vpHeight;
+            axisTextCenterX = (marginSize / 2.0);
+            axisTextCenterY = (vpHeight / 2.0);
+            
+            minimumValueTextXY[0] = 0.0;
+            minimumValueTextXY[1] = marginSize;
+            maximumValueTextXY[0] = 0.0;
+            maximumValueTextXY[1] = vpHeight - marginSize;
+            
+            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+            drawAxisTextVerticalFlag = true;
             break;
         case ChartAxis::AXIS_TOP:
-            textVpX = vpX;
-            textVpY = vpY + vpHeight - marginSize;
-            textVpWidth = vpWidth;
-            textVpHeight = marginSize;
-            textCenterX = (vpWidth / 2.0);
-            textCenterY = (marginSize / 2.0);
+            axisVpX = vpX;
+            axisVpY = vpY + vpHeight - marginSize;
+            axisVpWidth = vpWidth;
+            axisVpHeight = marginSize;
+            axisTextCenterX = (vpWidth / 2.0);
+            axisTextCenterY = (marginSize / 2.0);
+            
+            minimumValueTextXY[0] = marginSize;
+            minimumValueTextXY[1] = 0.0;
+            maximumValueTextXY[0] = vpWidth - marginSize;
+            maximumValueTextXY[1] = 0.0;
+            
+            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
             break;
     }
     
-    glViewport(textVpX,
-               textVpY,
-               textVpWidth,
-               textVpHeight);
+    /*
+     * Viewport for axis text and numeric values
+     */
+    glViewport(axisVpX,
+               axisVpY,
+               axisVpWidth,
+               axisVpHeight);
     
     glMatrixMode(GL_PROJECTION);
-    glOrtho(0, textVpWidth, 0, textVpHeight, -1.0, 1.0);
+    glOrtho(0, axisVpWidth, 0, axisVpHeight, -1.0, 1.0);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    glColor3f(1.0, 1.0, 0.0);
+    glColor3fv(m_foregroundColor);
     
+    /*
+     * Viewport in array for text rendering
+     */
     const int viewport[4] = {
-        textVpX,
-        textVpY,
-        textVpWidth,
-        textVpHeight
+        axisVpX,
+        axisVpY,
+        axisVpWidth,
+        axisVpHeight
     };
     
-    if (drawTextVerticalFlag) {
-        textRenderer->drawVerticalTextAtWindowCoords(viewport,
-                                                     textCenterX,
-                                                     textCenterY,
-                                                     text,
-                                                     BrainOpenGLTextRenderInterface::X_CENTER,
-                                                     BrainOpenGLTextRenderInterface::Y_CENTER);
+    if ( ! axisText.isEmpty()) {
+        if (drawAxisTextVerticalFlag) {
+            textRenderer->drawVerticalTextAtWindowCoords(viewport,
+                                                         axisTextCenterX,
+                                                         axisTextCenterY,
+                                                         axisText,
+                                                         BrainOpenGLTextRenderInterface::X_CENTER,
+                                                         BrainOpenGLTextRenderInterface::Y_CENTER);
+        }
+        else {
+            textRenderer->drawTextAtWindowCoords(viewport,
+                                                 axisTextCenterX,
+                                                 axisTextCenterY,
+                                                 axisText,
+                                                 BrainOpenGLTextRenderInterface::X_CENTER,
+                                                 BrainOpenGLTextRenderInterface::Y_CENTER);
+        }
     }
-    else {
+    
+    if (maxValue > minValue) {
+        const AString minValueText = axisValueToText(minValue);
+        const AString maxValueText = axisValueToText(maxValue);
+        
         textRenderer->drawTextAtWindowCoords(viewport,
-                                             textCenterX,
-                                             textCenterY,
-                                             text,
-                                             BrainOpenGLTextRenderInterface::X_CENTER,
-                                             BrainOpenGLTextRenderInterface::Y_CENTER);
+                                             minimumValueTextXY[0],
+                                             minimumValueTextXY[1],
+                                             minValueText,
+                                             minValueAlignmentX,
+                                             minValueAlignmentY);
+        textRenderer->drawTextAtWindowCoords(viewport,
+                                             maximumValueTextXY[0],
+                                             maximumValueTextXY[1],
+                                             maxValueText,
+                                             maxValueAlignmentX,
+                                             maxValueAlignmentY);
     }
-//    textRenderer->drawTextAtModelCoords(textCenterX,
-//                                        textCenterY,
-//                                        0.0,
-//                                        text);
+}
+
+/**
+ * Convert an axis numeric value into text.
+ * Limits usage of decimal point and digits right of decimal.
+ *
+ * @param axisValue
+ *     Value on an axis.
+ * @return 
+ *     Value formatted as text.
+ */
+AString
+BrainOpenGLChartDrawingFixedPipeline::axisValueToText(const float axisValue) const
+{
+    float value = axisValue;
+    AString signSymbol = "";
+    if (value < 0.0) {
+        value = -value;
+        signSymbol = "-";
+    }
+    
+    int32_t digitsRightOfDecimal = 0;
+    if (value < 10.0) {
+        if (value < 1.0) {
+            if (value < 0.001) {
+                digitsRightOfDecimal = 0;
+                value = 0.0;
+            }
+            else {
+                digitsRightOfDecimal = 2;
+            }
+        }
+        else {
+            digitsRightOfDecimal = 1;
+        }
+    }
+    
+    AString numberText = AString::number(value, 'f', digitsRightOfDecimal);
+    
+    /*
+     * Remove leading zero if there is a decimal
+     */
+    if ( ! numberText.isEmpty()) {
+        if (numberText.indexOf('.') > 0) {
+            if (numberText[0] == '0') {
+                numberText = numberText.mid(1);
+            }
+        }
+    }
+    
+    AString textOut = signSymbol + numberText;
+    return textOut;
 }
 
 
@@ -402,7 +533,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxesGrid(const float vpX,
     
     glLineWidth(gridLineWidth);
     
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3fv(m_foregroundColor);
+    
     glBegin(GL_LINES);
     
     /* bottom line */
@@ -505,9 +637,16 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    for (std::vector<ChartData*>::iterator chartIter = chartVector.begin();
-         chartIter != chartVector.end();
+    /*
+     * Use a reverse iterator to start at the oldest chart and end with
+     * the newest chart.
+     */
+    for (std::vector<ChartData*>::reverse_iterator chartIter = chartVector.rbegin();
+         chartIter != chartVector.rend();
          chartIter++) {
+//    for (std::vector<ChartData*>::iterator chartIter = chartVector.begin();
+//         chartIter != chartVector.end();
+//         chartIter++) {
         ChartData* chartData = *chartIter;
         ChartDataCartesian* chartDataCart = dynamic_cast<ChartDataCartesian*>(chartData);
         CaretAssert(chartDataCart);

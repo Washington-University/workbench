@@ -203,6 +203,25 @@ ChartAxis::setAxisUnits(const ChartAxisUnitsEnum::Enum axisUnits)
     m_axisUnits = axisUnits;
 }
 
+/**
+ * Return the suffix for the axis units
+ */
+AString
+ChartAxis::getAxisUnitsSuffix() const
+{
+    AString suffix;
+    
+    switch (m_axisUnits) {
+        case ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE:
+            break;
+        case ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS:
+            suffix = "s";
+            break;
+    }
+    
+    return suffix;
+}
+
 
 /**
  * @return Minimum value for axis.

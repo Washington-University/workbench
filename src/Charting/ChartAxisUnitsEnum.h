@@ -51,7 +51,7 @@ public:
         /** No units */
         CHART_AXIS_UNITS_NONE,
         /** Time units */
-        CHART_AXIS_UNITS_TIME
+        CHART_AXIS_UNITS_TIME_SECONDS
     };
 
 
