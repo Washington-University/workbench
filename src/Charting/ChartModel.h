@@ -70,6 +70,8 @@ namespace caret {
         
         virtual ~ChartModel();
         
+        void removeChartData();
+        
         ChartDataTypeEnum::Enum getChartDataType() const;
         
         SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE getSupportForMultipleChartDisplay() const;
@@ -112,8 +114,6 @@ namespace caret {
         
     private:
         void copyHelperChartModel(const ChartModel& obj);
-        
-        void removeChartData();
         
         ChartDataTypeEnum::Enum m_chartDataType;
         

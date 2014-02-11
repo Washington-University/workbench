@@ -253,7 +253,7 @@ ChartDataSource::setSurfaceNodeAverage(const AString& chartableFileName,
                            const int32_t surfaceNumberOfNodes,
                            const std::vector<int32_t>& nodeIndices)
 {
-    m_dataSourceMode = ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX;
+    m_dataSourceMode = ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE;
     m_chartableFileName = chartableFileName;
     m_surfaceStructureName = surfaceStructureName;
     m_surfaceNumberOfNodes = surfaceNumberOfNodes;
@@ -306,13 +306,15 @@ ChartDataSource::toString() const
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
-            s += ("Node "
+            s += (m_surfaceStructureName
+                  + ":  Node "
                   + AString::number(m_nodeIndex));
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
-            s += ("Average of "
+            s += (m_surfaceStructureName
+                  + ":  Average of "
                   + AString::number(m_nodeIndicesAverage.size())
-                  + " nodes");
+                  + " Nodes");
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
             s += ("Voxel XYZ ("

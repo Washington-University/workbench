@@ -71,7 +71,7 @@ namespace caret {
         
         ChartAxisUnitsEnum::Enum getDataAxisUnitsY();
         
-        CaretColorEnum::Enum getColor();
+        CaretColorEnum::Enum getColor() const;
         
         float getTimeStartInSecondsAxisX() const;
         

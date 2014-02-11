@@ -18,6 +18,7 @@
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
 #include "ChartableInterface.h"
+#include "ChartHistoryViewController.h"
 #include "ChartSelectionViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
 #include "EventBrowserWindowContentGet.h"
@@ -61,7 +62,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     bool isFeaturesToolBox  = false;
     bool isOverlayToolBox = false;
-    bool isChartsToolBox = false;
     Qt::Orientation orientation = Qt::Horizontal;
     AString toolboxTypeName = "";
     switch (toolBoxType) {
@@ -73,13 +73,11 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
-            isChartsToolBox = true;
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayHorizontal";
             break;
         case TOOL_BOX_OVERLAYS_VERTICAL:
             orientation = Qt::Vertical;
-            isChartsToolBox = true;
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayVertical";
             break;
@@ -95,6 +93,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + AString::number(browserWindowIndex));
     
     m_borderSelectionViewController = NULL;
+    m_chartHistoryViewController = NULL;
     m_chartSelectionViewController = NULL;
     m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
@@ -104,9 +103,10 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new QTabWidget();
+    m_chartTabWidget = NULL;
     
     m_borderTabIndex = -1;
-    m_chartSelectionTabIndex = -1;
+    m_chartTabIndex = -1;
     m_connectivityTabIndex = -1;
     m_fiberOrientationTabIndex = -1;
     m_fociTabIndex = -1;
@@ -125,8 +125,18 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_chartSelectionViewController = new ChartSelectionViewController(orientation,
                                                                           browserWindowIndex,
                                                                           this);
-        m_chartSelectionTabIndex = addToTabWidget(m_chartSelectionViewController,
-                                                  "Charts");
+        
+        m_chartHistoryViewController = new ChartHistoryViewController(orientation,
+                                                                      browserWindowIndex,
+                                                                      this);
+        
+        m_chartTabWidget = new QTabWidget();
+        m_chartTabWidget->addTab(m_chartSelectionViewController,
+                                 "Selection");
+        m_chartTabWidget->addTab(m_chartHistoryViewController,
+                                 "History");
+        m_chartTabIndex = addToTabWidget(m_chartTabWidget,
+                                                "Charting");
     }
     if (isOverlayToolBox) {
         m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(orientation,
@@ -263,6 +273,12 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     sceneClass->addString("selectedTabName",
                           tabName);
     
+    if (m_chartTabWidget != NULL) {
+       const AString chartTabName = m_chartTabWidget->tabText(m_chartTabWidget->currentIndex());
+        sceneClass->addString("selectedChartTabName",
+                              chartTabName);
+    }
+    
     /*
      * Save current widget size
      */
@@ -342,8 +358,19 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         }
     }
     
+    const AString chartTabName = sceneClass->getStringValue("selectedChartTabName",
+                                                            "");
+    if ( ! chartTabName.isEmpty()) {
+        for (int32_t i = 0; i < m_chartTabWidget->count(); i++) {
+            if (m_tabWidget->tabText(i) == chartTabName) {
+                m_tabWidget->setCurrentIndex(i);
+                break;
+            }
+        }
+    }
+
     /*
-     * Save controllers in the toolbox
+     * Restore controllers in the toolbox
      */
     if (m_borderSelectionViewController != NULL) {
         m_borderSelectionViewController->restoreFromScene(sceneAttributes,
@@ -559,7 +586,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                                                       & haveVolumes);
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
-                        defaultTabIndex = m_chartSelectionTabIndex;
+                        defaultTabIndex = m_chartTabIndex;
                         enableLayers = false;
                         enableVolumeSurfaceOutline = false;
                         haveBorders = false;
@@ -575,7 +602,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        if (m_chartSelectionTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartSelectionTabIndex, haveChartFiles);
+        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, haveChartFiles);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         

@@ -388,7 +388,7 @@ ChartDataCartesian::getDataAxisUnitsY()
  * @return Color for chart
  */
 CaretColorEnum::Enum
-ChartDataCartesian::getColor()
+ChartDataCartesian::getColor() const
 {
     return m_color;
 }
