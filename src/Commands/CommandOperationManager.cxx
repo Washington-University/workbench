@@ -160,6 +160,7 @@
 #include "OperationSurfaceGeodesicROIs.h"
 #include "OperationSurfaceInformation.h"
 #include "OperationSurfaceVertexAreas.h"
+#include "OperationVolumeCapturePlane.h"
 #include "OperationVolumeCreate.h"
 #include "OperationVolumeLabelImport.h"
 #include "OperationVolumeMath.h"
@@ -360,6 +361,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceGeodesicROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCapturePlane()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCreate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeMath()));
