@@ -33,10 +33,13 @@
 /*LICENSE_END*/
 
 #include <QBrush>
+#include <QHeaderView>
 #include <QLabel>
-#include <QListWidget>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QSpinBox>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 #define __CHART_HISTORY_VIEW_CONTROLLER_DECLARE__
 #include "ChartHistoryViewController.h"
@@ -68,13 +71,24 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartHistoryViewController::ChartHistoryViewController(const Qt::Orientation /*orientation*/,
+ChartHistoryViewController::ChartHistoryViewController(const Qt::Orientation orientation,
                                                        const int32_t browserWindowIndex,
                                                        QWidget* parent)
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
+    m_averageCheckBox = new QCheckBox("Show Average");
+    WuQtUtilities::setWordWrappedToolTip(m_averageCheckBox,
+                                         "Display an average of the displayed chart data.   "
+                                         "NOTE: If the charts contain a different number of points "
+                                         "the average will be that of those charts that contain "
+                                         "the same number of points as the most recently displayed "
+                                         "chart.");
+    QObject::connect(m_averageCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(averageCheckBoxClicked(bool)));
+    
     QPushButton* clearPushButton = new QPushButton("Clear");
+    clearPushButton->setFixedWidth(clearPushButton->sizeHint().width() + 20);
     QObject::connect(clearPushButton, SIGNAL(clicked()),
                      this, SLOT(clearPushButtonClicked()));
     WuQtUtilities::setWordWrappedToolTip(clearPushButton,
@@ -94,22 +108,46 @@ m_browserWindowIndex(browserWindowIndex)
                                          "Maximum number of charts of the selected type "
                                          "displayed in this tab");
     
-    m_chartDataListWidget = new QListWidget();
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    m_chartDataTableWidget = new QTableWidget();
+    m_chartDataTableWidget->horizontalHeader()->hide();
+    m_chartDataTableWidget->verticalHeader()->hide();
+    m_chartDataTableWidget->setGridStyle(Qt::NoPen);
+    m_chartDataTableWidget->setColumnCount(COLUMN_COUNT);
 
-    QVBoxLayout* leftLayout = new QVBoxLayout();
-    leftLayout->addWidget(clearPushButton);
-    leftLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    leftLayout->addLayout(maxDisplayedLayout);
-    leftLayout->addStretch();
+    QObject::connect(m_chartDataTableWidget, SIGNAL(cellChanged(int,int)),
+                     this, SLOT(chartDataTableCellChanged(int,int)));
     
-    QVBoxLayout* rightLayout = new QVBoxLayout();
-    rightLayout->addWidget(m_chartDataListWidget);
-    rightLayout->addStretch();
+    QVBoxLayout* leftOrTopLayout = new QVBoxLayout();
+    leftOrTopLayout->addWidget(m_averageCheckBox);
+    leftOrTopLayout->addLayout(maxDisplayedLayout);
+    leftOrTopLayout->addWidget(clearPushButton);
+    leftOrTopLayout->addStretch();
     
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->addLayout(leftLayout, 0);
-    layout->addLayout(rightLayout, 100); 
+    QVBoxLayout* rightOrBottomLayout = new QVBoxLayout();
+    rightOrBottomLayout->addWidget(m_chartDataTableWidget);
+    rightOrBottomLayout->addStretch();
+    
+    switch (orientation) {
+        case Qt::Horizontal:
+        {
+            QHBoxLayout* layout = new QHBoxLayout(this);
+            layout->addLayout(leftOrTopLayout, 0);
+            layout->addLayout(rightOrBottomLayout, 100);
+            layout->addStretch();
+        }
+            break;
+        case Qt::Vertical:
+        {
+            QVBoxLayout* layout = new QVBoxLayout(this);
+            layout->addLayout(leftOrTopLayout, 0);
+            layout->addLayout(rightOrBottomLayout, 100);
+            layout->addStretch();
+        }
+            break;
+    }
+    
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -118,6 +156,57 @@ m_browserWindowIndex(browserWindowIndex)
 ChartHistoryViewController::~ChartHistoryViewController()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Called when the content of a cell changes.
+ * Update corresponding item in the spec file.
+ *
+ * @param rowIndex
+ *    The row of the cell that was clicked.
+ * @param columnIndex
+ *    The columnof the cell that was clicked.
+ */
+void
+ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIndex)
+{
+    QTableWidgetItem* item = m_chartDataTableWidget->item(rowIndex, columnIndex);
+    if (item != NULL) {
+        if (columnIndex == COLUMN_CHART_DATA_CHECKBOX) {
+            bool isSelected = WuQtUtilities::checkStateToBool(item->checkState());
+            ChartModel* chartModel = getSelectedChartModel();
+            
+            switch (chartModel->getSelectionMode()) {
+                case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+                    isSelected = true;
+                    break;
+                case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+                    break;
+            }
+            
+            std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
+            CaretAssertVectorIndex(chartDataVector, rowIndex);
+            chartModel->setChartDataSelected(chartDataVector[rowIndex],
+                                             isSelected);
+            
+            updateAfterSelectionsChanged();
+        }
+    }
+}
+
+/**
+ * Gets called when the average checkbox is clicked.
+ *
+ * @param clicked
+ *    New status.
+ */
+void
+ChartHistoryViewController::averageCheckBoxClicked(bool clicked)
+{
+    ChartModel* chartModel = getSelectedChartModel();
+    chartModel->setAverageChartDisplaySelected(clicked);
+    
+    updateAfterSelectionsChanged();
 }
 
 /**
@@ -150,10 +239,10 @@ ChartHistoryViewController::maximumDisplayedSpinBoxValueChanged(int value)
         return;
     }
     
-    switch (chartModel->getSupportForMultipleChartDisplay()) {
-        case ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO:
+    switch (chartModel->getSelectionMode()) {
+        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
             break;
-        case ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES:
+        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             chartModel->setMaximumNumberOfChartDatasToDisplay(value);
             break;
     }
@@ -177,48 +266,112 @@ ChartHistoryViewController::updateAfterSelectionsChanged()
 void
 ChartHistoryViewController::updateHistoryViewController()
 {
-    m_chartDataListWidget->clear();
-    
     ChartModel* chartModel = getSelectedChartModel();
     if (chartModel == NULL) {
         return;
     }
     
-    switch (chartModel->getSupportForMultipleChartDisplay()) {
-        case ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO:
+    switch (chartModel->getSelectionMode()) {
+        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
             m_maximumDisplayedSpinBox->setValue(1);
             m_maximumDisplayedSpinBox->setEnabled(false);
             break;
-        case ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES:
+        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             m_maximumDisplayedSpinBox->setEnabled(true);
             m_maximumDisplayedSpinBox->setValue(chartModel->getMaximumNumberOfChartDatasToDisplay());
             break;
     }
     
-    ChartModelCartesian* cartesianChart = dynamic_cast<ChartModelCartesian*>(chartModel);
+    const std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
+    const int32_t numData = static_cast<int32_t>(chartDataVector.size());
+
+    m_chartDataTableWidget->setRowCount(numData);
     
-    if (cartesianChart != NULL) {
-        std::vector<ChartData*> chartDataVector = cartesianChart->getChartDatasForDisplay();
-        for (std::vector<ChartData*>::iterator chartDataIter = chartDataVector.begin();
-             chartDataIter != chartDataVector.end();
-             chartDataIter++) {
-            const ChartData* chartData = *chartDataIter;
-            const ChartDataCartesian* chartDataCartesian = dynamic_cast<const ChartDataCartesian*>(chartData);
-            CaretAssert(chartDataCartesian);
-            
-            const ChartDataSource* dataSource = chartDataCartesian->getChartDataSource();
-            const AString name = dataSource->toString();
-            
+    /*
+     * Load the table widget
+     */
+    m_chartDataTableWidget->blockSignals(true);
+    for (int32_t i = 0; i < numData; i++) {
+        const ChartData* chartData = chartDataVector[i];
+        
+        const ChartDataSource* dataSource = chartData->getChartDataSource();
+        const AString name = dataSource->toString();
+        
+        /*
+         * Update checked status
+         */
+        QTableWidgetItem* checkItem = m_chartDataTableWidget->item(i,
+                                                                   COLUMN_CHART_DATA_CHECKBOX);
+        if (checkItem == NULL) {
+            checkItem = new QTableWidgetItem();
+            checkItem->setFlags(checkItem->flags()
+                                | Qt::ItemIsUserCheckable);
+            m_chartDataTableWidget->setItem(i,
+                                            COLUMN_CHART_DATA_CHECKBOX,
+                                            checkItem);
+        }
+        
+        if (chartModel->isChartDataSelected(chartData)) {
+            checkItem->setCheckState(Qt::Checked);
+        }
+        else {
+            checkItem->setCheckState(Qt::Unchecked);
+        }
+        
+        /*
+         * Update name
+         */
+        QTableWidgetItem* nameItem = m_chartDataTableWidget->item(i,
+                                                                  COLUMN_CHART_DATA_NAME);
+        if (nameItem == NULL) {
+            nameItem = new QTableWidgetItem();
+            m_chartDataTableWidget->setItem(i,
+                                            COLUMN_CHART_DATA_NAME,
+                                            nameItem);
+        }
+        nameItem->setText(name);
+        
+        /*
+         * Update color
+         */
+        QTableWidgetItem* colorItem = m_chartDataTableWidget->item(i,
+                                                                   COLUMN_CHART_DATA_COLOR);
+        if (colorItem == NULL) {
+            colorItem = new QTableWidgetItem();
+            m_chartDataTableWidget->setItem(i,
+                                            COLUMN_CHART_DATA_COLOR,
+                                            colorItem);
+            colorItem->setText("   ");
+        }
+        
+        /**
+         * Use the background color from the name's item
+         * as the default color.
+         */
+        QColor chartColor = nameItem->background().color();
+        const ChartDataCartesian* chartDataCartesian = dynamic_cast<const ChartDataCartesian*>(chartData);
+        if (chartDataCartesian != NULL) {
             const CaretColorEnum::Enum color = chartDataCartesian->getColor();
             const float* rgb = CaretColorEnum::toRGB(color);
-            QListWidgetItem* item = new QListWidgetItem(name);
-            QBrush brush = item->foreground();
-            brush.setColor(QColor::fromRgbF(rgb[0], rgb[1], rgb[2]));
-            item->setForeground(brush);
-            
-            m_chartDataListWidget->addItem(item);
+            chartColor.setRgbF(rgb[0], rgb[1], rgb[2]);
+        }
+        colorItem->setBackground(QBrush(chartColor));
+    }
+    m_chartDataTableWidget->blockSignals(false);
+    
+    m_chartDataTableWidget->resizeColumnsToContents();
+    
+    /*
+     * Update averaging.
+     */
+    bool enableAvergeWidgetsFlag = false;
+    if (chartModel != NULL) {
+        if (chartModel->isAverageChartDisplaySupported()) {
+            enableAvergeWidgetsFlag = true;
+            m_averageCheckBox->setChecked(chartModel->isAverageChartDisplaySelected());
         }
     }
+    m_averageCheckBox->setEnabled(enableAvergeWidgetsFlag);
 }
 
 /**

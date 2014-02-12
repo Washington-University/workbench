@@ -52,7 +52,7 @@ using namespace caret;
  */
 ChartModelMatrix::ChartModelMatrix()
 : ChartModel(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX,
-             ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO)
+             ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES)
 {
     
 }
@@ -104,6 +104,24 @@ ChartModelMatrix::copyHelperChartModelMatrix(const ChartModelMatrix& obj)
 }
 
 /**
+ * @return Is an average of data supported?
+ */
+bool
+ChartModelMatrix::isAverageChartDisplaySupported() const
+{
+    return false;
+}
+
+/**
+ * @return The average chart data.  Will return NULL if either
+ * no data to average or model does not support an average.
+ */
+const ChartData*
+ChartModelMatrix::getAverageChartDataForDisplay() const
+{
+    return NULL;
+}
+/**
  * Reset the axes ranges to the default range for the current data.
  */
 void
@@ -114,7 +132,7 @@ ChartModelMatrix::resetAxesToDefaultRange()
 //    float boundsMinY = 0.0;
 //    float boundsMaxY = 0.0;
 //    
-//    const std::vector<ChartData*>  allData = getChartDatasForDisplay();
+//    const std::vector<ChartData*>  allData = getAllChartDatas();
 //    if ( ! allData.empty()) {
 //        boundsMinX =  std::numeric_limits<float>::max();
 //        boundsMaxX = -std::numeric_limits<float>::max();

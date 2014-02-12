@@ -41,6 +41,8 @@
 
 namespace caret {
 
+    class ChartDataCartesian;
+    
     class ChartModelCartesian : public ChartModel {
         
     public:
@@ -54,6 +56,10 @@ namespace caret {
 
         ChartModelCartesian& operator=(const ChartModelCartesian& obj);
         
+        virtual bool isAverageChartDisplaySupported() const;
+        
+        virtual const ChartData* getAverageChartDataForDisplay() const;
+        
         virtual void resetAxesToDefaultRange();
         
 
@@ -64,6 +70,9 @@ namespace caret {
 
         void adjustAxisDefaultRange(float& minValue,
                                     float& maxValue);
+        
+        mutable ChartDataCartesian* m_averageChartData;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -78,6 +78,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
     protected:
         ChartData(const ChartDataTypeEnum::Enum chartDataType);
         
@@ -121,14 +122,21 @@ namespace caret {
         
         void copyHelperChartData(const ChartData& obj);
 
+        bool isSelected() const;
+        
+        void setSelected(const bool selectionStatus);
+        
         SceneClassAssistant* m_sceneAssistant;
 
         ChartDataTypeEnum::Enum m_chartDataType;
         
         ChartDataSource* m_chartDataSource;
         
+        bool m_selectionStatus;
+        
         // ADD_NEW_MEMBERS_HERE
 
+        friend class ChartModel;
     };
     
 #ifdef __CHART_DATA_DECLARE__

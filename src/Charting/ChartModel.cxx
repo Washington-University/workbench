@@ -37,6 +37,7 @@
 #undef __CHART_MODEL_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ChartAxis.h"
 #include "ChartData.h"
 #include "ChartDataSource.h"
@@ -63,29 +64,31 @@ using namespace caret;
  *
  * @param chartDataType
  *    Model type of chart that is managed.
- * @param supportsMultipleChartDisplayType
- *    Multiple chart support
+ * @param selectionMode
+ *    The selection mode.
  */
 ChartModel::ChartModel(const ChartDataTypeEnum::Enum chartDataType,
-                                                             const SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE supportsMultipleChartDisplayType)
+                       const SelectionMode selectionMode)
 : CaretObject(),
 SceneableInterface(),
 m_chartDataType(chartDataType),
-m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
+m_selectionMode(selectionMode)
 {
     m_bottomAxis = new ChartAxis(ChartAxis::AXIS_BOTTOM);
     m_leftAxis   = new ChartAxis(ChartAxis::AXIS_LEFT);
     m_rightAxis  = new ChartAxis(ChartAxis::AXIS_RIGHT);
     m_topAxis    = new ChartAxis(ChartAxis::AXIS_TOP);
     
-    switch (m_supportsMultipleChartDisplayType) {
-        case SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO:
+    switch (m_selectionMode) {
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
             m_maximumNumberOfChartDatasToDisplay = 1;
             break;
-        case SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES:
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             m_maximumNumberOfChartDatasToDisplay = 5;
             break;
     }
+    
+    m_averageChartDisplaySelected = false;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_bottomAxis", "ChartAxis", m_bottomAxis);
@@ -94,6 +97,8 @@ m_supportsMultipleChartDisplayType(supportsMultipleChartDisplayType)
     m_sceneAssistant->add("m_topAxis", "ChartAxis", m_topAxis);
     m_sceneAssistant->add("m_maximumNumberOfChartDatasToDisplay",
                           &m_maximumNumberOfChartDatasToDisplay);
+    m_sceneAssistant->add("m_averageChartDisplaySelected",
+                          &m_averageChartDisplaySelected);
 }
 
 /**
@@ -135,7 +140,7 @@ ChartModel::ChartModel(const ChartModel& obj)
 : CaretObject(obj),
 SceneableInterface(obj),
 m_chartDataType(obj.m_chartDataType),
-m_supportsMultipleChartDisplayType(obj.m_supportsMultipleChartDisplayType)
+m_selectionMode(obj.m_selectionMode)
 {
     this->copyHelperChartModel(obj);
 }
@@ -165,12 +170,13 @@ void
 ChartModel::copyHelperChartModel(const ChartModel& obj)
 {
     m_chartDataType = obj.m_chartDataType;
-    m_supportsMultipleChartDisplayType   = obj.m_supportsMultipleChartDisplayType;
+    m_selectionMode   = obj.m_selectionMode;
     m_maximumNumberOfChartDatasToDisplay = obj.m_maximumNumberOfChartDatasToDisplay;
     *m_leftAxis   = *obj.m_leftAxis;
     *m_rightAxis  = *obj.m_rightAxis;
     *m_bottomAxis = *obj.m_bottomAxis;
     *m_topAxis    = *obj.m_topAxis;
+    m_averageChartDisplaySelected = obj.m_averageChartDisplaySelected;
     
     removeChartData();
     
@@ -205,77 +211,183 @@ ChartModel::toString() const
  * @return Support for multiple chart display.  Some chart types allow
  * it and others do not.
  */
-ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE
-ChartModel::getSupportForMultipleChartDisplay() const
+ChartModel::SelectionMode
+ChartModel::getSelectionMode() const
 {
-    return m_supportsMultipleChartDisplayType;
+    return m_selectionMode;
 }
 
 /**
  * Add a chart model to this controller.
  *
- * @param chartData
+ * @param chartDataIn
  *     Model that is added.
  */
 void
-ChartModel::addChartData(ChartData* chartData)
+ChartModel::addChartData(const ChartData* chartDataIn)
 {
-    CaretAssert(chartData);
+    CaretAssert(chartDataIn);
     
-    m_chartDatas.push_front(chartData->clone());
+    ChartData* chartData = chartDataIn->clone();
+    
+    switch (m_selectionMode) {
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+            chartData->setSelected(false);
+            break;
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+            chartData->setSelected(true);
+            break;
+    }
+    
+    m_chartDatas.push_front(chartData);
     
     const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
     
     /*
      * If needed, remove extra items at end of deque
      */
+    bool selectedItemWasRemoved = false;
     const int32_t numToRemove = numChartData - m_maximumNumberOfChartDatasToDisplay;
     if (numToRemove > 0) {
         for (int32_t i = 0; i < numToRemove; i++) {
             ChartData* cd = m_chartDatas.back();
+            if (cd->isSelected()) {
+                selectedItemWasRemoved = true;
+            }
             m_chartDatas.pop_back();
             delete cd;
         }
     }
-    
-//    if (numChartData > m_maximumNumberOfChartDatasToDisplay) {
-//        for (int32_t i = m_maximumNumberOfChartDatasToDisplay;
-//             i < numChartData;
-//             i++) {
-//            delete m_chartDatas[i];
-//            m_chartDatas[i] = NULL;
-//        }
-//        m_chartDatas.resize(m_maximumNumberOfChartDatasToDisplay);
-//    }
+
+    if (selectedItemWasRemoved) {
+        switch (m_selectionMode) {
+            case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+            {
+                bool haveSelectedItem = false;
+                const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
+                for (int32_t i = 0; i < numData; i++) {
+                    if (m_chartDatas[i]->isSelected()) {
+                        haveSelectedItem = true;
+                        break;
+                    }
+                }
+                
+                if ( ! haveSelectedItem) {
+                    const int32_t lastIndex = numData - 1;
+                    if (numData >= 0) {
+                        m_chartDatas[lastIndex]->setSelected(true);
+                    }
+                }
+            }
+                break;
+            case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+                break;
+        }
+    }
     
     resetAxesToDefaultRange();
 }
 
 /**
- * @return The chart data models that should be displayed.  Chart data is
- * ordered from newest to oldest.
+ * @return All chart datas (const method)
  */
-std::vector<ChartData*>
-ChartModel::getChartDatasForDisplay() const
+std::vector<const ChartData*>
+ChartModel::getAllChartDatas() const
 {
-    std::vector<ChartData*> datasOut;
+    std::vector<const ChartData*> datasOut;
     
-    int32_t counter = 0;
+//    int32_t counter = 0;
     
     for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
         datasOut.push_back(*iter);
         
-        counter++;
-        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
-            break;
-        }
+//        counter++;
+//        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
+//            break;
+//        }
     }
     
     return datasOut;
 }
 
+/**
+ * @return All chart datas.
+ */
+std::vector<ChartData*>
+ChartModel::getAllChartDatas()
+{
+    std::vector<ChartData*> datasOut;
+    
+    //    int32_t counter = 0;
+    
+    for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
+         iter != m_chartDatas.end();
+         iter++) {
+        datasOut.push_back(*iter);
+        
+        //        counter++;
+        //        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
+        //            break;
+        //        }
+    }
+    
+    return datasOut;
+}
+
+/**
+ * @return All SELECTED chart datas.
+ */
+std::vector<const ChartData*>
+ChartModel::getAllSelectedChartDatas() const
+{
+    std::vector<const ChartData*> datasOut;
+    
+    //    int32_t counter = 0;
+    
+    for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
+         iter != m_chartDatas.end();
+         iter++) {
+        ChartData* cd = *iter;
+        if (isChartDataSelected(cd)) {
+            datasOut.push_back(cd);
+        }
+        
+        //        counter++;
+        //        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
+        //            break;
+        //        }
+    }
+    
+    return datasOut;
+}
+
+/**
+ * @return Is average chart data display selected.
+ * NOTE: Not all charts support an average.
+ */
+bool
+ChartModel::isAverageChartDisplaySelected() const
+{
+    if (isAverageChartDisplaySupported()) {
+        return m_averageChartDisplaySelected;
+    }
+    return false;
+}
+
+/**
+ * Set the average chart data selected.  
+ * NOTE: Not all charts support an average.
+ *
+ * @param selected
+ *    New status.
+ */
+void
+ChartModel::setAverageChartDisplaySelected(const bool selected)
+{
+    m_averageChartDisplaySelected = selected;
+}
 
 /**
  * @return The MAXIMUM number of chart models for display.
@@ -300,11 +412,11 @@ ChartModel::setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay)
 {
     CaretAssert(numberToDisplay > 0);
     
-    switch (m_supportsMultipleChartDisplayType) {
-        case SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO:
+    switch (m_selectionMode) {
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
             m_maximumNumberOfChartDatasToDisplay = 1;
             break;
-        case SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES:
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             m_maximumNumberOfChartDatasToDisplay = numberToDisplay;
             break;
     }
@@ -380,6 +492,100 @@ const ChartAxis*
 ChartModel::getTopAxis() const
 {
     return m_topAxis;
+}
+
+/**
+ * Set chart data selection status.
+ *
+ * @param chartData
+ *     Chart data that has its selection status set.
+ * @param selectionStatus
+ *     New status.
+ */
+void
+ChartModel::setChartDataSelected(ChartData* chartData,
+                                 const bool selectionStatus)
+{
+    switch (m_selectionMode) {
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+        {
+            bool found = false;
+            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+            for (int32_t i = 0; i < numChartData; i++) {
+                ChartData* cd = m_chartDatas[i];
+                if (cd == chartData) {
+                    cd->setSelected(selectionStatus);
+                    found = true;
+                }
+                else {
+                    cd->setSelected(false);
+                }
+            }
+            
+            if ( ! found) {
+                if (numChartData > 0) {
+                    CaretLogSevere("Attempt to set selection status of chart data not in model.");
+                    m_chartDatas[0]->setSelected(true);
+                }
+            }
+        }
+            break;
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+        {
+            bool found = false;
+            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+            for (int32_t i = 0; i < numChartData; i++) {
+                ChartData* cd = m_chartDatas[i];
+                if (cd == chartData) {
+                    cd->setSelected(selectionStatus);
+                    found = true;
+                    break;
+                }
+            }
+            
+            if ( ! found) {
+                if (numChartData > 0) {
+                    CaretLogSevere("Attempt to set selection status of chart data not in model.");
+                }
+            }
+        }
+            break;
+    }
+}
+
+/**
+ * Is the chart data item selected? 
+ *
+ * @param chartData
+ *     Chart data tested for selection status.
+ *
+ * @return 
+ *     True if item is selected, else false.
+ */
+bool
+ChartModel::isChartDataSelected(const ChartData* chartData) const
+{
+    bool selectionStatus = false;
+    
+    bool found = false;
+    
+    const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+    for (int32_t i = 0; i < numChartData; i++) {
+        ChartData* cd = m_chartDatas[i];
+        if (cd == chartData) {
+            selectionStatus = cd->isSelected();
+            found = true;
+            break;
+        }
+    }
+    
+    if ( ! found) {
+        if (numChartData > 0) {
+            CaretLogSevere("Attempt to get selection status of chart data not in model.");
+        }
+    }
+    
+    return selectionStatus;
 }
 
 /**

@@ -36,12 +36,12 @@
 
 
 #include "BrainOpenGLChartDrawingInterface.h"
-
-
+#include "CaretColorEnum.h"
 
 namespace caret {
 
     class ChartAxis;
+    class ChartDataCartesian;
     class ChartModelDataSeries;
     class ChartModelMatrix;
     
@@ -83,6 +83,10 @@ namespace caret {
                            const float marginSize,
                            BrainOpenGLTextRenderInterface* textRenderer,
                            const ChartAxis* axis);
+        
+        void drawChartDataCartesian(const ChartDataCartesian* chartDataCartesian,
+                                    const float lineWidth,
+                                    const float rgb[3]);
         
         AString axisValueToText(const float axisValue) const;
         

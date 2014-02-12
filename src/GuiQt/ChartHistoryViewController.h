@@ -38,8 +38,9 @@
 
 #include "EventListenerInterface.h"
 
+class QCheckBox;
 class QSpinBox;
-class QListWidget;
+class QTableWidget;
 
 
 namespace caret {
@@ -69,9 +70,13 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private slots:
+        void averageCheckBoxClicked(bool);
+        
         void clearPushButtonClicked();
         
         void maximumDisplayedSpinBoxValueChanged(int);
+        
+        void chartDataTableCellChanged(int, int);
         
     private:
         // ADD_NEW_MEMBERS_HERE
@@ -84,9 +89,16 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QListWidget* m_chartDataListWidget;
+        QCheckBox* m_averageCheckBox;
+        
+        QTableWidget* m_chartDataTableWidget;
         
         QSpinBox* m_maximumDisplayedSpinBox;
+        
+        static const int32_t COLUMN_CHART_DATA_CHECKBOX;
+        static const int32_t COLUMN_CHART_DATA_NAME;
+        static const int32_t COLUMN_CHART_DATA_COLOR;
+        static const int32_t COLUMN_COUNT;
         
 //        QGridLayout* m_gridLayout;
 //        
@@ -97,7 +109,10 @@ namespace caret {
     };
     
 #ifdef __CHART_HISTORY_VIEW_CONTROLLER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_CHECKBOX = 0;
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_COLOR    = 1;
+    const int32_t ChartHistoryViewController::COLUMN_CHART_DATA_NAME     = 2;
+    const int32_t ChartHistoryViewController::COLUMN_COUNT               = 3;
 #endif // __CHART_HISTORY_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

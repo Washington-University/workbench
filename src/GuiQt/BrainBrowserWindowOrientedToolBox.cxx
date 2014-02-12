@@ -132,7 +132,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         
         m_chartTabWidget = new QTabWidget();
         m_chartTabWidget->addTab(m_chartSelectionViewController,
-                                 "Selection");
+                                 "Loading");
         m_chartTabWidget->addTab(m_chartHistoryViewController,
                                  "History");
         m_chartTabIndex = addToTabWidget(m_chartTabWidget,

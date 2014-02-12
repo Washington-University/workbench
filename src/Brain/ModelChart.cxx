@@ -580,8 +580,8 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
 
         descriptionOut.pushIndentation();
         
-        const std::vector<ChartData*> cdVec = chartModel->getChartDatasForDisplay();
-        for (std::vector<ChartData*>::const_iterator iter = cdVec.begin();
+        const std::vector<const ChartData*> cdVec = chartModel->getAllChartDatas();
+        for (std::vector<const ChartData*>::const_iterator iter = cdVec.begin();
              iter != cdVec.end();
              iter++) {
             const ChartData* cd = *iter;

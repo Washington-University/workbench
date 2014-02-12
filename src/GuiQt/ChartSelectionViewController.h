@@ -41,12 +41,14 @@
 
 class QCheckBox;
 class QGridLayout;
+class QLabel;
 class QLineEdit;
 class QSignalMapper;
 
 namespace caret {
 
     class ChartableInterface;
+    class ChartModel;
     
     class ChartSelectionViewController : public QWidget, public EventListenerInterface {
         
@@ -81,6 +83,8 @@ namespace caret {
         void getFileAtIndex(const int32_t indx,
                             ChartableInterface* &chartFilesOut);
         
+        ChartModel* getSelectedChartModel();
+        
         const int32_t m_browserWindowIndex;
         
         std::vector<QCheckBox*> m_fileEnableCheckBoxes;
@@ -90,6 +94,8 @@ namespace caret {
         QGridLayout* m_gridLayout;
         
         QSignalMapper* m_signalMapperFileEnableCheckBox;
+        
+        QLabel* m_averageLabel;
         
         static int COLUMN_ENABLE_CHECKBOX;
         static int COLUMN_NAME_LINE_EDIT;

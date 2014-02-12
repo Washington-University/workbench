@@ -82,11 +82,14 @@ void
 ChartData::initializeMembersChartData()
 {
     m_chartDataSource = new ChartDataSource();
+    m_selectionStatus = true;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_chartDataSource",
                           "ChartDataSource",
                           m_chartDataSource);
+    m_sceneAssistant->add("m_selectionStatus",
+                          &m_selectionStatus);
 }
 
 
@@ -132,6 +135,7 @@ ChartData::copyHelperChartData(const ChartData& obj)
 {
     m_chartDataType    = obj.m_chartDataType;
     *m_chartDataSource = *obj.m_chartDataSource;
+    m_selectionStatus = obj.m_selectionStatus;
 }
 
 /**
@@ -248,6 +252,27 @@ ChartDataSource*
 ChartData::getChartDataSource()
 {
     return m_chartDataSource;
+}
+
+/**
+ * @return The selection status.
+ */
+bool
+ChartData::isSelected() const
+{
+    return m_selectionStatus;
+}
+
+/**
+ * Set the selection status.
+ *
+ * @param selectionStatus
+ *    New selection status.
+ */
+void
+ChartData::setSelected(const bool selectionStatus)
+{
+    m_selectionStatus = selectionStatus;
 }
 
 

@@ -46,10 +46,12 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ChartModel.h"
 #include "ChartableInterface.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "ModelChart.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -245,3 +247,27 @@ ChartSelectionViewController::receiveEvent(Event* event)
     }
 }
 
+/**
+ * @return Chart model selected in the selected tab (NULL if not valid)
+ */
+ChartModel*
+ChartSelectionViewController::getSelectedChartModel()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return NULL;
+    }
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    
+    ChartModel* chartModel = NULL;
+    
+    ModelChart* modelChart = brain->getChartModel();
+    if (modelChart != NULL) {
+        chartModel = modelChart->getSelectedChartModel(browserTabIndex);
+    }
+    
+    return chartModel;
+}

@@ -41,6 +41,7 @@
 #include "CaretAssert.h"
 #include "ChartAxis.h"
 #include "ChartDataCartesian.h"
+#include "ChartPoint.h"
 #include "ChartScaleAutoRanging.h"
 
 using namespace caret;
@@ -67,8 +68,10 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
                                                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY)
 : ChartModel(chartDataType,
-             ChartModel::SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES)
+             ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO)
 {
+    m_averageChartData = NULL;
+    
     getLeftAxis()->setAxisUnits(dataAxisUnitsY);
     getLeftAxis()->setVisible(true);
     getBottomAxis()->setAxisUnits(dataAxisUnitsX);
@@ -80,6 +83,9 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
  */
 ChartModelCartesian::~ChartModelCartesian()
 {
+    if (m_averageChartData != NULL) {
+        delete m_averageChartData;
+    }
 }
 
 /**
@@ -118,7 +124,100 @@ ChartModelCartesian::operator=(const ChartModelCartesian& obj)
 void 
 ChartModelCartesian::copyHelperChartModelCartesian(const ChartModelCartesian& /*obj*/)
 {
+    if (m_averageChartData != NULL) {
+        delete m_averageChartData;
+        m_averageChartData = NULL;
+    }
 }
+
+/**
+ * @return Is an average of data supported?
+ */
+bool
+ChartModelCartesian::isAverageChartDisplaySupported() const
+{
+    return true;
+}
+
+/**
+ * @return The average chart data.  Will return NULL if either
+ * no data to average or model does not support an average.
+ * Includes only those chart data that are displayed.
+ */
+const ChartData*
+ChartModelCartesian::getAverageChartDataForDisplay() const
+{
+    if (m_averageChartData != NULL) {
+        delete m_averageChartData;
+        m_averageChartData = NULL;
+    }
+    
+    
+    /*
+     * Data may be from multiple files so compute an average of those
+     * that match the first (newest) file.
+     */
+    const std::vector<const ChartData*>  allData = getAllSelectedChartDatas();
+    if ( ! allData.empty()) {
+        std::vector<float> xValue;
+        std::vector<double> ySum;
+        int64_t averageCounter = 0;
+        ChartDataTypeEnum::Enum firstChartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+        
+        bool firstFlag = true;
+        for (std::vector<const ChartData*>::const_iterator iter = allData.begin();
+             iter != allData.end();
+             iter++) {
+            const ChartData* chartData = *iter;
+            const ChartDataCartesian* cartesianData = dynamic_cast<const ChartDataCartesian*>(chartData);
+            CaretAssert(cartesianData);
+            
+            const int64_t numPoints = cartesianData->getNumberOfPoints();
+            if (firstFlag) {
+                if (numPoints > 0) {
+                    firstFlag = false;
+                    
+                    xValue.resize(numPoints);
+                    ySum.resize(numPoints);
+                    for (int64_t i = 0; i < numPoints; i++) {
+                        const ChartPoint* point = cartesianData->getPointAtIndex(i);
+                        xValue[i] = point->getX();
+                        ySum[i]   = point->getY();
+                    }
+                    
+                    firstChartDataType = cartesianData->getChartDataType();
+                    averageCounter = 1;
+                }
+            }
+            else {
+                if (numPoints == static_cast<int64_t>(ySum.size())) {
+                    for (int64_t i = 0; i < numPoints; i++) {
+                        const ChartPoint* point = cartesianData->getPointAtIndex(i);
+                        ySum[i] += point->getY();
+                    }
+                    averageCounter++;
+                }
+            }
+        }
+        
+        if (averageCounter > 0) {
+            const int64_t numPoints = static_cast<int64_t>(ySum.size());
+            for (int64_t i = 0; i < numPoints; i++) {
+                ySum[i] /= averageCounter;
+            }
+            
+            m_averageChartData = dynamic_cast<ChartDataCartesian*>(ChartData::newChartDataForChartDataType(firstChartDataType));
+            for (int32_t i = 0; i < numPoints; i++) {
+                m_averageChartData->addPoint(xValue[i],
+                                             ySum[i]);
+            }
+        }
+    }
+    
+    return m_averageChartData;
+}
+
+
 
 /**
  * Reset the axes ranges to the default range for the current data.
@@ -131,7 +230,7 @@ ChartModelCartesian::resetAxesToDefaultRange()
     float boundsMinY = 0.0;
     float boundsMaxY = 0.0;
 
-    const std::vector<ChartData*>  allData = getChartDatasForDisplay();
+    const std::vector<ChartData*>  allData = getAllChartDatas();
     if ( ! allData.empty()) {
         boundsMinX =  std::numeric_limits<float>::max();
         boundsMaxX = -std::numeric_limits<float>::max();
@@ -141,8 +240,8 @@ ChartModelCartesian::resetAxesToDefaultRange()
         for (std::vector<ChartData*>::const_iterator iter = allData.begin();
              iter != allData.end();
              iter++) {
-            ChartData* chartData = *iter;
-            ChartDataCartesian* cartesianData = dynamic_cast<ChartDataCartesian*>(chartData);
+            const ChartData* chartData = *iter;
+            const ChartDataCartesian* cartesianData = dynamic_cast<const ChartDataCartesian*>(chartData);
             CaretAssert(cartesianData);
             
             float xMin, xMax, yMin, yMax;

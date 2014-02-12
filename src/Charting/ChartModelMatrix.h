@@ -52,6 +52,10 @@ namespace caret {
         
         void resetAxesToDefaultRange();
 
+        virtual bool isAverageChartDisplaySupported() const;
+        
+        virtual const ChartData* getAverageChartDataForDisplay() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

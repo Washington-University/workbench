@@ -615,7 +615,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
 {
     CaretAssert(chart);
     
-    std::vector<ChartData*> chartVector = chart->getChartDatasForDisplay();
+    std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas();
     if (chartVector.empty()) {
         return;
     }
@@ -641,38 +641,56 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
      * Use a reverse iterator to start at the oldest chart and end with
      * the newest chart.
      */
-    for (std::vector<ChartData*>::reverse_iterator chartIter = chartVector.rbegin();
+    for (std::vector<const ChartData*>::reverse_iterator chartIter = chartVector.rbegin();
          chartIter != chartVector.rend();
          chartIter++) {
-//    for (std::vector<ChartData*>::iterator chartIter = chartVector.begin();
-//         chartIter != chartVector.end();
-//         chartIter++) {
-        ChartData* chartData = *chartIter;
-        ChartDataCartesian* chartDataCart = dynamic_cast<ChartDataCartesian*>(chartData);
-        CaretAssert(chartDataCart);
-        
-        CaretColorEnum::Enum color = chartDataCart->getColor();
-        glColor3fv(CaretColorEnum::toRGB(color));
-        
-        glLineWidth(1.0);
-        glBegin(GL_LINE_STRIP);
-        const int32_t numPoints = chartDataCart->getNumberOfPoints();
-        for (int32_t i = 0; i < numPoints; i++) {
-            const ChartPoint* point = chartDataCart->getPointAtIndex(i);
-            glVertex2fv(point->getXY());
+        const ChartData* chartData = *chartIter;
+        if (chart->isChartDataSelected(chartData)) {
+            const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
+            CaretAssert(chartDataCart);
+            
+            CaretColorEnum::Enum color = chartDataCart->getColor();
+            drawChartDataCartesian(chartDataCart,
+                                   1.0,
+                                   CaretColorEnum::toRGB(color));
         }
-        glEnd();
     }
-//    
-//    glBegin(GL_LINE_STRIP);
-//    glColor3f(1.0, 0.0, 0.0);
-//    glVertex3f(xMin, (yMin + yMax) / 2.0, 0.0);
-//    glVertex3f(xMax, (yMin + yMax) / 2.0, 0.0);
-//    glColor3f(0.0, 1.0, 0.0);
-//    glVertex3f((xMin + xMax) / 2.0, yMin, 0.0);
-//    glVertex3f((xMin + xMax) / 2.0, yMax, 0.0);
-//    glEnd();
     
+    if (chart->isAverageChartDisplaySelected()) {
+        const ChartData* chartData = chart->getAverageChartDataForDisplay();
+        if (chartData != NULL) {
+            const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
+            CaretAssert(chartDataCart);
+            drawChartDataCartesian(chartDataCart,
+                                   2.0,
+                                   m_foregroundColor);
+        }
+    }
+}
+
+/**
+ * Draw the cartesian data with the given color.
+ *
+ * @param chartDataCartesian
+ *   Cartesian data that is drawn.
+ * @param color
+ *   Color for the data.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const ChartDataCartesian* chartDataCartesian,
+                                                             const float lineWidth,
+                                                             const float rgb[3])
+{
+    glColor3fv(rgb);
+    
+    glLineWidth(lineWidth);
+    glBegin(GL_LINE_STRIP);
+    const int32_t numPoints = chartDataCartesian->getNumberOfPoints();
+    for (int32_t i = 0; i < numPoints; i++) {
+        const ChartPoint* point = chartDataCartesian->getPointAtIndex(i);
+        glVertex2fv(point->getXY());
+    }
+    glEnd();
 }
 
 /**

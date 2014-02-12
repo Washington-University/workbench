@@ -54,15 +54,15 @@ namespace caret {
          * Does this type of chart allow the display of multiple charts
          * of the same chart data type?
          */
-        enum SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE {
+        enum SelectionMode {
             /** Allows only one chart */
-            SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_NO,
+            SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES,
             /** Allows unlimited charts of the same chart data model type */
-            SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE_YES
+            SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO,
         };
         
         ChartModel(const ChartDataTypeEnum::Enum chartDataType,
-                                      const SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE supportsMultipleChartDisplayType);
+                   const SelectionMode selectionMode);
         
         ChartModel(const ChartModel&);
         
@@ -74,15 +74,34 @@ namespace caret {
         
         ChartDataTypeEnum::Enum getChartDataType() const;
         
-        SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE getSupportForMultipleChartDisplay() const;
+        SelectionMode getSelectionMode() const;
         
-        void addChartData(ChartData* chartData);
+        void addChartData(const ChartData* chartDataIn);
         
         virtual int32_t getMaximumNumberOfChartDatasToDisplay() const;
         
         void setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay);
         
-        std::vector<ChartData*> getChartDatasForDisplay() const;
+        std::vector<const ChartData*> getAllChartDatas() const;
+        
+        std::vector<ChartData*> getAllChartDatas();
+        
+        std::vector<const ChartData*> getAllSelectedChartDatas() const;
+        
+        /**
+         * @return Is an average of data supported?
+         */
+        virtual bool isAverageChartDisplaySupported() const = 0;
+        
+        /**
+         * @return The average chart data.  Will return NULL if either
+         * no data to average or model does not support an average.
+         */
+        virtual const ChartData* getAverageChartDataForDisplay() const = 0;
+        
+        bool isAverageChartDisplaySelected() const;
+        
+        void setAverageChartDisplaySelected(const bool selected);
         
         ChartAxis* getLeftAxis();
         
@@ -100,6 +119,9 @@ namespace caret {
         
         const ChartAxis* getTopAxis() const;
         
+        /**
+         * Reset the axis to the default range for the data.
+         */
         virtual void resetAxesToDefaultRange() = 0;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -112,12 +134,17 @@ namespace caret {
 
         virtual AString toString() const;
         
+        void setChartDataSelected(ChartData* chartData,
+                                  const bool selectionStatus);
+        
+        bool isChartDataSelected(const ChartData* chartData) const;
+        
     private:
         void copyHelperChartModel(const ChartModel& obj);
         
         ChartDataTypeEnum::Enum m_chartDataType;
         
-        SUPPORTS_MULTIPLE_CHART_DISPLAY_TYPE m_supportsMultipleChartDisplayType;
+        SelectionMode m_selectionMode;
         
         std::deque<ChartData*> m_chartDatas;
         
@@ -130,6 +157,8 @@ namespace caret {
         ChartAxis* m_bottomAxis;
         
         ChartAxis* m_topAxis;
+        
+        bool m_averageChartDisplaySelected;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;
