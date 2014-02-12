@@ -184,7 +184,7 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
          iter != obj.m_chartDatas.end();
          iter++) {
         ChartData* cd = *iter;
-        m_chartDatas.push_front(cd->clone());
+        m_chartDatas.push_back(cd->clone());
     }
 }
 
