@@ -66,7 +66,7 @@ AString CaretMathExpression::getExpressionHelpInfo()
         "The expression '0 < x < 5' is not syntactically wrong, but it will NOT do what is desired, because it is evaluated left to right, i.e. '((0 < x) < 5)', " +
         "which will always return 1, as both possible results of a comparison are less than 5.  A warning is generated if an expression of this type is detected.  " +
         "Use '(x > 0) * (x < 5)' to get the desired behavior.\n\n" +
-        "Whitespace between elements is ignored, 'sin(2*x)' is equivalent to ' sin ( 2 * x ) ', but 's in(2*x)' is an error.  " +
+        "Whitespace between elements is ignored, ' sin ( 2 * x ) ' is equivalent to 'sin(2*x)', but 's in(2*x)' is an error.  " +
         "Implied multiplication is not allowed, the expression '2x' will be parsed as a variable, use '2 * x'.  " +
         "Parentheses are (), do not use [] or {}.  " +
         "Functions require parentheses, the expression 'sin x' is an error.\n\n" +
