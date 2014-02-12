@@ -633,16 +633,18 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << "         <volume>" << endl;
     cout << "         [-subvolume]" << endl;
     cout << "            <subvol>" << endl;
+    cout << "         [-repeat]" << endl;
     cout << "..." << endl;
     cout << endl;
     //guide for wrap, assuming 80 columns:                                                  |
     cout << "   '<expression>' and '<volume-out>' denote mandatory parameters, '[-fixnan]'" << endl;
     cout << "   denotes an option taking one mandatory parameter '<replace>', and" << endl;
     cout << "   '[-var] (repeatable)' denotes a repeatable option with mandatory parameters" << endl;
-    cout << "   '<name>' and '<volume>', and a suboption '[-subvolume]', which has a" << endl;
-    cout << "   mandatory parameter '<subvol>'.  Commands also provide additional help info" << endl;
-    cout << "   along with descriptions of options and parameters below the section in the" << endl;
-    cout << "   example.  Each option starts a new scope, and ends any scope that it is not" << endl;
+    cout << "   '<name>' and '<volume>', and two suboptions, '[-subvolume]', which has a" << endl;
+    cout << "   mandatory parameter '<subvol>', and '[-repeat]', which has no parameters." << endl;
+    cout << "   Commands also provide additional help info along with descriptions of" << endl;
+    cout << "   options and parameters below the section in the example.  Each option starts" << endl;
+    cout << "   a new scope, and all options and arguments end any scope that they are not" << endl;
     cout << "   valid in.  For example, this command is correct:" << endl;
     cout << endl;
     cout << "$ " << programName << " -volume-math 'sin(x)' sin_x.nii.gz -fixnan 0 -var x x.nii.gz -subvolume 1" << endl;
@@ -661,6 +663,11 @@ void CommandOperationManager::printArgumentsHelp(const AString& programName)
     cout << "   scope of the -var option has ended due to -fixnan:" << endl;
     cout << endl;
     cout << "$ " << programName << " -volume-math 'sin(x)' sin_x.nii.gz -var x x.nii.gz -fixnan 0 -subvolume 1" << endl;
+    cout << endl;
+    cout << "   and this one is similarly incorrect because the -subvolume option occurs" << endl;
+    cout << "   after the scope of the -var option has ended due to the volume-out argument:" << endl;
+    cout << endl;
+    cout << "$ " << programName << " -volume-math 'sin(x)' -fixnan 0 -var x x.nii.gz sin_x.nii.gz -subvolume 1" << endl;
     cout << endl;
 }
 
