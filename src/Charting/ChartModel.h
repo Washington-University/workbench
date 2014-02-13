@@ -134,13 +134,10 @@ namespace caret {
 
         virtual AString toString() const;
         
-        void setChartDataSelected(ChartData* chartData,
-                                  const bool selectionStatus);
-        
-        bool isChartDataSelected(const ChartData* chartData) const;
-        
     private:
         void copyHelperChartModel(const ChartModel& obj);
+        
+        void childChartDataSelectionChanged(ChartData* childChartData);
         
         ChartDataTypeEnum::Enum m_chartDataType;
         
@@ -165,6 +162,7 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class ChartData;
     };
     
 #ifdef __CHART_MODEL_DECLARE__

@@ -43,6 +43,7 @@
 namespace caret {
 
     class ChartDataSource;
+    class ChartModel;
     class SceneClassAssistant;
     
     class ChartData : public CaretObject, public SceneableInterface {
@@ -68,6 +69,12 @@ namespace caret {
         const ChartDataSource* getChartDataSource() const;
         
         ChartDataSource* getChartDataSource();
+        
+        bool isSelected() const;
+        
+        void setSelected(const bool selectionStatus);
+        
+        void clearSelected();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -122,13 +129,14 @@ namespace caret {
         
         void copyHelperChartData(const ChartData& obj);
 
-        bool isSelected() const;
-        
-        void setSelected(const bool selectionStatus);
+        void setParent(ChartModel* parentChartModel);
         
         SceneClassAssistant* m_sceneAssistant;
 
         ChartDataTypeEnum::Enum m_chartDataType;
+        
+        /** Parent that owns this chart, not saved to scene */
+        ChartModel* m_parentChartModel;
         
         ChartDataSource* m_chartDataSource;
         

@@ -645,7 +645,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
          chartIter != chartVector.rend();
          chartIter++) {
         const ChartData* chartData = *chartIter;
-        if (chart->isChartDataSelected(chartData)) {
+        if (chartData->isSelected()) {
             const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
             CaretAssert(chartDataCart);
             

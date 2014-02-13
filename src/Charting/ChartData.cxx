@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
+#include "ChartModel.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -81,6 +82,7 @@ ChartData::~ChartData()
 void
 ChartData::initializeMembersChartData()
 {
+    m_parentChartModel = NULL;
     m_chartDataSource = new ChartDataSource();
     m_selectionStatus = true;
     
@@ -136,6 +138,16 @@ ChartData::copyHelperChartData(const ChartData& obj)
     m_chartDataType    = obj.m_chartDataType;
     *m_chartDataSource = *obj.m_chartDataSource;
     m_selectionStatus = obj.m_selectionStatus;
+    m_parentChartModel = NULL; // not copied
+}
+
+/**
+ * Parent ChartModel of this instance.
+ */
+void
+ChartData::setParent(ChartModel* parentChartModel)
+{
+    m_parentChartModel = parentChartModel;
 }
 
 /**
@@ -273,8 +285,17 @@ void
 ChartData::setSelected(const bool selectionStatus)
 {
     m_selectionStatus = selectionStatus;
+    
+    /*
+     * When selection status is true,
+     * notify parent.
+     */
+    if (m_selectionStatus) {
+        if (m_parentChartModel != NULL) {
+            m_parentChartModel->childChartDataSelectionChanged(this);
+        }
+    }
 }
-
 
 /**
  * Get a description of this object's content.

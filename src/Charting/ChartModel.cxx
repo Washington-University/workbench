@@ -180,11 +180,42 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
     
     removeChartData();
     
+    ChartData* selectedChartData = NULL;
     for (std::deque<ChartData*>::const_iterator iter = obj.m_chartDatas.begin();
          iter != obj.m_chartDatas.end();
          iter++) {
         ChartData* cd = *iter;
+        if (cd->isSelected()) {
+            selectedChartData = cd;
+        }
         m_chartDatas.push_back(cd->clone());
+    }
+
+    switch (m_selectionMode) {
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+        {
+            /*
+             * If no item selected, choose oldest
+             */
+            if (selectedChartData == NULL) {
+                const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
+                if (numData > 0) {
+                    const int32_t lastIndex = numData - 1;
+                    selectedChartData = m_chartDatas[lastIndex];
+                }
+            }
+            
+            if (selectedChartData != NULL) {
+                /*
+                 * Calling the setSelected method will ensure that 
+                 * mutual exclusion for selection is maintained
+                 */
+                selectedChartData->setSelected(true);
+            }
+        }
+            break;
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+            break;
     }
 }
 
@@ -241,48 +272,47 @@ ChartModel::addChartData(const ChartData* chartDataIn)
     
     m_chartDatas.push_front(chartData);
     
-    const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
-    
     /*
      * If needed, remove extra items at end of deque
      */
-    bool selectedItemWasRemoved = false;
-    const int32_t numToRemove = numChartData - m_maximumNumberOfChartDatasToDisplay;
+    const int32_t numToRemove = (static_cast<int32_t>(m_chartDatas.size())
+                                 - m_maximumNumberOfChartDatasToDisplay);
     if (numToRemove > 0) {
         for (int32_t i = 0; i < numToRemove; i++) {
             ChartData* cd = m_chartDatas.back();
-            if (cd->isSelected()) {
-                selectedItemWasRemoved = true;
-            }
             m_chartDatas.pop_back();
             delete cd;
         }
     }
 
-    if (selectedItemWasRemoved) {
-        switch (m_selectionMode) {
-            case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-            {
-                bool haveSelectedItem = false;
-                const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
-                for (int32_t i = 0; i < numData; i++) {
-                    if (m_chartDatas[i]->isSelected()) {
-                        haveSelectedItem = true;
-                        break;
-                    }
-                }
-                
-                if ( ! haveSelectedItem) {
-                    const int32_t lastIndex = numData - 1;
-                    if (numData >= 0) {
-                        m_chartDatas[lastIndex]->setSelected(true);
-                    }
+    switch (m_selectionMode) {
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+        {
+            /*
+             * See if any item is selected
+             */
+            bool haveSelectedItem = false;
+            const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
+            for (int32_t i = 0; i < numData; i++) {
+                if (m_chartDatas[i]->isSelected()) {
+                    haveSelectedItem = true;
+                    break;
                 }
             }
-                break;
-            case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
-                break;
+            
+            /*
+             * If no item selected, selected oldest
+             */
+            if ( ! haveSelectedItem) {
+                const int32_t lastIndex = numData - 1;
+                if (numData >= 0) {
+                    m_chartDatas[lastIndex]->setSelected(true);
+                }
+            }
         }
+            break;
+        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+            break;
     }
     
     resetAxesToDefaultRange();
@@ -350,7 +380,7 @@ ChartModel::getAllSelectedChartDatas() const
          iter != m_chartDatas.end();
          iter++) {
         ChartData* cd = *iter;
-        if (isChartDataSelected(cd)) {
+        if (cd->isSelected()) {
             datasOut.push_back(cd);
         }
         
@@ -495,97 +525,34 @@ ChartModel::getTopAxis() const
 }
 
 /**
- * Set chart data selection status.
+ * Called by child ChartData when its selection status changes.
  *
- * @param chartData
- *     Chart data that has its selection status set.
- * @param selectionStatus
- *     New status.
+ * If the selection mode is mutually exclusive, this method
+ * ensures that no more than one child is selected.
+ *
+ * If the selection mode is NOT mutually exclusive, no 
+ * action is taken.
  */
 void
-ChartModel::setChartDataSelected(ChartData* chartData,
-                                 const bool selectionStatus)
+ChartModel::childChartDataSelectionChanged(ChartData* childChartData)
 {
     switch (m_selectionMode) {
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-        {
-            bool found = false;
+        if (childChartData->isSelected()) {
             const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
             for (int32_t i = 0; i < numChartData; i++) {
                 ChartData* cd = m_chartDatas[i];
-                if (cd == chartData) {
-                    cd->setSelected(selectionStatus);
-                    found = true;
-                }
-                else {
+                if (cd != childChartData) {
                     cd->setSelected(false);
-                }
-            }
-            
-            if ( ! found) {
-                if (numChartData > 0) {
-                    CaretLogSevere("Attempt to set selection status of chart data not in model.");
-                    m_chartDatas[0]->setSelected(true);
                 }
             }
         }
             break;
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
         {
-            bool found = false;
-            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
-            for (int32_t i = 0; i < numChartData; i++) {
-                ChartData* cd = m_chartDatas[i];
-                if (cd == chartData) {
-                    cd->setSelected(selectionStatus);
-                    found = true;
-                    break;
-                }
-            }
-            
-            if ( ! found) {
-                if (numChartData > 0) {
-                    CaretLogSevere("Attempt to set selection status of chart data not in model.");
-                }
-            }
         }
             break;
     }
-}
-
-/**
- * Is the chart data item selected? 
- *
- * @param chartData
- *     Chart data tested for selection status.
- *
- * @return 
- *     True if item is selected, else false.
- */
-bool
-ChartModel::isChartDataSelected(const ChartData* chartData) const
-{
-    bool selectionStatus = false;
-    
-    bool found = false;
-    
-    const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
-    for (int32_t i = 0; i < numChartData; i++) {
-        ChartData* cd = m_chartDatas[i];
-        if (cd == chartData) {
-            selectionStatus = cd->isSelected();
-            found = true;
-            break;
-        }
-    }
-    
-    if ( ! found) {
-        if (numChartData > 0) {
-            CaretLogSevere("Attempt to get selection status of chart data not in model.");
-        }
-    }
-    
-    return selectionStatus;
 }
 
 /**

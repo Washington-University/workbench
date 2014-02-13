@@ -186,8 +186,7 @@ ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIn
             
             std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
             CaretAssertVectorIndex(chartDataVector, rowIndex);
-            chartModel->setChartDataSelected(chartDataVector[rowIndex],
-                                             isSelected);
+            chartDataVector[rowIndex]->setSelected(isSelected);
             
             updateAfterSelectionsChanged();
         }
@@ -311,7 +310,7 @@ ChartHistoryViewController::updateHistoryViewController()
                                             checkItem);
         }
         
-        if (chartModel->isChartDataSelected(chartData)) {
+        if (chartData->isSelected()) {
             checkItem->setCheckState(Qt::Checked);
         }
         else {
