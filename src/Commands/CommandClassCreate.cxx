@@ -96,6 +96,15 @@ CommandClassCreate::getHelpInformation(const AString& /*programName*/)
                         "        instances of the class can be restored from \n"
                         "        and saved to scenes. \n"
                         "    \n"
+                        "    -scene-sub-class\n"
+                        "        Adds methods that can be called by the super- \n"
+                        "        class so that this sub-class can save and \n"
+                        "        restore data to and from scenes.  \n"
+                        "        \n"
+                        "        This option should only be used when creating\n"
+                        "        a class whose super class implements the \n"
+                        "        SceneableInterface\n"
+                        "        \n"
                         );
     return helpInfo; 
 }
@@ -121,6 +130,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
     bool hasCopyAndAssignment = false;
     bool hasEventListener = false;
     bool hasScenes = false;
+    bool hasScenesSubClass = false;
+    
     while (parameters.hasNext()) {
         const AString& param = parameters.nextString("Create Class Parameter");
         if (param == "-copy") {
@@ -153,9 +164,19 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
         else if (param == "-scene") {
             hasScenes = true;
         }
+        else if (param == "-scene-sub-class") {
+            hasScenesSubClass = true;
+        }
         else {
             throw CommandException("Invalid parameter: " + param);
         }
+    }
+    
+    if (hasScenes
+        && hasScenesSubClass) {
+        throw CommandException("Only one, but not both scene options "
+                               "may be specified: "
+                               "-scene  -scene-sub-class");
     }
     
     if (className.isEmpty()) {
@@ -202,7 +223,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                            ifdefNameStaticDeclarations, 
                            hasCopyAndAssignment,
                            hasEventListener,
-                           hasScenes);
+                           hasScenes,
+                           hasScenesSubClass);
     
     this->createImplementationFile(implementationFileName,
                                    className, 
@@ -211,7 +233,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                                    ifdefNameStaticDeclarations, 
                                    hasCopyAndAssignment,
                                    hasEventListener,
-                                   hasScenes);
+                                   hasScenes,
+                                   hasScenesSubClass);
 }
 
 /**
@@ -231,8 +254,11 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
  *    Has copy constructor and assignment operator.
  * @param hasEventListener
  *    Class implements the EventListener interface 
- * @param hasScenes
+ * @param hasSceneInterface
  *    Class implements the SceneableInterface for scene support.
+ * @param hasSubClassSceneSaving
+ *    Parent class implements the SceneableInterface so add methods
+ *    for saving sub-class data to scene that will be called by parent.
  */
 void 
 CommandClassCreate::createHeaderFile(const AString& outputFileName,
@@ -242,7 +268,8 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
                                          const AString& ifdefNameStaticDeclaration,
                                      const bool hasCopyAndAssignment,
                                      const bool hasEventListener,
-                                     const bool hasScenes)
+                                     const bool hasSceneInterface,
+                                     const bool hasSubClassSceneSaving)
 {
     AString t;
     
@@ -268,7 +295,7 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         }
         derivedFromDeclaration += ("public EventListenerInterface");
     }
-    if (hasScenes) {
+    if (hasSceneInterface) {
         t += (this->getIncludeDeclaration("SceneableInterface") + "\n");
         if (derivedFromDeclaration.isEmpty()) {
             derivedFromDeclaration += (" : ");
@@ -281,7 +308,7 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("\n");
     t += ("namespace caret {\n");
-    if (hasScenes) {
+    if (hasSceneInterface) {
         t += ("    class SceneClassAssistant;\n");
     }
     t += ("\n");
@@ -306,12 +333,12 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         t += ("        \n");
     }
     else {
-        t += ("    private:\n");
-        t += ("        " + className + "(const " + className + "&);\n");
-        t += ("\n");
-        t += ("        " + className + "& operator=(const " + className + "&);\n");
-        t += ("        \n");
-        t += ("    public:\n");
+//        t += ("    private:\n");
+//        t += ("        " + className + "(const " + className + "&);\n");
+//        t += ("\n");
+//        t += ("        " + className + "& operator=(const " + className + "&);\n");
+//        t += ("        \n");
+//        t += ("    public:\n");
     }
     
     t += ("\n");
@@ -326,12 +353,39 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         t += ("        virtual void receiveEvent(Event* event);\n");
         t += ("\n");
     }
-    if (hasScenes) {
+    if (hasSceneInterface) {
         t += ("        virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,\n");
         t += ("                                        const AString& instanceName);\n");
         t += ("\n");
         t += ("        virtual void restoreFromScene(const SceneAttributes* sceneAttributes,\n");
         t += ("                                      const SceneClass* sceneClass);\n");
+        t += ("\n");
+    }
+    
+    if (hasSceneInterface
+        || hasSubClassSceneSaving) {
+        AString comment = "";
+        AString virtualZero ="";
+        if (hasSceneInterface) {
+            comment = "//";
+            virtualZero = " = 0";
+        }
+        t += ("          \n");
+        t += ("          \n");
+        t += ("          \n");
+        t += ("          \n");
+        t += ("          \n");
+        if (hasSceneInterface) {
+            t += ("// If there will be sub-classes of this class that need to save\n");
+            t += ("// and restore data from scenes, these pure virtual methods can\n");
+            t += ("// be uncommented to force their implemetation by sub-classes.\n");
+        }
+        t += (comment + "    protected: \n");
+        t += (comment + "        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,\n");
+        t += (comment + "                                             SceneClass* sceneClass)" + virtualZero + ";\n");
+        t += (comment + "\n");
+        t += (comment + "        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,\n");
+        t += (comment + "                                                  const SceneClass* sceneClass)" + virtualZero + ";\n");
         t += ("\n");
     }
     
@@ -341,7 +395,14 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
         t += ("        void copyHelper" + className + "(const " + className + "& obj);\n");
         t += ("\n");
     }
-    if (hasScenes) {
+    else {
+        t += ("        " + className + "(const " + className + "&);\n");
+        t += ("\n");
+        t += ("        " + className + "& operator=(const " + className + "&);\n");
+        t += ("        \n");
+    }
+    if (hasSceneInterface
+        || hasSubClassSceneSaving) {
         t += ("        SceneClassAssistant* m_sceneAssistant;\n");
         t += ("\n");
     }
@@ -385,8 +446,11 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
  *    Has copy constructor and assignment operator.
  * @param hasEventListener
  *    Class implements the EventListener interface
- * @param hasScenes
- *    Class implements the SceneableInterface for scene support.
+ * @param hasSceneInterface
+ *    Class implements the  SceneableInterface for scene support.
+ * @param hasSubClassSceneSaving
+ *    Parent class implements the SceneableInterface so add methods
+ *    for saving sub-class data to scene that will be called by parent.
  */
 void 
 CommandClassCreate::createImplementationFile(const AString& outputFileName,
@@ -396,7 +460,8 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
                                                  const AString& ifdefNameStaticDeclaration,
                                              const bool hasCopyAndAssignment,
                                              const bool hasEventListener,
-                                             const bool hasScenes)
+                                             const bool hasSceneInterface,
+                                             const bool hasSubClassSceneSaving)
 {
     AString module;
     FileInformation dirInfo(QDir::currentPath());
@@ -421,7 +486,8 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     if (hasEventListener) {
         t += (this->getIncludeDeclaration("EventManager") + "\n");
     }
-    if (hasScenes) {
+    if (hasSceneInterface
+        || hasSubClassSceneSaving) {
         t += (this->getIncludeDeclaration("SceneClass") + "\n");
         t += (this->getIncludeDeclaration("SceneClassAssistant") + "\n");
         t += ("\n");
@@ -449,7 +515,8 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     }
     t += ("{\n");
     t += ("    \n");
-    if (hasScenes) {
+    if (hasSceneInterface
+        || hasSubClassSceneSaving) {
         t += ("    m_sceneAssistant = new SceneClassAssistant();\n");
         t += ("    \n");
     }
@@ -466,7 +533,8 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     if (hasEventListener) {
         t += ("    EventManager::get()->removeAllEventsFromListener(this);\n");
     }
-    if (hasScenes) {
+    if (hasSceneInterface
+        || hasSubClassSceneSaving) {
         t += ("    delete m_sceneAssistant;\n");
     }
     t += ("}\n");
@@ -547,7 +615,7 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("\n");
     }
     
-    if (hasScenes) {
+    if (hasSceneInterface) {
         t += ("/**\n");
         t += (" * Save information specific to this type of model to the scene.\n");
         t += (" *\n");
@@ -568,6 +636,10 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("                                            1);\n");
         t += ("    m_sceneAssistant->saveMembers(sceneAttributes,\n");
         t += ("                                  sceneClass);\n");
+        t += ("    \n");
+        t += ("    // Uncomment if sub-classes must save to scene\n");
+        t += ("    //saveSubClassDataToScene(sceneAttributes,\n");
+        t += ("    //                        sceneClass);\n");
         t += ("    \n");
         t += ("    return sceneClass;\n");
         t += ("}\n");
@@ -593,9 +665,59 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("    \n");
         t += ("    m_sceneAssistant->restoreMembers(sceneAttributes,\n");
         t += ("                                     sceneClass);    \n");    
+        t += ("    \n");
+        t += ("    //Uncomment if sub-classes must restore from scene\n");
+        t += ("    //restoreSubClassDataFromScene(sceneAttributes,\n");
+        t += ("    //                             sceneClass);\n");
+        t += ("    \n");
         t += ("}\n");
         t += ("\n");
     }
+    
+    if (hasSubClassSceneSaving) {
+        t += ("/**\n");
+        t += (" * Save subclass data to the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneAttributes\n");
+        t += (" *    Attributes for the scene.  Scenes may be of different types\n");
+        t += (" *    (full, generic, etc) and the attributes should be checked when\n");
+        t += (" *    restoring the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneClass\n");
+        t += (" *     sceneClass to which data members should be added.  Will always\n");
+        t += (" *     be valid (non-NULL).\n");
+        t += (" */\n");
+        t += ("void\n");
+        t += (className + "::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,\n");
+        t += ("                                            SceneClass* sceneClass)\n");
+        t += ("{\n");
+        t += ("    m_sceneAssistant->saveMembers(sceneAttributes,\n");
+        t += ("                                  sceneClass);\n");
+        t += ("}\n");
+        t += ("\n");
+        
+        t += ("/**\n");
+        t += (" * Restore file data from the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneAttributes\n");
+        t += (" *    Attributes for the scene.  Scenes may be of different types\n");
+        t += (" *    (full, generic, etc) and the attributes should be checked when\n");
+        t += (" *    restoring the scene.\n");
+        t += (" *\n");
+        t += (" * @param sceneClass\n");
+        t += (" *     sceneClass for the instance of a class that implements\n");
+        t += (" *     this interface.  Will NEVER be NULL.\n");
+        t += (" */\n");
+        t += ("void\n");
+        t += (className + "::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,\n");
+        t += ("                                                 const SceneClass* sceneClass)\n");
+        t += ("{\n");
+        t += ("    m_sceneAssistant->restoreMembers(sceneAttributes,\n");
+        t += ("                                     sceneClass);\n");
+        t += ("}\n");
+        t += ("\n");
+    }
+    
     TextFile tf;
     tf.replaceText(t);
     

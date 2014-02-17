@@ -64,7 +64,8 @@ namespace caret {
                               const AString& ifdefNameStaticDeclaration,
                               const bool hasCopyAndAssignment,
                               const bool hasEventListener,
-                              const bool hasScenes);
+                              const bool hasSceneInterface,
+                              const bool hasSubClassSceneSaving);
         
         void createImplementationFile(const AString& outputFileName,
                                       const AString& className,
@@ -73,7 +74,8 @@ namespace caret {
                                       const AString& ifdefNameStaticDeclaration,
                                       const bool hasCopyAndAssignment,
                                       const bool hasEventListener,
-                                      const bool hasScenes);
+                                      const bool hasSceneInterface,
+                                      const bool hasSubClassSceneSaving);
     };
     
 } // namespace
