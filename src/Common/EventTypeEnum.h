@@ -96,6 +96,8 @@ public:
         EVENT_MODEL_GET_ALL,
         /** model surface - get */
         EVENT_MODEL_SURFACE_GET,
+        /** Get the color for a node's identification symbol from a chart that contains the node */
+        EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS,
         /** open file request from the operating system (Mac only) for now */
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
         /** Read the selected files in a spec file */

@@ -187,6 +187,32 @@ ChartDataSource::setSurfaceNode(const AString& chartableFileName,
 }
 
 /**
+ * Is the given node the source of the data?
+ *
+ * @param surfaceStructureName
+ *    Name of surface structure.
+ * @param nodeIndex
+ *    Index of the surface node.
+ * @return 
+ *    True if node is source of data, else false.
+ */
+bool
+ChartDataSource::isSurfaceNodeSourceOfData(const AString& surfaceStructureName,
+                                     const int32_t nodeIndex) const
+{
+    if (m_dataSourceMode == ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX) {
+        if (m_nodeIndex == nodeIndex) {
+            if (m_surfaceStructureName == surfaceStructureName) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+
+/**
  * @return Mode indicating source of the data.
  */
 ChartDataSourceModeEnum::Enum

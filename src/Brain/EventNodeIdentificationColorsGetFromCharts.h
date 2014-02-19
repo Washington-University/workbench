@@ -1,5 +1,5 @@
-#ifndef __CHART_MODEL_CARTESIAN_H__
-#define __CHART_MODEL_CARTESIAN_H__
+#ifndef __EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS_H__
+#define __EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS_H__
 
 /*LICENSE_START*/
 /*
@@ -34,55 +34,61 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
-#include "ChartAxisUnitsEnum.h"
-#include "ChartModel.h"
-
+#include "Event.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
-    class ChartDataCartesian;
-    
-    class ChartModelCartesian : public ChartModel {
+    class EventNodeIdentificationColorsGetFromCharts : public Event {
         
     public:
-        ChartModelCartesian(const ChartDataTypeEnum::Enum chartDataType,
-                                               const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                               const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+        EventNodeIdentificationColorsGetFromCharts(const StructureEnum::Enum structure,
+                                                   const int32_t tabIndex,
+                                                   const std::vector<int32_t>& nodeIndices);
         
-        virtual ~ChartModelCartesian();
+        virtual ~EventNodeIdentificationColorsGetFromCharts();
         
-        ChartModelCartesian(const ChartModelCartesian& obj);
+        void addNode(const int32_t nodeIndex,
+                     const float rgba[4]);
 
-        ChartModelCartesian& operator=(const ChartModelCartesian& obj);
-        
-        void getBounds(float& boundsMinX,
-                       float& boundsMaxX,
-                       float& boundsMinY,
-                       float& boundsMaxY) const;
-        
-        virtual bool isAverageChartDisplaySupported() const;
-        
-        virtual const ChartData* getAverageChartDataForDisplay() const;
-        
 
+        void applyChartColorToNode(const int32_t nodeIndex,
+                                   uint8_t rgba[4]);
+        
+        AString getStructureName() const;
+        
+        int32_t getTabIndex() const;
+        
+        std::vector<int32_t> getNodeIndices() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
-        void copyHelperChartModelCartesian(const ChartModelCartesian& obj);
-
-//        void adjustAxisDefaultRange(float& minValue,
-//                                    float& maxValue);
         
-        mutable ChartDataCartesian* m_averageChartData;
+        EventNodeIdentificationColorsGetFromCharts(const EventNodeIdentificationColorsGetFromCharts&);
+
+        EventNodeIdentificationColorsGetFromCharts& operator=(const EventNodeIdentificationColorsGetFromCharts&);
         
         // ADD_NEW_MEMBERS_HERE
+        
+        AString m_structureName;
 
+        int32_t m_tabIndex;
+        
+        std::vector<int32_t> m_nodeIndices;
+        
+        struct RgbColor {
+            uint8_t rgb[3];
+        };
+        
+        std::map<int32_t, RgbColor> m_nodeRgbColor;
     };
     
-#ifdef __CHART_MODEL_CARTESIAN_DECLARE__
+#ifdef __EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_CARTESIAN_DECLARE__
+#endif // __EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS_DECLARE__
 
 } // namespace
-#endif  //__CHART_MODEL_CARTESIAN_H__
+#endif  //__EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS_H__

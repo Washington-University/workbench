@@ -70,6 +70,7 @@
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
+#include "EventNodeIdentificationColorsGetFromCharts.h"
 #include "FastStatistics.h"
 #include "Fiber.h"
 #include "FiberOrientation.h"
@@ -1787,8 +1788,23 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
 
     IdentificationManager* idManager = brain->getIdentificationManager();
     
-    SelectionItemSurfaceNodeIdentificationSymbol* symbolID = 
+    SelectionItemSurfaceNodeIdentificationSymbol* symbolID =
         m_brain->getSelectionManager()->getSurfaceNodeIdentificationSymbol();
+    
+    const std::vector<IdentifiedItemNode> identifiedNodes = idManager->getNodeIdentifiedItemsForSurface(structure,
+                                                                                                        numNodes);
+    std::vector<int32_t> identifiedNodeIndices;
+    for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
+         iter != identifiedNodes.end();
+         iter++) {
+        const IdentifiedItemNode& nodeID = *iter;
+        
+        identifiedNodeIndices.push_back(nodeID.getNodeIndex());
+    }
+    
+    EventNodeIdentificationColorsGetFromCharts colorsFromChartsEvent(structure,
+                                                                     this->windowTabIndex,
+                                                                     identifiedNodeIndices);
     
     /*
      * Check for a 'selection' type mode
@@ -1796,6 +1812,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     bool isSelect = false;
     switch (this->mode) {
         case MODE_DRAWING:
+            EventManager::get()->sendEvent(colorsFromChartsEvent.getPointer());
             break;
         case MODE_IDENTIFICATION:
             if (symbolID->isEnabledForSelection()) {
@@ -1811,8 +1828,6 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
             break;
     }
     
-    const std::vector<IdentifiedItemNode> identifiedNodes = idManager->getNodeIdentifiedItemsForSurface(structure,
-                                                                                                        numNodes);
     uint8_t idRGBA[4];
     
     for (std::vector<IdentifiedItemNode>::const_iterator iter = identifiedNodes.begin();
@@ -1831,6 +1846,9 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         else {
             if (structure == nodeID.getStructure()) {
                 nodeID.getSymbolRGBA(idRGBA);
+                
+                colorsFromChartsEvent.applyChartColorToNode(nodeIndex,
+                                                            idRGBA);
             }
             else {
                 nodeID.getContralateralSymbolRGB(idRGBA);

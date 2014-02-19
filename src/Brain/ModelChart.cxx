@@ -33,10 +33,12 @@
 #include "ChartAxis.h"
 #include "ChartableInterface.h"
 #include "ChartData.h"
+#include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
+#include "EventNodeIdentificationColorsGetFromCharts.h"
 #include "ModelChart.h"
 #include "OverlaySet.h"
 #include "OverlaySetArray.h"
@@ -65,6 +67,8 @@ ModelChart::ModelChart(Brain* brain)
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
 }
 
 /**
@@ -337,8 +341,95 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
  *     The event that the receive can respond to.
  */
 void 
-ModelChart::receiveEvent(Event* /*event*/)
+ModelChart::receiveEvent(Event* event)
 {
+    if (event->getEventType() == EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS) {
+        EventNodeIdentificationColorsGetFromCharts* nodeChartID =
+           dynamic_cast<EventNodeIdentificationColorsGetFromCharts*>(event);
+        CaretAssert(nodeChartID);
+        
+        EventBrowserTabGetAll allTabsEvent;
+        EventManager::get()->sendEvent(allTabsEvent.getPointer());
+        std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
+        
+        
+        const AString structureName = nodeChartID->getStructureName();
+        const int32_t nodeIdentificationTabIndex = nodeChartID->getTabIndex();
+        
+        /*
+         * Collect all cartesian models with priority to those in the tab
+         * for for which identification is displayed and then all
+         * other tabs.
+         */
+        std::vector<ChartModelCartesian*> cartesianCharts;
+        if (std::find(validTabIndices.begin(),
+                      validTabIndices.end(),
+                      nodeIdentificationTabIndex) != validTabIndices.end()) {
+            cartesianCharts.push_back(m_chartModelDataSeries[nodeIdentificationTabIndex]);
+            cartesianCharts.push_back(m_chartModelTimeSeries[nodeIdentificationTabIndex]);
+        }
+
+        for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
+             tabIter != validTabIndices.end();
+             tabIter++) {
+            const int32_t tabIndex = *tabIter;
+            if (nodeIdentificationTabIndex != tabIndex) {
+                cartesianCharts.push_back(m_chartModelDataSeries[tabIndex]);
+                cartesianCharts.push_back(m_chartModelTimeSeries[tabIndex]);
+            }
+        }
+        
+        
+        /*
+         * Iterate over node indices for which colors are desired.
+         */
+        const std::vector<int32_t> nodeIndices = nodeChartID->getNodeIndices();
+        for (std::vector<int32_t>::const_iterator nodeIter = nodeIndices.begin();
+             nodeIter != nodeIndices.end();
+             nodeIter++) {
+            const int32_t nodeIndex = *nodeIter;
+            
+            /*
+             * Iterator over the cartesian charts
+             */
+            for (std::vector<ChartModelCartesian*>::iterator chartIter = cartesianCharts.begin();
+                 chartIter != cartesianCharts.end();
+                 chartIter++) {
+                ChartModelCartesian* cartModel = *chartIter;
+                
+                /*
+                 * Iterate over the data in the cartesian chart
+                 */
+                bool foundNodeFlag = false;
+                std::vector<ChartData*> chartDatas = cartModel->getAllChartDatas();
+                for (std::vector<ChartData*>::iterator cdIter = chartDatas.begin();
+                     cdIter != chartDatas.end();
+                     cdIter++) {
+                    const ChartData* cd = *cdIter;
+                    const ChartDataSource* cds = cd->getChartDataSource();
+                    if (cds->isSurfaceNodeSourceOfData(structureName, nodeIndex)) {
+                        /*
+                         * Found node index so add its color to the event
+                         */
+                        foundNodeFlag = true;
+                        const ChartDataCartesian* cdc = dynamic_cast<const ChartDataCartesian*>(cd);
+                        const CaretColorEnum::Enum color = cdc->getColor();
+                        const float* rgb = CaretColorEnum::toRGB(color);
+                        nodeChartID->addNode(nodeIndex,
+                                             rgb);
+                        break;
+                    }
+                }
+                
+                if (foundNodeFlag) {
+                    break;
+                }
+            }
+        }
+        
+
+        nodeChartID->setEventProcessed();
+    }
 }
 
 /**

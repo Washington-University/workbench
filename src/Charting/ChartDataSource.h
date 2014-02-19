@@ -73,6 +73,9 @@ namespace caret {
                             const int32_t surfaceNumberOfNodes,
                             const int32_t nodeIndex);
         
+        bool isSurfaceNodeSourceOfData(const AString& surfaceStructureName,
+                                       const int32_t nodeIndex) const;
+        
         void getSurfaceNodeAverage(AString& surfaceStructureName,
                                    int32_t& surfaceNumberOfNodes,
                                    std::vector<int32_t>& nodeIndices) const;
