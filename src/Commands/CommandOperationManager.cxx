@@ -69,6 +69,7 @@
 #include "AlgorithmMetricExtrema.h"
 #include "AlgorithmMetricFalseCorrelation.h"
 #include "AlgorithmMetricFillHoles.h"
+#include "AlgorithmMetricFindClusters.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricReduce.h"
 #include "AlgorithmMetricRegression.h"
@@ -268,6 +269,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFillHoles()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricReduce()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricRegression()));

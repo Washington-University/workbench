@@ -60,6 +60,7 @@ AlgorithmMetricEstimateFWHM.h
 AlgorithmMetricExtrema.h
 AlgorithmMetricFalseCorrelation.h
 AlgorithmMetricFillHoles.h
+AlgorithmMetricFindClusters.h
 AlgorithmMetricGradient.h
 AlgorithmMetricReduce.h
 AlgorithmMetricRegression.h
@@ -150,6 +151,7 @@ AlgorithmMetricEstimateFWHM.cxx
 AlgorithmMetricExtrema.cxx
 AlgorithmMetricFalseCorrelation.cxx
 AlgorithmMetricFillHoles.cxx
+AlgorithmMetricFindClusters.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricReduce.cxx
 AlgorithmMetricRegression.cxx
