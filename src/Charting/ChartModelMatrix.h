@@ -50,8 +50,6 @@ namespace caret {
 
         ChartModelMatrix& operator=(const ChartModelMatrix& obj);
         
-        void resetAxesToDefaultRange();
-
         virtual bool isAverageChartDisplaySupported() const;
         
         virtual const ChartData* getAverageChartDataForDisplay() const;

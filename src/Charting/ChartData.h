@@ -56,7 +56,7 @@ namespace caret {
         /**
          * At times a copy of chart data will be needed BUT it must be
          * the proper subclass so copy constructor and assignment operator
-         * will no function when this abstract, base class is used.  Each
+         * will function when this abstract, base class is used.  Each
          * subclass will override this method so that the returned class
          * is of the proper type.
          *

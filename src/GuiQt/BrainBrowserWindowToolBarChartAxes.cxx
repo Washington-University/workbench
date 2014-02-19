@@ -47,6 +47,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
 #include "ChartAxis.h"
+#include "ChartAxisCartesian.h"
 #include "ChartModelDataSeries.h"
 #include "ModelChart.h"
 #include "WuQWidgetObjectGroup.h"
@@ -401,13 +402,19 @@ BrainBrowserWindowToolBarChartAxes::updateAxisWidgets(const ChartAxis* chartAxis
                                                       QDoubleSpinBox* maximumValueSpinBox,
                                                       WuQWidgetObjectGroup* widgetGroup)
 {
+    if (chartAxis == NULL) {
+        return;
+    }
+    const ChartAxisCartesian* chartAxisCartesian = dynamic_cast<const ChartAxisCartesian*>(chartAxis);
+    CaretAssert(chartAxisCartesian);
+    
     const bool visible = chartAxis->isVisible();
     
     if (visible) {
         nameLabel->setText(chartAxis->getText());
-        autoRangeScaleCheckBox->setChecked(chartAxis->isAutoRangeScale());
-        const float minValue = chartAxis->getMinimumValue();
-        const float maxValue = chartAxis->getMaximumValue();
+        autoRangeScaleCheckBox->setChecked(chartAxis->isAutoRangeScaleEnabled());
+        const float minValue = chartAxisCartesian->getMinimumValue();
+        const float maxValue = chartAxisCartesian->getMaximumValue();
         minimumValueSpinBox->setValue(minValue);
         maximumValueSpinBox->setValue(maxValue);
     }
@@ -426,10 +433,9 @@ BrainBrowserWindowToolBarChartAxes::leftAxisAutoRangeScaleCheckBoxClicked(bool c
 {
     ChartModelCartesian* cartesianChart = getCartesianChart();
     if (cartesianChart != NULL) {
-        cartesianChart->getLeftAxis()->setAutoRangeScale(checked);
+        cartesianChart->getLeftAxis()->setAutoRangeScaleEnabled(checked);
         
         if (checked) {
-            cartesianChart->resetAxesToDefaultRange();
             updateContent(getTabContentFromSelectedTab());
             invalidateColoringAndUpdateGraphicsWindow();
         }
@@ -448,8 +454,9 @@ BrainBrowserWindowToolBarChartAxes::leftAxisValueChanged(double /*value*/)
     ChartModelCartesian* cartesianChart = getCartesianChart();
     if (cartesianChart != NULL) {
         m_leftAxisAutoRangeScaleCheckBox->setChecked(false);
-        ChartAxis* axis = cartesianChart->getLeftAxis();
-        axis->setAutoRangeScale(false);
+        ChartAxisCartesian* axis = dynamic_cast<ChartAxisCartesian*>(cartesianChart->getLeftAxis());
+        CaretAssert(axis);
+        axis->setAutoRangeScaleEnabled(false);
         axis->setMinimumValue(m_leftAxisMinimumValueSpinBox->value());
         axis->setMaximumValue(m_leftAxisMaximumValueSpinBox->value());
         invalidateColoringAndUpdateGraphicsWindow();
@@ -467,10 +474,9 @@ BrainBrowserWindowToolBarChartAxes::bottomAxisAutoRangeScaleCheckBoxClicked(bool
 {
     ChartModelCartesian* cartesianChart = getCartesianChart();
     if (cartesianChart != NULL) {
-        cartesianChart->getBottomAxis()->setAutoRangeScale(checked);
+        cartesianChart->getBottomAxis()->setAutoRangeScaleEnabled(checked);
 
         if (checked) {
-            cartesianChart->resetAxesToDefaultRange();
             updateContent(getTabContentFromSelectedTab());
             invalidateColoringAndUpdateGraphicsWindow();
         }
@@ -489,8 +495,9 @@ BrainBrowserWindowToolBarChartAxes::bottomAxisValueChanged(double /*value*/)
     ChartModelCartesian* cartesianChart = getCartesianChart();
     if (cartesianChart != NULL) {
         m_bottomAxisAutoRangeScaleCheckBox->setChecked(false);
-        ChartAxis* axis = cartesianChart->getBottomAxis();
-        axis->setAutoRangeScale(false);
+        ChartAxisCartesian* axis = dynamic_cast<ChartAxisCartesian*>(cartesianChart->getBottomAxis());
+        CaretAssert(axis);
+        axis->setAutoRangeScaleEnabled(false);
         axis->setMinimumValue(m_bottomAxisMinimumValueSpinBox->value());
         axis->setMaximumValue(m_bottomAxisMaximumValueSpinBox->value());
         invalidateColoringAndUpdateGraphicsWindow();

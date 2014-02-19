@@ -37,6 +37,8 @@
 #undef __CHART_AXIS_DECLARE__
 
 #include "CaretAssert.h"
+#include "ChartAxisCartesian.h"
+#include "ChartScaleAutoRanging.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -52,14 +54,50 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param axisType
+ *    The axis type.
+ * @param axisLocation.
+ *    Axis location.
  */
-ChartAxis::ChartAxis(const Axis axis)
+ChartAxis::ChartAxis(const ChartAxisTypeEnum::Enum axisType,
+                     const ChartAxisLocationEnum::Enum axisLocation)
 : CaretObject(),
 SceneableInterface(),
-m_axis(axis)
+m_axisType(axisType),
+m_axisLocation(axisLocation)
 {
     initializeMembersChartAxis();
 }
+
+/**
+ * Create and return an axis of the given type and at the given location.
+ *
+ * @param axisType
+ *     Type of axis.
+ * @param axisLocation
+ *     Location of axis.
+ * @return
+ *     Axis that was created.
+ */
+ChartAxis*
+ChartAxis::newChartAxisForTypeAndLocation(const ChartAxisTypeEnum::Enum axisType,
+                                          const ChartAxisLocationEnum::Enum axisLocation)
+{
+    ChartAxis* axis = NULL;
+    
+    switch (axisType) {
+        case ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN:
+            axis = new ChartAxisCartesian(axisLocation);
+            break;
+        case ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE:
+            CaretAssert(0);
+            break;
+    }
+    
+    return axis;
+}
+
 
 /**
  * Destructor.
@@ -75,19 +113,18 @@ ChartAxis::~ChartAxis()
 void
 ChartAxis::initializeMembersChartAxis()
 {
-    m_autoRangeScale = true;
+    m_parentChartModel = NULL;
+    m_autoRangeScaleEnabled = true;
     m_axisUnits      = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
     m_labelFontSize  = 12;
-    m_visible        = false;
-    m_minimumValue   = 0.0;
-    m_maximumValue   = 0.0;
+    m_visible        = true;
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_autoRangeScale", &m_autoRangeScale);
+    m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_axisLocation",
+                                                                              &m_axisLocation);
+    m_sceneAssistant->add("m_autoRangeScaleEnabled", &m_autoRangeScaleEnabled);
     m_sceneAssistant->add("m_labelFontSize", &m_labelFontSize);
     m_sceneAssistant->add("m_visible", &m_visible);
-    m_sceneAssistant->add("m_minimumValue", &m_minimumValue);
-    m_sceneAssistant->add("m_maximumValue", &m_maximumValue);
     m_sceneAssistant->add("m_text", &m_text);
 }
 
@@ -130,26 +167,63 @@ ChartAxis::operator=(const ChartAxis& obj)
 void
 ChartAxis::copyHelperChartAxis(const ChartAxis& obj)
 {
-    m_axis           = obj.m_axis;
+    m_parentChartModel = NULL;
+    m_axisType       = obj.m_axisType;
+    m_axisLocation   = obj.m_axisLocation;
     m_text           = obj.m_text;
     m_axisUnits      = obj.m_axisUnits;
-    m_maximumValue   = obj.m_maximumValue;
-    m_minimumValue   = obj.m_minimumValue;
     m_labelFontSize  = obj.m_labelFontSize;
     m_visible        = obj.m_visible;
-    m_autoRangeScale = obj.m_autoRangeScale;
+    m_autoRangeScaleEnabled = obj.m_autoRangeScaleEnabled;
 }
 
+/**
+ * @return The type of the axis.
+ */
+ChartAxisTypeEnum::Enum
+ChartAxis::getAxisType() const
+{
+    return m_axisType;
+}
 
 /**
  * @return The location of the axis.
  */
-ChartAxis::Axis
-ChartAxis::getAxis() const
+ChartAxisLocationEnum::Enum
+ChartAxis::getAxisLocation() const
 {
-    return m_axis;
+    return m_axisLocation;
 }
 
+/**
+ * Set the parent chart model.
+ *
+ * @param parentChartModel
+ *    Chart in which this axis is used.
+ */
+void
+ChartAxis::setParentChartModel(ChartModel* parentChartModel)
+{
+    m_parentChartModel = parentChartModel;
+}
+
+/**
+ * @return The chart model that uses this axis (may be NULL).
+ */
+ChartModel*
+ChartAxis::getParentChartModel()
+{
+    return m_parentChartModel;
+}
+
+/**
+ * @return The chart model that uses this axis (may be NULL).
+ */
+const ChartModel*
+ChartAxis::getParentChartModel() const
+{
+    return m_parentChartModel;
+}
 
 /**
  * Get a description of this object's content.
@@ -224,61 +298,6 @@ ChartAxis::getAxisUnitsSuffix() const
 
 
 /**
- * @return Minimum value for axis.
- */
-float
-ChartAxis::getMinimumValue() const
-{
-    return m_minimumValue;
-}
-
-/**
- * Set minimum value for axis.
- *
- * @param minimumValue
- *    New minimum value for axis.
- */
-void
-ChartAxis::setMinimumValue(const float minimumValue)
-{
-    m_minimumValue = minimumValue;
-}
-
-/**
- * @return Maximum value for axis.
- */
-float
-ChartAxis::getMaximumValue() const
-{
-    return m_maximumValue;
-}
-
-/**
- * Set maximum value for axis.
- *
- * @param maximumValue
- *    New maximum value for axis.
- */
-void
-ChartAxis::setMaximumValue(const float maximumValue)
-{
-    m_maximumValue = maximumValue;
-}
-
-/**
- * @return True if minimum/maximum values for axis are valid.
- */
-bool
-ChartAxis::isMinimumMaximumValueValid()
-{
-    if (m_maximumValue > m_minimumValue) {
-        return true;
-    }
-    
-    return false;
-}
-
-/**
  * @return Font size for the label's text.
  */
 int32_t
@@ -321,24 +340,28 @@ ChartAxis::setVisible(const bool visible)
 }
 
 /**
- * Is auto range scale selected (scale matches data)
+ * Is auto range scale enabled (scale matches data)
  */
 bool
-ChartAxis::isAutoRangeScale() const
+ChartAxis::isAutoRangeScaleEnabled() const
 {
-    return m_autoRangeScale;
+    return m_autoRangeScaleEnabled;
 }
 
 /**
- * Set auto range scale selected (scale matches data)
+ * Set auto range scale enabled (scale matches data)
  *
- * @param autoRangeScale
+ * @param autoRangeScaleEnabled
  *    New status.
  */
 void
-ChartAxis::setAutoRangeScale(const bool autoRangeScale)
+ChartAxis::setAutoRangeScaleEnabled(const bool autoRangeScaleEnabled)
 {
-    m_autoRangeScale = autoRangeScale;
+    m_autoRangeScaleEnabled = autoRangeScaleEnabled;
+    
+    if (m_autoRangeScaleEnabled) {
+        updateForAutoRangeScale();
+    }
 }
 
 /**
@@ -366,6 +389,9 @@ ChartAxis::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
+    saveSubClassDataToScene(sceneAttributes,
+                            sceneClass);
+    
     return sceneClass;
 }
 
@@ -391,6 +417,9 @@ ChartAxis::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    restoreSubClassDataFromScene(sceneAttributes,
+                                 sceneClass);
 }
 
 

@@ -37,10 +37,13 @@
 
 #include "CaretObject.h"
 
+#include "ChartAxisLocationEnum.h"
+#include "ChartAxisTypeEnum.h"
 #include "ChartAxisUnitsEnum.h"
 #include "SceneableInterface.h"
 
 namespace caret {
+    class ChartModel;
     class SceneClassAssistant;
 
     class ChartAxis : public CaretObject, public SceneableInterface {
@@ -53,7 +56,8 @@ namespace caret {
             AXIS_TOP
         };
         
-        ChartAxis(const Axis axis);
+        static ChartAxis* newChartAxisForTypeAndLocation(const ChartAxisTypeEnum::Enum axisType,
+                                                         const ChartAxisLocationEnum::Enum axisLocation);
         
         virtual ~ChartAxis();
         
@@ -61,7 +65,22 @@ namespace caret {
         
         ChartAxis& operator=(const ChartAxis&);
         
-        Axis getAxis() const;
+        /**
+         * At times a copy of chart axis will be needed BUT it must be
+         * the proper subclass so copy constructor and assignment operator
+         * will function when this abstract, base class is used.  Each
+         * subclass will override this method so that the returned class
+         * is of the proper type.
+         *
+         * @return Copy of this instance that is the actual subclass.
+         */
+        virtual ChartAxis* clone() const = 0;
+
+        void setParentChartModel(ChartModel* parentChartModel);
+        
+        ChartAxisTypeEnum::Enum getAxisType() const;
+        
+        ChartAxisLocationEnum::Enum getAxisLocation() const;
         
         AString getText() const;
         
@@ -73,33 +92,43 @@ namespace caret {
         
         AString getAxisUnitsSuffix() const;
         
-        float getMinimumValue() const;
-        
-        void setMinimumValue(const float minimumValue);
-        
-        float getMaximumValue() const;
-        
-        void setMaximumValue(const float maximumValue);
-        
-        bool isMinimumMaximumValueValid();
-        
         int32_t getLabelFontSize() const;
         
         void setLabelFontSize(const float fontSize);
         
-        bool isAutoRangeScale() const;
+        bool isAutoRangeScaleEnabled() const;
         
-        void setAutoRangeScale(const bool autoRangeScale);
+        void setAutoRangeScaleEnabled(const bool autoRangeScaleEnabled);
         
         bool isVisible() const;
         
         void setVisible(const bool visible);
+        
+        /**
+         * Update for auto range scale.
+         */
+        virtual void updateForAutoRangeScale() = 0;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+    protected:
+        ChartAxis(const ChartAxisTypeEnum::Enum axisType,
+                  const ChartAxisLocationEnum::Enum axisLocation);
+        
+        
+        ChartModel* getParentChartModel();
+        
+        const ChartModel* getParentChartModel() const;
+        
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass) = 0;
+        
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass) = 0;
         
     private:
         void copyHelperChartAxis(const ChartAxis& obj);
@@ -113,21 +142,21 @@ namespace caret {
     private:
         void initializeMembersChartAxis();
         
-        Axis m_axis;
+        ChartAxisTypeEnum::Enum m_axisType;
+        
+        ChartAxisLocationEnum::Enum m_axisLocation;
+        
+        ChartModel* m_parentChartModel;
         
         AString m_text;
         
         ChartAxisUnitsEnum::Enum m_axisUnits;
         
-        float m_maximumValue;
-        
-        float m_minimumValue;
-        
         int32_t m_labelFontSize;
         
         bool m_visible;
         
-        bool m_autoRangeScale;
+        bool m_autoRangeScaleEnabled;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;

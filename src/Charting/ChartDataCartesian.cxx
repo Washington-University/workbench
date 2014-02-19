@@ -394,8 +394,7 @@ ChartDataCartesian::getColor() const
 }
 
 /**
- * Save subclass data to the scene.  sceneClass
- * will be valid and any scene data should be added to it.
+ * Save subclass data to the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types
@@ -403,7 +402,8 @@ ChartDataCartesian::getColor() const
  *    restoring the scene.
  *
  * @param sceneClass
- *     sceneClass to which data members should be added.
+ *     sceneClass to which data members should be added.  Will always
+ *     be valid (non-NULL).
  */
 void
 ChartDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
@@ -439,8 +439,7 @@ ChartDataCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttribut
 }
 
 /**
- * Restore file data from the scene.  The scene class
- * will be valid and any scene data may be obtained from it.
+ * Restore file data from the scene.
  *
  * @param sceneAttributes
  *    Attributes for the scene.  Scenes may be of different types

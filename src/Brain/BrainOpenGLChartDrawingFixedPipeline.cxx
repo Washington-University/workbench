@@ -42,6 +42,7 @@
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "ChartAxis.h"
+#include "ChartAxisCartesian.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
 #include "CaretLogger.h"
@@ -90,6 +91,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                                                 BrainOpenGLTextRenderInterface* textRenderer,
                                                 ChartModel* chart)
 {
+    CaretAssert(chart);
+    if (chart->isEmpty()) {
+        return;
+    }
+    
     saveStateOfOpenGL();
     
     const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
@@ -258,15 +264,63 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
                                                     BrainOpenGLTextRenderInterface* textRenderer,
                                                     const ChartAxis* axis)
 {
-    CaretAssert(axis);
-
+    if (axis == NULL) {
+        return;
+    }
+    
     if ( ! axis->isVisible()) {
         return;
     }
     
+    switch (axis->getAxisType()) {
+        case ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN:
+            drawChartAxisCartesian(vpX,
+                                   vpY,
+                                   vpWidth,
+                                   vpHeight,
+                                   marginSize,
+                                   textRenderer,
+                                   dynamic_cast<const ChartAxisCartesian*>(axis));
+            break;
+        case ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE:
+            break;
+    }
+}
+/**
+ * Draw the chart axes grid/box
+ *
+ * @param vpX
+ *     Viewport X for all chart content
+ * @param vpY
+ *     Viewport Y for all chart content
+ * @param vpWidth
+ *     Viewport width for all chart content
+ * @param vpHeight
+ *     Viewport height for all chart content
+ * @param marginSize
+ *     Margin around grid/box
+ * @param textRenderer
+ *     Text rendering.
+ * @param chartModelCartesian
+ *     The chart cartesian model.
+ * @param axis
+ *     Axis that is drawn.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
+                                                    const float vpY,
+                                                    const float vpWidth,
+                                                    const float vpHeight,
+                                                    const float marginSize,
+                                                    BrainOpenGLTextRenderInterface* textRenderer,
+                                                    const ChartAxisCartesian* axis)
+{
+    CaretAssert(axis);
     
     const float minValue = axis->getMinimumValue();
     const float maxValue = axis->getMaximumValue();
+    const float stepValue = axis->getStepValue();
+    const int32_t digitsRightOfDecimal = axis->getDigitsRightOfDecimal();
     
     const AString axisText = axis->getText();
     float axisTextCenterX = 0;
@@ -289,8 +343,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
     BrainOpenGLTextRenderInterface::TextAlignmentX maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
     BrainOpenGLTextRenderInterface::TextAlignmentY maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
     
-    switch (axis->getAxis()) {
-        case ChartAxis::AXIS_BOTTOM:
+    switch (axis->getAxisLocation()) {
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
             axisVpX = vpX;
             axisVpY = vpY;
             axisVpWidth = vpWidth;
@@ -308,7 +362,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
             maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
             maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
             break;
-        case ChartAxis::AXIS_LEFT:
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
             axisVpX = vpX;
             axisVpY = vpY;
             axisVpWidth = marginSize;
@@ -327,7 +381,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
             maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
             drawAxisTextVerticalFlag = true;
             break;
-        case ChartAxis::AXIS_RIGHT:
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
             axisVpX = vpX + vpWidth - marginSize;
             axisVpY = vpY;
             axisVpWidth = marginSize;
@@ -346,7 +400,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
             maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
             drawAxisTextVerticalFlag = true;
             break;
-        case ChartAxis::AXIS_TOP:
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
             axisVpX = vpX;
             axisVpY = vpY + vpHeight - marginSize;
             axisVpWidth = vpWidth;
@@ -412,8 +466,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
     }
     
     if (maxValue > minValue) {
-        const AString minValueText = axisValueToText(minValue);
-        const AString maxValueText = axisValueToText(maxValue);
+        const AString minValueText = AString::number(minValue, 'f', digitsRightOfDecimal); //axisValueToText(minValue);
+        const AString maxValueText = AString::number(maxValue, 'f', digitsRightOfDecimal); //axisValueToText(maxValue);
         
         textRenderer->drawTextAtWindowCoords(viewport,
                                              minimumValueTextXY[0],
@@ -430,57 +484,57 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
     }
 }
 
-/**
- * Convert an axis numeric value into text.
- * Limits usage of decimal point and digits right of decimal.
- *
- * @param axisValue
- *     Value on an axis.
- * @return 
- *     Value formatted as text.
- */
-AString
-BrainOpenGLChartDrawingFixedPipeline::axisValueToText(const float axisValue) const
-{
-    float value = axisValue;
-    AString signSymbol = "";
-    if (value < 0.0) {
-        value = -value;
-        signSymbol = "-";
-    }
-    
-    int32_t digitsRightOfDecimal = 0;
-    if (value < 10.0) {
-        if (value < 1.0) {
-            if (value < 0.001) {
-                digitsRightOfDecimal = 0;
-                value = 0.0;
-            }
-            else {
-                digitsRightOfDecimal = 2;
-            }
-        }
-        else {
-            digitsRightOfDecimal = 1;
-        }
-    }
-    
-    AString numberText = AString::number(value, 'f', digitsRightOfDecimal);
-    
-    /*
-     * Remove leading zero if there is a decimal
-     */
-    if ( ! numberText.isEmpty()) {
-        if (numberText.indexOf('.') > 0) {
-            if (numberText[0] == '0') {
-                numberText = numberText.mid(1);
-            }
-        }
-    }
-    
-    AString textOut = signSymbol + numberText;
-    return textOut;
-}
+///**
+// * Convert an axis numeric value into text.
+// * Limits usage of decimal point and digits right of decimal.
+// *
+// * @param axisValue
+// *     Value on an axis.
+// * @return 
+// *     Value formatted as text.
+// */
+//AString
+//BrainOpenGLChartDrawingFixedPipeline::axisValueToText(const float axisValue) const
+//{
+//    float value = axisValue;
+//    AString signSymbol = "";
+//    if (value < 0.0) {
+//        value = -value;
+//        signSymbol = "-";
+//    }
+//    
+//    int32_t digitsRightOfDecimal = 0;
+//    if (value < 10.0) {
+//        if (value < 1.0) {
+//            if (value < 0.001) {
+//                digitsRightOfDecimal = 0;
+//                value = 0.0;
+//            }
+//            else {
+//                digitsRightOfDecimal = 2;
+//            }
+//        }
+//        else {
+//            digitsRightOfDecimal = 1;
+//        }
+//    }
+//    
+//    AString numberText = AString::number(value, 'f', digitsRightOfDecimal);
+//    
+//    /*
+//     * Remove leading zero if there is a decimal
+//     */
+//    if ( ! numberText.isEmpty()) {
+//        if (numberText.indexOf('.') > 0) {
+//            if (numberText[0] == '0') {
+//                numberText = numberText.mid(1);
+//            }
+//        }
+//    }
+//    
+//    AString textOut = signSymbol + numberText;
+//    return textOut;
+//}
 
 
 /**
@@ -620,13 +674,20 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
         return;
     }
  
-    const ChartAxis* leftAxis = chart->getLeftAxis();
-    const ChartAxis* bottomAxis = chart->getBottomAxis();
+    const ChartAxisCartesian* leftAxis = dynamic_cast<ChartAxisCartesian*>(chart->getLeftAxis());
+    CaretAssert(leftAxis);
+    const ChartAxisCartesian* bottomAxis = dynamic_cast<ChartAxisCartesian*>(chart->getBottomAxis());
+    CaretAssert(bottomAxis);
     
-    const float xMin = bottomAxis->getMinimumValue();
-    const float xMax = bottomAxis->getMaximumValue();
-    const float yMin = leftAxis->getMinimumValue();
-    const float yMax = leftAxis->getMaximumValue();
+    float xMin = bottomAxis->getMinimumValue();
+    float xMax = bottomAxis->getMaximumValue();
+    float xStep = bottomAxis->getStepValue();
+    int32_t xDigits = bottomAxis->getDigitsRightOfDecimal();
+
+    float yMin = leftAxis->getMinimumValue();
+    float yMax = leftAxis->getMaximumValue();
+    float yStep = leftAxis->getStepValue();
+    int32_t yDigits = leftAxis->getDigitsRightOfDecimal();
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

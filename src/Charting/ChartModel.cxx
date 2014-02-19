@@ -74,10 +74,10 @@ SceneableInterface(),
 m_chartDataType(chartDataType),
 m_selectionMode(selectionMode)
 {
-    m_bottomAxis = new ChartAxis(ChartAxis::AXIS_BOTTOM);
-    m_leftAxis   = new ChartAxis(ChartAxis::AXIS_LEFT);
-    m_rightAxis  = new ChartAxis(ChartAxis::AXIS_RIGHT);
-    m_topAxis    = new ChartAxis(ChartAxis::AXIS_TOP);
+    m_bottomAxis = NULL;
+    m_leftAxis   = NULL;
+    m_rightAxis  = NULL;
+    m_topAxis    = NULL;
     
     switch (m_selectionMode) {
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
@@ -91,10 +91,6 @@ m_selectionMode(selectionMode)
     m_averageChartDisplaySelected = false;
     
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_bottomAxis", "ChartAxis", m_bottomAxis);
-    m_sceneAssistant->add("m_leftAxis", "ChartAxis", m_leftAxis);
-    m_sceneAssistant->add("m_rightAxis", "ChartAxis", m_rightAxis);
-    m_sceneAssistant->add("m_topAxis", "ChartAxis", m_topAxis);
     m_sceneAssistant->add("m_maximumNumberOfChartDatasToDisplay",
                           &m_maximumNumberOfChartDatasToDisplay);
     m_sceneAssistant->add("m_averageChartDisplaySelected",
@@ -108,19 +104,29 @@ ChartModel::~ChartModel()
 {
     delete m_sceneAssistant;
     
-    delete m_bottomAxis;
-    delete m_leftAxis;
-    delete m_rightAxis;
-    delete m_topAxis;
+    removeAllAxes();
     
-    removeChartData();
+    removeChartDataPrivate();
+}
+
+/**
+ * Remove the data data.
+ * NOTE: This method cannot be called by constructor/destructor since
+ * it calls a virtual method.
+ */
+void
+ChartModel::removeChartData()
+{
+    removeChartDataPrivate();
+    
+    updateAfterChartDataHasBeenAddedOrRemoved();
 }
 
 /**
  * Remove the data data.
  */
 void
-ChartModel::removeChartData()
+ChartModel::removeChartDataPrivate()
 {
     for (std::deque<ChartData*>::iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
@@ -130,6 +136,29 @@ ChartModel::removeChartData()
     m_chartDatas.clear();
 }
 
+/**
+ * Remove all axes.
+ */
+void
+ChartModel::removeAllAxes()
+{
+    if (m_bottomAxis != NULL) {
+        delete m_bottomAxis;
+        m_bottomAxis = NULL;
+    }
+    if (m_leftAxis != NULL) {
+        delete m_leftAxis;
+        m_leftAxis = NULL;
+    }
+    if (m_rightAxis != NULL) {
+        delete m_rightAxis;
+        m_rightAxis = NULL;
+    }
+    if (m_topAxis != NULL) {
+        delete m_topAxis;
+        m_topAxis = NULL;
+    }
+}
 
 /**
  * Copy constructor.
@@ -172,10 +201,25 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
     m_chartDataType = obj.m_chartDataType;
     m_selectionMode   = obj.m_selectionMode;
     m_maximumNumberOfChartDatasToDisplay = obj.m_maximumNumberOfChartDatasToDisplay;
-    *m_leftAxis   = *obj.m_leftAxis;
-    *m_rightAxis  = *obj.m_rightAxis;
-    *m_bottomAxis = *obj.m_bottomAxis;
-    *m_topAxis    = *obj.m_topAxis;
+    
+    removeAllAxes();
+    
+    if (obj.m_leftAxis != NULL) {
+        setLeftAxis(obj.m_leftAxis->clone());
+    }
+    
+    if (obj.m_rightAxis != NULL) {
+        setRightAxis(obj.m_rightAxis->clone());
+    }
+    
+    if (obj.m_bottomAxis != NULL) {
+        setBottomAxis(obj.m_bottomAxis->clone());
+    }
+    
+    if (obj.m_topAxis != NULL) {
+        setTopAxis(obj.m_topAxis->clone());
+    }
+    
     m_averageChartDisplaySelected = obj.m_averageChartDisplaySelected;
     
     removeChartData();
@@ -217,6 +261,8 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             break;
     }
+    
+    updateAfterChartDataHasBeenAddedOrRemoved();
 }
 
 /**
@@ -246,6 +292,15 @@ ChartModel::SelectionMode
 ChartModel::getSelectionMode() const
 {
     return m_selectionMode;
+}
+
+/**
+ * Is this model empty (zero charts)?
+ */
+bool
+ChartModel::isEmpty() const
+{
+    return m_chartDatas.empty();
 }
 
 /**
@@ -315,7 +370,7 @@ ChartModel::addChartData(const ChartData* chartDataIn)
             break;
     }
     
-    resetAxesToDefaultRange();
+    updateAfterChartDataHasBeenAddedOrRemoved();
 }
 
 /**
@@ -453,7 +508,7 @@ ChartModel::setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay)
 }
 
 /**
- * @return Chart Axis for left.
+ * @return Chart Axis for left.  NULL if axis not valid.
  */
 ChartAxis*
 ChartModel::getLeftAxis()
@@ -462,7 +517,7 @@ ChartModel::getLeftAxis()
 }
 
 /**
- * @return Chart Axis for left (const method)
+ * @return Chart Axis for left (const method).  NULL if axis not valid.
  */
 const ChartAxis*
 ChartModel::getLeftAxis() const
@@ -471,7 +526,23 @@ ChartModel::getLeftAxis() const
 }
 
 /**
- * @return Chart Axis for right.
+ * Set the bottom axis.  Replaces current axis.
+ *
+ * @param bottomAxis
+ *    New bottom axis.
+ */
+void
+ChartModel::setBottomAxis(ChartAxis* bottomAxis)
+{
+    if (m_bottomAxis != NULL) {
+        delete m_bottomAxis;
+    }
+    m_bottomAxis = bottomAxis;
+    m_bottomAxis->setParentChartModel(this);
+}
+
+/**
+ * @return Chart Axis for right.  NULL if axis not valid.
  */
 ChartAxis*
 ChartModel::getRightAxis()
@@ -480,7 +551,7 @@ ChartModel::getRightAxis()
 }
 
 /**
- * @return Chart Axis for right (const method)
+ * @return Chart Axis for right (const method).  NULL if axis not valid.
  */
 const ChartAxis*
 ChartModel::getRightAxis() const
@@ -489,7 +560,24 @@ ChartModel::getRightAxis() const
 }
 
 /**
- * @return Chart Bottom for bottom.
+ * Set the right axis.  Replaces current axis.
+ *
+ * @param rightAxis
+ *    New right axis.
+ */
+void
+ChartModel::setRightAxis(ChartAxis* rightAxis)
+{
+    if (m_rightAxis != NULL) {
+        delete m_rightAxis;
+    }
+    m_rightAxis = rightAxis;
+    m_rightAxis->setParentChartModel(this);
+}
+
+
+/**
+ * @return Chart Bottom for bottom.  NULL if axis not valid.
  */
 ChartAxis*
 ChartModel::getBottomAxis()
@@ -498,7 +586,7 @@ ChartModel::getBottomAxis()
 }
 
 /**
- * @return Chart Axis for bottom (const method)
+ * @return Chart Axis for bottom (const method).  NULL if axis not valid.
  */
 const ChartAxis*
 ChartModel::getBottomAxis() const
@@ -507,7 +595,23 @@ ChartModel::getBottomAxis() const
 }
 
 /**
- * @return Chart Axis for top.
+ * Set the left axis.  Replaces current axis.
+ *
+ * @param leftAxis
+ *    New left axis.
+ */
+void
+ChartModel::setLeftAxis(ChartAxis* leftAxis)
+{
+    if (m_leftAxis != NULL) {
+        delete m_leftAxis;
+    }
+    m_leftAxis = leftAxis;
+    m_leftAxis->setParentChartModel(this);
+}
+
+/**
+ * @return Chart Axis for top.  NULL if axis not valid.
  */
 ChartAxis*
 ChartModel::getTopAxis()
@@ -516,12 +620,28 @@ ChartModel::getTopAxis()
 }
 
 /**
- * @return Chart Axis for top (const method)
+ * @return Chart Axis for top (const method).  NULL if axis not valid.
  */
 const ChartAxis*
 ChartModel::getTopAxis() const
 {
     return m_topAxis;
+}
+
+/**
+ * Set the top axis.  Replaces current axis.
+ *
+ * @param topAxis
+ *    New top axis.
+ */
+void
+ChartModel::setTopAxis(ChartAxis* topAxis)
+{
+    if (m_topAxis != NULL) {
+        delete m_topAxis;
+    }
+    m_topAxis = topAxis;
+    m_topAxis->setParentChartModel(this);
 }
 
 /**
@@ -554,6 +674,27 @@ ChartModel::childChartDataSelectionChanged(ChartData* childChartData)
             break;
     }
 }
+
+/**
+ * Update after chart data has been added or removed.
+ */
+void
+ChartModel::updateAfterChartDataHasBeenAddedOrRemoved()
+{
+    if (m_bottomAxis != NULL) {
+        m_bottomAxis->updateForAutoRangeScale();
+    }
+    if (m_leftAxis != NULL) {
+        m_leftAxis->updateForAutoRangeScale();
+    }
+    if (m_rightAxis != NULL) {
+        m_rightAxis->updateForAutoRangeScale();
+    }
+    if (m_topAxis != NULL) {
+        m_topAxis->updateForAutoRangeScale();
+    }
+}
+
 
 /**
  * Create a scene for an instance of a class.
@@ -599,6 +740,34 @@ ChartModel::saveToScene(const SceneAttributes* sceneAttributes,
                                                           chartDataSceneClassVector);
     sceneClass->addChild(chartDataArray);
     
+    if (m_bottomAxis != NULL) {
+        sceneClass->addEnumeratedType<ChartAxisTypeEnum,ChartAxisTypeEnum::Enum>("bottomAxisType",
+                                                                                 m_bottomAxis->getAxisType());
+        sceneClass->addChild(m_bottomAxis->saveToScene(sceneAttributes,
+                                                     "m_bottomAxis"));
+    }
+    
+    if (m_leftAxis != NULL) {
+        sceneClass->addEnumeratedType<ChartAxisTypeEnum,ChartAxisTypeEnum::Enum>("leftAxisType",
+                                                                                 m_leftAxis->getAxisType());
+        sceneClass->addChild(m_leftAxis->saveToScene(sceneAttributes,
+                                                     "m_leftAxis"));
+    }
+    
+    if (m_rightAxis != NULL) {
+        sceneClass->addEnumeratedType<ChartAxisTypeEnum,ChartAxisTypeEnum::Enum>("rightAxisType",
+                                                                                 m_rightAxis->getAxisType());
+        sceneClass->addChild(m_rightAxis->saveToScene(sceneAttributes,
+                                                     "m_rightAxis"));
+    }
+    
+    if (m_topAxis != NULL) {
+        sceneClass->addEnumeratedType<ChartAxisTypeEnum,ChartAxisTypeEnum::Enum>("topAxisType",
+                                                                                 m_topAxis->getAxisType());
+        sceneClass->addChild(m_topAxis->saveToScene(sceneAttributes,
+                                                     "m_topAxis"));
+    }
+    
     return sceneClass;
 }
 
@@ -626,6 +795,60 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    removeAllAxes();
+    
+    /*
+     * Restore bottom axis
+     */
+    const ChartAxisTypeEnum::Enum bottomAxisType =
+    sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("bottomAxisType",
+                                                                                   ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
+    if (bottomAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
+        ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(bottomAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM);
+        axis->restoreFromScene(sceneAttributes,
+                               sceneClass->getClass("m_bottomAxis"));
+        setBottomAxis(axis);
+    }
+    
+    /*
+     * Restore left axis
+     */
+    const ChartAxisTypeEnum::Enum leftAxisType =
+    sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("leftAxisType",
+                                                                                   ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
+    if (leftAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
+        ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(leftAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT);
+        axis->restoreFromScene(sceneAttributes,
+                               sceneClass->getClass("m_leftAxis"));
+        setLeftAxis(axis);
+    }
+    
+    /*
+     * Restore right axis
+     */
+    const ChartAxisTypeEnum::Enum rightAxisType =
+    sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("rightAxisType",
+                                                                                   ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
+    if (rightAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
+        ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(rightAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
+        axis->restoreFromScene(sceneAttributes,
+                               sceneClass->getClass("m_rightAxis"));
+        setRightAxis(axis);
+    }
+    
+    /*
+     * Restore top axis
+     */
+    const ChartAxisTypeEnum::Enum topAxisType =
+    sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("topAxisType",
+                                                                                   ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
+    if (topAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
+        ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(topAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP);
+        axis->restoreFromScene(sceneAttributes,
+                               sceneClass->getClass("m_topAxis"));
+        setTopAxis(axis);
+    }
     
     /*
      * Restore my ChartData

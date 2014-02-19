@@ -1,5 +1,5 @@
-#ifndef __CHART_MODEL_CARTESIAN_H__
-#define __CHART_MODEL_CARTESIAN_H__
+#ifndef __CHART_AXIS_CARTESIAN_H__
+#define __CHART_AXIS_CARTESIAN_H__
 
 /*LICENSE_START*/
 /*
@@ -35,54 +35,74 @@
 /*LICENSE_END*/
 
 
-#include "ChartAxisUnitsEnum.h"
-#include "ChartModel.h"
+#include "ChartAxis.h"
+
 
 
 namespace caret {
 
-    class ChartDataCartesian;
+    class ChartModelCartesian;
     
-    class ChartModelCartesian : public ChartModel {
+    class ChartAxisCartesian : public ChartAxis {
         
     public:
-        ChartModelCartesian(const ChartDataTypeEnum::Enum chartDataType,
-                                               const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
-                                               const ChartAxisUnitsEnum::Enum dataAxisUnitsY);
+        virtual ~ChartAxisCartesian();
         
-        virtual ~ChartModelCartesian();
-        
-        ChartModelCartesian(const ChartModelCartesian& obj);
+        ChartAxisCartesian(const ChartAxisCartesian& obj);
 
-        ChartModelCartesian& operator=(const ChartModelCartesian& obj);
+        ChartAxisCartesian& operator=(const ChartAxisCartesian& obj);
         
-        void getBounds(float& boundsMinX,
-                       float& boundsMaxX,
-                       float& boundsMinY,
-                       float& boundsMaxY) const;
+        virtual ChartAxis* clone() const;
         
-        virtual bool isAverageChartDisplaySupported() const;
+        float getMinimumValue() const;
         
-        virtual const ChartData* getAverageChartDataForDisplay() const;
+        void setMinimumValue(const float minimumValue);
         
-
+        float getMaximumValue() const;
+        
+        void setMaximumValue(const float maximumValue);
+        
+        float getStepValue() const;
+        
+        int32_t getDigitsRightOfDecimal() const;
+        
         // ADD_NEW_METHODS_HERE
+          
+    protected:
+        ChartAxisCartesian(const ChartAxisLocationEnum::Enum axisLocation);
+        
+        virtual void updateForAutoRangeScale();
+        
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass);
+
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass);
 
     private:
-        void copyHelperChartModelCartesian(const ChartModelCartesian& obj);
-
-        void adjustAxisDefaultRange(float& minValue,
-                                    float& maxValue);
+        void copyHelperChartAxisCartesian(const ChartAxisCartesian& obj);
         
-        mutable ChartDataCartesian* m_averageChartData;
+        void initializeMembersChartAxisCartesian();
+
+        SceneClassAssistant* m_sceneAssistant;
+
+        mutable float m_maximumValue;
+        
+        mutable float m_minimumValue;
+        
+        mutable float m_stepValue;
+        
+        mutable int32_t m_digitsRightOfDecimal;
         
         // ADD_NEW_MEMBERS_HERE
+        
+    friend class ChartAxis;
 
     };
     
-#ifdef __CHART_MODEL_CARTESIAN_DECLARE__
+#ifdef __CHART_AXIS_CARTESIAN_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_CARTESIAN_DECLARE__
+#endif // __CHART_AXIS_CARTESIAN_DECLARE__
 
 } // namespace
-#endif  //__CHART_MODEL_CARTESIAN_H__
+#endif  //__CHART_AXIS_CARTESIAN_H__

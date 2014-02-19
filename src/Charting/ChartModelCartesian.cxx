@@ -40,6 +40,7 @@
 
 #include "CaretAssert.h"
 #include "ChartAxis.h"
+#include "ChartAxisCartesian.h"
 #include "ChartDataCartesian.h"
 #include "ChartPoint.h"
 #include "ChartScaleAutoRanging.h"
@@ -72,10 +73,13 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
 {
     m_averageChartData = NULL;
     
+    setLeftAxis(ChartAxis::newChartAxisForTypeAndLocation(ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN,
+                                                          ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
     getLeftAxis()->setAxisUnits(dataAxisUnitsY);
-    getLeftAxis()->setVisible(true);
+    
+    setBottomAxis(ChartAxis::newChartAxisForTypeAndLocation(ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN,
+                                                            ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
     getBottomAxis()->setAxisUnits(dataAxisUnitsX);
-    getBottomAxis()->setVisible(true);
 }
 
 /**
@@ -217,27 +221,37 @@ ChartModelCartesian::getAverageChartDataForDisplay() const
     return m_averageChartData;
 }
 
-
-
 /**
- * Reset the axes ranges to the default range for the current data.
+ * Get the bounds of all of the data in themodel.
+ *
+ * @param boundsMinX
+ *     Minimum X-coordinate of all points.
+ * @param boundsMaxX
+ *     Maximum X-coordinate of all points.
+ * @param boundsMinY
+ *     Minimum Y-coordinate of all points.
+ * @param boundsMaxY
+ *     Maximum Y-coordinate of all points.
  */
 void
-ChartModelCartesian::resetAxesToDefaultRange()
+ChartModelCartesian::getBounds(float& boundsMinX,
+                               float& boundsMaxX,
+                               float& boundsMinY,
+                               float& boundsMaxY) const
 {
-    float boundsMinX = 0.0;
-    float boundsMaxX = 0.0;
-    float boundsMinY = 0.0;
-    float boundsMaxY = 0.0;
-
-    const std::vector<ChartData*>  allData = getAllChartDatas();
+    boundsMinX = 0.0;
+    boundsMaxX = 0.0;
+    boundsMinY = 0.0;
+    boundsMaxY = 0.0;
+    
+    const std::vector<const ChartData*> allData = getAllChartDatas();
     if ( ! allData.empty()) {
         boundsMinX =  std::numeric_limits<float>::max();
         boundsMaxX = -std::numeric_limits<float>::max();
         boundsMinY =  std::numeric_limits<float>::max();
         boundsMaxY = -std::numeric_limits<float>::max();
         
-        for (std::vector<ChartData*>::const_iterator iter = allData.begin();
+        for (std::vector<const ChartData*>::const_iterator iter = allData.begin();
              iter != allData.end();
              iter++) {
             const ChartData* chartData = *iter;
@@ -253,19 +267,5 @@ ChartModelCartesian::resetAxesToDefaultRange()
             if (yMax > boundsMaxY) boundsMaxY = yMax;
         }
     }
-    
-    ChartScaleAutoRanging::adjustAxisDefaultRange(boundsMinX, boundsMaxX);
-    ChartScaleAutoRanging::adjustAxisDefaultRange(boundsMinY, boundsMaxY);
-
-    ChartAxis* ba = getBottomAxis();
-    if (ba->isAutoRangeScale()) {
-        ba->setMinimumValue(boundsMinX);
-        ba->setMaximumValue(boundsMaxX);
-    }
-    ChartAxis* la = getLeftAxis();
-    if (la->isAutoRangeScale()) {
-        la->setMinimumValue(boundsMinY);
-        la->setMaximumValue(boundsMaxY);
-    }
-    
 }
+

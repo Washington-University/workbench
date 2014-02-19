@@ -82,6 +82,8 @@ namespace caret {
         
         void setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay);
         
+        bool isEmpty() const;
+        
         std::vector<const ChartData*> getAllChartDatas() const;
         
         std::vector<ChartData*> getAllChartDatas();
@@ -119,11 +121,6 @@ namespace caret {
         
         const ChartAxis* getTopAxis() const;
         
-        /**
-         * Reset the axis to the default range for the data.
-         */
-        virtual void resetAxesToDefaultRange() = 0;
-        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -134,10 +131,25 @@ namespace caret {
 
         virtual AString toString() const;
         
+    protected:
+        void setBottomAxis(ChartAxis* leftAxis);
+        
+        void setLeftAxis(ChartAxis* leftAxis);
+        
+        void setRightAxis(ChartAxis* leftAxis);
+        
+        void setTopAxis(ChartAxis* leftAxis);
+        
+        virtual void updateAfterChartDataHasBeenAddedOrRemoved();
+        
     private:
         void copyHelperChartModel(const ChartModel& obj);
         
         void childChartDataSelectionChanged(ChartData* childChartData);
+        
+        void removeChartDataPrivate();
+        
+        void removeAllAxes();
         
         ChartDataTypeEnum::Enum m_chartDataType;
         

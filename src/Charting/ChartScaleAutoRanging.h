@@ -44,8 +44,15 @@ namespace caret {
     class ChartScaleAutoRanging : public CaretObject {
         
     public:
-        static void adjustAxisDefaultRange(float& minValueInOut,
-                                           float& maxValueInOut);
+        static void createAutoScale(const double minimumValueIn,
+                                    const double maximumValueIn,
+                                    double& scaleMinimumOut,
+                                    double& scaleMaximumOut,
+                                    double& scaleStepOut,
+                                    int32_t& scaleDigitsRightOfDecimalOut);
+        
+//        static void adjustAxisDefaultRange(float& minValueInOut,
+//                                           float& maxValueInOut);
         
         
     private:
@@ -64,17 +71,26 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        static double adjustValueMagnitude(const double valueIn,
-                                           const double rangeIn,
-                                           const bool increaseMagnitudeFlag);
+        static void graphicsGemsHeckbertAutoScale(const double minimumValue,
+                                                  const double maximumValue,
+                                                  double& scaleMinimumOut,
+                                                  double& scaleMaximumOut,
+                                                  double& scaleStepOut,
+                                                  int32_t& scaleDigitsRightOfDecimalOut);
         
+        
+        
+//        static double adjustValueMagnitude(const double valueIn,
+//                                           const double rangeIn,
+//                                           const bool increaseMagnitudeFlag);
+//        
         static bool isZero(const double value);
         
-        static double adjustValueUp(double valueIn,
-                                    const double range);
-        
-        static double adjustValueDown(double valueIn,
-                                      const double range);
+//        static double adjustValueUp(double valueIn,
+//                                    const double range);
+//        
+//        static double adjustValueDown(double valueIn,
+//                                      const double range);
         
         
         // ADD_NEW_MEMBERS_HERE

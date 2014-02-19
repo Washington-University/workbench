@@ -9,6 +9,9 @@ PROJECT(Charting)
 #
 ADD_LIBRARY(Charting
 ChartAxis.h
+ChartAxisCartesian.h
+ChartAxisLocationEnum.h
+ChartAxisTypeEnum.h
 ChartAxisUnitsEnum.h
 ChartData.h
 ChartDataCartesian.h
@@ -24,6 +27,9 @@ ChartPoint.h
 ChartScaleAutoRanging.h
 
 ChartAxis.cxx
+ChartAxisCartesian.cxx
+ChartAxisLocationEnum.cxx
+ChartAxisTypeEnum.cxx
 ChartAxisUnitsEnum.cxx
 ChartData.cxx
 ChartDataCartesian.cxx

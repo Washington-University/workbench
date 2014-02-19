@@ -41,7 +41,9 @@
 namespace caret {
 
     class ChartAxis;
+    class ChartAxisCartesian;
     class ChartDataCartesian;
+    class ChartModelCartesian;
     class ChartModelDataSeries;
     class ChartModelMatrix;
     
@@ -84,11 +86,19 @@ namespace caret {
                            BrainOpenGLTextRenderInterface* textRenderer,
                            const ChartAxis* axis);
         
+        void drawChartAxisCartesian(const float vpX,
+                                    const float vpY,
+                                    const float vpWidth,
+                                    const float vpHeight,
+                                    const float marginSize,
+                                    BrainOpenGLTextRenderInterface* textRenderer,
+                                    const ChartAxisCartesian* axis);
+        
         void drawChartDataCartesian(const ChartDataCartesian* chartDataCartesian,
                                     const float lineWidth,
                                     const float rgb[3]);
         
-        AString axisValueToText(const float axisValue) const;
+//        AString axisValueToText(const float axisValue) const;
         
         void restoreStateOfOpenGL();
         
