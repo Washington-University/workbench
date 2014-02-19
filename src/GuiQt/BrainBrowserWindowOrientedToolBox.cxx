@@ -362,8 +362,8 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
                                                             "");
     if ( ! chartTabName.isEmpty()) {
         for (int32_t i = 0; i < m_chartTabWidget->count(); i++) {
-            if (m_tabWidget->tabText(i) == chartTabName) {
-                m_tabWidget->setCurrentIndex(i);
+            if (m_chartTabWidget->tabText(i) == chartTabName) {
+                m_chartTabWidget->setCurrentIndex(i);
                 break;
             }
         }

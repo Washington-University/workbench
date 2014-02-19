@@ -585,7 +585,15 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
              iter != cdVec.end();
              iter++) {
             const ChartData* cd = *iter;
-            descriptionOut.addLine(cd->getChartDataSource()->toString());
+            if (cd->isSelected()) {
+                descriptionOut.addLine(cd->getChartDataSource()->toString());
+            }
+        }
+        
+        if (chartModel->isAverageChartDisplaySupported()) {
+            if (chartModel->isAverageChartDisplaySelected()) {
+                descriptionOut.addLine("Average Chart Displayed");
+            }
         }
         
         descriptionOut.popIndentation();

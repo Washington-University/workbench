@@ -327,6 +327,18 @@ ChartModel::addChartData(const ChartData* chartDataIn)
     
     m_chartDatas.push_front(chartData);
     
+    updateUsingMaximumNumberOfChartDatasToDisplay();
+    
+    updateAfterChartDataHasBeenAddedOrRemoved();
+}
+
+/**
+ * Update so the number of charts is never greater than
+ * the maximum.
+ */
+void
+ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
+{
     /*
      * If needed, remove extra items at end of deque
      */
@@ -339,7 +351,7 @@ ChartModel::addChartData(const ChartData* chartDataIn)
             delete cd;
         }
     }
-
+    
     switch (m_selectionMode) {
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
         {
@@ -369,9 +381,8 @@ ChartModel::addChartData(const ChartData* chartDataIn)
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             break;
     }
-    
-    updateAfterChartDataHasBeenAddedOrRemoved();
 }
+
 
 /**
  * @return All chart datas (const method)
@@ -505,6 +516,10 @@ ChartModel::setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay)
             m_maximumNumberOfChartDatasToDisplay = numberToDisplay;
             break;
     }
+
+    updateUsingMaximumNumberOfChartDatasToDisplay();
+    
+    updateAfterChartDataHasBeenAddedOrRemoved();
 }
 
 /**

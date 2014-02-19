@@ -151,6 +151,8 @@ namespace caret {
         
         void removeAllAxes();
         
+        void updateUsingMaximumNumberOfChartDatasToDisplay();
+        
         ChartDataTypeEnum::Enum m_chartDataType;
         
         SelectionMode m_selectionMode;
