@@ -132,6 +132,9 @@ ModelChart::removeAllCharts()
             m_chartModelTimeSeries[i] = NULL;
         }
     }
+    
+    m_dataSeriesChartData.clear();
+    m_timeSeriesChartData.clear();
 }
 
 /**
@@ -171,8 +174,6 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
             
             addChartToChartModels(tabIndices,
                                   chartData);
-            
-            delete chartData;
         }
     }    
 }
@@ -206,8 +207,6 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFil
             
             addChartToChartModels(tabIndices,
                                   chartData);
-            
-            delete chartData;
         }
     }
 }
@@ -228,25 +227,41 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
     
     const ChartDataTypeEnum::Enum chartDataDataType = chartData->getChartDataType();
     
-    for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
-         iter != tabIndices.end();
-         iter++) {
-        const int32_t tabIndex = *iter;
-        
-        switch (chartDataDataType) {
-            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                CaretAssert(0);
-                break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                CaretAssert(0);
-                break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                m_chartModelDataSeries[tabIndex]->addChartData(chartData);
-                break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                m_chartModelTimeSeries[tabIndex]->addChartData(chartData);
-                break;
+    switch (chartDataDataType) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            CaretAssert(0);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            CaretAssert(0);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+        {
+            ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
+            CaretAssert(cdc);
+            QSharedPointer<ChartDataCartesian> cdcPtr(cdc);
+            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+                 iter != tabIndices.end();
+                 iter++) {
+                const int32_t tabIndex = *iter;
+                m_chartModelDataSeries[tabIndex]->addChartData(cdcPtr);
+            }
+            m_dataSeriesChartData.push_front(cdcPtr.toWeakRef());
         }
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+        {
+            ChartDataCartesian* cdc = dynamic_cast<ChartDataCartesian*>(chartData);
+            CaretAssert(cdc);
+            QSharedPointer<ChartDataCartesian> cdcPtr(cdc);
+            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
+                 iter != tabIndices.end();
+                 iter++) {
+                const int32_t tabIndex = *iter;
+                m_chartModelTimeSeries[tabIndex]->addChartData(cdcPtr);
+            }
+            m_timeSeriesChartData.push_front(cdcPtr.toWeakRef());
+        }
+            break;
     }
 }
 
@@ -328,8 +343,6 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
             
             addChartToChartModels(tabIndices,
                                   chartData);
-            
-            delete chartData;
         }
     }
 }
@@ -354,28 +367,23 @@ ModelChart::receiveEvent(Event* event)
         
         
         const AString structureName = nodeChartID->getStructureName();
-        const int32_t nodeIdentificationTabIndex = nodeChartID->getTabIndex();
         
-        /*
-         * Collect all cartesian models with priority to those in the tab
-         * for for which identification is displayed and then all
-         * other tabs.
-         */
-        std::vector<ChartModelCartesian*> cartesianCharts;
-        if (std::find(validTabIndices.begin(),
-                      validTabIndices.end(),
-                      nodeIdentificationTabIndex) != validTabIndices.end()) {
-            cartesianCharts.push_back(m_chartModelDataSeries[nodeIdentificationTabIndex]);
-            cartesianCharts.push_back(m_chartModelTimeSeries[nodeIdentificationTabIndex]);
+        std::vector<ChartDataCartesian*> cartesianChartData;
+        
+        for (std::list<QWeakPointer<ChartDataCartesian> >::iterator dsIter = m_dataSeriesChartData.begin();
+             dsIter != m_dataSeriesChartData.end();
+             dsIter++) {
+            QSharedPointer<ChartDataCartesian> spCart = dsIter->toStrongRef();
+            if ( ! spCart.isNull()) {
+                cartesianChartData.push_back(spCart.data());
+            }
         }
-
-        for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
-             tabIter != validTabIndices.end();
-             tabIter++) {
-            const int32_t tabIndex = *tabIter;
-            if (nodeIdentificationTabIndex != tabIndex) {
-                cartesianCharts.push_back(m_chartModelDataSeries[tabIndex]);
-                cartesianCharts.push_back(m_chartModelTimeSeries[tabIndex]);
+        for (std::list<QWeakPointer<ChartDataCartesian> >::iterator tsIter = m_timeSeriesChartData.begin();
+             tsIter != m_timeSeriesChartData.end();
+             tsIter++) {
+            QSharedPointer<ChartDataCartesian> spCart = tsIter->toStrongRef();
+            if ( ! spCart.isNull()) {
+                cartesianChartData.push_back(spCart.data());
             }
         }
         
@@ -390,43 +398,27 @@ ModelChart::receiveEvent(Event* event)
             const int32_t nodeIndex = *nodeIter;
             
             /*
-             * Iterator over the cartesian charts
+             * Iterate over the data in the cartesian chart
              */
-            for (std::vector<ChartModelCartesian*>::iterator chartIter = cartesianCharts.begin();
-                 chartIter != cartesianCharts.end();
-                 chartIter++) {
-                ChartModelCartesian* cartModel = *chartIter;
-                
-                /*
-                 * Iterate over the data in the cartesian chart
-                 */
-                bool foundNodeFlag = false;
-                std::vector<ChartData*> chartDatas = cartModel->getAllChartDatas();
-                for (std::vector<ChartData*>::iterator cdIter = chartDatas.begin();
-                     cdIter != chartDatas.end();
-                     cdIter++) {
-                    const ChartData* cd = *cdIter;
-                    const ChartDataSource* cds = cd->getChartDataSource();
-                    if (cds->isSurfaceNodeSourceOfData(structureName, nodeIndex)) {
-                        /*
-                         * Found node index so add its color to the event
-                         */
-                        foundNodeFlag = true;
-                        const ChartDataCartesian* cdc = dynamic_cast<const ChartDataCartesian*>(cd);
-                        const CaretColorEnum::Enum color = cdc->getColor();
-                        const float* rgb = CaretColorEnum::toRGB(color);
-                        nodeChartID->addNode(nodeIndex,
-                                             rgb);
-                        break;
-                    }
-                }
-                
-                if (foundNodeFlag) {
+            bool foundNodeFlag = false;
+            for (std::vector<ChartDataCartesian*>::iterator cdIter = cartesianChartData.begin();
+                 cdIter != cartesianChartData.end();
+                 cdIter++) {
+                const ChartDataCartesian* cdc = *cdIter;
+                const ChartDataSource* cds = cdc->getChartDataSource();
+                if (cds->isSurfaceNodeSourceOfData(structureName, nodeIndex)) {
+                    /*
+                     * Found node index so add its color to the event
+                     */
+                    foundNodeFlag = true;
+                    const CaretColorEnum::Enum color = cdc->getColor();
+                    const float* rgb = CaretColorEnum::toRGB(color);
+                    nodeChartID->addNode(nodeIndex,
+                                         rgb);
                     break;
                 }
             }
         }
-        
 
         nodeChartID->setEventProcessed();
     }
@@ -538,6 +530,8 @@ void
 ModelChart::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                            const SceneClass* sceneClass)
 {
+    reset();
+    
     /*
      * Restore the chart models
      */
@@ -565,8 +559,12 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
 {
     validChartDataIDsOut.clear();
     
-    std::vector<SceneClass*> chartClassVector;
+    std::set<ChartData*> chartDataForSavingToSceneSet;
     
+    /*
+     * Save chart models to scene.
+     */
+    std::vector<SceneClass*> chartModelVector;
     for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
          tabIter != tabIndices.end();
          tabIter++) {
@@ -584,16 +582,50 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
                                                 1);
         chartClassContainer->addInteger("tabIndex", tabIndex);
         chartClassContainer->addEnumeratedType<ChartDataTypeEnum,ChartDataTypeEnum::Enum>("chartDataType",
-                                                                                 getSelectedChartDataType(tabIndex));
+                                                                                          chartModel->getChartDataType());
         chartClassContainer->addClass(chartModelClass);
         
-        chartClassVector.push_back(chartClassContainer);
+        chartModelVector.push_back(chartClassContainer);
+        
+        /*
+         * Add chart data that is in models saved to scene.
+         * 
+         */
+        std::vector<ChartData*> chartDatasInModel = chartModel->getAllChartDatas();
+        chartDataForSavingToSceneSet.insert(chartDatasInModel.begin(),
+                                            chartDatasInModel.end());
     }
 
-    if ( ! chartClassVector.empty()) {
-        SceneClassArray* modelArray = new SceneClassArray("modelArray",
-                                                      chartClassVector);
+    if ( ! chartModelVector.empty()) {
+        SceneClassArray* modelArray = new SceneClassArray("chartModelArray",
+                                                      chartModelVector);
         sceneClass->addChild(modelArray);
+    }
+
+    if ( ! chartDataForSavingToSceneSet.empty()) {
+        std::vector<SceneClass*> chartDataClassVector;
+        for (std::set<ChartData*>::iterator cdIter = chartDataForSavingToSceneSet.begin();
+             cdIter != chartDataForSavingToSceneSet.end();
+             cdIter++) {
+            ChartData* chartData = *cdIter;
+            SceneClass* chartDataClass = chartData->saveToScene(sceneAttributes,
+                                                                "chartData");
+            
+            SceneClass* chartDataContainer = new SceneClass("chartDataContainer",
+                                                            "ChartDataContainer",
+                                                            1);
+            chartDataContainer->addEnumeratedType<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
+                                                                                              chartData->getChartDataType());
+            chartDataContainer->addClass(chartDataClass);
+            
+            chartDataClassVector.push_back(chartDataContainer);
+        }
+        
+        if ( ! chartDataClassVector.empty()) {
+            SceneClassArray* dataArray = new SceneClassArray("chartDataArray",
+                                                             chartDataClassVector);
+            sceneClass->addChild(dataArray);
+        }
     }
 }
 
@@ -612,11 +644,14 @@ void
 ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                  const SceneClass* sceneClass)
 {
-    const SceneClassArray* modelArray = sceneClass->getClassArray("modelArray");
-    if (modelArray != NULL) {
-        const int numElements = modelArray->getNumberOfArrayElements();
+    /*
+     * Restore the chart models
+     */
+    const SceneClassArray* chartModelArray = sceneClass->getClassArray("chartModelArray");
+    if (chartModelArray != NULL) {
+        const int numElements = chartModelArray->getNumberOfArrayElements();
         for (int32_t i = 0; i < numElements; i++) {
-            const SceneClass* chartClassContainer = modelArray->getClassAtIndex(i);
+            const SceneClass* chartClassContainer = chartModelArray->getClassAtIndex(i);
             if (chartClassContainer != NULL) {
                 const int32_t tabIndex = chartClassContainer->getIntegerValue("tabIndex", -1);
                 const ChartDataTypeEnum::Enum chartDataType =  chartClassContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
@@ -649,6 +684,71 @@ ModelChart::restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
             }
         }
     }
+    
+    /*
+     * Restore the chart data
+     */
+    std::vector<QSharedPointer<ChartData> > restoredChartData;
+    const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
+    if (chartDataArray != NULL) {
+        const int numElements = chartDataArray->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numElements; i++) {
+            const SceneClass* chartDataContainer = chartDataArray->getClassAtIndex(i);
+            if (chartDataContainer != NULL) {
+                const ChartDataTypeEnum::Enum chartDataType = chartDataContainer->getEnumeratedTypeValue<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("chartDataType",
+                                                                                                                                                       ChartDataTypeEnum::CHART_DATA_TYPE_INVALID);
+                const SceneClass* chartDataClass = chartDataContainer->getClass("chartData");
+                if ((chartDataType != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID)
+                    && (chartDataClass != NULL)) {
+                    ChartData* chartData = ChartData::newChartDataForChartDataType(chartDataType);
+                    chartData->restoreFromScene(sceneAttributes, chartDataClass);
+                    
+                    restoredChartData.push_back(QSharedPointer<ChartData>(chartData));
+                }
+                
+            }
+        }
+    }
+    
+    /*
+     * Have chart models restore pointers to chart data
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartModelDataSeries[i]->restoreChartDataFromScene(restoredChartData);
+    }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartModelTimeSeries[i]->restoreChartDataFromScene(restoredChartData);
+    }
+    
+    
+    for (std::vector<QSharedPointer<ChartData> >::iterator rcdIter = restoredChartData.begin();
+         rcdIter != restoredChartData.end();
+         rcdIter++) {
+        QSharedPointer<ChartData> chartPointer = *rcdIter;
+        
+        switch (chartPointer->getChartDataType()) {
+            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                CaretAssert(0);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            {
+                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
+                CaretAssert( ! cartChartPointer.isNull());
+                m_dataSeriesChartData.push_back(cartChartPointer);
+            }
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                CaretAssert(0);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            {
+                QSharedPointer<ChartDataCartesian> cartChartPointer = chartPointer.dynamicCast<ChartDataCartesian>();
+                CaretAssert( ! cartChartPointer.isNull());
+                m_timeSeriesChartData.push_back(cartChartPointer);
+            }
+                break;
+        }
+    }
 }
 
 
@@ -676,8 +776,8 @@ ModelChart::getDescriptionOfContent(const int32_t tabIndex,
              iter != cdVec.end();
              iter++) {
             const ChartData* cd = *iter;
-            if (cd->isSelected()) {
-                descriptionOut.addLine(cd->getChartDataSource()->toString());
+            if (cd->isSelected(tabIndex)) {
+                descriptionOut.addLine(cd->getChartDataSource()->getDescription());
             }
         }
         

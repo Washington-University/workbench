@@ -526,7 +526,7 @@ CiftiParcelSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     
-    const SceneClassArray* tabArray = sceneClass->getClassArray("m_chartingEnabledForTab");
+    const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
     if (tabArray != NULL) {
         sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
                                          m_chartingEnabledForTab,

@@ -67,7 +67,8 @@ namespace caret {
          */
         virtual void drawChart(const int32_t viewport[4],
                                BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart) = 0;
+                               ChartModel* chart,
+                               const int32_t tabIndex) = 0;
     private:
         BrainOpenGLChartDrawingInterface(const BrainOpenGLChartDrawingInterface&);
 

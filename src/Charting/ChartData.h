@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "BrainConstants.h"
 #include "CaretObject.h"
 #include "ChartDataTypeEnum.h"
 #include "SceneableInterface.h"
@@ -70,11 +70,14 @@ namespace caret {
         
         ChartDataSource* getChartDataSource();
         
-        bool isSelected() const;
+        bool isSelected(const int32_t tabIndex) const;
         
-        void setSelected(const bool selectionStatus);
+        void setSelected(const int32_t tabIndex,
+                         const bool selectionStatus);
         
         void clearSelected();
+        
+        AString getUniqueIdentifier() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -140,7 +143,9 @@ namespace caret {
         
         ChartDataSource* m_chartDataSource;
         
-        bool m_selectionStatus;
+        bool m_selectionStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        AString m_uniqueIdentifier;
         
         // ADD_NEW_MEMBERS_HERE
 

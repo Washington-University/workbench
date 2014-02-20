@@ -4911,7 +4911,10 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     
     if (chart != NULL) {
         BrainOpenGLChartDrawingFixedPipeline chartDrawing;
-        chartDrawing.drawChart(viewport, this->textRenderer, chart);
+        chartDrawing.drawChart(viewport,
+                               this->textRenderer,
+                               chart,
+                               this->windowTabIndex);
     }
 }
 

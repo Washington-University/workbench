@@ -89,8 +89,11 @@ BrainOpenGLChartDrawingFixedPipeline::~BrainOpenGLChartDrawingFixedPipeline()
 void
 BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                                                 BrainOpenGLTextRenderInterface* textRenderer,
-                                                ChartModel* chart)
+                                                ChartModel* chart,
+                                                const int32_t tabIndex)
 {
+    m_tabIndex = tabIndex;
+    
     CaretAssert(chart);
     if (chart->isEmpty()) {
         return;
@@ -669,7 +672,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
 {
     CaretAssert(chart);
     
-    std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas();
+    std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas(m_tabIndex);
     if (chartVector.empty()) {
         return;
     }
@@ -706,7 +709,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
          chartIter != chartVector.rend();
          chartIter++) {
         const ChartData* chartData = *chartIter;
-        if (chartData->isSelected()) {
+        if (chartData->isSelected(m_tabIndex)) {
             const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
             CaretAssert(chartDataCart);
             
@@ -718,7 +721,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
     }
     
     if (chart->isAverageChartDisplaySelected()) {
-        const ChartData* chartData = chart->getAverageChartDataForDisplay();
+        const ChartData* chartData = chart->getAverageChartDataForDisplay(m_tabIndex);
         if (chartData != NULL) {
             const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
             CaretAssert(chartDataCart);

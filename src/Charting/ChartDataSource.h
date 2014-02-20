@@ -90,6 +90,8 @@ namespace caret {
         void setVolumeVoxel(const AString& chartableFileName,
                             const float xyz[3]);
         
+        AString getDescription() const;
+        
     private:
         void copyHelperChartDataSource(const ChartDataSource& obj);
         

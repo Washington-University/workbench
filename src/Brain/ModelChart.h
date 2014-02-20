@@ -23,8 +23,12 @@
  *  along with CARET; if not, write to the Free Software 
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
- */ 
+ */
 
+#include <QSharedPointer>
+#include <QWeakPointer>
+
+#include <list>
 #include <set>
 #include <map>
 
@@ -36,6 +40,7 @@
 namespace caret {
 
     class ChartData;
+    class ChartDataCartesian;
     class ChartModel;
     class ChartModelDataSeries;
     class ChartableInterface;
@@ -134,6 +139,12 @@ namespace caret {
         /** Chart model for time-series data */
         ChartModelDataSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
+        /** Contains data series charts */
+        std::list<QWeakPointer<ChartDataCartesian> > m_dataSeriesChartData;
+        
+        /** Contains time series charts */
+        std::list<QWeakPointer<ChartDataCartesian> > m_timeSeriesChartData;
+        
 
         SceneClassAssistant* m_sceneAssistant;
     };

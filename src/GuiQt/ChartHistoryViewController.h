@@ -85,7 +85,8 @@ namespace caret {
         
         void updateHistoryViewController();
         
-        ChartModel* getSelectedChartModel();
+        void getSelectedChartModelAndTab(ChartModel* &chartModelOut,
+                                         int32_t& tabIndexOut);
         
         const int32_t m_browserWindowIndex;
         

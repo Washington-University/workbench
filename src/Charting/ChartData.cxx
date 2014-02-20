@@ -42,6 +42,7 @@
 #include "ChartModel.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SystemUtilities.h"
 
 using namespace caret;
 
@@ -84,14 +85,19 @@ ChartData::initializeMembersChartData()
 {
     m_parentChartModel = NULL;
     m_chartDataSource = new ChartDataSource();
-    m_selectionStatus = true;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_selectionStatus[i] = true;
+    }
+    m_uniqueIdentifier = SystemUtilities::createUniqueID();
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_chartDataSource",
                           "ChartDataSource",
                           m_chartDataSource);
-    m_sceneAssistant->add("m_selectionStatus",
-                          &m_selectionStatus);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_selectionStatus",
+                                                m_selectionStatus);
+    m_sceneAssistant->add("m_uniqueIdentifier",
+                          &m_uniqueIdentifier);
 }
 
 
@@ -135,9 +141,12 @@ ChartData::operator=(const ChartData& obj)
 void 
 ChartData::copyHelperChartData(const ChartData& obj)
 {
+    CaretAssert(0);
     m_chartDataType    = obj.m_chartDataType;
     *m_chartDataSource = *obj.m_chartDataSource;
-    m_selectionStatus = obj.m_selectionStatus;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_selectionStatus[i] = obj.m_selectionStatus[i];
+    }
     m_parentChartModel = NULL; // not copied
 }
 
@@ -267,12 +276,15 @@ ChartData::getChartDataSource()
 }
 
 /**
- * @return The selection status.
+ * @return The selection status in the given tab
+ * @param tabIndex
+ *    Index of the tab.
  */
 bool
-ChartData::isSelected() const
+ChartData::isSelected(const int32_t tabIndex) const
 {
-    return m_selectionStatus;
+    CaretAssertArrayIndex(m_selectionStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_selectionStatus[tabIndex];
 }
 
 /**
@@ -282,19 +294,30 @@ ChartData::isSelected() const
  *    New selection status.
  */
 void
-ChartData::setSelected(const bool selectionStatus)
+ChartData::setSelected(const int32_t tabIndex,
+                       const bool selectionStatus)
 {
-    m_selectionStatus = selectionStatus;
+    CaretAssertArrayIndex(m_selectionStatus, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    m_selectionStatus[tabIndex] = selectionStatus;
     
     /*
      * When selection status is true,
      * notify parent.
      */
-    if (m_selectionStatus) {
-        if (m_parentChartModel != NULL) {
-            m_parentChartModel->childChartDataSelectionChanged(this);
-        }
-    }
+//    if (m_selectionStatus[tabIndex]) {
+//        if (m_parentChartModel != NULL) {
+//            m_parentChartModel->childChartDataSelectionChanged(this);
+//        }
+//    }
+}
+
+/**
+ * @return The Unique Identifier (UUID).
+ */
+AString
+ChartData::getUniqueIdentifier() const
+{
+    return m_uniqueIdentifier;
 }
 
 /**

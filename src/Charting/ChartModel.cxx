@@ -128,11 +128,6 @@ ChartModel::removeChartData()
 void
 ChartModel::removeChartDataPrivate()
 {
-    for (std::deque<ChartData*>::iterator iter = m_chartDatas.begin();
-         iter != m_chartDatas.end();
-         iter++) {
-        delete *iter;
-    }
     m_chartDatas.clear();
 }
 
@@ -224,16 +219,18 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
     
     removeChartData();
     
+    m_chartDatas = obj.m_chartDatas;
+    
     ChartData* selectedChartData = NULL;
-    for (std::deque<ChartData*>::const_iterator iter = obj.m_chartDatas.begin();
-         iter != obj.m_chartDatas.end();
-         iter++) {
-        ChartData* cd = *iter;
-        if (cd->isSelected()) {
-            selectedChartData = cd;
-        }
-        m_chartDatas.push_back(cd->clone());
-    }
+//    for (std::deque<ChartData*>::const_iterator iter = obj.m_chartDatas.begin();
+//         iter != obj.m_chartDatas.end();
+//         iter++) {
+//        ChartData* cd = *iter;
+////        if (cd->isSelected()) {
+////            selectedChartData = cd;
+////        }
+//        m_chartDatas.push_back(cd->clone());
+//    }
 
     switch (m_selectionMode) {
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
@@ -245,7 +242,7 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
                 const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
                 if (numData > 0) {
                     const int32_t lastIndex = numData - 1;
-                    selectedChartData = m_chartDatas[lastIndex];
+                    selectedChartData = m_chartDatas[lastIndex].data();
                 }
             }
             
@@ -254,7 +251,7 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
                  * Calling the setSelected method will ensure that 
                  * mutual exclusion for selection is maintained
                  */
-                selectedChartData->setSelected(true);
+//                selectedChartData->setSelected(true);
             }
         }
             break;
@@ -306,24 +303,20 @@ ChartModel::isEmpty() const
 /**
  * Add a chart model to this controller.
  *
- * @param chartDataIn
+ * @param chartData
  *     Model that is added.
  */
 void
-ChartModel::addChartData(const ChartData* chartDataIn)
+ChartModel::addChartData(const QSharedPointer<ChartData>& chartData)
 {
-    CaretAssert(chartDataIn);
-    
-    ChartData* chartData = chartDataIn->clone();
-    
-    switch (m_selectionMode) {
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-            chartData->setSelected(false);
-            break;
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
-            chartData->setSelected(true);
-            break;
-    }
+//    switch (m_selectionMode) {
+//        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+//            chartData->setSelected(false);
+//            break;
+//        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+//            chartData->setSelected(true);
+//            break;
+//    }
     
     m_chartDatas.push_front(chartData);
     
@@ -346,9 +339,7 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
                                  - m_maximumNumberOfChartDatasToDisplay);
     if (numToRemove > 0) {
         for (int32_t i = 0; i < numToRemove; i++) {
-            ChartData* cd = m_chartDatas.back();
             m_chartDatas.pop_back();
-            delete cd;
         }
     }
     
@@ -361,10 +352,10 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
             bool haveSelectedItem = false;
             const int32_t numData = static_cast<int32_t>(m_chartDatas.size());
             for (int32_t i = 0; i < numData; i++) {
-                if (m_chartDatas[i]->isSelected()) {
-                    haveSelectedItem = true;
-                    break;
-                }
+//                if (m_chartDatas[i]->isSelected()) {
+//                    haveSelectedItem = true;
+//                    break;
+//                }
             }
             
             /*
@@ -373,7 +364,7 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
             if ( ! haveSelectedItem) {
                 const int32_t lastIndex = numData - 1;
                 if (numData >= 0) {
-                    m_chartDatas[lastIndex]->setSelected(true);
+//                    m_chartDatas[lastIndex]->setSelected(true);
                 }
             }
         }
@@ -394,10 +385,10 @@ ChartModel::getAllChartDatas() const
     
 //    int32_t counter = 0;
     
-    for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
+    for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
-        datasOut.push_back(*iter);
+        datasOut.push_back(iter->data());
         
 //        counter++;
 //        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
@@ -418,10 +409,10 @@ ChartModel::getAllChartDatas()
     
     //    int32_t counter = 0;
     
-    for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
+    for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
-        datasOut.push_back(*iter);
+        datasOut.push_back(iter->data());
         
         //        counter++;
         //        if (counter >= m_maximumNumberOfChartDatasToDisplay) {
@@ -433,20 +424,22 @@ ChartModel::getAllChartDatas()
 }
 
 /**
- * @return All SELECTED chart datas.
+ * @return All SELECTED chart datas in the given tab.
+ * @param tabIndex
+ *     Index of tab.
  */
 std::vector<const ChartData*>
-ChartModel::getAllSelectedChartDatas() const
+ChartModel::getAllSelectedChartDatas(const int32_t tabIndex) const
 {
     std::vector<const ChartData*> datasOut;
     
     //    int32_t counter = 0;
     
-    for (std::deque<ChartData*>::const_iterator iter = m_chartDatas.begin();
+    for (std::deque<QSharedPointer<ChartData> >::const_iterator iter = m_chartDatas.begin();
          iter != m_chartDatas.end();
          iter++) {
-        ChartData* cd = *iter;
-        if (cd->isSelected()) {
+        ChartData* cd = iter->data();
+        if (cd->isSelected(tabIndex)) {
             datasOut.push_back(cd);
         }
         
@@ -673,15 +666,15 @@ ChartModel::childChartDataSelectionChanged(ChartData* childChartData)
 {
     switch (m_selectionMode) {
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-        if (childChartData->isSelected()) {
-            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
-            for (int32_t i = 0; i < numChartData; i++) {
-                ChartData* cd = m_chartDatas[i];
-                if (cd != childChartData) {
-                    cd->setSelected(false);
-                }
-            }
-        }
+//        if (childChartData->isSelected()) {
+//            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+//            for (int32_t i = 0; i < numChartData; i++) {
+//                ChartData* cd = m_chartDatas[i];
+//                if (cd != childChartData) {
+//                    cd->setSelected(false);
+//                }
+//            }
+//        }
             break;
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
         {
@@ -742,18 +735,16 @@ ChartModel::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    std::vector<SceneClass*> chartDataSceneClassVector;
-    
-    for (int32_t i = 0; i < numChartData; i++) {
-        const AString name = ("m_chartDatas[" + AString::number(i) + "]");
-        SceneClass* sc = m_chartDatas[i]->saveToScene(sceneAttributes,
-                                                      name);
-        chartDataSceneClassVector.push_back(sc);
+    if (numChartData > 0) {
+        std::vector<AString> chartDataUniqueIDs;
+        for (int32_t i = 0; i < numChartData; i++) {
+            chartDataUniqueIDs.push_back(m_chartDatas[i]->getUniqueIdentifier());
+        }
+        
+        sceneClass->addStringArray("chartUniqueIDsArray",
+                                   &chartDataUniqueIDs[0],
+                                   numChartData);
     }
-
-    SceneClassArray* chartDataArray = new SceneClassArray("chartDataArray",
-                                                          chartDataSceneClassVector);
-    sceneClass->addChild(chartDataArray);
     
     if (m_bottomAxis != NULL) {
         sceneClass->addEnumeratedType<ChartAxisTypeEnum,ChartAxisTypeEnum::Enum>("bottomAxisType",
@@ -866,14 +857,80 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     /*
-     * Restore my ChartData
+     * Restore unique IDs of ChartData
      */
-    const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
-    const int32_t numChartData = chartDataArray->getNumberOfArrayElements();
-    for (int32_t i = 0; i < numChartData; i++) {
-        const SceneClass* chartDataClass = chartDataArray->getClassAtIndex(i);
-        ChartData* chartData = ChartData::newChartDataForChartDataType(m_chartDataType);
-        chartData->restoreFromScene(sceneAttributes, chartDataClass);
-        m_chartDatas.push_back(chartData);
+    m_chartDataUniqueIDsRestoredFromScene.clear();
+    const ScenePrimitiveArray* chartUniqueIDsArray = sceneClass->getPrimitiveArray("chartUniqueIDsArray");
+    if (chartUniqueIDsArray != NULL) {
+        const int32_t numElements = chartUniqueIDsArray->getNumberOfArrayElements();
+        m_chartDataUniqueIDsRestoredFromScene.resize(numElements);
+        chartUniqueIDsArray->stringValues(m_chartDataUniqueIDsRestoredFromScene,
+                                          "");
     }
+    
+//    /*
+//     * Restore my ChartData
+//     */
+//    const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
+//    const int32_t numChartData = chartDataArray->getNumberOfArrayElements();
+//    for (int32_t i = 0; i < numChartData; i++) {
+//        const SceneClass* chartDataClass = chartDataArray->getClassAtIndex(i);
+//        ChartData* chartData = ChartData::newChartDataForChartDataType(m_chartDataType);
+//        chartData->restoreFromScene(sceneAttributes, chartDataClass);
+//        m_chartDatas.push_back(chartData);
+//    }
 }
+
+/**
+ * Restore chart data from scene by matching unique identifiers from charts
+ *
+ * @param restoredChartData
+ *     Chart data restored from scenes.
+ */
+void
+ChartModel::restoreChartDataFromScene(std::vector<QSharedPointer<ChartData> >& restoredChartData)
+{
+    const int32_t numChartUniqueIDsFromScene = static_cast<int32_t>(m_chartDataUniqueIDsRestoredFromScene.size());
+    if (numChartUniqueIDsFromScene > 0) {
+        std::vector<QSharedPointer<ChartData> > chartDataVector(numChartUniqueIDsFromScene);
+        
+        /*
+         * Need to keep chart data in same order as when scene was created
+         */
+        for (int32_t i = 0; i < numChartUniqueIDsFromScene; i++) {
+            for (std::vector<QSharedPointer<ChartData> >::iterator chartIter = restoredChartData.begin();
+                 chartIter != restoredChartData.end();
+                 chartIter++) {
+                QSharedPointer<ChartData> cd = *chartIter;
+                if (cd->getUniqueIdentifier() == m_chartDataUniqueIDsRestoredFromScene[i]) {
+                    if (cd->getChartDataType() == m_chartDataType) {
+                        chartDataVector[i] = cd;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        /*
+         * Add the restored chart data
+         */
+        for (int32_t i = 0; i < numChartUniqueIDsFromScene; i++) {
+            QSharedPointer<ChartData> cd = chartDataVector[i];
+            if (cd.isNull()) {
+                CaretLogSevere("Failed to restore chart with Unique ID: "
+                               + m_chartDataUniqueIDsRestoredFromScene[i]);
+            }
+            else {
+                addChartData(cd);
+            }
+        }
+    }
+    
+    m_chartDataUniqueIDsRestoredFromScene.clear();
+
+    updateUsingMaximumNumberOfChartDatasToDisplay();
+    
+    updateAfterChartDataHasBeenAddedOrRemoved();
+}
+
+

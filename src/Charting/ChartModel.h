@@ -34,6 +34,8 @@
  */
 /*LICENSE_END*/
 
+#include <QSharedPointer>
+
 #include <deque>
 
 #include "CaretObject.h"
@@ -76,7 +78,7 @@ namespace caret {
         
         SelectionMode getSelectionMode() const;
         
-        void addChartData(const ChartData* chartDataIn);
+        void addChartData(const QSharedPointer<ChartData>& chartData);
         
         virtual int32_t getMaximumNumberOfChartDatasToDisplay() const;
         
@@ -88,7 +90,7 @@ namespace caret {
         
         std::vector<ChartData*> getAllChartDatas();
         
-        std::vector<const ChartData*> getAllSelectedChartDatas() const;
+        std::vector<const ChartData*> getAllSelectedChartDatas(const int32_t tabIndex) const;
         
         /**
          * @return Is an average of data supported?
@@ -96,10 +98,17 @@ namespace caret {
         virtual bool isAverageChartDisplaySupported() const = 0;
         
         /**
-         * @return The average chart data.  Will return NULL if either
+         * Get the average for charts in the given tab.
+         *
+         * @param tabIndex
+         *     Index of the tab.
+         *
+         * @return
+         *     The average chart data.  Will return NULL if either
          * no data to average or model does not support an average.
+         * Includes only those chart data that are displayed.
          */
-        virtual const ChartData* getAverageChartDataForDisplay() const = 0;
+        virtual const ChartData* getAverageChartDataForDisplay(const int32_t tabIndex) const = 0;
         
         bool isAverageChartDisplaySelected() const;
         
@@ -127,6 +136,8 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
+        void restoreChartDataFromScene(std::vector<QSharedPointer<ChartData> >& restoredChartData);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -157,7 +168,7 @@ namespace caret {
         
         SelectionMode m_selectionMode;
         
-        std::deque<ChartData*> m_chartDatas;
+        std::deque<QSharedPointer<ChartData> > m_chartDatas;
         
         int32_t m_maximumNumberOfChartDatasToDisplay;
         
@@ -168,6 +179,8 @@ namespace caret {
         ChartAxis* m_bottomAxis;
         
         ChartAxis* m_topAxis;
+        
+        std::vector<AString> m_chartDataUniqueIDsRestoredFromScene;
         
         bool m_averageChartDisplaySelected;
         

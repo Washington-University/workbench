@@ -63,7 +63,7 @@ namespace caret {
         
         virtual bool isAverageChartDisplaySupported() const;
         
-        virtual const ChartData* getAverageChartDataForDisplay() const;
+        virtual const ChartData* getAverageChartDataForDisplay(const int32_t tabIndex) const;
         
 
         // ADD_NEW_METHODS_HERE

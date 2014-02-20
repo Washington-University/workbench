@@ -56,7 +56,8 @@ namespace caret {
         
         virtual void drawChart(const int32_t viewport[4],
                                BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart);
+                               ChartModel* chart,
+                               const int32_t tabIndex);
     private:
         BrainOpenGLChartDrawingFixedPipeline(const BrainOpenGLChartDrawingFixedPipeline&);
 
@@ -112,6 +113,7 @@ namespace caret {
     private:
         float m_foregroundColor[4];
         
+        int32_t m_tabIndex;
         // ADD_NEW_MEMBERS_HERE
 
     };

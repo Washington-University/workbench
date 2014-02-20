@@ -174,7 +174,14 @@ ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIn
     if (item != NULL) {
         if (columnIndex == COLUMN_CHART_DATA_CHECKBOX) {
             bool isSelected = WuQtUtilities::checkStateToBool(item->checkState());
-            ChartModel* chartModel = getSelectedChartModel();
+            
+            ChartModel* chartModel = NULL;
+            int32_t tabIndex = -1;
+            getSelectedChartModelAndTab(chartModel,
+                                        tabIndex);
+            if (chartModel == NULL) {
+                return;
+            }
             
             switch (chartModel->getSelectionMode()) {
                 case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
@@ -186,7 +193,8 @@ ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIn
             
             std::vector<ChartData*> chartDataVector = chartModel->getAllChartDatas();
             CaretAssertVectorIndex(chartDataVector, rowIndex);
-            chartDataVector[rowIndex]->setSelected(isSelected);
+            chartDataVector[rowIndex]->setSelected(tabIndex,
+                                                   isSelected);
             
             updateAfterSelectionsChanged();
         }
@@ -202,7 +210,14 @@ ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIn
 void
 ChartHistoryViewController::averageCheckBoxClicked(bool clicked)
 {
-    ChartModel* chartModel = getSelectedChartModel();
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
+    if (chartModel == NULL) {
+        return;
+    }
+    
     chartModel->setAverageChartDisplaySelected(clicked);
     
     updateAfterSelectionsChanged();
@@ -214,7 +229,10 @@ ChartHistoryViewController::averageCheckBoxClicked(bool clicked)
 void
 ChartHistoryViewController::clearPushButtonClicked()
 {
-    ChartModel* chartModel = getSelectedChartModel();
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
     if (chartModel == NULL) {
         return;
     }
@@ -233,7 +251,10 @@ ChartHistoryViewController::clearPushButtonClicked()
 void
 ChartHistoryViewController::maximumDisplayedSpinBoxValueChanged(int value)
 {
-    ChartModel* chartModel = getSelectedChartModel();
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
     if (chartModel == NULL) {
         return;
     }
@@ -265,7 +286,10 @@ ChartHistoryViewController::updateAfterSelectionsChanged()
 void
 ChartHistoryViewController::updateHistoryViewController()
 {
-    ChartModel* chartModel = getSelectedChartModel();
+    ChartModel* chartModel = NULL;
+    int32_t tabIndex = -1;
+    getSelectedChartModelAndTab(chartModel,
+                                tabIndex);
     if (chartModel == NULL) {
         return;
     }
@@ -294,7 +318,7 @@ ChartHistoryViewController::updateHistoryViewController()
         const ChartData* chartData = chartDataVector[i];
         
         const ChartDataSource* dataSource = chartData->getChartDataSource();
-        const AString name = dataSource->toString();
+        const AString name = dataSource->getDescription();
         
         /*
          * Update checked status
@@ -310,7 +334,7 @@ ChartHistoryViewController::updateHistoryViewController()
                                             checkItem);
         }
         
-        if (chartData->isSelected()) {
+        if (chartData->isSelected(tabIndex)) {
             checkItem->setCheckState(Qt::Checked);
         }
         else {
@@ -374,28 +398,33 @@ ChartHistoryViewController::updateHistoryViewController()
 }
 
 /**
- * @return Chart model selected in the selected tab (NULL if not valid)
+ * Get the chart model and the selected tab.
+ *
+ * @param chartModelOut
+ *    Output containing chart model (may be NULL).
+ * @param tabIndexOut
+ *    Output containing tab index (negative if invalid).
  */
-ChartModel*
-ChartHistoryViewController::getSelectedChartModel()
+void
+ChartHistoryViewController::getSelectedChartModelAndTab(ChartModel* &chartModelOut,
+                                                        int32_t& tabIndexOut)
 {
+    chartModelOut = NULL;
+    tabIndexOut   = -1;
+    
     Brain* brain = GuiManager::get()->getBrain();
     
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
     if (browserTabContent == NULL) {
-        return NULL;
+        return;
     }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    ChartModel* chartModel = NULL;
+    tabIndexOut = browserTabContent->getTabNumber();
     
     ModelChart* modelChart = brain->getChartModel();
     if (modelChart != NULL) {
-        chartModel = modelChart->getSelectedChartModel(browserTabIndex);
+        chartModelOut = modelChart->getSelectedChartModel(tabIndexOut);
     }
-    
-    return chartModel;
 }
 
 

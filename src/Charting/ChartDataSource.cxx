@@ -325,7 +325,7 @@ ChartDataSource::setVolumeVoxel(const AString& chartableFileName,
  * @return String describing this object's content.
  */
 AString
-ChartDataSource::toString() const
+ChartDataSource::getDescription() const
 {
     AString s;
     switch (m_dataSourceMode) {
@@ -355,6 +355,17 @@ ChartDataSource::toString() const
               + fileInfo.getFileName());
     }
     
+    return s;
+}
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString
+ChartDataSource::toString() const
+{
+    AString s = "ChartDataSource";
     return s;
 }
 

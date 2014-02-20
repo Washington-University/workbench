@@ -144,12 +144,18 @@ ChartModelCartesian::isAverageChartDisplaySupported() const
 }
 
 /**
- * @return The average chart data.  Will return NULL if either
+ * Get the average for charts in the given tab.
+ *
+ * @param tabIndex
+ *     Index of the tab.
+ *
+ * @return 
+ *     The average chart data.  Will return NULL if either
  * no data to average or model does not support an average.
  * Includes only those chart data that are displayed.
  */
 const ChartData*
-ChartModelCartesian::getAverageChartDataForDisplay() const
+ChartModelCartesian::getAverageChartDataForDisplay(const int32_t tabIndex) const
 {
     if (m_averageChartData != NULL) {
         delete m_averageChartData;
@@ -161,7 +167,7 @@ ChartModelCartesian::getAverageChartDataForDisplay() const
      * Data may be from multiple files so compute an average of those
      * that match the first (newest) file.
      */
-    const std::vector<const ChartData*>  allData = getAllSelectedChartDatas();
+    const std::vector<const ChartData*>  allData = getAllSelectedChartDatas(tabIndex);
     if ( ! allData.empty()) {
         std::vector<float> xValue;
         std::vector<double> ySum;

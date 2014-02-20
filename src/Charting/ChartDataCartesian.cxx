@@ -204,6 +204,7 @@ ChartDataCartesian::operator=(const ChartDataCartesian& obj)
 void 
 ChartDataCartesian::copyHelperChartDataCartesian(const ChartDataCartesian& obj)
 {
+    CaretAssert(0);
     m_dataAxisUnitsX = obj.m_dataAxisUnitsX;
     m_dataAxisUnitsY = obj.m_dataAxisUnitsY;
     
