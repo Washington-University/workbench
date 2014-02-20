@@ -18,7 +18,6 @@ INCLUDE (${QT_USE_FILE})
 # Create the NIFTI library
 #
 ADD_LIBRARY(FilesBase
-BrainConstants.h
 DisplayGroupEnum.h
 GiftiException.h
 GiftiLabel.h
@@ -35,7 +34,6 @@ VolumeMappableInterface.h
 VolumeSliceViewPlaneEnum.h
 VolumeSpace.h
 
-BrainConstants.cxx
 DisplayGroupEnum.cxx
 GiftiException.cxx
 GiftiLabel.cxx

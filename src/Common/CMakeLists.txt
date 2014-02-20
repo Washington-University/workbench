@@ -29,6 +29,7 @@ ApplicationInformation.h
 AString.h
 Base64.h
 BoundingBox.h
+BrainConstants.h
 ByteOrderEnum.h
 ByteSwapping.h
 CaretAssert.h
@@ -110,6 +111,7 @@ ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
 AString.cxx
 Base64.cxx
 BoundingBox.cxx
+BrainConstants.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
