@@ -39,7 +39,6 @@
 #include "CaretAssert.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
-#include "ChartModel.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SystemUtilities.h"
@@ -83,7 +82,6 @@ ChartData::~ChartData()
 void
 ChartData::initializeMembersChartData()
 {
-    m_parentChartModel = NULL;
     m_chartDataSource = new ChartDataSource();
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_selectionStatus[i] = true;
@@ -147,16 +145,6 @@ ChartData::copyHelperChartData(const ChartData& obj)
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_selectionStatus[i] = obj.m_selectionStatus[i];
     }
-    m_parentChartModel = NULL; // not copied
-}
-
-/**
- * Parent ChartModel of this instance.
- */
-void
-ChartData::setParent(ChartModel* parentChartModel)
-{
-    m_parentChartModel = parentChartModel;
 }
 
 /**

@@ -43,7 +43,6 @@
 namespace caret {
 
     class ChartDataSource;
-    class ChartModel;
     class SceneClassAssistant;
     
     class ChartData : public CaretObject, public SceneableInterface {
@@ -132,14 +131,9 @@ namespace caret {
         
         void copyHelperChartData(const ChartData& obj);
 
-        void setParent(ChartModel* parentChartModel);
-        
         SceneClassAssistant* m_sceneAssistant;
 
         ChartDataTypeEnum::Enum m_chartDataType;
-        
-        /** Parent that owns this chart, not saved to scene */
-        ChartModel* m_parentChartModel;
         
         ChartDataSource* m_chartDataSource;
         
@@ -148,8 +142,6 @@ namespace caret {
         AString m_uniqueIdentifier;
         
         // ADD_NEW_MEMBERS_HERE
-
-        friend class ChartModel;
     };
     
 #ifdef __CHART_DATA_DECLARE__

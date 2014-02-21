@@ -64,8 +64,6 @@ public:
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
-        /** Notification that new chart(s) are available */
-        EVENT_CHARTS_NEW_NOTIFICATION,
         /** Read a data file */
         EVENT_DATA_FILE_READ,
         /** Reload (replace) a data file with its saved version */

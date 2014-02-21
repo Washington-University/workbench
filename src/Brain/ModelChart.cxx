@@ -66,8 +66,6 @@ ModelChart::ModelChart(Brain* brain)
     initializeCharts();
     
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_CHARTS_NEW_NOTIFICATION);
-    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
 }
 
