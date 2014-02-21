@@ -511,6 +511,10 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttr
                            sceneClass,
                            tabIndices,
                            validChartDataIDs);
+    
+    sceneClass->addEnumeratedTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
+                                                                                                m_selectedChartDataType,
+                                                                                                tabIndices);
 }
 
 /**
@@ -536,6 +540,8 @@ ModelChart::restoreModelSpecificInformationFromScene(const SceneAttributes* scen
     restoreChartModelsFromScene(sceneAttributes,
                                 sceneClass);
     
+    sceneClass->getEnumerateTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
+                                                                                               m_selectedChartDataType);
 }
 
 /**
