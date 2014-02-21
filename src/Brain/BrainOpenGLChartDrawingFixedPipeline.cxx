@@ -265,7 +265,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
                                                     const float vpHeight,
                                                     const float marginSize,
                                                     BrainOpenGLTextRenderInterface* textRenderer,
-                                                    const ChartAxis* axis)
+                                                    ChartAxis* axis)
 {
     if (axis == NULL) {
         return;
@@ -283,12 +283,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
                                    vpHeight,
                                    marginSize,
                                    textRenderer,
-                                   dynamic_cast<const ChartAxisCartesian*>(axis));
+                                   dynamic_cast<ChartAxisCartesian*>(axis));
             break;
         case ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE:
             break;
     }
 }
+
 /**
  * Draw the chart axes grid/box
  *
@@ -316,176 +317,436 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                                     const float vpHeight,
                                                     const float marginSize,
                                                     BrainOpenGLTextRenderInterface* textRenderer,
-                                                    const ChartAxisCartesian* axis)
+                                                    ChartAxisCartesian* axis)
 {
     CaretAssert(axis);
     
-    const float minValue = axis->getMinimumValue();
-    const float maxValue = axis->getMaximumValue();
-    const float stepValue = axis->getStepValue();
-    const int32_t digitsRightOfDecimal = axis->getDigitsRightOfDecimal();
-    
-    const AString axisText = axis->getText();
-    float axisTextCenterX = 0;
-    float axisTextCenterY = 0;
-    bool drawAxisTextVerticalFlag = false;
-    
-    /*
-     * Viewport for axis name and numeric values
-     */
-    int32_t axisVpX = vpX;
-    int32_t axisVpY = vpY;
-    int32_t axisVpWidth = vpWidth;
-    int32_t axisVpHeight = vpHeight;
-    
-    
-    float minimumValueTextXY[2] = { 0.0, 0.0 };
-    float maximumValueTextXY[2] = { 0.0, 0.0 };
-    BrainOpenGLTextRenderInterface::TextAlignmentX minValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
-    BrainOpenGLTextRenderInterface::TextAlignmentY minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
-    BrainOpenGLTextRenderInterface::TextAlignmentX maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
-    BrainOpenGLTextRenderInterface::TextAlignmentY maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+    const float fontSizeInPixels = 14;
+    float axisLength = 0.0;
     
     switch (axis->getAxisLocation()) {
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
-            axisVpX = vpX;
-            axisVpY = vpY;
-            axisVpWidth = vpWidth;
-            axisVpHeight = marginSize;
-            axisTextCenterX = (vpWidth / 2.0);
-            axisTextCenterY = (marginSize / 2.0);
-            
-            minimumValueTextXY[0] = marginSize;
-            minimumValueTextXY[1] = marginSize;
-            maximumValueTextXY[0] = vpWidth - marginSize;
-            maximumValueTextXY[1] = marginSize;
-            
-            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
-            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
-            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
-            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
+        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+            axisLength = vpWidth - marginSize * 2.0;
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-            axisVpX = vpX;
-            axisVpY = vpY;
-            axisVpWidth = marginSize;
-            axisVpHeight = vpHeight;
-            axisTextCenterX = (marginSize / 2.0);
-            axisTextCenterY = (vpHeight / 2.0);
-            
-            minimumValueTextXY[0] = marginSize;
-            minimumValueTextXY[1] = marginSize;
-            maximumValueTextXY[0] = marginSize;
-            maximumValueTextXY[1] = vpHeight - marginSize;
-            
-            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
-            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
-            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
-            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
-            drawAxisTextVerticalFlag = true;
-            break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            axisVpX = vpX + vpWidth - marginSize;
-            axisVpY = vpY;
-            axisVpWidth = marginSize;
-            axisVpHeight = vpHeight;
-            axisTextCenterX = (marginSize / 2.0);
-            axisTextCenterY = (vpHeight / 2.0);
-            
-            minimumValueTextXY[0] = 0.0;
-            minimumValueTextXY[1] = marginSize;
-            maximumValueTextXY[0] = 0.0;
-            maximumValueTextXY[1] = vpHeight - marginSize;
-            
-            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
-            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
-            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
-            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
-            drawAxisTextVerticalFlag = true;
-            break;
-        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            axisVpX = vpX;
-            axisVpY = vpY + vpHeight - marginSize;
-            axisVpWidth = vpWidth;
-            axisVpHeight = marginSize;
-            axisTextCenterX = (vpWidth / 2.0);
-            axisTextCenterY = (marginSize / 2.0);
-            
-            minimumValueTextXY[0] = marginSize;
-            minimumValueTextXY[1] = 0.0;
-            maximumValueTextXY[0] = vpWidth - marginSize;
-            maximumValueTextXY[1] = 0.0;
-            
-            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
-            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
-            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
-            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+            axisLength = vpHeight - marginSize * 2.0;
             break;
     }
     
-    /*
-     * Viewport for axis text and numeric values
-     */
-    glViewport(axisVpX,
-               axisVpY,
-               axisVpWidth,
-               axisVpHeight);
+    std::vector<float> labelOffsetInPixels;
+    std::vector<AString> labelTexts;
+    axis->getLabelsAndPositions(axisLength,
+                                fontSizeInPixels,
+                                labelOffsetInPixels,
+                                labelTexts);
     
-    glMatrixMode(GL_PROJECTION);
-    glOrtho(0, axisVpWidth, 0, axisVpHeight, -1.0, 1.0);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    glColor3fv(m_foregroundColor);
-    
-    /*
-     * Viewport in array for text rendering
-     */
-    const int viewport[4] = {
-        axisVpX,
-        axisVpY,
-        axisVpWidth,
-        axisVpHeight
-    };
-    
-    if ( ! axisText.isEmpty()) {
-        if (drawAxisTextVerticalFlag) {
-            textRenderer->drawVerticalTextAtWindowCoords(viewport,
-                                                         axisTextCenterX,
-                                                         axisTextCenterY,
-                                                         axisText,
-                                                         BrainOpenGLTextRenderInterface::X_CENTER,
-                                                         BrainOpenGLTextRenderInterface::Y_CENTER);
-        }
-        else {
-            textRenderer->drawTextAtWindowCoords(viewport,
-                                                 axisTextCenterX,
-                                                 axisTextCenterY,
-                                                 axisText,
-                                                 BrainOpenGLTextRenderInterface::X_CENTER,
-                                                 BrainOpenGLTextRenderInterface::Y_CENTER);
-        }
-    }
-    
-    if (maxValue > minValue) {
-        const AString minValueText = AString::number(minValue, 'f', digitsRightOfDecimal); //axisValueToText(minValue);
-        const AString maxValueText = AString::number(maxValue, 'f', digitsRightOfDecimal); //axisValueToText(maxValue);
+    const int32_t numLabelsToDraw = static_cast<int32_t>(labelTexts.size());
+    if (numLabelsToDraw > 0) {
+        float labelX = 0.0;
+        float labelY = 0.0;
+        float labelOffsetMultiplierX = 0.0;
+        float labelOffsetMultiplierY = 0.0;
+        BrainOpenGLTextRenderInterface::TextAlignmentX labelAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+        BrainOpenGLTextRenderInterface::TextAlignmentY labelAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
         
-        textRenderer->drawTextAtWindowCoords(viewport,
-                                             minimumValueTextXY[0],
-                                             minimumValueTextXY[1],
-                                             minValueText,
-                                             minValueAlignmentX,
-                                             minValueAlignmentY);
-        textRenderer->drawTextAtWindowCoords(viewport,
-                                             maximumValueTextXY[0],
-                                             maximumValueTextXY[1],
-                                             maxValueText,
-                                             maxValueAlignmentX,
-                                             maxValueAlignmentY);
+        /*
+         * Viewport for axis name and numeric values
+         */
+        int32_t axisVpX = vpX;
+        int32_t axisVpY = vpY;
+        int32_t axisVpWidth = vpWidth;
+        int32_t axisVpHeight = vpHeight;
+        
+        float tickDeltaXY[2] = { 0.0, 0.0 };
+        const float tickLength = 5.0;
+        switch (axis->getAxisLocation()) {
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                axisVpX = vpX;
+                axisVpY = vpY;
+                axisVpWidth = vpWidth;
+                axisVpHeight = marginSize;
+                labelX = marginSize;
+                labelY = marginSize;
+                labelOffsetMultiplierX = 1.0;
+                labelOffsetMultiplierY = 0.0;
+                labelAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+                labelAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
+                tickDeltaXY[0] = 0.0;
+                tickDeltaXY[1] = -tickLength;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                axisVpX = vpX;
+                axisVpY = vpY;
+                axisVpWidth = marginSize;
+                axisVpHeight = vpHeight;
+                labelX = marginSize;
+                labelY = vpY - marginSize;
+                labelOffsetMultiplierX = 1.0;
+                labelOffsetMultiplierY = 0.0;
+                labelAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+                labelAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+                tickDeltaXY[0] = 0.0;
+                tickDeltaXY[1] = tickLength;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                axisVpX = vpX;
+                axisVpY = vpY;
+                axisVpWidth = marginSize;
+                axisVpHeight = vpHeight;
+                labelX = marginSize;
+                labelY = marginSize;
+                labelOffsetMultiplierX = 0.0;
+                labelOffsetMultiplierY = 1.0;
+                labelAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+                labelAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+                tickDeltaXY[0] = -tickLength;
+                tickDeltaXY[1] = 0.0;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                axisVpX = vpX;
+                axisVpY = vpY + vpHeight - marginSize;
+                axisVpWidth = vpWidth;
+                axisVpHeight = marginSize;
+                labelX = vpX - marginSize;
+                labelY = marginSize;
+                labelOffsetMultiplierX = 0.0;
+                labelOffsetMultiplierY = 1.0;
+                labelAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+                labelAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+                tickDeltaXY[0] = tickLength;
+                tickDeltaXY[1] = 0.0;
+                break;
+        }
+        
+        /*
+         * Viewport for axis text and numeric values
+         */
+        glViewport(axisVpX,
+                   axisVpY,
+                   axisVpWidth,
+                   axisVpHeight);
+        
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, axisVpWidth, 0, axisVpHeight, -1.0, 1.0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        
+        glColor3fv(m_foregroundColor);
+        
+        /*
+         * Viewport in array for text rendering
+         */
+        const int viewport[4] = {
+            axisVpX,
+            axisVpY,
+            axisVpWidth,
+            axisVpHeight
+        };
+        
+        const float lastIndex = numLabelsToDraw - 1;
+        for (int32_t i = 0; i < numLabelsToDraw; i++) {
+            const float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
+            const float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;
+
+            const float tickEndX = tickStartX + tickDeltaXY[0];
+            const float tickEndY = tickStartY + tickDeltaXY[1];
+
+            if ((i > 0)
+                && (i < lastIndex)) {
+                glBegin(GL_LINES);
+                glVertex2f(tickStartX,
+                           tickStartY);
+                glVertex2f(tickEndX,
+                           tickEndY);
+                glEnd();
+            }
+            
+            const float textX = tickEndX;
+            const float textY = tickEndY;
+            textRenderer->drawTextAtWindowCoords(viewport,
+                                                 textX,
+                                                 textY,
+                                                 labelTexts[i],
+                                                 labelAlignmentX,
+                                                 labelAlignmentY);
+        }
     }
 }
+
+///**
+// * Draw the chart axes grid/box
+// *
+// * @param vpX
+// *     Viewport X for all chart content
+// * @param vpY
+// *     Viewport Y for all chart content
+// * @param vpWidth
+// *     Viewport width for all chart content
+// * @param vpHeight
+// *     Viewport height for all chart content
+// * @param marginSize
+// *     Margin around grid/box
+// * @param textRenderer
+// *     Text rendering.
+// * @param chartModelCartesian
+// *     The chart cartesian model.
+// * @param axis
+// *     Axis that is drawn.
+// */
+//void
+//BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
+//                                                             const float vpY,
+//                                                             const float vpWidth,
+//                                                             const float vpHeight,
+//                                                             const float marginSize,
+//                                                             BrainOpenGLTextRenderInterface* textRenderer,
+//                                                             const ChartAxisCartesian* axis)
+//{
+//    CaretAssert(axis);
+//    
+//    const float minValue = axis->getMinimumValue();
+//    const float maxValue = axis->getMaximumValue();
+//    const float stepValue = axis->getStepValue();
+//    const int32_t digitsRightOfDecimal = axis->getDigitsRightOfDecimal();
+//    
+//    const AString axisText = axis->getText();
+//    float axisTextCenterX = 0;
+//    float axisTextCenterY = 0;
+//    bool drawAxisTextVerticalFlag = false;
+//    
+//    /*
+//     * Viewport for axis name and numeric values
+//     */
+//    int32_t axisVpX = vpX;
+//    int32_t axisVpY = vpY;
+//    int32_t axisVpWidth = vpWidth;
+//    int32_t axisVpHeight = vpHeight;
+//    
+//    float minimumValueTextXY[2] = { 0.0, 0.0 };
+//    float maximumValueTextXY[2] = { 0.0, 0.0 };
+//    BrainOpenGLTextRenderInterface::TextAlignmentX minValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+//    BrainOpenGLTextRenderInterface::TextAlignmentY minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//    BrainOpenGLTextRenderInterface::TextAlignmentX maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+//    BrainOpenGLTextRenderInterface::TextAlignmentY maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//    BrainOpenGLTextRenderInterface::TextAlignmentX zeroValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+//    BrainOpenGLTextRenderInterface::TextAlignmentY zeroValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//    
+//    switch (axis->getAxisLocation()) {
+//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//            axisVpX = vpX;
+//            axisVpY = vpY;
+//            axisVpWidth = vpWidth;
+//            axisVpHeight = marginSize;
+//            axisTextCenterX = (vpWidth / 2.0);
+//            axisTextCenterY = (marginSize / 2.0);
+//            
+//            minimumValueTextXY[0] = marginSize;
+//            minimumValueTextXY[1] = marginSize;
+//            maximumValueTextXY[0] = vpWidth - marginSize;
+//            maximumValueTextXY[1] = marginSize;
+//            
+//            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+//            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
+//            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+//            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
+//            zeroValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+//            zeroValueAlignmentY = BrainOpenGLTextRenderInterface::Y_TOP;
+//            break;
+//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//            axisVpX = vpX;
+//            axisVpY = vpY;
+//            axisVpWidth = marginSize;
+//            axisVpHeight = vpHeight;
+//            axisTextCenterX = (marginSize / 2.0);
+//            axisTextCenterY = (vpHeight / 2.0);
+//            
+//            minimumValueTextXY[0] = marginSize;
+//            minimumValueTextXY[1] = marginSize;
+//            maximumValueTextXY[0] = marginSize;
+//            maximumValueTextXY[1] = vpHeight - marginSize;
+//            
+//            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+//            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+//            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//            zeroValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+//            zeroValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//            drawAxisTextVerticalFlag = true;
+//            break;
+//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//            axisVpX = vpX + vpWidth - marginSize;
+//            axisVpY = vpY;
+//            axisVpWidth = marginSize;
+//            axisVpHeight = vpHeight;
+//            axisTextCenterX = (marginSize / 2.0);
+//            axisTextCenterY = (vpHeight / 2.0);
+//            
+//            minimumValueTextXY[0] = 0.0;
+//            minimumValueTextXY[1] = marginSize;
+//            maximumValueTextXY[0] = 0.0;
+//            maximumValueTextXY[1] = vpHeight - marginSize;
+//            
+//            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+//            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+//            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//            zeroValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+//            zeroValueAlignmentY = BrainOpenGLTextRenderInterface::Y_CENTER;
+//            drawAxisTextVerticalFlag = true;
+//            break;
+//        case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//            axisVpX = vpX;
+//            axisVpY = vpY + vpHeight - marginSize;
+//            axisVpWidth = vpWidth;
+//            axisVpHeight = marginSize;
+//            axisTextCenterX = (vpWidth / 2.0);
+//            axisTextCenterY = (marginSize / 2.0);
+//            
+//            minimumValueTextXY[0] = marginSize;
+//            minimumValueTextXY[1] = 0.0;
+//            maximumValueTextXY[0] = vpWidth - marginSize;
+//            maximumValueTextXY[1] = 0.0;
+//            
+//            minValueAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
+//            minValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+//            maxValueAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
+//            maxValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+//            zeroValueAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
+//            zeroValueAlignmentY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
+//            break;
+//    }
+//    
+//    /*
+//     * Viewport for axis text and numeric values
+//     */
+//    glViewport(axisVpX,
+//               axisVpY,
+//               axisVpWidth,
+//               axisVpHeight);
+//    
+//    glMatrixMode(GL_PROJECTION);
+//    glOrtho(0, axisVpWidth, 0, axisVpHeight, -1.0, 1.0);
+//    
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//    
+//    glColor3fv(m_foregroundColor);
+//    
+//    /*
+//     * Viewport in array for text rendering
+//     */
+//    const int viewport[4] = {
+//        axisVpX,
+//        axisVpY,
+//        axisVpWidth,
+//        axisVpHeight
+//    };
+//    
+//    if ( ! axisText.isEmpty()) {
+//        if (drawAxisTextVerticalFlag) {
+//            textRenderer->drawVerticalTextAtWindowCoords(viewport,
+//                                                         axisTextCenterX,
+//                                                         axisTextCenterY,
+//                                                         axisText,
+//                                                         BrainOpenGLTextRenderInterface::X_CENTER,
+//                                                         BrainOpenGLTextRenderInterface::Y_CENTER);
+//        }
+//        else {
+//            textRenderer->drawTextAtWindowCoords(viewport,
+//                                                 axisTextCenterX,
+//                                                 axisTextCenterY,
+//                                                 axisText,
+//                                                 BrainOpenGLTextRenderInterface::X_CENTER,
+//                                                 BrainOpenGLTextRenderInterface::Y_CENTER);
+//        }
+//    }
+//    
+//    if (maxValue > minValue) {
+//        const AString minValueText = AString::number(minValue, 'f', digitsRightOfDecimal); //axisValueToText(minValue);
+//        const AString maxValueText = AString::number(maxValue, 'f', digitsRightOfDecimal); //axisValueToText(maxValue);
+//        
+//        textRenderer->drawTextAtWindowCoords(viewport,
+//                                             minimumValueTextXY[0],
+//                                             minimumValueTextXY[1],
+//                                             minValueText,
+//                                             minValueAlignmentX,
+//                                             minValueAlignmentY);
+//        textRenderer->drawTextAtWindowCoords(viewport,
+//                                             maximumValueTextXY[0],
+//                                             maximumValueTextXY[1],
+//                                             maxValueText,
+//                                             maxValueAlignmentX,
+//                                             maxValueAlignmentY);
+//        /*
+//         * Determine if zero should be drawn.
+//         * Make sure there is enough space from min and max labels
+//         */
+//        const float fontHeight = 20;
+//        bool drawZeroFlag = false;
+//        if ((minValue < 0.0)
+//            && (maxValue > 0.0)) {
+//            const float range = maxValue - minValue;
+//            const float zeroPositionOffset = (0.0 - minValue) / range;
+//            
+//            
+//            const float percentageOfRange = 0.2 * range;
+//            //            if ((minValue + percentageOfRange) < 0.0) {
+//            //                if ((maxValue - percentageOfRange) > 0.0) {
+//            drawZeroFlag = true;
+//            
+//            float zeroValueTextXY[2] = { 0.0, 0.0 };
+//            switch (axis->getAxisLocation()) {
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//                {
+//                    const float textRange = maximumValueTextXY[0] - minimumValueTextXY[0];
+//                    zeroValueTextXY[0] = (minimumValueTextXY[0]
+//                                          + (textRange * zeroPositionOffset));
+//                    zeroValueTextXY[1] = minimumValueTextXY[1];
+//                    if ((zeroValueTextXY[0] - minimumValueTextXY[0]) < (fontHeight * minValueText.length())) {
+//                        drawZeroFlag = false;
+//                    }
+//                    if ((maximumValueTextXY[0] - zeroValueTextXY[0]) < (fontHeight * maxValueText.length())) {
+//                        drawZeroFlag = false;
+//                    }
+//                }
+//                    break;
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//                {
+//                    const float textRange = maximumValueTextXY[1] - minimumValueTextXY[1];
+//                    zeroValueTextXY[0] = minimumValueTextXY[0];
+//                    zeroValueTextXY[1] = (minimumValueTextXY[1]
+//                                          + (textRange * zeroPositionOffset));
+//                    if ((zeroValueTextXY[1] - minimumValueTextXY[1]) < fontHeight) {
+//                        drawZeroFlag = false;
+//                    }
+//                    if ((maximumValueTextXY[1] - zeroValueTextXY[1]) < fontHeight) {
+//                        drawZeroFlag = false;
+//                    }
+//                }
+//                    break;
+//            }
+//            
+//            if (drawZeroFlag) {
+//                const AString zeroText = AString::number(0.0, 'f', digitsRightOfDecimal);
+//                textRenderer->drawTextAtWindowCoords(viewport,
+//                                                     zeroValueTextXY[0],
+//                                                     zeroValueTextXY[1],
+//                                                     zeroText,
+//                                                     zeroValueAlignmentX,
+//                                                     zeroValueAlignmentY);
+//            }
+//            //                }
+//            //            }
+//        }
+//        
+//    }
+//}
 
 ///**
 // * Convert an axis numeric value into text.
@@ -493,7 +754,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
 // *
 // * @param axisValue
 // *     Value on an axis.
-// * @return 
+// * @return
 // *     Value formatted as text.
 // */
 //AString

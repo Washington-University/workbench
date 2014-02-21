@@ -205,11 +205,6 @@ ChartAxisCartesian::updateForAutoRangeScale()
         CaretAssert(chartModel);
         const ChartModelCartesian* chartModelCartesian = dynamic_cast<const ChartModelCartesian*>(chartModel);
         
-        double scaleStep = 0.0;
-        double scaleMin  = 0.0;
-        double scaleMax  = 0.0;
-        int32_t digitsRightOfDecimal = 0;
-        
         float minX, maxX, minY, maxY;
         chartModelCartesian->getBounds(minX, maxX, minY, maxY);
         
@@ -234,6 +229,11 @@ ChartAxisCartesian::updateForAutoRangeScale()
                 break;
         }
         
+        double scaleStep = 0.0;
+        double scaleMin  = 0.0;
+        double scaleMax  = 0.0;
+        int32_t digitsRightOfDecimal = 0;
+        
         ChartScaleAutoRanging::createAutoScale(minValue,
                                                maxValue,
                                                scaleMin,
@@ -245,6 +245,66 @@ ChartAxisCartesian::updateForAutoRangeScale()
         m_maximumValue = scaleMax;
         m_stepValue    = scaleStep;
         m_digitsRightOfDecimal = digitsRightOfDecimal;
+    }
+}
+
+void
+ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
+                                          const float fontSizeInPixels,
+                                          std::vector<float>& labelOffsetInPixelsOut,
+                                          std::vector<AString>& labelTextOut)
+{
+    labelOffsetInPixelsOut.clear();
+    labelTextOut.clear();
+ 
+    if (axisLengthInPixels < 25.0) {
+        return;
+    }
+    
+    updateForAutoRangeScale();
+    
+//    double scaleStep = 0.0;
+//    double scaleMin  = 0.0;
+//    double scaleMax  = 0.0;
+//    int32_t digitsRightOfDecimal = 0;
+//    
+//    ChartScaleAutoRanging::createAutoScale(m_minimumValue,
+//                                           m_maximumValue,
+//                                           scaleMin,
+//                                           scaleMax,
+//                                           scaleStep,
+//                                           digitsRightOfDecimal);
+    
+    const float numberOfTicks = 5;
+    
+    float dataStart = m_minimumValue;
+    float dataRange = (m_maximumValue - m_minimumValue);
+    if (isAutoRangeScaleEnabled()) {
+//        dataStart = scaleMin;
+//        dataRange = scaleMax - scaleMin;
+    }
+    if (dataRange <= 0.0) {
+        return;
+    }
+    
+    const float tickDataStep = dataRange / numberOfTicks;
+    
+    const float tickPixelStep = axisLengthInPixels / numberOfTicks;
+    if (tickPixelStep <= 0.0) {
+        return;
+    }
+    
+    float labelOffset = 0.0;
+    float labelValue  = dataStart;
+    for (int32_t i = 0; i <= numberOfTicks; i++) {
+        if (i > 0) {
+            
+        }
+        labelOffsetInPixelsOut.push_back(labelOffset);
+        labelTextOut.push_back(AString::number(labelValue, 'f', m_digitsRightOfDecimal));
+        
+        labelOffset += tickPixelStep;
+        labelValue  += tickDataStep;
     }
 }
 

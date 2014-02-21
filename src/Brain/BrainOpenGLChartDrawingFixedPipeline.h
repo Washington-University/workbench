@@ -85,9 +85,17 @@ namespace caret {
                            const float vpHeight,
                            const float marginSize,
                            BrainOpenGLTextRenderInterface* textRenderer,
-                           const ChartAxis* axis);
+                           ChartAxis* axis);
         
         void drawChartAxisCartesian(const float vpX,
+                                    const float vpY,
+                                    const float vpWidth,
+                                    const float vpHeight,
+                                    const float marginSize,
+                                    BrainOpenGLTextRenderInterface* textRenderer,
+                                    ChartAxisCartesian* axis);
+        
+        void OLDdrawChartAxisCartesian(const float vpX,
                                     const float vpY,
                                     const float vpWidth,
                                     const float vpHeight,

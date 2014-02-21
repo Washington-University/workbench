@@ -66,6 +66,10 @@ namespace caret {
         
         int32_t getDigitsRightOfDecimal() const;
         
+        void getLabelsAndPositions(const float axisLengthInPixels,
+                                   const float fontSizeInPixels,
+                                   std::vector<float>& labelOffsetInPixelsOut,
+                                   std::vector<AString>& labelTextOut);
         // ADD_NEW_METHODS_HERE
           
     protected:
