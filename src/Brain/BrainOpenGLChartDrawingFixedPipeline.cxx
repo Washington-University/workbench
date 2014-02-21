@@ -474,6 +474,49 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                                  labelAlignmentX,
                                                  labelAlignmentY);
         }
+        
+        const AString axisText = axis->getText();
+        if ( ! axisText.isEmpty()) {
+            bool drawAxisTextVerticalFlag = false;
+            float axisTextCenterX = 0.0;
+            float axisTextCenterY = 0.0;
+            switch (axis->getAxisLocation()) {
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                    axisTextCenterX = (vpWidth / 2.0);
+                    axisTextCenterY = (marginSize / 2.0);
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                    axisTextCenterX = (vpWidth / 2.0);
+                    axisTextCenterY = (marginSize / 2.0);
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                    axisTextCenterX = (marginSize / 2.0);
+                    axisTextCenterY = (vpHeight / 2.0);
+                    drawAxisTextVerticalFlag = true;
+                    break;
+                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                    axisTextCenterX = (marginSize / 2.0);
+                    axisTextCenterY = (vpHeight / 2.0);
+                    drawAxisTextVerticalFlag = true;
+                    break;
+            }
+            if (drawAxisTextVerticalFlag) {
+                textRenderer->drawVerticalTextAtWindowCoords(viewport,
+                                                             axisTextCenterX,
+                                                             axisTextCenterY,
+                                                             axisText,
+                                                             BrainOpenGLTextRenderInterface::X_CENTER,
+                                                             BrainOpenGLTextRenderInterface::Y_CENTER);
+            }
+            else {
+                textRenderer->drawTextAtWindowCoords(viewport,
+                                                     axisTextCenterX,
+                                                     axisTextCenterY,
+                                                     axisText,
+                                                     BrainOpenGLTextRenderInterface::X_CENTER,
+                                                     BrainOpenGLTextRenderInterface::Y_CENTER);
+            }
+        }
     }
 }
 
@@ -645,7 +688,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
 //        axisVpWidth,
 //        axisVpHeight
 //    };
-//    
+//
 //    if ( ! axisText.isEmpty()) {
 //        if (drawAxisTextVerticalFlag) {
 //            textRenderer->drawVerticalTextAtWindowCoords(viewport,
