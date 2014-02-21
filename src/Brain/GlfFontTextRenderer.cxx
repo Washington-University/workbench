@@ -273,21 +273,35 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     glfSetCurrentFont(m_arialFont);
     float xmin,ymin,xmax,ymax;
     glfGetStringBounds(str, &xmin,&ymin,&xmax,&ymax);
-    const float width = (xmax - xmin) * (fontSizeX);
-    const float height = (ymax - ymin) * (fontSizeY);
+//    const float width = (xmax - xmin) * (fontSizeX);
+//    const float height = (ymax - ymin) * (fontSizeY);
     
+    const float scaleX = fontSizeX / 2.0 * 1.2;
+    const float scaleY = fontSizeY / 2.0 * 1.2;
+    const float width = (xmax - xmin) * (scaleX / 1.2);
+    const float height = (ymax - ymin) * (scaleY);
     
     int x = windowX + viewport[0];
     switch (alignmentX) {
         case X_LEFT:
-            x += (width / 2.0);
             break;
         case X_CENTER:
-            break;
-        case X_RIGHT:
             x -= (width / 2.0);
             break;
+        case X_RIGHT:
+            x -= width;
+            break;
     }
+//    switch (alignmentX) {
+//        case X_LEFT:
+//            x += (width / 2.0);
+//            break;
+//        case X_CENTER:
+//            break;
+//        case X_RIGHT:
+//            x -= (width / 2.0);
+//            break;
+//    }
 
     /*
      * Y-Coordinate of text
@@ -326,8 +340,8 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
 //    glPushMatrix();
 //    glLoadIdentity();
     glTranslatef(x, y, 0.0);
-    const float scaleX = fontSizeX / 2.0 * 1.2;
-    const float scaleY = fontSizeY / 2.0 * 1.2;
+//    const float scaleX = fontSizeX / 2.0 * 1.2;
+//    const float scaleY = fontSizeY / 2.0 * 1.2;
     glScalef(scaleX, scaleY, 1.0);
     //glScalef(fontSizeX, fontSizeY, 1.0);
     glfDrawSolidString((char*)str);
