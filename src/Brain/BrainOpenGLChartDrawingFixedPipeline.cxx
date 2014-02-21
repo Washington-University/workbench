@@ -988,13 +988,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
     
     float xMin = bottomAxis->getMinimumValue();
     float xMax = bottomAxis->getMaximumValue();
-    float xStep = bottomAxis->getStepValue();
-    int32_t xDigits = bottomAxis->getDigitsRightOfDecimal();
 
     float yMin = leftAxis->getMinimumValue();
     float yMax = leftAxis->getMaximumValue();
-    float yStep = leftAxis->getStepValue();
-    int32_t yDigits = leftAxis->getDigitsRightOfDecimal();
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

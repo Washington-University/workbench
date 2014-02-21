@@ -98,7 +98,7 @@ ChartModelMatrix::operator=(const ChartModelMatrix& obj)
  *    Object that is copied.
  */
 void 
-ChartModelMatrix::copyHelperChartModelMatrix(const ChartModelMatrix& obj)
+ChartModelMatrix::copyHelperChartModelMatrix(const ChartModelMatrix& /*obj*/)
 {
     
 }
@@ -117,7 +117,7 @@ ChartModelMatrix::isAverageChartDisplaySupported() const
  * no data to average or model does not support an average.
  */
 const ChartData*
-ChartModelMatrix::getAverageChartDataForDisplay() const
+ChartModelMatrix::getAverageChartDataForDisplay(const int32_t /*tabIndex*/) const
 {
     return NULL;
 }

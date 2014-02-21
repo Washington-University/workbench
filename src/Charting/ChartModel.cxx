@@ -362,7 +362,7 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
              * If no item selected, selected oldest
              */
             if ( ! haveSelectedItem) {
-                const int32_t lastIndex = numData - 1;
+//                const int32_t lastIndex = numData - 1;
                 if (numData >= 0) {
 //                    m_chartDatas[lastIndex]->setSelected(true);
                 }
@@ -662,7 +662,7 @@ ChartModel::setTopAxis(ChartAxis* topAxis)
  * action is taken.
  */
 void
-ChartModel::childChartDataSelectionChanged(ChartData* childChartData)
+ChartModel::childChartDataSelectionChanged(ChartData* /*childChartData*/)
 {
     switch (m_selectionMode) {
         case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:

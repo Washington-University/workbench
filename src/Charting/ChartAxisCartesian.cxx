@@ -248,9 +248,21 @@ ChartAxisCartesian::updateForAutoRangeScale()
     }
 }
 
+/**
+ * Get the axis labels and their positions for drawing the scale.
+ *
+ * @param axisLengthInPixels
+ *   Length of axis in pixels.
+ * @param fontSizeInPixels
+ *   Size of the font in pixels.
+ * @param labelOffsetInPixelsOut
+ *   Output containing offset in pixels for the scale labels.
+ * @param labelTextOut
+ *   Output containing text for scale labels.
+ */
 void
 ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
-                                          const float fontSizeInPixels,
+                                          const float /*fontSizeInPixels*/,
                                           std::vector<float>& labelOffsetInPixelsOut,
                                           std::vector<AString>& labelTextOut)
 {

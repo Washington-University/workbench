@@ -260,10 +260,10 @@ ChartDataMatrix::getMatrixElementRGBA(const int32_t row,
                              * getMatrixOffset(row,
                                              column));
     CaretAssertVectorIndex(m_matrixRGBA, offset4 + 3);
-    rgbaOut[0] = m_matrixRGBA[0];
-    rgbaOut[1] = m_matrixRGBA[1];
-    rgbaOut[2] = m_matrixRGBA[2];
-    rgbaOut[3] = m_matrixRGBA[3];
+    rgbaOut[0] = m_matrixRGBA[offset4 + 0];
+    rgbaOut[1] = m_matrixRGBA[offset4 + 1];
+    rgbaOut[2] = m_matrixRGBA[offset4 + 2];
+    rgbaOut[3] = m_matrixRGBA[offset4 + 3];
 }
 
 /**
