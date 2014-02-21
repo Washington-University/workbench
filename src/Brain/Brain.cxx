@@ -5307,6 +5307,23 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         return true;
     }
     
+    std::vector<CiftiParcelSeriesFile*>::iterator connParcelSeriesIterator = std::find(m_connectivityParcelSeriesFiles.begin(),
+                                                                                       m_connectivityParcelSeriesFiles.end(),
+                                                                                       caretDataFile);
+    if (connParcelSeriesIterator != m_connectivityParcelSeriesFiles.end()) {
+        m_connectivityParcelSeriesFiles.erase(connParcelSeriesIterator);
+        return true;
+    }
+    
+    std::vector<CiftiParcelScalarFile*>::iterator connParcelScalarIterator = std::find(m_connectivityParcelScalarFiles.begin(),
+                                                                                       m_connectivityParcelScalarFiles.end(),
+                                                                                       caretDataFile);
+    if (connParcelScalarIterator != m_connectivityParcelScalarFiles.end()) {
+        m_connectivityParcelScalarFiles.erase(connParcelScalarIterator);
+        return true;
+    }
+    
+    
     std::vector<CiftiFiberOrientationFile*>::iterator connFiberOrientationIterator = std::find(m_connectivityFiberOrientationFiles.begin(),
                                                                                                m_connectivityFiberOrientationFiles.end(),
                                                                                                caretDataFile);
