@@ -64,6 +64,7 @@ public:
             SQRT,
             ABS,
             FLOOR,
+            ROUND,
             CEIL,
             MIN,
             MAX,

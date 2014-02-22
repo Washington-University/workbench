@@ -247,6 +247,18 @@ double CaretMathExpression::MathNode::eval(const vector<float>& values) const
                     CaretAssert(m_arguments.size() == 1);
                     ret = floor(m_arguments[0].eval(values));
                     break;
+                case MathFunctionEnum::ROUND:
+                {
+                    CaretAssert(m_arguments.size() == 1);
+                    double temp = m_arguments[0].eval(values);//windows doesn't use c99 when compiling c++ earlier than c++11, so implement manually
+                    if (temp > 0.0)
+                    {
+                        ret = floor(temp + 0.5);
+                    } else {
+                        ret = ceil(temp - 0.5);
+                    }
+                    break;
+                }
                 case MathFunctionEnum::CEIL:
                     CaretAssert(m_arguments.size() == 1);
                     ret = ceil(m_arguments[0].eval(values));
@@ -877,6 +889,7 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
         case MathFunctionEnum::SQRT:
         case MathFunctionEnum::ABS:
         case MathFunctionEnum::FLOOR:
+        case MathFunctionEnum::ROUND:
         case MathFunctionEnum::CEIL:
             numArgs = 1;
             break;
@@ -955,12 +968,6 @@ bool CaretMathExpression::tryFunc(CaretMathExpression::MathNode& node, const ASt
 bool CaretMathExpression::tryConst(CaretMathExpression::MathNode& node, const AString& input, const int& start, const int& end)
 {
     node.m_arguments.clear();
-    if (getNamedConstant(input.mid(start, end - start).trimmed(), node.m_constVal))
-    {
-        node.m_type = MathNode::CONST;
-        node.m_constName = input.mid(start, end - start).trimmed();
-        return true;
-    }
     bool ok = false;
     node.m_constVal = input.mid(start, end - start).trimmed().toDouble(&ok);
     if (ok)
@@ -1009,8 +1016,15 @@ bool CaretMathExpression::tryVar(CaretMathExpression::MathNode& node, const AStr
         if ((inchar < 'a' || inchar > 'z') && (inchar < 'A' || inchar > 'Z') && (inchar < '0' || inchar > '9') &&
             inchar != '_')
         {
-            throw CaretException(AString("the character '") + inchar + "' is not allowed in variable name '" + input.mid(start, end - start) + "'");//instead of returning false, since we know tryVar is last
+            //throw CaretException(AString("the character '") + inchar + "' is not allowed in variable name '" + input.mid(start, end - start) + "'");//instead of returning false, since we know tryVar is last
+            return false;//calling something like '11,000' a variable is likely to be confusing, so again, just generate a generic error
         }
+    }
+    if (getNamedConstant(varName, node.m_constVal))
+    {
+        node.m_type = MathNode::CONST;
+        node.m_constName = varName;
+        return true;
     }
     int i;
     for (i = 0; i < (int)m_varNames.size(); ++i)

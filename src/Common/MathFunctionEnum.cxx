@@ -91,6 +91,7 @@ MathFunctionEnum::initialize()
     enumData.push_back(MathFunctionEnum(SQRT, "sqrt", "1 argument, the square root of the argument"));
     enumData.push_back(MathFunctionEnum(ABS, "abs", "1 argument, the absolute value of the argument"));
     enumData.push_back(MathFunctionEnum(FLOOR, "floor", "1 argument, the largest integer not greater than the argument"));
+    enumData.push_back(MathFunctionEnum(ROUND, "round", "1 argument, the nearest integer, with ties rounded away from zero"));
     enumData.push_back(MathFunctionEnum(CEIL, "ceil", "1 argument, the smallest integer not less than the argument"));
     enumData.push_back(MathFunctionEnum(MIN, "min", "2 arguments, min(x, y) returns y if (x > y), x otherwise"));
     enumData.push_back(MathFunctionEnum(MAX, "max", "2 arguments, max(x, y) returns y if (x < y), x otherwise"));
