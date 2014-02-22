@@ -293,6 +293,8 @@ namespace caret {
         void getDimensions(std::vector<int64_t>& dimOut) const;
         ///gets dimensions
         void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const;
+        ///gets dimensions
+        std::vector<int64_t> getDimensions() const;
 
         ///gets index into data array for three indexes plus time index
         inline int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const

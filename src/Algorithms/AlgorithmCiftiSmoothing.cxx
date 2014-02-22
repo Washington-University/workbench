@@ -64,14 +64,19 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
     OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(8, "-cerebellum-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
-    ret->createOptionalParameter(9, "-fix-zeros-volume", "treat values of zero in the volume as missing data");
+    OptionalParameter* roiOpt = ret->createOptionalParameter(9, "-cifti-roi", "smooth only within regions of interest");
+    roiOpt->addCiftiParameter(1, "roi-cifti", "the regions to smooth within, as a cifti file");
     
-    ret->createOptionalParameter(10, "-fix-zeros-surface", "treat values of zero on the surface as missing data");
+    ret->createOptionalParameter(10, "-fix-zeros-volume", "treat values of zero in the volume as missing data");
+    
+    ret->createOptionalParameter(11, "-fix-zeros-surface", "treat values of zero on the surface as missing data");
     
     ret->setHelpText(
         AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and ") +
         "either for .dconn.  The fix zeros options will treat values of zero as lack of data, " +
-        "and not use that value when generating the smoothed values, but will fill zeros with extrapolated values."
+        "and not use that value when generating the smoothed values, but will fill zeros with extrapolated values.  " +
+        "The ROI should have a brain models mapping along columns, exactly matching the mapping of the chosen direction in the input file.  " +
+        "Data outside the ROI is ignored."
     );
     return ret;
 }
@@ -108,12 +113,20 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
     }
-    bool fixZerosVol = myParams->getOptionalParameter(9)->m_present;
-    bool fixZerosSurf = myParams->getOptionalParameter(10)->m_present;
-    AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, fixZerosVol, fixZerosSurf);
+    CiftiFile* roiCifti = NULL;
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(9);
+    if (roiOpt->m_present)
+    {
+        roiCifti = roiOpt->getCifti(1);
+    }
+    bool fixZerosVol = myParams->getOptionalParameter(10)->m_present;
+    bool fixZerosSurf = myParams->getOptionalParameter(11)->m_present;
+    AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, roiCifti, fixZerosVol, fixZerosSurf);
 }
 
-AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiInterface* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
+                                                 const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
+                                                 const CiftiInterface* roiCifti, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = myCifti->getCiftiXML();
@@ -130,6 +143,10 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         {
             throw AlgorithmException("specified direction does not contain brainordinates");
         }
+    }
+    if (roiCifti != NULL && !myXML.mappingMatches(myDir, roiCifti->getCiftiXML(), CiftiXML::ALONG_COLUMN))
+    {
+        throw AlgorithmException("along-column mapping of roi cifti does not match the smoothing direction of the input cifti");
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
@@ -190,6 +207,22 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         }
         MetricFile myMetric, myRoi, myMetricOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
+        if (roiCifti != NULL)
+        {
+            MetricFile roiPiece;
+            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &roiPiece);//due to testing for matching mapping above, we know this works, and gives same size metric
+            int numNodes = myRoi.getNumberOfNodes();
+            vector<float> outCol(numNodes, 0.0f);
+            const float* separateCol = myRoi.getValuePointerForColumn(0), *roiCol = roiPiece.getValuePointerForColumn(0);
+            for (int i = 0; i < numNodes; ++i)
+            {
+                if (separateCol[i] > 0.0f && roiCol[i] > 0.0f)
+                {
+                    outCol[i] = 1.0f;
+                }
+            }
+            myRoi.setValuesForColumn(0, outCol.data());
+        }
         AlgorithmMetricSmoothing(NULL, mySurf, &myMetric, surfKern, &myMetricOut, &myRoi, fixZerosSurf);
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
     }
@@ -198,6 +231,24 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         VolumeFile myVol, myRoi, myVolOut;
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
+        if (roiCifti != NULL)
+        {
+            VolumeFile roiPiece;
+            int64_t roioffset[3];//will be the same, but is a mandatory parameter
+            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &roiPiece, roioffset, NULL, true);//due to testing for matching mapping above, we know this works, and gives same size metric
+            vector<int64_t> dims = myRoi.getDimensions();
+            int64_t frameSize = dims[0] * dims[1] * dims[2];
+            vector<float> tempframe(frameSize, 0.0f);
+            const float* separateFrame = myRoi.getFrame(), *roiFrame = roiPiece.getFrame();
+            for (int i = 0; i < frameSize; ++i)
+            {
+                if (separateFrame[i] > 0.0f && roiFrame[i] > 0.0f)
+                {
+                    tempframe[i] = 1.0f;
+                }
+            }
+            myRoi.setFrame(tempframe.data());
+        }
         AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
     }

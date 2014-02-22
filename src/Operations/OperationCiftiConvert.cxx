@@ -248,7 +248,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         int index = 0;
         while (temp > numeric_limits<short>::max())
         {
-            if (index > 1) throw OperationException("too many cifti columns for nifti1 spatial dimensions, failing");
+            if (index > 1) throw OperationException("too many cifti rows for nifti1 spatial dimensions, failing");
             outDims[index] = numeric_limits<short>::max();
             temp = (temp - 1) / numeric_limits<short>::max() + 1;//round up
             ++index;

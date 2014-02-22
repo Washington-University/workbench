@@ -290,6 +290,13 @@ void VolumeBase::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimO
     numComponents = m_dimensions[4];
 }
 
+vector<int64_t> VolumeBase::getDimensions() const
+{
+    vector<int64_t> ret;
+    getDimensions(ret);
+    return ret;
+}
+
 int64_t VolumeBase::getBrickIndexFromNonSpatialIndexes(const vector<int64_t>& extraInds) const
 {
     CaretAssert(extraInds.size() == m_origDims.size() - 3);
