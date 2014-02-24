@@ -89,6 +89,8 @@ namespace caret {
         
         void removePoint(const int32_t indx);
         
+        void removeFirstPoint();
+        
         void removeLastPoint();
         
         void replacePoints(const Border* border);

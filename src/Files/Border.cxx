@@ -620,6 +620,18 @@ Border::removePoint(const int32_t indx)
 }
 
 /**
+ * Remove the first point from the border.
+ */
+void
+Border::removeFirstPoint()
+{
+    const int numPoints = getNumberOfPoints();
+    if (numPoints > 0) {
+        removePoint(0);
+    }
+}
+
+/**
  * Remove the last point from the border.
  */
 void 
@@ -901,19 +913,19 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
      * Locate points in this border that are nearest the start
      * and end points in the new border segment.
      */
-    float distanceToLowestPointIndex = 0.0;
+    float distanceOfFirstSegmentPointToThisBorder = 0.0;
     int32_t lowestPointIndex = findPointIndexNearestXYZ(surfaceFile,
                                                        segmentStartXYZ,
                                                        tolerance,
-                                                       distanceToLowestPointIndex);
+                                                       distanceOfFirstSegmentPointToThisBorder);
     if (lowestPointIndex < 0) {
         throw BorderException("Start of segment drawn for replacing is not close enough to existing border");
     }
-    float distanceToHighestPointIndex = 0.0;
+    float distanceOfLastSegmentPointToThisBorder = 0.0;
     int32_t highestPointIndex   = findPointIndexNearestXYZ(surfaceFile,
                                                        segmentEndXYZ,
                                                        tolerance,
-                                                       distanceToHighestPointIndex);
+                                                       distanceOfLastSegmentPointToThisBorder);
     if (highestPointIndex < 0) {
         throw BorderException("End of segment drawn for replacing is not close enough to existing border");
     }
@@ -970,6 +982,8 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
         
         /*
          * Keep segment from start to lowest point index
+         * NOTE: Segments need to be separate otherwise
+         * linear border will become closed.
          */
         const int32_t startToLowCount = lowestPointIndex + 1;
         newBorder.addPoints(this,
@@ -984,8 +998,7 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
                                                             newBorderLastXYZ,
                                                             true)) {
             /*
-             * Examine new segment to find point that is closest to last
-             * part of new border that is being created.
+             * Get position of first and last points in the new segment.
              */
             float segmentFirstPointXYZ[3];
             const bool validFirstPoint = segment->getPoint(0)->getProjectedPosition(*surfaceFile,
@@ -998,31 +1011,51 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
             
             if (validFirstPoint
                 && validLastPoint) {
+                /*
+                 * Distance to last point in border being created 
+                 * to first and last point in new segment
+                 */
                 const float firstDistance = MathFunctions::distance3D(newBorderLastXYZ,
                                                                       segmentFirstPointXYZ);
                 const float lastDistance = MathFunctions::distance3D(newBorderLastXYZ,
                                                                      segmentLastPointXYZ);
                 
-                if (firstDistance < lastDistance) {
-                    /*
-                     * Add new segment onto the end of the existing border piece
-                     */
-                    newBorder.addPoints(segment,
-                                        0,
-                                        numberOfSegmentPoints);
+                /*
+                 * Remove endpoint(s) of new segment if they are very
+                 * close to a point in this border that is being updated
+                 */
+                Border trimmedSegment(*segment);
+                const float distanceTolerance = 1.0;
+                if (distanceOfFirstSegmentPointToThisBorder < distanceTolerance) {
+                    trimmedSegment.removeLastPoint();
                 }
-                else {
-                    /*
-                     * New segment is probably opposite orientation 
-                     * (clockwise/counter-clockwise) that border that is
-                     * being edited.
-                     */
-                    Border reversedSegment(*segment);
-                    reversedSegment.reverse();
-                    
-                    newBorder.addPoints(&reversedSegment,
-                                        0,
-                                        reversedSegment.getNumberOfPoints());
+                if (distanceOfLastSegmentPointToThisBorder < distanceTolerance) {
+                    trimmedSegment.removeFirstPoint();
+                }
+                const int32_t numTrimmedSegmentPoints = trimmedSegment.getNumberOfPoints();
+                
+                if (numTrimmedSegmentPoints > 0) {
+                    if (firstDistance < lastDistance) {
+                        /*
+                         * Add new segment onto the end of the existing border piece
+                         */
+                        newBorder.addPoints(&trimmedSegment,
+                                            0,
+                                            numTrimmedSegmentPoints);
+                    }
+                    else {
+                        /*
+                         * New segment is probably opposite orientation
+                         * (clockwise/counter-clockwise) that border that is
+                         * being edited.
+                         */
+                        Border reversedSegment(trimmedSegment);
+                        reversedSegment.reverse();
+                        
+                        newBorder.addPoints(&reversedSegment,
+                                            0,
+                                            reversedSegment.getNumberOfPoints());
+                    }
                 }
                 
                 if (newBorderSecondSegment.getNumberOfPoints() > 0) {
