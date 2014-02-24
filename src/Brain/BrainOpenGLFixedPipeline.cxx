@@ -2021,20 +2021,32 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 }
             }
             else {
+                float rgba[4] = {
+                    borderDrawInfo.rgba[0],
+                    borderDrawInfo.rgba[1],
+                    borderDrawInfo.rgba[2],
+                    borderDrawInfo.rgba[3],
+                };
                 if (isHighlightEndPoints) {
                     if (i == 0) {
-                        glColor3f(0.0, 1.0, 0.0);
+                        rgba[0] = 0.0;
+                        rgba[1] = 1.0;
+                        rgba[2] = 0.0;
+                        rgba[3] = 1.0;
                     }
                     else if (i == (numPointsToDraw - 1)) {
-                        glColor3f(0.0, 1.0, 0.0);
+                        rgba[0] = 0.0;
+                        rgba[1] = 0.75;
+                        rgba[2] = 0.0;
+                        rgba[3] = 1.0;
                     }
                 }
                 if (drawSphericalPoints) {
-                    this->drawSphereWithDiameter(borderDrawInfo.rgba,
+                    this->drawSphereWithDiameter(rgba,
                                                  pointDiameter);
                 }
                 else {
-                    this->drawSquare(borderDrawInfo.rgba,
+                    this->drawSquare(rgba,
                                      pointDiameter);
                 }
             }
