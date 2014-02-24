@@ -35,6 +35,7 @@
 /*LICENSE_END*/
 
 #include <set>
+#include <stdint.h>
 
 #include <QObject>
 #include <qmap.h>
