@@ -39,7 +39,6 @@ class QCheckBox;
 class QDoubleSpinBox;
 class QGridLayout;
 class QLabel;
-class WuQWidgetObjectGroup;
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
@@ -50,6 +49,7 @@ namespace caret {
     class ChartAxis;
     class ChartModelCartesian;
     class BrainBrowserWindowToolBar;
+    class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarChartAxes : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
