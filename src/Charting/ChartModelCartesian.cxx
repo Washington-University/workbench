@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <limits>
 
 #define __CHART_MODEL_CARTESIAN_DECLARE__
 #include "ChartModelCartesian.h"
