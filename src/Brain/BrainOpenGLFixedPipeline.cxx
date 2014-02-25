@@ -4036,18 +4036,30 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
                                                   BrainOpenGLFixedPipeline::COLOR_RED[1],
                                                   BrainOpenGLFixedPipeline::COLOR_RED[2],
                                                   alpha);
+                                        fiberRGBA[0] = BrainOpenGLFixedPipeline::COLOR_RED[0];
+                                        fiberRGBA[1] = BrainOpenGLFixedPipeline::COLOR_RED[1];
+                                        fiberRGBA[2] = BrainOpenGLFixedPipeline::COLOR_RED[2];
+                                        fiberRGBA[3] = alpha;
                                         break;
                                     case 1: // use BLUE
                                         glColor4f(BrainOpenGLFixedPipeline::COLOR_BLUE[0],
                                                   BrainOpenGLFixedPipeline::COLOR_BLUE[1],
                                                   BrainOpenGLFixedPipeline::COLOR_BLUE[2],
                                                   alpha);
+                                        fiberRGBA[0] = BrainOpenGLFixedPipeline::COLOR_BLUE[0];
+                                        fiberRGBA[1] = BrainOpenGLFixedPipeline::COLOR_BLUE[1];
+                                        fiberRGBA[2] = BrainOpenGLFixedPipeline::COLOR_BLUE[2];
+                                        fiberRGBA[3] = alpha;
                                         break;
                                     case 2: // use GREEN
                                         glColor4f(BrainOpenGLFixedPipeline::COLOR_GREEN[0],
                                                   BrainOpenGLFixedPipeline::COLOR_GREEN[1],
                                                   BrainOpenGLFixedPipeline::COLOR_GREEN[2],
                                                   alpha);
+                                        fiberRGBA[0] = BrainOpenGLFixedPipeline::COLOR_GREEN[0];
+                                        fiberRGBA[1] = BrainOpenGLFixedPipeline::COLOR_GREEN[1];
+                                        fiberRGBA[2] = BrainOpenGLFixedPipeline::COLOR_GREEN[2];
+                                        fiberRGBA[3] = alpha;
                                         break;
                                 }
                             }
