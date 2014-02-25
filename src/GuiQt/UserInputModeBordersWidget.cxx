@@ -524,6 +524,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             SurfaceProjectedItem* borderPoint;
             int32_t borderPointIndex;
             float distanceToNearestBorder;
+            bool successFlag = false;
             if (brain->findBorderNearestBorder(displayGroup,
                                                browserTabIndex,
                                                surface,
@@ -558,13 +559,18 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
 
                     setLastEditedBorder(borderFile,
                                         border);
+                    
+                    successFlag = true;
                 }
                 catch (BorderException& e) {
                     WuQMessageBox::errorOk(this,
                                            e.whatString());
                 }
             }
-            this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
+            
+            if (successFlag) {
+                this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
+            }
             
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
