@@ -1791,10 +1791,11 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             
             glPushMatrix();
             
+            GLboolean depthBufferEnabled = false;
+            glGetBooleanv(GL_DEPTH_TEST,
+                          &depthBufferEnabled);
+
             if (drawCrosshairsFlag) {
-                GLboolean depthBufferEnabled = false;
-                glGetBooleanv(GL_DEPTH_TEST,
-                              &depthBufferEnabled);
                 glPushMatrix();
                 drawAxesCrosshairs(sliceViewPlane);
                 glPopMatrix();
@@ -1815,8 +1816,15 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             glPolygonOffset(0.0, 1.0);
             
             if (drawFibersFlag) {
+                glDisable(GL_DEPTH_TEST);
                 m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
                 m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
             }
             if (drawFociFlag) {
                 drawVolumeSliceFoci(slicePlane);

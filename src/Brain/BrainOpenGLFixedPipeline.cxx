@@ -4284,20 +4284,20 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
             case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_ABSOLUTE:
                 streamlineThreshold = ftmp->getCountStreamline();
                 if (countRangeOpacity <= 0.0) {
-                    return;
+                    continue;
                 }
                 break;
             case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED:
             case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_DISTANCE_WEIGHTED_LOG:
                 streamlineThreshold = ftmp->getDistanceStreamline();
                 if (distanceRangeOpacity <= 0.0) {
-                    return;
+                    continue;
                 }
                 break;
             case FiberTrajectoryDisplayModeEnum::FIBER_TRAJECTORY_DISPLAY_PROPORTION:
                 streamlineThreshold = ftmp->getProportionStreamline();
                 if (proportionRangeOpacity <= 0.0) {
-                    return;
+                    continue;
                 }
                 break;
         }

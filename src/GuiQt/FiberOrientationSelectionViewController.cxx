@@ -161,7 +161,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QLabel* aboveLimitLabel = new QLabel("Slice Above Limit");
     m_aboveLimitSpinBox = WuQFactory::newDoubleSpinBox();
     m_aboveLimitSpinBox->setRange(0.0, std::numeric_limits<float>::max());
-    m_aboveLimitSpinBox->setDecimals(2);
+    m_aboveLimitSpinBox->setDecimals(3);
     m_aboveLimitSpinBox->setSingleStep(0.1);
     m_aboveLimitSpinBox->setToolTip("Fibers within this distance above the volume slice will be displayed");
     QObject::connect(m_aboveLimitSpinBox, SIGNAL(valueChanged(double)),
@@ -170,7 +170,7 @@ FiberOrientationSelectionViewController::createAttributesWidget()
     QLabel* belowLimitLabel = new QLabel("Slice Below Limit");
     m_belowLimitSpinBox = WuQFactory::newDoubleSpinBox();
     m_belowLimitSpinBox->setRange(-std::numeric_limits<float>::max(), 0.0);
-    m_belowLimitSpinBox->setDecimals(2);
+    m_belowLimitSpinBox->setDecimals(3);
     m_belowLimitSpinBox->setSingleStep(0.1);
     m_belowLimitSpinBox->setToolTip("Fibers within this distance below the volume slice will be displayed");
     QObject::connect(m_belowLimitSpinBox, SIGNAL(valueChanged(double)),
