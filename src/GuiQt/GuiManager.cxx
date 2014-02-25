@@ -1966,6 +1966,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
          * data shown in identification text is correct for the
          * node that was loaded.
          */
+        bool triedToLoadSurfaceODemandData = false;
         if (idNode->isValid()) {
             /*
              * NOT: node id was NOT created from voxel ID
@@ -1974,6 +1975,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 Surface* surface = idNode->getSurface();
                 const int32_t nodeIndex = idNode->getNodeNumber();
                 try {
+                    triedToLoadSurfaceODemandData = true;
+                    
                     ciftiConnectivityManager->loadDataForSurfaceNode(brain,
                                                                      surface,
                                                                      nodeIndex,
@@ -2013,8 +2016,15 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
          * Load CIFTI VOXEL data prior to ID Message so that CIFTI
          * data shown in identification text is correct for the
          * voxel that was loaded.
+         *
+         * Note: If there was an attempt to load data for surface,
+         * do not try to load voxel data.  Otherwise, if the voxel
+         * data loading fails, it will clear the coloring for 
+         * the connetivity data and make it appear as if loading data
+         * failed.
          */
-        if (idVoxel->isValid()) {
+        if (idVoxel->isValid()
+            && ( ! triedToLoadSurfaceODemandData)) {
             const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
             int64_t voxelIJK[3];
             idVoxel->getVoxelIJK(voxelIJK);
@@ -2056,6 +2066,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                 }
             }
         }
+        
         /*
          * Generate identification manager
          */
