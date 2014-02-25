@@ -53,6 +53,7 @@ using namespace caret;
 Border::Border()
 : CaretObjectTracksModification()
 {
+    m_copyOfBorderPriorToLastEditing = NULL;
     clear();
 //    m_color = CaretColorEnum::BLACK;
 //    m_selectionClassNameModificationStatus = true; // name/class is new!!
@@ -74,6 +75,7 @@ Border::~Border()
 Border::Border(const Border& obj)
 : CaretObjectTracksModification(obj)
 {
+    m_copyOfBorderPriorToLastEditing = NULL;
     copyHelperBorder(obj);
 }
 
@@ -139,6 +141,11 @@ Border::clear()
     m_nameRgbaColor[2] = 0.0;
     m_nameRgbaColor[3] = 1.0;
     m_nameRgbaColorValid = false;
+    
+    if (m_copyOfBorderPriorToLastEditing != NULL) {
+        delete m_copyOfBorderPriorToLastEditing;
+        m_copyOfBorderPriorToLastEditing = NULL;
+    }
     
     m_name = "";
     m_className = "";
@@ -778,6 +785,8 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
                              (endPointIndex + 1));
     }
     
+    saveBorderForUndoEditing();
+    
     replacePoints(&tempBorder);
 }
 
@@ -868,6 +877,8 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
         tempBorder.addPoints(this,
                              (endPointIndex + 1));
     }
+    
+    saveBorderForUndoEditing();
     
     replacePoints(&tempBorder);
 }
@@ -1063,6 +1074,8 @@ Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
                                         0,
                                         newBorderSecondSegment.getNumberOfPoints());
                 }
+                
+                saveBorderForUndoEditing();
                 
                 /*
                  * Replace this border with the newly created border
@@ -1357,6 +1370,44 @@ Border::getGroupNameSelectionItem() const
     return m_groupNameSelectionItem;
 }
 
+/**
+ * Save the border for undo editing.
+ */
+void
+Border::saveBorderForUndoEditing()
+{
+    if (m_copyOfBorderPriorToLastEditing == NULL) {
+        m_copyOfBorderPriorToLastEditing = new Border(*this);
+    }
+    else {
+        m_copyOfBorderPriorToLastEditing->replacePoints(this);
+    }
+}
+
+/**
+ * @return True if last editing of border can be "undone".
+ */
+bool
+Border::isUndoBorderValid() const
+{
+    if (m_copyOfBorderPriorToLastEditing != NULL) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Undo the last editing of this border.
+ */
+void
+Border::undoLastBorderEditing()
+{
+    if (m_copyOfBorderPriorToLastEditing != NULL) {
+        replacePoints(m_copyOfBorderPriorToLastEditing);
+        delete m_copyOfBorderPriorToLastEditing;
+        m_copyOfBorderPriorToLastEditing = NULL;
+    }
+}
 
 /**
  * Get a description of this object's content.

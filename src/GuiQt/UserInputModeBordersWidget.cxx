@@ -42,6 +42,7 @@
 #include "AlgorithmException.h"
 #include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
+#include "BorderFile.h"
 #include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -102,6 +103,8 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     
     this->widgetMode = this->createModeWidget();
     
+    resetLastEditedBorder();
+    
     this->widgetDrawOperation = this->createDrawOperationWidget();
     
     this->widgetEditOperation = this->createEditOperationWidget();
@@ -144,6 +147,7 @@ UserInputModeBordersWidget::updateWidget()
             this->operationStackedWidget->setCurrentWidget(this->widgetDrawOperation);
             this->setActionGroupByActionData(this->drawOperationActionGroup,
                                              inputModeBorders->getDrawOperation());
+            resetLastEditedBorder();
             break;
         case UserInputModeBorders::MODE_EDIT:
             this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
@@ -152,6 +156,7 @@ UserInputModeBordersWidget::updateWidget()
             break;
         case UserInputModeBorders::MODE_ROI:
             this->operationStackedWidget->setCurrentWidget(this->widgetRoiOperation);
+            resetLastEditedBorder();
             break;
     }
     const int selectedModeInteger = (int)this->inputModeBorders->getMode();
@@ -223,6 +228,7 @@ UserInputModeBordersWidget::modeComboBoxSelection(int indx)
     const int modeInteger = this->modeComboBox->itemData(indx).toInt();
     const UserInputModeBorders::Mode mode = (UserInputModeBorders::Mode)modeInteger;
     this->inputModeBorders->setMode(mode);
+    resetLastEditedBorder();
 }
 
 /**
@@ -315,7 +321,17 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     undoToolButton->setAutoRepeatDelay(500);  // 500ms = 1/2 second
     undoToolButton->setAutoRepeatInterval(100);  // 100ms = 1/10 second
     
-    QAction* resetAction = WuQtUtilities::createAction("Reset", 
+    
+    QAction* undoFinishAction = WuQtUtilities::createAction("Undo Finish",
+                                                      "Undo the last Erase/Extend/Replace\n"
+                                                      "performed on a border.",
+                                                      this,
+                                                      this,
+                                                      SLOT(drawUndoLastEditButtonClicked()));
+    m_undoFinishToolButton = new QToolButton();
+    m_undoFinishToolButton->setDefaultAction(undoFinishAction);
+    
+    QAction* resetAction = WuQtUtilities::createAction("Reset",
                                                        "Remove all points in the unfinished border", 
                                                        this,
                                                        this,
@@ -341,6 +357,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     layout->addWidget(replaceToolButton);
     layout->addSpacing(10);
     layout->addWidget(finishToolButton);
+    layout->addWidget(m_undoFinishToolButton);
     layout->addSpacing(10);
     layout->addWidget(undoToolButton);
     layout->addWidget(resetToolButton);
@@ -365,6 +382,54 @@ void
 UserInputModeBordersWidget::drawUndoButtonClicked()
 {
     this->inputModeBorders->drawOperationUndo();
+}
+
+/**
+ * Undo editing (erase/extend/replace) of last border.
+ */
+void
+UserInputModeBordersWidget::drawUndoLastEditButtonClicked()
+{
+    bool foundBorderFlag = false;
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+    for (int32_t i = 0; i < numBorderFiles; i++) {
+        BorderFile* bf = brain->getBorderFile(i);
+        if (bf == m_undoFinishBorderFile) {
+            foundBorderFlag = true;
+            break;
+        }
+    }
+    
+    if (foundBorderFlag) {
+        foundBorderFlag = false;
+        const int32_t numBorders = m_undoFinishBorderFile->getNumberOfBorders();
+        for (int32_t i = 0; i < numBorders; i++) {
+            if (m_undoFinishBorderFile->getBorder(i) == m_undoFinishBorder) {
+                foundBorderFlag = true;
+                break;
+            }
+        }
+    }
+    
+    if (foundBorderFlag) {
+        if (m_undoFinishBorder->isUndoBorderValid()) {
+            if (WuQMessageBox::warningOkCancel(m_undoFinishToolButton,
+                                               ("Undo changes to " + m_undoFinishBorder->getName()))) {
+                m_undoFinishBorder->undoLastBorderEditing();
+            }
+        }
+        else {
+            WuQMessageBox::errorOk(m_undoFinishToolButton,
+                                   ("Cannot undo border " + m_undoFinishBorder->getName()));
+        }
+    }
+    else {
+        WuQMessageBox::errorOk(m_undoFinishToolButton, "Cannot undo last edited border.");
+    }
+    
+    m_undoFinishBorder = NULL;
+    m_undoFinishBorderFile = NULL;
 }
 
 /**
@@ -490,6 +555,9 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                                          this->inputModeBorders->borderBeingDrawnByOpenGL);
                             break;
                     }
+
+                    setLastEditedBorder(borderFile,
+                                        border);
                 }
                 catch (BorderException& e) {
                     WuQMessageBox::errorOk(this,
@@ -627,5 +695,32 @@ UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* /*bra
                                                            this);
     createRoiDialog.exec();
 }
+
+/**
+ * Reset the last edited border.
+ */
+void
+UserInputModeBordersWidget::resetLastEditedBorder()
+{
+    m_undoFinishBorderFile = NULL;
+    m_undoFinishBorder     = NULL;
+}
+
+/**
+ * Set the last edited border.
+ *
+ * @param borderFile
+ *     File containing border.
+ * @param border
+ *     Border that was changed.
+ */
+void
+UserInputModeBordersWidget::setLastEditedBorder(BorderFile* borderFile,
+                                                Border* border)
+{
+    m_undoFinishBorderFile = borderFile;
+    m_undoFinishBorder     = border;
+}
+
 
 

@@ -132,6 +132,10 @@ namespace caret {
         
         void setNameRgba(const float rgba[4]);
         
+        bool isUndoBorderValid() const;
+        
+        void undoLastBorderEditing();
+        
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
@@ -144,6 +148,8 @@ namespace caret {
         float getSegmentLength(SurfaceFile* surfaceFile,
                                  const int32_t startPointIndex,
                                  const int32_t endPointIndex);
+        
+        void saveBorderForUndoEditing();
         
         AString m_name;
         
@@ -164,7 +170,14 @@ namespace caret {
         bool m_nameRgbaColorValid;
         
         /** Selection status of this border in the group/name hierarchy */
-        GroupAndNameHierarchyItem* m_groupNameSelectionItem;        
+        GroupAndNameHierarchyItem* m_groupNameSelectionItem;
+        
+        /**
+         * When "this" border is edited, a copy of "this" is placed into
+         * this member so that the border can be restored if the editing
+         * was not satisfactory.
+         */
+        Border* m_copyOfBorderPriorToLastEditing;
     };
     
 #ifdef __BORDER_DECLARE__

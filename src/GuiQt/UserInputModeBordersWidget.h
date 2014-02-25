@@ -32,9 +32,11 @@ class QAction;
 class QActionGroup;
 class QComboBox;
 class QStackedWidget;
+class QToolButton;
 
 namespace caret {
 
+    class BorderFile;
     class Border;
     class Brain;
     class Surface;
@@ -67,6 +69,7 @@ namespace caret {
         
         void drawResetButtonClicked();
         void drawUndoButtonClicked();
+        void drawUndoLastEditButtonClicked();
         void drawFinishButtonClicked();
         
     private:
@@ -89,6 +92,11 @@ namespace caret {
         
         QWidget* createRoiOperationWidget();
         
+        void setLastEditedBorder(BorderFile* borderFile,
+                                 Border* border);
+        
+        void resetLastEditedBorder();
+        
         QComboBox* modeComboBox;
         
         QWidget* widgetMode;
@@ -104,6 +112,12 @@ namespace caret {
         UserInputModeBorders* inputModeBorders;
         
         QString m_transformToolTipText;
+        
+        QToolButton* m_undoFinishToolButton;
+        
+        BorderFile* m_undoFinishBorderFile;
+        
+        Border* m_undoFinishBorder;
     };
     
 #ifdef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__
