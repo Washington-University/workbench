@@ -154,13 +154,16 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
                 if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                 {
-                    const map<AString, AString>* md = myFile->getCiftiXMLOld().getFileMetaData();
+                    const GiftiMetaData* md = myFile->getCiftiXML().getFileMetaData();
                     if (md != NULL)
                     {
-                        map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
-                        if (iter != md->end() && iter->second != "")
+                        if (md->exists(PROVENANCE_NAME))
                         {
-                            m_parentProvenance += nextArg + ":\n" + iter->second + "\n\n";
+                            AString provenance = md->get(PROVENANCE_NAME);
+                            if (provenance != "")
+                            {
+                                m_parentProvenance += nextArg + ":\n" + provenance + "\n\n";
+                            }
                         }
                     }
                 }

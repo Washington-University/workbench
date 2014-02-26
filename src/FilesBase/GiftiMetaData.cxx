@@ -334,7 +334,7 @@ GiftiMetaData::remove(const AString& name)
  *
  */
 bool
-GiftiMetaData::exists(const AString& name)
+GiftiMetaData::exists(const AString& name) const
 {
     if (this->metadata.find(name) != this->metadata.end()) {
         return true;

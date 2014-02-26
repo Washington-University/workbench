@@ -99,7 +99,7 @@ public:
     
     void remove(const AString& name);
 
-    bool exists(const AString& name);
+    bool exists(const AString& name) const;
 
     AString get(const AString& name) const;
 
