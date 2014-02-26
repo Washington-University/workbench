@@ -26,7 +26,7 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiIndexMap.h"
+#include "CiftiMappingType.h"
 
 #include "CaretPointer.h"
 #include "GiftiMetaData.h"
@@ -37,22 +37,22 @@
 
 namespace caret
 {
-    class CiftiLabelsMap : public CiftiIndexMap
+    class CiftiLabelsMap : public CiftiMappingType
     {
     public:
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of label table and metadata within XML without setting the xml on a file again
         GiftiLabelTable* getMapLabelTable(const int64_t& index) const;
         const QString& getMapName(const int64_t& index) const;
         
-        void setMapName(const int64_t& index, const QString& mapName);
+        void setMapName(const int64_t& index, const QString& mapName) const;//ditto
         void setLength(const int64_t& length);
         void clear();//do we need this?
         
-        CiftiIndexMap* clone() const { return new CiftiLabelsMap(*this); }
+        CiftiMappingType* clone() const { return new CiftiLabelsMap(*this); }
         MappingType getType() const { return SCALARS; }
         int64_t getLength() const { return m_maps.size(); }
-        bool operator==(const CiftiIndexMap& rhs) const;
-        bool approximateMatch(const CiftiIndexMap& rhs) const;
+        bool operator==(const CiftiMappingType& rhs) const;
+        bool approximateMatch(const CiftiMappingType& rhs) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;
@@ -60,8 +60,8 @@ namespace caret
     private:
         struct LabelMap
         {
-            QString m_name;
-            mutable GiftiMetaData m_metaData;//we need a better way to change metadata in an in-memory file
+            mutable QString m_name;//we need a better way to change metadata in an in-memory file
+            mutable GiftiMetaData m_metaData;//ditto
             mutable GiftiLabelTable m_labelTable;//ditto
             bool operator==(const LabelMap& rhs) const;
             void readXML1(QXmlStreamReader& xml);

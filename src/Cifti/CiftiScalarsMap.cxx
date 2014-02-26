@@ -80,13 +80,13 @@ void CiftiScalarsMap::setLength(const int64_t& length)
     m_maps.resize(length);
 }
 
-void CiftiScalarsMap::setMapName(const int64_t& index, const QString& mapName)
+void CiftiScalarsMap::setMapName(const int64_t& index, const QString& mapName) const
 {
     CaretAssertVectorIndex(m_maps, index);
     m_maps[index].m_name = mapName;
 }
 
-bool CiftiScalarsMap::approximateMatch(const CiftiIndexMap& rhs) const
+bool CiftiScalarsMap::approximateMatch(const CiftiMappingType& rhs) const
 {
     switch (rhs.getType())
     {
@@ -99,7 +99,7 @@ bool CiftiScalarsMap::approximateMatch(const CiftiIndexMap& rhs) const
     }
 }
 
-bool CiftiScalarsMap::operator==(const CiftiIndexMap& rhs) const
+bool CiftiScalarsMap::operator==(const CiftiMappingType& rhs) const
 {
     if (rhs.getType() != getType()) return false;
     const CiftiScalarsMap& myrhs = dynamic_cast<const CiftiScalarsMap&>(rhs);

@@ -40,6 +40,8 @@
 #include "CiftiXMLElements.h"
 #include "VolumeMappableInterface.h"
 
+#include <set>
+
 namespace caret {
     
     class ChartData;
@@ -48,7 +50,7 @@ namespace caret {
     class CiftiFiberTrajectoryFile;
     class CiftiInterface;
     class CiftiMappableConnectivityMatrixDataFile;
-    class CiftiXML;
+    class CiftiXMLOld;
     class DescriptiveStatistics;
     class FastStatistics;
     class GroupAndNameHierarchyModel;
@@ -324,7 +326,7 @@ namespace caret {
         virtual SelectionMode getSelectionMode() const;
         virtual void setSelectionMode(const SelectionMode &mode);
 
-		bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const;
+		bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure) const;
         
     private:
         

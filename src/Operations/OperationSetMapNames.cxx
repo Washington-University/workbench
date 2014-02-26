@@ -128,14 +128,14 @@ void OperationSetMapNames::useParameters(OperationParameters* myParams, Progress
         {
             CiftiFile myCifti;
             myCifti.openFile(fileName, IN_MEMORY);
-            CiftiXML myXML = myCifti.getCiftiXML();
+            CiftiXMLOld myXML = myCifti.getCiftiXMLOld();
             for (int i = 0; i < (int)mapOpts.size(); ++i)
             {
                 int mapIndex = (int)mapOpts[i]->getInteger(1) - 1;
                 if (mapIndex < 0) throw OperationException("invalid map index, indices are 1-based");
                 if (mapIndex >= myXML.getNumberOfColumns()) throw OperationException("cifti file doesn't have enough columns for specified map index");
                 AString newName = mapOpts[i]->getString(2);
-                if (!myXML.setMapNameForIndex(CiftiXML::ALONG_ROW, mapIndex, newName)) throw OperationException("failed to set map name, check the type of the cifti file");
+                if (!myXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, mapIndex, newName)) throw OperationException("failed to set map name, check the type of the cifti file");
             }
             CiftiFile myOutCifti(ON_DISK);
             myOutCifti.setCiftiCacheFile(fileName);

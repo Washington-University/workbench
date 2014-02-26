@@ -111,13 +111,13 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
     vector<bool> surfUsed(surfInstances.size(), false);
     vector<VolParams> volProcess;
     vector<SurfParams> surfProcess;
-    const CiftiXML& myXML = myCifti->getCiftiXML();
-    if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
+    if (myXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
         throw OperationException("mapping type along column must be brain models");
     }
     vector<StructureEnum::Enum> surfStructs, volStructs;
-    myXML.getStructureLists(CiftiXML::ALONG_COLUMN, surfStructs, volStructs);
+    myXML.getStructureLists(CiftiXMLOld::ALONG_COLUMN, surfStructs, volStructs);
     int numSurf = (int)surfStructs.size();
     surfProcess.resize(numSurf);
     for (int i = 0; i < numSurf; ++i)
@@ -136,7 +136,7 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
         surfProcess[i].name = StructureEnum::toName(surfStructs[i]);
         surfProcess[i].data.grabNew(new MetricFile());
         surfProcess[i].roi.grabNew(new MetricFile());
-        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXML::ALONG_COLUMN, surfStructs[i], surfProcess[i].data, surfProcess[i].roi);
+        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXMLOld::ALONG_COLUMN, surfStructs[i], surfProcess[i].data, surfProcess[i].roi);
         if (surfProcess[i].surf->getNumberOfNodes() != surfProcess[i].data->getNumberOfNodes())
         {
             throw OperationException("input surface for structure '" + StructureEnum::toName(surfStructs[i]) + "' has different number of nodes than the cifti file");
@@ -149,7 +149,7 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
         volProcess[0].data.grabNew(new VolumeFile());
         volProcess[0].roi.grabNew(new VolumeFile());
         int64_t offset[3];
-        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXML::ALONG_COLUMN, volProcess[0].data, offset, volProcess[0].roi, true);
+        AlgorithmCiftiSeparate(NULL, myCifti, CiftiXMLOld::ALONG_COLUMN, volProcess[0].data, offset, volProcess[0].roi, true);
     } else {
         int numVol = (int)volStructs.size();
         volProcess.resize(numVol);
@@ -159,7 +159,7 @@ void OperationCiftiEstimateFWHM::useParameters(OperationParameters* myParams, Pr
             volProcess[i].data.grabNew(new VolumeFile());
             volProcess[i].roi.grabNew(new VolumeFile());
             int64_t offset[3];
-            AlgorithmCiftiSeparate(NULL, myCifti, CiftiXML::ALONG_COLUMN, volStructs[i], volProcess[i].data, offset, volProcess[i].roi, true);
+            AlgorithmCiftiSeparate(NULL, myCifti, CiftiXMLOld::ALONG_COLUMN, volStructs[i], volProcess[i].data, offset, volProcess[i].roi, true);
         }
     }
     if (column == -1)

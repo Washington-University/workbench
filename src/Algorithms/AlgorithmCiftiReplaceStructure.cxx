@@ -155,7 +155,8 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                                                                const StructureEnum::Enum& myStruct, const MetricFile* metricIn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    vector<CiftiSurfaceMap> myMap;
+    if (ciftiInOut->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
+    vector<CiftiBrainModelsMap::SurfaceMap> myMap;
     int rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
@@ -215,12 +216,14 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                                                                const StructureEnum::Enum& myStruct, const LabelFile* labelIn) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    ciftiInOut->convertToInMemory();
-    vector<CiftiSurfaceMap> myMap;
+    if (ciftiInOut->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
+    ciftiInOut->convertToInMemory();//so that writing it can change the header
+    vector<CiftiBrainModelsMap::SurfaceMap> myMap;
     int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        if (ciftiInOut->getCiftiXML().getRowMappingType() != CIFTI_INDEX_TYPE_LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        if (ciftiInOut->getCiftiXML().getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        const CiftiLabelsMap& myLabelsMap = ciftiInOut->getCiftiXML().getLabelsMap(CiftiXML::ALONG_ROW);
         if (!ciftiInOut->getSurfaceMapForColumns(myMap, myStruct))
         {
             throw AlgorithmException("structure not found in specified dimension");
@@ -241,8 +244,8 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         for (int64_t j = 0; j < rowSize; ++j)
         {
             GiftiLabelTable myTable = *(labelIn->getLabelTable());//we remap the old label table values so that the new label table keys are unmolested
-            remapArray[j] = myTable.append(*(ciftiInOut->getCiftiXML().getLabelTableForRowIndex(j)));
-            *(ciftiInOut->getCiftiXML().getLabelTableForRowIndex(j)) = myTable;
+            remapArray[j] = myTable.append(*(myLabelsMap.getMapLabelTable(j)));
+            *(myLabelsMap.getMapLabelTable(j)) = myTable;
         }
         set<int64_t> writeRows;
         for (int64_t i = 0; i < mapSize; ++i)
@@ -271,7 +274,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                         }
                     } else {
                         rowChanged = true;
-                        int32_t unusedLabel = ciftiInOut->getCiftiXML().getLabelTableForRowIndex(j)->getUnassignedLabelKey();
+                        int32_t unusedLabel = myLabelsMap.getMapLabelTable(j)->getUnassignedLabelKey();
                         rowScratch[j] = unusedLabel;
                         usedArray[j].insert(unusedLabel);
                     }
@@ -291,11 +294,12 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         }
         for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
         {
-            ciftiInOut->getCiftiXML().getLabelTableForRowIndex(i)->deleteUnusedLabels(usedArray[i]);
+            myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
         }
     } else {
         if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("unsupported cifti direction");
-        if (ciftiInOut->getCiftiXML().getColumnMappingType() != CIFTI_INDEX_TYPE_LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        if (ciftiInOut->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+        const CiftiLabelsMap& myLabelsMap = ciftiInOut->getCiftiXML().getLabelsMap(CiftiXML::ALONG_COLUMN);
         if (!ciftiInOut->getSurfaceMapForRows(myMap, myStruct))
         {
             throw AlgorithmException("structure not found in specified dimension");
@@ -319,8 +323,8 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         for (int64_t i = 0; i < colSize; ++i)
         {
             GiftiLabelTable myTable = *(labelIn->getLabelTable());//we remap the old label table values so that the new label table keys are unmolested
-            map<int32_t, int32_t> remap = myTable.append(*(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)));
-            *(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)) = myTable;
+            map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+            *(myLabelsMap.getMapLabelTable(i)) = myTable;
             ciftiInOut->getRow(rowScratch, i, true);
             set<int32_t> used;
             int32_t unusedKey = myTable.getUnassignedLabelKey();
@@ -346,7 +350,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                 rowScratch[myMap[j].m_ciftiIndex] = tempKey;
                 used.insert(tempKey);
             }
-            ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)->deleteUnusedLabels(used);
+            myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
             ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
         }
     }
@@ -356,30 +360,18 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                                                                const StructureEnum::Enum& myStruct, const VolumeFile* volIn, const bool& fromCropped) : AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
+    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported in cifti replace structure");
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
     LevelProgress myProgress(myProgObj);
-    int64_t myDims[3], offset[3];
-    vector<vector<float> > mySform;
-    vector<CiftiVolumeMap> myMap;
-    vector<int64_t> newdims;
     int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
-    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
-    {
-        throw AlgorithmException("input cifti has no volume space information");
-    }
-    if (myDir == CiftiXML::ALONG_COLUMN)
-    {
-        if (!myXML.getVolumeStructureMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure not found in specified dimension");
-        }
-    } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported in cifti replace structure");
-        if (!myXML.getVolumeStructureMapForRows(myMap, myStruct))
-        {
-            throw AlgorithmException("structure not found in specified dimension");
-        }
-    }
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
+    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getVolumeStructureMap(myStruct);
     int64_t numVoxels = (int64_t)myMap.size();
+    int64_t offset[3];
+    vector<int64_t> newdims;
     if (fromCropped)
     {
         newdims.resize(3);
@@ -405,17 +397,18 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         {
             throw AlgorithmException("volume has the wrong number of subvolumes");
         }
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
         {
-            if (volIn->getType() != SubvolumeAttributes::LABEL) throw ("replace structure called on cifti label file with non-label volume");
-            ciftiInOut->convertToInMemory();
+            if (volIn->getType() != SubvolumeAttributes::LABEL) throw AlgorithmException("replace structure called on cifti label file with non-label volume");
+            ciftiInOut->convertToInMemory();//so that writing can change the XML
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
             vector<map<int32_t, int32_t> > remapArray(rowSize);
             vector<set<int32_t> > usedArray(rowSize);
             for (int64_t i = 0; i < rowSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                remapArray[i] = myTable.append(*(myXML.getLabelTableForRowIndex(i)));
-                *(myXML.getLabelTableForRowIndex(i)) = myTable;
+                remapArray[i] = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                *(myLabelsMap.getMapLabelTable(i)) = myTable;
             }
             set<int64_t> writeRows;
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -444,7 +437,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                             }
                         } else {
                             rowChanged = true;
-                            int32_t unusedLabel = ciftiInOut->getCiftiXML().getLabelTableForRowIndex(j)->getUnassignedLabelKey();
+                            int32_t unusedLabel = myLabelsMap.getMapLabelTable(j)->getUnassignedLabelKey();
                             rowScratch[j] = unusedLabel;
                             usedArray[j].insert(unusedLabel);
                         }
@@ -465,7 +458,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             }
             for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
             {
-                myXML.getLabelTableForRowIndex(i)->deleteUnusedLabels(usedArray[i]);
+                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
             }
         } else {
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -483,10 +476,11 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         {
             throw AlgorithmException("volume has the wrong number of subvolumes");
         }
-        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
         {
-            if (volIn->getType() != SubvolumeAttributes::LABEL) throw ("replace structure called on cifti label file with non-label volume");
+            if (volIn->getType() != SubvolumeAttributes::LABEL) throw AlgorithmException("replace structure called on cifti label file with non-label volume");
             ciftiInOut->convertToInMemory();
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
             set<int64_t> writeCols;
             for (int64_t i = 0; i < numVoxels; ++i)
             {
@@ -495,8 +489,8 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             for (int64_t i = 0; i < colSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                map<int32_t, int32_t> remap = myTable.append(*(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)));
-                *(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)) = myTable;
+                map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                *(myLabelsMap.getMapLabelTable(i)) = myTable;
                 ciftiInOut->getRow(rowScratch, i, true);
                 set<int32_t> used;
                 int32_t unusedKey = myTable.getUnassignedLabelKey();
@@ -523,7 +517,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                     rowScratch[myMap[j].m_ciftiIndex] = tempKey;
                     used.insert(tempKey);
                 }
-                ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)->deleteUnusedLabels(used);
+                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
                 ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
             }
         } else {
@@ -545,22 +539,18 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                                                                const VolumeFile* volIn, const bool& fromCropped): AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = ciftiInOut->getCiftiXML();
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("replace structure only supported on 2D cifti");
     LevelProgress myProgress(myProgObj);
-    int64_t myDims[3], offset[3];
-    vector<vector<float> > mySform;
-    vector<CiftiVolumeMap> myMap;
-    vector<int64_t> newdims;
-    int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
     if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported in cifti replace structure");
-    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
-    {
-        throw AlgorithmException("input cifti has no volume space information");
-    }
-    if (!myXML.getVolumeMap(myDir, myMap))
-    {
-        throw AlgorithmException("no volume components found in specified dimension");
-    }
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
+    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getFullVolumeMap();
     int64_t numVoxels = (int64_t)myMap.size();
+    int64_t rowSize = ciftiInOut->getNumberOfColumns(), colSize = ciftiInOut->getNumberOfRows();
+    vector<int64_t> newdims;
+    int64_t offset[3];
     if (fromCropped)
     {
         newdims.resize(3);
@@ -586,17 +576,18 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         {
             throw AlgorithmException("volume has the wrong number of subvolumes");
         }
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
         {
-            if (volIn->getType() != SubvolumeAttributes::LABEL) throw ("replace structure called on cifti label file with non-label volume");
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
+            if (volIn->getType() != SubvolumeAttributes::LABEL) throw AlgorithmException("replace structure called on cifti label file with non-label volume");
             ciftiInOut->convertToInMemory();
             vector<map<int32_t, int32_t> > remapArray(rowSize);
             vector<set<int32_t> > usedArray(rowSize);
             for (int64_t i = 0; i < rowSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                remapArray[i] = myTable.append(*(myXML.getLabelTableForRowIndex(i)));
-                *(myXML.getLabelTableForRowIndex(i)) = myTable;
+                remapArray[i] = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                *(myLabelsMap.getMapLabelTable(i)) = myTable;
             }
             set<int64_t> writeRows;
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -625,7 +616,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                             }
                         } else {
                             rowChanged = true;
-                            int32_t unusedLabel = ciftiInOut->getCiftiXML().getLabelTableForRowIndex(j)->getUnassignedLabelKey();
+                            int32_t unusedLabel = myLabelsMap.getMapLabelTable(j)->getUnassignedLabelKey();
                             rowScratch[j] = unusedLabel;
                             usedArray[j].insert(unusedLabel);
                         }
@@ -646,7 +637,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             }
             for (int64_t i = 0; i < rowSize; ++i)//delete unused labels
             {
-                myXML.getLabelTableForRowIndex(i)->deleteUnusedLabels(usedArray[i]);
+                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(usedArray[i]);
             }
         } else {
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -664,9 +655,10 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         {
             throw AlgorithmException("volume has the wrong number of subvolumes");
         }
-        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
         {
-            if (volIn->getType() != SubvolumeAttributes::LABEL) throw ("replace structure called on cifti label file with non-label volume");
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
+            if (volIn->getType() != SubvolumeAttributes::LABEL) throw AlgorithmException("replace structure called on cifti label file with non-label volume");
             ciftiInOut->convertToInMemory();
             set<int64_t> writeCols;
             for (int64_t i = 0; i < numVoxels; ++i)
@@ -676,8 +668,8 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             for (int64_t i = 0; i < colSize; ++i)
             {
                 GiftiLabelTable myTable = *(volIn->getMapLabelTable(i));//we remap the old label table values so that the new label table keys are unmolested
-                map<int32_t, int32_t> remap = myTable.append(*(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)));
-                *(ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)) = myTable;
+                map<int32_t, int32_t> remap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
+                *(myLabelsMap.getMapLabelTable(i)) = myTable;
                 ciftiInOut->getRow(rowScratch, i, true);
                 set<int32_t> used;
                 int32_t unusedKey = myTable.getUnassignedLabelKey();
@@ -704,7 +696,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                     rowScratch[myMap[j].m_ciftiIndex] = tempKey;
                     used.insert(tempKey);
                 }
-                ciftiInOut->getCiftiXML().getLabelTableForColumnIndex(i)->deleteUnusedLabels(used);
+                myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
                 ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
             }
         } else {
@@ -729,6 +721,5 @@ float AlgorithmCiftiReplaceStructure::getAlgorithmInternalWeight()
 
 float AlgorithmCiftiReplaceStructure::getSubAlgorithmWeight()
 {
-    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;
 }

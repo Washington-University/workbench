@@ -103,9 +103,9 @@ void AlgorithmCiftiROIsFromExtrema::useParameters(OperationParameters* myParams,
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -157,9 +157,9 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
                                                              const float& surfSigma, const float& volSigma, const OverlapLogicEnum::Enum& myLogic, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiXML myXML = myCifti->getCiftiXML();
+    CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti rois from extrema");
+    if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti rois from extrema");
     if (!myXML.getStructureLists(myDir, surfaceList, volumeList))
     {
         throw AlgorithmException("columns do not contain brainordinates");
@@ -224,7 +224,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
     }
     if (mergedVolume)
     {
-        if (myCifti->getCiftiXML().hasVolumeData(myDir))
+        if (myCifti->getCiftiXMLOld().hasVolumeData(myDir))
         {
             VolumeFile myVol, myRoi, myVolOut;
             volOffsets.resize(3);
@@ -251,7 +251,7 @@ AlgorithmCiftiROIsFromExtrema::AlgorithmCiftiROIsFromExtrema(ProgressObject* myP
     if (mapCount > numeric_limits<int>::max()) throw AlgorithmException("result has too many ROIs");
     myXML.resetDirectionToScalars(1 - myDir, mapCount);
     myCiftiOut->setCiftiXML(myXML);
-    if (myDir == CiftiXML::ALONG_ROW)
+    if (myDir == CiftiXMLOld::ALONG_ROW)
     {
         int64_t curRow = 0;
         for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)

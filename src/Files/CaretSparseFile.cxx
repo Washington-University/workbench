@@ -226,7 +226,7 @@ void FiberFractions::zero()
     distance = 0.0f;
 }
 
-CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml)
+CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXMLOld& xml)
 {
     m_file = NULL;
     m_finished = false;

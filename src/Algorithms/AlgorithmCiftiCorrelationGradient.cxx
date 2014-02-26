@@ -167,10 +167,10 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
 {
     LevelProgress myProgress(myProgObj);
     init(myCifti, undoFisher);
-    const CiftiXML& myXML = myCifti->getCiftiXML();
-    CiftiXML myNewXML = myXML;
-    myNewXML.resetDirectionToScalars(CiftiXML::ALONG_ROW, 1);
-    myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 0, "gradient");
+    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
+    CiftiXMLOld myNewXML = myXML;
+    myNewXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
+    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 0, "gradient");
     myCiftiOut->setCiftiXML(myNewXML);
     vector<StructureEnum::Enum> surfaceList, volumeList;
     myXML.getStructureListsForColumns(surfaceList, volumeList);
@@ -243,7 +243,7 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
 
 void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf)
 {
-    const CiftiXML& myXML = m_inputCifti->getCiftiXML();
+    const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
     vector<CiftiSurfaceMap> myMap;
     myXML.getSurfaceMapForColumns(myMap, myStructure);
     int mapSize = (int)myMap.size();
@@ -366,7 +366,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
 
 void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf)
 {
-    const CiftiXML& myXML = m_inputCifti->getCiftiXML();
+    const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
     vector<CiftiSurfaceMap> myMap;
     myXML.getSurfaceMapForColumns(myMap, myStructure);
     int mapSize = (int)myMap.size();
@@ -535,7 +535,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
 
 void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::Enum& myStructure, const float& volKern, const float& memLimitGB)
 {
-    const CiftiXML& myXML = m_inputCifti->getCiftiXML();
+    const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
     vector<CiftiVolumeMap> myMap;
     myXML.getVolumeStructureMapForColumns(myMap, myStructure);
     int mapSize = (int)myMap.size();
@@ -672,7 +672,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
 
 void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::Enum& myStructure, const float& volKern, const float& volExclude, const float& memLimitGB)
 {
-    const CiftiXML& myXML = m_inputCifti->getCiftiXML();
+    const CiftiXMLOld& myXML = m_inputCifti->getCiftiXMLOld();
     vector<CiftiVolumeMap> myMap;
     myXML.getVolumeStructureMapForColumns(myMap, myStructure);
     int mapSize = (int)myMap.size();

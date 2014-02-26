@@ -137,7 +137,7 @@ void OperationConvertFiberOrientations::useParameters(OperationParameters* myPar
     ciftiVolDims[0] = mydims[0];
     ciftiVolDims[1] = mydims[1];
     ciftiVolDims[2] = mydims[2];
-    CiftiXML myXML;
+    CiftiXMLOld myXML;
     myXML.resetColumnsToBrainModels();
     myXML.setVolumeDimsAndSForm(ciftiVolDims, labelVol->getSform());
     for (map<StructureEnum::Enum, int>::iterator myiter = componentMap.begin(); myiter != componentMap.end(); ++myiter)

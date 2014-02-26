@@ -22,10 +22,10 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiIndexMap.h"
+#include "CiftiMappingType.h"
 
 using namespace caret;
 
-CiftiIndexMap::~CiftiIndexMap()
+CiftiMappingType::~CiftiMappingType()
 {//to ensure that the class's vtable gets defined in an object file
 }

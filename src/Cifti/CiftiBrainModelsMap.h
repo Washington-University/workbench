@@ -26,7 +26,7 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiIndexMap.h"
+#include "CiftiMappingType.h"
 
 #include "CaretCompact3DLookup.h"
 #include "StructureEnum.h"
@@ -38,7 +38,7 @@
 
 namespace caret
 {
-    class CiftiBrainModelsMap : public CiftiIndexMap
+    class CiftiBrainModelsMap : public CiftiMappingType
     {
     public:
         enum ModelType
@@ -83,11 +83,11 @@ namespace caret
         void setVolumeSpace(const VolumeSpace& space);
         void clear();
         
-        CiftiIndexMap* clone() const { return new CiftiBrainModelsMap(*this); }
+        CiftiMappingType* clone() const { return new CiftiBrainModelsMap(*this); }
         MappingType getType() const { return BRAIN_MODELS; }
         int64_t getLength() const;
-        bool operator==(const CiftiIndexMap& rhs) const;
-        bool approximateMatch(const CiftiIndexMap& rhs) const;
+        bool operator==(const CiftiMappingType& rhs) const;
+        bool approximateMatch(const CiftiMappingType& rhs) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;

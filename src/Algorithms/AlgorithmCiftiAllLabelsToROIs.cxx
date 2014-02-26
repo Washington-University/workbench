@@ -65,11 +65,11 @@ void AlgorithmCiftiAllLabelsToROIs::useParameters(OperationParameters* myParams,
 {
     CiftiFile* myLabel = myParams->getCifti(1);
     AString mapID = myParams->getString(2);
-    if (myLabel->getCiftiXML().getMappingType(CiftiXML::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
+    if (myLabel->getCiftiXMLOld().getMappingType(CiftiXMLOld::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
     {
         throw AlgorithmException("mapping type along row must be labels");//because we need to translate map ID to index before algorithm, but want a more useful error if the reason it fails is mapping type
     }
-    int whichMap = myLabel->getCiftiXML().getMapIndexFromNameOrNumber(CiftiXML::ALONG_ROW, mapID);
+    int whichMap = myLabel->getCiftiXMLOld().getMapIndexFromNameOrNumber(CiftiXMLOld::ALONG_ROW, mapID);
     if (whichMap == -1)
     {
         throw AlgorithmException("invalid map number or name specified");
@@ -81,8 +81,8 @@ void AlgorithmCiftiAllLabelsToROIs::useParameters(OperationParameters* myParams,
 AlgorithmCiftiAllLabelsToROIs::AlgorithmCiftiAllLabelsToROIs(ProgressObject* myProgObj, const CiftiFile* myLabel, const int& whichMap, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXML = myLabel->getCiftiXML();
-    if (myXML.getMappingType(CiftiXML::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
+    const CiftiXMLOld& myXML = myLabel->getCiftiXMLOld();
+    if (myXML.getMappingType(CiftiXMLOld::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
     {
         throw AlgorithmException("mapping type along row must be labels");//check again, in case it is used from somewhere other than useParameters()
     }
@@ -95,14 +95,14 @@ AlgorithmCiftiAllLabelsToROIs::AlgorithmCiftiAllLabelsToROIs(ProgressObject* myP
         throw AlgorithmException("label table doesn't contain any keys besides the ??? key");
     }
     map<int32_t, int> keyToMap;//lookup from keys to column
-    CiftiXML outXML = myXML;
-    outXML.resetDirectionToScalars(CiftiXML::ALONG_ROW, numKeys - 1);
+    CiftiXMLOld outXML = myXML;
+    outXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, numKeys - 1);
     int counter = 0;
     for (set<int32_t>::iterator iter = myKeys.begin(); iter != myKeys.end(); ++iter)
     {
         if (*iter == unusedKey) continue;//skip the ??? key
         keyToMap[*iter] = counter;
-        outXML.setMapNameForIndex(CiftiXML::ALONG_ROW, counter, myTable->getLabelName(*iter));
+        outXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, counter, myTable->getLabelName(*iter));
         ++counter;
     }
     myCiftiOut->setCiftiXML(outXML);

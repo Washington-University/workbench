@@ -153,8 +153,8 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
-    CiftiXML myXML;
-    makeDenseMapping(myXML, CiftiXML::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    CiftiXMLOld myXML;
+    makeDenseMapping(myXML, CiftiXMLOld::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     int numMaps = -1;
     if (leftData != NULL)
     {
@@ -251,7 +251,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     }
 }
 
-void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXML& toModify, const int& direction,
+void AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(CiftiXMLOld& toModify, const int& direction,
                                                            const VolumeFile* myVol, const VolumeFile* myVolLabel,
                                                            const MetricFile* leftData, const MetricFile* leftRoi,
                                                            const MetricFile* rightData, const MetricFile* rightRoi,

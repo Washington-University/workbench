@@ -95,7 +95,7 @@ void AlgorithmCiftiLabelToROI::useParameters(OperationParameters* myParams, Prog
     if (mapOpt->m_present)
     {
         AString mapID = mapOpt->getString(1);
-        whichMap = myCifti->getCiftiXML().getMapIndexFromNameOrNumber(CiftiXML::ALONG_ROW, mapID);
+        whichMap = myCifti->getCiftiXMLOld().getMapIndexFromNameOrNumber(CiftiXMLOld::ALONG_ROW, mapID);
         if (whichMap == -1)
         {
             throw AlgorithmException("invalid map number or name specified");
@@ -112,27 +112,27 @@ void AlgorithmCiftiLabelToROI::useParameters(OperationParameters* myParams, Prog
 AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXml = myCifti->getCiftiXML();
-    CiftiXML outXml = myXml;
+    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
+    CiftiXMLOld outXml = myXml;
     int64_t numRows = myXml.getNumberOfRows();
-    int64_t numMaps = myXml.getDimensionLength(CiftiXML::ALONG_ROW);
+    int64_t numMaps = myXml.getDimensionLength(CiftiXMLOld::ALONG_ROW);
     if (whichMap < -1 || whichMap >= numMaps)
     {
         throw AlgorithmException("invalid map index specified");
     }
-    if (myXml.getMappingType(CiftiXML::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
+    if (myXml.getMappingType(CiftiXMLOld::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
     {
         throw AlgorithmException("input cifti must have labels along rows");
     }
     if (whichMap == -1)
     {
-        outXml.resetDirectionToScalars(CiftiXML::ALONG_ROW, numMaps);
+        outXml.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, numMaps);
         vector<int> matchKey(numMaps, -1);
         vector<bool> haveKey(numMaps, false);//-1 is actually a valid key, track with a second variable
         bool shouldThrow = true;
         for (int64_t i = 0; i < numMaps; ++i)
         {
-            outXml.setMapNameForIndex(CiftiXML::ALONG_ROW, i, myXml.getMapName(CiftiXML::ALONG_ROW, i));
+            outXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, myXml.getMapName(CiftiXMLOld::ALONG_ROW, i));
             const GiftiLabelTable* myTable = myXml.getLabelTableForRowIndex(i);
             int thisKey = myTable->getLabelKeyFromName(labelName);
             if (thisKey != GiftiLabel::getInvalidLabelKey())
@@ -178,8 +178,8 @@ AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, co
         }
     } else {
         float outScratch;
-        outXml.resetDirectionToScalars(CiftiXML::ALONG_ROW, 1);
-        outXml.setMapNameForIndex(CiftiXML::ALONG_ROW, 0, myXml.getMapName(CiftiXML::ALONG_ROW, whichMap));
+        outXml.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
+        outXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 0, myXml.getMapName(CiftiXMLOld::ALONG_ROW, whichMap));
         myCiftiOut->setCiftiXML(outXml);
         const GiftiLabelTable* myTable = myXml.getLabelTableForRowIndex(whichMap);
         int matchKey = myTable->getLabelKeyFromName(labelName);
@@ -211,24 +211,24 @@ AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, co
 AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXml = myCifti->getCiftiXML();
-    CiftiXML outXml = myXml;
+    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
+    CiftiXMLOld outXml = myXml;
     int64_t numRows = myXml.getNumberOfRows();
-    int64_t numMaps = myXml.getDimensionLength(CiftiXML::ALONG_ROW);
+    int64_t numMaps = myXml.getDimensionLength(CiftiXMLOld::ALONG_ROW);
     if (whichMap < -1 || whichMap >= numMaps)
     {
         throw AlgorithmException("invalid map index specified");
     }
-    if (myXml.getMappingType(CiftiXML::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
+    if (myXml.getMappingType(CiftiXMLOld::ALONG_ROW) != CIFTI_INDEX_TYPE_LABELS)
     {
         throw AlgorithmException("input cifti must have labels along rows");
     }
     if (whichMap == -1)
     {
-        outXml.resetDirectionToScalars(CiftiXML::ALONG_ROW, numMaps);
+        outXml.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, numMaps);
         for (int64_t i = 0; i < numMaps; ++i)
         {
-            outXml.setMapNameForIndex(CiftiXML::ALONG_ROW, i, myXml.getMapName(CiftiXML::ALONG_ROW, i));
+            outXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, myXml.getMapName(CiftiXMLOld::ALONG_ROW, i));
             const GiftiLabelTable* myTable = myXml.getLabelTableForRowIndex(i);
             if (myTable->getLabel(labelKey) == NULL)
             {
@@ -260,8 +260,8 @@ AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, co
         }
     } else {
         float outScratch;
-        outXml.resetDirectionToScalars(CiftiXML::ALONG_ROW, 1);
-        outXml.setMapNameForIndex(CiftiXML::ALONG_ROW, 0, myXml.getMapName(CiftiXML::ALONG_ROW, whichMap));
+        outXml.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
+        outXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 0, myXml.getMapName(CiftiXMLOld::ALONG_ROW, whichMap));
         myCiftiOut->setCiftiXML(outXml);
         const GiftiLabelTable* myTable = myXml.getLabelTableForRowIndex(whichMap);
         if (myTable->getLabel(labelKey) == NULL)

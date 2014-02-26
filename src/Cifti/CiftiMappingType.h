@@ -1,5 +1,5 @@
-#ifndef __CIFTI_INDEX_MAP_H__
-#define __CIFTI_INDEX_MAP_H__
+#ifndef __CIFTI_MAPPING_TYPE_H__
+#define __CIFTI_MAPPING_TYPE_H__
 
 /*LICENSE_START*/
 /*
@@ -33,29 +33,29 @@
 
 namespace caret
 {
-    class CiftiIndexMap
+    class CiftiMappingType
     {
     public:
         enum MappingType
         {
-            BRAIN_MODELS,
-            PARCELS,
-            SERIES,
-            SCALARS,
-            LABELS
+            BRAIN_MODELS = 1,//compatibility values with old XML enum, in case someone uses the wrong enum
+            PARCELS = 3,//fibers doesn't exist in 2.0
+            SERIES = 4,
+            SCALARS = 5,
+            LABELS = 6
         };
-        virtual CiftiIndexMap* clone() const = 0;//make a copy, preserving the actual type - NOTE: this returns a dynamic allocation that is not owned by anything
+        virtual CiftiMappingType* clone() const = 0;//make a copy, preserving the actual type - NOTE: this returns a dynamic allocation that is not owned by anything
         virtual MappingType getType() const = 0;
         virtual int64_t getLength() const = 0;
-        virtual bool operator==(const CiftiIndexMap& rhs) const = 0;//used to check for merging mappings when writing the XML - must compare EVERYTHING that goes into the XML
-        bool operator!=(const CiftiIndexMap& rhs) const { return !((*this) == rhs); }
-        virtual bool approximateMatch(const CiftiIndexMap& rhs) const = 0;//check if things like doing index-wise math would make sense
+        virtual bool operator==(const CiftiMappingType& rhs) const = 0;//used to check for merging mappings when writing the XML - must compare EVERYTHING that goes into the XML
+        bool operator!=(const CiftiMappingType& rhs) const { return !((*this) == rhs); }
+        virtual bool approximateMatch(const CiftiMappingType& rhs) const = 0;//check if things like doing index-wise math would make sense
         virtual void readXML1(QXmlStreamReader& xml) = 0;//mainly to shorten the type-specific code in CiftiXML
         virtual void readXML2(QXmlStreamReader& xml) = 0;
         virtual void writeXML1(QXmlStreamWriter& xml) const = 0;
         virtual void writeXML2(QXmlStreamWriter& xml) const = 0;
-        virtual ~CiftiIndexMap();
+        virtual ~CiftiMappingType();
     };
 }
 
-#endif //__CIFTI_INDEX_MAP_H__
+#endif //__CIFTI_MAPPING_TYPE_H__

@@ -172,7 +172,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     LevelProgress myProgress(myProgObj);
     int numCifti = (int)ciftiList.size();
     if (numCifti < 1) throw AlgorithmException("no cifti files specified to average");
-    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML();
+    const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld();
     int rowSize = baseXML.getNumberOfColumns();
     int colSize = baseXML.getNumberOfRows();
     bool first = true;
@@ -240,8 +240,8 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     if (first) throw AlgorithmException("no roi files provided");
     for (int i = 0; i < numCifti; ++i)
     {
-        const CiftiXML& thisXML = ciftiList[i]->getCiftiXML();
-        if (!thisXML.mappingMatches(CiftiXML::ALONG_COLUMN, baseXML, CiftiXML::ALONG_COLUMN)) throw AlgorithmException("cifti space does not match between cifti #1 and #" + AString::number(i + 1));
+        const CiftiXMLOld& thisXML = ciftiList[i]->getCiftiXMLOld();
+        if (!thisXML.mappingMatches(CiftiXMLOld::ALONG_COLUMN, baseXML, CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("cifti space does not match between cifti #1 and #" + AString::number(i + 1));
         if (thisXML.getNumberOfColumns() != rowSize) throw AlgorithmException("row length doesn't match between cifti #1 and #" + AString::number(i + 1));
         if (leftROI != NULL)
         {
@@ -261,11 +261,11 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
         }
     }
     vector<vector<float> > tempresult(colSize, vector<float>(numMaps));
-    CiftiXML newXml = baseXML;
+    CiftiXMLOld newXml = baseXML;
     newXml.resetRowsToScalars(numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        newXml.setMapNameForIndex(CiftiXML::ALONG_ROW, i, nameFile->getMapName(i));
+        newXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, nameFile->getMapName(i));
     }
     ciftiOut->setCiftiXML(newXml);
     if (numCifti > 1)//skip averaging in single subject case
@@ -306,21 +306,21 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     LevelProgress myProgress(myProgObj);
     int numCifti = (int)ciftiList.size();
     if (numCifti < 1) throw AlgorithmException("no cifti files specified to average");
-    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML();
+    const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld();
     int rowSize = baseXML.getNumberOfColumns();
     int colSize = baseXML.getNumberOfRows();
     int numMaps = ciftiROI->getNumberOfColumns();
-    if (!baseXML.mappingMatches(CiftiXML::ALONG_COLUMN, ciftiROI->getCiftiXML(), CiftiXML::ALONG_COLUMN)) throw AlgorithmException("cifti roi doesn't match cifti space of data");
+    if (!baseXML.mappingMatches(CiftiXMLOld::ALONG_COLUMN, ciftiROI->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("cifti roi doesn't match cifti space of data");
     for (int i = 1; i < numCifti; ++i)
     {
-        if (!baseXML.mappingMatches(CiftiXML::ALONG_COLUMN, ciftiList[i]->getCiftiXML(), CiftiXML::ALONG_COLUMN)) throw AlgorithmException("cifti space does not match between cifti #1 and #" + AString::number(i + 1));
+        if (!baseXML.mappingMatches(CiftiXMLOld::ALONG_COLUMN, ciftiList[i]->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("cifti space does not match between cifti #1 and #" + AString::number(i + 1));
         if (ciftiList[i]->getNumberOfColumns() != rowSize) throw AlgorithmException("row length doesn't match between cifti #1 and #" + AString::number(i + 1));
     }
     vector<float> leftAreaData, rightAreaData, cerebAreaData;
     float* leftAreaPointer = NULL, *rightAreaPointer = NULL, *cerebAreaPointer = NULL;
     if (leftAreaSurf != NULL)
     {
-        if (baseXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, StructureEnum::CORTEX_LEFT) != leftAreaSurf->getNumberOfNodes())
+        if (baseXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, StructureEnum::CORTEX_LEFT) != leftAreaSurf->getNumberOfNodes())
         {
             throw AlgorithmException("left area surface and left cortex cifti structure have different number of nodes");
         }
@@ -329,7 +329,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     }
     if (rightAreaSurf != NULL)
     {
-        if (baseXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, StructureEnum::CORTEX_RIGHT) != rightAreaSurf->getNumberOfNodes())
+        if (baseXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, StructureEnum::CORTEX_RIGHT) != rightAreaSurf->getNumberOfNodes())
         {
             throw AlgorithmException("right area surface and right cortex cifti structure have different number of nodes");
         }
@@ -338,7 +338,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     }
     if (cerebAreaSurf != NULL)
     {
-        if (baseXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, StructureEnum::CEREBELLUM) != cerebAreaSurf->getNumberOfNodes())
+        if (baseXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, StructureEnum::CEREBELLUM) != cerebAreaSurf->getNumberOfNodes())
         {
             throw AlgorithmException("cerebellum area surface and cerebellum cortex cifti structure have different number of nodes");
         }
@@ -346,11 +346,11 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
         cerebAreaPointer = cerebAreaData.data();
     }
     vector<vector<float> > tempresult(colSize, vector<float>(numMaps));
-    CiftiXML newXml = baseXML;
+    CiftiXMLOld newXml = baseXML;
     newXml.resetRowsToScalars(numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        newXml.setMapNameForIndex(CiftiXML::ALONG_ROW, i, ciftiROI->getCiftiXML().getMapNameForRowIndex(i));
+        newXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, ciftiROI->getCiftiXMLOld().getMapNameForRowIndex(i));
     }
     ciftiOut->setCiftiXML(newXml);
     if (numCifti > 1)//skip averaging in single subject case
@@ -386,7 +386,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
 
 void AlgorithmCiftiAverageROICorrelation::verifySurfaceComponent(const int& index, const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
 {
-    const CiftiXML& myXml = myCifti->getCiftiXML();
+    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     if (!myXml.hasColumnSurfaceData(myStruct))
     {
         CaretLogWarning("cifti file #" + AString::number(index + 1) + " missing structure " + StructureEnum::toName(myStruct));
@@ -397,7 +397,7 @@ void AlgorithmCiftiAverageROICorrelation::verifySurfaceComponent(const int& inde
 
 void AlgorithmCiftiAverageROICorrelation::verifyVolumeComponent(const int& index, const CiftiInterface* myCifti, const VolumeFile* volROI)
 {
-    const CiftiXML& myXml = myCifti->getCiftiXML();
+    const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     int64_t dims[3];
     vector<vector<float> > sform;
     myXml.getVolumeDimsAndSForm(dims, sform);
@@ -490,9 +490,9 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
     int colSize = myCifti->getNumberOfRows();
     vector<vector<float> > average(numMaps, vector<float>(rowSize));
     vector<float> rrs(numMaps);
-    const CiftiXML& roiXML = ciftiROI->getCiftiXML();
+    const CiftiXMLOld& roiXML = ciftiROI->getCiftiXMLOld();
     vector<StructureEnum::Enum> surfStructures, ignored;
-    roiXML.getStructureLists(CiftiXML::ALONG_COLUMN, surfStructures, ignored);
+    roiXML.getStructureLists(CiftiXMLOld::ALONG_COLUMN, surfStructures, ignored);
     vector<float> roiScratch(numMaps), dataScratch(rowSize);
     {
         vector<vector<double> > accumarray(numMaps, vector<double>(rowSize, 0.0));
@@ -514,7 +514,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
                     break;
             }
             vector<CiftiSurfaceMap> myMap;
-            roiXML.getSurfaceMap(CiftiXML::ALONG_COLUMN, myMap, surfStructures[whichStruct]);
+            roiXML.getSurfaceMap(CiftiXMLOld::ALONG_COLUMN, myMap, surfStructures[whichStruct]);
             for (int i = 0; i < (int)myMap.size(); ++i)
             {
                 bool dataLoaded = false;
@@ -545,7 +545,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
             }
         }
         vector<CiftiVolumeMap> myMap;
-        ciftiROI->getCiftiXML().getVolumeMap(CiftiXML::ALONG_COLUMN, myMap);
+        ciftiROI->getCiftiXMLOld().getVolumeMap(CiftiXMLOld::ALONG_COLUMN, myMap);
         for (int i = 0; i < (int)myMap.size(); ++i)
         {
             bool dataLoaded = false;
@@ -630,7 +630,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
 void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiInterface* myCifti, StructureEnum::Enum myStruct, vector<double>& accum, const MetricFile* myRoi, const int& myMap, const float* myAreas)
 {
     if (myRoi == NULL) return;
-    vector<CiftiSurfaceMap> surfaceMap;
+    vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap;
     myCifti->getSurfaceMapForColumns(surfaceMap, myStruct);
     int mapSize = (int)surfaceMap.size();
     int rowSize = myCifti->getNumberOfColumns();
@@ -669,7 +669,7 @@ void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiInterface* myCif
 void AlgorithmCiftiAverageROICorrelation::addVolume(const CiftiInterface* myCifti, vector<double>& accum, const VolumeFile* myRoi, const int& myMap)
 {
     if (myRoi == NULL) return;
-    vector<CiftiVolumeMap> volMap;
+    vector<CiftiBrainModelsMap::VolumeMap> volMap;
     myCifti->getVolumeMapForColumns(volMap);
     int mapSize = (int)volMap.size();
     int rowSize = myCifti->getNumberOfColumns();

@@ -128,20 +128,20 @@ CiftiBrainordinateLabelFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
 {
     voxelIndicesOut.clear();
     
-    const std::vector<CiftiVolumeMap>* volumeMapsPointer = m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates();
+    const std::vector<CiftiBrainModelsMap::VolumeMap>* volumeMapsPointer = m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates();
     if (volumeMapsPointer == NULL) {
         return;
     }
-    const std::vector<CiftiVolumeMap>& volumeMaps = *volumeMapsPointer;
+    const std::vector<CiftiBrainModelsMap::VolumeMap>& volumeMaps = *volumeMapsPointer;
     
     std::vector<float> mapData;
     getMapData(mapIndex,
                mapData);
     
-    for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
+    for (std::vector<CiftiBrainModelsMap::VolumeMap>::const_iterator iter = volumeMaps.begin();
          iter != volumeMaps.end();
          iter++) {
-        const CiftiVolumeMap& vm = *iter;
+        const CiftiBrainModelsMap::VolumeMap& vm = *iter;
         const int64_t dataOffset = vm.m_ciftiIndex;
         
         CaretAssertVectorIndex(mapData, dataOffset);

@@ -101,9 +101,9 @@ void AlgorithmCiftiExtrema::useParameters(OperationParameters* myParams, Progres
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -162,9 +162,9 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
                                              const bool& ignoreMinima, const bool& ignoreMaxima) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiXML myXML = myCifti->getCiftiXML();
+    CiftiXMLOld myXML = myCifti->getCiftiXMLOld();
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir == CiftiXML::ALONG_COLUMN)
+    if (myDir == CiftiXMLOld::ALONG_COLUMN)
     {
         if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
         {
@@ -202,7 +202,7 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiXML::ALONG_COLUMN)
+        if (myDir == CiftiXMLOld::ALONG_COLUMN)
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
@@ -250,7 +250,7 @@ AlgorithmCiftiExtrema::AlgorithmCiftiExtrema(ProgressObject* myProgObj, const Ci
     }
     if (mergedVolume)
     {
-        if (myCifti->getCiftiXML().hasVolumeData(myDir))
+        if (myCifti->getCiftiXMLOld().hasVolumeData(myDir))
         {
             VolumeFile myVol, myRoi, myVolOut;
             int64_t offset[3];

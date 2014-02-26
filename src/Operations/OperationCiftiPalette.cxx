@@ -121,7 +121,7 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* ciftiIn = myParams->getCifti(1);
-    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    CiftiXMLOld myOutXML = ciftiIn->getCiftiXMLOld();
     int64_t numRows = myOutXML.getNumberOfRows(), numCols = myOutXML.getNumberOfColumns();
     if (numRows < 1 || numCols < 1)
     {
@@ -130,7 +130,7 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
     PaletteColorMapping myMapping;
     if (myOutXML.getRowMappingType() == CIFTI_INDEX_TYPE_SCALARS)
     {
-         myMapping = *(myOutXML.getMapPalette(CiftiXML::ALONG_ROW, 0));
+         myMapping = *(myOutXML.getMapPalette(CiftiXMLOld::ALONG_ROW, 0));
     } else {
          myMapping = *(myOutXML.getFilePalette());
     }
@@ -244,10 +244,10 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
         {
             for (int i = 0; i < numCols; ++i)
             {
-                *(myOutXML.getMapPalette(CiftiXML::ALONG_ROW, i)) = myMapping;
+                *(myOutXML.getMapPalette(CiftiXMLOld::ALONG_ROW, i)) = myMapping;
             }
         } else {
-            *(myOutXML.getMapPalette(CiftiXML::ALONG_ROW, myColumn)) = myMapping;
+            *(myOutXML.getMapPalette(CiftiXMLOld::ALONG_ROW, myColumn)) = myMapping;
         }
     } else {
         *(myOutXML.getFilePalette()) = myMapping;

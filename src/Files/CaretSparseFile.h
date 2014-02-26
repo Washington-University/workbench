@@ -31,7 +31,7 @@
 #include "stdint.h"
 #include "AString.h"
 #include "DataFile.h"
-#include "CiftiXML.h"
+#include "CiftiXMLOld.h"
 
 namespace caret {
     
@@ -51,7 +51,7 @@ namespace caret {
         std::vector<uint64_t> m_indexArray, m_scratchRow;
         std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
         CaretSparseFile(const CaretSparseFile& rhs);
-        CiftiXML m_xml;
+        CiftiXMLOld m_xml;
     public:
         const int64_t* getDimensions() { return m_dims; }
 
@@ -64,7 +64,7 @@ namespace caret {
         CaretSparseFile(const AString& fileName);
         
         ///get a reference to the XML data
-        const CiftiXML& getCiftiXML() const { return m_xml; }
+        const CiftiXMLOld& getCiftiXML() const { return m_xml; }
         
         void getRow(const int64_t& index, int64_t* rowOut);
         
@@ -87,9 +87,9 @@ namespace caret {
         std::vector<uint64_t> m_lengthArray, m_scratchRow;
         std::vector<int64_t> m_scratchArray, m_scratchSparseRow;
         CaretSparseFileWriter(const CaretSparseFileWriter& rhs);
-        CiftiXML m_xml;
+        CiftiXMLOld m_xml;
     public:
-        CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml);
+        CaretSparseFileWriter(const AString& fileName, const CiftiXMLOld& xml);
         
         ~CaretSparseFileWriter();
         

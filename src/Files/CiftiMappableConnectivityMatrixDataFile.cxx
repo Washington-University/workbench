@@ -319,49 +319,41 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
     
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     
+    switch (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN))
+    {
+        case CiftiMappingType::BRAIN_MODELS:
+            if (ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) return -1;
+            break;
+        case CiftiMappingType::PARCELS:
+            if (ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) return -1;
+            break;
+        default:
+            return -1;
+    }
     /*
      * Get the mapping type
      */
-    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+    const CiftiMappingType::MappingType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
     
-    if (ciftiXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN,
-                                         structure) == surfaceNumberOfNodes) {
-        bool isBrainModels = false;
-        bool isParcels     = false;
-        switch (rowMappingType) {
-            case CIFTI_INDEX_TYPE_BRAIN_MODELS:
-                isBrainModels = true;
-                break;
-            case CIFTI_INDEX_TYPE_FIBERS:
-                break;
-            case CIFTI_INDEX_TYPE_INVALID:
-                break;
-            case CIFTI_INDEX_TYPE_LABELS:
-                break;
-            case CIFTI_INDEX_TYPE_PARCELS:
-                isParcels = true;
-                break;
-            case CIFTI_INDEX_TYPE_SCALARS:
-                break;
-            case CIFTI_INDEX_TYPE_TIME_POINTS:
-                break;
-        }
-        
-        if (isBrainModels) {
-            rowIndex = ciftiXML.getRowIndexForNode(nodeIndex, structure);
-        }
-        else if (isParcels) {
-            rowIndex = ciftiXML.getColumnParcelForNode(nodeIndex,
-                                                          structure);
-        }
-        else {
+    switch (rowMappingType) {
+        case CiftiMappingType::BRAIN_MODELS:
+            rowIndex = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getIndexForNode(nodeIndex, structure);
+            break;
+        case CiftiMappingType::PARCELS:
+            rowIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getIndexForNode(nodeIndex, structure);
+            break;
+        case CIFTI_INDEX_TYPE_SCALARS:
+            break;
+        case CIFTI_INDEX_TYPE_TIME_POINTS:
+            break;
+        default:
             CaretAssert(0);
             CaretLogSevere("Invalid row mapping type for connectivity file "
-                           + DataFileTypeEnum::toName(getDataFileType()));
-        }
+                        + DataFileTypeEnum::toName(getDataFileType()));
+            break;
     }
-    
-    return (m_selectionIndex = rowIndex);
+    m_selectionIndex = rowIndex;
+    return rowIndex;
 }
 
 
@@ -379,59 +371,9 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelAtCoordinateWhenLoad
     if (isCiftiInterfaceValid() == false) {
         return -1;
     }
-    
-    int64_t rowIndex = -1;
-    
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
-    
-    /*
-     * Get the mapping type
-     */
-    bool isBrainModels = false;
-    bool isParcels     = false;
-    switch (rowMappingType) {
-        case CIFTI_INDEX_TYPE_BRAIN_MODELS:
-            isBrainModels = true;
-            break;
-        case CIFTI_INDEX_TYPE_FIBERS:
-            break;
-        case CIFTI_INDEX_TYPE_INVALID:
-            break;
-        case CIFTI_INDEX_TYPE_LABELS:
-            break;
-        case CIFTI_INDEX_TYPE_PARCELS:
-            isParcels = true;
-            break;
-        case CIFTI_INDEX_TYPE_SCALARS:
-            break;
-        case CIFTI_INDEX_TYPE_TIME_POINTS:
-            break;
-    }
-    
-    if (isBrainModels) {
-        rowIndex = ciftiXML.getRowIndexForVoxelCoordinate(xyz);
-        
-        if (rowIndex < 0) {
-            std::vector<CiftiParcelElement> parcels;
-            ciftiXML.getParcelsForColumns(parcels);
-        }
-    }
-    else if (isParcels) {
-        int64_t ijk[3];
-        enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
-        if (indexValid(ijk[0], ijk[1], ijk[2])) {
-            rowIndex = ciftiXML.getColumnParcelForVoxel(ijk);
-        }
-    }
-    else {
-        CaretAssert(0);
-        CaretLogSevere("Invalid row mapping type for connectivity file "
-                       + DataFileTypeEnum::toName(getDataFileType()));
-    }
-    
-    return (m_selectionIndex = rowIndex);
-    
+    int64_t ijk[3];
+    enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
+    return getRowIndexForVoxelIndexWhenLoading(ijk);
 }
 
 /**
@@ -453,43 +395,24 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(con
     int64_t rowIndex = -1;
     
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-    const IndicesMapToDataType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+    const CiftiMappingType::MappingType rowMappingType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
     
     /*
      * Get the mapping type
      */
-    bool isBrainModels = false;
-    bool isParcels     = false;
-    switch (rowMappingType) {
-        case CIFTI_INDEX_TYPE_BRAIN_MODELS:
-            isBrainModels = true;
-            break;
-        case CIFTI_INDEX_TYPE_FIBERS:
-            break;
-        case CIFTI_INDEX_TYPE_INVALID:
-            break;
-        case CIFTI_INDEX_TYPE_LABELS:
-            break;
-        case CIFTI_INDEX_TYPE_PARCELS:
-            isParcels = true;
-            break;
-        case CIFTI_INDEX_TYPE_SCALARS:
-            break;
-        case CIFTI_INDEX_TYPE_TIME_POINTS:
-            break;
-    }
-    
     if (indexValid(ijk[0], ijk[1], ijk[2])) {
-        if (isBrainModels) {
-            rowIndex = ciftiXML.getRowIndexForVoxel(ijk);
-        }
-        else if (isParcels) {
-            rowIndex = ciftiXML.getColumnParcelForVoxel(ijk);
-        }
-        else {
-            CaretAssert(0);
-            CaretLogSevere("Invalid row mapping type for connectivity file "
-                           + DataFileTypeEnum::toName(getDataFileType()));
+        switch (rowMappingType) {
+            case CIFTI_INDEX_TYPE_BRAIN_MODELS:
+                rowIndex = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getIndexForVoxel(ijk);
+                break;
+            case CIFTI_INDEX_TYPE_PARCELS:
+                rowIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getIndexForVoxel(ijk);
+                break;
+            default:
+                CaretAssert(0);
+                CaretLogSevere("Invalid row mapping type for connectivity file "
+                            + DataFileTypeEnum::toName(getDataFileType()));
+                break;
         }
     }
     
@@ -1139,19 +1062,21 @@ CiftiMappableConnectivityMatrixDataFile::getMapName(const int32_t /*mapIndex*/) 
 AString
 CiftiMappableConnectivityMatrixDataFile::getRowName(const int32_t rowIndex) const
 {
-    const CiftiXML xml = m_ciftiInterface->getCiftiXML();
-    std::vector<CiftiParcelElement> plist;
-    xml.getParcelsForColumns(plist);
-    return plist[rowIndex].m_parcelName;
+    const CiftiXML& xml = m_ciftiInterface->getCiftiXML();
+    if (xml.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::PARCELS) return "";//TSC: this was originally implemented only for parcels, dunno why
+    const std::vector<CiftiParcelsMap::Parcel>& plist = xml.getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+    CaretAssertVectorIndex(plist, rowIndex);
+    return plist[rowIndex].m_name;
 }
 
 AString
 CiftiMappableConnectivityMatrixDataFile::getColumnName(const int32_t columnIndex) const
 {
-    const CiftiXML xml = m_ciftiInterface->getCiftiXML();
-    std::vector<CiftiParcelElement> plist;
-    xml.getParcelsForRows(plist);
-    return plist[columnIndex].m_parcelName;
+    const CiftiXML& xml = m_ciftiInterface->getCiftiXML();
+    if (xml.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::PARCELS) return "";//ditto
+    const std::vector<CiftiParcelsMap::Parcel>& plist = xml.getParcelsMap(CiftiXML::ALONG_ROW).getParcels();
+    CaretAssertVectorIndex(plist, columnIndex);
+    return plist[columnIndex].m_name;
 }
 
 /**

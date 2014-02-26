@@ -23,11 +23,13 @@
  */
 /*LICENSE_END*/
 
+#include "CiftiXnat.h"
+
 #include "Base64.h"
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
-#include "CiftiXnat.h"
 #include "CaretLogger.h"
+#include "CiftiXML.h"
 
 #include <iostream>
 
@@ -44,7 +46,7 @@ using namespace std;
  *    https://db.humanconnectome.org/data/services/cifti-average?searchID=PILOT1_AVG_xnat:subjectData
  *    http://hcpx-demo.humanconnectome.org/spring/cifti-average?resource=HCP_Q1:Q1:Demo_HCP_unrelated20_FunctionalConnectivity_mgt-regression
  */
-void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
+void CiftiXnat::openURL(const AString& url)
 {
     m_baseRequest.m_url = url;
     int32_t start = url.indexOf('?');
@@ -93,33 +95,33 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
 //    }
     m_xml.readXML(theBody);
     bool fixedDims = false;
-    m_numberOfColumns = m_xml.getNumberOfColumns();
-    m_numberOfRows = m_xml.getNumberOfRows();
+    m_numberOfColumns = m_xml.getDimensionLength(CiftiXML::ALONG_ROW);
+    m_numberOfRows = m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN);
     CaretLogFine("Connected URL: "
                    + url
                    + "\nRows/Columns:"
                    + QString::number(m_numberOfRows)
                    + "/"
                    + QString::number(m_numberOfColumns));
-    if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS && m_numberOfColumns < 1)
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES && m_numberOfColumns < 1)
     {
         CaretHttpRequest rowRequest = m_baseRequest;
         rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
         m_numberOfColumns = getSizeFromReq(rowRequest);
-        m_xml.setRowNumberOfTimepoints(m_numberOfColumns);//number of timepoints along a row is the number of columns
+        m_xml.getSeriesMap(CiftiXML::ALONG_COLUMN).setLength(m_numberOfColumns);//number of timepoints along a row is the number of columns
         fixedDims = true;
     }
-    if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS && m_numberOfRows < 1)
+    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES && m_numberOfRows < 1)
     {
         CaretHttpRequest columnRequest = m_baseRequest;
         columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
         m_numberOfRows = getSizeFromReq(columnRequest);
-        m_xml.setColumnNumberOfTimepoints(m_numberOfRows);//see above
+        m_xml.getSeriesMap(CiftiXML::ALONG_ROW).setLength(m_numberOfRows);//see above
         fixedDims = true;
     }
-    if (fixedDims && m_xml.getVersion() != CiftiVersion(1, 0))
+    if (fixedDims && m_xml.getParsedVersion() != CiftiVersion(1, 0))
     {
-        CaretLogWarning("fixed missing time points dimension in version \"" + m_xml.getVersion().toString() + "\" cifti xml");
+        CaretLogWarning("fixed missing time points dimension in version \"" + m_xml.getParsedVersion().toString() + "\" cifti xml");
     }
 }
 
@@ -128,21 +130,21 @@ CiftiXnat::CiftiXnat()
     m_baseRequest.m_method = CaretHttpManager::POST;
 }
 
-void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) const throw (CiftiFileException)
+void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) const
 {
     CaretHttpRequest columnRequest = m_baseRequest;
     columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
     getReqAsFloats(columnOut, m_numberOfRows, columnRequest);
 }
 
-void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException)
+void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) const
 {
     CaretHttpRequest rowRequest = m_baseRequest;
     rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
     getReqAsFloats(rowOut, m_numberOfColumns, rowRequest);
 }
 
-void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const throw (CiftiFileException)
+void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const
 {
     CaretHttpResponse myResponse;
     CaretHttpManager::httpRequest(request, myResponse);
@@ -183,7 +185,7 @@ void CiftiXnat::setAuthentication(const AString& url, const AString& userName, c
     CaretHttpManager::setAuthentication(url, userName, password);
 }
 
-int64_t CiftiXnat::getSizeFromReq(CaretHttpRequest& request) throw (CiftiFileException)
+int64_t CiftiXnat::getSizeFromReq(CaretHttpRequest& request)
 {
     CaretHttpResponse myResponse;
     CaretHttpManager::httpRequest(request, myResponse);

@@ -118,7 +118,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
-        const CiftiXML& myXML = myInFile->getCiftiXML();//soft of hack - metric files use "normal" when they really mean none, using the same thing as metric files means it should just work
+        const CiftiXMLOld& myXML = myInFile->getCiftiXMLOld();//soft of hack - metric files use "normal" when they really mean none, using the same thing as metric files means it should just work
         GiftiDataArray* myArray = new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         float* myOutData = myArray->getDataPointerFloat();
         for (int i = 0; i < myInFile->getNumberOfRows(); ++i)
@@ -148,7 +148,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             throw OperationException("input gifti has the wrong data type");
         }
         CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
-        CiftiXML myXML(dataArrayRef->getMetaData()->get("CiftiXML"));
+        CiftiXMLOld myXML(dataArrayRef->getMetaData()->get("CiftiXML"));
         int64_t numCols = dataArrayRef->getNumberOfComponents();
         int64_t numRows = dataArrayRef->getNumberOfRows();
         OptionalParameter* fgresetTimeOpt = fromGiftiExt->getOptionalParameter(3);
@@ -287,7 +287,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myNiftiIn->getDimensions(myDims);
         if (myDims[4] != 1) throw OperationException("input nifti has multiple components, aborting");
-        CiftiXML outXML = myTemplate->getCiftiXML();
+        CiftiXMLOld outXML = myTemplate->getCiftiXMLOld();
         OptionalParameter* fnresetTimeOpt = fromNifti->getOptionalParameter(4);
         if (fnresetTimeOpt->m_present)
         {

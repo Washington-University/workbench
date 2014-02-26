@@ -26,7 +26,7 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiIndexMap.h"
+#include "CiftiMappingType.h"
 
 #include "CaretPointer.h"
 #include "GiftiMetaData.h"
@@ -37,22 +37,22 @@
 
 namespace caret
 {
-    class CiftiScalarsMap : public CiftiIndexMap
+    class CiftiScalarsMap : public CiftiMappingType
     {
     public:
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of palette and metadata within XML without setting the xml on a file again
         PaletteColorMapping* getMapPalette(const int64_t& index) const;
         const QString& getMapName(const int64_t& index) const;
         
-        void setMapName(const int64_t& index, const QString& mapName);
+        void setMapName(const int64_t& index, const QString& mapName) const;//ditto
         void setLength(const int64_t& length);
         void clear();//do we need this?
         
-        CiftiIndexMap* clone() const { return new CiftiScalarsMap(*this); }
+        CiftiMappingType* clone() const { return new CiftiScalarsMap(*this); }
         MappingType getType() const { return SCALARS; }
         int64_t getLength() const { return m_maps.size(); }
-        bool operator==(const CiftiIndexMap& rhs) const;
-        bool approximateMatch(const CiftiIndexMap& rhs) const;
+        bool operator==(const CiftiMappingType& rhs) const;
+        bool approximateMatch(const CiftiMappingType& rhs) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;
@@ -60,8 +60,8 @@ namespace caret
     private:
         struct ScalarMap
         {
-            QString m_name;
-            mutable GiftiMetaData m_metaData;//we need a better way to change metadata in an in-memory file
+            mutable QString m_name;//we need a better way to change metadata in an in-memory file
+            mutable GiftiMetaData m_metaData;//ditto
             mutable CaretPointer<PaletteColorMapping> m_palette;//ditto - note, this actually gets written into the metadata
             PaletteColorMapping* getPalette() const;
             bool operator==(const ScalarMap& rhs) const;

@@ -66,7 +66,7 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
     AString indexListString, outfileName;
     indexListString = myParams->getString(1);
     outfileName = myParams->getString(2);
-    CiftiXML baseXML;//TODO: remove when switching to raw reading
+    CiftiXMLOld baseXML;//TODO: remove when switching to raw reading
     bool ok = false;
     vector<int> indexList;
     QStringList indexStrings = indexListString.split(",");
@@ -109,14 +109,14 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
         int numCifti = (int)ciftiList.size();
         if (numCifti > 0)
         {
-            baseXML = ciftiList[0]->getCiftiXML();
+            baseXML = ciftiList[0]->getCiftiXMLOld();
             int numRows = baseXML.getNumberOfRows();
             int rowSize = baseXML.getNumberOfColumns();
             vector<double> accum(rowSize, 0.0);
             vector<float> rowScratch(rowSize);
             for (int i = 0; i < numCifti; ++i)
             {
-                if (baseXML != ciftiList[i]->getCiftiXML())//equality testing is smart, compares mapping equivalence, despite multiple ways to specify some mappings
+                if (baseXML != ciftiList[i]->getCiftiXMLOld())//equality testing is smart, compares mapping equivalence, despite multiple ways to specify some mappings
                 {
                     throw OperationException("error, cifti header of file #" + AString::number(i + 1) + " doesn't match");
                 }

@@ -63,9 +63,9 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw OperationException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -78,12 +78,12 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
         wbsparseList.push_back(CaretPointer<CaretSparseFile>(new CaretSparseFile(myInstances[i]->getString(1))));
     }
     if (wbsparseList.size() == 0) throw OperationException("no files specified");
-    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw OperationException("direction not supported by wbsparse merge dense");
+    if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw OperationException("direction not supported by wbsparse merge dense");
     int otherDir = 1 - myDir;//find the other direction
-    const CiftiXML& baseXML = wbsparseList[0]->getCiftiXML();
+    const CiftiXMLOld& baseXML = wbsparseList[0]->getCiftiXML();
     if (baseXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw OperationException("mapping type along specified dimension is not brain models");
     if (baseXML.getMappingType(otherDir) == CIFTI_INDEX_TYPE_LABELS)throw OperationException("labels not supported in wbsparse merge dense");
-    CiftiXML outXML = baseXML;
+    CiftiXMLOld outXML = baseXML;
     VolumeSpace baseSpace;
     bool haveVolSpace = false;
     if (baseXML.hasVolumeData(myDir))
@@ -94,7 +94,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
     vector<int> sourceWbsparse(baseXML.getNumberOfBrainModels(myDir), 0);
     for (int i = 1; i < (int)wbsparseList.size(); ++i)
     {
-        const CiftiXML& otherXML = wbsparseList[i]->getCiftiXML();
+        const CiftiXMLOld& otherXML = wbsparseList[i]->getCiftiXML();
         if (!baseXML.mappingMatches(otherDir, otherXML, otherDir))
         {
             throw OperationException("mappings along other dimension do not match");
@@ -165,7 +165,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
     CaretSparseFileWriter myWriter(outputName, outXML);
     switch (myDir)
     {
-        case CiftiXML::ALONG_ROW:
+        case CiftiXMLOld::ALONG_ROW:
         {
             for (int64_t i = 0; i < outColSize; ++i)
             {
@@ -175,7 +175,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                 for (int j = 0; j < numOutModels; ++j)//we could just do the entire row for each file, but doing it by structure could allow structure selection in the future
                 {
                     CiftiBrainModelInfo myInfo = outXML.getBrainModelInfo(myDir, j);
-                    const CiftiXML& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
+                    const CiftiXMLOld& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
                     int64_t startIndex = -1, endIndex = -1;
                     switch (myInfo.m_type)
                     {
@@ -236,13 +236,13 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
             }
             break;
         }
-        case CiftiXML::ALONG_COLUMN:
+        case CiftiXMLOld::ALONG_COLUMN:
         {
             vector<int64_t> inIndices, inValues;
             for (int j = 0; j < numOutModels; ++j)
             {
                 CiftiBrainModelInfo myInfo = outXML.getBrainModelInfo(myDir, j);
-                const CiftiXML& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
+                const CiftiXMLOld& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
                 switch (myInfo.m_type)
                 {
                     case CIFTI_MODEL_TYPE_SURFACE:

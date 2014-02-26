@@ -67,9 +67,9 @@ void AlgorithmCiftiMergeDense::useParameters(OperationParameters* myParams, Prog
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -89,12 +89,12 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
     LevelProgress myProgress(myProgObj);
     if (ciftiList.size() == 0) throw AlgorithmException("no files specified");
     CaretAssert(ciftiList[0] != NULL);
-    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti merge dense");
+    if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti merge dense");
     int otherDir = 1 - myDir;//find the other direction
-    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML();
+    const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld();
     if (baseXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw AlgorithmException("mapping type along specified dimension is not brain models");
     bool isLabel = (baseXML.getMappingType(otherDir) == CIFTI_INDEX_TYPE_LABELS);
-    CiftiXML outXML = baseXML;
+    CiftiXMLOld outXML = baseXML;
     VolumeSpace baseSpace;
     bool haveVolSpace = false;
     if (baseXML.hasVolumeData(myDir))
@@ -106,7 +106,7 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
     for (int i = 1; i < (int)ciftiList.size(); ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        const CiftiXML& otherXML = ciftiList[i]->getCiftiXML();
+        const CiftiXMLOld& otherXML = ciftiList[i]->getCiftiXMLOld();
         if (!baseXML.mappingMatches(otherDir, otherXML, otherDir))
         {
             throw AlgorithmException("mappings along other dimension do not match");
@@ -187,12 +187,12 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
                     AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, myInfo.m_structure, &tempFile);
                 } else {//for everything else, just use rows directly, because making large metric files in-memory is problematic
                     vector<CiftiSurfaceMap> inMap, outMap;
-                    const CiftiXML& otherXML = ciftiList[sourceCifti[i]]->getCiftiXML();
+                    const CiftiXMLOld& otherXML = ciftiList[sourceCifti[i]]->getCiftiXMLOld();
                     outXML.getSurfaceMap(myDir, outMap, myInfo.m_structure);
                     otherXML.getSurfaceMap(myDir, inMap, myInfo.m_structure);
                     CaretAssert(inMap.size() == outMap.size());
                     vector<float> rowscratch(outXML.getNumberOfColumns()), otherscratch(otherXML.getNumberOfColumns());
-                    if (myDir == CiftiXML::ALONG_ROW)
+                    if (myDir == CiftiXMLOld::ALONG_ROW)
                     {
                         for (int j = 0; j < outXML.getNumberOfRows(); ++j)
                         {
@@ -219,12 +219,12 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
             case CIFTI_MODEL_TYPE_VOXELS:
             {
                 vector<CiftiVolumeMap> inMap, outMap;
-                const CiftiXML& otherXML = ciftiList[sourceCifti[i]]->getCiftiXML();
+                const CiftiXMLOld& otherXML = ciftiList[sourceCifti[i]]->getCiftiXMLOld();
                 outXML.getVolumeStructureMap(myDir, outMap, myInfo.m_structure);
                 otherXML.getVolumeStructureMap(myDir, inMap, myInfo.m_structure);
                 CaretAssert(inMap.size() == outMap.size());
                 vector<float> rowscratch(outXML.getNumberOfColumns()), otherscratch(otherXML.getNumberOfColumns());
-                if (myDir == CiftiXML::ALONG_ROW)
+                if (myDir == CiftiXMLOld::ALONG_ROW)
                 {
                     for (int j = 0; j < outXML.getNumberOfRows(); ++j)
                     {

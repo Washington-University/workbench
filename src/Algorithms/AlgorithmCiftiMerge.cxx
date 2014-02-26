@@ -95,7 +95,8 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     }
     CaretAssert(ciftiList.size() == indexList.size());
     CaretAssert(ciftiList[0] != NULL);
-    CiftiXML baseXML = ciftiList[0]->getCiftiXML();
+    const CiftiXML& baseXML = ciftiList[0]->getCiftiXML();
+    if (baseXML.getNumberOfDimensions() != 2) throw AlgorithmException("only 2D cifti are supported");
     int64_t rowSize = -1, maxRowSize = ciftiList[0]->getNumberOfColumns();
     if (indexList[0] < -1) throw AlgorithmException("found invalid (less than -1) index in indexList in AlgorithmCiftiMerge");
     if (indexList[0] == -1)
@@ -108,7 +109,8 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     for (int i = 1; i < (int)ciftiList.size(); ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        if (!baseXML.matchesForColumns(ciftiList[i]->getCiftiXML()) || baseXML.getRowMappingType() != ciftiList[i]->getCiftiXML().getRowMappingType())
+        const CiftiXML& listXML = ciftiList[i]->getCiftiXML();
+        if (baseXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*(listXML.getMap(CiftiXML::ALONG_COLUMN))) || baseXML.getMappingType(CiftiXML::ALONG_ROW) != listXML.getMappingType(CiftiXML::ALONG_ROW))
         {
             throw AlgorithmException("cifti files do not match");
         }
@@ -124,25 +126,23 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     }
     CiftiXML newXML = baseXML;
     bool doLoop = true, isLabel = false;
-    switch (baseXML.getRowMappingType())
+    switch (baseXML.getMappingType(CiftiXML::ALONG_ROW))
     {
-        case CIFTI_INDEX_TYPE_TIME_POINTS:
+        case CiftiMappingType::SERIES:
         {
             doLoop = false;
-            float timestep;
-            baseXML.getRowTimestep(timestep);
-            newXML.resetRowsToTimepoints(timestep, rowSize);
+            newXML.getSeriesMap(CiftiXML::ALONG_ROW).setLength(rowSize);
             break;
         }
-        case CIFTI_INDEX_TYPE_SCALARS:
-            newXML.resetRowsToScalars(rowSize);
+        case CiftiMappingType::SCALARS:
+            newXML.getScalarsMap(CiftiXML::ALONG_ROW).setLength(rowSize);
             break;
-        case CIFTI_INDEX_TYPE_LABELS:
+        case CiftiMappingType::LABELS:
             isLabel = true;
-            newXML.resetRowsToLabels(rowSize);
+            newXML.getLabelsMap(CiftiXML::ALONG_ROW).setLength(rowSize);
             break;
         default:
-            throw AlgorithmException("cannot merge CIFTI files of this type");
+            throw AlgorithmException("cannot merge CIFTI files of this type with this command");
     }
     if (doLoop)
     {
@@ -153,21 +153,39 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
             {
                 int64_t mySize = ciftiList[i]->getNumberOfColumns();
                 const CiftiXML& myXML = ciftiList[i]->getCiftiXML();
-                for (int64_t j = 0; j < mySize; ++j)
+                if (isLabel)
                 {
-                    newXML.setMapNameForRowIndex(curInd, myXML.getMapNameForRowIndex(j));
-                    if (isLabel)
+                    const CiftiLabelsMap& listLabelMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
+                    CiftiLabelsMap& newLabelMap = newXML.getLabelsMap(CiftiXML::ALONG_ROW);
+                    for (int64_t j = 0; j < mySize; ++j)
                     {
-                        newXML.setLabelTableForRowIndex(curInd, *(myXML.getLabelTableForRowIndex(j)));
+                        newLabelMap.setMapName(curInd, listLabelMap.getMapName(j));
+                        *(newLabelMap.getMapLabelTable(curInd)) = *(listLabelMap.getMapLabelTable(j));
+                        curInd += 1;
                     }
-                    curInd += 1;
+                } else {
+                    const CiftiScalarsMap& listScalarMap = myXML.getScalarsMap(CiftiXML::ALONG_ROW);
+                    CiftiScalarsMap& newScalarMap = newXML.getScalarsMap(CiftiXML::ALONG_ROW);
+                    for (int64_t j = 0; j < mySize; ++j)
+                    {
+                        newScalarMap.setMapName(curInd, listScalarMap.getMapName(j));
+                        *(newScalarMap.getMapPalette(curInd)) = *(listScalarMap.getMapPalette(j));
+                        curInd += 1;
+                    }
                 }
             } else {
                 const CiftiXML& myXML = ciftiList[i]->getCiftiXML();
-                newXML.setMapNameForRowIndex(curInd, myXML.getMapNameForRowIndex(indexList[i]));
                 if (isLabel)
                 {
-                    newXML.setLabelTableForRowIndex(curInd, *(myXML.getLabelTableForRowIndex(indexList[i])));
+                    const CiftiLabelsMap& listLabelMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
+                    CiftiLabelsMap& newLabelMap = newXML.getLabelsMap(CiftiXML::ALONG_ROW);
+                    newLabelMap.setMapName(curInd, listLabelMap.getMapName(indexList[i]));
+                    *(newLabelMap.getMapLabelTable(curInd)) = *(listLabelMap.getMapLabelTable(indexList[i]));
+                } else {
+                    const CiftiScalarsMap& listScalarMap = myXML.getScalarsMap(CiftiXML::ALONG_ROW);
+                    CiftiScalarsMap& newScalarMap = newXML.getScalarsMap(CiftiXML::ALONG_ROW);
+                    newScalarMap.setMapName(curInd, listScalarMap.getMapName(indexList[i]));
+                    *(newScalarMap.getMapPalette(curInd)) = *(listScalarMap.getMapPalette(indexList[i]));
                 }
                 curInd += 1;
             }
@@ -175,7 +193,7 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     }
     ciftiOut->setCiftiXML(newXML);
     vector<float> rowscratch(rowSize), rowscratch2(maxRowSize);
-    int64_t colSize = baseXML.getNumberOfRows();
+    int64_t colSize = baseXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
     for (int64_t j = 0; j < colSize; ++j)
     {
         int64_t curoffset = 0;

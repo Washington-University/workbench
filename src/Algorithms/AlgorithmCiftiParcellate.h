@@ -34,7 +34,7 @@ namespace caret {
     class AlgorithmCiftiParcellate : public AbstractAlgorithm
     {
         AlgorithmCiftiParcellate();
-        void parcellateMapping(const CiftiFile* myCiftiLabel, const int& direction, CiftiXML& myOutXML, int& numParcels, std::vector<int>& indexToParcel);
+        void parcellateMapping(const CiftiFile* myCiftiLabel, const int& direction, CiftiXMLOld& myOutXML, int& numParcels, std::vector<int>& indexToParcel);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();

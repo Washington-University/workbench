@@ -85,7 +85,7 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     int64_t numRows = ciftiIn->getNumberOfRows();
     int64_t numCols = ciftiIn->getNumberOfColumns();
     if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
-    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    CiftiXMLOld myOutXML = ciftiIn->getCiftiXMLOld();
     myOutXML.resetRowsToScalars(1);
     myOutXML.setMapNameForRowIndex(0, ReductionEnum::toName(myReduce));
     ciftiOut->setCiftiXML(myOutXML);
@@ -104,7 +104,7 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     int64_t numRows = ciftiIn->getNumberOfRows();
     int64_t numCols = ciftiIn->getNumberOfColumns();
     if (numCols < 1 || numRows < 1) throw AlgorithmException("input must have at least 1 column and 1 row");
-    CiftiXML myOutXML = ciftiIn->getCiftiXML();
+    CiftiXMLOld myOutXML = ciftiIn->getCiftiXMLOld();
     myOutXML.resetRowsToScalars(1);
     myOutXML.setMapNameForRowIndex(0, ReductionEnum::toName(myReduce));
     ciftiOut->setCiftiXML(myOutXML);

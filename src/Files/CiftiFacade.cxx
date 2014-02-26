@@ -224,27 +224,18 @@ m_containsSurfaceDataForMappingToBrainordinates(false)
                         + DataFileTypeEnum::toName(m_dataFileType)
                         + " needs to be implemented or is invalid type."));
     
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     if (m_ciftiFileType != CIFTI_INVALID) {
         m_validCiftiFile = true;
         
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-        const bool startValid = ciftiXML.getRowTimestart(m_mapIntervalStartValue);
-        const bool stepValid  = ciftiXML.getRowTimestep(m_mapIntervalStepValue);
-        
-        if (stepValid) {
-            /*
-             * May not always have start value.  When not available,
-             * use 0.0 for the start value.
-             */
-            if (startValid == false) {
-                m_mapIntervalStartValue = 0.0;
-            }
-            
-            /*
-             * Units are always seconds for CIFTI.
-             */
-            m_mapIntervalUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_SEC;
+        if (ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == caret::CiftiMappingType::SERIES)
+        {
+            const CiftiSeriesMap& mySeriesMap = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW);
+            m_mapIntervalStartValue = mySeriesMap.getStart();//NOTE: CiftiXML no longer tracks if the XML contained a start value, and has default 0
+            m_mapIntervalStepValue = mySeriesMap.getStep();
+            m_mapIntervalUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_SEC;//TODO: get the units (which isn't a nifti enum), rather than assuming time
         }
+        
     }
 
     /*
@@ -389,7 +380,7 @@ CiftiFacade::getFileMetadata(GiftiMetaData* metadataOut)
     CaretAssert(metadataOut);
     metadataOut->clear();
 
-    metadataOut->replaceWithMap(*m_ciftiInterface->getCiftiXML().getFileMetaData());
+    *metadataOut = *(m_ciftiInterface->getCiftiXML().getFileMetaData());//NOTE: could pass through instead, if modification is desired outside class
 }
 
 void
@@ -398,7 +389,7 @@ CiftiFacade::setFileMetadata(GiftiMetaData* metadataIn)
     CaretAssert(metadataIn);
     
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-    *(ciftiXML.getFileMetaData()) = metadataIn->getAsMap();
+    *(ciftiXML.getFileMetaData()) = *metadataIn;
 }
 
 /**
@@ -413,7 +404,7 @@ CiftiFacade::setFileMetadata(GiftiMetaData* metadataIn)
  *    True if mapping is valid, else false.
  */
 bool
-CiftiFacade::getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfaceMap>& mappingOut,
+CiftiFacade::getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiBrainModelsMap::SurfaceMap>& mappingOut,
                                                          const StructureEnum::Enum structure) const
 {
     mappingOut.clear();
@@ -445,7 +436,7 @@ CiftiFacade::getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfac
  * @return
  *    True if mapping is valid, else false.
  */
-const std::vector<CiftiVolumeMap>*
+const std::vector<CiftiBrainModelsMap::VolumeMap>*
 CiftiFacade::getVolumeMapForMappingDataToBrainordinates() const
 {
     if (m_volumeMappingValid) {
@@ -523,74 +514,62 @@ CiftiFacade::isMappingDataToBrainordinateParcels() const
 }
 
 bool
-CiftiFacade::getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const AString &parcelName) const
+CiftiFacade::getParcelElementForSelectedParcel(CiftiParcelsMap::Parcel &parcelOut, const StructureEnum::Enum &structure, const AString &parcelName) const
 {    
-    std::vector<CiftiParcelElement> parcels;
-    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcels);
-
-	 
-	for(std::vector<CiftiParcelElement>::iterator iter = parcels.begin();iter != parcels.end();iter++)
-	{
-		CiftiParcelElement &cpe = *iter;
-		if(cpe.m_parcelName == parcelName)
-		{
-			for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = cpe.m_nodeElements.begin();
-				iterNodes != cpe.m_nodeElements.end();iterNodes++)
-			{
-				CiftiParcelNodesElement &cpne = *iterNodes;
-				if(cpne.m_structure == structure)
-                {
-					parcelOut = cpe;
-                    return true;
-                }
-			}
-		}			
-	}
-	return false;
-}
-
-bool CiftiFacade::getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const
-{    
-    std::vector<CiftiParcelElement> parcels;
-    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcels);
-
-    if(m_ciftiInterface->checkColumnIndex(selectionIndex))
+    if (m_ciftiInterface->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::PARCELS) return false;
+    const std::vector<CiftiParcelsMap::Parcel>& parcels = m_ciftiInterface->getCiftiXML().getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+    
+    for(std::vector<CiftiParcelsMap::Parcel>::const_iterator iter = parcels.begin();iter != parcels.end();iter++)
     {
-            parcelOut = parcels[selectionIndex];
-
-            for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = parcelOut.m_nodeElements.begin();
-                iterNodes != parcelOut.m_nodeElements.end();iterNodes++)
-            {
-                CiftiParcelNodesElement &cpne = *iterNodes;
-                if(cpne.m_structure == structure) return true;                    
-            }            
-    }
-    return false;   
-}
-
-
-bool CiftiFacade::getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const
-{
-    std::vector<CiftiParcelElement> parcels;
-    m_ciftiInterface->getCiftiXML().getParcelsForColumns(parcels);
-
-    if(m_ciftiInterface->checkColumnIndex(selectionIndex))
-    {
-        if(parcels.empty()) return false;
-        CiftiParcelElement parcelOut = parcels[selectionIndex];
-        if(parcelOut.m_nodeElements.empty()) return false;
-        for(std::vector<CiftiParcelNodesElement>::iterator iterNodes = parcelOut.m_nodeElements.begin();
-            iterNodes != parcelOut.m_nodeElements.end();iterNodes++)
+        const CiftiParcelsMap::Parcel &cpe = *iter;
+        if(cpe.m_name == parcelName)
         {
-            CiftiParcelNodesElement &cpne = *iterNodes;
-            if(cpne.m_structure == structure) 
+            std::map<StructureEnum::Enum, std::set<int64_t> >::const_iterator findStruct = cpe.m_surfaceNodes.find(structure);
+            if (findStruct != cpe.m_surfaceNodes.end())
             {
-                parcelNodesOut = cpne;
-                return true;                    
+                parcelOut = cpe;
+                return true;
             }
+        }
+    }
+    return false;
+}
+
+bool CiftiFacade::getParcelElementForSelectedParcel(CiftiParcelsMap::Parcel &parcelOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const
+{    
+    if (m_ciftiInterface->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::PARCELS) return false;
+    const std::vector<CiftiParcelsMap::Parcel>& parcels = m_ciftiInterface->getCiftiXML().getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+
+    if(m_ciftiInterface->checkColumnIndex(selectionIndex))
+    {
+        parcelOut = parcels[selectionIndex];
+
+        std::map<StructureEnum::Enum, std::set<int64_t> >::const_iterator findStruct = parcelOut.m_surfaceNodes.find(structure);
+        if (findStruct != parcelOut.m_surfaceNodes.end())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool CiftiFacade::getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const
+{
+    if (m_ciftiInterface->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::PARCELS) return false;
+    const std::vector<CiftiParcelsMap::Parcel>& parcels = m_ciftiInterface->getCiftiXML().getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+
+    if(m_ciftiInterface->checkColumnIndex(selectionIndex))
+    {
+        const CiftiParcelsMap::Parcel& parcelOut = parcels[selectionIndex];
+        std::map<StructureEnum::Enum, std::set<int64_t> >::const_iterator findStruct = parcelOut.m_surfaceNodes.find(structure);
+        if (findStruct != parcelOut.m_surfaceNodes.end())
+        {
+            parcelNodesOut = findStruct->second;
+            return true;
         }            
     }
-    return false;   
+    return false;
 }
                                               
 
@@ -647,33 +626,27 @@ CiftiFacade::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum
     std::vector<int64_t> dataIndicesForNodes(surfaceNumberOfNodes,
                                              -1);
     
-    
+    const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
     if (m_useParcelsForBrainordinateMapping) {
-        for (int64_t i = 0; i < surfaceNumberOfNodes; i++) {
-            int64_t dataIndex = -1;
-            
-            if (m_useColumnMapsForBrainordinateMapping) {
-                dataIndex = m_ciftiInterface->getCiftiXML().getColumnParcelForNode(i,
-                                                                                  structure);
-            }
-            else if (m_useRowMapsForBrainordinateMapping) {
-                dataIndex = m_ciftiInterface->getCiftiXML().getRowParcelForNode(i,
-                                                                                structure);
-            }
-            else {
-                CaretAssert(0);
-            }
-            
-            dataIndicesForNodes[i] = dataIndex;
+        int myDir = -1;
+        if (m_useColumnMapsForBrainordinateMapping) {
+            myDir = CiftiXML::ALONG_COLUMN;
+        } else if (m_useRowMapsForBrainordinateMapping) {
+            myDir = CiftiXML::ALONG_ROW;
+        } else {
+            CaretAssert(0);
         }
-    }
-    else {
-        std::vector<CiftiSurfaceMap> surfaceMaps;
+        const CiftiParcelsMap& myParcelMap = myXML.getParcelsMap(myDir);
+        for (int64_t i = 0; i < surfaceNumberOfNodes; i++) {
+            dataIndicesForNodes[i] = myParcelMap.getIndexForNode(i, structure);
+        }
+    } else {
+        std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMaps;
         if (getSurfaceMapForMappingDataToBrainordinates(surfaceMaps,
                                                         structure)) {
             const int64_t numSurfaceMaps = static_cast<int64_t>(surfaceMaps.size());
             for (int64_t i = 0; i < numSurfaceMaps; i++) {
-                const CiftiSurfaceMap& csm = surfaceMaps[i];
+                const CiftiBrainModelsMap::SurfaceMap& csm = surfaceMaps[i];
                 CaretAssert((csm.m_surfaceNode >= 0)
                             && (csm.m_surfaceNode < surfaceNumberOfNodes));
                 dataIndicesForNodes[csm.m_surfaceNode] = csm.m_ciftiIndex;
@@ -763,18 +736,19 @@ CiftiFacade::getMetadataForMapOrSeriesIndex(const int32_t mapIndex,
         CaretAssertMessage(0, msg);
         CaretLogSevere(msg);
         return true;
-    }
-    else if (m_useAlongRowMethodsForMapAttributes) {
-        std::map<AString, AString>* mapMetaData = m_ciftiInterface->getCiftiXML().getMapMetadata(CiftiXML::ALONG_ROW,
-            mapIndex);
-        if(mapMetaData) {
-            metadataOut->replaceWithMap(*m_ciftiInterface->getCiftiXML().getMapMetadata(CiftiXML::ALONG_ROW,
-                                                                                        mapIndex));
+    } else if (m_useAlongRowMethodsForMapAttributes) {
+        const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
+        {
+            *(metadataOut) = *(myXML.getScalarsMap(CiftiXML::ALONG_ROW).getMapMetadata(mapIndex));//NOTE: could pass the pointer through to modify outside class
             return true;
-        }        
-        
-    }
-    else {
+        } else if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS) {
+            *(metadataOut) = *(myXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapMetadata(mapIndex));//ditto
+            return true;
+        } else {
+            return false;
+        }
+    } else {
         CaretAssert(0);
     }
     
@@ -802,9 +776,13 @@ CiftiFacade::setMetadataForMapOrSeriesIndex(const int32_t mapIndex,
         CaretLogSevere(msg);
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
-        *(ciftiXML.getMapMetadata(CiftiXML::ALONG_ROW,
-                                  mapIndex)) = metadataIn->getAsMap();
+        const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
+        {
+            *(myXML.getScalarsMap(CiftiXML::ALONG_ROW).getMapMetadata(mapIndex)) = *(metadataIn);
+        } else if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS) {
+            *(myXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapMetadata(mapIndex)) = *(metadataIn);
+        }
     }
     else {
         CaretAssert(0);
@@ -827,7 +805,11 @@ CiftiFacade::getLabelTableForMapOrSeriesIndex(const int32_t mapIndex)
     GiftiLabelTable* labelTable = NULL;
     
     if (m_useAlongRowMethodsForMapAttributes) {
-        labelTable = m_ciftiInterface->getCiftiXML().getLabelTableForRowIndex(mapIndex);
+        const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
+        {
+            labelTable = myXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapLabelTable(mapIndex);
+        }
     }
     else {
         /* Not all files have label table. */
@@ -850,16 +832,18 @@ CiftiFacade::getPaletteColorMappingForMapOrSeriesIndex(const int32_t mapIndex)
 {
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
     PaletteColorMapping* pcm = NULL;
-    
+    const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
     if (m_containsMapAttributes == false) {
         /*
          * FILE PALETTE APPLIES TO ALL MAPS !!!!!
          */
-        pcm = m_ciftiInterface->getCiftiXML().getFilePalette();
+        pcm = myXML.getFilePalette();
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
-        pcm = m_ciftiInterface->getCiftiXML().getMapPalette(CiftiXML::ALONG_ROW,
-                                                            mapIndex);
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
+        {
+            pcm = myXML.getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(mapIndex);
+        }
     }
     else {
         /* Not all files have palette mapping. */
@@ -933,7 +917,13 @@ CiftiFacade::getNameForMapOrSeriesIndex(const int32_t mapIndex) const
         CaretLogSevere(msg);
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
-        name = m_ciftiInterface->getCiftiXML().getMapNameForRowIndex(mapIndex);
+        const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
+        {
+            name = myXML.getScalarsMap(CiftiXML::ALONG_ROW).getMapName(mapIndex);
+        } else if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS) {
+            name = myXML.getLabelsMap(CiftiXML::ALONG_ROW).getMapName(mapIndex);
+        }
     }
     else {
         CaretAssert(0);
@@ -955,7 +945,7 @@ CiftiFacade::setNameForMapOrSeriesIndex(const int32_t mapIndex,
                                 const AString name)
 {
     CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    const CiftiXML& myXML = m_ciftiInterface->getCiftiXML();
     
     if (m_containsMapAttributes == false) {
         const AString msg("Setting map name for file that does not have map attributes.");
@@ -963,8 +953,12 @@ CiftiFacade::setNameForMapOrSeriesIndex(const int32_t mapIndex,
         CaretLogSevere(msg);
     }
     else if (m_useAlongRowMethodsForMapAttributes) {
-        ciftiXML.setMapNameForRowIndex(mapIndex,
-                                       name);
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
+        {
+            myXML.getScalarsMap(CiftiXML::ALONG_ROW).setMapName(mapIndex, name);
+        } else if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS) {
+            myXML.getLabelsMap(CiftiXML::ALONG_ROW).setMapName(mapIndex, name);
+        }
     }
     else {
         CaretAssert(0);
@@ -1023,8 +1017,8 @@ CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
     const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     if (m_loadBrainordinateDataFromColumns) {
         if (m_useParcelsForBrainordinateMapping) {
-            const int64_t parcelRowIndex = ciftiXML.getColumnParcelForNode(nodeIndex,
-                                                                      structure);
+            const int64_t parcelRowIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getIndexForNode(nodeIndex,
+                                                                                                          structure);
             if (parcelRowIndex >= 0) {
                 seriesDataOut.resize(m_numberOfColumns);
                 m_ciftiInterface->getRow(&seriesDataOut[0],
@@ -1033,8 +1027,8 @@ CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
             }
         }
         else {
-            const int64_t nodeRowIndex = ciftiXML.getRowIndexForNode(nodeIndex,
-                                                                     structure);
+            const int64_t nodeRowIndex = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getIndexForNode(nodeIndex,
+                                                                                                            structure);
             if (nodeRowIndex >= 0) {
                 seriesDataOut.resize(m_numberOfColumns);
                 m_ciftiInterface->getRow(&seriesDataOut[0],
@@ -1044,8 +1038,8 @@ CiftiFacade::getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
         }
     }
     else if (m_loadBrainordinateDataFromRows) {
-        const int64_t nodeColumnIndex = ciftiXML.getColumnIndexForNode(nodeIndex,
-                                                                       structure);
+        const int64_t nodeColumnIndex = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_ROW).getIndexForNode(nodeIndex,
+                                                                                                        structure);
         if (nodeColumnIndex >= 0) {
             seriesDataOut.resize(m_numberOfRows);
             m_ciftiInterface->getColumn(&seriesDataOut[0],
@@ -1074,23 +1068,15 @@ bool
 CiftiFacade::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
                                                std::vector<float>& seriesDataOut) const
 {
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
     if (m_loadBrainordinateDataFromColumns) {
-        const int64_t nodeRowIndex = ciftiXML.getRowIndexForVoxelCoordinate(xyz);
-        if (nodeRowIndex >= 0) {
-            seriesDataOut.resize(m_numberOfColumns);
-            m_ciftiInterface->getRow(&seriesDataOut[0],
-                                     nodeRowIndex);
-            return true;
-        }
+        seriesDataOut.resize(m_numberOfColumns);
+        return m_ciftiInterface->getRowFromVoxelCoordinate(&seriesDataOut[0],
+                                                           xyz);
     }
     else if (m_loadBrainordinateDataFromRows) {
-        const int64_t nodeColumnIndex = ciftiXML.getColumnIndexForVoxelCoordinate(xyz);
-        if (nodeColumnIndex >= 0) {
-            seriesDataOut.resize(m_numberOfRows);
-            m_ciftiInterface->getColumn(&seriesDataOut[0],
-                                        nodeColumnIndex);
-        }
+        seriesDataOut.resize(m_numberOfRows);
+        return m_ciftiInterface->getColumnFromVoxelCoordinate(&seriesDataOut[0],
+                                                              xyz);
     }
     else {
         CaretAssert(0);

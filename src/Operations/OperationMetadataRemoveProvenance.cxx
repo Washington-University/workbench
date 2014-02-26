@@ -111,7 +111,7 @@ void OperationMetadataRemoveProvenance::useParameters(OperationParameters* myPar
             } else {
                 myCifti.openFile(inFileName, ON_DISK);
             }
-            CiftiXML myXML = myCifti.getCiftiXML();
+            CiftiXMLOld myXML = myCifti.getCiftiXMLOld();
             CiftiFile myOutCifti(ON_DISK);
             myOutCifti.setCiftiCacheFile(outFileName);
             int numRows = myXML.getNumberOfRows(), rowSize = myXML.getNumberOfColumns();

@@ -30,7 +30,7 @@
 #include "CiftiFile.h"
 
 //prepare for 3+ dimensions early
-#include "CiftiXMLNew.h"
+#include "CiftiXML.h"
 
 using namespace caret;
 using namespace std;
@@ -101,7 +101,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     vector<CiftiFile*> varCiftiFiles(numVars, (CiftiFile*)NULL);
     if (numInputs == 0) throw OperationException("you must specify at least one input file (-var), even if the expression doesn't use a variable");
     CiftiFile* first = myVarOpts[0]->getCifti(2);
-    CiftiXMLNew outXML, tempXML;
+    CiftiXML outXML, tempXML;
     QString xmlText;
     vector<int64_t> outDims;//don't even assume 2 dimensions, in case someone makes a 1-d cifti
     vector<vector<int64_t> > selectInfo(numVars);
@@ -113,19 +113,19 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
         {
             throw OperationException("'" + varName + "' is a named constant equal to " + AString::number(constVal, 'g', 15) + ", please use a different variable name");
         }
-        myVarOpts[i]->getCifti(2)->getCiftiXML().writeXML(xmlText);//transitional code until the new xml object replaces the old
+        myVarOpts[i]->getCifti(2)->getCiftiXMLOld().writeXML(xmlText);//transitional code until the new xml object replaces the old
         tempXML.readXML(xmlText);//however, cifti-1 doesn't contain the length of series dimensions, so check for this
-        if (tempXML.getDimensionLength(CiftiXMLNew::ALONG_ROW) < 1)
+        if (tempXML.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
         {
-            CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXMLNew::ALONG_ROW);
-            tempMap.setLength(first->getCiftiXML().getDimensionLength(CiftiXML::ALONG_ROW));
-            tempXML.setMap(CiftiXMLNew::ALONG_ROW, tempMap);
+            CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_ROW);
+            tempMap.setLength(first->getCiftiXMLOld().getDimensionLength(CiftiXMLOld::ALONG_ROW));
+            tempXML.setMap(CiftiXML::ALONG_ROW, tempMap);
         }
-        if (tempXML.getDimensionLength(CiftiXMLNew::ALONG_COLUMN) < 1)
+        if (tempXML.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
         {
-            CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXMLNew::ALONG_COLUMN);
-            tempMap.setLength(first->getCiftiXML().getDimensionLength(CiftiXML::ALONG_COLUMN));
-            tempXML.setMap(CiftiXMLNew::ALONG_COLUMN, tempMap);
+            CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_COLUMN);
+            tempMap.setLength(first->getCiftiXMLOld().getDimensionLength(CiftiXMLOld::ALONG_COLUMN));
+            tempXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
         }//end transitional code
         int thisNumDims = tempXML.getNumberOfDimensions();
         vector<int64_t> thisSelectInfo(thisNumDims, -1);
@@ -250,15 +250,15 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     {
         throw OperationException("output must have exactly 2 dimensions");
     }
-    CiftiXML outOldXML;
+    CiftiXMLOld outOldXML;
     outOldXML.readXML(outXML.writeXMLToString(CiftiVersion(1, 0)));//force it to write as 1.0 so old XML understands it
-    if (outOldXML.getDimensionLength(CiftiXML::ALONG_ROW) < 1)//it doesn't know timeseries length, so set it manually if needed
+    if (outOldXML.getDimensionLength(CiftiXMLOld::ALONG_ROW) < 1)//it doesn't know timeseries length, so set it manually if needed
     {
-        outOldXML.setRowNumberOfTimepoints(outXML.getDimensionLength(CiftiXMLNew::ALONG_ROW));
+        outOldXML.setRowNumberOfTimepoints(outXML.getDimensionLength(CiftiXML::ALONG_ROW));
     }
-    if (outOldXML.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)//ditto
+    if (outOldXML.getDimensionLength(CiftiXMLOld::ALONG_COLUMN) < 1)//ditto
     {
-        outOldXML.setColumnNumberOfTimepoints(outXML.getDimensionLength(CiftiXMLNew::ALONG_COLUMN));
+        outOldXML.setColumnNumberOfTimepoints(outXML.getDimensionLength(CiftiXML::ALONG_COLUMN));
     }
     myCiftiOut->setCiftiXML(outOldXML);
     int numRows = outOldXML.getNumberOfRows(), numOutCols = outOldXML.getNumberOfColumns();
@@ -266,7 +266,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     vector<vector<float> > inputRows(numVars);
     for (int v = 0; v < numVars; ++v)//HACK: this code ONLY works in the 2D case, rework from here to the end when allowing 3+ dims
     {
-        inputRows[v].resize(varCiftiFiles[v]->getCiftiXML().getNumberOfColumns());
+        inputRows[v].resize(varCiftiFiles[v]->getCiftiXMLOld().getNumberOfColumns());
         if (selectInfo[v][1] != -1)//if -select 2 (dimension 1) is used, read the row only once
         {
             varCiftiFiles[v]->getRow(inputRows[v].data(), selectInfo[v][1]);

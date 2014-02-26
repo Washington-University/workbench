@@ -166,7 +166,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     LevelProgress myProgress(myProgObj);
     init(myCifti, weights);
     int numRows = myCifti->getNumberOfRows();
-    CiftiXML newXML = myCifti->getCiftiXML();
+    CiftiXMLOld newXML = myCifti->getCiftiXMLOld();
     newXML.applyColumnMapToRows();
     myCiftiOut->setCiftiXML(newXML);
     int numCacheRows;
@@ -260,12 +260,12 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 {
     LevelProgress myProgress(myProgObj);
     init(myCifti, weights);
-    const CiftiXML& origXML = myCifti->getCiftiXML();
+    const CiftiXMLOld& origXML = myCifti->getCiftiXMLOld();
     if (origXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
         throw AlgorithmException("cannot use ROIs on this cifti, columns are not brain models");
     }
-    CiftiXML newXML = origXML;
+    CiftiXMLOld newXML = origXML;
     vector<StructureEnum::Enum> surfList, volList;
     origXML.getStructureListsForColumns(surfList, volList);
     newXML.applyColumnMapToRows();
@@ -295,7 +295,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             {
                 throw AlgorithmException("surface roi has the wrong number of vertices for structure " + StructureEnum::toName(surfList[i]));
             }
-            vector<CiftiSurfaceMap> myMap;
+            vector<CiftiBrainModelsMap::SurfaceMap> myMap;
             myCifti->getSurfaceMapForColumns(myMap, surfList[i]);
             int numNodes = myCifti->getColumnSurfaceNumberOfNodes(surfList[i]);
             int mapsize = (int)myMap.size();

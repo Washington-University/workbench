@@ -138,8 +138,8 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
-    CiftiXML myXML;
-    AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(myXML, CiftiXML::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    CiftiXMLOld myXML;
+    AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(myXML, CiftiXMLOld::ALONG_COLUMN, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
     int numMaps = -1;
     const CaretMappableDataFile* nameFile = NULL;
     if (leftData != NULL)
@@ -190,10 +190,10 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
     {
         throw AlgorithmException("no models specified");
     }
-    myXML.resetDirectionToScalars(CiftiXML::ALONG_ROW, numMaps);
+    myXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        myXML.setMapNameForIndex(CiftiXML::ALONG_ROW, i, nameFile->getMapName(i));//copy map names
+        myXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, nameFile->getMapName(i));//copy map names
     }
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);

@@ -128,16 +128,16 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
     try {
         CiftiFile* ciftiFile = new CiftiFile();
         
-        const CiftiXML& ciftiMatrixXML = ciftiMatrixInterface->getCiftiXML();
+        const CiftiXMLOld& ciftiMatrixXML = ciftiMatrixInterface->getCiftiXMLOld();
         
         /*
          * Copy XML from matrix file
          * and update to be a scalar file.
          */
-        CiftiXML ciftiScalarXML = ciftiMatrixXML;
-        ciftiScalarXML.copyMapping(CiftiXML::ALONG_COLUMN,
+        CiftiXMLOld ciftiScalarXML = ciftiMatrixXML;
+        ciftiScalarXML.copyMapping(CiftiXMLOld::ALONG_COLUMN,
                                    ciftiMatrixXML,
-                                   CiftiXML::ALONG_ROW);
+                                   CiftiXMLOld::ALONG_ROW);
         ciftiScalarXML.resetRowsToScalars(1);
         AString mapName = ciftiMatrixFile->getMapName(0);
         ciftiScalarXML.setMapNameForRowIndex(0, mapName);

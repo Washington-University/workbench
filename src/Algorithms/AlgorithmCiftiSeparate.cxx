@@ -187,15 +187,15 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    vector<CiftiSurfaceMap> myMap;
+    if (ciftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
+    if (myDir > 1) throw AlgorithmException("direction not supported in cifti separate");
+    if (ciftiIn->getCiftiXML().getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CiftiMappingType::LABELS) CaretLogWarning("creating a metric file from cifti label data");
+    const CiftiBrainModelsMap& myBrainModelsMap = ciftiIn->getCiftiXML().getBrainModelsMap(myDir);
+    vector<CiftiBrainModelsMap::SurfaceMap> myMap = myBrainModelsMap.getSurfaceMap(myStruct);
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
     if (myDir == CiftiXML::ALONG_COLUMN)
     {
-        if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS) CaretLogWarning("creating a metric file from cifti label data");
-        if (!ciftiIn->getSurfaceMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
         int64_t numNodes = ciftiIn->getColumnSurfaceNumberOfNodes(myStruct);
         metricOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         metricOut->setStructure(myStruct);
@@ -231,12 +231,6 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported by cifti separate");
-        if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CIFTI_INDEX_TYPE_LABELS) CaretLogWarning("creating a metric file from cifti label data");
-        if (!ciftiIn->getSurfaceMapForRows(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
         int64_t numNodes = ciftiIn->getRowSurfaceNumberOfNodes(myStruct);
         metricOut->setNumberOfNodesAndColumns(numNodes, colSize);
         metricOut->setStructure(myStruct);
@@ -272,16 +266,16 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    if (ciftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir > 1) throw AlgorithmException("direction not supported in cifti separate");
-    vector<CiftiSurfaceMap> myMap;
+    if (ciftiIn->getCiftiXML().getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) != CiftiMappingType::LABELS) throw AlgorithmException("label separate requested on non-label cifti");
+    const CiftiBrainModelsMap& myBrainModelsMap = ciftiIn->getCiftiXML().getBrainModelsMap(myDir);
+    const CiftiLabelsMap& myLabelsMap = ciftiIn->getCiftiXML().getLabelsMap(1 - myDir);
+    vector<CiftiBrainModelsMap::SurfaceMap> myMap = myBrainModelsMap.getSurfaceMap(myStruct);
     int64_t rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
-    if (myDir == CiftiXML::ALONG_COLUMN)
+    if (myDir == CiftiXMLOld::ALONG_COLUMN)
     {
-        if (ciftiIn->getCiftiXML().getRowMappingType() != CIFTI_INDEX_TYPE_LABELS) throw AlgorithmException("label separate requested on non-label cifti");
-        if (!ciftiIn->getSurfaceMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
         int64_t numNodes = ciftiIn->getColumnSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, rowSize);
         labelOut->setStructure(myStruct);
@@ -297,7 +291,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         map<int32_t, int32_t> cumulativeRemap;
         for (int64_t i = 0; i < rowSize; ++i)
         {
-            map<int32_t, int32_t> thisRemap = myTable.append(*(ciftiIn->getCiftiXML().getLabelTableForRowIndex(i)));
+            map<int32_t, int32_t> thisRemap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
             cumulativeRemap.insert(thisRemap.begin(), thisRemap.end());
         }
         for (int64_t i = 0; i < mapSize; ++i)
@@ -333,12 +327,6 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported by cifti separate");
-        if (ciftiIn->getCiftiXML().getColumnMappingType() != CIFTI_INDEX_TYPE_LABELS) throw AlgorithmException("label separate requested on non-label cifti");
-        if (!ciftiIn->getSurfaceMapForRows(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
         int64_t numNodes = ciftiIn->getRowSurfaceNumberOfNodes(myStruct);
         labelOut->setNumberOfNodesAndColumns(numNodes, colSize);
         labelOut->setStructure(myStruct);
@@ -367,7 +355,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         map<int32_t, int32_t> cumulativeRemap;
         for (int64_t i = 0; i < colSize; ++i)
         {
-            map<int32_t, int32_t> thisRemap = myTable.append(*(ciftiIn->getCiftiXML().getLabelTableForColumnIndex(i)));
+            map<int32_t, int32_t> thisRemap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
             cumulativeRemap.insert(thisRemap.begin(), thisRemap.end());
         }
         *(labelOut->getLabelTable()) = myTable;
@@ -403,28 +391,15 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
-    int64_t myDims[3];
-    vector<vector<float> > mySform;
-    vector<CiftiVolumeMap> myMap;
-    vector<int64_t> newdims;
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
+    if (myDir > 1) throw AlgorithmException("direction not supported in cifti separate");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
-    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
-    {
-        throw AlgorithmException("input cifti has no volume space information");
-    }
-    if (myDir == CiftiXML::ALONG_COLUMN)
-    {
-        if (!myXML.getVolumeStructureMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
-    } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported by cifti separate");
-        if (!myXML.getVolumeStructureMapForRows(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
-    }
+    const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
+    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getVolumeStructureMap(myStruct);
+    vector<int64_t> newdims;
     int64_t numVoxels = (int64_t)myMap.size();
     if (cropVol)
     {
@@ -449,12 +424,13 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (rowSize > 1) newdims.push_back(rowSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
         {
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
             volOut->setType(SubvolumeAttributes::LABEL);
             for (int j = 0; j < rowSize; ++j)
             {
-                (*volOut->getMapLabelTable(j)) = (*myXML.getLabelTableForRowIndex(j));
+                *(volOut->getMapLabelTable(j)) = *(myLabelsMap.getMapLabelTable(j));
             }
         }
         for (int64_t i = 0; i < numVoxels; ++i)
@@ -474,12 +450,13 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (colSize > 1) newdims.push_back(colSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
         {
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
             volOut->setType(SubvolumeAttributes::LABEL);
             for (int j = 0; j < colSize; ++j)
             {
-                (*volOut->getMapLabelTable(j)) = (*myXML.getLabelTableForColumnIndex(j));
+                *(volOut->getMapLabelTable(j)) = *(myLabelsMap.getMapLabelTable(j));
             }
         }
         for (int64_t i = 0; i < colSize; ++i)
@@ -503,20 +480,15 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
-    int64_t myDims[3];
-    vector<vector<float> > mySform;
-    vector<CiftiVolumeMap> myMap;
-    vector<int64_t> newdims;
+    if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
+    if (myDir > 1) throw AlgorithmException("direction not supported in cifti separate");
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     int rowSize = ciftiIn->getNumberOfColumns(), colSize = ciftiIn->getNumberOfRows();
-    if (!myXML.getVolumeDimsAndSForm(myDims, mySform))
-    {
-        throw AlgorithmException("input cifti has no volume space information");
-    }
-    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw AlgorithmException("direction not supported by cifti separate");
-    if (!myXML.getVolumeMap(myDir, myMap))
-    {
-        throw AlgorithmException("no volume components found in specified dimension");
-    }
+    const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    const int64_t* myDims = myBrainMap.getVolumeSpace().getDims();
+    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getFullVolumeMap();
+    vector<int64_t> newdims;
     int64_t numVoxels = (int64_t)myMap.size();
     if (cropVol)
     {
@@ -541,12 +513,13 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (rowSize > 1) newdims.push_back(rowSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::LABELS)
         {
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_ROW);
             volOut->setType(SubvolumeAttributes::LABEL);
             for (int j = 0; j < rowSize; ++j)
             {
-                (*volOut->getMapLabelTable(j)) = (*myXML.getLabelTableForRowIndex(j));
+                *(volOut->getMapLabelTable(j)) = *(myLabelsMap.getMapLabelTable(j));
             }
         }
         for (int64_t i = 0; i < numVoxels; ++i)
@@ -566,12 +539,13 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
         if (colSize > 1) newdims.push_back(colSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
-        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_LABELS)
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
         {
+            const CiftiLabelsMap& myLabelsMap = myXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
             volOut->setType(SubvolumeAttributes::LABEL);
             for (int j = 0; j < colSize; ++j)
             {
-                (*volOut->getMapLabelTable(j)) = (*myXML.getLabelTableForColumnIndex(j));
+                *(volOut->getMapLabelTable(j)) = *(myLabelsMap.getMapLabelTable(j));
             }
         }
         for (int64_t i = 0; i < colSize; ++i)
@@ -594,25 +568,10 @@ void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiInterface* ciftiIn, c
                                                 vector<vector<float> >& sformOut, int64_t offsetOut[3])
 {
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
-    vector<CiftiVolumeMap> myMap;
-    int64_t myDims[3];
-    if (!myXML.getVolumeDimsAndSForm(myDims, sformOut))
-    {
-        throw AlgorithmException("input cifti has no volume space information");
-    }
-    if (myDir == CiftiXML::ALONG_COLUMN)
-    {
-        if (!myXML.getVolumeStructureMapForColumns(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
-    } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported by cifti separate");
-        if (!myXML.getVolumeStructureMapForRows(myMap, myStruct))
-        {
-            throw AlgorithmException("structure '" + StructureEnum::toGuiName(myStruct) + "' not found in specified dimension");
-        }
-    }
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getVolumeStructureMap(myStruct);
     int64_t numVoxels = (int64_t)myMap.size();
     if (numVoxels > 0)
     {//make a voxel bounding box to minimize memory usage
@@ -654,16 +613,10 @@ void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiInterface* ciftiIn, c
 void AlgorithmCiftiSeparate::getCroppedVolSpaceAll(const CiftiInterface* ciftiIn, const int& myDir, int64_t dimsOut[3], vector<vector<float> >& sformOut, int64_t offsetOut[3])
 {
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
-    vector<CiftiVolumeMap> myMap;
-    int64_t myDims[3];
-    if (!myXML.getVolumeDimsAndSForm(myDims, sformOut))
-    {
-        throw AlgorithmException("input cifti has no volume space information");
-    }
-    if (!myXML.getVolumeMap(myDir, myMap))
-    {
-        throw AlgorithmException("no volume components found in specified dimension");
-    }
+    if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
+    const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
+    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getFullVolumeMap();
     int64_t numVoxels = (int64_t)myMap.size();
     if (numVoxels > 0)
     {//make a voxel bounding box to minimize memory usage
@@ -698,7 +651,7 @@ void AlgorithmCiftiSeparate::getCroppedVolSpaceAll(const CiftiInterface* ciftiIn
         sformOut[1][3] += shift[1];
         sformOut[2][3] += shift[2];
     } else {
-        throw AlgorithmException("cropped volume requested, but no voxels exist in this structure");
+        throw AlgorithmException("cropped volume requested, but no voxels exist in the specified direction");
     }
 }
 
@@ -709,6 +662,5 @@ float AlgorithmCiftiSeparate::getAlgorithmInternalWeight()
 
 float AlgorithmCiftiSeparate::getSubAlgorithmWeight()
 {
-    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;
 }

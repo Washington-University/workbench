@@ -138,11 +138,11 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
     int direction = -1;
     if (myDirString == "ROW")
     {
-        direction = CiftiXML::ALONG_ROW;
+        direction = CiftiXMLOld::ALONG_ROW;
     } else {
         if (myDirString == "COLUMN")
         {
-            direction = CiftiXML::ALONG_COLUMN;
+            direction = CiftiXMLOld::ALONG_COLUMN;
         } else {
             throw AlgorithmException("unrecognized direction string, use ROW or COLUMN");
         }
@@ -152,11 +152,11 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
     int templateDir = -1;
     if (myTemplDirString == "ROW")
     {
-        templateDir = CiftiXML::ALONG_ROW;
+        templateDir = CiftiXMLOld::ALONG_ROW;
     } else {
         if (myTemplDirString == "COLUMN")
         {
-            templateDir = CiftiXML::ALONG_COLUMN;
+            templateDir = CiftiXMLOld::ALONG_COLUMN;
         } else {
             throw AlgorithmException("unrecognized template direction string, use ROW or COLUMN");
         }
@@ -291,9 +291,9 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
 {
     LevelProgress myProgress(myProgObj);
     if (direction > 1) throw AlgorithmException("unsupported mapping direction");
-    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
-    CiftiXML myOutXML = myInputXML;
-    myOutXML.copyMapping(direction, myTemplate->getCiftiXML(), templateDir);
+    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
+    CiftiXMLOld myOutXML = myInputXML;
+    myOutXML.copyMapping(direction, myTemplate->getCiftiXMLOld(), templateDir);
     vector<StructureEnum::Enum> surfList, volList;
     myOutXML.getStructureLists(direction, surfList, volList);
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
@@ -361,9 +361,9 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
 {
     LevelProgress myProgress(myProgObj);
     if (direction > 1) throw AlgorithmException("unsupported mapping direction");
-    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
-    CiftiXML myOutXML = myInputXML;
-    myOutXML.copyMapping(direction, myTemplate->getCiftiXML(), templateDir);
+    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
+    CiftiXMLOld myOutXML = myInputXML;
+    myOutXML.copyMapping(direction, myTemplate->getCiftiXMLOld(), templateDir);
     vector<StructureEnum::Enum> surfList, volList;
     myOutXML.getStructureLists(direction, surfList, volList);
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
@@ -425,7 +425,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
                                                      CiftiFile* myCiftiOut, const bool& surfLargest, const float& surfdilatemm, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                                      const SurfaceFile* curArea, const SurfaceFile* newArea)
 {
-    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
     if (myInputXML.getMappingType(1 - direction) == CIFTI_INDEX_TYPE_LABELS)
     {
         LabelFile origLabel;

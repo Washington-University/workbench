@@ -83,14 +83,14 @@ void OperationCiftiSeparateAll::useParameters(OperationParameters* myParams, Pro
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* myCifti = myParams->getCifti(1);
-    int myDir = CiftiXML::ALONG_COLUMN;
+    int myDir = CiftiXMLOld::ALONG_COLUMN;
     OptionalParameter* dirOpt = myParams->getOptionalParameter(6);
     if (dirOpt->m_present)
     {
         AString dirName = dirOpt->getString(1);
         if (dirName == "ROW")
         {
-            myDir = CiftiXML::ALONG_ROW;
+            myDir = CiftiXMLOld::ALONG_ROW;
         } else {
             if (dirName != "COLUMN")
             {

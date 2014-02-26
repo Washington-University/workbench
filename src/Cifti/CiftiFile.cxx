@@ -42,12 +42,12 @@ using namespace std;
  * Default Constructor
  *
  */
-CiftiFile::CiftiFile() throw (CiftiFileException)
+CiftiFile::CiftiFile()
 {
     init();    
 }
 
-CiftiFile::CiftiFile(const CacheEnum &caching, const AString &cacheFile) throw (CiftiFileException)
+CiftiFile::CiftiFile(const CacheEnum &caching, const AString &cacheFile)
 {
     init();
     this->m_caching = caching;
@@ -141,15 +141,32 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         std::vector <int64_t> vec;
         
         header.getDimensions(vec);
-        if (vec.size() > 0 && m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
-        {
-            m_xml.setColumnNumberOfTimepoints(vec[0]);//vec[0] is number of rows, so length of column
-        }
-        if (vec.size() > 1 && m_xml.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
-        {
-            m_xml.setRowNumberOfTimepoints(vec[1]);
-        }
         int64_t offset = header.getVolumeOffset();
+        if (vec.size() < 1) throw CiftiFileException("cannot use 0-dimensional cifti");
+        if (m_xml.getParsedVersion().hasReversedFirstDims())//deal with cifti-1 nastiness
+        {
+            if (vec.size() == 1)
+            {
+                vec.push_back(vec[0]);
+                vec[0] = 1;
+            } else {
+                int64_t temp = vec[0];
+                vec[0] = vec[1];
+                vec[1] = temp;
+            }
+        }
+        if ((int)vec.size() != m_xml.getNumberOfDimensions()) throw CiftiFileException("xml and nifti header disagree on cifti matrix dimensionality");
+        for (int i = 0; i < (int)vec.size(); ++i)
+        {
+            if (m_xml.getDimensionLength(i) < 1)//should only happen with cifti-1
+            {
+                m_xml.getSeriesMap(i).setLength(vec[0]);
+            }
+        }
+        while (vec.size() < 2) vec.push_back(1);//HACK: in case we get 1D cifti, which CiftiMatrix will choke on
+        int64_t temp = vec[0];//HACK: CiftiMatrix expects reversed dims
+        vec[0] = vec[1];
+        vec[1] = temp;
         m_matrix.setup(vec,offset,m_caching,m_swapNeeded);
     }
     catch (CaretException& e) {
@@ -172,29 +189,46 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
  *
  */
 
-void CiftiFile::setupMatrix() throw (CiftiFileException)
+void CiftiFile::setupMatrix()
 {
     invalidateDataRange();
 
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
-    QByteArray xmlBytes;
-    m_xml.writeXML(xmlBytes);
+    QByteArray xmlBytes = m_xml.writeXMLToQByteArray();//HACK: if writing on-disk, this must match the value later computed in writeFile()
     int length = 8 + xmlBytes.length();
 
 
     // update header struct dimensions and vox_offset
     CiftiHeader ciftiHeader;
-    if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS || m_xml.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES || m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES)
     {
-        ciftiHeader.initDenseTimeSeries();
+        ciftiHeader.initDenseTimeSeries();//TODO: replace with code to generate the correct intent code
     } else {
         ciftiHeader.initDenseConnectivity();
     }
     //populate header dimensions from the layout
-    std::vector<int64_t> dim;
-    dim.push_back(m_xml.getNumberOfRows());//rows/columns get put in nifti header backwards, but CiftiHeader doesn't contain handling for this quirk
-    dim.push_back(m_xml.getNumberOfColumns());
-    ciftiHeader.setDimensions(dim);
+    vector<int64_t> dim;
+    int numDims = m_xml.getNumberOfDimensions();
+    if (numDims < 1) throw CiftiFileException("cannot use 0-dimensional cifti");
+    for (int i = 0; i < numDims; ++i)
+    {
+        dim.push_back(m_xml.getDimensionLength(i));//0 is along row, 1 is along column, etc
+    }
+    if (m_xml.getParsedVersion().hasReversedFirstDims())//deal with cifti-1 nastiness
+    {
+        vector<int64_t> reversed = dim;
+        if (reversed.size() < 2)
+        {
+            reversed.push_back(dim[0]);
+            reversed[0] = 1;
+        } else {
+            reversed[0] = dim[1];
+            reversed[1] = dim[0];
+        }
+        ciftiHeader.setDimensions(reversed);
+    } else {
+        ciftiHeader.setDimensions(dim);
+    }
 
     int64_t vox_offset = 544 + length;
     int remainder = vox_offset % 16;
@@ -209,6 +243,10 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
     
     //setup the matrix
     m_matrix.setMatrixFile(m_fileName, m_cacheFileName);
+    while (dim.size() < 2) dim.push_back(1);//HACK: CiftiMatrix won't take 1D, and we need to swap dims to make CiftiMatrix happy
+    int64_t temp = dim[0];
+    dim[0] = dim[1];
+    dim[1] = temp;
     m_matrix.setup(dim, vox_offset, this->m_caching, this->m_swapNeeded);
 }
 
@@ -270,9 +308,7 @@ void CiftiFile::writeFile(const AString &fileName)
     file->seek(0);
     
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
-    QByteArray xmlBytes;
-    CiftiXML xml = m_xml;
-    xml.writeXML(xmlBytes);
+    QByteArray xmlBytes = m_xml.writeXMLToQByteArray();//HACK: if writing on-disk, this must match the value from setupMatrix()
     int length = 8 + xmlBytes.length();
 
 
@@ -385,7 +421,7 @@ CiftiFile::~CiftiFile()
  *
  * @param header
  */
-void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
+void CiftiFile::getHeader(CiftiHeader &header)
 {
     m_headerIO.getHeader(header);
 }
@@ -398,17 +434,17 @@ void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
  *
  * @param ciftixml
  */
-void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata) throw (CiftiFileException)
+void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata)
 {
     if (useOldMetadata)
     {
-        const map<AString, AString>* oldmd = m_xml.getFileMetaData();
+        const GiftiMetaData* oldmd = m_xml.getFileMetaData();
         if (oldmd != NULL)
         {
-            map<AString, AString> newmd = *oldmd;
+            GiftiMetaData newmd = *oldmd;
             oldmd = NULL;//don't leave a dangling pointer around
             m_xml = xml;//because this will probably result in a new pointer for the metadata
-            map<AString, AString>* changemd = m_xml.getFileMetaData();
+            GiftiMetaData* changemd = m_xml.getFileMetaData();
             if (changemd != NULL)
             {
                 *changemd = newmd;
@@ -420,6 +456,41 @@ void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata) throw (Ci
         this->m_xml = xml;
     }
     setupMatrix();//this also populates the header with the dimensions from the CiftiXML object
+}
+
+void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
+{
+    QString xmlText;
+    xml.writeXML(xmlText);
+    CiftiXML tempXML;//so that we can use the same code path
+    tempXML.readXML(xmlText);
+    if (tempXML.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
+    {
+        CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_ROW);
+        tempMap.setLength(xml.getDimensionLength(CiftiXMLOld::ALONG_ROW));
+        tempXML.setMap(CiftiXML::ALONG_ROW, tempMap);
+    }
+    if (tempXML.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
+    {
+        CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_COLUMN);
+        tempMap.setLength(xml.getDimensionLength(CiftiXMLOld::ALONG_COLUMN));
+        tempXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
+    }
+    setCiftiXML(tempXML, useOldMetadata);
+}
+
+bool CiftiFile::setRowTimestep(const float& seconds)
+{
+    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::SERIES) return false;
+    m_xml.getSeriesMap(CiftiXML::ALONG_ROW).setStep(seconds);
+    return true;
+}
+
+bool CiftiFile::setColumnTimestep(const float& seconds)
+{
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::SERIES) return false;
+    m_xml.getSeriesMap(CiftiXML::ALONG_COLUMN).setStep(seconds);
+    return true;
 }
 
 int64_t CiftiFile::getNumberOfColumns() const

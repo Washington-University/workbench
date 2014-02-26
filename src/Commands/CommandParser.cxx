@@ -154,7 +154,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
                 if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                 {
-                    const map<AString, AString>* md = myFile->getCiftiXML().getFileMetaData();
+                    const map<AString, AString>* md = myFile->getCiftiXMLOld().getFileMetaData();
                     if (md != NULL)
                     {
                         map<AString, AString>::const_iterator iter = md->find(PROVENANCE_NAME);
@@ -483,15 +483,21 @@ void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAsso
             {
                 CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;
                 CiftiXML myXML;
-                myXML.resetColumnsToTimepoints(1.0f, 1);
-                myXML.applyColumnMapToRows();
-                map<AString, AString>* mymd = myXML.getFileMetaData();
-                (*mymd)[PROVENANCE_NAME] = m_provenance;
-                (*mymd)[PROGRAM_PROVENANCE_NAME] = versionProvenance;//cifti is on-disk, so set all provenance now, because we can't later
-                (*mymd)[CWD_PROVENANCE_NAME] = m_workingDir;
+                CiftiSeriesMap tempMap;
+                tempMap.setLength(1);
+                tempMap.setStep(1.0f);
+                tempMap.setStart(0.0f);
+                tempMap.setUnit(CiftiSeriesMap::SECOND);
+                myXML.setNumberOfDimensions(2);
+                myXML.setMap(0, tempMap);
+                myXML.setMap(1, tempMap);
+                GiftiMetaData* mymd = myXML.getFileMetaData();
+                mymd->set(PROVENANCE_NAME, m_provenance);
+                mymd->set(PROGRAM_PROVENANCE_NAME, versionProvenance);//cifti is on-disk, so set all provenance now, because we can't later
+                mymd->set(CWD_PROVENANCE_NAME, m_workingDir);
                 if (m_parentProvenance != "")
                 {
-                    (*mymd)[PARENT_PROVENANCE_NAME] = m_parentProvenance;
+                    mymd->set(PARENT_PROVENANCE_NAME, m_parentProvenance);
                 }
                 myFile->setCiftiXML(myXML, false);//tells it to use this new metadata, rather than copying metadata from the old XML (which is default so that provenance metadata persists through naive usage)
                 break;

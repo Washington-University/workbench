@@ -75,9 +75,9 @@ void AlgorithmCiftiPairwiseCorrelation::useParameters(OperationParameters* myPar
 AlgorithmCiftiPairwiseCorrelation::AlgorithmCiftiPairwiseCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, CiftiFile* myCiftiOut, const bool& fisherZ) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    CiftiXML outXML = myCiftiA->getCiftiXML();
+    CiftiXMLOld outXML = myCiftiA->getCiftiXMLOld();
     int64_t numRows = myCiftiA->getNumberOfRows(), rowLength = myCiftiA->getNumberOfColumns();
-    if (!outXML.matchesForColumns(myCiftiB->getCiftiXML())) throw AlgorithmException("mapping along columns must match between the input files");
+    if (!outXML.matchesForColumns(myCiftiB->getCiftiXMLOld())) throw AlgorithmException("mapping along columns must match between the input files");
     if (rowLength != myCiftiB->getNumberOfColumns()) throw AlgorithmException("row length must match between the input files");
     outXML.resetRowsToScalars(1);
     outXML.setMapNameForRowIndex(0, "pairwise correlation");

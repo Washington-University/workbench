@@ -412,7 +412,7 @@ CiftiFiberOrientationFile::getVolumeSpacing(float volumeSpacingOut[3]) const
  * @return a pointer to the CIFTI XML.
  * May be NULL if a file is not loaded.
  */
-const CiftiXML*
+const CiftiXMLOld*
 CiftiFiberOrientationFile::getCiftiXML() const
 {
     return m_ciftiXML;
@@ -487,8 +487,8 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
             }
         }
         
-        const CiftiXML& ciftiXML = ciftiFile.getCiftiXML();
-        m_ciftiXML = new CiftiXML(ciftiXML);
+        const CiftiXMLOld& ciftiXML = ciftiFile.getCiftiXMLOld();
+        m_ciftiXML = new CiftiXMLOld(ciftiXML);
         VolumeSpace::OrientTypes orient[3];
         int64_t dims[3];
         float origin[3];

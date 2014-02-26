@@ -27,7 +27,6 @@
 /*LICENSE_END*/
 
 #include "CaretHttpManager.h"
-#include "CiftiXML.h"
 #include "CiftiFileException.h"
 #include "CiftiInterface.h"
 
@@ -39,24 +38,24 @@ namespace caret
         CaretHttpRequest m_baseRequest;
         int64_t m_numberOfColumns, m_numberOfRows;
         ///get a request as a float array, with error checking
-        void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const throw (CiftiFileException);
+        void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const;
         ///get just the size field from a request
-        int64_t getSizeFromReq(CaretHttpRequest& request) throw (CiftiFileException);
+        int64_t getSizeFromReq(CaretHttpRequest& request);
     public:
         ///initialize base request to POST type
         CiftiXnat();
         
         ///open a URL with existing auth tokens
-        void openURL(const AString& url) throw (CiftiFileException);
+        void openURL(const AString& url);
         
         ///set auth tokens with "Basic" method, removing all previously existing tokens
         void setAuthentication(const AString& url, const AString& userName, const AString& password);
         
         ///get a row
-        void getRow(float* rowOut,const int64_t& rowIndex) const throw (CiftiFileException);
+        void getRow(float* rowOut,const int64_t& rowIndex) const;
         
         ///get a column
-        void getColumn(float* columnOut, const int64_t& columnIndex) const throw (CiftiFileException);
+        void getColumn(float* columnOut, const int64_t& columnIndex) const;
         
         ///get row size
         int64_t getNumberOfColumns() const { return m_numberOfColumns; }

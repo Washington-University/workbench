@@ -74,7 +74,7 @@ void OperationCiftiConvertToScalar::useParameters(OperationParameters* myParams,
     }
     CiftiFile* ciftiOut = myParams->getOutputCifti(3);
     OptionalParameter* nameFileOpt = myParams->getOptionalParameter(4);
-    CiftiXML myXML = ciftiIn->getCiftiXML();
+    CiftiXMLOld myXML = ciftiIn->getCiftiXMLOld();
     int rowSize = myXML.getNumberOfColumns(), colSize = myXML.getNumberOfRows();
     if (mydir == 0)
     {

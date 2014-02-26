@@ -69,11 +69,11 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
     int direction = -1;
     if (dirString == "ROW")
     {
-        direction = CiftiXML::ALONG_ROW;
+        direction = CiftiXMLOld::ALONG_ROW;
     } else {
         if (dirString == "COLUMN")
         {
-            direction = CiftiXML::ALONG_COLUMN;
+            direction = CiftiXMLOld::ALONG_COLUMN;
         } else {
             throw AlgorithmException("unrecognized direction string, use ROW or COLUMN");
         }
@@ -85,9 +85,9 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
 AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
-    const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
-    if (direction != CiftiXML::ALONG_COLUMN && direction != CiftiXML::ALONG_ROW)
+    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
+    const CiftiXMLOld& myLabelXML = myCiftiLabel->getCiftiXMLOld();
+    if (direction != CiftiXMLOld::ALONG_COLUMN && direction != CiftiXMLOld::ALONG_ROW)
     {
         throw AlgorithmException("AlgorithmCiftiParcellate doesn't support this direction");
     }
@@ -99,7 +99,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     {
         throw AlgorithmException("input cifti label file has the wrong mapping types");
     }
-    if ((direction == CiftiXML::ALONG_ROW && myCiftiIn->hasRowVolumeData()) || (direction == CiftiXML::ALONG_COLUMN && myCiftiIn->hasColumnVolumeData()))
+    if ((direction == CiftiXMLOld::ALONG_ROW && myCiftiIn->hasRowVolumeData()) || (direction == CiftiXMLOld::ALONG_COLUMN && myCiftiIn->hasColumnVolumeData()))
     {//don't check volume space if direction doesn't have volume data
         if (myLabelXML.hasColumnVolumeData() && !myInputXML.matchesVolumeSpace(myLabelXML))
         {
@@ -107,7 +107,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
         }
     }
     vector<int> indexToParcel;
-    CiftiXML myOutXML = myInputXML;
+    CiftiXMLOld myOutXML = myInputXML;
     int numParcels = -1;
     parcellateMapping(myCiftiLabel, direction, myOutXML, numParcels, indexToParcel);
     if (numParcels == 0)
@@ -127,7 +127,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             ++parcelCounts[parcel];
         }
     }
-    if (direction == CiftiXML::ALONG_ROW)
+    if (direction == CiftiXMLOld::ALONG_ROW)
     {
         vector<float> scratchOutRow(numParcels);
         for (int64_t i = 0; i < numRows; ++i)
@@ -153,7 +153,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
             }
             myCiftiOut->setRow(scratchOutRow.data(), i);
         }
-    } else if (direction == CiftiXML::ALONG_COLUMN) {
+    } else if (direction == CiftiXMLOld::ALONG_COLUMN) {
         vector<vector<double> > accumRows(numParcels, vector<double>(numCols, 0.0f));
         for (int64_t i = 0; i < numRows; ++i)
         {
@@ -192,23 +192,23 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
 }
 
-void AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const int& direction, CiftiXML& myOutXML, int& numParcels, vector<int>& indexToParcel)
+void AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const int& direction, CiftiXMLOld& myOutXML, int& numParcels, vector<int>& indexToParcel)
 {
-    const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
+    const CiftiXMLOld& myLabelXML = myCiftiLabel->getCiftiXMLOld();
     const GiftiLabelTable* myLabelTable = myLabelXML.getLabelTableForRowIndex(0);
     vector<float> labelData(myLabelXML.getNumberOfRows());
     int unusedKey = myLabelTable->getUnassignedLabelKey();
     myCiftiLabel->getColumn(labelData.data(), 0);
-    CiftiXML newOutXML = myOutXML;
+    CiftiXMLOld newOutXML = myOutXML;
     map<int, pair<CiftiParcelElement, int> > usedKeys;//the keys from the label table that actually overlap with data in the input file
     vector<StructureEnum::Enum> surfList, volList;
     indexToParcel.clear();
-    if (direction == CiftiXML::ALONG_ROW)
+    if (direction == CiftiXMLOld::ALONG_ROW)
     {
         indexToParcel.resize(myOutXML.getNumberOfColumns(), -1);
         newOutXML.resetRowsToParcels();
         myOutXML.getStructureListsForRows(surfList, volList);
-    } else if (direction == CiftiXML::ALONG_COLUMN) {
+    } else if (direction == CiftiXMLOld::ALONG_COLUMN) {
         indexToParcel.resize(myOutXML.getNumberOfRows(), -1);
         newOutXML.resetColumnsToParcels();
         myOutXML.getStructureListsForColumns(surfList, volList);
@@ -218,9 +218,9 @@ void AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, 
     for (int i = 0; i < (int)surfList.size(); ++i)
     {
         StructureEnum::Enum myStruct = surfList[i];
-        if (myLabelXML.hasSurfaceData(CiftiXML::ALONG_COLUMN, myStruct) && myOutXML.hasSurfaceData(direction, myStruct))
+        if (myLabelXML.hasSurfaceData(CiftiXMLOld::ALONG_COLUMN, myStruct) && myOutXML.hasSurfaceData(direction, myStruct))
         {
-            if (myOutXML.getSurfaceNumberOfNodes(direction, myStruct) != myLabelXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, myStruct))
+            if (myOutXML.getSurfaceNumberOfNodes(direction, myStruct) != myLabelXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, myStruct))
             {
                 throw AlgorithmException("mismatch in number of surface vertices between input and label for structure " + StructureEnum::toName(myStruct));
             }

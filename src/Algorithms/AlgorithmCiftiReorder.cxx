@@ -72,9 +72,9 @@ void AlgorithmCiftiReorder::useParameters(OperationParameters* myParams, Progres
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -102,13 +102,13 @@ void AlgorithmCiftiReorder::useParameters(OperationParameters* myParams, Progres
 AlgorithmCiftiReorder::AlgorithmCiftiReorder(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int& myDir, const vector<int64_t>& reorder, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXML = myCifti->getCiftiXML();
-    CiftiXML myOutXML = myXML;
+    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
+    CiftiXMLOld myOutXML = myXML;
     int64_t rowSize = myXML.getNumberOfColumns(), colSize = myXML.getNumberOfRows(), myDirSize;
-    if (myDir == CiftiXML::ALONG_ROW)
+    if (myDir == CiftiXMLOld::ALONG_ROW)
     {
         myDirSize = rowSize;
-    } else if (myDir == CiftiXML::ALONG_COLUMN) {
+    } else if (myDir == CiftiXMLOld::ALONG_COLUMN) {
         myDirSize = colSize;
     } else {
         throw AlgorithmException("direction not supported by cifti reorder");
@@ -169,7 +169,7 @@ AlgorithmCiftiReorder::AlgorithmCiftiReorder(ProgressObject* myProgObj, const Ci
     vector<float> scratchrow(rowSize);
     switch (myDir)
     {
-        case CiftiXML::ALONG_ROW:
+        case CiftiXMLOld::ALONG_ROW:
         {
             vector<float> scratchrow2(rowSize);
             for (int64_t i = 0; i < colSize; ++i)
@@ -183,7 +183,7 @@ AlgorithmCiftiReorder::AlgorithmCiftiReorder(ProgressObject* myProgObj, const Ci
             }
             break;
         }
-        case CiftiXML::ALONG_COLUMN:
+        case CiftiXMLOld::ALONG_COLUMN:
         {
             for (int64_t i = 0; i < colSize; ++i)
             {

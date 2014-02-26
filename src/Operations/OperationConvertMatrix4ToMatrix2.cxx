@@ -69,7 +69,7 @@ void OperationConvertMatrix4ToMatrix2::useParameters(OperationParameters* myPara
         myDistOut = distanceOpt->getOutputCifti(1);
     }
     CaretSparseFile matrix4(matrix4Name);
-    const CiftiXML& myXML = matrix4.getCiftiXML();
+    const CiftiXMLOld& myXML = matrix4.getCiftiXML();
     myCountsOut->setCiftiXML(myXML);
     if (myDistOut != NULL) myDistOut->setCiftiXML(myXML);
     int rowSize = myXML.getNumberOfColumns(), numRows = myXML.getNumberOfRows();

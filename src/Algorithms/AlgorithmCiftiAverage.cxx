@@ -108,12 +108,12 @@ AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const ve
         throw AlgorithmException("number of weights doesn't match number of input cifti files");
     }
     CaretAssert(ciftiList[0] != NULL);
-    CiftiXML baseXML = ciftiList[0]->getCiftiXML();
+    CiftiXMLOld baseXML = ciftiList[0]->getCiftiXMLOld();
     int numRows = baseXML.getNumberOfRows(), rowSize = baseXML.getNumberOfColumns(), numFiles = (int)ciftiList.size();
     for (int i = 1; i < numFiles; ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        if (baseXML != ciftiList[i]->getCiftiXML())
+        if (baseXML != ciftiList[i]->getCiftiXMLOld())
         {
             throw AlgorithmException("cifti files do not match");
         }
@@ -180,12 +180,12 @@ AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const ve
         throw AlgorithmException("number of weights doesn't match number of input cifti files");
     }
     CaretAssert(ciftiList[0] != NULL);
-    CiftiXML baseXML = ciftiList[0]->getCiftiXML();
+    CiftiXMLOld baseXML = ciftiList[0]->getCiftiXMLOld();
     int numRows = baseXML.getNumberOfRows(), rowSize = baseXML.getNumberOfColumns(), numFiles = (int)ciftiList.size();
     for (int i = 1; i < numFiles; ++i)
     {
         CaretAssert(ciftiList[i] != NULL);
-        if (baseXML != ciftiList[i]->getCiftiXML())
+        if (baseXML != ciftiList[i]->getCiftiXMLOld())
         {
             throw AlgorithmException("cifti files do not match");
         }

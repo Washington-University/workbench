@@ -205,11 +205,11 @@ CiftiFiberTrajectoryFile::isFiberOrientationFileCombatible(const CiftiFiberOrien
 {
     CaretAssert(fiberOrientationFile);
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXML* orientXML = fiberOrientationFile->getCiftiXML();
-    if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld* orientXML = fiberOrientationFile->getCiftiXML();
+    if (trajXML.mappingMatches(CiftiXMLOld::ALONG_ROW,
                                *orientXML,
-                               CiftiXML::ALONG_COLUMN)) {
+                               CiftiXMLOld::ALONG_COLUMN)) {
         return true;
     }
     
@@ -738,7 +738,7 @@ CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileExcep
         
         m_fiberTrajectoryFileType = FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE;
         
-        const CiftiXML xml = m_sparseFile->getCiftiXML();
+        const CiftiXMLOld xml = m_sparseFile->getCiftiXML();
         if (xml.getColumnMappingType() == CIFTI_INDEX_TYPE_SCALARS) {
             m_fiberTrajectoryFileType = FIBER_TRAJECTORY_LOAD_SINGLE_ROW;
         }
@@ -865,7 +865,7 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
 void
 CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const throw (DataFileException)
 {
-    CiftiXML xml = m_sparseFile->getCiftiXML();
+    CiftiXMLOld xml = m_sparseFile->getCiftiXML();
     
     /*
      * Copy the pointers to the fiber orientation trajectories and sort
@@ -977,11 +977,11 @@ CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile() throw (
         throw DataFileException("No fiber orientation file is assigned.");
     }
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXML* orientXML = m_matchingFiberOrientationFile->getCiftiXML();
-    if (trajXML.mappingMatches(CiftiXML::ALONG_ROW,
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld* orientXML = m_matchingFiberOrientationFile->getCiftiXML();
+    if (trajXML.mappingMatches(CiftiXMLOld::ALONG_ROW,
                                *orientXML,
-                               CiftiXML::ALONG_COLUMN) == false) {
+                               CiftiXMLOld::ALONG_COLUMN) == false) {
         QString msg = (getFileNameNoPath()
                        + " rows="
                        + QString::number(trajXML.getNumberOfRows())
@@ -1030,11 +1030,11 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
     if (trajXML.hasColumnSurfaceData(structure) == false) {
         return -1;
     }
-    if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
+    if (trajXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
         return -1;
     }
     
@@ -1161,12 +1161,12 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
     
     if (trajXML.hasColumnSurfaceData(structure) == false) {
         return;
     }
-    if (trajXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
+    if (trajXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
         return;
     }
     
@@ -1222,7 +1222,7 @@ bool
 CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException)
 {
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
     const int64_t numberOfColumns = trajXML.getNumberOfColumns();
     
     std::vector<FiberFractions> fiberFractionsForRowVector(numberOfColumns);
@@ -1313,7 +1313,7 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
 
     const int64_t rowIndex = trajXML.getRowIndexForVoxelCoordinate(xyz);
     if (rowIndex < 0) {
@@ -1400,7 +1400,7 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
     
     if (trajXML.hasColumnVolumeData() == false) {
         return;

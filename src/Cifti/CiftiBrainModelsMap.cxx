@@ -395,7 +395,7 @@ void CiftiBrainModelsMap::setVolumeSpace(const VolumeSpace& space)
     m_volSpace = space;
 }
 
-bool CiftiBrainModelsMap::operator==(const CiftiIndexMap& rhs) const
+bool CiftiBrainModelsMap::operator==(const CiftiMappingType& rhs) const
 {
     if (rhs.getType() != getType()) return false;
     const CiftiBrainModelsMap& myrhs = dynamic_cast<const CiftiBrainModelsMap&>(rhs);
@@ -405,7 +405,7 @@ bool CiftiBrainModelsMap::operator==(const CiftiIndexMap& rhs) const
     return (m_modelsInfo == myrhs.m_modelsInfo);//NOTE: these are sorted by index range, so this works
 }
 
-bool CiftiBrainModelsMap::approximateMatch(const CiftiIndexMap& rhs) const
+bool CiftiBrainModelsMap::approximateMatch(const CiftiMappingType& rhs) const
 {
     return (*this) == rhs;//there is no user-specified metadata, and it cannot match other types, so use ==
 }
@@ -615,7 +615,7 @@ void CiftiBrainModelsMap::ParseHelperModel::parseBrainModel1(QXmlStreamReader& x
     }
     value = attrs.value("IndexCount");
     m_count = value.toString().toLongLong(&ok);
-    if (!ok || m_offset < 0)
+    if (!ok || m_count < 0)
     {
         xml.raiseError("IndexCount must be a positive integer");
     }

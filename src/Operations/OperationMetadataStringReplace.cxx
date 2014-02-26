@@ -145,27 +145,27 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
             } else {
                 myCifti.openFile(inFileName, ON_DISK);
             }
-            CiftiXML myXML = myCifti.getCiftiXML();
+            CiftiXMLOld myXML = myCifti.getCiftiXMLOld();
             CiftiFile myOutCifti(ON_DISK);
             myOutCifti.setCiftiCacheFile(outFileName);
             int numRows = myXML.getNumberOfRows(), rowSize = myXML.getNumberOfColumns();
             replaceInMetaData(myXML.getFileMetaData(), findString, replString, myCS);
-            if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXML::ALONG_ROW) == CIFTI_INDEX_TYPE_LABELS)
+            if (myXML.getMappingType(CiftiXMLOld::ALONG_ROW) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXMLOld::ALONG_ROW) == CIFTI_INDEX_TYPE_LABELS)
             {
                 for (int row = 0; row < numRows; ++row)
                 {
-                    AString mapName = myXML.getMapName(CiftiXML::ALONG_ROW, row);
-                    myXML.setMapNameForIndex(CiftiXML::ALONG_ROW, row, mapName.replace(findString, replString, myCS));
-                    replaceInMetaData(myXML.getMapMetadata(CiftiXML::ALONG_ROW, row), findString, replString, myCS);
+                    AString mapName = myXML.getMapName(CiftiXMLOld::ALONG_ROW, row);
+                    myXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, row, mapName.replace(findString, replString, myCS));
+                    replaceInMetaData(myXML.getMapMetadata(CiftiXMLOld::ALONG_ROW, row), findString, replString, myCS);
                 }
             }
-            if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CIFTI_INDEX_TYPE_LABELS)
+            if (myXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) == CIFTI_INDEX_TYPE_LABELS)
             {
                 for (int col = 0; col < rowSize; ++col)
                 {
-                    AString mapName = myXML.getMapName(CiftiXML::ALONG_COLUMN, col);
-                    myXML.setMapNameForIndex(CiftiXML::ALONG_COLUMN, col, mapName.replace(findString, replString, myCS));
-                    replaceInMetaData(myXML.getMapMetadata(CiftiXML::ALONG_COLUMN, col), findString, replString, myCS);
+                    AString mapName = myXML.getMapName(CiftiXMLOld::ALONG_COLUMN, col);
+                    myXML.setMapNameForIndex(CiftiXMLOld::ALONG_COLUMN, col, mapName.replace(findString, replString, myCS));
+                    replaceInMetaData(myXML.getMapMetadata(CiftiXMLOld::ALONG_COLUMN, col), findString, replString, myCS);
                 }
             }
             myOutCifti.setCiftiXML(myXML, false);

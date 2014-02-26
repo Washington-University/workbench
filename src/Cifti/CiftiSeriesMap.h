@@ -26,11 +26,11 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiIndexMap.h"
+#include "CiftiMappingType.h"
 
 namespace caret
 {
-    class CiftiSeriesMap : public CiftiIndexMap
+    class CiftiSeriesMap : public CiftiMappingType
     {
     public:
         enum Unit
@@ -63,10 +63,10 @@ namespace caret
         void setUnit(const Unit& unit) { m_unit = unit; }
         void setLength(const int64_t& length) { m_length = length; }
         
-        CiftiIndexMap* clone() const { return new CiftiSeriesMap(*this); }
+        CiftiMappingType* clone() const { return new CiftiSeriesMap(*this); }
         MappingType getType() const { return SERIES; }
         int64_t getLength() const { return m_length; }
-        bool operator==(const CiftiIndexMap& rhs) const
+        bool operator==(const CiftiMappingType& rhs) const
         {
             if (rhs.getType() != getType()) return false;
             const CiftiSeriesMap& temp = dynamic_cast<const CiftiSeriesMap&>(rhs);
@@ -75,7 +75,7 @@ namespace caret
                     temp.m_start == m_start &&
                     temp.m_step == m_step);
         }
-        bool approximateMatch(const CiftiIndexMap& rhs) const
+        bool approximateMatch(const CiftiMappingType& rhs) const
         {
             switch (rhs.getType())
             {

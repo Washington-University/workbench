@@ -130,10 +130,10 @@ AlgorithmCiftiFalseCorrelation::AlgorithmCiftiFalseCorrelation(ProgressObject* m
                                                                const SurfaceFile* myRightSurf, const AString& rightDumpName, const SurfaceFile* myCerebSurf, const AString& cerebDumpName) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXML = myCiftiIn->getCiftiXML();
-    CiftiXML myNewXML = myXML;
+    const CiftiXMLOld& myXML = myCiftiIn->getCiftiXMLOld();
+    CiftiXMLOld myNewXML = myXML;
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (!myXML.getStructureLists(CiftiXML::ALONG_COLUMN, surfaceList, volumeList))
+    if (!myXML.getStructureLists(CiftiXMLOld::ALONG_COLUMN, surfaceList, volumeList))
     {
         throw AlgorithmException("input cifti does not contain brainordinates along columns");
     }
@@ -163,17 +163,17 @@ AlgorithmCiftiFalseCorrelation::AlgorithmCiftiFalseCorrelation(ProgressObject* m
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (mySurf->getNumberOfNodes() != myXML.getSurfaceNumberOfNodes(CiftiXML::ALONG_COLUMN, surfaceList[whichStruct]))
+        if (mySurf->getNumberOfNodes() != myXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct]))
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
         }
     }
     myNewXML.resetRowsToScalars(5);
-    myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 0, "correlation ratio");
-    myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 1, "non-neighborhood correlation");
-    myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 2, "average neighborhood correlation");
-    myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 3, "3D distance to non-neighborhood vertex");
-    myNewXML.setMapNameForIndex(CiftiXML::ALONG_ROW, 4, "non-neighborhood vertex number");
+    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 0, "correlation ratio");
+    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 1, "non-neighborhood correlation");
+    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 2, "average neighborhood correlation");
+    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 3, "3D distance to non-neighborhood vertex");
+    myNewXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, 4, "non-neighborhood vertex number");
     myCiftiOut->setCiftiXML(myNewXML);
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
@@ -197,18 +197,18 @@ AlgorithmCiftiFalseCorrelation::AlgorithmCiftiFalseCorrelation(ProgressObject* m
                 break;
         }
         MetricFile myMetric, myRoi, myMetricOut;
-        AlgorithmCiftiSeparate(NULL, myCiftiIn, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &myMetric, &myRoi);
+        AlgorithmCiftiSeparate(NULL, myCiftiIn, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myMetric, &myRoi);
         AlgorithmMetricFalseCorrelation(NULL, mySurf, &myMetric, &myMetricOut, max3D, maxgeo, mingeo, &myRoi, dumpName);
-        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);
     }
     int64_t offset[3];
     vector<int64_t> dims(3);
     vector<vector<float> > sform;
-    AlgorithmCiftiSeparate::getCroppedVolSpaceAll(myCiftiIn, CiftiXML::ALONG_COLUMN, dims.data(), sform, offset);
+    AlgorithmCiftiSeparate::getCroppedVolSpaceAll(myCiftiIn, CiftiXMLOld::ALONG_COLUMN, dims.data(), sform, offset);
     dims.push_back(5);
     VolumeFile zeros(dims, sform);
     zeros.setValueAllVoxels(0.0f);
-    AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, &zeros, true);
+    AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXMLOld::ALONG_COLUMN, &zeros, true);
 }
 
 float AlgorithmCiftiFalseCorrelation::getAlgorithmInternalWeight()

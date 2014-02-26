@@ -40,9 +40,9 @@ namespace caret {
 class CiftiFile : public CiftiInterface {
 public:
     /// Constructor
-    CiftiFile() throw (CiftiFileException);
+    CiftiFile();
     /// Constructor
-    CiftiFile(const CacheEnum &caching, const AString &cacheFile = NULL) throw (CiftiFileException);
+    CiftiFile(const CacheEnum &caching, const AString &cacheFile = NULL);
     /// Constructor
     CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY, const AString &cacheFile = NULL);
     /// Open the Cifti File
@@ -61,40 +61,42 @@ public:
     /// set CiftiHeader
     //virtual void setHeader(const CiftiHeader &header) throw (CiftiFileException);
     /// get CiftiHeader
-    virtual void getHeader(CiftiHeader &header) throw (CiftiFileException);
+    virtual void getHeader(CiftiHeader &header);
 
     //TODO, put some thought into whether we want to hand back an xml tree vs handing back a class that manages
     //the tree in an intelligent way.
     /// set CiftiXML
-    virtual void setCiftiXML(const CiftiXML &ciftixml, const bool useOldMetadata = true) throw (CiftiFileException);
+    virtual void setCiftiXML(const CiftiXML &xml, const bool useOldMetadata = true);
+    /// set CiftiXML with old structure
+    virtual void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true);
 
     // Matrix IO, simply passes through to underlying Cifti Matrix
     /// get Row
-    void getRow(float * rowOut,const int64_t &rowIndex, const bool& tolerateShortRead) const throw (CiftiFileException)
+    void getRow(float * rowOut,const int64_t &rowIndex, const bool& tolerateShortRead) const
     { m_matrix.getRow(rowOut, rowIndex, tolerateShortRead); }
     /// get Row
-    void getRow(float * rowOut,const int64_t &rowIndex) const throw (CiftiFileException)
+    void getRow(float * rowOut,const int64_t &rowIndex) const
     { m_matrix.getRow(rowOut, rowIndex); }
     /// set Row
-    void setRow(float * rowIn, const int64_t &rowIndex) throw (CiftiFileException)
+    void setRow(float * rowIn, const int64_t &rowIndex)
     {
         invalidateDataRange();
         m_matrix.setRow(rowIn, rowIndex);
     }
     /// get Column
-    void getColumn(float * columnOut, const int64_t &columnIndex) const throw (CiftiFileException)
+    void getColumn(float * columnOut, const int64_t &columnIndex) const
     { m_matrix.getColumn(columnOut, columnIndex); }
     /// set Column
-    void setColumn(float * columnIn, const int64_t &columnIndex) throw (CiftiFileException)
+    void setColumn(float * columnIn, const int64_t &columnIndex)
     {
         invalidateDataRange();
         m_matrix.setColumn(columnIn, columnIndex);
     }
     /// get Matrix
-    void getMatrix(float *matrixOut) throw (CiftiFileException)
+    void getMatrix(float *matrixOut)
     { m_matrix.getMatrix(matrixOut); }
     /// set Matrix
-    void setMatrix(float *matrixIn) throw (CiftiFileException)
+    void setMatrix(float *matrixIn)
     {
         invalidateDataRange();
         m_matrix.setMatrix(matrixIn);
@@ -102,11 +104,11 @@ public:
     // setup Matrix
     //void setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn = 0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
     /// setup Matrix
-    void setupMatrix() throw(CiftiFileException);
+    void setupMatrix();
     
     /// set timestep
-    bool setRowTimestep(float& seconds) { return m_xml.setRowTimestep(seconds); }
-    bool setColumnTimestep(float& seconds) { return m_xml.setColumnTimestep(seconds); }
+    bool setRowTimestep(const float& seconds);
+    bool setColumnTimestep(const float& seconds);
     
     ///get row size
     int64_t getNumberOfColumns() const;

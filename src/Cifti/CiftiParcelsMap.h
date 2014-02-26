@@ -26,7 +26,7 @@
  */
 /*LICENSE_END*/
 
-#include "CiftiIndexMap.h"
+#include "CiftiMappingType.h"
 
 #include "CaretCompact3DLookup.h"
 #include "StructureEnum.h"
@@ -39,7 +39,7 @@
 
 namespace caret
 {
-    class CiftiParcelsMap : public CiftiIndexMap
+    class CiftiParcelsMap : public CiftiMappingType
     {
     public:
         struct Parcel
@@ -54,8 +54,9 @@ namespace caret
         bool hasVolumeData() const;
         bool hasSurfaceData(const StructureEnum::Enum& structure) const;
         const VolumeSpace& getVolumeSpace() const;
-        int64_t getParcelForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
-        int64_t getParcelForVoxel(const int64_t* ijk) const;
+        int64_t getSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
+        int64_t getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
+        int64_t getIndexForVoxel(const int64_t* ijk) const;
         std::vector<StructureEnum::Enum> getParcelSurfaceStructures() const;
         const std::vector<Parcel>& getParcels() const { return m_parcels; }
         
@@ -65,11 +66,11 @@ namespace caret
         void addParcel(const Parcel& parcel);
         void clear();
         
-        CiftiIndexMap* clone() const { return new CiftiParcelsMap(*this); }
+        CiftiMappingType* clone() const { return new CiftiParcelsMap(*this); }
         MappingType getType() const { return PARCELS; }
         int64_t getLength() const { return m_parcels.size(); }
-        bool operator==(const CiftiIndexMap& rhs) const;
-        bool approximateMatch(const CiftiIndexMap& rhs) const;
+        bool operator==(const CiftiMappingType& rhs) const;
+        bool approximateMatch(const CiftiMappingType& rhs) const;
         void readXML1(QXmlStreamReader& xml);
         void readXML2(QXmlStreamReader& xml);
         void writeXML1(QXmlStreamWriter& xml) const;

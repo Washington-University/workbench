@@ -58,13 +58,13 @@ void CiftiLabelsMap::setLength(const int64_t& length)
     m_maps.resize(length);
 }
 
-void CiftiLabelsMap::setMapName(const int64_t& index, const QString& mapName)
+void CiftiLabelsMap::setMapName(const int64_t& index, const QString& mapName) const
 {
     CaretAssertVectorIndex(m_maps, index);
     m_maps[index].m_name = mapName;
 }
 
-bool CiftiLabelsMap::approximateMatch(const CiftiIndexMap& rhs) const
+bool CiftiLabelsMap::approximateMatch(const CiftiMappingType& rhs) const
 {
     switch (rhs.getType())
     {
@@ -77,7 +77,7 @@ bool CiftiLabelsMap::approximateMatch(const CiftiIndexMap& rhs) const
     }
 }
 
-bool CiftiLabelsMap::operator==(const CiftiIndexMap& rhs) const
+bool CiftiLabelsMap::operator==(const CiftiMappingType& rhs) const
 {
     if (rhs.getType() != getType()) return false;
     const CiftiLabelsMap& myrhs = dynamic_cast<const CiftiLabelsMap&>(rhs);

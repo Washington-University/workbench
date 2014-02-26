@@ -85,13 +85,13 @@ namespace caret {
         const std::vector<int64_t>* getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                                                     const int64_t surfaceNumberOfNodes) const;
 
-        bool getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const AString &parcelName) const;
+        bool getParcelElementForSelectedParcel(CiftiParcelsMap::Parcel &parcelOut, const StructureEnum::Enum &structure, const AString &parcelName) const;
 
-        bool getParcelElementForSelectedParcel(CiftiParcelElement &parcelOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const;
+        bool getParcelElementForSelectedParcel(CiftiParcelsMap::Parcel &parcelOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const;
 
-        bool getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const;
+        bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure, const int64_t &selectionIndex) const;
 
-        const std::vector<CiftiVolumeMap>* getVolumeMapForMappingDataToBrainordinates() const;
+        const std::vector<CiftiBrainModelsMap::VolumeMap>* getVolumeMapForMappingDataToBrainordinates() const;
         
         
 //        bool getParcelMapForMappingToBrainordinates(std::vector<CiftiParcelElement>& parcelsOut) const;
@@ -149,7 +149,7 @@ namespace caret {
 
         CiftiFacade& operator=(const CiftiFacade&);
         
-        bool getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiSurfaceMap>& mappingOut,
+        bool getSurfaceMapForMappingDataToBrainordinates(std::vector<CiftiBrainModelsMap::SurfaceMap>& mappingOut,
                                                          const StructureEnum::Enum structure) const;
         
         const DataFileTypeEnum::Enum m_dataFileType;
@@ -186,7 +186,7 @@ namespace caret {
          * Cache volume mapping since CIFTI mappings do not change
          * to save time.
          */
-        std::vector<CiftiVolumeMap> m_volumeMapping;
+        std::vector<CiftiBrainModelsMap::VolumeMap> m_volumeMapping;
         bool m_volumeMappingValid;
         
 //        bool m_connectivityMatrixFileFlag;

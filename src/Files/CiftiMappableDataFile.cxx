@@ -386,7 +386,7 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
          */
         m_ciftiInterface.grabNew(ciftiInterface);
         CaretAssert(m_ciftiInterface);
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        const CiftiXMLOld& ciftiXML = m_ciftiInterface->getCiftiXMLOld();
         
         setFileName(filename);
         
@@ -405,10 +405,10 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         /*
          * Get contents of the matrix.
          */
-        IndicesMapToDataType rowIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+        IndicesMapToDataType rowIndexTypeInFile = ciftiXML.getMappingType(CiftiXMLOld::ALONG_ROW);
         AString rowIndexTypeName = ciftiIndexTypeToName(rowIndexTypeInFile);
         
-        const IndicesMapToDataType columnIndexTypeInFile = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+        const IndicesMapToDataType columnIndexTypeInFile = ciftiXML.getMappingType(CiftiXMLOld::ALONG_COLUMN);
         AString columnIndexTypeName = ciftiIndexTypeToName(columnIndexTypeInFile);
         
         /*
@@ -502,14 +502,14 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         /*
          * Setup voxel mapping
          */
-        const std::vector<CiftiVolumeMap>* voxelMapping =
+        const std::vector<CiftiBrainModelsMap::VolumeMap>* voxelMapping =
         m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates();
         if (voxelMapping != NULL) {
             m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
                                                                    *voxelMapping));
         }
         else {
-            std::vector<CiftiVolumeMap> emptyVoxelMapping;
+            std::vector<CiftiBrainModelsMap::VolumeMap> emptyVoxelMapping;
             m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiInterface,
                                                                    emptyVoxelMapping));
         }
@@ -2224,7 +2224,7 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
 
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    const CiftiXMLOld& ciftiXML = m_ciftiInterface->getCiftiXMLOld();
     
     int32_t numCiftiNodes = -1;
     
@@ -2537,9 +2537,9 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
 }
 
 bool
-CiftiMappableDataFile::getParcelNodesElementForSelectedParcel(CiftiParcelNodesElement &parcelNodesOut, const StructureEnum::Enum &structure) const
+CiftiMappableDataFile::getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure) const
 {
-	return m_ciftiFacade->getParcelNodesElementForSelectedParcel(parcelNodesOut, structure, m_selectionIndex);
+    return m_ciftiFacade->getParcelNodesElementForSelectedParcel(parcelNodesOut, structure, m_selectionIndex);
 }
 
 
@@ -2726,23 +2726,23 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                  * Get content for map.
                  */
                 int64_t parcelMapIndex = -1;
-                std::vector<CiftiParcelElement> parcels;
+                std::vector<CiftiParcelsMap::Parcel> parcels;
                 switch (m_brainordinateMappedDataAccess) {
                     case DATA_ACCESS_INVALID:
                         break;
                     case DATA_ACCESS_WITH_COLUMN_METHODS:
-                        ciftiXML.getParcelsForColumns(parcels);
-                        parcelMapIndex = ciftiXML.getColumnParcelForVoxel(ijk);
+                        parcels = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+                        parcelMapIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getIndexForVoxel(ijk);
                         break;
                     case DATA_ACCESS_WITH_ROW_METHODS:
-                        ciftiXML.getParcelsForRows(parcels);
-                        parcelMapIndex = ciftiXML.getRowParcelForVoxel(ijk);
+                        parcels = ciftiXML.getParcelsMap(CiftiXML::ALONG_ROW).getParcels();
+                        parcelMapIndex = ciftiXML.getParcelsMap(CiftiXML::ALONG_ROW).getIndexForVoxel(ijk);
                         break;
                 }
                 
                 if ((parcelMapIndex >= 0)
                     && (parcelMapIndex < static_cast<int64_t>(parcels.size()))) {
-                    textValueOut = parcels[parcelMapIndex].m_parcelName;
+                    textValueOut = parcels[parcelMapIndex].m_name;
                     return true;
                 }
             }
@@ -3006,7 +3006,7 @@ CiftiMappableDataFile::getStructureAndNodeIndexFromRowIndex(const int64_t rowInd
         std::vector<StructureEnum::Enum> surfaceStructures;
         std::vector<StructureEnum::Enum> volumeStructures;
         
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        const CiftiXMLOld& ciftiXML = m_ciftiInterface->getCiftiXMLOld();
         ciftiXML.getStructureListsForColumns(surfaceStructures,
                                              volumeStructures);
         
@@ -3063,7 +3063,7 @@ CiftiMappableDataFile::getVoxelIndexAndCoordinateFromRowIndex(const int64_t rowI
         && (rowIndex < numberOfRows)) {
         std::vector<CiftiVolumeMap> volumeMaps;
         
-        const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+        const CiftiXMLOld& ciftiXML = m_ciftiInterface->getCiftiXMLOld();
         ciftiXML.getVolumeMapForColumns(volumeMaps);
         
         /*

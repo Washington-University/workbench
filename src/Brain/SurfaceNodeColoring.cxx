@@ -763,11 +763,11 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 	}
 
 
-	CiftiParcelNodesElement selectedParcelNodesElement;
+	std::set<int64_t> nodeSet;
 	bool selectedParcelValid = false;
-	selectedParcelValid = ciftiConnectivityMatrixFile->getParcelNodesElementForSelectedParcel(selectedParcelNodesElement,structure); 
+	selectedParcelValid = ciftiConnectivityMatrixFile->getParcelNodesElementForSelectedParcel(nodeSet,structure); 
 
-	std::vector<int64_t> selectedParcelNodes = selectedParcelNodesElement.m_nodes;
+	std::vector<int64_t> selectedParcelNodes = std::vector<int64_t>(nodeSet.begin(), nodeSet.end());
 
 	
 	

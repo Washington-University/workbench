@@ -71,7 +71,7 @@ using namespace caret;
  *   The voxel mappings.
  */
 SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
-                                         const std::vector<CiftiVolumeMap>& ciftiVoxelMapping)
+                                         const std::vector<CiftiBrainModelsMap::VolumeMap>& ciftiVoxelMapping)
 : CaretObject(),
  m_ciftiInterface(ciftiInterface)
 {
@@ -107,7 +107,7 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
         return;
     }
     
-    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    const CiftiXMLOld& ciftiXML = m_ciftiInterface->getCiftiXMLOld();
     ciftiXML.getVolumeSpace(*m_volumeSpace);
     
 //    m_voxelOffsets.resize(numberOfVoxels,
@@ -117,10 +117,10 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
 //                                                   vm.m_ijk[2]);
 //        m_voxelOffsets[offset] = vm.m_ciftiIndex;
     
-    for (std::vector<CiftiVolumeMap>::const_iterator iter = ciftiVoxelMapping.begin();
+    for (std::vector<CiftiBrainModelsMap::VolumeMap>::const_iterator iter = ciftiVoxelMapping.begin();
          iter != ciftiVoxelMapping.end();
          iter++) {
-        const CiftiVolumeMap& vm = *iter;
+        const CiftiBrainModelsMap::VolumeMap& vm = *iter;
 
         m_voxelIndexLookup.at(vm.m_ijk) = vm.m_ciftiIndex;
     }
@@ -128,10 +128,10 @@ SparseVolumeIndexer::SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
     bool validateFlag = true;
     if (validateFlag) {
         AString validateString;
-        for (std::vector<CiftiVolumeMap>::const_iterator iter = ciftiVoxelMapping.begin();
+        for (std::vector<CiftiBrainModelsMap::VolumeMap>::const_iterator iter = ciftiVoxelMapping.begin();
              iter != ciftiVoxelMapping.end();
              iter++) {
-            const CiftiVolumeMap& vm = *iter;
+            const CiftiBrainModelsMap::VolumeMap& vm = *iter;
             const int64_t* foundOffset = m_voxelIndexLookup.find(vm.m_ijk);
             if (foundOffset != NULL) {
                 if (*foundOffset != vm.m_ciftiIndex) {

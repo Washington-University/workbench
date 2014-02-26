@@ -56,7 +56,7 @@ namespace caret {
         };
         
         SparseVolumeIndexer(const CiftiInterface* ciftiInterface,
-                            const std::vector<CiftiVolumeMap>& ciftiVoxelMapping);
+                            const std::vector<CiftiBrainModelsMap::VolumeMap>& ciftiVoxelMapping);
         
         virtual ~SparseVolumeIndexer();
         

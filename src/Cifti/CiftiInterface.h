@@ -27,6 +27,7 @@
 /*LICENSE_END*/
 
 #include "CiftiXML.h"
+#include "CiftiXMLOld.h"
 #include "CiftiFileException.h"
 
 namespace caret
@@ -44,10 +45,10 @@ namespace caret
         bool checkColumnIndex(int64_t index) const;
 
         ///get a row
-        virtual void getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException) = 0;
+        virtual void getRow(float* rowOut, const int64_t& rowIndex) const = 0;
         
         ///get a column
-        virtual void getColumn(float* columnOut, const int64_t& columnIndex) const throw (CiftiFileException) = 0;
+        virtual void getColumn(float* columnOut, const int64_t& columnIndex) const = 0;
         
         ///get row size
         virtual int64_t getNumberOfColumns() const = 0;
@@ -55,8 +56,11 @@ namespace caret
         ///get column size
         virtual int64_t getNumberOfRows() const = 0;
 
-        ///get a reference to the XML data
+        ///get a reference to the XML structure
         const CiftiXML& getCiftiXML() const { return m_xml; }
+        
+        ///get the old XML structure
+        CiftiXMLOld getCiftiXMLOld() const;
         
         ///get a row by surface and node - returns false if not found in mapping
         bool getRowFromNode(float* rowOut, const int64_t node, const StructureEnum::Enum structure) const;
@@ -98,60 +102,45 @@ namespace caret
         void invalidateDataRange();
         
         ///get the mapping for a surface in rows, returns false and empty vector if not found
-        bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
-        { return m_xml.getSurfaceMapForRows(mappingOut, structure); }
+        bool getSurfaceMapForRows(std::vector<CiftiBrainModelsMap::SurfaceMap>& mappingOut, const StructureEnum::Enum structure) const;
         
         ///get the mapping for a surface in columns, returns false and empty vector if not found
-        bool getSurfaceMapForColumns(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
-        { return m_xml.getSurfaceMapForColumns(mappingOut, structure); }
+        bool getSurfaceMapForColumns(std::vector<CiftiBrainModelsMap::SurfaceMap>& mappingOut, const StructureEnum::Enum structure) const;
             
         ///get the mapping for a surface in rows, returns false and empty vector if not found
-        bool getVolumeMapForRows(std::vector<CiftiVolumeMap>& mappingOut) const
-        { return m_xml.getVolumeMapForRows(mappingOut); }
+        bool getVolumeMapForRows(std::vector<CiftiBrainModelsMap::VolumeMap>& mappingOut) const;
         
         ///get the mapping for a surface in columns, returns false and empty vector if not found
-        bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const
-        { return m_xml.getVolumeMapForColumns(mappingOut); }
+        bool getVolumeMapForColumns(std::vector<CiftiBrainModelsMap::VolumeMap>& mappingOut) const;
         
         ///get the original number of nodes of the surfaces used to make this cifti, for rows
-        int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
-        { return m_xml.getRowSurfaceNumberOfNodes(structure); }
+        int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
         
         ///get the original number of nodes of the surfaces used to make this cifti, for columns
-        int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
-        { return m_xml.getColumnSurfaceNumberOfNodes(structure); }
+        int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
             
         ///get the timestep for rows, returns false if not timeseries
-        bool getRowTimestep(float& seconds) const
-        { return m_xml.getRowTimestep(seconds); }
+        bool getRowTimestep(float& seconds) const;
         
         ///get the timestep for columns, returns false if not timeseries
-        bool getColumnTimestep(float& seconds) const
-        { return m_xml.getColumnTimestep(seconds); }
+        bool getColumnTimestep(float& seconds) const;
 
-        ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
-        bool getVolumeAttributesForPlumb(VolumeSpace::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
-        { return m_xml.getVolumeAttributesForPlumb(orientOut, dimensionsOut, originOut, spacingOut); }
+        ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb - NOTE: only uses the volume space of the first dimension that has one
+        bool getVolumeAttributesForPlumb(VolumeSpace::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
         
-        bool hasRowVolumeData() const
-        { return m_xml.hasRowVolumeData(); }
+        bool hasRowVolumeData() const;
         
-        bool hasColumnVolumeData() const
-        { return m_xml.hasColumnVolumeData(); }
+        bool hasColumnVolumeData() const;
         
-        bool hasRowSurfaceData(const StructureEnum::Enum structure) const
-        { return m_xml.hasRowSurfaceData(structure); }
+        bool hasRowSurfaceData(const StructureEnum::Enum structure) const;
         
-        bool hasColumnSurfaceData(const StructureEnum::Enum structure) const
-        { return m_xml.hasColumnSurfaceData(structure); }
+        bool hasColumnSurfaceData(const StructureEnum::Enum structure) const;
 
         ///get the map name for an index along a column
-        AString getMapNameForColumnIndex(const int& index) const
-        { return m_xml.getMapNameForColumnIndex(index); }
+        AString getMapNameForColumnIndex(const int& index) const;
 
         ///get the map name for an index along a row
-        AString getMapNameForRowIndex(const int& index) const
-        { return m_xml.getMapNameForRowIndex(index); }
+        AString getMapNameForRowIndex(const int& index) const;
 
         virtual ~CiftiInterface();
 

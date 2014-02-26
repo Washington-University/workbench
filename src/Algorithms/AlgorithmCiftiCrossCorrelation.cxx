@@ -123,8 +123,8 @@ AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* m
 {
     LevelProgress myProgress(myProgObj);
     init(myCiftiA, myCiftiB, myCiftiOut, weights);
-    CiftiXML outXML = myCiftiA->getCiftiXML();
-    outXML.copyMapping(CiftiXML::ALONG_ROW, myCiftiB->getCiftiXML(), CiftiXML::ALONG_COLUMN);//(try to) copy B's along column mapping to output's along row mapping
+    CiftiXMLOld outXML = myCiftiA->getCiftiXMLOld();
+    outXML.copyMapping(CiftiXMLOld::ALONG_ROW, myCiftiB->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN);//(try to) copy B's along column mapping to output's along row mapping
     myCiftiOut->setCiftiXML(outXML);
     int64_t chunkSize = m_numRowsA;
     if (memLimitGB >= 0.0f)

@@ -26,14 +26,14 @@ CiftiHeaderIO.h
 CiftiInterface.h
 CiftiMatrix.h
 CiftiVersion.h
+CiftiXMLOld.h
 CiftiXMLElements.h
-CiftiXML.h
 CiftiXMLReader.h
 CiftiXMLWriter.h
 CiftiXnat.h
 
-CiftiXMLNew.h
-CiftiIndexMap.h
+CiftiXML.h
+CiftiMappingType.h
 CiftiBrainModelsMap.h
 CiftiLabelsMap.h
 CiftiParcelsMap.h
@@ -47,14 +47,14 @@ CiftiHeaderIO.cxx
 CiftiInterface.cxx
 CiftiMatrix.cxx
 CiftiVersion.cxx
-CiftiXML.cxx
+CiftiXMLOld.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
 CiftiXMLWriter.cxx
 CiftiXnat.cxx
 
-CiftiXMLNew.cxx
-CiftiIndexMap.cxx
+CiftiXML.cxx
+CiftiMappingType.cxx
 CiftiBrainModelsMap.cxx
 CiftiLabelsMap.cxx
 CiftiParcelsMap.cxx

@@ -158,7 +158,7 @@ void CiftiParcelsMap::setVolumeSpace(const VolumeSpace& space)
     m_volSpace = space;
 }
 
-int64_t CiftiParcelsMap::getParcelForNode(const int64_t& node, const StructureEnum::Enum& structure) const
+int64_t CiftiParcelsMap::getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const
 {
     CaretAssert(node >= 0);
     map<StructureEnum::Enum, SurfaceInfo>::const_iterator test = m_surfInfo.find(structure);
@@ -168,7 +168,7 @@ int64_t CiftiParcelsMap::getParcelForNode(const int64_t& node, const StructureEn
     return test->second.m_lookup[node];
 }
 
-int64_t CiftiParcelsMap::getParcelForVoxel(const int64_t* ijk) const
+int64_t CiftiParcelsMap::getIndexForVoxel(const int64_t* ijk) const
 {
     const int64_t* test = m_volLookup.find(ijk);
     if (test == NULL) return -1;
@@ -196,6 +196,13 @@ const VolumeSpace& CiftiParcelsMap::getVolumeSpace() const
     return m_volSpace;
 }
 
+int64_t CiftiParcelsMap::getSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const
+{
+    map<StructureEnum::Enum, SurfaceInfo>::const_iterator iter = m_surfInfo.find(structure);
+    if (iter == m_surfInfo.end()) return -1;
+    return iter->second.m_numNodes;
+}
+
 bool CiftiParcelsMap::hasSurfaceData(const StructureEnum::Enum& structure) const
 {
     if (m_surfInfo.find(structure) == m_surfInfo.end()) return false;
@@ -203,7 +210,7 @@ bool CiftiParcelsMap::hasSurfaceData(const StructureEnum::Enum& structure) const
     for (int64_t i = 0; i < numParcels; ++i)
     {
         map<StructureEnum::Enum, set<int64_t> >::const_iterator iter = m_parcels[i].m_surfaceNodes.find(structure);
-        if (iter != m_parcels[i].m_surfaceNodes.end() && iter->second.size() != 0) return true;//NOTE: if we allow empty node lists in the internal state, we need to iterate through this
+        if (iter != m_parcels[i].m_surfaceNodes.end() && iter->second.size() != 0) return true;
     }
     return false;
 }
@@ -219,7 +226,7 @@ bool CiftiParcelsMap::hasVolumeData() const
     return false;
 }
 
-bool CiftiParcelsMap::approximateMatch(const CiftiIndexMap& rhs) const
+bool CiftiParcelsMap::approximateMatch(const CiftiMappingType& rhs) const
 {
     if (rhs.getType() != getType()) return false;
     const CiftiParcelsMap& myrhs = dynamic_cast<const CiftiParcelsMap&>(rhs);
@@ -241,7 +248,7 @@ bool CiftiParcelsMap::approximateMatch(const CiftiIndexMap& rhs) const
     return true;
 }
 
-bool CiftiParcelsMap::operator==(const CiftiIndexMap& rhs) const
+bool CiftiParcelsMap::operator==(const CiftiMappingType& rhs) const
 {
     if (rhs.getType() != getType()) return false;
     const CiftiParcelsMap& myrhs = dynamic_cast<const CiftiParcelsMap&>(rhs);

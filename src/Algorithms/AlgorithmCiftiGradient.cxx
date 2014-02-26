@@ -87,9 +87,9 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -131,10 +131,10 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
                                                SurfaceFile* myCerebSurf, bool outputAverage) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXML = myCifti->getCiftiXML();
-    CiftiXML myNewXML = myXML;
+    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
+    CiftiXMLOld myNewXML = myXML;
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir == CiftiXML::ALONG_COLUMN)
+    if (myDir == CiftiXMLOld::ALONG_COLUMN)
     {
         if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
         {
@@ -183,7 +183,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiXML::ALONG_COLUMN)
+        if (myDir == CiftiXMLOld::ALONG_COLUMN)
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
@@ -236,7 +236,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
             }
             myMetricOut.setNumberOfNodesAndColumns(numNodes, 1);
             myMetricOut.setValuesForColumn(0, temparray);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);//average always outputs a dtseries, so always along column
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myMetricOut);//average always outputs a dtseries, so always along column
         } else {
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
         }
@@ -269,7 +269,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
             myDims.resize(3);
             myVolOut.reinitialize(myDims, myVol.getSform());
             myVolOut.setFrame(temparray);
-            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
+            AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &myVolOut, true);
         } else {
             AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
         }

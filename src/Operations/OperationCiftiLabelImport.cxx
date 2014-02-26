@@ -179,9 +179,9 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
     }
     int32_t unusedLabel = myTable.getUnassignedLabelKey();
     translate[unlabeledValue] = unusedLabel;
-    const CiftiXML& xmlIn = ciftiIn->getCiftiXML();
+    const CiftiXMLOld& xmlIn = ciftiIn->getCiftiXMLOld();
     int rowSize = xmlIn.getNumberOfColumns(), colSize = xmlIn.getNumberOfRows();
-    CiftiXML xmlOut = xmlIn;
+    CiftiXMLOld xmlOut = xmlIn;
     xmlOut.resetRowsToLabels(rowSize);
     vector<set<int32_t> > usedArray(rowSize);
     vector<float> rowScratch(rowSize);
@@ -236,14 +236,14 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
     }
     for (int i = 0; i < rowSize; ++i)
     {
-        xmlOut.setMapNameForIndex(CiftiXML::ALONG_ROW, i, xmlIn.getMapName(CiftiXML::ALONG_ROW, i));
+        xmlOut.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, xmlIn.getMapName(CiftiXMLOld::ALONG_ROW, i));
         if (discardOthers)
         {
             GiftiLabelTable colTable = myTable;
             colTable.deleteUnusedLabels(usedArray[i]);
-            *(xmlOut.getMapLabelTable(CiftiXML::ALONG_ROW, i)) = colTable;
+            *(xmlOut.getMapLabelTable(CiftiXMLOld::ALONG_ROW, i)) = colTable;
         } else {
-            *(xmlOut.getMapLabelTable(CiftiXML::ALONG_ROW, i)) = myTable;
+            *(xmlOut.getMapLabelTable(CiftiXMLOld::ALONG_ROW, i)) = myTable;
         }
     }
     ciftiOut->setCiftiXML(xmlOut);

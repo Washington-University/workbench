@@ -25,6 +25,7 @@
 #include "CiftiHeader.h"
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 using namespace caret;
 
@@ -120,8 +121,9 @@ void CiftiHeader::initDenseConnectivity()
 void CiftiHeader::getDimensions(std::vector<int64_t> &dimensionsOut) const
 {
     dimensionsOut.clear();
-    if (m_header.dim[0] < 5)//HACK: support old cifti written when the dimensions didn't get padded - REMOVE ME
+    if (m_header.dim[0] < 5)//HACK: support old cifti written when the dimensions didn't get padded
     {
+        CaretLogWarning("reading incorrect cifti that uses spatial dimensions");
         for (int i = 0; i < m_header.dim[0]; ++i)
         {
             dimensionsOut.push_back(m_header.dim[i + 1]);

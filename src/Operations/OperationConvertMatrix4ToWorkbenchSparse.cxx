@@ -89,7 +89,7 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     OptionalParameter* surfaceOpt = myParams->getOptionalParameter(7);
     OptionalParameter* volumeOpt = myParams->getOptionalParameter(8);
     if (surfaceOpt->m_present == volumeOpt->m_present) throw OperationException("you must specify exactly one of -surface-seeds and -volume-seeds");//use == on booleans as xnor
-    CiftiXML myXML = orientationFile->getCiftiXML();
+    CiftiXMLOld myXML = orientationFile->getCiftiXMLOld();
     if (surfaceOpt->m_present)
     {
         MetricFile* myROI = surfaceOpt->getMetric(1);
@@ -115,14 +115,14 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
         int myDir = -1;
         if (directionName == "ROW")
         {
-            myDir = CiftiXML::ALONG_ROW;
+            myDir = CiftiXMLOld::ALONG_ROW;
         } else if (directionName == "COLUMN")
         {
-            myDir = CiftiXML::ALONG_COLUMN;
+            myDir = CiftiXMLOld::ALONG_COLUMN;
         } else {
             throw OperationException("direction must be ROW or COLUMN");
         }
-        const CiftiXML& templateXML = myTemplate->getCiftiXML();
+        const CiftiXMLOld& templateXML = myTemplate->getCiftiXMLOld();
         if (templateXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw OperationException("template cifti file must have brain models along specified direction");
         vector<StructureEnum::Enum> surfList, volList;//since we only need the volume models, we don't need to loop through all models
         templateXML.getStructureLists(myDir, surfList, volList);
@@ -140,7 +140,7 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
                 ijkList.push_back(myMap[j].m_ijk[1]);
                 ijkList.push_back(myMap[j].m_ijk[2]);
             }
-            myXML.addVolumeModel(CiftiXML::ALONG_COLUMN, ijkList, volList[i]);
+            myXML.addVolumeModel(CiftiXMLOld::ALONG_COLUMN, ijkList, volList[i]);
         }
         if (myXML.getNumberOfRows() != sparseDims[1]) throw OperationException("volume models in template cifti file do not match the dimension of the input file");
     }

@@ -143,7 +143,7 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
-    CiftiXML myXML;
+    CiftiXMLOld myXML;
     myXML.resetColumnsToBrainModels();
     int numMaps = -1;
     if (leftData != NULL)

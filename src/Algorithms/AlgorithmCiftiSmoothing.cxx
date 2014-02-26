@@ -90,9 +90,9 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXML::ALONG_ROW;
+        myDir = CiftiXMLOld::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXML::ALONG_COLUMN;
+        myDir = CiftiXMLOld::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -129,22 +129,22 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                                                  const CiftiInterface* roiCifti, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    const CiftiXML& myXML = myCifti->getCiftiXML();
+    const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
     vector<StructureEnum::Enum> surfaceList, volumeList;
-    if (myDir == CiftiXML::ALONG_COLUMN)
+    if (myDir == CiftiXMLOld::ALONG_COLUMN)
     {
         if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
         {
             throw AlgorithmException("specified direction does not contain brainordinates");
         }
     } else {
-        if (myDir != CiftiXML::ALONG_ROW) throw AlgorithmException("direction not supported in AlgorithmCiftiSmoothing");
+        if (myDir != CiftiXMLOld::ALONG_ROW) throw AlgorithmException("direction not supported in AlgorithmCiftiSmoothing");
         if (!myXML.getStructureListsForRows(surfaceList, volumeList))
         {
             throw AlgorithmException("specified direction does not contain brainordinates");
         }
     }
-    if (roiCifti != NULL && !myXML.mappingMatches(myDir, roiCifti->getCiftiXML(), CiftiXML::ALONG_COLUMN))
+    if (roiCifti != NULL && !myXML.mappingMatches(myDir, roiCifti->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN))
     {
         throw AlgorithmException("along-column mapping of roi cifti does not match the smoothing direction of the input cifti");
     }
@@ -174,7 +174,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         {
             throw AlgorithmException(surfType + " surface required but not provided");
         }
-        if (myDir == CiftiXML::ALONG_COLUMN)
+        if (myDir == CiftiXMLOld::ALONG_COLUMN)
         {
             if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
@@ -210,7 +210,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         if (roiCifti != NULL)
         {
             MetricFile roiPiece;
-            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &roiPiece);//due to testing for matching mapping above, we know this works, and gives same size metric
+            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &roiPiece);//due to testing for matching mapping above, we know this works, and gives same size metric
             int numNodes = myRoi.getNumberOfNodes();
             vector<float> outCol(numNodes, 0.0f);
             const float* separateCol = myRoi.getValuePointerForColumn(0), *roiCol = roiPiece.getValuePointerForColumn(0);
@@ -235,7 +235,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         {
             VolumeFile roiPiece;
             int64_t roioffset[3];//will be the same, but is a mandatory parameter
-            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXML::ALONG_COLUMN, volumeList[whichStruct], &roiPiece, roioffset, NULL, true);//due to testing for matching mapping above, we know this works, and gives same size metric
+            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &roiPiece, roioffset, NULL, true);//due to testing for matching mapping above, we know this works, and gives same size metric
             vector<int64_t> dims = myRoi.getDimensions();
             int64_t frameSize = dims[0] * dims[1] * dims[2];
             vector<float> tempframe(frameSize, 0.0f);
