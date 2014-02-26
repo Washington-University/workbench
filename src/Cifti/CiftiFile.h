@@ -66,9 +66,9 @@ public:
     //TODO, put some thought into whether we want to hand back an xml tree vs handing back a class that manages
     //the tree in an intelligent way.
     /// set CiftiXML
-    virtual void setCiftiXML(const CiftiXML &xml, const bool useOldMetadata = true);
+    virtual void setCiftiXML(const CiftiXML &xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());
     /// set CiftiXML with old structure
-    virtual void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true);
+    virtual void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());
 
     // Matrix IO, simply passes through to underlying Cifti Matrix
     /// get Row
@@ -103,9 +103,6 @@ public:
     }
     // setup Matrix
     //void setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn = 0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
-    /// setup Matrix
-    void setupMatrix();
-    
     /// set timestep
     bool setRowTimestep(const float& seconds);
     bool setColumnTimestep(const float& seconds);
@@ -119,8 +116,14 @@ public:
     /// Destructor
     virtual ~CiftiFile();
 protected:
+    /// setup Matrix
+    void setupMatrix();
+    
     virtual void init();
-
+    
+    CiftiVersion m_writingVersion;
+    QByteArray m_xmlBytes;
+    
     AString m_fileName;
     AString m_cacheFileName;
     CiftiHeaderIO m_headerIO;

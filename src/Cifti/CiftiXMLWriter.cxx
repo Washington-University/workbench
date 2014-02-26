@@ -32,7 +32,7 @@ using namespace std;
 
 void CiftiXMLWriter::writeCiftiXML(QXmlStreamWriter &xml, const CiftiRootElement &rootElement)
 {
-    //use default constructed writing version, which is latest supported...provide modifier to set writing version?
+    m_writingVersion = CiftiVersion(1, 0);//HACK: this writer can't support other versions of XML, the structure is too closely tied to the 1.0 representation
     xml.setAutoFormatting(true);
     xml.writeStartElement("CIFTI");
     xml.writeAttribute("Version", m_writingVersion.toString());

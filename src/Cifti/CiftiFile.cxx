@@ -192,10 +192,9 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
 void CiftiFile::setupMatrix()
 {
     invalidateDataRange();
-
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
-    QByteArray xmlBytes = m_xml.writeXMLToQByteArray();//HACK: if writing on-disk, this must match the value later computed in writeFile()
-    int length = 8 + xmlBytes.length();
+    m_xmlBytes = m_xml.writeXMLToQByteArray(m_writingVersion);//NOTE: if writing on-disk, this must be reused in writeFile()
+    int length = 8 + m_xmlBytes.length();
 
 
     // update header struct dimensions and vox_offset
@@ -214,7 +213,7 @@ void CiftiFile::setupMatrix()
     {
         dim.push_back(m_xml.getDimensionLength(i));//0 is along row, 1 is along column, etc
     }
-    if (m_xml.getParsedVersion().hasReversedFirstDims())//deal with cifti-1 nastiness
+    if (m_writingVersion.hasReversedFirstDims())//deal with cifti-1 nastiness
     {
         vector<int64_t> reversed = dim;
         if (reversed.size() < 2)
@@ -308,8 +307,7 @@ void CiftiFile::writeFile(const AString &fileName)
     file->seek(0);
     
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
-    QByteArray xmlBytes = m_xml.writeXMLToQByteArray();//HACK: if writing on-disk, this must match the value from setupMatrix()
-    int length = 8 + xmlBytes.length();
+    int length = 8 + m_xmlBytes.length();
 
 
     // update header struct dimensions and vox_offset
@@ -326,8 +324,22 @@ void CiftiFile::writeFile(const AString &fileName)
 
 
     std::vector <int64_t> dim;
-    m_matrix.getMatrixDimensions(dim);
-    ciftiHeader.setDimensions(dim);
+    m_matrix.getMatrixDimensions(dim);//HACK: these dimensions are already reversed!  CiftiMatrix has reversed dimensions baked into it
+    if (!m_writingVersion.hasReversedFirstDims())//deal with cifti-1 nastiness
+    {
+        vector<int64_t> reversed = dim;
+        if (reversed.size() < 2)
+        {
+            reversed.push_back(dim[0]);
+            reversed[0] = 1;
+        } else {
+            reversed[0] = dim[1];
+            reversed[1] = dim[0];
+        }
+        ciftiHeader.setDimensions(reversed);
+    } else {
+        ciftiHeader.setDimensions(dim);
+    }
     ciftiHeader.setVolumeOffset(vox_offset);
     m_headerIO.setHeader(ciftiHeader);
 
@@ -357,7 +369,7 @@ void CiftiFile::writeFile(const AString &fileName)
     file->write(eflags,4);
     file->write((char *)&length,4);
     file->write((char *)&ecode, 4);
-    file->write(xmlBytes);
+    file->write(m_xmlBytes);
     char nulls[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     file->write(nulls,padding);//pad out null values to 8 byte boundary
     file->flush();
@@ -434,8 +446,9 @@ void CiftiFile::getHeader(CiftiHeader &header)
  *
  * @param ciftixml
  */
-void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata)
+void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata, const CiftiVersion& writingVersion)
 {
+    m_writingVersion = writingVersion;
     if (useOldMetadata)
     {
         const GiftiMetaData* oldmd = m_xml.getFileMetaData();
@@ -458,7 +471,7 @@ void CiftiFile::setCiftiXML(const CiftiXML & xml, bool useOldMetadata)
     setupMatrix();//this also populates the header with the dimensions from the CiftiXML object
 }
 
-void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
+void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata, const CiftiVersion& writingVersion)
 {
     QString xmlText;
     xml.writeXML(xmlText);
@@ -476,7 +489,7 @@ void CiftiFile::setCiftiXML(const CiftiXMLOld& xml, const bool useOldMetadata)
         tempMap.setLength(xml.getDimensionLength(CiftiXMLOld::ALONG_COLUMN));
         tempXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
     }
-    setCiftiXML(tempXML, useOldMetadata);
+    setCiftiXML(tempXML, useOldMetadata, writingVersion);
 }
 
 bool CiftiFile::setRowTimestep(const float& seconds)
