@@ -31,7 +31,7 @@ using namespace caret;
 CiftiVersion::CiftiVersion()
 {
     m_major = 1;
-    m_minor = 0;
+    m_minor = 1;
 }
 
 CiftiVersion::CiftiVersion(const int16_t& major, const int16_t& minor)
