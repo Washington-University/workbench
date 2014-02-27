@@ -217,18 +217,19 @@ CiftiMappableDataFile::isMappableToSurfaceStructure(const StructureEnum::Enum st
     /*
      * Validate number of nodes are correct
      */
-    int32_t numCiftiNodes = -1;
+    int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
     
-    switch (m_brainordinateMappedDataAccess) {
-        case DATA_ACCESS_INVALID:
-            break;
-        case DATA_ACCESS_WITH_COLUMN_METHODS:
-            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
-            break;
-        case DATA_ACCESS_WITH_ROW_METHODS:
-            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
-            break;
-    }
+//    switch (m_brainordinateMappedDataAccess) {
+//        case DATA_ACCESS_INVALID:
+//            break;
+//        case DATA_ACCESS_WITH_COLUMN_METHODS:
+//            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+//            break;
+//        case DATA_ACCESS_WITH_ROW_METHODS:
+//            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+//            break;
+//    }
+    
     if (numCiftiNodes > 0) {
         return true;
     }
@@ -2226,21 +2227,21 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
 
     const CiftiXMLOld& ciftiXML = m_ciftiInterface->getCiftiXMLOld();
     
-    int32_t numCiftiNodes = -1;
+    const int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
     
-    /*
-     * Validate number of nodes are correct
-     */
-    switch (m_brainordinateMappedDataAccess) {
-        case DATA_ACCESS_INVALID:
-            break;
-        case DATA_ACCESS_WITH_COLUMN_METHODS:
-            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
-            break;
-        case DATA_ACCESS_WITH_ROW_METHODS:
-            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
-            break;
-    }
+//    /*
+//     * Validate number of nodes are correct
+//     */
+//    switch (m_brainordinateMappedDataAccess) {
+//        case DATA_ACCESS_INVALID:
+//            break;
+//        case DATA_ACCESS_WITH_COLUMN_METHODS:
+//            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+//            break;
+//        case DATA_ACCESS_WITH_ROW_METHODS:
+//            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+//            break;
+//    }
     
     if (numCiftiNodes != numberOfNodes) {
         return false;
@@ -2572,21 +2573,21 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
     
-    int32_t numCiftiNodes = -1;
+    const int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
     
-    /*
-     * Validate number of nodes are correct
-     */
-    switch (m_brainordinateMappedDataAccess) {
-        case DATA_ACCESS_INVALID:
-            break;
-        case DATA_ACCESS_WITH_COLUMN_METHODS:
-            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
-            break;
-        case DATA_ACCESS_WITH_ROW_METHODS:
-            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
-            break;
-    }
+//    /*
+//     * Validate number of nodes are correct
+//     */
+//    switch (m_brainordinateMappedDataAccess) {
+//        case DATA_ACCESS_INVALID:
+//            break;
+//        case DATA_ACCESS_WITH_COLUMN_METHODS:
+//            numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+//            break;
+//        case DATA_ACCESS_WITH_ROW_METHODS:
+//            numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+//            break;
+//    }
     
     if (numCiftiNodes != surfaceNumberOfNodes) {
         return false;
@@ -3379,8 +3380,7 @@ CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
 }
 
 /**
- * Get the number of nodes for the structure in this file.  This may be
- * from the row or column.
+ * Get the number of nodes for the structure for mapping data.
  *
  * @param structure
  *     Structure for which number of nodes is requested.
@@ -3389,16 +3389,41 @@ CiftiMappableDataFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
  *     is found, a negative value is returned.
  */
 int32_t
-CiftiMappableDataFile::getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+CiftiMappableDataFile::getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
-    CaretAssert(m_ciftiInterface);
+    /*
+     * Validate number of nodes are correct
+     */
+    int32_t numCiftiNodes = -1;
     
-    int32_t numNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
-    if (numNodes < 0) {
-        numNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+    switch (m_brainordinateMappedDataAccess) {
+        case DATA_ACCESS_INVALID:
+            break;
+        case DATA_ACCESS_WITH_COLUMN_METHODS:
+            if (m_ciftiInterface->hasColumnSurfaceData(structure)) {
+                numCiftiNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+            }
+            break;
+        case DATA_ACCESS_WITH_ROW_METHODS:
+            if (m_ciftiInterface->hasRowSurfaceData(structure)) {
+                numCiftiNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+            }
+            break;
     }
     
-    return numNodes;
+    return numCiftiNodes;
+    
+//    CaretAssert(m_ciftiInterface);
+//    
+//    if (m_ciftiInterface->hasRowSurfaceData(structure)) {
+//    }
+//
+//    int32_t numNodes = m_ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+//    if (numNodes < 0) {
+//        numNodes = m_ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+//    }
+//    
+//    return numNodes;
 }
 
 CiftiMappableDataFile::SelectionMode 
@@ -3508,7 +3533,7 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
          iter != allStructures.end();
          iter++) {
-        const int32_t numNodes = getSurfaceNumberOfNodes(*iter);
+        const int32_t numNodes = getMappingSurfaceNumberOfNodes(*iter);
         if (numNodes > 0) {
             dataFileInformation.addNameAndValue(("Number of Vertices ("
                                                  + StructureEnum::toGuiName(*iter)

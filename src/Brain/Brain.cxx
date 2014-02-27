@@ -1407,7 +1407,7 @@ Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) 
         const StructureEnum::Enum structure = getBrainStructure(i)->getStructure();
         const int numNodes = getBrainStructure(i)->getNumberOfNodes();
         
-        const int numConnNodes = ciftiMapFile->getSurfaceNumberOfNodes(structure);
+        const int numConnNodes = ciftiMapFile->getMappingSurfaceNumberOfNodes(structure);
         if (numConnNodes > 0) {
             if (numNodes != numConnNodes) {
                 AString msg = ("The CIFTI file "
