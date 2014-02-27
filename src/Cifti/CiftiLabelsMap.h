@@ -49,7 +49,7 @@ namespace caret
         void clear();//do we need this?
         
         CiftiMappingType* clone() const { return new CiftiLabelsMap(*this); }
-        MappingType getType() const { return SCALARS; }
+        MappingType getType() const { return LABELS; }
         int64_t getLength() const { return m_maps.size(); }
         bool operator==(const CiftiMappingType& rhs) const;
         bool approximateMatch(const CiftiMappingType& rhs) const;
