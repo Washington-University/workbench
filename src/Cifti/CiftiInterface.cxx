@@ -315,14 +315,34 @@ bool CiftiInterface::getVolumeMapForColumns(vector<CiftiBrainModelsMap::VolumeMa
 
 int64_t CiftiInterface::getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
-    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::BRAIN_MODELS) return -1;
-    return m_xml.getBrainModelsMap(CiftiXML::ALONG_ROW).getSurfaceNumberOfNodes(structure);//will throw on structure missing
+    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::BRAIN_MODELS) {
+        return m_xml.getBrainModelsMap(CiftiXML::ALONG_ROW).getSurfaceNumberOfNodes(structure);//will throw on structure missing
+    }
+    
+    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::PARCELS) {
+        return m_xml.getParcelsMap(CiftiXML::ALONG_ROW).getSurfaceNumberOfNodes(structure);
+    }
+    
+    return -1;
+    
+//    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) != CiftiMappingType::BRAIN_MODELS) return -1;
+//    return m_xml.getBrainModelsMap(CiftiXML::ALONG_ROW).getSurfaceNumberOfNodes(structure);//will throw on structure missing
 }
 
 int64_t CiftiInterface::getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
-    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) return -1;
-    return m_xml.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure);//will throw on structure missing
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::BRAIN_MODELS) {
+        return m_xml.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure);//will throw on structure missing
+    }
+    
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS) {
+        return m_xml.getParcelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure);
+    }
+    
+    return -1;
+    
+//    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) return -1;
+//    return m_xml.getBrainModelsMap(CiftiXML::ALONG_COLUMN).getSurfaceNumberOfNodes(structure);//will throw on structure missing
 }
 
 bool CiftiInterface::getRowTimestep(float& seconds) const
