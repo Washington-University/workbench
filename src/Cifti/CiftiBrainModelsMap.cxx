@@ -252,7 +252,7 @@ int64_t CiftiBrainModelsMap::getSurfaceNumberOfNodes(const StructureEnum::Enum& 
     map<StructureEnum::Enum, int>::const_iterator iter = m_surfUsed.find(structure);
     if (iter == m_surfUsed.end())
     {
-        throw CaretException("getSurfaceNumberOfNodes called for nonexistant structure");//also throw, for consistency?
+        return -1;
     }
     CaretAssertVectorIndex(m_modelsInfo, iter->second);
     const BrainModelPriv& myModel = m_modelsInfo[iter->second];
