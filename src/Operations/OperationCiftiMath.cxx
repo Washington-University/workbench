@@ -100,8 +100,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     int numVars = myVarNames.size();
     vector<CiftiFile*> varCiftiFiles(numVars, (CiftiFile*)NULL);
     if (numInputs == 0) throw OperationException("you must specify at least one input file (-var), even if the expression doesn't use a variable");
-    CiftiFile* first = myVarOpts[0]->getCifti(2);
-    CiftiXML outXML, tempXML;
+    CiftiXML outXML;
     QString xmlText;
     vector<int64_t> outDims;//don't even assume 2 dimensions, in case someone makes a 1-d cifti
     vector<vector<int64_t> > selectInfo(numVars);
@@ -113,20 +112,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
         {
             throw OperationException("'" + varName + "' is a named constant equal to " + AString::number(constVal, 'g', 15) + ", please use a different variable name");
         }
-        myVarOpts[i]->getCifti(2)->getCiftiXMLOld().writeXML(xmlText);//transitional code until the new xml object replaces the old
-        tempXML.readXML(xmlText);//however, cifti-1 doesn't contain the length of series dimensions, so check for this
-        if (tempXML.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
-        {
-            CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_ROW);
-            tempMap.setLength(first->getCiftiXMLOld().getDimensionLength(CiftiXMLOld::ALONG_ROW));
-            tempXML.setMap(CiftiXML::ALONG_ROW, tempMap);
-        }
-        if (tempXML.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
-        {
-            CiftiSeriesMap tempMap = tempXML.getSeriesMap(CiftiXML::ALONG_COLUMN);
-            tempMap.setLength(first->getCiftiXMLOld().getDimensionLength(CiftiXMLOld::ALONG_COLUMN));
-            tempXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
-        }//end transitional code
+        const CiftiXML& tempXML = myVarOpts[i]->getCifti(2)->getCiftiXML();
         int thisNumDims = tempXML.getNumberOfDimensions();
         vector<int64_t> thisSelectInfo(thisNumDims, -1);
         vector<bool> thisRepeat(thisNumDims, false);
@@ -230,7 +216,6 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
             }
         }
     }
-    if (numVars > 0 && varCiftiFiles[0] != NULL) first = varCiftiFiles[0];
     for (int i = 0; i < numVars; ++i)
     {
         if (varCiftiFiles[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
@@ -246,22 +231,9 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
             outXML.setMap(i, dummyMap);//so, make it a length-1 scalar with no name and empty metadata
         }
     }
-    if (outXML.getNumberOfDimensions() != 2)//transitional code back to old XML and CiftiMatrix
-    {
-        throw OperationException("output must have exactly 2 dimensions");
-    }
-    CiftiXMLOld outOldXML;
-    outOldXML.readXML(outXML.writeXMLToString(CiftiVersion(1, 0)));//force it to write as 1.0 so old XML understands it
-    if (outOldXML.getDimensionLength(CiftiXMLOld::ALONG_ROW) < 1)//it doesn't know timeseries length, so set it manually if needed
-    {
-        outOldXML.setRowNumberOfTimepoints(outXML.getDimensionLength(CiftiXML::ALONG_ROW));
-    }
-    if (outOldXML.getDimensionLength(CiftiXMLOld::ALONG_COLUMN) < 1)//ditto
-    {
-        outOldXML.setColumnNumberOfTimepoints(outXML.getDimensionLength(CiftiXML::ALONG_COLUMN));
-    }
-    myCiftiOut->setCiftiXML(outOldXML);
-    int numRows = outOldXML.getNumberOfRows(), numOutCols = outOldXML.getNumberOfColumns();
+    if (outXML.getNumberOfDimensions() != 2) throw OperationException("output must have exactly 2 dimensions");
+    myCiftiOut->setCiftiXML(outXML);
+    int numRows = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN), numOutCols = outXML.getDimensionLength(CiftiXML::ALONG_ROW);
     vector<float> values(numVars), scratchRow(numOutCols);
     vector<vector<float> > inputRows(numVars);
     for (int v = 0; v < numVars; ++v)//HACK: this code ONLY works in the 2D case, rework from here to the end when allowing 3+ dims
