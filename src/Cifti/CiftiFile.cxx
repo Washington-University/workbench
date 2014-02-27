@@ -199,12 +199,10 @@ void CiftiFile::setupMatrix()
 
     // update header struct dimensions and vox_offset
     CiftiHeader ciftiHeader;
-    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES || m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES)
-    {
-        ciftiHeader.initDenseTimeSeries();//TODO: replace with code to generate the correct intent code
-    } else {
-        ciftiHeader.initDenseConnectivity();
-    }
+    char name[17];//just to be safe, use one more char and make it null
+    name[16] = '\0';
+    ciftiHeader.setIntentCode(m_xml.getIntentInfo(m_writingVersion, name));
+    ciftiHeader.setIntentName(name);
     //populate header dimensions from the layout
     vector<int64_t> dim;
     int numDims = m_xml.getNumberOfDimensions();

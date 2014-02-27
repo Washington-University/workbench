@@ -210,6 +210,54 @@ void CiftiXML::readXML(const QByteArray& data)
     readXML(text);//then put it through the string reader, just to simplify code paths
 }
 
+int32_t CiftiXML::getIntentInfo(const CiftiVersion& writingVersion, char intentNameOut[16])
+{
+    int32_t ret;
+    const char* name = NULL;
+    if (writingVersion == CiftiVersion(1, 0))//cifti-1: unknown didn't exist, and "ConnDense" was default
+    {
+        ret = 3001;//default
+        name = "ConnDense";
+        if (getNumberOfDimensions() > 0 && getMappingType(0) == CiftiMappingType::SERIES) { ret = 3002; name = "ConnDenseTime"; }//same logic as was actually used in CiftiFile
+        if (getNumberOfDimensions() > 1 && getMappingType(1) == CiftiMappingType::SERIES) { ret = 3002; name = "ConnDenseTime"; }//NOTE: name for this code is different than cifti-2
+    } else if (writingVersion == CiftiVersion(1, 1) || writingVersion == CiftiVersion(2, 0)) {//cifti-2
+        ret = 3000;//default
+        name = "ConnUnknown";
+        switch (getNumberOfDimensions())
+        {
+            case 2:
+            {
+                CiftiMappingType::MappingType first = getMappingType(0), second = getMappingType(1);
+                if (first == CiftiMappingType::BRAIN_MODELS && second == CiftiMappingType::BRAIN_MODELS) { ret = 3001; name = "ConnDense"; }
+                if (first == CiftiMappingType::SERIES && second == CiftiMappingType::BRAIN_MODELS) { ret = 3002; name = "ConnDenseSeries"; }
+                if (first == CiftiMappingType::PARCELS && second == CiftiMappingType::PARCELS) { ret = 3003; name = "ConnParcels"; }
+                if (first == CiftiMappingType::SERIES && second == CiftiMappingType::PARCELS) { ret = 3004; name = "ConnParcelSries"; }//NOTE: 3005 is reserved but not used
+                if (first == CiftiMappingType::SCALARS && second == CiftiMappingType::BRAIN_MODELS) { ret = 3006; name = "ConnDenseScalar"; }
+                if (first == CiftiMappingType::LABELS && second == CiftiMappingType::BRAIN_MODELS) { ret = 3007; name = "ConnDenseLabel"; }
+                if (first == CiftiMappingType::SCALARS && second == CiftiMappingType::PARCELS) { ret = 3008; name = "ConnParcelScalr"; }
+                if (first == CiftiMappingType::BRAIN_MODELS && second == CiftiMappingType::PARCELS) { ret = 3009; name = "ConnParcelDense"; }
+                if (first == CiftiMappingType::PARCELS && second == CiftiMappingType::BRAIN_MODELS) { ret = 3010; name = "ConnDenseParcel"; }
+                break;
+            }
+            case 3:
+            {
+                CiftiMappingType::MappingType first = getMappingType(0), second = getMappingType(1), third = getMappingType(2);
+                if (first == CiftiMappingType::PARCELS && second == CiftiMappingType::PARCELS && third == CiftiMappingType::SERIES) { ret = 3011; name = "ConnPPSr"; }
+                if (first == CiftiMappingType::PARCELS && second == CiftiMappingType::PARCELS && third == CiftiMappingType::SCALARS) { ret = 3012; name = "ConnPPSc"; }
+                break;
+            }
+            default:
+                break;
+        }
+    } else {
+        throw CaretException("unknown cifti version: " + writingVersion.toString());
+    }
+    int i;
+    for (i = 0; i < 16 && name[i] != '\0'; ++i) intentNameOut[i] = name[i];
+    for (; i < 16; ++i) intentNameOut[i] = '\0';
+    return ret;
+}
+
 void CiftiXML::readXML(QXmlStreamReader& xml)
 {
     try

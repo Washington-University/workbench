@@ -395,6 +395,19 @@ void Nifti2Header::getComponentDimensions(int32_t &componentDimensionsOut) const
     if(m_header.datatype == NIFTI_TYPE_RGB24) componentDimensionsOut = 3;
 }
 
+void Nifti2Header::getIntentName(char nameOut[16]) const
+{
+    for (int i = 0; i < 16; ++i) nameOut[i] = m_header.intent_name[i];
+}
+
+void Nifti2Header::setIntentName(const char* nameIn)
+{
+    int i;
+    for (i = 0; i < 16 && nameIn[i] != '\0'; ++i) m_header.intent_name[i] = nameIn[i];
+    if (i == 16) CaretLogWarning("intent name may have clipped, and is missing a null terminator");//change if we ever use 16 character intent names
+    for (; i < 16; ++i) m_header.intent_name[i] = '\0';
+}
+
 void Nifti2Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(NiftiException)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array

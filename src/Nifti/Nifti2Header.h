@@ -76,6 +76,10 @@ public:
         if (ok) return ret;
         return NiftiIntentEnum::NIFTI_INTENT_NONE;
     }
+    int32_t getIntentCode() const { return m_header.intent_code; }
+    void setIntentCode(const int32_t& intentIn) { m_header.intent_code = intentIn; }
+    void getIntentName(char nameOut[16]) const;
+    void setIntentName(const char* nameIn);
     void operator=(const Nifti2Header &n2header) throw (NiftiException);
     void operator=(const Nifti1Header &n1header) throw (NiftiException);
 protected:

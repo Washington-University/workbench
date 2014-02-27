@@ -87,6 +87,9 @@ namespace caret
         QByteArray writeXMLToQByteArray(const CiftiVersion& writingVersion = CiftiVersion()) const;
         void writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersion = CiftiVersion()) const;
         
+        ///uses the mapping types to figure out what the intent info should be
+        int32_t getIntentInfo(const CiftiVersion& writingVersion, char intentNameOut[16]);
+        
         CiftiXML() { }
         CiftiXML(const CiftiXML& rhs);
         CiftiXML& operator=(const CiftiXML& rhs);
