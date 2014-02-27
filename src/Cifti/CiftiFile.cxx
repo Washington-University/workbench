@@ -128,10 +128,9 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
             inputFile.read((char *)&ecode,4);
             if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
             if((int32_t)ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extension.  Extension Code is not Cifti.");//TODO: not assume that the first (only) extension is cifti
-            QByteArray bytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
-            inputFile.close();
-            m_xml.readXML(bytes);
-            
+            m_xmlBytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
+            inputFile.close();//HACK: we read the bytes into the member xml byte storage because writeFile always rewrites the header for some reason, and this is easier than reengineering it
+            m_xml.readXML(m_xmlBytes);
         }
         
         //set up Matrix for reading..
