@@ -483,11 +483,13 @@ void VolumeSpace::writeCiftiXML1(QXmlStreamWriter& xml) const
     AString matrixString;
     for (int j = 0; j < 3; ++j)
     {
+        matrixString += "\n";
         for (int i = 0; i < 4; ++i)
         {
             matrixString += AString::number(m_sform[j][i], 'f', 10) + " ";
         }
     }
+    matrixString += "\n";
     for (int i = 0; i < 3; ++i)
     {
         matrixString += AString::number(0.0f, 'f', 10) + " ";
@@ -521,11 +523,13 @@ void VolumeSpace::writeCiftiXML2(QXmlStreamWriter& xml) const
     AString matrixString;
     for (int j = 0; j < 3; ++j)
     {
+        matrixString += "\n";
         for (int i = 0; i < 4; ++i)
         {
             matrixString += AString::number(m_sform[j][i] * multiplier, 'f', 10) + " ";
         }
     }
+    matrixString += "\n";
     for (int i = 0; i < 3; ++i)
     {
         matrixString += AString::number(0.0f, 'f', 10) + " ";
