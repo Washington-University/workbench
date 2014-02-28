@@ -579,9 +579,17 @@ GuiManager::exitProgram(QWidget* parent)
         
     }
     else {
-        okToExit =
-        WuQMessageBox::warningOkCancel(parent,
-                                       "<html>Closing this window will<br>exit the application.</html>");
+        const AString msg = ("<html>"
+                             "Closing this window will exit the application.<p>"
+                             "Did you create or update a scene file for the analyses "
+                             "you were just working on? Scenes can reduce setup time "
+                             "when returning to this dataset for further analysis. They "
+                             "are especially useful during manuscript preparation "
+                             "because each scene can regenerate exactly what is displayed "
+                             "in the current version of a figure."
+                             "</html>");
+        okToExit = WuQMessageBox::warningOkCancel(parent,
+                                                  msg);
     }
     
     if (okToExit) {
