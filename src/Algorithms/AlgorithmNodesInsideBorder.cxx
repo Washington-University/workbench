@@ -191,6 +191,29 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
     }
     numberOfPointsInBorder = static_cast<int32_t>(nodesAlongBorder.size());
     
+    findNodesEnclosedByUnconnectedPath(surfaceFile,
+                                       nodesAlongBorder,
+                                       nodesInsideBorderOut);
+}
+
+/**
+ * Given an path consisting of unconnected nodes, create a path
+ * that connectects the nodes.
+ *
+ * @param surfaceFile
+ *    Surface whose topology is used for finding the path.
+ * @param unconnectedNodesPath
+ *    Input consisting of the unconnected nodes path.
+ * @param connectedNodesPathOut
+ *    Output connected nodes path.
+ */
+void
+AlgorithmNodesInsideBorder::createConnectedNodesPath(const SurfaceFile* surfaceFile,
+                                                     const std::vector<int32_t>& unconnectedNodesPath,
+                                                     std::vector<int32_t>& connectedNodesPathOut)
+{
+    connectedNodesPathOut.clear();
+    
     /*
      * Geodesic helper for surface
      */
@@ -199,28 +222,28 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
     /*
      * Find connected path along node neighbors
      */
-    std::vector<int32_t> connectedPathNodes;
-    for (int32_t i = 0; i < numberOfPointsInBorder; i++) {
-        const int node = nodesAlongBorder[i];
+    const int32_t numberOfNodesInUnconnectedPath = static_cast<int32_t>(unconnectedNodesPath.size());
+    for (int32_t i = 0; i < numberOfNodesInUnconnectedPath; i++) {
+        const int node = unconnectedNodesPath[i];
         int nextNode = -1;
-        const bool lastNodeFlag = (i >= (numberOfPointsInBorder - 1));
+        const bool lastNodeFlag = (i >= (numberOfNodesInUnconnectedPath - 1));
         if (lastNodeFlag) {
-            nextNode = nodesAlongBorder[0];
+            nextNode = unconnectedNodesPath[0];
         }
         else {
-            nextNode = nodesAlongBorder[i + 1];
+            nextNode = unconnectedNodesPath[i + 1];
         }
-
+        
         /*
          * Find path from node to next node
          */
-        connectedPathNodes.push_back(node);
+        connectedNodesPathOut.push_back(node);
         if (node != nextNode) {
             std::vector<float> distances;
             std::vector<int32_t> parentNodes;
-            geodesicHelper->getGeoFromNode(node, 
-                                           distances, 
-                                           parentNodes, 
+            geodesicHelper->getGeoFromNode(node,
+                                           distances,
+                                           parentNodes,
                                            false);
             
             bool doneFlag = false;
@@ -247,75 +270,138 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
             
             const int32_t numberOfPathNodes = static_cast<int32_t>(pathFromNextNodeToNode.size());
             for (int32_t i = (numberOfPathNodes - 1); i >= 0; i--) {
-                connectedPathNodes.push_back(pathFromNextNodeToNode[i]);
+                connectedNodesPathOut.push_back(pathFromNextNodeToNode[i]);
             }
         }
     }
     
-    /* 
+    /*
      * Remove duplicates.
      */
-    this->cleanConnectedNodesPath(connectedPathNodes);
+    this->cleanConnectedNodesPath(connectedNodesPathOut);
     
     /*
      * Valid that the path nodes are connected.
      */
-    this->validateConnectedNodesPath(surfaceFile, 
-                                     connectedPathNodes);
+    this->validateConnectedNodesPath(surfaceFile,
+                                     connectedNodesPathOut);
     
-//    if (connectedPathNodes.size() > 0) {
-//        nodesInsideBorderOut.insert(nodesInsideBorderOut.end(),
-//                                    connectedPathNodes.begin(),
-//                                    connectedPathNodes.end());
-//        return;
-//    }
+}
+
+/**
+ * Find the nodes inside the unconnected path on the surface.
+ *
+ * @param surfaceFile
+ *    Surface file for nodes inside connected path.
+ * @param unconnectedNodesPath
+ *    Unconnected path for which nodes inside are found.
+ * @param nodesEnclosedByPathOut
+ *    Nodes enclosed by the path.
+ */
+void
+AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPath(const SurfaceFile* surfaceFile,
+                                                               const std::vector<int32_t>& unconnectedNodesPath,
+                                                               std::vector<int32_t>& nodesEnclosedByPathOut)
+{
+    /*
+     * Find the nodes enclosed by the unconnected path
+     * assuming the path is oriented counter-clockwise
+     */
+    findNodesEnclosedByUnconnectedPathCCW(surfaceFile,
+                                          unconnectedNodesPath,
+                                          nodesEnclosedByPathOut);
     
     /*
-     * Log the path.
+     * If the number of nodes enclosed by the connected path is greater
+     * than HALF the number of nodes in the surface, then the path is
+     * likely clockwise so reverse the unconnected path and try again.
      */
-    int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedPathNodes.size());
-    if (numberOfNodesInConnectedPath >= 4) {
-        if (CaretLogger::getLogger()->isFiner()) {
-            AString text;
-            text.reserve(10000);
-            text += ("Vertices in path (count="
-                     + AString::number(numberOfNodesInConnectedPath)
-                     + "):");
-            for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
-                text += (" " + AString::number(connectedPathNodes[i]));
-            }
-            CaretLogFiner(text);
-        }
+    const int32_t halfNumberOfSurfaceNodes = surfaceFile->getNumberOfNodes() / 2;
+    if (static_cast<int32_t>(nodesEnclosedByPathOut.size()) > halfNumberOfSurfaceNodes) {
+        std::vector<int32_t> reversedUnconnectedNodesPath = unconnectedNodesPath;
+        std::reverse(reversedUnconnectedNodesPath.begin(),
+                     reversedUnconnectedNodesPath.end());
         
-        /*
-         * Determine the nodes inside the connected path
-         */
-        this->findNodesInConnectedNodesPath(surfaceFile,
-                                            connectedPathNodes,
-                                            nodesInsideBorderOut);
-        
-        const int32_t numberOfNodesInside = static_cast<int32_t>(nodesInsideBorderOut.size());
-        
-        if (CaretLogger::getLogger()->isFiner()) {
-            AString text;
-            text.reserve(20000);
-            text = ("Vertices INSIDE border (count="
-                    + AString::number(numberOfNodesInside)
-                    + "):");
-            for (int32_t i = 0; i < numberOfNodesInside; i++) {
-                text += (" " + AString::number(nodesInsideBorderOut[i]));
-            }
-            CaretLogFiner(text);
-        }
+        findNodesEnclosedByUnconnectedPathCCW(surfaceFile,
+                                              reversedUnconnectedNodesPath,
+                                              nodesEnclosedByPathOut);
     }
-    else {
-        throw AlgorithmException("Connected path along border is too small "
-                                 "as it consists of four or fewer vertices.");
+
+    /*
+     * User requested inverse (nodes outside path)
+     */
+    if (this->isInverseSelection) {
+        /*
+         * Get the topology helper for the surface with neighbors sorted.
+         */
+        CaretPointer<TopologyHelper> th = surfaceFile->getTopologyHelper(true);
+        
+        const int32_t numberOfNodes = surfaceFile->getNumberOfNodes();
+        std::vector<bool> insideROI(numberOfNodes,
+                                    true);
+
+        for (std::vector<int32_t>::iterator iter = nodesEnclosedByPathOut.begin();
+             iter != nodesEnclosedByPathOut.end();
+             iter++) {
+            const int32_t nodeIndex = *iter;
+            CaretAssertVectorIndex(insideROI, nodeIndex);
+            insideROI[nodeIndex] = false;
+        }
+
+        nodesEnclosedByPathOut.clear();
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            CaretAssertVectorIndex(insideROI, i);
+            if (insideROI[i]) {
+                if (th->getNodeHasNeighbors(i)) {
+                    nodesEnclosedByPathOut.push_back(i);
+                }
+            }
+        }
     }
 }
 
 /**
- * Find the nodes inside the connected path on the surface.
+ * Find the nodes inside the unconnected path on the surface.
+ *
+ * @param surfaceFile
+ *    Surface file for nodes inside connected path.
+ * @param unconnectedNodesPath
+ *    Unconnected path for which nodes inside are found.
+ * @param nodesEnclosedByPathOut
+ *    Nodes enclosed by the path.
+ */
+void
+AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceFile* surfaceFile,
+                                                                  const std::vector<int32_t>& unconnectedNodesPath,
+                                                                  std::vector<int32_t>& nodesEnclosedByPathOut)
+{
+    nodesEnclosedByPathOut.clear();
+    
+    /*
+     * Convert the unconnected nodes path into a connected nodes path
+     */
+    std::vector<int32_t> connectedNodesPath;
+    createConnectedNodesPath(surfaceFile,
+                             unconnectedNodesPath,
+                             connectedNodesPath);
+    
+    int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+    if (numberOfNodesInConnectedPath < 4) {
+        throw AlgorithmException("Connected path is too small "
+                                 "as it consists of fewer than four vertices.");
+    }
+    
+    /*
+     * Determine the nodes inside the connected path
+     */
+    this->findNodesEnclosedByConnectedNodesPathCounterClockwise(surfaceFile,
+                                                connectedNodesPath,
+                                                nodesEnclosedByPathOut);
+}
+
+/**
+ * Find the nodes inside the connected path on the surface assuming the
+ * path is counter-clockwise around the region.
  *
  * @param surfaceFile
  *    Surface file for nodes inside connected path.
@@ -325,7 +411,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
  *    Vector into which nodes inside connected path are loaded.
  */
 void 
-AlgorithmNodesInsideBorder::findNodesInConnectedNodesPath(const SurfaceFile* surfaceFile,
+AlgorithmNodesInsideBorder::findNodesEnclosedByConnectedNodesPathCounterClockwise(const SurfaceFile* surfaceFile,
                                                           const std::vector<int32_t>& connectedNodesPath,
                                                           std::vector<int32_t>& nodesInsidePathOut)
 {
@@ -452,36 +538,6 @@ AlgorithmNodesInsideBorder::findNodesInConnectedNodesPath(const SurfaceFile* sur
     }
     
     /*
-     * Count nodes in path
-     */
-    int32_t insideCount = 0;
-    for (int32_t i = 0; i < numberOfNodes; i++) {
-        if (inside[i]) {
-            insideCount++;
-        }
-    }
-    
-    /*
-     * If more than half of nodes inside, it is likely
-     * that the user drew the path clockwise so invert
-     * the selected nodes.
-     */
-    if (insideCount > (numberOfNodes / 2)) {
-        for (int32_t i = 0; i < numberOfNodes; i++) {
-            inside[i] = (! inside[i]);
-        }
-    }
-    
-    /*
-     * User requested inverse?
-     */
-    if (this->isInverseSelection) {
-        for (int32_t i = 0; i < numberOfNodes; i++) {
-            inside[i] = (! inside[i]);
-        }
-    }
-    
-    /*
      * Return nodes inside the path
      */
     for (int32_t i = 0; i < numberOfNodes; i++) {
@@ -508,16 +564,6 @@ AlgorithmNodesInsideBorder::cleanConnectedNodesPath(std::vector<int32_t>& connec
     std::unique_copy(path.begin(),
                      path.end(),
                      back_inserter(connectedNodesPath));
-    
-//    /*
-//     * Remove last node if it is the same as the first node
-//     */
-//    const int32_t numNodes = static_cast<int32_t>(connectedNodesPath.size());
-//    if (numNodes > 1) {
-//        if (connectedNodesPath[0] == connectedNodesPath[numNodes - 1]) {
-//            connectedNodesPath.resize(numNodes - 1);
-//        }
-//    }
 }
 
 /**

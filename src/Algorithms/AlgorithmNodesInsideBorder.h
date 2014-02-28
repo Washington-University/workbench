@@ -69,9 +69,25 @@ namespace caret {
                                    const Border* border,
                                    std::vector<int32_t>& nodesInsideBorderOut);
         
-        void findNodesInConnectedNodesPath(const SurfaceFile* surfaceFile,
+        void findNodesEnclosedByUnconnectedPath(const SurfaceFile* surfaceFile,
+                                                   const std::vector<int32_t>& unconnectedNodesPath,
+                                                   std::vector<int32_t>& nodesEnclosedByPathOut);
+        
+        void findNodesEnclosedByUnconnectedPathCCW(const SurfaceFile* surfaceFile,
+                                                   const std::vector<int32_t>& unconnectedNodesPath,
+                                                   std::vector<int32_t>& nodesEnclosedByPathOut);
+        
+//        void findNodesEnclosedByConnectedNodesPath(const SurfaceFile* surfaceFile,
+//                                           const std::vector<int32_t>& connectedNodesPath,
+//                                           std::vector<int32_t>& nodesInsidePathOut);
+        
+        void findNodesEnclosedByConnectedNodesPathCounterClockwise(const SurfaceFile* surfaceFile,
                                            const std::vector<int32_t>& connectedNodesPath,
                                            std::vector<int32_t>& nodesInsidePathOut);
+        
+        void createConnectedNodesPath(const SurfaceFile* surfaceFile,
+                                      const std::vector<int32_t>& unconnectedNodesPath,
+                                      std::vector<int32_t>& connectedNodesPathOut);
         
         void cleanConnectedNodesPath(std::vector<int32_t>& connectedNodesPath);
         
