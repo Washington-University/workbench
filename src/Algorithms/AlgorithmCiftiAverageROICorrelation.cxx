@@ -306,11 +306,11 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     LevelProgress myProgress(myProgObj);
     int numCifti = (int)ciftiList.size();
     if (numCifti < 1) throw AlgorithmException("no cifti files specified to average");
-    const CiftiXMLOld& baseXML = ciftiList[0]->getCiftiXMLOld();
+    const CiftiXMLOld baseXML = ciftiList[0]->getCiftiXMLOld(), roiXML = ciftiROI->getCiftiXMLOld();
     int rowSize = baseXML.getNumberOfColumns();
     int colSize = baseXML.getNumberOfRows();
     int numMaps = ciftiROI->getNumberOfColumns();
-    if (!baseXML.mappingMatches(CiftiXMLOld::ALONG_COLUMN, ciftiROI->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("cifti roi doesn't match cifti space of data");
+    if (!baseXML.mappingMatches(CiftiXMLOld::ALONG_COLUMN, roiXML, CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("cifti roi doesn't match cifti space of data");
     for (int i = 1; i < numCifti; ++i)
     {
         if (!baseXML.mappingMatches(CiftiXMLOld::ALONG_COLUMN, ciftiList[i]->getCiftiXMLOld(), CiftiXMLOld::ALONG_COLUMN)) throw AlgorithmException("cifti space does not match between cifti #1 and #" + AString::number(i + 1));
@@ -350,7 +350,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     newXml.resetRowsToScalars(numMaps);
     for (int i = 0; i < numMaps; ++i)
     {
-        newXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, ciftiROI->getCiftiXMLOld().getMapNameForRowIndex(i));
+        newXml.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, i, roiXML.getMapNameForRowIndex(i));
     }
     ciftiOut->setCiftiXML(newXml);
     if (numCifti > 1)//skip averaging in single subject case
@@ -545,7 +545,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
             }
         }
         vector<CiftiVolumeMap> myMap;
-        ciftiROI->getCiftiXMLOld().getVolumeMap(CiftiXMLOld::ALONG_COLUMN, myMap);
+        roiXML.getVolumeMap(CiftiXMLOld::ALONG_COLUMN, myMap);
         for (int i = 0; i < (int)myMap.size(); ++i)
         {
             bool dataLoaded = false;
