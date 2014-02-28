@@ -110,7 +110,7 @@ AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector
     {
         CaretAssert(ciftiList[i] != NULL);
         const CiftiXML& listXML = ciftiList[i]->getCiftiXML();
-        if (baseXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*(listXML.getMap(CiftiXML::ALONG_COLUMN))) || baseXML.getMappingType(CiftiXML::ALONG_ROW) != listXML.getMappingType(CiftiXML::ALONG_ROW))
+        if (!baseXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*(listXML.getMap(CiftiXML::ALONG_COLUMN))) || baseXML.getMappingType(CiftiXML::ALONG_ROW) != listXML.getMappingType(CiftiXML::ALONG_ROW))
         {
             throw AlgorithmException("cifti files do not match");
         }
