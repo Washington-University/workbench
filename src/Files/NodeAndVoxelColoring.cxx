@@ -432,7 +432,10 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
 //}
 
 /**
- * Color scalars using a palette.
+ * Color scalars using a palette that accepts a void* type for the 
+ * color array to that multiple data types are supported without
+ * having to allocate memory for conversion to one data type or 
+ * the other nor duplicate lots of code for each data type.
  *
  * @param statistics
  *    Descriptive statistics for min/max values.
@@ -448,22 +451,23 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
  *    Number of elements is 'numberOfScalars'.
  * @param numberOfScalars
  *    Number of scalars and thresholds.
- * @param rgbaOut
- *    RGBA Colors that are output.  The alpha
- *    value will be negative if the scalar does
- *    not receive any coloring.
- *    Number of elements is 'numberOfScalars' * 4.
+ * @param colorDataType
+ *    Data type of the rgbaOut parameter
+ * @param rgbaOutPointer
+ *    RGBA Colors that are output.  This is a VOID type and its
+ *    true type is provided by the previous parameter colorDataType.
  * @param ignoreThresholding
  *    If true, skip all threshold testing
  */
-void 
-NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
+void
+NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* statistics,
                                               const PaletteColorMapping* paletteColorMapping,
                                               const Palette* palette,
                                               const float* scalarValues,
                                               const float* thresholdValues,
                                               const int64_t numberOfScalars,
-                                              float* rgbaOut,
+                                              const ColorDataType colorDataType,
+                                              void* rgbaOutPointer,
                                               const bool ignoreThresholding)
 {
     if (numberOfScalars <= 0) {
@@ -475,15 +479,29 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
     CaretAssert(palette);
     CaretAssert(scalarValues);
     CaretAssert(thresholdValues);
-    CaretAssert(rgbaOut);
-        
+    CaretAssert(rgbaOutPointer);
+    
+    /*
+     * Cast to data type for rgba coloring
+     */
+    float* rgbaFloat = NULL;
+    uint8_t* rgbaUnsignedByte = NULL;
+    switch (colorDataType) {
+        case COLOR_TYPE_FLOAT:
+            rgbaFloat = (float*)rgbaOutPointer;
+            break;
+        case COLOR_TYPE_UNSIGNED_BTYE:
+            rgbaUnsignedByte = (uint8_t*)rgbaOutPointer;
+            break;
+    }
+    
     /*
      * Type of threshold testing
      */
     bool showOutsideFlag = false;
     const PaletteThresholdTestEnum::Enum thresholdTest = paletteColorMapping->getThresholdTest();
     switch (thresholdTest) {
-        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:                
+        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
             showOutsideFlag = true;
             break;
         case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
@@ -522,11 +540,11 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
      * Convert data values to normalized palette values.
      */
     std::vector<float> normalizedValues(numberOfScalars);
-    paletteColorMapping->mapDataToPaletteNormalizedValues(statistics, 
-                                                          scalarValues, 
-                                                          &normalizedValues[0], 
+    paletteColorMapping->mapDataToPaletteNormalizedValues(statistics,
+                                                          scalarValues,
+                                                          &normalizedValues[0],
                                                           numberOfScalars);
-
+    
     /*
      * Get color for normalized values of -1.0 and 1.0.
      * Since there may be a large number of values that are -1.0 or 1.0
@@ -548,12 +566,28 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
 #pragma omp CARET_FOR
 	for (int64_t i = 0; i < numberOfScalars; i++) {
         const int64_t i4 = i * 4;
-        rgbaOut[i4]   =  0.0;
-        rgbaOut[i4+1] =  0.0;
-        rgbaOut[i4+2] =  0.0;
-        rgbaOut[i4+3] = -1.0;
         
-        float scalar    = scalarValues[i];
+        /*
+         * Initialize coloring for node since one of the
+         * continue statements below may cause moving
+         * on to next node
+         */
+        switch (colorDataType) {
+            case COLOR_TYPE_FLOAT:
+                rgbaFloat[i4]   =  0.0;
+                rgbaFloat[i4+1] =  0.0;
+                rgbaFloat[i4+2] =  0.0;
+                rgbaFloat[i4+3] = -1.0;
+                break;
+            case COLOR_TYPE_UNSIGNED_BTYE:
+                rgbaUnsignedByte[i4]   =  0;
+                rgbaUnsignedByte[i4+1] =  0;
+                rgbaUnsignedByte[i4+2] =  0;
+                rgbaUnsignedByte[i4+3] =  0;
+                break;
+        }
+        
+        float scalar = scalarValues[i];
         const float threshold = thresholdValues[i];
         
         /*
@@ -579,6 +613,17 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
             }
         }
         
+        /*
+         * Temporary for rgba coloring now that past possible
+         * continue statements
+         */
+        float rgbaOut[4] = {
+             0.0,
+             0.0,
+             0.0,
+            -1.0
+        };
+        
         const float normalValue = normalizedValues[i];
         
         /*
@@ -586,18 +631,18 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
          */
         if (normalValue >= 1.0) {
             if (rgbaPositiveOneValid) {
-                rgbaOut[i4]   = rgbaPositiveOne[0];
-                rgbaOut[i4+1] = rgbaPositiveOne[1];
-                rgbaOut[i4+2] = rgbaPositiveOne[2];
-                rgbaOut[i4+3] = rgbaPositiveOne[3];
+                rgbaOut[0] = rgbaPositiveOne[0];
+                rgbaOut[1] = rgbaPositiveOne[1];
+                rgbaOut[2] = rgbaPositiveOne[2];
+                rgbaOut[3] = rgbaPositiveOne[3];
             }
         }
         else if (normalValue <= -1.0) {
             if (rgbaNegativeOneValid) {
-                rgbaOut[i4]   = rgbaNegativeOne[0];
-                rgbaOut[i4+1] = rgbaNegativeOne[1];
-                rgbaOut[i4+2] = rgbaNegativeOne[2];
-                rgbaOut[i4+3] = rgbaNegativeOne[3];
+                rgbaOut[0] = rgbaNegativeOne[0];
+                rgbaOut[1] = rgbaNegativeOne[1];
+                rgbaOut[2] = rgbaNegativeOne[2];
+                rgbaOut[3] = rgbaNegativeOne[3];
             }
         }
         else {
@@ -609,10 +654,10 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                      interpolateFlag,
                                      rgba);
             if (rgba[3] > 0.0f) {
-                rgbaOut[i4]   = rgba[0];
-                rgbaOut[i4+1] = rgba[1];
-                rgbaOut[i4+2] = rgba[2];
-                rgbaOut[i4+3] = rgba[3];
+                rgbaOut[0] = rgba[0];
+                rgbaOut[1] = rgba[1];
+                rgbaOut[2] = rgba[2];
+                rgbaOut[3] = rgba[3];
             }
         }
         
@@ -640,31 +685,304 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
             }
         }
         if (thresholdPassedFlag == false) {
-            rgbaOut[i4+3] = -1.0;
+            rgbaOut[3] = -1.0;
             if (showMappedThresholdFailuresInGreen) {
                 if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
                     if (threshold > 0.0f) {
                         if ((threshold < thresholdMappedPositive) &&
                             (threshold > thresholdMappedPositiveAverageArea)) {
-                            rgbaOut[i4]   = positiveThresholdGreenColor[0];
-                            rgbaOut[i4+1] = positiveThresholdGreenColor[1];
-                            rgbaOut[i4+2] = positiveThresholdGreenColor[2];
-                            rgbaOut[i4+3] = positiveThresholdGreenColor[3];
+                            rgbaOut[0] = positiveThresholdGreenColor[0];
+                            rgbaOut[1] = positiveThresholdGreenColor[1];
+                            rgbaOut[2] = positiveThresholdGreenColor[2];
+                            rgbaOut[3] = positiveThresholdGreenColor[3];
                         }
                     }
                     else if (threshold < 0.0f) {
                         if ((threshold > thresholdMappedNegative) &&
                             (threshold < thresholdMappedNegativeAverageArea)) {
-                            rgbaOut[i4]   = negativeThresholdGreenColor[0];
-                            rgbaOut[i4+1] = negativeThresholdGreenColor[1];
-                            rgbaOut[i4+2] = negativeThresholdGreenColor[2];
-                            rgbaOut[i4+3] = negativeThresholdGreenColor[3];
+                            rgbaOut[0] = negativeThresholdGreenColor[0];
+                            rgbaOut[1] = negativeThresholdGreenColor[1];
+                            rgbaOut[2] = negativeThresholdGreenColor[2];
+                            rgbaOut[3] = negativeThresholdGreenColor[3];
                         }
                     }
                 }
             }
         }
+
+        switch (colorDataType) {
+            case COLOR_TYPE_FLOAT:
+                rgbaFloat[i4]   = rgbaOut[0];
+                rgbaFloat[i4+1] = rgbaOut[1];
+                rgbaFloat[i4+2] = rgbaOut[2];
+                rgbaFloat[i4+3] = rgbaOut[3];
+                break;
+            case COLOR_TYPE_UNSIGNED_BTYE:
+                rgbaUnsignedByte[i4]   = rgbaOut[0] * 255.0;
+                rgbaUnsignedByte[i4+1] = rgbaOut[1] * 255.0;
+                rgbaUnsignedByte[i4+2] = rgbaOut[2] * 255.0;
+                if (rgbaOut[3] > 0.0) {
+                    rgbaUnsignedByte[i4+3] = rgbaOut[3] * 255.0;
+                }
+                else {
+                    rgbaUnsignedByte[i4+3] = 0;
+                }
+                break;
+        }
     }
+}
+
+
+
+/**
+ * Color scalars using a palette.
+ *
+ * @param statistics
+ *    Descriptive statistics for min/max values.
+ * @param paletteColorMapping
+ *    Specifies mapping of scalars to palette colors.
+ * @param palette
+ *    Color palette used to map scalars to colors.
+ * @param scalarValues
+ *    Scalars that are used to color the values.
+ *    Number of elements is 'numberOfScalars'.
+ * @param thresholdValues
+ *    Thresholds for inhibiting coloring.
+ *    Number of elements is 'numberOfScalars'.
+ * @param numberOfScalars
+ *    Number of scalars and thresholds.
+ * @param rgbaOut
+ *    RGBA Colors that are output.  The alpha
+ *    value will be negative if the scalar does
+ *    not receive any coloring.
+ *    Number of elements is 'numberOfScalars' * 4.
+ * @param ignoreThresholding
+ *    If true, skip all threshold testing
+ */
+void 
+NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
+                                              const PaletteColorMapping* paletteColorMapping,
+                                              const Palette* palette,
+                                              const float* scalarValues,
+                                              const float* thresholdValues,
+                                              const int64_t numberOfScalars,
+                                              float* rgbaOut,
+                                              const bool ignoreThresholding)
+{
+    colorScalarsWithPalettePrivate(statistics,
+                                   paletteColorMapping,
+                                   palette,
+                                   scalarValues,
+                                   thresholdValues,
+                                   numberOfScalars,
+                                   COLOR_TYPE_FLOAT,
+                                   (void*)rgbaOut,
+                                   ignoreThresholding);
+    
+    
+    
+    
+    
+    
+//    if (numberOfScalars <= 0) {
+//        return;
+//    }
+//    
+//    CaretAssert(statistics);
+//    CaretAssert(paletteColorMapping);
+//    CaretAssert(palette);
+//    CaretAssert(scalarValues);
+//    CaretAssert(thresholdValues);
+//    CaretAssert(rgbaOut);
+//        
+//    /*
+//     * Type of threshold testing
+//     */
+//    bool showOutsideFlag = false;
+//    const PaletteThresholdTestEnum::Enum thresholdTest = paletteColorMapping->getThresholdTest();
+//    switch (thresholdTest) {
+//        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:                
+//            showOutsideFlag = true;
+//            break;
+//        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+//            showOutsideFlag = false;
+//            break;
+//    }
+//    
+//    /*
+//     * Range of values allowed by thresholding
+//     */
+//    const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
+//    const float thresholdMinimum = paletteColorMapping->getThresholdMinimum(thresholdType);
+//    const float thresholdMaximum = paletteColorMapping->getThresholdMaximum(thresholdType);
+//    const float thresholdMappedPositive = paletteColorMapping->getThresholdMappedMaximum();
+//    const float thresholdMappedPositiveAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
+//    const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedMinimum();
+//    const float thresholdMappedNegativeAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
+//    const bool showMappedThresholdFailuresInGreen = paletteColorMapping->isShowThresholdFailureInGreen();
+//    
+//    /*
+//     * Skip threshold testing?
+//     */
+//    const bool skipThresholdTesting = (ignoreThresholding
+//                                       || (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF));
+//    
+//    /*
+//     * Display of negative, zero, and positive values allowed.
+//     */
+//    const bool hidePositiveValues = (paletteColorMapping->isDisplayPositiveDataFlag() == false);
+//    const bool hideNegativeValues = (paletteColorMapping->isDisplayNegativeDataFlag() == false);
+//    const bool hideZeroValues =     (paletteColorMapping->isDisplayZeroDataFlag() == false);
+//    
+//    const bool interpolateFlag = paletteColorMapping->isInterpolatePaletteFlag();
+//    
+//    /*
+//     * Convert data values to normalized palette values.
+//     */
+//    std::vector<float> normalizedValues(numberOfScalars);
+//    paletteColorMapping->mapDataToPaletteNormalizedValues(statistics, 
+//                                                          scalarValues, 
+//                                                          &normalizedValues[0], 
+//                                                          numberOfScalars);
+//
+//    /*
+//     * Get color for normalized values of -1.0 and 1.0.
+//     * Since there may be a large number of values that are -1.0 or 1.0
+//     * we can compute the color only once for these values and save time.
+//     */
+//    float rgbaPositiveOne[4], rgbaNegativeOne[4];
+//    palette->getPaletteColor(1.0,
+//                             interpolateFlag,
+//                             rgbaPositiveOne);
+//    const bool rgbaPositiveOneValid = (rgbaPositiveOne[3] > 0.0);
+//    palette->getPaletteColor(-1.0,
+//                             interpolateFlag,
+//                             rgbaNegativeOne);
+//    const bool rgbaNegativeOneValid = (rgbaNegativeOne[3] > 0.0);
+//    
+//    /*
+//     * Color all scalars.
+//     */
+//#pragma omp CARET_FOR
+//	for (int64_t i = 0; i < numberOfScalars; i++) {
+//        const int64_t i4 = i * 4;
+//        rgbaOut[i4]   =  0.0;
+//        rgbaOut[i4+1] =  0.0;
+//        rgbaOut[i4+2] =  0.0;
+//        rgbaOut[i4+3] = -1.0;
+//        
+//        float scalar    = scalarValues[i];
+//        const float threshold = thresholdValues[i];
+//        
+//        /*
+//         * Positive/Zero/Negative Test
+//         */
+//        if (scalar > NodeAndVoxelColoring::SMALL_POSITIVE) {
+//            if (hidePositiveValues) {
+//                continue;
+//            }
+//        }
+//        else if (scalar < NodeAndVoxelColoring::SMALL_NEGATIVE) {
+//            if (hideNegativeValues) {
+//                continue;
+//            }
+//        }
+//        else {
+//            /*
+//             * May be very near zero so force to zero.
+//             */
+//            normalizedValues[i] = 0.0;
+//            if (hideZeroValues) {
+//                continue;
+//            }
+//        }
+//        
+//        const float normalValue = normalizedValues[i];
+//        
+//        /*
+//         * RGBA colors have been mapped for extreme values
+//         */
+//        if (normalValue >= 1.0) {
+//            if (rgbaPositiveOneValid) {
+//                rgbaOut[i4]   = rgbaPositiveOne[0];
+//                rgbaOut[i4+1] = rgbaPositiveOne[1];
+//                rgbaOut[i4+2] = rgbaPositiveOne[2];
+//                rgbaOut[i4+3] = rgbaPositiveOne[3];
+//            }
+//        }
+//        else if (normalValue <= -1.0) {
+//            if (rgbaNegativeOneValid) {
+//                rgbaOut[i4]   = rgbaNegativeOne[0];
+//                rgbaOut[i4+1] = rgbaNegativeOne[1];
+//                rgbaOut[i4+2] = rgbaNegativeOne[2];
+//                rgbaOut[i4+3] = rgbaNegativeOne[3];
+//            }
+//        }
+//        else {
+//            /*
+//             * Color scalar using palette
+//             */
+//            float rgba[4];
+//            palette->getPaletteColor(normalValue,
+//                                     interpolateFlag,
+//                                     rgba);
+//            if (rgba[3] > 0.0f) {
+//                rgbaOut[i4]   = rgba[0];
+//                rgbaOut[i4+1] = rgba[1];
+//                rgbaOut[i4+2] = rgba[2];
+//                rgbaOut[i4+3] = rgba[3];
+//            }
+//        }
+//        
+//        /*
+//         * Threshold Test
+//         * Threshold is done last so colors are still set
+//         * but if threshold test fails, alpha is set invalid.
+//         */
+//        bool thresholdPassedFlag = false;
+//        if (skipThresholdTesting) {
+//            thresholdPassedFlag = true;
+//        }
+//        else if (showOutsideFlag) {
+//            if (threshold > thresholdMaximum) {
+//                thresholdPassedFlag = true;
+//            }
+//            else if (threshold < thresholdMinimum) {
+//                thresholdPassedFlag = true;
+//            }
+//        }
+//        else {
+//            if ((threshold >= thresholdMinimum) &&
+//                (threshold <= thresholdMaximum)) {
+//                thresholdPassedFlag = true;
+//            }
+//        }
+//        if (thresholdPassedFlag == false) {
+//            rgbaOut[i4+3] = -1.0;
+//            if (showMappedThresholdFailuresInGreen) {
+//                if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
+//                    if (threshold > 0.0f) {
+//                        if ((threshold < thresholdMappedPositive) &&
+//                            (threshold > thresholdMappedPositiveAverageArea)) {
+//                            rgbaOut[i4]   = positiveThresholdGreenColor[0];
+//                            rgbaOut[i4+1] = positiveThresholdGreenColor[1];
+//                            rgbaOut[i4+2] = positiveThresholdGreenColor[2];
+//                            rgbaOut[i4+3] = positiveThresholdGreenColor[3];
+//                        }
+//                    }
+//                    else if (threshold < 0.0f) {
+//                        if ((threshold > thresholdMappedNegative) &&
+//                            (threshold < thresholdMappedNegativeAverageArea)) {
+//                            rgbaOut[i4]   = negativeThresholdGreenColor[0];
+//                            rgbaOut[i4+1] = negativeThresholdGreenColor[1];
+//                            rgbaOut[i4+2] = negativeThresholdGreenColor[2];
+//                            rgbaOut[i4+3] = negativeThresholdGreenColor[3];
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 /**
@@ -702,30 +1020,40 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                                               uint8_t* rgbaOut,
                                               const bool ignoreThresholding)
 {
-    if (numberOfScalars <= 0) {
-        return;
-    }
-    const int64_t numRGBA = numberOfScalars * 4;
-    std::vector<float> rgbaFloatVector(numRGBA);
-    float* rgbaFloat = &rgbaFloatVector[0];
+    colorScalarsWithPalettePrivate(statistics,
+                                   paletteColorMapping,
+                                   palette,
+                                   scalarValues,
+                                   thresholdValues,
+                                   numberOfScalars,
+                                   COLOR_TYPE_UNSIGNED_BTYE,
+                                   (void*)rgbaOut,
+                                   ignoreThresholding);
     
-    NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
-                            paletteColorMapping,
-                            palette,
-                            scalarValues,
-                            thresholdValues,
-                            numberOfScalars,
-                            rgbaFloat,
-                            ignoreThresholding);
-    
-    for (int64_t i = 0; i < numRGBA; i++) {
-        if (rgbaFloat[i] < 0.0) {
-            rgbaOut[i] = 0;
-        }
-        else {
-            rgbaOut[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
-        }
-    }
+//    if (numberOfScalars <= 0) {
+//        return;
+//    }
+//    const int64_t numRGBA = numberOfScalars * 4;
+//    std::vector<float> rgbaFloatVector(numRGBA);
+//    float* rgbaFloat = &rgbaFloatVector[0];
+//    
+//    NodeAndVoxelColoring::colorScalarsWithPalette(statistics,
+//                            paletteColorMapping,
+//                            palette,
+//                            scalarValues,
+//                            thresholdValues,
+//                            numberOfScalars,
+//                            rgbaFloat,
+//                            ignoreThresholding);
+//    
+//    for (int64_t i = 0; i < numRGBA; i++) {
+//        if (rgbaFloat[i] < 0.0) {
+//            rgbaOut[i] = 0;
+//        }
+//        else {
+//            rgbaOut[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
+//        }
+//    }
 }
 
 /**

@@ -101,6 +101,21 @@ namespace caret {
                                                       const int64_t ydim);
         
     private:
+        enum ColorDataType {
+            COLOR_TYPE_FLOAT,
+            COLOR_TYPE_UNSIGNED_BTYE
+        };
+        
+        static void colorScalarsWithPalettePrivate(const FastStatistics* statistics,
+                                            const PaletteColorMapping* paletteColorMapping,
+                                            const Palette* palette,
+                                            const float* scalars,
+                                            const float* scalarThresholds,
+                                            const int64_t numberOfScalars,
+                                            const ColorDataType colorDataType,
+                                            void* rgbaOutPointer,
+                                            const bool ignoreThresholding);
+        
         NodeAndVoxelColoring();
         
         virtual ~NodeAndVoxelColoring();
