@@ -30,8 +30,8 @@ using namespace caret;
 
 CiftiVersion::CiftiVersion()
 {
-    m_major = 1;
-    m_minor = 1;
+    m_major = 2;
+    m_minor = 0;
 }
 
 CiftiVersion::CiftiVersion(const int16_t& major, const int16_t& minor)
