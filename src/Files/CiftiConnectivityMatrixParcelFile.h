@@ -34,7 +34,7 @@
  */
 /*LICENSE_END*/
 
-#include "ChartableInterface.h"
+#include "ChartableInterfaceMatrix.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 
 namespace caret {
@@ -42,7 +42,7 @@ namespace caret {
     class ChartDataMatrix;
     class PaletteFile;
     
-    class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile /*, public ChartableInterface*/ {
+    class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile, public ChartableInterfaceMatrix  /*, public ChartableInterface*/ {
         
     public:
         CiftiConnectivityMatrixParcelFile();
@@ -54,7 +54,7 @@ namespace caret {
 
         CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
 
-        ChartDataMatrix* getMatrixChart(const PaletteFile* paletteFile);
+        virtual ChartDataMatrix* getMatrixChart(const PaletteFile* paletteFile);
         
 //        virtual CaretMappableDataFile* getCaretMappableDataFile() ;
 //
