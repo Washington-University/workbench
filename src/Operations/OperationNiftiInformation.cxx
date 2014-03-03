@@ -97,9 +97,8 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
         }
         if(printXml)
         {
-            const CiftiXMLOld& xml = cf.getCiftiXMLOld();
-            AString xmlString;
-            xml.writeXML(xmlString);
+            const CiftiXML& xml = cf.getCiftiXML();
+            AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with
             cout << xmlString << endl;
         }
         if(printMatrix)

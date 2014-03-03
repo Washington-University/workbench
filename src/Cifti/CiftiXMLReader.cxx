@@ -48,6 +48,7 @@ void CiftiXMLReader::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &root
                 {
                     rootElement.m_version = CiftiVersion(attributes.value("Version").toString());
                     m_readingVersion = rootElement.m_version;
+                    if (m_readingVersion != CiftiVersion(1, 0)) xml.raiseError("cannot read version " + m_readingVersion.toString() + " with old XML code");
                 } else xml.raiseError("Cifti XML Header missing Version String.");
                 if(attributes.hasAttribute("NumberOfMatrices")) rootElement.m_numberOfMatrices = attributes.value("NumberOfMatrices").toString().toULong();
                 else xml.raiseError("Cifti XML Header missing number of matrices.");
