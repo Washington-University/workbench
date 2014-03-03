@@ -64,7 +64,7 @@ OperationParameters* AlgorithmMetricFindClusters::getParameters()
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
-        AString("Outputs a metric with ones for all vertices within a large enough cluster, and zeros elsewhere.  ") +
+        AString("Outputs a metric with cluster labels for all vertices within a large enough cluster, and zeros elsewhere.  ") +
         "To apply this as a mask to the data, or to do more complicated thresholding, see -metric-math."
     );
     return ret;
@@ -117,6 +117,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     mySurf->computeNodeAreas(nodeAreas);
     CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
     vector<int> toSearch;
+    float markVal = 1.0f;//give each cluster a different value
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, numCols);
@@ -155,10 +156,12 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                         int clusterCount = (int)toSearch.size();
                         for (int index = 0; index < clusterCount; ++index)
                         {
-                            outData[toSearch[index]] = 1.0f;
+                            outData[toSearch[index]] = markVal;
                         }
                     }
                     toSearch.clear();
+                    if (markVal > ((1<<23) - 1)) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+                    markVal += 1.0f;
                 }
             }
             myMetricOut->setValuesForColumn(c, outData.data());
@@ -198,10 +201,12 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                     int clusterCount = (int)toSearch.size();
                     for (int index = 0; index < clusterCount; ++index)
                     {
-                        outData[toSearch[index]] = 1.0f;
+                        outData[toSearch[index]] = markVal;
                     }
                 }
                 toSearch.clear();
+                if (markVal > ((1<<23) - 1)) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+                markVal += 1.0f;
             }
         }
         myMetricOut->setValuesForColumn(0, outData.data());
