@@ -183,11 +183,11 @@ ChartHistoryViewController::chartDataTableCellChanged(int rowIndex, int columnIn
                 return;
             }
             
-            switch (chartModel->getSelectionMode()) {
-                case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-                    isSelected = true;
+            switch (chartModel->getChartSelectionMode()) {
+                case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
                     break;
-                case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+                case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
+                    isSelected = true;
                     break;
             }
             
@@ -259,10 +259,10 @@ ChartHistoryViewController::maximumDisplayedSpinBoxValueChanged(int value)
         return;
     }
     
-    switch (chartModel->getSelectionMode()) {
-        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+    switch (chartModel->getChartSelectionMode()) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
             break;
-        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
             chartModel->setMaximumNumberOfChartDatasToDisplay(value);
             break;
     }
@@ -294,14 +294,14 @@ ChartHistoryViewController::updateHistoryViewController()
         return;
     }
     
-    switch (chartModel->getSelectionMode()) {
-        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-            m_maximumDisplayedSpinBox->setValue(1);
-            m_maximumDisplayedSpinBox->setEnabled(false);
-            break;
-        case ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+    switch (chartModel->getChartSelectionMode()) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
             m_maximumDisplayedSpinBox->setEnabled(true);
             m_maximumDisplayedSpinBox->setValue(chartModel->getMaximumNumberOfChartDatasToDisplay());
+            break;
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
+            m_maximumDisplayedSpinBox->setValue(1);
+            m_maximumDisplayedSpinBox->setEnabled(false);
             break;
     }
     

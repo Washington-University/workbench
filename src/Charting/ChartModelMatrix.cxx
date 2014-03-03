@@ -52,7 +52,7 @@ using namespace caret;
  */
 ChartModelMatrix::ChartModelMatrix()
 : ChartModel(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX,
-             ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES)
+             ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY)
 {
     
 }

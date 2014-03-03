@@ -40,6 +40,7 @@
 
 #include "CaretObject.h"
 #include "ChartDataTypeEnum.h"
+#include "ChartSelectionModeEnum.h"
 #include "SceneableInterface.h"
 
 
@@ -52,19 +53,8 @@ namespace caret {
     class ChartModel : public CaretObject, public SceneableInterface {
         
     public:
-        /** 
-         * Does this type of chart allow the display of multiple charts
-         * of the same chart data type?
-         */
-        enum SelectionMode {
-            /** Allows only one chart */
-            SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES,
-            /** Allows unlimited charts of the same chart data model type */
-            SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO,
-        };
-        
         ChartModel(const ChartDataTypeEnum::Enum chartDataType,
-                   const SelectionMode selectionMode);
+                   const ChartSelectionModeEnum::Enum chartSelectionMode);
         
         ChartModel(const ChartModel&);
         
@@ -76,7 +66,7 @@ namespace caret {
         
         ChartDataTypeEnum::Enum getChartDataType() const;
         
-        SelectionMode getSelectionMode() const;
+        ChartSelectionModeEnum::Enum getChartSelectionMode() const;
         
         void addChartData(const QSharedPointer<ChartData>& chartData);
         
@@ -166,7 +156,7 @@ namespace caret {
         
         ChartDataTypeEnum::Enum m_chartDataType;
         
-        SelectionMode m_selectionMode;
+        ChartSelectionModeEnum::Enum m_chartSelectionMode;
         
         std::deque<QSharedPointer<ChartData> > m_chartDatas;
         

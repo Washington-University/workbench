@@ -64,27 +64,27 @@ using namespace caret;
  *
  * @param chartDataType
  *    Model type of chart that is managed.
- * @param selectionMode
+ * @param chartSelectionMode
  *    The selection mode.
  */
 ChartModel::ChartModel(const ChartDataTypeEnum::Enum chartDataType,
-                       const SelectionMode selectionMode)
+                       const ChartSelectionModeEnum::Enum chartSelectionMode)
 : CaretObject(),
 SceneableInterface(),
 m_chartDataType(chartDataType),
-m_selectionMode(selectionMode)
+m_chartSelectionMode(chartSelectionMode)
 {
     m_bottomAxis = NULL;
     m_leftAxis   = NULL;
     m_rightAxis  = NULL;
     m_topAxis    = NULL;
     
-    switch (m_selectionMode) {
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-            m_maximumNumberOfChartDatasToDisplay = 1;
-            break;
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+    switch (m_chartSelectionMode) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
             m_maximumNumberOfChartDatasToDisplay = 5;
+            break;
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
+            m_maximumNumberOfChartDatasToDisplay = 1;
             break;
     }
     
@@ -164,7 +164,7 @@ ChartModel::ChartModel(const ChartModel& obj)
 : CaretObject(obj),
 SceneableInterface(obj),
 m_chartDataType(obj.m_chartDataType),
-m_selectionMode(obj.m_selectionMode)
+m_chartSelectionMode(obj.m_chartSelectionMode)
 {
     this->copyHelperChartModel(obj);
 }
@@ -194,7 +194,7 @@ void
 ChartModel::copyHelperChartModel(const ChartModel& obj)
 {
     m_chartDataType = obj.m_chartDataType;
-    m_selectionMode   = obj.m_selectionMode;
+    m_chartSelectionMode   = obj.m_chartSelectionMode;
     m_maximumNumberOfChartDatasToDisplay = obj.m_maximumNumberOfChartDatasToDisplay;
     
     removeAllAxes();
@@ -232,8 +232,10 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
 //        m_chartDatas.push_back(cd->clone());
 //    }
 
-    switch (m_selectionMode) {
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+    switch (m_chartSelectionMode) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
+            break;
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
         {
             /*
              * If no item selected, choose oldest
@@ -254,8 +256,6 @@ ChartModel::copyHelperChartModel(const ChartModel& obj)
 //                selectedChartData->setSelected(true);
             }
         }
-            break;
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             break;
     }
     
@@ -285,10 +285,10 @@ ChartModel::toString() const
  * @return Support for multiple chart display.  Some chart types allow
  * it and others do not.
  */
-ChartModel::SelectionMode
-ChartModel::getSelectionMode() const
+ChartSelectionModeEnum::Enum
+ChartModel::getChartSelectionMode() const
 {
-    return m_selectionMode;
+    return m_chartSelectionMode;
 }
 
 /**
@@ -343,8 +343,10 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
         }
     }
     
-    switch (m_selectionMode) {
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
+    switch (m_chartSelectionMode) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
+            break;
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
         {
             /*
              * See if any item is selected
@@ -368,8 +370,6 @@ ChartModel::updateUsingMaximumNumberOfChartDatasToDisplay()
                 }
             }
         }
-            break;
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
             break;
     }
 }
@@ -501,12 +501,12 @@ ChartModel::setMaximumNumberOfChartDatasToDisplay(const int32_t numberToDisplay)
 {
     CaretAssert(numberToDisplay > 0);
     
-    switch (m_selectionMode) {
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-            m_maximumNumberOfChartDatasToDisplay = 1;
-            break;
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
+    switch (m_chartSelectionMode) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
             m_maximumNumberOfChartDatasToDisplay = numberToDisplay;
+            break;
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
+            m_maximumNumberOfChartDatasToDisplay = 1;
             break;
     }
 
@@ -664,21 +664,19 @@ ChartModel::setTopAxis(ChartAxis* topAxis)
 void
 ChartModel::childChartDataSelectionChanged(ChartData* /*childChartData*/)
 {
-    switch (m_selectionMode) {
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_YES:
-//        if (childChartData->isSelected()) {
-//            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
-//            for (int32_t i = 0; i < numChartData; i++) {
-//                ChartData* cd = m_chartDatas[i];
-//                if (cd != childChartData) {
-//                    cd->setSelected(false);
-//                }
-//            }
-//        }
+    switch (m_chartSelectionMode) {
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY:
             break;
-        case SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO:
-        {
-        }
+        case ChartSelectionModeEnum::CHART_SELECTION_MODE_SINGLE:
+            //        if (childChartData->isSelected()) {
+            //            const int32_t numChartData = static_cast<int32_t>(m_chartDatas.size());
+            //            for (int32_t i = 0; i < numChartData; i++) {
+            //                ChartData* cd = m_chartDatas[i];
+            //                if (cd != childChartData) {
+            //                    cd->setSelected(false);
+            //                }
+            //            }
+            //        }
             break;
     }
 }

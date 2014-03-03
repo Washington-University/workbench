@@ -70,7 +70,7 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
                                                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsX,
                                                                                const ChartAxisUnitsEnum::Enum dataAxisUnitsY)
 : ChartModel(chartDataType,
-             ChartModel::SELECTION_MODE_MUTUALLY_EXCLUSIVE_NO)
+             ChartSelectionModeEnum::CHART_SELECTION_MODE_ANY)
 {
     m_averageChartData = NULL;
     
