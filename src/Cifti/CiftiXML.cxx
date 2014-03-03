@@ -286,8 +286,8 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
                         parseCIFTI1(xml);
                         if (xml.hasError()) break;
                     } else if (m_parsedVersion == CiftiVersion(1, 1)) {
-                        //CaretLogWarning("parsing cifti version '1.1', this should not exist in the wild");
-                        parseCIFTI2(xml);//we will use "1.1" to test our cifti-2 implementation
+                        CaretLogWarning("parsing cifti version '1.1', this should not exist in the wild");
+                        parseCIFTI2(xml);//we used "1.1" to test our cifti-2 implementation
                         if (xml.hasError()) break;
                     } else if (m_parsedVersion == CiftiVersion(2, 0)) {
                         parseCIFTI2(xml);
@@ -662,8 +662,8 @@ void CiftiXML::writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersio
     {
         xml.writeAttribute("NumberOfMatrices", "1");
         writeMatrix1(xml);
-    } else if (writingVersion == CiftiVersion(1, 1)) {//we will use "1.1" to test our cifti-2 implementation
-        //CaretLogWarning("writing cifti version '1.1', this should not exist in the wild");
+    } else if (writingVersion == CiftiVersion(1, 1)) {//we used "1.1" to test our cifti-2 implementation
+        CaretLogWarning("writing cifti version '1.1', this should not exist in the wild");
         writeMatrix2(xml);
     } else if (writingVersion == CiftiVersion(2, 0)) {
         writeMatrix2(xml);
