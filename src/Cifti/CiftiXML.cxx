@@ -662,7 +662,7 @@ void CiftiXML::writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersio
     {
         xml.writeAttribute("NumberOfMatrices", "1");
         writeMatrix1(xml);
-    } else if (writingVersion == CiftiVersion(1, 1)) {//we used "1.1" to test our cifti-2 implementation
+    } else if (writingVersion == CiftiVersion(1, 1)) {//we used "1.1" to test our cifti-2 implementation - should we even allow this?
         CaretLogWarning("writing cifti version '1.1', this should not exist in the wild");
         writeMatrix2(xml);
     } else if (writingVersion == CiftiVersion(2, 0)) {

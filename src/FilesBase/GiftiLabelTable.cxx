@@ -1249,7 +1249,6 @@ GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
             
             if (label != NULL) {
                 xmlWriter.writeStartElement(GiftiXmlElements::TAG_LABEL);
-                XmlAttributes attributes;
                 xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_KEY,
                                         AString::number(key));
                 

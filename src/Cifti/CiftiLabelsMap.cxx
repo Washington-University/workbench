@@ -252,7 +252,7 @@ void CiftiLabelsMap::LabelMap::readXML2(QXmlStreamReader& xml)
 
 void CiftiLabelsMap::writeXML1(QXmlStreamWriter& xml) const
 {
-    CaretLogFiner("writing nonstandard scalars mapping type in cifti-1");
+    CaretLogFiner("writing nonstandard labels mapping type in cifti-1");
     xml.writeAttribute("IndicesMapToDataType", "CIFTI_INDEX_TYPE_LABELS");
     int64_t numMaps = (int64_t)m_maps.size();
     for (int64_t i = 0; i < numMaps; ++i)
