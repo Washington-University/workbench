@@ -142,6 +142,7 @@ ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/FilesBase
