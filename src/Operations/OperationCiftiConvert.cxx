@@ -125,15 +125,15 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
-        const CiftiXMLOld& myXML = myInFile->getCiftiXMLOld();//soft of hack - metric files use "normal" when they really mean none, using the same thing as metric files means it should just work
+        const CiftiXML& myXML = myInFile->getCiftiXML();//soft of hack - metric files use "normal" when they really mean none, using the same thing as metric files means it should just work
+        if (myXML.getNumberOfDimensions() != 2) throw CiftiFileException("conversion only supported for 2D cifti");
         GiftiDataArray* myArray = new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         float* myOutData = myArray->getDataPointerFloat();
         for (int i = 0; i < myInFile->getNumberOfRows(); ++i)
         {
             myInFile->getRow(myOutData + i * myInFile->getNumberOfColumns(), i);
         }
-        AString myCiftiXML;
-        myXML.writeXML(myCiftiXML);
+        AString myCiftiXML = myXML.writeXMLToString();
         myArray->getMetaData()->set("CiftiXML", myCiftiXML);
         GiftiFile myOutFile;
         myOutFile.setEncodingForWriting(GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
@@ -155,29 +155,33 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             throw OperationException("input gifti has the wrong data type");
         }
         CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
-        CiftiXMLOld myXML(dataArrayRef->getMetaData()->get("CiftiXML"));
+        CiftiXML myXML;
+        myXML.readXML(dataArrayRef->getMetaData()->get("CiftiXML"));
+        if (myXML.getNumberOfDimensions() != 2) throw CiftiFileException("conversion only supported for 2D cifti");
         int64_t numCols = dataArrayRef->getNumberOfComponents();
         int64_t numRows = dataArrayRef->getNumberOfRows();
         OptionalParameter* fgresetTimeOpt = fromGiftiExt->getOptionalParameter(3);
         if (fgresetTimeOpt->m_present)
         {
-            myXML.resetRowsToTimepoints(fgresetTimeOpt->getDouble(1), numCols, fgresetTimeOpt->getDouble(2));
+            myXML.setMap(CiftiXML::ALONG_ROW, CiftiSeriesMap(numCols, fgresetTimeOpt->getDouble(2), fgresetTimeOpt->getDouble(1)));
         } else {
-            if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+            if (myXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES)
             {
-                myXML.setRowNumberOfTimepoints(numCols);
+                myXML.getSeriesMap(CiftiXML::ALONG_ROW).setLength(numCols);
             }
         }
-        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        if (myXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES)
         {
-            myXML.setColumnNumberOfTimepoints(numRows);
+            myXML.getSeriesMap(CiftiXML::ALONG_COLUMN).setLength(numRows);
         }
         if (fromGiftiExt->getOptionalParameter(4)->m_present)
         {
             if (fgresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
-            myXML.resetRowsToScalars(numCols);
+            CiftiScalarsMap newMap;
+            newMap.setLength(numCols);
+            myXML.setMap(CiftiXML::ALONG_ROW, newMap);
         }
-        if (myXML.getNumberOfColumns() != numCols || myXML.getNumberOfRows() != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
+        if (myXML.getDimensionLength(CiftiXML::ALONG_ROW) != numCols || myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) != numRows) throw OperationException("dimensions of input gifti array do not match dimensions in the embedded Cifti XML");
         myOutFile->setCiftiXML(myXML);
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(5);
         if (fromGiftiReplace->m_present)
@@ -246,6 +250,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     if (toNifti->m_present)
     {
         CiftiFile* myCiftiIn = toNifti->getCifti(1);
+        if (myCiftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
         VolumeFile* myNiftiOut = toNifti->getOutputVolume(2);
         vector<int64_t> outDims(4, 1);
         outDims[3] = myCiftiIn->getNumberOfColumns();
@@ -294,18 +299,25 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myNiftiIn->getDimensions(myDims);
         if (myDims[4] != 1) throw OperationException("input nifti has multiple components, aborting");
-        CiftiXMLOld outXML = myTemplate->getCiftiXMLOld();
+        CiftiXML outXML = myTemplate->getCiftiXML();
+        if (outXML.getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
         OptionalParameter* fnresetTimeOpt = fromNifti->getOptionalParameter(4);
         if (fnresetTimeOpt->m_present)
         {
-            outXML.resetRowsToTimepoints(fnresetTimeOpt->getDouble(1), myDims[3], fnresetTimeOpt->getDouble(2));
+            CiftiSeriesMap newMap;
+            newMap.setLength(myDims[3]);
+            newMap.setStep(fnresetTimeOpt->getDouble(1));
+            newMap.setStart(fnresetTimeOpt->getDouble(2));
+            outXML.setMap(CiftiXML::ALONG_ROW, newMap);
         }
         if (fromNifti->getOptionalParameter(5)->m_present)
         {
             if (fnresetTimeOpt->m_present) throw OperationException("only one of -reset-timepoints and -reset-scalars may be specified");
-            outXML.resetRowsToScalars(myDims[3]);
+            CiftiScalarsMap newMap;
+            newMap.setLength(myDims[3]);
+            outXML.setMap(CiftiXML::ALONG_ROW, newMap);
         }
-        int64_t numRows = outXML.getNumberOfRows(), numCols = outXML.getNumberOfColumns();
+        int64_t numRows = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN), numCols = outXML.getDimensionLength(CiftiXML::ALONG_ROW);
         if (myDims[3] != numCols) throw OperationException("input nifti has the wrong size for row length");
         if (numRows > myDims[0] * myDims[1] * myDims[2]) throw OperationException("input nifti is too small for number of rows");
         myCiftiOut->setCiftiXML(outXML);
