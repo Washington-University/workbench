@@ -35,7 +35,7 @@ using namespace caret;
  *
  */
 CaretException::CaretException()
-: std::exception()
+: std::runtime_error("")
 {
     this->initializeMembersCaretException();
 }
@@ -48,7 +48,7 @@ CaretException::CaretException()
  */
 CaretException::CaretException(
                    const AString& s)
-: std::exception()
+: std::runtime_error(s.toStdString())
 {
     this->initializeMembersCaretException();
     this->exceptionDescription = s;
@@ -60,7 +60,7 @@ CaretException::CaretException(
  *     Exception that is copied.
  */
 CaretException::CaretException(const CaretException& e)
-: std::exception(e)
+: std::runtime_error(e)
 {
     this->exceptionDescription = e.exceptionDescription;
     this->callStack = e.callStack;
@@ -77,7 +77,7 @@ CaretException&
 CaretException::operator=(const CaretException& e)
 {
     if (this != &e) {
-        std::exception::operator=(e);
+        std::runtime_error::operator=(e);
         this->exceptionDescription = e.exceptionDescription;
         this->callStack = e.callStack;
     }

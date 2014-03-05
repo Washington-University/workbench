@@ -26,7 +26,7 @@
  */ 
 
 
-#include <exception>
+#include <stdexcept>
 #include <AString.h>
 
 namespace caret {
@@ -34,7 +34,7 @@ namespace caret {
 /**
  * An exception thrown during Caret processing.
  */
-    class CaretException : public std::exception {
+    class CaretException : public std::runtime_error {
 
 public:
     CaretException();
@@ -57,9 +57,6 @@ private:
     
     /// the call stack
     AString callStack;
-        
-    /// get description of exception (private to prevent its use)
-    virtual const char* what() const throw() { return ""; }
         
     void initializeMembersCaretException();
 };

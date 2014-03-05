@@ -55,6 +55,7 @@ const QString& CiftiLabelsMap::getMapName(const int64_t& index) const
 
 void CiftiLabelsMap::setLength(const int64_t& length)
 {
+    CaretAssert(length > 0);
     m_maps.resize(length);
 }
 
