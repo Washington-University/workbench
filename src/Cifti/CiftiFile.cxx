@@ -160,6 +160,8 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
             if (m_xml.getDimensionLength(i) < 1)//should only happen with cifti-1
             {
                 m_xml.getSeriesMap(i).setLength(vec[0]);
+            } else {
+                if (m_xml.getDimensionLength(i) != vec[i]) throw CiftiFileException("xml and nifti header disagree on matrix dimensions");
             }
         }
         while (vec.size() < 2) vec.push_back(1);//HACK: in case we get 1D cifti, which CiftiMatrix will choke on
