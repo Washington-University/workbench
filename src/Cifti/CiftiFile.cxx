@@ -132,7 +132,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
             inputFile.close();//HACK: we read the bytes into the member xml byte storage because writeFile always rewrites the header for some reason, and this is easier than reengineering it
             m_xml.readXML(m_xmlBytes);
         }
-        
+        m_writingVersion = m_xml.getParsedVersion();//HACK: because we save the read bytes, we also have to save the read version so it doesn't screw up the dimensions
         //set up Matrix for reading..
         m_matrix.setMatrixFile(fileName, m_cacheFileName);
         CiftiHeader header;
@@ -274,15 +274,21 @@ void CiftiFile::writeFile(const AString &fileName)
     bool writingNewFile = true;
     bool shouldSwap = false;
     
+    if (m_caching == IN_MEMORY)//rewrite the XML bytes only if in-memory, because if it already on-disk, then we can't resize the xml bytes
+    {
+        m_writingVersion = CiftiVersion();//use default cifti version for the rewrite
+        m_xmlBytes = m_xml.writeXMLToQByteArray(m_writingVersion);
+    }
+    
     if(file && m_caching == ON_DISK) 
     {
         AString cacheFileName = file->fileName();
         if(QDir::toNativeSeparators(cacheFileName) == QDir::toNativeSeparators(fileName))
         {
             writingNewFile = false;
-            shouldSwap = m_matrix.getNeedsSwapping();
+            shouldSwap = m_matrix.getNeedsSwapping();//TSC: I don't know why it doesn't just return here, but I don't really want to mess with this code
         }
-    }    
+    }
     
     if(writingNewFile)
     {
@@ -313,7 +319,14 @@ void CiftiFile::writeFile(const AString &fileName)
     CiftiHeader ciftiHeader;
     this->m_headerIO.getHeader(ciftiHeader);
 
-
+    if (m_caching == IN_MEMORY)//also update the intent code and name if writing from in-memory
+    {
+        char name[17];//just to be safe, use one more char and make it null
+        name[16] = '\0';
+        ciftiHeader.setIntentCode(m_xml.getIntentInfo(m_writingVersion, name));
+        ciftiHeader.setIntentName(name);
+    }
+    
     int64_t vox_offset = 544 + length;
     int remainder = vox_offset % 16;
     int padding = 0;
