@@ -68,13 +68,13 @@ void OperationSetMapNames::useParameters(OperationParameters* myParams, Progress
     LevelProgress myProgress(myProgObj);
     AString fileName = myParams->getString(1);
     const vector<ParameterComponent*>& mapOpts = *(myParams->getRepeatableParameterInstances(2));
-    if (mapOpts.size() == 0) throw OperationException("the -map option must be specified at least once");
     bool ok = false;
     DataFileTypeEnum::Enum myType = DataFileTypeEnum::fromFileExtension(fileName, &ok);
     if (!ok)
     {
-        throw OperationException("unrecognized data file type");
+        throw OperationException("unrecognized data file type for file '" + fileName + "'");
     }
+    if (mapOpts.size() == 0) throw OperationException("the -map option must be specified at least once");
     switch (myType)
     {
         case DataFileTypeEnum::METRIC:

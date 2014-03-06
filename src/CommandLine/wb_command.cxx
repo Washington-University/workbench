@@ -57,7 +57,7 @@ static int runCommand(int argc, char* argv[]) {
         
     }
     catch (CommandException& e) {
-        std::cerr << "ERROR, Command Failed: " << e.whatString().toStdString() << std::endl;
+        std::cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.whatString().toStdString() << std::endl;
         ret = -1;
     }
     
