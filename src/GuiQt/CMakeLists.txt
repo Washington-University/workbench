@@ -47,6 +47,7 @@ CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
+ChartToolBoxViewController.h
 ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
@@ -156,6 +157,7 @@ CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
+ChartToolBoxViewController.h
 ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
@@ -286,6 +288,7 @@ CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
 ChartHistoryViewController.cxx
 ChartSelectionViewController.cxx
+ChartToolBoxViewController.cxx
 ChartingDialog.cxx
 CiftiConnectivityMatrixViewController.cxx
 ColorEditorWidget.cxx

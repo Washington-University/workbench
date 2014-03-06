@@ -1,5 +1,5 @@
-#ifndef __CHARTABLE_INTERFACE_MATRIX_H__
-#define __CHARTABLE_INTERFACE_MATRIX_H__
+#ifndef __EVENT_PALETTE_GET_BY_NAME_H__
+#define __EVENT_PALETTE_GET_BY_NAME_H__
 
 /*LICENSE_START*/
 /*
@@ -35,39 +35,45 @@
 /*LICENSE_END*/
 
 
-
+#include "Event.h"
 
 
 
 namespace caret {
 
-    class ChartDataMatrix;
-    class PaletteFile;
+    class Palette;
     
-    class ChartableInterfaceMatrix {
+    class EventPaletteGetByName : public Event {
         
     public:
-        virtual ~ChartableInterfaceMatrix() { }
+        EventPaletteGetByName(const AString& paletteName);
         
-        virtual ChartDataMatrix* getMatrixChart(const PaletteFile* paletteFile) = 0;
+        virtual ~EventPaletteGetByName();
         
+        AString getPaletteName() const;
+        
+        Palette* getPalette() const;
+        
+        void setPalette(Palette* palette);
+
         // ADD_NEW_METHODS_HERE
 
-    protected:
-        ChartableInterfaceMatrix() { }
-        
     private:
-        ChartableInterfaceMatrix(const ChartableInterfaceMatrix&);
+        EventPaletteGetByName(const EventPaletteGetByName&);
 
-        ChartableInterfaceMatrix& operator=(const ChartableInterfaceMatrix&);
+        EventPaletteGetByName& operator=(const EventPaletteGetByName&);
+        
+        const AString m_paletteName;
+        
+        Palette* m_palette;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHARTABLE_INTERFACE_MATRIX_DECLARE__
+#ifdef __EVENT_PALETTE_GET_BY_NAME_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_INTERFACE_MATRIX_DECLARE__
+#endif // __EVENT_PALETTE_GET_BY_NAME_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_INTERFACE_MATRIX_H__
+#endif  //__EVENT_PALETTE_GET_BY_NAME_H__

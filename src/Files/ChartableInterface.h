@@ -34,6 +34,8 @@
  */
 /*LICENSE_END*/
 
+#include "ChartDataMatrixCreatorInterface.h"
+#include "ChartDataTypeEnum.h"
 #include "ChartTypeEnum.h"
 #include "DataFileException.h"
 #include "StructureEnum.h"
@@ -41,15 +43,16 @@
 namespace caret {
 
     class CaretMappableDataFile;
-    class ChartData;
+    class ChartDataCartesian;
+    class ChartDataMatrix;
     class TimeLine;
     
     /**
      * \class caret::ChartableInterface
-     * \brief Interface for files produces charts (time lines)
+     * \brief Interface for files that are able to produce charts.
      * \ingroup Files
      */
-    class ChartableInterface {
+    class ChartableInterface : public ChartDataMatrixCreatorInterface {
         
     public:
 //        ChartableInterface() { }
@@ -99,6 +102,23 @@ namespace caret {
 
         virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const = 0;
 
+        /**
+         * Get chart data types supported by the file.
+         *
+         * @param chartDataTypesOut
+         *    Chart types supported by this file.
+         */
+        virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
+        
+        bool isChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
+        
+        /**
+         * Get the matrix chart for files supporting matrix data.
+         *
+         * @return
+         *    Pointer to matrix or NULL if not valid.
+         */
+        virtual ChartDataMatrix* getMatrixChart() = 0;
         
         /**
          * Load charting data for the surface with the given structure and node index.
@@ -112,7 +132,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartData* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                        const int32_t nodeIndex) throw (DataFileException) = 0;
         
         /**
@@ -127,7 +147,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartData* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException) = 0;
 
         /**
@@ -140,7 +160,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartData* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException) = 0;
+        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException) = 0;
         
         /**
          * Load the average of chart data for a group of surface nodes

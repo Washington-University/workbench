@@ -45,6 +45,8 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "SceneClass.h"
+#include "SceneClassArray.h"
 
 using namespace caret;
 
@@ -71,7 +73,9 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
                                           CiftiMappableDataFile::DATA_ACCESS_INVALID)
 /*,ChartableInterface()*/
 {
-    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
 }
 
 /**
@@ -86,124 +90,232 @@ CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
  * @return Chart matrix for the content of the parcel connectivity.
  */
 ChartDataMatrix*
-CiftiConnectivityMatrixParcelFile::getMatrixChart(const PaletteFile* paletteFile)
+CiftiConnectivityMatrixParcelFile::getMatrixChart()
 {
-    ChartDataMatrix* chartMatrix = NULL;
-    
-    CaretAssertVectorIndex(m_mapContent,
-                           0);
-    
-    const int32_t numberOfColumns = m_ciftiFacade->getNumberOfColumns();
-    const int32_t numberOfRows = m_ciftiFacade->getNumberOfRows();
-    const int32_t numberOfElements = numberOfColumns * numberOfRows;
-    if (numberOfElements <= 0) {
-        return chartMatrix;
-    }
-    
-    std::vector<float> matrixData(numberOfElements);
-    
-    
-    for (int32_t i = 0; i < numberOfRows; i++)
-    {
-        m_ciftiInterface->getRow(&matrixData[i * numberOfColumns], i);
-    }
-    
-    const int32_t numberOfElementsRGBA = numberOfElements * 4;
-    std::vector<float> matrixRGBA(numberOfElementsRGBA);
-    
-    PaletteColorMapping *paletteColorMapping = m_ciftiFacade->getPaletteColorMappingForMapOrSeriesIndex(0);
-    FastStatistics fastStatistics;
-    CaretAssert(paletteColorMapping);
-    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    const Palette* palette = paletteFile->getPaletteByName(paletteName);
-    
-    if (palette != NULL) {
-        fastStatistics.update(&matrixData[0],
-                              matrixData.size());
-        
-        NodeAndVoxelColoring::colorScalarsWithPalette(&fastStatistics,
-                                                      paletteColorMapping,
-                                                      palette,
-                                                      &matrixData[0],
-                                                      &matrixData[0],
-                                                      matrixData.size(),
-                                                      &matrixRGBA[0]);
-    }
-    else {
-        CaretLogSevere("Coloring not available for matrix chart.");
-        
-        std::fill(matrixRGBA.begin(),
-                  matrixRGBA.end(),
-                  0.0);
-    }
-    
-    chartMatrix = new ChartDataMatrix();
-    chartMatrix->setMatrix(&matrixData[0],
-                           &matrixRGBA[0],
-                           numberOfRows,
-                           numberOfColumns);
-    
+    ChartDataMatrix* chartMatrix = new ChartDataMatrix(this);
     return chartMatrix;
 }
 
-///**
-// * @return Is charting enabled for this file?
-// */
-//bool
-//CiftiConnectivityMatrixParcelFile::isChartingEnabled() const
-//{
-//    return m_chartingEnabled;
-//}
-//
-///**
-// * @return Return true if the file's current state supports
-// * charting data, else false.  Typically a brainordinate file
-// * is chartable if it contains more than one map.
-// */
-//bool
-//CiftiConnectivityMatrixParcelFile::isChartingSupported() const
-//{
-//    return true;    
-//}
-//
-///**
-// * Set charting enabled for this file.
-// *
-// * @param enabled
-// *    New status for charting enabled.
-// */
-//void
-//CiftiConnectivityMatrixParcelFile::setChartingEnabled(const bool enabled)
-//{
-//    m_chartingEnabled = enabled;
-//}
-//
-//ChartTypeEnum::Enum CiftiConnectivityMatrixParcelFile::getDefaultChartType() const
-//{
-//    return ChartTypeEnum::MATRIX;
-//}
-//
-//void CiftiConnectivityMatrixParcelFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
-//{
-//    list.clear();
-//    list.push_back(ChartTypeEnum::MATRIX);    
-//}
-//
-///**
-// * @return The CaretMappableDataFile that implements this interface.
-// */
-//CaretMappableDataFile*
-//CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile()
-//{
-//    return dynamic_cast<CaretMappableDataFile*>(this);
-//}
-//
-///**
-// * @return The CaretMappableDataFile that implements this interface.
-// */
-//const CaretMappableDataFile*
-//CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile() const
-//{
-//    return dynamic_cast<const CaretMappableDataFile*>(this);
-//}
-//
+/**
+ * Get the matrix RGBA coloring for this matrix data creator.
+ *
+ * @param numberOfRowsOut
+ *    Number of rows in the coloring matrix.
+ * @param numberOfColumnsOut
+ *    Number of rows in the coloring matrix.
+ * @param rgbaOut
+ *    RGBA coloring output with number of elements
+ *    (numberOfRowsOut * numberOfColumnsOut * 4).
+ * @return
+ *    True if data output data is valid, else false.
+ */
+bool
+CiftiConnectivityMatrixParcelFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                                    int32_t& numberOfColumnsOut,
+                                                    std::vector<float>& rgbaOut) const
+{
+    return helpLoadChartDataMatrixForMap(0,
+                                         numberOfRowsOut,
+                                         numberOfColumnsOut,
+                                         rgbaOut);
+}
+
+/**
+ * @return Is charting enabled for this file?
+ */
+bool
+CiftiConnectivityMatrixParcelFile::isChartingEnabled(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_chartingEnabledForTab[tabIndex];
+}
+
+/**
+ * @return Return true if the file's current state supports
+ * charting data, else false.  Typically a brainordinate file
+ * is chartable if it contains more than one map.
+ */
+bool
+CiftiConnectivityMatrixParcelFile::isChartingSupported() const
+{
+    return true;    
+}
+
+/**
+ * Set charting enabled for this file.
+ *
+ * @param enabled
+ *    New status for charting enabled.
+ */
+void
+CiftiConnectivityMatrixParcelFile::setChartingEnabled(const int32_t tabIndex,
+                                                      const bool enabled)
+{
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_chartingEnabledForTab[tabIndex] = enabled;
+}
+
+ChartTypeEnum::Enum CiftiConnectivityMatrixParcelFile::getDefaultChartType() const
+{
+    return ChartTypeEnum::MATRIX;
+}
+
+void CiftiConnectivityMatrixParcelFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
+{
+    list.clear();
+    list.push_back(ChartTypeEnum::MATRIX);    
+}
+
+/**
+ * Get chart data types supported by the file.
+ *
+ * @param chartDataTypesOut
+ *    Chart types supported by this file.
+ */
+void
+CiftiConnectivityMatrixParcelFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    chartDataTypesOut.clear();
+    chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+CaretMappableDataFile*
+CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile()
+{
+    return dynamic_cast<CaretMappableDataFile*>(this);
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+const CaretMappableDataFile*
+CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile() const
+{
+    return dynamic_cast<const CaretMappableDataFile*>(this);
+}
+
+/**
+ * Load charting data for the surface with the given structure and node index.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+CiftiConnectivityMatrixParcelFile::loadChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
+                                               const int32_t /*nodeIndex*/) throw (DataFileException)
+{
+    return NULL;
+}
+
+/**
+ * Load average charting data for the surface with the given structure and node indices.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndices
+ *     Indices of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+CiftiConnectivityMatrixParcelFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum /*structure*/,
+                                                       const std::vector<int32_t>& /*nodeIndices*/) throw (DataFileException)
+{
+    return NULL;
+}
+
+/**
+ * Load charting data for the voxel enclosing the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+CiftiConnectivityMatrixParcelFile::loadChartDataForVoxelAtCoordinate(const float* /*xyz[3]*/) throw (DataFileException)
+{
+    return NULL;
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                                  SceneClass* sceneClass)
+{
+    CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
+    sceneClass->addBooleanArray("m_chartingEnabledForTab",
+                                m_chartingEnabledForTab,
+                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                       const SceneClass* sceneClass)
+{
+    CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
+    const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
+    if (tabArray != NULL) {
+        sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
+                                         m_chartingEnabledForTab,
+                                         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    }
+    else {
+        /*
+         * Obsolete value when charting was not 'per tab'
+         */
+        const bool chartingEnabled = sceneClass->getBooleanValue("m_chartingEnabled",
+                                                                 false);
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_chartingEnabledForTab[i] = chartingEnabled;
+        }
+    }
+}
+

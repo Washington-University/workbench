@@ -1,5 +1,5 @@
-#ifndef __CHART_MODEL_MATRIX_H__
-#define __CHART_MODEL_MATRIX_H__
+#ifndef __CHART_DATA_MATRIX_CREATOR_INTERFACE_H__
+#define __CHART_DATA_MATRIX_CREATOR_INTERFACE_H__
 
 /*LICENSE_START*/
 /*
@@ -35,39 +35,53 @@
 /*LICENSE_END*/
 
 
-#include "ChartModel.h"
+#include <vector>
+
+#include <stdint.h>
+
 
 namespace caret {
 
-    class ChartDataMatrixCreatorInterface;
-    
-    class ChartModelMatrix : public ChartModel {
+    class ChartDataMatrixCreatorInterface {
         
     public:
-        ChartModelMatrix();
+        virtual ~ChartDataMatrixCreatorInterface() { }
         
-        virtual ~ChartModelMatrix();
-        
-        ChartModelMatrix(const ChartModelMatrix& obj);
-
-        ChartModelMatrix& operator=(const ChartModelMatrix& obj);
-        
-        virtual bool isAverageChartDisplaySupported() const;
-        
-        virtual const ChartData* getAverageChartDataForDisplay(const int32_t tabIndex) const;
+        /**
+         * Get the matrix RGBA coloring for this matrix data creator.
+         *
+         * @param numberOfRowsOut
+         *    Number of rows in the coloring matrix.
+         * @param numberOfColumnsOut
+         *    Number of rows in the coloring matrix.
+         * @param rgbaOut
+         *    RGBA coloring output with number of elements
+         *    (numberOfRowsOut * numberOfColumnsOut * 4).
+         * @return
+         *    True if data output data is valid, else false.
+         */
+        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                       int32_t& numberOfColumnsOut,
+                                       std::vector<float>& rgbaOut) const = 0;
         
         // ADD_NEW_METHODS_HERE
 
-    private:
-        void copyHelperChartModelMatrix(const ChartModelMatrix& obj);
+    protected:
+        ChartDataMatrixCreatorInterface() { }
+        
 
+    private:
+        ChartDataMatrixCreatorInterface(const ChartDataMatrixCreatorInterface&);
+
+        ChartDataMatrixCreatorInterface& operator=(const ChartDataMatrixCreatorInterface&);
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_MODEL_MATRIX_DECLARE__
+#ifdef __CHART_DATA_MATRIX_CREATOR_INTERFACE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_MATRIX_DECLARE__
+#endif // __CHART_DATA_MATRIX_CREATOR_INTERFACE_DECLARE__
 
 } // namespace
-#endif  //__CHART_MODEL_MATRIX_H__
+#endif  //__CHART_DATA_MATRIX_CREATOR_INTERFACE_H__

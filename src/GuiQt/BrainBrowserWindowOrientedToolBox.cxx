@@ -20,6 +20,7 @@
 #include "ChartableInterface.h"
 #include "ChartHistoryViewController.h"
 #include "ChartSelectionViewController.h"
+#include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventManager.h"
@@ -93,8 +94,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                   + AString::number(browserWindowIndex));
     
     m_borderSelectionViewController = NULL;
-    m_chartHistoryViewController = NULL;
-    m_chartSelectionViewController = NULL;
+    m_chartToolBoxViewController = NULL;
+//    m_chartHistoryViewController = NULL;
+//    m_chartSelectionViewController = NULL;
     m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fociSelectionViewController = NULL;
@@ -103,7 +105,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new QTabWidget();
-    m_chartTabWidget = NULL;
+//    m_chartTabWidget = NULL;
     
     m_borderTabIndex = -1;
     m_chartTabIndex = -1;
@@ -122,21 +124,27 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                        "Layers");
     }
     if (isOverlayToolBox) {
-        m_chartSelectionViewController = new ChartSelectionViewController(orientation,
-                                                                          browserWindowIndex,
-                                                                          this);
-        
-        m_chartHistoryViewController = new ChartHistoryViewController(orientation,
+        m_chartToolBoxViewController = new ChartToolBoxViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);
+        m_chartTabIndex = addToTabWidget(m_chartToolBoxViewController,
+                                         "Charting");
         
-        m_chartTabWidget = new QTabWidget();
-        m_chartTabWidget->addTab(m_chartSelectionViewController,
-                                 "Loading");
-        m_chartTabWidget->addTab(m_chartHistoryViewController,
-                                 "History");
-        m_chartTabIndex = addToTabWidget(m_chartTabWidget,
-                                                "Charting");
+//        m_chartSelectionViewController = new ChartSelectionViewController(orientation,
+//                                                                          browserWindowIndex,
+//                                                                          this);
+//        
+//        m_chartHistoryViewController = new ChartHistoryViewController(orientation,
+//                                                                      browserWindowIndex,
+//                                                                      this);
+//        
+//        m_chartTabWidget = new QTabWidget();
+//        m_chartTabWidget->addTab(m_chartSelectionViewController,
+//                                 "Loading");
+//        m_chartTabWidget->addTab(m_chartHistoryViewController,
+//                                 "History");
+//        m_chartTabIndex = addToTabWidget(m_chartTabWidget,
+//                                                "Charting");
     }
     if (isOverlayToolBox) {
         m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(orientation,
@@ -273,11 +281,15 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
     sceneClass->addString("selectedTabName",
                           tabName);
     
-    if (m_chartTabWidget != NULL) {
-       const AString chartTabName = m_chartTabWidget->tabText(m_chartTabWidget->currentIndex());
-        sceneClass->addString("selectedChartTabName",
-                              chartTabName);
+    if (m_chartToolBoxViewController != NULL) {
+        sceneClass->addClass(m_chartToolBoxViewController->saveToScene(sceneAttributes,
+                                                                       "m_chartToolBoxViewController"));
     }
+//    if (m_chartTabWidget != NULL) {
+//       const AString chartTabName = m_chartTabWidget->tabText(m_chartTabWidget->currentIndex());
+//        sceneClass->addString("selectedChartTabName",
+//                              chartTabName);
+//    }
     
     /*
      * Save current widget size
@@ -358,16 +370,18 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         }
     }
     
-    const AString chartTabName = sceneClass->getStringValue("selectedChartTabName",
-                                                            "");
-    if ( ! chartTabName.isEmpty()) {
-        for (int32_t i = 0; i < m_chartTabWidget->count(); i++) {
-            if (m_chartTabWidget->tabText(i) == chartTabName) {
-                m_chartTabWidget->setCurrentIndex(i);
-                break;
-            }
-        }
-    }
+    m_chartToolBoxViewController->restoreFromScene(sceneAttributes,
+                                                   sceneClass->getClass("m_chartToolBoxViewController"));
+//    const AString chartTabName = sceneClass->getStringValue("selectedChartTabName",
+//                                                            "");
+//    if ( ! chartTabName.isEmpty()) {
+//        for (int32_t i = 0; i < m_chartTabWidget->count(); i++) {
+//            if (m_chartTabWidget->tabText(i) == chartTabName) {
+//                m_chartTabWidget->setCurrentIndex(i);
+//                break;
+//            }
+//        }
+//    }
 
     /*
      * Restore controllers in the toolbox

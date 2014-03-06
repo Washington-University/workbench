@@ -1,5 +1,3 @@
-#ifndef __CHART_MODEL_MATRIX_H__
-#define __CHART_MODEL_MATRIX_H__
 
 /*LICENSE_START*/
 /*
@@ -34,40 +32,82 @@
  */
 /*LICENSE_END*/
 
+#define __EVENT_PALETTE_GET_BY_NAME_DECLARE__
+#include "EventPaletteGetByName.h"
+#undef __EVENT_PALETTE_GET_BY_NAME_DECLARE__
 
-#include "ChartModel.h"
+#include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "EventTypeEnum.h"
+#include "Palette.h"
 
-namespace caret {
+using namespace caret;
 
-    class ChartDataMatrixCreatorInterface;
+
     
-    class ChartModelMatrix : public ChartModel {
-        
-    public:
-        ChartModelMatrix();
-        
-        virtual ~ChartModelMatrix();
-        
-        ChartModelMatrix(const ChartModelMatrix& obj);
+/**
+ * \class caret::EventPaletteGetByName 
+ * \brief Find a palette by name
+ * \ingroup Files
+ */
 
-        ChartModelMatrix& operator=(const ChartModelMatrix& obj);
-        
-        virtual bool isAverageChartDisplaySupported() const;
-        
-        virtual const ChartData* getAverageChartDataForDisplay(const int32_t tabIndex) const;
-        
-        // ADD_NEW_METHODS_HERE
+/**
+ * Constructor.
+ */
+EventPaletteGetByName::EventPaletteGetByName(const AString& paletteName)
+: Event(EventTypeEnum::EVENT_PALETTE_GET_BY_NAME),
+m_paletteName(paletteName),
+m_palette(NULL)
+{
+}
 
-    private:
-        void copyHelperChartModelMatrix(const ChartModelMatrix& obj);
+/**
+ * Destructor.
+ */
+EventPaletteGetByName::~EventPaletteGetByName()
+{
+}
 
-        // ADD_NEW_MEMBERS_HERE
+/**
+ * @return Name of desired palette.
+ */
+AString
+EventPaletteGetByName::getPaletteName() const
+{
+    return m_paletteName;
+}
 
-    };
+/**
+ * @return Palette that was found (NULL if no matching palette was found).
+ */
+Palette*
+EventPaletteGetByName::getPalette() const
+{
+    return m_palette;
+}
+
+/**
+ * Set the palette that matches by name.
+ *
+ * @param palette
+ *    Palette that matches name of desired palette.
+ */
+void
+EventPaletteGetByName::setPalette(Palette* palette)
+{
+    CaretAssert(palette);
     
-#ifdef __CHART_MODEL_MATRIX_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_MATRIX_DECLARE__
+    if (palette->getName() != m_paletteName) {
+        CaretAssertMessage(0, "Palette name does not match!");
+        CaretLogSevere("Palette name does not match!");
+        return;
+    }
+    
+    if (m_palette != NULL) {
+        CaretLogWarning("More that one palette with name "
+                        + m_paletteName);
+    }
+    
+    m_palette = palette;
+}
 
-} // namespace
-#endif  //__CHART_MODEL_MATRIX_H__

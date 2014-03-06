@@ -16,6 +16,7 @@ ChartAxisUnitsEnum.h
 ChartData.h
 ChartDataCartesian.h
 ChartDataMatrix.h
+ChartDataMatrixCreatorInterface.h
 ChartDataSource.h
 ChartDataSourceModeEnum.h
 ChartDataTypeEnum.h

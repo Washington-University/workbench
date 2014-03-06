@@ -119,12 +119,12 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
     SurfaceProjectedItem* spi = new SurfaceProjectedItem();
     
     AString txt;
-    if (projectedItem.isStereotaxicXYZValid()) {
-        spi->setStereotaxicXYZ(projectedItem.getStereotaxicXYZ());
-        
-        txt += ("Projected Position: " 
-                + AString::fromNumbers(projectedItem.getStereotaxicXYZ(), 3, ","));
-    }
+//    if (projectedItem.isStereotaxicXYZValid()) {
+//        spi->setStereotaxicXYZ(projectedItem.getStereotaxicXYZ());
+//        
+//        txt += ("Projected Position: " 
+//                + AString::fromNumbers(projectedItem.getStereotaxicXYZ(), 3, ","));
+//    }
     
     if (projectedItem.getBarycentricProjection()->isValid()) {
         SurfaceProjectionBarycentric* bp = projectedItem.getBarycentricProjection();

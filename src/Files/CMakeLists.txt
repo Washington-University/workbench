@@ -30,7 +30,6 @@ CaretMappableDataFile.h
 CaretSparseFile.h
 CaretVolumeExtension.h
 ChartableInterface.h
-ChartableInterfaceMatrix.h
 CiftiBrainordinateDataSeriesFile.h
 CiftiBrainordinateLabelFile.h
 CiftiBrainordinateScalarFile.h
@@ -49,6 +48,7 @@ ConnectivityDataLoaded.h
 DataFileTypeEnum.h
 EventCiftiMappableDataFileColoringUpdated.h
 EventGetDisplayedDataFiles.h
+EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
 Fiber.h
 FiberOrientation.h
@@ -121,6 +121,7 @@ CaretDataFileHelper.cxx
 CaretMappableDataFile.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
+ChartableInterface.cxx
 CiftiBrainordinateDataSeriesFile.cxx
 CiftiBrainordinateLabelFile.cxx
 CiftiBrainordinateScalarFile.cxx
@@ -139,6 +140,7 @@ ConnectivityDataLoaded.cxx
 DataFileTypeEnum.cxx
 EventCiftiMappableDataFileColoringUpdated.cxx
 EventGetDisplayedDataFiles.cxx
+EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx
 Fiber.cxx
 FiberOrientation.cxx

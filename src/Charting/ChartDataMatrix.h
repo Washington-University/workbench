@@ -41,12 +41,16 @@
 
 namespace caret {
 
+    class ChartDataMatrixCreatorInterface;
+    
     class ChartDataMatrix : public ChartData {
         
     public:
-        ChartDataMatrix();
+        ChartDataMatrix(ChartDataMatrixCreatorInterface* matrixCreatorInterface);
         
         virtual ~ChartDataMatrix();
+        
+        ChartDataMatrixCreatorInterface* getParentMatrixCreator();
         
         ChartDataMatrix(const ChartDataMatrix& obj);
 
@@ -54,21 +58,10 @@ namespace caret {
         
         virtual ChartData* clone() const;
         
-        void setMatrix(const float* matrixData,
-                       const float* matrixRGBA,
-                       const int32_t numberOfRows,
-                       const int32_t numberOfColumns);
+        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                       int32_t& numberOfColumnsOut,
+                                       std::vector<float>& rgbaOut) const;
         
-        int32_t getNumberOfRows() const;
-        
-        int32_t getNumberOfColumns() const;
-        
-        float getMatrixElement(const int32_t row,
-                               const int32_t column) const;
-        
-        void getMatrixElementRGBA(const int32_t row,
-                                  const int32_t column,
-                                  float rgbaOut[4]) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -83,33 +76,10 @@ namespace caret {
 
         void initializeMembersChartDataMatrix();
         
-        void clearMatrixData();
-        
-        /**
-         * Get offset of a matrix data element.
-         *
-         * @param row
-         *     Row in the matrix.
-         * @param column
-         *     Column in the matrix.
-         * @return 
-         *     Offset of a matrix element.
-         */
-        inline int32_t getMatrixOffset(const int32_t row,
-                                       const int32_t column) const {
-            const int32_t offset = (row * m_numberOfColumns) + column;
-            return offset;
-        }
+        ChartDataMatrixCreatorInterface* m_matrixCreatorInterface;
         
         SceneClassAssistant* m_sceneAssistant;
         
-        int32_t m_numberOfRows;
-        
-        int32_t m_numberOfColumns;
-        
-        std::vector<float> m_matrixData;
-        
-        std::vector<float> m_matrixRGBA;
         
         // ADD_NEW_MEMBERS_HERE
 

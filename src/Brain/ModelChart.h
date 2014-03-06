@@ -43,6 +43,7 @@ namespace caret {
     class ChartDataCartesian;
     class ChartModel;
     class ChartModelDataSeries;
+    class ChartModelMatrix;
     class ChartableInterface;
     class CiftiConnectivityMatrixParcelFile;
     class OverlaySetArray;
@@ -95,7 +96,7 @@ namespace caret {
         
         void reset();
         
-        void updateMatrixCharts(std::vector<CiftiConnectivityMatrixParcelFile*>& parcelFiles);
+        void updateChartMatrixModels();
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -139,6 +140,9 @@ namespace caret {
         /** Chart model for time-series data */
         ChartModelDataSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
+        /** Chart model for matrices */
+        ChartModelMatrix* m_chartModelMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         /** Contains data series charts */
         std::list<QWeakPointer<ChartDataCartesian> > m_dataSeriesChartData;
         

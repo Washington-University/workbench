@@ -45,9 +45,11 @@
 #include "ChartAxisCartesian.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
+#include "ChartDataMatrix.h"
 #include "CaretLogger.h"
-#include "CaretPreferences.h"
 #include "ChartModelDataSeries.h"
+#include "ChartModelMatrix.h"
+#include "CaretPreferences.h"
 #include "ChartPoint.h"
 #include "SessionManager.h"
 
@@ -949,7 +951,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(BrainOpenGLTextRenderInt
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            CaretAssert(0);
+            drawChartGraphicsMatrix(textRenderer,
+                                    dynamic_cast<ChartModelMatrix*>(chart));
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
             drawChartGraphicsLineSeries(textRenderer,
@@ -1067,14 +1070,101 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const ChartDataCart
  */
 void
 BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* /*textRenderer*/,
-                                                              ChartModelMatrix* /*chart*/)
+                                                              ChartModelMatrix* chart)
 {
-    CaretAssert(0);
+    CaretAssert(chart);
+    
+    std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas(m_tabIndex);
+    if (chartVector.empty()) {
+        return;
+    }
+    
+    if (chartVector.size() > 1) {
+        CaretLogSevere("PROGRAM_ERROR: More than one matrix chart selected for display.");
+    }
+    
+    const ChartDataMatrix* chartMatrix = dynamic_cast<const ChartDataMatrix*>(chartVector[0]);
+    int32_t numberOfRows = 0;
+    int32_t numberOfColumns = 0;
+    std::vector<float> matrixRGBA;
+    if (chartMatrix->getMatrixDataRGBA(numberOfRows,
+                                       numberOfColumns,
+                                       matrixRGBA)) {
+        const float xMin = -1;
+        const float xMax = numberOfColumns + 1;
+        const float yMin = -1;
+        const float yMax = numberOfRows + 1;
+        
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(xMin, xMax,
+                yMin, yMax,
+                -1.0, 1.0);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        
+        int32_t rgbaOffset = 0;
+        std::vector<float> quadVerticesXYZ;
+        std::vector<float> quadVerticesRGBA;
+        float parcelY = numberOfRows - 1;
+        for (int32_t i = 0; i < numberOfRows; i++) {
+            float parcelX = 0;
+            for (int32_t j = 0; j < numberOfColumns; j++) {
+                CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
+                const float* rgba = &matrixRGBA[rgbaOffset];
+                rgbaOffset += 4;
+                
+                quadVerticesRGBA.push_back(rgba[0]);
+                quadVerticesRGBA.push_back(rgba[1]);
+                quadVerticesRGBA.push_back(rgba[2]);
+                quadVerticesRGBA.push_back(rgba[3]);
+                quadVerticesXYZ.push_back(parcelX);
+                quadVerticesXYZ.push_back(parcelY);
+                quadVerticesXYZ.push_back(0.0);
+                
+                quadVerticesRGBA.push_back(rgba[0]);
+                quadVerticesRGBA.push_back(rgba[1]);
+                quadVerticesRGBA.push_back(rgba[2]);
+                quadVerticesRGBA.push_back(rgba[3]);
+                quadVerticesXYZ.push_back(parcelX + 1);
+                quadVerticesXYZ.push_back(parcelY);
+                quadVerticesXYZ.push_back(0.0);
+                
+                quadVerticesRGBA.push_back(rgba[0]);
+                quadVerticesRGBA.push_back(rgba[1]);
+                quadVerticesRGBA.push_back(rgba[2]);
+                quadVerticesRGBA.push_back(rgba[3]);
+                quadVerticesXYZ.push_back(parcelX + 1);
+                quadVerticesXYZ.push_back(parcelY + 1);
+                quadVerticesXYZ.push_back(0.0);
+                
+                quadVerticesRGBA.push_back(rgba[0]);
+                quadVerticesRGBA.push_back(rgba[1]);
+                quadVerticesRGBA.push_back(rgba[2]);
+                quadVerticesRGBA.push_back(rgba[3]);
+                quadVerticesXYZ.push_back(parcelX);
+                quadVerticesXYZ.push_back(parcelY + 1);
+                quadVerticesXYZ.push_back(0.0);
+                
+                parcelX += 1;
+            }
+            parcelY -= 1;
+        }
+        
+        CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesRGBA.size() / 4));
+        const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
+        glBegin(GL_QUADS);
+        for (int32_t i = 0; i < numberQuadVertices; i++) {
+            glColor4fv(&quadVerticesRGBA[i*4]);
+            glVertex3fv(&quadVerticesXYZ[i*3]);
+        }
+        glEnd();
+    }
 }
 
-
 /**
-* Save the state of OpenGL.
+ * Save the state of OpenGL.
  * Copied from Qt's qgl.cpp, qt_save_gl_state().
  */
 void

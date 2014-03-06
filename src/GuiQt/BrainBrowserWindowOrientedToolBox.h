@@ -15,6 +15,7 @@ namespace caret {
     class BorderSelectionViewController;
     class ChartHistoryViewController;
     class ChartSelectionViewController;
+    class ChartToolBoxViewController;
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
     class FociSelectionViewController;
@@ -65,9 +66,11 @@ namespace caret {
 
         CiftiConnectivityMatrixViewController* m_connectivityMatrixViewController;
         
-        ChartSelectionViewController* m_chartSelectionViewController;
+        ChartToolBoxViewController* m_chartToolBoxViewController;
         
-        ChartHistoryViewController* m_chartHistoryViewController;
+//        ChartSelectionViewController* m_chartSelectionViewController;
+//        
+//        ChartHistoryViewController* m_chartHistoryViewController;
         
         FiberOrientationSelectionViewController* m_fiberOrientationViewController;
         
@@ -79,7 +82,7 @@ namespace caret {
         
         QTabWidget* m_tabWidget;
         
-        QTabWidget* m_chartTabWidget;
+//        QTabWidget* m_chartTabWidget;
         
         QString m_toolBoxTitle;
         

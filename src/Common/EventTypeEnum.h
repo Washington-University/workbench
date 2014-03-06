@@ -98,12 +98,14 @@ public:
         EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS,
         /** open file request from the operating system (Mac only) for now */
         EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE,
-        /** Read the selected files in a spec file */
-        EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Get all yoked overlays */
         EVENT_OVERLAY_GET_YOKED,
         /** Validate that overlay is valid (it exists). */
         EVENT_OVERLAY_VALIDATE,
+        /** Get a palette by name from a palette file */
+        EVENT_PALETTE_GET_BY_NAME,
+        /** Read the selected files in a spec file */
+        EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Get surfaces */

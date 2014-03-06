@@ -36,6 +36,7 @@
 #include "CiftiParcelScalarFile.h"
 #undef __CIFTI_PARCEL_SCALAR_FILE_DECLARE__
 
+#include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "ChartTypeEnum.h"
 #include "CiftiFile.h"
@@ -117,6 +118,77 @@ void CiftiParcelScalarFile::getSupportedChartTypes(std::vector<ChartTypeEnum::En
 {
     list.clear();
     list.push_back(ChartTypeEnum::PLOT2D);    
+}
+
+/**
+ * Get chart data types supported by the file.
+ *
+ * @param chartDataTypesOut
+ *    Chart types supported by this file.
+ */
+void
+CiftiParcelScalarFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    chartDataTypesOut.clear();
+    
+    switch (getMapIntervalUnits()) {
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+            CaretLogSevere("Units - HZ not supported");
+            CaretAssertMessage(0, "Units - HZ not supported");
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+            CaretLogSevere("Units - PPM not supported");
+            CaretAssertMessage(0, "Units - PPM not supported");
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+    }
+}
+
+/**
+ * Get the matrix chart for files supporting matrix data.
+ *
+ * @return
+ *    Pointer to matrix or NULL if not valid.
+ */
+ChartDataMatrix*
+CiftiParcelScalarFile::getMatrixChart()
+{
+    /*
+     * Not supported
+     */
+    return NULL;
+}
+
+/**
+ * Get the matrix RGBA coloring for this matrix data creator.
+ *
+ * @param numberOfRowsOut
+ *    Number of rows in the coloring matrix.
+ * @param numberOfColumnsOut
+ *    Number of rows in the coloring matrix.
+ * @param rgbaOut
+ *    RGBA coloring output with number of elements
+ *    (numberOfRowsOut * numberOfColumnsOut * 4).
+ * @return
+ *    True if data output data is valid, else false.
+ */
+bool
+CiftiParcelScalarFile::getMatrixDataRGBA(int32_t& /*numberOfRowsOut*/,
+                                                    int32_t& /*numberOfColumnsOut*/,
+                                                    std::vector<float>& /*rgbaOut*/) const
+{
+    return false;
 }
 
 /**
@@ -218,11 +290,11 @@ CiftiParcelScalarFile::loadAverageChartForSurfaceNodes(const StructureEnum::Enum
  *     the returned pointer will return true.  Caller takes ownership
  *     of the pointer and must delete it when no longer needed.
  */
-ChartData*
+ChartDataCartesian*
 CiftiParcelScalarFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex) throw (DataFileException)
 {
-    ChartData* chartData = helpLoadChartDataForSurfaceNode(structure,
+    ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
                                                            nodeIndex);
     return chartData;
     
@@ -274,11 +346,11 @@ CiftiParcelScalarFile::loadChartDataForSurfaceNode(const StructureEnum::Enum str
  *     the returned pointer will be NULL.  Caller takes ownership
  *     of the pointer and must delete it when no longer needed.
  */
-ChartData*
+ChartDataCartesian*
 CiftiParcelScalarFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                                       const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    ChartData* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
+    ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
                                                                   nodeIndices);
     return chartData;
 }
@@ -293,10 +365,10 @@ CiftiParcelScalarFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::
  *     the returned pointer will be NULL.  Caller takes ownership
  *     of the pointer and must delete it when no longer needed.
  */
-ChartData*
+ChartDataCartesian*
 CiftiParcelScalarFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
-    ChartData* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
+    ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
 }
 

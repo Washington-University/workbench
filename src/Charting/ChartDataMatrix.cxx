@@ -37,6 +37,7 @@
 #undef __CHART_DATA_MATRIX_DECLARE__
 
 #include "CaretAssert.h"
+#include "ChartDataMatrixCreatorInterface.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
 
@@ -53,9 +54,11 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartDataMatrix::ChartDataMatrix()
-: ChartData(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX)
+ChartDataMatrix::ChartDataMatrix(ChartDataMatrixCreatorInterface* matrixCreatorInterface)
+: ChartData(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX),
+m_matrixCreatorInterface(matrixCreatorInterface)
 {
+    CaretAssert(matrixCreatorInterface);
     initializeMembersChartDataMatrix();
 }
 
@@ -119,27 +122,8 @@ ChartDataMatrix::clone() const
 void
 ChartDataMatrix::initializeMembersChartDataMatrix()
 {
-    clearMatrixData();
-    
     m_sceneAssistant = new SceneClassAssistant();
-    m_sceneAssistant->add("m_numberOfRows",
-                          &m_numberOfRows);
-    m_sceneAssistant->add("m_numberOfColumns",
-                          &m_numberOfColumns);
 }
-
-/**
- * Clear the matrix data.
- */
-void
-ChartDataMatrix::clearMatrixData()
-{
-    m_matrixData.clear();
-    m_matrixRGBA.clear();
-    m_numberOfRows    = 0;
-    m_numberOfColumns = 0;
-}
-
 
 /**
  * Helps with copying an object of this type.
@@ -149,122 +133,44 @@ ChartDataMatrix::clearMatrixData()
 void 
 ChartDataMatrix::copyHelperChartDataMatrix(const ChartDataMatrix& obj)
 {
-    m_numberOfColumns = obj.m_numberOfColumns;
-    m_numberOfRows    = obj.m_numberOfRows;
-    m_matrixData      = obj.m_matrixData;
-    m_matrixRGBA      = obj.m_matrixRGBA;
+    m_matrixCreatorInterface = obj.m_matrixCreatorInterface;
 }
 
 /**
- * Set (replace) the matrix data.
+ * Return the object that created this chart matrix.
+ */
+ChartDataMatrixCreatorInterface*
+ChartDataMatrix::getParentMatrixCreator()
+{
+    return m_matrixCreatorInterface;
+}
+
+
+/**
+ * Get the matrix RGBA coloring for this matrix data.
  *
- * @param matrixData
- *     Pointer to the matrix data.
- * @param matrixRGBA
- *     Pointer to RGBA coloring for matrix.
- * @param numberOfRows
- *     Number of rows in matrix.
- * @param numberOfColumns
- *     Number of columns in matrix.
- */
-void
-ChartDataMatrix::setMatrix(const float* matrixData,
-                           const float* matrixRGBA,
-                           const int32_t numberOfRows,
-                           const int32_t numberOfColumns)
-{
-    const int32_t numElements = numberOfRows * numberOfColumns;
-    if (numElements > 0) {
-        m_matrixData.resize(numElements);
-        for (int32_t i = 0; i < numElements; i++) {
-            m_matrixData[i] = matrixData[i];
-        }
-        
-        const int32_t numElements4 = numElements * 4;
-        m_matrixRGBA.resize(numElements4);
-        for (int32_t i = 0; i < numElements4; i++) {
-            m_matrixRGBA[i] = matrixRGBA[i];
-        }
-    }
-    else {
-        m_matrixData.clear();
-        m_matrixRGBA.clear();
-        m_numberOfRows    = 0;
-        m_numberOfColumns = 0;
-    }
-}
-
-/**
- * @return Number of rows.
- */
-int32_t
-ChartDataMatrix::getNumberOfRows() const
-{
-    return m_numberOfRows;
-}
-
-/**
- * @return Number of columns.
- */
-int32_t
-ChartDataMatrix::getNumberOfColumns() const
-{
-    return m_numberOfColumns;
-}
-
-/**
- * Get a matrix data element.
- *
- * @param row
- *     Row in the matrix.
- * @param column
- *     Column in the matrix.
- * @return 
- *     Value in matrix row and column.
- */
-float
-ChartDataMatrix::getMatrixElement(const int32_t row,
-                                  const int32_t column) const
-{
-    CaretAssert((row >= 0)
-                && (row < m_numberOfRows));
-    CaretAssert((column >= 0)
-                && (column < m_numberOfColumns));
-    const int32_t offset = getMatrixOffset(row,
-                                           column);
-    CaretAssertVectorIndex(m_matrixData, offset);
-    return m_matrixData[offset];
-}
-
-/**
- * Get a matrix data element's RGBA coloring.
- *
- * @param row
- *     Row in the matrix.
- * @param column
- *     Column in the matrix.
+ * @param numberOfRowsOut
+ *    Number of rows in the coloring matrix.
+ * @param numberOfColumnsOut
+ *    Number of rows in the coloring matrix.
  * @param rgbaOut
- *     Output containing RGBA values (0 to 1.0) for matrix element.
+ *    RGBA coloring output with number of elements
+ *    (numberOfRowsOut * numberOfColumnsOut * 4).
+ * @return
+ *    True if data output data is valid, else false.
  */
-void
-ChartDataMatrix::getMatrixElementRGBA(const int32_t row,
-                          const int32_t column,
-                          float rgbaOut[4]) const
+bool
+ChartDataMatrix::getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                               int32_t& numberOfColumnsOut,
+                               std::vector<float>& rgbaOut) const
 {
-    CaretAssert((row >= 0)
-                && (row < m_numberOfRows));
-    CaretAssert((column >= 0)
-                && (column < m_numberOfColumns));
+    CaretAssert(m_matrixCreatorInterface);
     
-    const int32_t offset4 = (4
-                             * getMatrixOffset(row,
-                                             column));
-    CaretAssertVectorIndex(m_matrixRGBA, offset4 + 3);
-    rgbaOut[0] = m_matrixRGBA[offset4 + 0];
-    rgbaOut[1] = m_matrixRGBA[offset4 + 1];
-    rgbaOut[2] = m_matrixRGBA[offset4 + 2];
-    rgbaOut[3] = m_matrixRGBA[offset4 + 3];
+    return m_matrixCreatorInterface->getMatrixDataRGBA(numberOfRowsOut,
+                                                       numberOfColumnsOut,
+                                                       rgbaOut);
 }
+
 
 /**
  * Save subclass data to the scene.  sceneClass
@@ -289,17 +195,6 @@ ChartDataMatrix::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   chartDataMatrix);
     
-    const int32_t numElements = m_numberOfRows * m_numberOfColumns;
-    if (numElements > 0) {
-        chartDataMatrix->addFloatArray("m_matrixData",
-                                       &m_matrixData[0],
-                                       numElements);
-        
-        const int32_t numElements4 = numElements * 4;
-        chartDataMatrix->addFloatArray("m_matrixRGBA",
-                                       &m_matrixRGBA[0],
-                                       numElements4);
-    }
     
     sceneClass->addClass(chartDataMatrix);
 }
@@ -321,9 +216,6 @@ void
 ChartDataMatrix::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    clearMatrixData();
-    
-    
     const SceneClass* chartDataMatrix = sceneClass->getClass("chartDataMatrix");
     if (chartDataMatrix == NULL) {
         return;
@@ -331,51 +223,6 @@ ChartDataMatrix::restoreSubClassDataFromScene(const SceneAttributes* sceneAttrib
     
     m_sceneAssistant->restoreMembers(sceneAttributes, chartDataMatrix);
     
-    const int32_t numElements = m_numberOfRows * m_numberOfColumns;
-    if (numElements > 0) {
-        const SceneClassArray* matrixArray = chartDataMatrix->getClassArray("m_matrixData");
-        if (matrixArray != NULL) {
-            const int32_t arrayNumberOfElements = matrixArray->getNumberOfArrayElements();
-            if (arrayNumberOfElements == numElements) {
-                m_matrixData.resize(numElements,
-                                    0.0);
-                chartDataMatrix->getFloatArrayValue("m_matrixData",
-                                                    &m_matrixData[0],
-                                                    arrayNumberOfElements);
-                
-                const SceneClassArray* matrixRgbaArray = chartDataMatrix->getClassArray("m_matrixRGBA");
-                if (matrixRgbaArray != NULL) {
-                    const int32_t numElements4 = numElements * 4;
-                    const int32_t arrayNumberOfElements4 = matrixRgbaArray->getNumberOfArrayElements();
-                    if (arrayNumberOfElements4 == numElements4) {
-                        m_matrixRGBA.resize(numElements4,
-                                            0.0);
-                        chartDataMatrix->getFloatArrayValue("m_matrixRGBA",
-                                                            &m_matrixRGBA[0],
-                                                            arrayNumberOfElements4);
-                    }
-                    else {
-                        clearMatrixData();
-                        
-                        sceneAttributes->addToErrorMessage("Need "
-                                                           + AString::number(numElements4)
-                                                           + " to restore matrix RGBA but only have "
-                                                           + AString::number(arrayNumberOfElements4)
-                                                           + " in scene data");
-                    }
-                }
-            }
-            else {
-                clearMatrixData();
-                
-                sceneAttributes->addToErrorMessage("Need "
-                                                   + AString::number(numElements)
-                                                   + " to restore matrix but only have "
-                                                   + AString::number(arrayNumberOfElements)
-                                                   + " in scene data");
-            }
-        }
-    }
 }
 
 

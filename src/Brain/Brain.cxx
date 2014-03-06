@@ -63,6 +63,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventModelGetAll.h"
+#include "EventPaletteGetByName.h"
 #include "EventProgressUpdate.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
@@ -152,6 +153,8 @@ Brain::Brain()
                                           EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_PALETTE_GET_BY_NAME);
     
     m_isSpecFileBeingRead = false;
     
@@ -2617,6 +2620,36 @@ Brain::getAllChartableDataFiles(std::vector<ChartableInterface*>& chartableDataF
 
 /**
  * Get all of the Chartable Data Files.  Only files that implement the
+ * ChartableInterface AND return true for ChartableInterface::isChartingSupported()
+ * and support a chart of the given data type are included in the returned files.
+ *
+ * @param chartDataType
+ *    Desired chart data type.
+ * @param chartableDataFilesOut
+ *    Contains all chartable data files upon exit.
+ */
+void
+Brain::getAllChartableDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
+                                                std::vector<ChartableInterface*>& chartableDataFilesOut) const
+{
+    chartableDataFilesOut.clear();
+    
+    std::vector<ChartableInterface*> chartFiles;
+    getAllChartableDataFiles(chartFiles);
+    
+    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+         iter != chartFiles.end();
+         iter++) {
+        ChartableInterface* chartFile = *iter;
+        if (chartFile->isChartDataTypeSupported(chartDataType)) {
+            chartableDataFilesOut.push_back(chartFile);
+        }
+    }
+}
+
+
+/**
+ * Get all of the Chartable Data Files.  Only files that implement the
  * ChartableInterface, return true for ChartableInterface::isChartingSupported(),
  * AND return true for ChartableInterface::isChartingEnabled() for any tab index
  * are included in the returned files.
@@ -3829,6 +3862,10 @@ Brain::updateChartModel()
             m_modelChart->initializeOverlays();
         }
     }
+    
+    if (m_modelChart != NULL) {
+        m_modelChart->updateChartMatrixModels();
+    }
 }
 
 /**
@@ -4914,6 +4951,18 @@ Brain::receiveEvent(Event* event)
              iter != dataFilesDisplayedInTabs.end();
              iter++) {
             displayedFilesEvent->addDisplayedDataFile(*iter);
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_GET_BY_NAME) {
+        EventPaletteGetByName* paletteGetByName = dynamic_cast<EventPaletteGetByName*>(event);
+        CaretAssert(paletteGetByName);
+        
+        if (m_paletteFile != NULL) {
+            Palette* palette = m_paletteFile->getPaletteByName(paletteGetByName->getPaletteName());
+            if (palette != NULL) {
+                paletteGetByName->setPalette(palette);
+                paletteGetByName->setEventProcessed();
+            }
         }
     }
 }

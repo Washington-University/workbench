@@ -113,7 +113,7 @@ EventTypeEnum::initialize()
                                      "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
                                      "Get all Caret Mappable data files"));
     
-    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ, 
+    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ,
                                     "EVENT_DATA_FILE_READ", 
                                     "Read a data file"));
     
@@ -188,6 +188,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_OVERLAY_VALIDATE,
                                      "EVENT_OVERLAY_VALIDATE",
                                      "Validate an overlay for validity (it exists)"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_PALETTE_GET_BY_NAME,
+                                     "EVENT_PALETTE_GET_BY_NAME",
+                                     "Read the selected files in a spec file"));
     
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",

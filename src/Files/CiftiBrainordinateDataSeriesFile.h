@@ -58,13 +58,13 @@ namespace caret {
         
         virtual bool isChartingSupported() const;
         
-        virtual ChartData* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                                    const int32_t nodeIndex) throw (DataFileException);
         
-        virtual ChartData* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
-        virtual ChartData* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         
         virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
@@ -77,6 +77,14 @@ namespace caret {
         
         virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
                                                    TimeLine& timeLineOut) throw (DataFileException);
+        
+        virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
+        virtual ChartDataMatrix* getMatrixChart();
+        
+        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                       int32_t& numberOfColumnsOut,
+                                       std::vector<float>& rgbaOut) const;
         
         virtual CaretMappableDataFile* getCaretMappableDataFile();
         

@@ -29,6 +29,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "ChartDataTypeEnum.h"
 #include "DataFileTypeEnum.h"
 #include "DataFileException.h"
 #include "DisplayGroupEnum.h"
@@ -314,6 +315,9 @@ namespace caret {
         void getConnectivityDataSeriesFiles(std::vector<CiftiBrainordinateDataSeriesFile*>& connectivityDataSeriesFilesOut) const;
         
         void getAllChartableDataFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
+        
+        void getAllChartableDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
+                                                      std::vector<ChartableInterface*>& chartableDataFilesOut) const;
         
         void getAllChartableDataFilesWithChartingEnabled(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
         

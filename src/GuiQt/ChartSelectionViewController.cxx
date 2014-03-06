@@ -119,8 +119,20 @@ ChartSelectionViewController::updateSelectionViewController()
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
 
+    ChartModel* chartModel = NULL;
+    
+    ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+    ModelChart* modelChart = brain->getChartModel();
+    if (modelChart != NULL) {
+        chartModel = modelChart->getSelectedChartModel(browserTabIndex);
+        if (chartModel != NULL) {
+            chartDataType = chartModel->getChartDataType();
+        }
+    }
+    
     std::vector<ChartableInterface*> chartableFilesVector;
-    brain->getAllChartableDataFiles(chartableFilesVector);
+    brain->getAllChartableDataFilesForChartDataType(chartDataType,
+                                                    chartableFilesVector);
     
     const int32_t numChartableFiles = static_cast<int32_t>(chartableFilesVector.size());
     
