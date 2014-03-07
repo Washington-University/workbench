@@ -381,11 +381,12 @@ StructureEnum::fromCiftiName(const AString& ciftiName, bool* isValidOut)
     Enum enumValue = INVALID;
     if (ciftiName.startsWith("CIFTI_STRUCTURE_"))
     {
+        QString toMatch = ciftiName.mid(16);
         for (std::vector<StructureEnum>::iterator iter = enumData.begin();
             iter != enumData.end();
             iter++) {
             const StructureEnum& d = *iter;
-            if (ciftiName.endsWith(d.name)) {
+            if (toMatch == d.name) {
                 enumValue = d.enumValue;
                 validFlag = true;
                 break;
