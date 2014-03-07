@@ -145,6 +145,8 @@ ModelChart::removeAllCharts()
     
     m_dataSeriesChartData.clear();
     m_timeSeriesChartData.clear();
+    
+    m_previousChartMatrixFiles.clear();
 }
 
 /**
@@ -963,16 +965,34 @@ ModelChart::getSelectedChartModelHelper(const int32_t tabIndex) const
 void
 ModelChart::updateChartMatrixModels()
 {
-    std::cout << "Updating chart matrix models." << std::endl;
-    
+
+    /*
+     * Get the matrix chartable files
+     */
     std::vector<ChartableInterface*> chartableFiles;
     m_brain->getAllChartableDataFilesForChartDataType(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX,
                                                       chartableFiles);
  
-    if (chartableFiles.empty()) {
-        return;
+    /*
+     * Test to see if files have NOT changed
+     */
+    if (chartableFiles.size() == m_previousChartMatrixFiles.size()) {
+        std::vector<ChartableInterface*> chartFilesSorted(chartableFiles);
+        std::sort(chartFilesSorted.begin(),
+                  chartFilesSorted.end());
+        if (std::equal(chartFilesSorted.begin(),
+                       chartFilesSorted.end(),
+                       m_previousChartMatrixFiles.begin())) {
+            return;
+        }
+        m_previousChartMatrixFiles = chartFilesSorted;
     }
-
+    
+    std::cout << "Updating chart matrix models." << std::endl;
+    
+    /*
+     * Remove charts
+     */
     std::vector<int32_t> allTabIndices(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         CaretAssertVectorIndex(allTabIndices, i);
@@ -982,6 +1002,9 @@ ModelChart::updateChartMatrixModels()
         m_chartModelMatrix[i]->removeChartData();
     }
     
+    /*
+     * Add charts
+     */
     for (std::vector<ChartableInterface*>::iterator iter = chartableFiles.begin();
          iter != chartableFiles.end();
          iter++) {

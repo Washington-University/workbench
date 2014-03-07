@@ -128,7 +128,7 @@ ChartSelectionViewController::updateSelectionViewController()
         if (chartModel != NULL) {
             chartDataType = chartModel->getChartDataType();
         }
-    }
+    } 
     
     std::vector<ChartableInterface*> chartableFilesVector;
     brain->getAllChartableDataFilesForChartDataType(chartDataType,

@@ -149,6 +149,7 @@ namespace caret {
         /** Contains time series charts */
         std::list<QWeakPointer<ChartDataCartesian> > m_timeSeriesChartData;
         
+        std::vector<ChartableInterface*> m_previousChartMatrixFiles;
 
         SceneClassAssistant* m_sceneAssistant;
     };

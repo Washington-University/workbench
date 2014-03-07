@@ -1106,10 +1106,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
         
         int32_t rgbaOffset = 0;
         std::vector<float> quadVerticesXYZ;
+        quadVerticesXYZ.reserve(numberOfRows * numberOfColumns * 3);
         std::vector<float> quadVerticesRGBA;
-        float parcelY = numberOfRows - 1;
+        quadVerticesRGBA.reserve(numberOfRows * numberOfColumns * 4);
+        float cellY = numberOfRows - 1;
         for (int32_t i = 0; i < numberOfRows; i++) {
-            float parcelX = 0;
+            float cellX = 0;
             for (int32_t j = 0; j < numberOfColumns; j++) {
                 CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
                 const float* rgba = &matrixRGBA[rgbaOffset];
@@ -1119,47 +1121,76 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                 quadVerticesRGBA.push_back(rgba[1]);
                 quadVerticesRGBA.push_back(rgba[2]);
                 quadVerticesRGBA.push_back(rgba[3]);
-                quadVerticesXYZ.push_back(parcelX);
-                quadVerticesXYZ.push_back(parcelY);
+                quadVerticesXYZ.push_back(cellX);
+                quadVerticesXYZ.push_back(cellY);
                 quadVerticesXYZ.push_back(0.0);
                 
                 quadVerticesRGBA.push_back(rgba[0]);
                 quadVerticesRGBA.push_back(rgba[1]);
                 quadVerticesRGBA.push_back(rgba[2]);
                 quadVerticesRGBA.push_back(rgba[3]);
-                quadVerticesXYZ.push_back(parcelX + 1);
-                quadVerticesXYZ.push_back(parcelY);
+                quadVerticesXYZ.push_back(cellX + 1);
+                quadVerticesXYZ.push_back(cellY);
                 quadVerticesXYZ.push_back(0.0);
                 
                 quadVerticesRGBA.push_back(rgba[0]);
                 quadVerticesRGBA.push_back(rgba[1]);
                 quadVerticesRGBA.push_back(rgba[2]);
                 quadVerticesRGBA.push_back(rgba[3]);
-                quadVerticesXYZ.push_back(parcelX + 1);
-                quadVerticesXYZ.push_back(parcelY + 1);
+                quadVerticesXYZ.push_back(cellX + 1);
+                quadVerticesXYZ.push_back(cellY + 1);
                 quadVerticesXYZ.push_back(0.0);
                 
                 quadVerticesRGBA.push_back(rgba[0]);
                 quadVerticesRGBA.push_back(rgba[1]);
                 quadVerticesRGBA.push_back(rgba[2]);
                 quadVerticesRGBA.push_back(rgba[3]);
-                quadVerticesXYZ.push_back(parcelX);
-                quadVerticesXYZ.push_back(parcelY + 1);
+                quadVerticesXYZ.push_back(cellX);
+                quadVerticesXYZ.push_back(cellY + 1);
                 quadVerticesXYZ.push_back(0.0);
                 
-                parcelX += 1;
+                cellX += 1;
             }
-            parcelY -= 1;
+            cellY -= 1;
         }
         
+        /*
+         * Draw the matrix elements.
+         */
         CaretAssert((quadVerticesXYZ.size() / 3) == (quadVerticesRGBA.size() / 4));
         const int32_t numberQuadVertices = static_cast<int32_t>(quadVerticesXYZ.size() / 3);
         glBegin(GL_QUADS);
         for (int32_t i = 0; i < numberQuadVertices; i++) {
+            CaretAssertVectorIndex(quadVerticesRGBA, i*4 + 3);
             glColor4fv(&quadVerticesRGBA[i*4]);
+            CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
             glVertex3fv(&quadVerticesXYZ[i*3]);
         }
         glEnd();
+        
+        /*
+         * Drawn an outline around the matrix elements using
+         * the foreground color.
+         */
+        std::vector<float> outlineRGBA;
+        outlineRGBA.reserve(numberQuadVertices * 4);
+        for (int32_t i = 0; i < numberQuadVertices; i++) {
+            outlineRGBA.push_back(m_foregroundColor[0]);
+            outlineRGBA.push_back(m_foregroundColor[1]);
+            outlineRGBA.push_back(m_foregroundColor[2]);
+            outlineRGBA.push_back(m_foregroundColor[3]);
+        }
+        glPolygonMode(GL_FRONT, GL_LINE);
+        glLineWidth(1.0);
+        glBegin(GL_QUADS);
+        for (int32_t i = 0; i < numberQuadVertices; i++) {
+            CaretAssertVectorIndex(outlineRGBA, i*4 + 3);
+            glColor4fv(&outlineRGBA[i*4]);
+            CaretAssertVectorIndex(quadVerticesXYZ, i*3 + 2);
+            glVertex3fv(&quadVerticesXYZ[i*3]);
+        }
+        glEnd();
+        glPolygonMode(GL_FRONT, GL_FILL);
     }
 }
 
@@ -1181,12 +1212,11 @@ BrainOpenGLChartDrawingFixedPipeline::saveStateOfOpenGL()
     glPushMatrix();
     
     glShadeModel(GL_FLAT);
-    glDisable(GL_CULL_FACE);
+//    glDisable(GL_CULL_FACE);
     glDisable(GL_LIGHTING);
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
 }
 
 /**
