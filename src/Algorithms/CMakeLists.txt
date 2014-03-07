@@ -93,6 +93,7 @@ AlgorithmVolumeDilate.h
 AlgorithmVolumeEstimateFWHM.h
 AlgorithmVolumeExtrema.h
 AlgorithmVolumeFillHoles.h
+AlgorithmVolumeFindClusters.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeLabelToROI.h
 AlgorithmVolumeLabelToSurfaceMapping.h
@@ -184,6 +185,7 @@ AlgorithmVolumeDilate.cxx
 AlgorithmVolumeEstimateFWHM.cxx
 AlgorithmVolumeExtrema.cxx
 AlgorithmVolumeFillHoles.cxx
+AlgorithmVolumeFindClusters.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeLabelToROI.cxx
 AlgorithmVolumeLabelToSurfaceMapping.cxx

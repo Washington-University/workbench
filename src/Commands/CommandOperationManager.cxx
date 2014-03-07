@@ -101,6 +101,7 @@
 #include "AlgorithmVolumeEstimateFWHM.h"
 #include "AlgorithmVolumeExtrema.h"
 #include "AlgorithmVolumeFillHoles.h"
+#include "AlgorithmVolumeFindClusters.h"
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
@@ -301,6 +302,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeEstimateFWHM()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeExtrema()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFillHoles()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));
