@@ -77,7 +77,7 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
 {
     SurfaceFile* mySurf = myParams->getSurface(1);
     MetricFile* myMetric = myParams->getMetric(2);
-    float minVal = (float)myParams->getDouble(3);
+    float threshVal = (float)myParams->getDouble(3);
     float minArea = (float)myParams->getDouble(4);
     MetricFile* myMetricOut = myParams->getOutputMetric(5);
     bool lessThan = myParams->getOptionalParameter(6)->m_present;
@@ -97,10 +97,10 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, minVal, minArea, myMetricOut, lessThan, myRoi, columnNum);
+    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, columnNum);
 }
 
-AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& minVal,
+AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& threshVal,
                                                          const float& minArea, MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const int& columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -121,7 +121,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     mySurf->computeNodeAreas(nodeAreas);
     CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
     vector<int> toSearch;
-    float markVal = 1.0f;//give each cluster a different value
+    int markVal = 1;//give each cluster a different value, including across maps
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, numCols);
@@ -136,7 +136,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
             {
                 for (int i = 0; i < numNodes; ++i)
                 {
-                    if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < minVal)
+                    if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < threshVal)
                     {
                         marked[i] = 1;
                     }
@@ -144,7 +144,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
             } else {
                 for (int i = 0; i < numNodes; ++i)
                 {
-                    if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > minVal)
+                    if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > threshVal)
                     {
                         marked[i] = 1;
                     }
@@ -175,15 +175,16 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                     }
                     if (area > minArea)
                     {
+                        float tempVal = markVal;
+                        if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                         int clusterCount = (int)toSearch.size();
                         for (int index = 0; index < clusterCount; ++index)
                         {
-                            outData[toSearch[index]] = markVal;
+                            outData[toSearch[index]] = tempVal;
                         }
+                        ++markVal;
                     }
                     toSearch.clear();
-                    if (markVal > ((1<<23) - 1)) throw AlgorithmException("too many clusters, unable to mark them uniquely");
-                    markVal += 1.0f;
                 }
             }
             myMetricOut->setValuesForColumn(c, outData.data());
@@ -199,7 +200,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
         {
             for (int i = 0; i < numNodes; ++i)
             {
-                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < minVal)
+                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] < threshVal)
                 {
                     marked[i] = 1;
                 }
@@ -207,7 +208,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
         } else {
             for (int i = 0; i < numNodes; ++i)
             {
-                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > minVal)
+                if ((roiData == NULL || roiData[i] > 0.0f) && data[i] > threshVal)
                 {
                     marked[i] = 1;
                 }
@@ -238,15 +239,16 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                 }
                 if (area > minArea)
                 {
+                    float tempVal = markVal;
+                    if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                     int clusterCount = (int)toSearch.size();
                     for (int index = 0; index < clusterCount; ++index)
                     {
                         outData[toSearch[index]] = markVal;
                     }
+                    ++markVal;
                 }
                 toSearch.clear();
-                if (markVal > ((1<<23) - 1)) throw AlgorithmException("too many clusters, unable to mark them uniquely");
-                markVal += 1.0f;
             }
         }
         myMetricOut->setValuesForColumn(0, outData.data());
