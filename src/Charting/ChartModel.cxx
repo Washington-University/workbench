@@ -453,6 +453,47 @@ ChartModel::getAllSelectedChartDatas(const int32_t tabIndex) const
 }
 
 /**
+ * @return Number of chart data.
+ */
+int32_t
+ChartModel::getNumberOfChartData() const
+{
+    return m_chartDatas.size();
+}
+
+/**
+ * Get the chart data at the given index.
+ *
+ * @param chartDataIndex
+ *    Index of desired chart data.
+ * @return
+ *    ChartData at the given index.
+ */
+ChartData*
+ChartModel::getChartDataAtIndex(const int32_t chartDataIndex)
+{
+    CaretAssertVectorIndex(m_chartDatas,
+                           chartDataIndex);
+    return m_chartDatas[chartDataIndex].data();
+}
+
+/**
+ * Get the chart data at the given index (const method).
+ *
+ * @param chartDataIndex
+ *    Index of desired chart data.
+ * @return
+ *    ChartData at the given index.
+ */
+const ChartData*
+ChartModel::getChartDataAtIndex(const int32_t chartDataIndex) const
+{
+    CaretAssertVectorIndex(m_chartDatas,
+                           chartDataIndex);
+    return m_chartDatas[chartDataIndex].data();
+}
+
+/**
  * @return Is average chart data display selected.
  * NOTE: Not all charts support an average.
  */

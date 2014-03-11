@@ -32,6 +32,9 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "ChartDataCartesian.h"
+#include "ChartDataSource.h"
+#include "ChartModelDataSeries.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
@@ -42,6 +45,8 @@
 #include "GiftiLabel.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
+#include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemSurfaceNode.h"
@@ -119,131 +124,11 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
                                            brain,
                                            idManager->getVoxelIdentification());
     
-//    const SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
-//    if (voxelID->isValid()) {
-//        int64_t ijk[3];
-//        const VolumeMappableInterface* idVolumeFile = voxelID->getVolumeFile();
-//        voxelID->getVoxelIJK(ijk);
-//        float x, y, z;
-//        idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
-//                
-//        idText.addLine(false,
-//                       "Voxel XYZ ("
-//                       + AString::number(x)
-//                       + ", "
-//                       + AString::number(y)
-//                       + ", "
-//                       + AString::number(z)
-//                       + ")");
-//        
-//        const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
-//        
-//        /*
-//         * In first loop, show values for 'idVolumeFile' (the underlay volume)
-//         * In second loop, show values for all other volume files
-//         */
-//        for (int32_t iLoop = 0; iLoop < 2; iLoop++) {
-//            for (int32_t i = 0; i < numVolumeFiles; i++) {
-//                const VolumeFile* vf = brain->getVolumeFile(i);
-//                if (vf == idVolumeFile) {
-//                    if (iLoop != 0) {
-//                        continue;
-//                    }
-//                }
-//                else if (iLoop == 0) {
-//                    continue;
-//                }
-//                
-//                int64_t vfI, vfJ, vfK;
-//                vf->enclosingVoxel(x, y, z,
-//                                   vfI, vfJ, vfK);
-//                
-//                if (vf->indexValid(vfI, vfJ, vfK)) {
-//                    AString boldText = vf->getFileNameNoPath();
-//                    boldText += (" IJK ("
-//                                 + AString::number(vfI)
-//                                 + ", "
-//                                 + AString::number(vfJ)
-//                                 + ", "
-//                                 + AString::number(vfK)
-//                                 + ")  ");
-//                    
-//                    AString text;
-//                    const int32_t numMaps = vf->getNumberOfMaps();
-//                    for (int jMap = 0; jMap < numMaps; jMap++) {
-//                        if (jMap > 0) {
-//                            text += " ";
-//                        }
-//                        if (vf->getType() == SubvolumeAttributes::LABEL) {
-//                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfI, vfJ, vfK, jMap));
-//                            const GiftiLabelTable* glt = vf->getMapLabelTable(jMap);
-//                            const GiftiLabel* gl = glt->getLabel(labelIndex);
-//                            if (gl != NULL) {
-//                                text += gl->getName();
-//                            }
-//                            else {
-//                                text += ("LABLE_MISSING_FOR_INDEX=" 
-//                                         + AString::number(labelIndex));
-//                            }
-//                        }
-//                        else {
-//                            text += AString::number(vf->getValue(vfI, vfJ, vfK, jMap));
-//                        }
-//                    }
-//                    
-//                    idText.addLine(true,
-//                                   boldText,
-//                                   text);
-//                }
-//            }            
-//        }
-//        
-//        const float xyz[3] = { x, y, z };
-//
-//        std::vector<CiftiMappableDataFile*> allCiftiMappableDataFiles;
-//        brain->getAllCiftiMappableDataFiles(allCiftiMappableDataFiles);
-//        for (std::vector<CiftiMappableDataFile*>::iterator ciftiMapIter = allCiftiMappableDataFiles.begin();
-//             ciftiMapIter != allCiftiMappableDataFiles.end();
-//             ciftiMapIter++) {
-//            const CiftiMappableDataFile* cmdf = *ciftiMapIter;
-//            if (cmdf->isEmpty() == false) {
-//                const int numMaps = cmdf->getNumberOfMaps();
-//                std::vector<int32_t> mapIndices;
-//                for (int32_t i = 0; i < numMaps; i++) {
-//                    mapIndices.push_back(i);
-//                }
-//
-//                /*
-//                 * Limit dense scalar and data series to maps selected in the overlay.
-//                 */
-//                if ((cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
-//                    || (cmdf->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES)) {
-//                    getMapIndicesOfFileUsedInOverlays(cmdf,
-//                                                      mapIndices);
-//                }
-//                
-//                AString textValue;
-//                int64_t voxelIJK[3];
-//                if (cmdf->getVolumeVoxelIdentificationForMaps(mapIndices,
-//                                                              xyz,
-//                                                              voxelIJK,
-//                                                              textValue)) {
-//                    AString boldText = (DataFileTypeEnum::toOverlayTypeName(cmdf->getDataFileType())
-//                                        + " "
-//                                        + cmdf->getFileNameNoPath()
-//                                        + " IJK ("
-//                                        + AString::number(voxelIJK[0])
-//                                        + ", "
-//                                        + AString::number(voxelIJK[1])
-//                                        + ", "
-//                                        + AString::number(voxelIJK[2])
-//                                        + ")  ");
-//                    idText.addLine(true, boldText, textValue);
-//                }
-//            }
-//        }
-//        
-//    }
+    this->generateChartDataSeriesIdentificationText(idText,
+                                                    idManager->getChartDataSeriesIdentification());
+    
+    this->generateChartTimeSeriesIdentificationText(idText,
+                                                    idManager->getChartTimeSeriesIdentification());
     
     return idText.toString();
 }
@@ -677,6 +562,50 @@ IdentificationTextGenerator::getMapIndicesOfFileUsedInOverlays(const CaretMappab
                                                                 mapIndicesOut.end());
         mapIndicesOut.resize(std::distance(mapIndicesOut.begin(),
                                         uniqueIter));
+    }
+}
+
+/**
+ * Generate identification text for a data series chart.
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartDataSeries
+ *     Information for chart id.
+ */
+void
+IdentificationTextGenerator::generateChartDataSeriesIdentificationText(IdentificationStringBuilder& idText,
+                                                                       const SelectionItemChartDataSeries* idChartDataSeries) const
+{
+    if (idChartDataSeries->isValid()) {
+        //const ChartModelDataSeries* chartModelDataSeries = idChartDataSeries->getChartModelDataSeries();
+        const ChartDataCartesian* chartDataCartesian = idChartDataSeries->getChartDataCartesian();
+        
+        const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
+        AString boldText = ("Data Series Chart: ");
+        const AString txt = chartDataSource->getDescription();
+        idText.addLine(false, boldText, txt);
+    }
+}
+
+/**
+ * Generate identification text for a time series chart.
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartTimeSeries
+ *     Information for chart id.
+ */
+void
+IdentificationTextGenerator::generateChartTimeSeriesIdentificationText(IdentificationStringBuilder& idText,
+                                                                       const SelectionItemChartTimeSeries* idChartTimeSeries) const
+{
+    if (idChartTimeSeries->isValid()) {
+        //const ChartModelDataSeries* chartModelDataSeries = idChartDataSeries->getChartModelDataSeries();
+        const ChartDataCartesian* chartDataCartesian = idChartTimeSeries->getChartDataCartesian();
+        
+        const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
+        AString boldText = ("Time Series Chart: ");
+        const AString txt = chartDataSource->getDescription();
+        idText.addLine(false, boldText, txt);
     }
 }
 

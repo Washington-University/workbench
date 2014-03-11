@@ -53,6 +53,10 @@ public:
         BORDER_SURFACE,
         /** Border on Volume Slice */
         BORDER_VOLUME,
+        /** Data-Series Chart */
+        CHART_DATA_SERIES,
+        /** Time-Series Chart */
+        CHART_TIME_SERIES,
         /** Focus on Surface */
         FOCUS_SURFACE,
         /** Focus on Volume */

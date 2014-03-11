@@ -126,6 +126,8 @@ ProjectionViewTypeEnum.h
 SelectionItemDataTypeEnum.h
 SelectionItem.h
 SelectionItemBorderSurface.h
+SelectionItemChartDataSeries.h
+SelectionItemChartTimeSeries.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
 SelectionItemSurfaceNode.h
@@ -232,6 +234,8 @@ ProjectionViewTypeEnum.cxx
 SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx
 SelectionItemBorderSurface.cxx
+SelectionItemChartDataSeries.cxx
+SelectionItemChartTimeSeries.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
 SelectionItemSurfaceNode.cxx

@@ -87,7 +87,15 @@ SelectionItemDataTypeEnum::initialize()
                                     "BORDER_VOLUME", 
                                     "Volume Border"));
     
-    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_SURFACE, 
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_DATA_SERIES,
+                                                 "CHART_DATA_SERIES",
+                                                 "Data-Series Chart"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_TIME_SERIES,
+                                                 "CHART_TIME_SERIES",
+                                                 "Time-Series Chart"));
+    
+    enumData.push_back(SelectionItemDataTypeEnum(FOCUS_SURFACE,
                                     "FOCUS_SURFACE", 
                                     "Surface Focus"));
     

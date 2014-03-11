@@ -39,6 +39,8 @@
 #undef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "CaretOpenGLInclude.h"
+#include "Brain.h"
+#include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "ChartAxis.h"
@@ -47,9 +49,14 @@
 #include "ChartDataCartesian.h"
 #include "CaretLogger.h"
 #include "ChartModelDataSeries.h"
+#include "ChartModelTimeSeries.h"
 #include "ChartableMatrixInterface.h"
 #include "CaretPreferences.h"
 #include "ChartPoint.h"
+#include "IdentificationWithColor.h"
+#include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartTimeSeries.h"
+#include "SelectionManager.h"
 #include "SessionManager.h"
 
 using namespace caret;
@@ -68,6 +75,9 @@ using namespace caret;
 BrainOpenGLChartDrawingFixedPipeline::BrainOpenGLChartDrawingFixedPipeline()
 : BrainOpenGLChartDrawingInterface()
 {
+    m_brain = NULL;
+    m_fixedPipelineDrawing = NULL;
+    m_identificationModeFlag = false;
 }
 
 /**
@@ -80,6 +90,8 @@ BrainOpenGLChartDrawingFixedPipeline::~BrainOpenGLChartDrawingFixedPipeline()
 /**
  * Draw a cartesian chart in the given viewport.
  *
+ * @param fixedPipelineDrawing
+ *     The fixed pipeline drawing.
  * @param viewport
  *     Viewport for the chart.
  * @param textRenderer
@@ -90,19 +102,50 @@ BrainOpenGLChartDrawingFixedPipeline::~BrainOpenGLChartDrawingFixedPipeline()
  *     Index of the tab.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(const int32_t viewport[4],
+BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
+                                                         BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                         const int32_t viewport[4],
                                                          BrainOpenGLTextRenderInterface* textRenderer,
                                                          ChartModelCartesian* cartesianChart,
                                                          const int32_t tabIndex)
 {
+    m_brain = brain;
+    m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_tabIndex = tabIndex;
-    
+    m_chartModelDataSeriesBeingDrawnForIdentification = dynamic_cast<ChartModelDataSeries*>(cartesianChart);
+    m_chartModelTimeSeriesBeingDrawnForIdentification = dynamic_cast<ChartModelTimeSeries*>(cartesianChart);
     CaretAssert(cartesianChart);
     if (cartesianChart->isEmpty()) {
         return;
     }
     
     saveStateOfOpenGL();
+    
+    SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
+    SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    m_identificationModeFlag = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (chartDataSeriesID->isEnabledForSelection()) {
+                m_identificationModeFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                return;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    resetIdentification();
     
     const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
     preferences->getColorForeground(m_foregroundColor);
@@ -183,12 +226,21 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(const int32_t viewport[
     drawChartGraphicsLineSeries(textRenderer,
                                 cartesianChart);
 
+    /*
+     * Process selection
+     */
+    if (m_identificationModeFlag) {
+        processIdentification();
+    }
+    
     restoreStateOfOpenGL();
 }
 
 /**
  * Draw a matrix chart in the given viewport.
  *
+ * @param fixedPipelineDrawing
+ *     The fixed pipeline drawing.
  * @param viewport
  *     Viewport for the chart.
  * @param textRenderer
@@ -199,12 +251,18 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(const int32_t viewport[
  *     Index of the tab.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(const int32_t viewport[4],
+BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
+                                                      BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                      const int32_t viewport[4],
                                                     BrainOpenGLTextRenderInterface* textRenderer,
                                                     ChartableMatrixInterface* chartMatrixInterface,
                                                     const int32_t tabIndex)
 {
+    m_brain = brain;
+    m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_tabIndex = tabIndex;
+    m_chartModelDataSeriesBeingDrawnForIdentification = NULL;
+    m_chartModelTimeSeriesBeingDrawnForIdentification = NULL;
     
     CaretAssert(chartMatrixInterface);
     
@@ -221,6 +279,32 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(const int32_t viewport[4],
     
     saveStateOfOpenGL();
     
+//    SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    m_identificationModeFlag = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            CaretAssert(0);  // add matrix identification
+//            if (chartDataSeriesID->isEnabledForSelection()) {
+//                m_identificationModeFlag = true;
+//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            }
+//            else {
+//                return;
+//            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    resetIdentification();
+
     const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
     preferences->getColorForeground(m_foregroundColor);
     m_foregroundColor[3] = 1.0;
@@ -253,6 +337,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(const int32_t viewport[4],
     drawChartGraphicsMatrix(textRenderer,
                             chartMatrixInterface);
     
+    /*
+     * Process selection
+     */
+    if (m_identificationModeFlag) {
+        processIdentification();
+    }
+
     restoreStateOfOpenGL();
 }
 
@@ -638,7 +729,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
 {
     CaretAssert(chart);
     
-    std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas(m_tabIndex);
+    //std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas(m_tabIndex);
+    std::vector<ChartData*> chartVector = chart->getAllChartDatas();
+    
     if (chartVector.empty()) {
         return;
     }
@@ -667,16 +760,16 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
      * Use a reverse iterator to start at the oldest chart and end with
      * the newest chart.
      */
-    for (std::vector<const ChartData*>::reverse_iterator chartIter = chartVector.rbegin();
-         chartIter != chartVector.rend();
-         chartIter++) {
-        const ChartData* chartData = *chartIter;
+    const int32_t numChartData = static_cast<int32_t>(chartVector.size());
+    for (int32_t chartDataIndex = 0; chartDataIndex < numChartData; chartDataIndex++) {
+        const ChartData* chartData = chartVector[chartDataIndex];
         if (chartData->isSelected(m_tabIndex)) {
             const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
             CaretAssert(chartDataCart);
             
             CaretColorEnum::Enum color = chartDataCart->getColor();
-            drawChartDataCartesian(chartDataCart,
+            drawChartDataCartesian(chartDataIndex,
+                                   chartDataCart,
                                    1.0,
                                    CaretColorEnum::toRGB(color));
         }
@@ -687,7 +780,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
         if (chartData != NULL) {
             const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
             CaretAssert(chartDataCart);
-            drawChartDataCartesian(chartDataCart,
+            drawChartDataCartesian(-1,
+                                   chartDataCart,
                                    2.0,
                                    m_foregroundColor);
         }
@@ -697,23 +791,36 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
 /**
  * Draw the cartesian data with the given color.
  *
+ * @param chartDataIndex
+ *   Index of chart data
  * @param chartDataCartesian
  *   Cartesian data that is drawn.
+ * @param lineWidth
+ *   Width of lines.
  * @param color
  *   Color for the data.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const ChartDataCartesian* chartDataCartesian,
+BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const int32_t chartDataIndex,
+                                                             const ChartDataCartesian* chartDataCartesian,
                                                              const float lineWidth,
                                                              const float rgb[3])
 {
     glColor3fv(rgb);
     
     glLineWidth(lineWidth);
+    if (m_identificationModeFlag) {
+        glLineWidth(5.0);
+    }
     glBegin(GL_LINE_STRIP);
     const int32_t numPoints = chartDataCartesian->getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
         const ChartPoint* point = chartDataCartesian->getPointAtIndex(i);
+        if (m_identificationModeFlag) {
+            uint8_t rgbaForID[4];
+            addToChartLineIdentification(chartDataIndex, i, rgbaForID);
+            glColor4ubv(rgbaForID);
+        }
         glVertex2fv(point->getXY());
     }
     glEnd();
@@ -885,5 +992,131 @@ BrainOpenGLChartDrawingFixedPipeline::restoreStateOfOpenGL()
     glPopClientAttrib();
     
 }
+
+/**
+ * Add an item for line identification.
+ *
+ * @param chartDataIndex
+ *     Index of the chart data.
+ * @param lineIndex
+ *     Index of the line.
+ * @param rgbaForColorIdentificationOut
+ *    Encoded identification in RGBA color OUTPUT
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::addToChartLineIdentification(const int32_t chartDataIndex,
+                                                                   const int32_t chartLineIndex,
+                                                                   uint8_t rgbaForColorIdentificationOut[4])
+{
+    const int32_t idIndex = m_identificationIndices.size() / IDENTIFICATION_INDICES_PER_CHART_LINE;
+    
+    m_fixedPipelineDrawing->colorIdentification->addItem(rgbaForColorIdentificationOut,
+                                                         SelectionItemDataTypeEnum::CHART_DATA_SERIES,
+                                                         idIndex);
+    rgbaForColorIdentificationOut[3] = 255;
+    
+    /*
+     * If these items change, need to update reset and
+     * processing of identification.
+     */
+    m_identificationIndices.push_back(chartDataIndex);
+    m_identificationIndices.push_back(chartLineIndex);
+    
+}
+
+
+/**
+ * Reset identification.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::resetIdentification()
+{
+    m_identificationIndices.clear();
+    
+    if (m_identificationModeFlag) {
+        const int32_t estimatedNumberOfItems = 1000;
+        m_identificationIndices.reserve(estimatedNumberOfItems);
+    }
+}
+
+/**
+ * Process identification.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::processIdentification()
+{
+    int32_t identifiedItemIndex;
+    float depth = -1.0;
+
+    if (m_chartModelDataSeriesBeingDrawnForIdentification != NULL) {
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::CHART_DATA_SERIES,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           identifiedItemIndex,
+                                                           depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
+            const int32_t chartDataIndex = m_identificationIndices[idIndex];
+            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
+            
+            SelectionItemChartDataSeries* chartDataSeriesID = m_brain->getSelectionManager()->getChartDataSeriesIdentification();
+            if (chartDataSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
+                ChartDataCartesian* chartDataCartesian =
+                   dynamic_cast<ChartDataCartesian*>(m_chartModelDataSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
+                CaretAssert(chartDataCartesian);
+                chartDataSeriesID->setChart(m_chartModelDataSeriesBeingDrawnForIdentification,
+                                            chartDataCartesian,
+                                            chartLineIndex);
+                
+                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
+                const float lineXYZ[3] = {
+                    chartPoint->getX(),
+                    chartPoint->getY(),
+                    0.0
+                };
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartDataSeriesID,
+                                                                 lineXYZ);
+                
+                std::cout << "Identified data series line " << chartLineIndex << std::endl;
+            }
+        }
+    }
+    else if (m_chartModelTimeSeriesBeingDrawnForIdentification != NULL) {
+        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::CHART_DATA_SERIES,
+                                                           m_fixedPipelineDrawing->mouseX,
+                                                           m_fixedPipelineDrawing->mouseY,
+                                                           identifiedItemIndex,
+                                                           depth);
+        if (identifiedItemIndex >= 0) {
+            const int32_t idIndex = identifiedItemIndex * IDENTIFICATION_INDICES_PER_CHART_LINE;
+            const int32_t chartDataIndex = m_identificationIndices[idIndex];
+            const int32_t chartLineIndex = m_identificationIndices[idIndex + 1];
+            
+            SelectionItemChartTimeSeries* chartTimeSeriesID = m_brain->getSelectionManager()->getChartTimeSeriesIdentification();
+            if (chartTimeSeriesID->isOtherScreenDepthCloserToViewer(depth)) {
+                ChartDataCartesian* chartDataCartesian =
+                dynamic_cast<ChartDataCartesian*>(m_chartModelTimeSeriesBeingDrawnForIdentification->getChartDataAtIndex(chartDataIndex));
+                CaretAssert(chartDataCartesian);
+                chartTimeSeriesID->setChart(m_chartModelTimeSeriesBeingDrawnForIdentification,
+                                            chartDataCartesian,
+                                            chartLineIndex);
+                
+                const ChartPoint* chartPoint = chartDataCartesian->getPointAtIndex(chartLineIndex);
+                const float lineXYZ[3] = {
+                    chartPoint->getX(),
+                    chartPoint->getY(),
+                    0.0
+                };
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(chartTimeSeriesID,
+                                                                 lineXYZ);
+                
+                std::cout << "Identified time series line " << chartLineIndex << std::endl;
+            }
+        }
+    }
+}
+
 
 

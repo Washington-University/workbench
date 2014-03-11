@@ -82,6 +82,12 @@ namespace caret {
         
         std::vector<const ChartData*> getAllSelectedChartDatas(const int32_t tabIndex) const;
         
+        int32_t getNumberOfChartData() const;
+        
+        ChartData* getChartDataAtIndex(const int32_t chartDataIndex);
+        
+        const ChartData* getChartDataAtIndex(const int32_t chartDataIndex) const;
+        
         /**
          * @return Is an average of data supported?
          */

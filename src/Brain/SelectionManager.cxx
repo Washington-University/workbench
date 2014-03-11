@@ -36,6 +36,8 @@
 #undef __SELECTION_MANAGER_DECLARE__
 
 #include "SelectionItemBorderSurface.h"
+#include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemSurfaceNode.h"
@@ -62,6 +64,8 @@ SelectionManager::SelectionManager()
 : CaretObject()
 {
     m_surfaceBorderIdentification = new SelectionItemBorderSurface();
+    m_chartDataSeriesIdentification = new SelectionItemChartDataSeries();
+    m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
@@ -70,6 +74,8 @@ SelectionManager::SelectionManager()
     m_voxelIdentification = new SelectionItemVoxel();
     
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
+    m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
+    m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentificationSymbol);
@@ -104,6 +110,10 @@ SelectionManager::~SelectionManager()
     reset();
     delete m_surfaceBorderIdentification;
     m_surfaceBorderIdentification = NULL;
+    delete m_chartDataSeriesIdentification;
+    m_chartDataSeriesIdentification = NULL;
+    delete m_chartTimeSeriesIdentification;
+    m_chartTimeSeriesIdentification = NULL;
     delete m_surfaceFocusIdentification;
     m_surfaceFocusIdentification = NULL;
     delete m_surfaceNodeIdentification;
@@ -502,6 +512,37 @@ SelectionManager::getVolumeFocusIdentification() const
 {
     return m_volumeFocusIdentification;
 }
+
+/**
+ * @return Identification for data-series chart.
+ */
+SelectionItemChartDataSeries*
+SelectionManager::getChartDataSeriesIdentification()
+{
+    return m_chartDataSeriesIdentification;
+}
+
+const SelectionItemChartDataSeries*
+SelectionManager::getChartDataSeriesIdentification() const
+{
+    return m_chartDataSeriesIdentification;
+}
+
+/**
+ * @return Identification for time-series chart.
+ */
+SelectionItemChartTimeSeries*
+SelectionManager::getChartTimeSeriesIdentification()
+{
+    return m_chartTimeSeriesIdentification;
+}
+
+const SelectionItemChartTimeSeries*
+SelectionManager::getChartTimeSeriesIdentification() const
+{
+    return m_chartTimeSeriesIdentification;
+}
+
 /**
  * Get a description of this object's content.
  * @return String describing this object's content.

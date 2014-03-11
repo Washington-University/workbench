@@ -34,6 +34,8 @@ namespace caret {
     class BrowserTabContent;
     class CaretMappableDataFile;
     class SelectionItemBorderSurface;
+    class SelectionItemChartDataSeries;
+    class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemSurfaceNode;
@@ -76,6 +78,12 @@ namespace caret {
         void generateVolumeIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,
                                                const SelectionItemVoxel* idVolumeVoxel) const;
+        
+        void generateChartDataSeriesIdentificationText(IdentificationStringBuilder& idText,
+                                                       const SelectionItemChartDataSeries* idChartDataSeries) const;
+        
+        void generateChartTimeSeriesIdentificationText(IdentificationStringBuilder& idText,
+                                                       const SelectionItemChartTimeSeries* idChartTimeSeries) const;
         
         void getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
                                                std::vector<int32_t>& mapIndicesOut) const;

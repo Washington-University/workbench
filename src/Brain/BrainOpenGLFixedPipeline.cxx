@@ -4957,14 +4957,18 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     
     if (cartesianChart != NULL) {
         BrainOpenGLChartDrawingFixedPipeline chartDrawing;
-        chartDrawing.drawCartesianChart(viewport,
-                               this->textRenderer,
-                               cartesianChart,
-                               this->windowTabIndex);
+        chartDrawing.drawCartesianChart(m_brain,
+                                        this,
+                                        viewport,
+                                        this->textRenderer,
+                                        cartesianChart,
+                                        this->windowTabIndex);
     }
     else if (matrixChartFile != NULL) {
         BrainOpenGLChartDrawingFixedPipeline chartDrawing;
-        chartDrawing.drawMatrixChart(viewport,
+        chartDrawing.drawMatrixChart(m_brain,
+                                     this,
+                                     viewport,
                                      this->textRenderer,
                                      matrixChartFile,
                                      this->windowTabIndex);

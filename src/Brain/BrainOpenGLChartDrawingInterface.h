@@ -45,6 +45,8 @@
 
 namespace caret {
 
+    class Brain;
+    class BrainOpenGLFixedPipeline;
     class BrainOpenGLTextRenderInterface;
     class ChartModelCartesian;
     class ChartableMatrixInterface;
@@ -68,7 +70,9 @@ namespace caret {
          * @param tabIndex
          *     Index of the tab.
          */
-        virtual void drawCartesianChart(const int32_t viewport[4],
+        virtual void drawCartesianChart(Brain* brain,
+                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                        const int32_t viewport[4],
                                         BrainOpenGLTextRenderInterface* textRenderer,
                                         ChartModelCartesian* cartesianChart,
                                         const int32_t tabIndex) = 0;
@@ -85,7 +89,9 @@ namespace caret {
          * @param tabIndex
          *     Index of the tab.
          */
-        virtual void drawMatrixChart(const int32_t viewport[4],
+        virtual void drawMatrixChart(Brain* brain,
+                                     BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                     const int32_t viewport[4],
                                      BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface,
                                      const int32_t tabIndex) = 0;

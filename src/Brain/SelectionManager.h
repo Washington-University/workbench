@@ -33,6 +33,8 @@ namespace caret {
     class BrowserTabContent;
     class SelectionItem;
     class SelectionItemBorderSurface;
+    class SelectionItemChartDataSeries;
+    class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemSurfaceNode;
@@ -81,6 +83,14 @@ namespace caret {
         
         SelectionItemVoxel* getVoxelIdentification();
         
+        SelectionItemChartDataSeries* getChartDataSeriesIdentification();
+        
+        const SelectionItemChartDataSeries* getChartDataSeriesIdentification() const;
+        
+        SelectionItemChartTimeSeries* getChartTimeSeriesIdentification();
+        
+        const SelectionItemChartTimeSeries* getChartTimeSeriesIdentification() const;
+        
         AString getIdentificationText(const Brain* brain) const;
         
         void filterSelections(const bool applySelectionBackgroundFiltering);
@@ -117,6 +127,10 @@ namespace caret {
         std::vector<SelectionItem*> m_volumeSelectedItems;
         
         SelectionItemBorderSurface* m_surfaceBorderIdentification;
+        
+        SelectionItemChartDataSeries* m_chartDataSeriesIdentification;
+        
+        SelectionItemChartTimeSeries* m_chartTimeSeriesIdentification;
         
         SelectionItemFocusSurface* m_surfaceFocusIdentification;
         
