@@ -35,7 +35,7 @@ TimeLine::TimeLine()
     type = NODE;
 }
 
-TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn, ChartableInterface *idIn)
+TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn, ChartableBrainordinateInterface *idIn)
 {
     structure = StructureEnum::INVALID;
     surfaceNumberOfNodes = -1;

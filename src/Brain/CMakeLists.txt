@@ -67,6 +67,7 @@ BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
 CaretOpenGLInclude.h
+ChartableMatrixFileSelectionModel.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
@@ -173,6 +174,7 @@ BrainOpenGLVolumeSliceDrawing.cxx
 BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
+ChartableMatrixFileSelectionModel.cxx
 ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx

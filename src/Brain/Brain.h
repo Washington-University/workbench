@@ -48,7 +48,8 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class ChartingDataManager;
-    class ChartableInterface;
+    class ChartableBrainordinateInterface;
+    class ChartableMatrixInterface;
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
@@ -314,12 +315,17 @@ namespace caret {
         
         void getConnectivityDataSeriesFiles(std::vector<CiftiBrainordinateDataSeriesFile*>& connectivityDataSeriesFilesOut) const;
         
-        void getAllChartableDataFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
+        void getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const;
         
-        void getAllChartableDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
-                                                      std::vector<ChartableInterface*>& chartableDataFilesOut) const;
+        void getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
+                                                      std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const;
         
-        void getAllChartableDataFilesWithChartingEnabled(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
+        void getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<ChartableBrainordinateInterface*>& chartableDataFilesOut) const;
+        
+        void getAllChartableMatrixDataFiles(std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const;
+        
+        void getAllChartableMatrixDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
+                                                                   std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const;
         
         AString getCurrentDirectory() const;
         

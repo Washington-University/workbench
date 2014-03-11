@@ -56,6 +56,9 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
+#include "ChartableMatrixFileSelectionModel.h"
+#include "ChartModelDataSeries.h"
+#include "ChartModelTimeSeries.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
@@ -4931,14 +4934,40 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     CaretAssert(chartModel);
     
     const int32_t tabIndex = browserTabContent->getTabNumber();
-    ChartModel* chart = chartModel->getSelectedChartModel(tabIndex);
+    ChartModelCartesian* cartesianChart = NULL;
+    ChartableMatrixInterface* matrixChartFile = NULL;
+    const ChartDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartDataType(tabIndex);
+
+    switch (chartDataType) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            cartesianChart = chartModel->getSelectedDataSeriesChartModel(tabIndex);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+        {
+            ChartableMatrixFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixFileSelectionModel(tabIndex);
+            matrixChartFile = matrixFileSelector->getSelectedFile();
+        }
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            cartesianChart = chartModel->getSelectedTimeSeriesChartModel(tabIndex);
+            break;
+    }
     
-    if (chart != NULL) {
+    if (cartesianChart != NULL) {
         BrainOpenGLChartDrawingFixedPipeline chartDrawing;
-        chartDrawing.drawChart(viewport,
+        chartDrawing.drawCartesianChart(viewport,
                                this->textRenderer,
-                               chart,
+                               cartesianChart,
                                this->windowTabIndex);
+    }
+    else if (matrixChartFile != NULL) {
+        BrainOpenGLChartDrawingFixedPipeline chartDrawing;
+        chartDrawing.drawMatrixChart(viewport,
+                                     this->textRenderer,
+                                     matrixChartFile,
+                                     this->windowTabIndex);
     }
 }
 

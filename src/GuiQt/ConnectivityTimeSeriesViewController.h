@@ -54,7 +54,7 @@ class QModelIndex;
 
 namespace caret {
 
-    class ChartableInterface;
+    class ChartableBrainordinateInterface;
     class WuQGridLayoutGroup;
     
     class ConnectivityTimeSeriesViewController : public QObject {
@@ -69,13 +69,13 @@ namespace caret {
         
         virtual ~ConnectivityTimeSeriesViewController();
         
-        void updateViewController(ChartableInterface* connectivityLoaderFile);
+        void updateViewController(ChartableBrainordinateInterface* connectivityLoaderFile);
         
         void setVisible(bool visible);
         
         static QGridLayout* createGridLayout(const Qt::Orientation orientation);
         
-        ChartableInterface* getChartableDataFile();
+        ChartableBrainordinateInterface* getChartableDataFile();
 
     public slots:
                     
@@ -96,9 +96,9 @@ namespace caret {
 
         int32_t m_browserWindowIndex;
         
-        ChartableInterface* chartableDataFile;
+        ChartableBrainordinateInterface* chartableDataFile;
         
-        ChartableInterface* previousChartableDataFile;
+        ChartableBrainordinateInterface* previousChartableDataFile;
         
         
         

@@ -37,7 +37,7 @@
 #undef __CHARTING_DATA_MANAGER_DECLARE__
 
 #include "Brain.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
 #include "CaretAssert.h"
 #include "ModelChart.h"
 #include "SurfaceFile.h"
@@ -100,20 +100,20 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
     
     timeLinesOut.clear();
     
-    std::vector<ChartableInterface*> chartFiles;
+    std::vector<ChartableBrainordinateInterface*> chartFiles;
     if (requireChartingEnableInFiles) {
-        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+        m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
     }
     else {
-        m_brain->getAllChartableDataFiles(chartFiles);
+        m_brain->getAllChartableBrainordinateDataFiles(chartFiles);
     }
     
     const StructureEnum::Enum structure = surfaceFile->getStructure();
     
-    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
          fileIter != chartFiles.end();
          fileIter++) {
-        ChartableInterface* chartFile = *fileIter;
+        ChartableBrainordinateInterface* chartFile = *fileIter;
         TimeLine timeLine;
         if (chartFile->loadAverageChartForSurfaceNodes(structure,
                                                        nodeIndices,
@@ -152,21 +152,21 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
     
     timeLinesOut.clear();
     
-    std::vector<ChartableInterface*> chartFiles;
+    std::vector<ChartableBrainordinateInterface*> chartFiles;
     if (requireChartingEnableInFiles) {
-        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+        m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
     }
     else {
-        m_brain->getAllChartableDataFiles(chartFiles);
+        m_brain->getAllChartableBrainordinateDataFiles(chartFiles);
     }
     
     const StructureEnum::Enum structure = surfaceFile->getStructure();
     
-    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
          fileIter != chartFiles.end();
          fileIter++) {
 
-        ChartableInterface* chartFile = *fileIter;
+        ChartableBrainordinateInterface* chartFile = *fileIter;
         TimeLine timeLine;
         if (chartFile->loadChartForSurfaceNode(structure,
                                                nodeIndex,
@@ -200,18 +200,18 @@ ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3],
     
     timeLinesOut.clear();
     
-    std::vector<ChartableInterface*> chartFiles;
+    std::vector<ChartableBrainordinateInterface*> chartFiles;
     if (requireChartingEnableInFiles) {
-        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+        m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
     }
     else {
-        m_brain->getAllChartableDataFiles(chartFiles);
+        m_brain->getAllChartableBrainordinateDataFiles(chartFiles);
     }
     
-    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
          fileIter != chartFiles.end();
          fileIter++) {
-        ChartableInterface* chartFile = *fileIter;
+        ChartableBrainordinateInterface* chartFile = *fileIter;
         TimeLine timeLine;
         if (chartFile->loadChartForVoxelAtCoordinate(xyz, timeLine)) {
             timeLinesOut.push_back(timeLine);
@@ -231,7 +231,7 @@ ChartingDataManager::hasNetworkFiles() const
      */
     return false;
     
-//    std::vector<ChartableInterface*> chartFiles;
+//    std::vector<ChartableBrainordinateInterface*> chartFiles;
 //    if (requireChartingEnableInFiles) {
 //        m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
 //    }
@@ -239,10 +239,10 @@ ChartingDataManager::hasNetworkFiles() const
 //        m_brain->getAllChartableDataFiles(chartFiles);
 //    }
 //    
-//    for (std::vector<ChartableInterface*>::iterator fileIter = chartFiles.begin();
+//    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
 //         fileIter != chartFiles.end();
 //         fileIter++) {
-//        ChartableInterface* chartFile = *fileIter;
+//        ChartableBrainordinateInterface* chartFile = *fileIter;
 //        
 //        CaretDataFile* caretDataFile = dynamic_cast<CaretDataFile*>(chartFile);
 //        CaretAssert(caretDataFile);

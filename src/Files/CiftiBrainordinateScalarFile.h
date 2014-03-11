@@ -36,7 +36,7 @@
 
 
 #include "BrainConstants.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
@@ -45,7 +45,7 @@ namespace caret {
     class CiftiMappableConnectivityMatrixDataFile;
     class TimeLine;
     
-    class CiftiBrainordinateScalarFile : public CiftiMappableDataFile, public ChartableInterface {
+    class CiftiBrainordinateScalarFile : public CiftiMappableDataFile, public ChartableBrainordinateInterface {
     
     public:
         CiftiBrainordinateScalarFile();
@@ -89,10 +89,6 @@ namespace caret {
         virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         virtual ChartDataMatrix* getMatrixChart();
-        
-        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
-                                       int32_t& numberOfColumnsOut,
-                                       std::vector<float>& rgbaOut) const;
         
         virtual CaretMappableDataFile* getCaretMappableDataFile();
         

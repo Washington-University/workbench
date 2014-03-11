@@ -17,7 +17,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretPreferences.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
 #include "ChartHistoryViewController.h"
 #include "ChartSelectionViewController.h"
 #include "ChartToolBoxViewController.h"
@@ -501,8 +501,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
              iter++) {
             const CaretDataFile* caretDataFile = *iter;
             
-            const ChartableInterface* chartableInterface = dynamic_cast<const ChartableInterface*>(caretDataFile);
-            if (chartableInterface != NULL) {
+            const ChartableBrainordinateInterface* chartableBrainordinateInterface = dynamic_cast<const ChartableBrainordinateInterface*>(caretDataFile);
+            if (chartableBrainordinateInterface != NULL) {
                 haveChartFiles = true;
             }
             

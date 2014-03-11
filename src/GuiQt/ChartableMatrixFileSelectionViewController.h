@@ -1,5 +1,5 @@
-#ifndef __CHART_MODEL_DATA_SERIES_H__
-#define __CHART_MODEL_DATA_SERIES_H__
+#ifndef __CHARTABLE_MATRIX_FILE_SELECTION_VIEW_CONTROLLER_H__
+#define __CHARTABLE_MATRIX_FILE_SELECTION_VIEW_CONTROLLER_H__
 
 /*LICENSE_START*/
 /*
@@ -34,37 +34,70 @@
  */
 /*LICENSE_END*/
 
+#include <vector>
 
-#include "ChartModelCartesian.h"
+#include "EventListenerInterface.h"
 
+#include "WuQWidget.h"
 
+class QAbstractButton;
+class QButtonGroup;
+class QRadioButton;
+class QVBoxLayout;
 
 namespace caret {
 
-    class ChartModelDataSeries : public ChartModelCartesian {
+    class ChartableMatrixFileSelectionModel;
+    
+    class ChartableMatrixFileSelectionViewController : public WuQWidget, public EventListenerInterface {
         
+        Q_OBJECT
+
     public:
-        ChartModelDataSeries();
+        ChartableMatrixFileSelectionViewController(const int32_t browserWindowIndex,
+                                                   QObject* parent);
         
-        virtual ~ChartModelDataSeries();
-        
-        ChartModelDataSeries(const ChartModelDataSeries& obj);
+        virtual ~ChartableMatrixFileSelectionViewController();
 
-        ChartModelDataSeries& operator=(const ChartModelDataSeries& obj);
+        virtual void receiveEvent(Event* event);
         
-
+        QWidget* getWidget();
+        
+        void updateViewController();
+        
+        void updateViewController(ChartableMatrixFileSelectionModel* selectionModel);
+        
         // ADD_NEW_METHODS_HERE
 
+    private slots:
+        void radioButtonClicked(QAbstractButton* radioButton);
+        
     private:
-        void copyHelperChartModelDataSeries(const ChartModelDataSeries& obj);
+        ChartableMatrixFileSelectionViewController(const ChartableMatrixFileSelectionViewController&);
 
+        ChartableMatrixFileSelectionViewController& operator=(const ChartableMatrixFileSelectionViewController&);
+        
+        int32_t m_browserWindowIndex;
+        
+        ChartableMatrixFileSelectionModel* m_selectionModel;
+        
+        std::vector<QRadioButton*> m_radioButtons;
+        
+        QWidget* m_radioButtonWidget;
+        
+        QVBoxLayout* m_radioButtonLayout;
+        
+        QButtonGroup* m_radioButtonGroup;
+        
+        static const QString FILE_POINTER_PROPERTY_NAME;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CHART_MODEL_DATA_SERIES_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHART_MODEL_DATA_SERIES_DECLARE__
+#ifdef __CHARTABLE_MATRIX_FILE_SELECTION_VIEW_CONTROLLER_DECLARE__
+    const QString ChartableMatrixFileSelectionViewController::FILE_POINTER_PROPERTY_NAME = "filePointer";
+#endif // __CHARTABLE_MATRIX_FILE_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CHART_MODEL_DATA_SERIES_H__
+#endif  //__CHARTABLE_MATRIX_FILE_SELECTION_VIEW_CONTROLLER_H__

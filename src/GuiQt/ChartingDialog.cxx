@@ -2,7 +2,7 @@
 #include "BrainBrowserWindow.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFile.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
 #include "ChartingDialog.h"
 #include "EventManager.h"
 #include "EventCiftiMappableDataFileColoringUpdated.h"
@@ -195,9 +195,9 @@ void ChartingDialog::currentRowChanged(const QModelIndex & current, const QModel
 {
 	cmf->loadMapData(current.row());
 	cmf->updateScalarColoringForMap(0,GuiManager::get()->getBrain()->getPaletteFile());
-	std::vector<ChartableInterface *> chartableFiles;
-	GuiManager::get()->getBrain()->getAllChartableDataFiles(chartableFiles);
-	for(std::vector<ChartableInterface *>::iterator iter = chartableFiles.begin();iter != chartableFiles.end();iter++)
+	std::vector<ChartableBrainordinateInterface *> chartableFiles;
+	GuiManager::get()->getBrain()->getAllChartableBrainordinateDataFiles(chartableFiles);
+	for(std::vector<ChartableBrainordinateInterface *>::iterator iter = chartableFiles.begin();iter != chartableFiles.end();iter++)
 	{
 		if((*iter)->getCaretMappableDataFile() == this->cmf) continue;		
 		int row = current.row();

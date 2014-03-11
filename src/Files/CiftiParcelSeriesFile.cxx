@@ -184,27 +184,6 @@ CiftiParcelSeriesFile::getMatrixChart()
 }
 
 /**
- * Get the matrix RGBA coloring for this matrix data creator.
- *
- * @param numberOfRowsOut
- *    Number of rows in the coloring matrix.
- * @param numberOfColumnsOut
- *    Number of rows in the coloring matrix.
- * @param rgbaOut
- *    RGBA coloring output with number of elements
- *    (numberOfRowsOut * numberOfColumnsOut * 4).
- * @return
- *    True if data output data is valid, else false.
- */
-bool
-CiftiParcelSeriesFile::getMatrixDataRGBA(int32_t& /*numberOfRowsOut*/,
-                                                    int32_t& /*numberOfColumnsOut*/,
-                                                    std::vector<float>& /*rgbaOut*/) const
-{
-    return false;
-}
-
-/**
  * Load the average of chart data for a group of surface nodes.
  * Note: This method will return a chart even if charting for
  * this file is disabled.

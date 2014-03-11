@@ -171,27 +171,6 @@ CiftiParcelScalarFile::getMatrixChart()
 }
 
 /**
- * Get the matrix RGBA coloring for this matrix data creator.
- *
- * @param numberOfRowsOut
- *    Number of rows in the coloring matrix.
- * @param numberOfColumnsOut
- *    Number of rows in the coloring matrix.
- * @param rgbaOut
- *    RGBA coloring output with number of elements
- *    (numberOfRowsOut * numberOfColumnsOut * 4).
- * @return
- *    True if data output data is valid, else false.
- */
-bool
-CiftiParcelScalarFile::getMatrixDataRGBA(int32_t& /*numberOfRowsOut*/,
-                                                    int32_t& /*numberOfColumnsOut*/,
-                                                    std::vector<float>& /*rgbaOut*/) const
-{
-    return false;
-}
-
-/**
  * Set charting enabled for this file.
  *
  * @param enabled

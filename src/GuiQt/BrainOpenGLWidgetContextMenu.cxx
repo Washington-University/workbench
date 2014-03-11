@@ -45,7 +45,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
 #include "ChartingDataManager.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
@@ -171,7 +171,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* sel
 //        }
 //        const bool haveCiftiFiberTrajectoryFiles = (ciftiFiberTrajectoryFiles.empty() == false);
 //        
-//        std::vector<ChartableInterface*> chartableFiles;
+//        std::vector<ChartableBrainordinateInterface*> chartableFiles;
 //        brain->getAllChartableDataFiles(chartableFiles);
 //        const bool haveChartableFiles = (chartableFiles.empty() == false);
 //        ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
@@ -711,8 +711,8 @@ BrainOpenGLWidgetContextMenu::addBorderRegionOfInterestActions()
             borderActions.push_back(action);
         }
         
-        std::vector<ChartableInterface*> chartableFiles;
-        brain->getAllChartableDataFiles(chartableFiles);
+        std::vector<ChartableBrainordinateInterface*> chartableFiles;
+        brain->getAllChartableBrainordinateDataFiles(chartableFiles);
         
         if (chartableFiles.empty() == false) {
             const QString text = ("Show Charts for Nodes Inside Border "
@@ -792,8 +792,8 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
     /*
      * Manager for Chartable files
      */
-    std::vector<ChartableInterface*> chartableFiles;
-    brain->getAllChartableDataFiles(chartableFiles);
+    std::vector<ChartableBrainordinateInterface*> chartableFiles;
+    brain->getAllChartableBrainordinateDataFiles(chartableFiles);
     const bool haveChartableFiles = (chartableFiles.empty() == false);
     ChartingDataManager* chartingDataManager = brain->getChartingDataManager();
 
@@ -1629,8 +1629,8 @@ bool
 BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<ChartableInterface*> chartFiles;
-    brain->getAllChartableDataFiles(chartFiles);
+    std::vector<ChartableBrainordinateInterface*> chartFiles;
+    brain->getAllChartableBrainordinateDataFiles(chartFiles);
     if (chartFiles.empty()) {
         return false;
     }
@@ -1640,10 +1640,10 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
     /*
      * Exit if any data series graph is enabled.
      */
-    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableInterface* chartFile = *iter;
+        ChartableBrainordinateInterface* chartFile = *iter;
         if (chartFile->isChartingEnabled(tabIndex)) {
             return false;
         }
@@ -1652,10 +1652,10 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
     /*
      * Enable and display all data series graphs.
      */
-    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableInterface* chartFile = *iter;
+        ChartableBrainordinateInterface* chartFile = *iter;
         chartFile->setChartingEnabled(tabIndex,
                                       true);
     }
@@ -1672,12 +1672,12 @@ BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
     const int32_t tabIndex = this->browserTabContent->getTabNumber();
     
     Brain* brain = GuiManager::get()->getBrain();
-    std::vector<ChartableInterface*> chartFiles;
-    brain->getAllChartableDataFiles(chartFiles);
-    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+    std::vector<ChartableBrainordinateInterface*> chartFiles;
+    brain->getAllChartableBrainordinateDataFiles(chartFiles);
+    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableInterface* chartFile = *iter;
+        ChartableBrainordinateInterface* chartFile = *iter;
         chartFile->setChartingEnabled(tabIndex,
                                       true);
         TimeCourseDialog* tcd = GuiManager::get()->getTimeCourseDialog(chartFile);

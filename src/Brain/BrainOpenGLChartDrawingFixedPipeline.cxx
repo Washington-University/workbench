@@ -49,6 +49,7 @@
 #include "CaretLogger.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelMatrix.h"
+#include "ChartableMatrixInterface.h"
 #include "CaretPreferences.h"
 #include "ChartPoint.h"
 #include "SessionManager.h"
@@ -79,25 +80,27 @@ BrainOpenGLChartDrawingFixedPipeline::~BrainOpenGLChartDrawingFixedPipeline()
 }
 
 /**
- * Draw the given chart in the given viewport.
+ * Draw a cartesian chart in the given viewport.
  *
  * @param viewport
  *     Viewport for the chart.
  * @param textRenderer
  *     Text rendering.
- * @param chart
- *     Chart that is drawn.
+ * @param cartesianChart
+ *     Cartesian Chart that is drawn.
+ * @param tabIndex
+ *     Index of the tab.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
-                                                BrainOpenGLTextRenderInterface* textRenderer,
-                                                ChartModel* chart,
-                                                const int32_t tabIndex)
+BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(const int32_t viewport[4],
+                                                         BrainOpenGLTextRenderInterface* textRenderer,
+                                                         ChartModelCartesian* cartesianChart,
+                                                         const int32_t tabIndex)
 {
     m_tabIndex = tabIndex;
     
-    CaretAssert(chart);
-    if (chart->isEmpty()) {
+    CaretAssert(cartesianChart);
+    if (cartesianChart->isEmpty()) {
         return;
     }
     
@@ -139,7 +142,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                       vpHeight,
                       marginSize,
                       textRenderer,
-                      chart->getLeftAxis());
+                      cartesianChart->getLeftAxis());
         
         drawChartAxis(vpX,
                       vpY,
@@ -147,7 +150,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                       vpHeight,
                       marginSize,
                       textRenderer,
-                      chart->getRightAxis());
+                      cartesianChart->getRightAxis());
         
         drawChartAxis(vpX,
                       vpY,
@@ -155,7 +158,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                       vpHeight,
                       marginSize,
                       textRenderer,
-                      chart->getBottomAxis());
+                      cartesianChart->getBottomAxis());
         
         drawChartAxis(vpX,
                       vpY,
@@ -163,7 +166,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                       vpHeight,
                       marginSize,
                       textRenderer,
-                      chart->getTopAxis());
+                      cartesianChart->getTopAxis());
         
         
         drawChartAxesGrid(vpX,
@@ -233,11 +236,82 @@ BrainOpenGLChartDrawingFixedPipeline::drawChart(const int32_t viewport[4],
                chartGraphicsDrawingViewport[1],
                chartGraphicsDrawingViewport[2],
                chartGraphicsDrawingViewport[3]);
+
+    drawChartGraphicsLineSeries(textRenderer,
+                                cartesianChart);
+
+//    drawChartGraphics(textRenderer,
+//                      cartesianChart);
     
-    if (chart != NULL) {
-        drawChartGraphics(textRenderer,
-                          chart);
+    restoreStateOfOpenGL();
+}
+
+/**
+ * Draw a matrix chart in the given viewport.
+ *
+ * @param viewport
+ *     Viewport for the chart.
+ * @param textRenderer
+ *     Text rendering.
+ * @param chartMatrixInterface
+ *     Chart matrix interface containing matrix data.
+ * @param tabIndex
+ *     Index of the tab.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(const int32_t viewport[4],
+                                                    BrainOpenGLTextRenderInterface* textRenderer,
+                                                    ChartableMatrixInterface* chartMatrixInterface,
+                                                    const int32_t tabIndex)
+{
+    m_tabIndex = tabIndex;
+    
+    CaretAssert(chartMatrixInterface);
+    
+    int32_t numberOfRows = 0;
+    int32_t numberOfColumns = 0;
+    std::vector<float> matrixRGBA;
+    chartMatrixInterface->getMatrixDataRGBA(numberOfRows,
+                                            numberOfColumns,
+                                            matrixRGBA);
+    if ((numberOfRows <= 0)
+        || (numberOfColumns <= 0)) {
+        return;
     }
+    
+    saveStateOfOpenGL();
+    
+    const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+    preferences->getColorForeground(m_foregroundColor);
+    m_foregroundColor[3] = 1.0;
+    
+    const int32_t vpX      = viewport[0];
+    const int32_t vpY      = viewport[1];
+    const int32_t vpWidth  = viewport[2];
+    const int32_t vpHeight = viewport[3];
+    
+    int32_t chartGraphicsDrawingViewport[4] = {
+        vpX,
+        vpY,
+        vpWidth,
+        vpHeight
+    };
+    
+    
+    /*
+     * Margin is region around the chart in which
+     * the axes legends, values, and ticks are drawn.
+     */
+    const int32_t marginSize = 30;
+    
+    
+    glViewport(chartGraphicsDrawingViewport[0],
+               chartGraphicsDrawingViewport[1],
+               chartGraphicsDrawingViewport[2],
+               chartGraphicsDrawingViewport[3]);
+    
+    drawChartGraphicsMatrix(textRenderer,
+                            chartMatrixInterface);
     
     restoreStateOfOpenGL();
 }
@@ -933,37 +1007,37 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxesGrid(const float vpX,
     chartGraphicsDrawingViewportOut[2] = graphicsWidth;
     chartGraphicsDrawingViewportOut[3] = graphicsHeight;
 }
-/**
- * Draw graphics for the given chart.
- *
- * @param textRenderer
- *     Text rendering.
- * @param chart
- *     Chart that is drawn.
- */
-void
-BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
-                                                        ChartModel* chart)
-{
-    CaretAssert(chart);
-        
-    switch (chart->getChartDataType()) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            drawChartGraphicsMatrix(textRenderer,
-                                    dynamic_cast<ChartModelMatrix*>(chart));
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            drawChartGraphicsLineSeries(textRenderer,
-                                        dynamic_cast<ChartModelDataSeries*>(chart));
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-            drawChartGraphicsLineSeries(textRenderer,
-                                        dynamic_cast<ChartModelDataSeries*>(chart));
-            break;
-    }
-}
+///**
+// * Draw graphics for the given chart.
+// *
+// * @param textRenderer
+// *     Text rendering.
+// * @param chart
+// *     Chart that is drawn.
+// */
+//void
+//BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
+//                                                        ChartModel* chart)
+//{
+//    CaretAssert(chart);
+//        
+//    switch (chart->getChartDataType()) {
+//        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//            break;
+//        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+//            drawChartGraphicsMatrix(textRenderer,
+//                                    dynamic_cast<ChartModelMatrix*>(chart));
+//            break;
+//        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+//            drawChartGraphicsLineSeries(textRenderer,
+//                                        dynamic_cast<ChartModelCartesian*>(chart));
+//            break;
+//        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+//            drawChartGraphicsLineSeries(textRenderer,
+//                                        dynamic_cast<ChartModelCartesian*>(chart));
+//            break;
+//    }
+//}
 
 /**
  * Draw graphics for the given line series chart.
@@ -975,7 +1049,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphics(BrainOpenGLTextRenderInt
  */
 void
 BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTextRenderInterface* /*textRenderer*/,
-                                                                  ChartModelDataSeries* chart)
+                                                                  ChartModelCartesian* chart)
 {
     CaretAssert(chart);
     
@@ -1070,24 +1144,14 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const ChartDataCart
  */
 void
 BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* /*textRenderer*/,
-                                                              ChartModelMatrix* chart)
+                                                              ChartableMatrixInterface* chartMatrixInterface)
 {
-    CaretAssert(chart);
+    CaretAssert(chartMatrixInterface);
     
-    std::vector<const ChartData*> chartVector = chart->getAllSelectedChartDatas(m_tabIndex);
-    if (chartVector.empty()) {
-        return;
-    }
-    
-    if (chartVector.size() > 1) {
-        CaretLogSevere("PROGRAM_ERROR: More than one matrix chart selected for display.");
-    }
-    
-    const ChartDataMatrix* chartMatrix = dynamic_cast<const ChartDataMatrix*>(chartVector[0]);
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
     std::vector<float> matrixRGBA;
-    if (chartMatrix->getMatrixDataRGBA(numberOfRows,
+    if (chartMatrixInterface->getMatrixDataRGBA(numberOfRows,
                                        numberOfColumns,
                                        matrixRGBA)) {
         const float xMin = -1;

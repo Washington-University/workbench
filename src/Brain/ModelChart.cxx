@@ -31,13 +31,16 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "ChartAxis.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
+#include "ChartableMatrixFileSelectionModel.h"
+#include "ChartableMatrixInterface.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataMatrix.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelMatrix.h"
+#include "ChartModelTimeSeries.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCiftiMappableDataFileColoringUpdated.h"
 #include "EventManager.h"
@@ -49,6 +52,7 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
+#include "SceneObjectMapIntegerKey.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -83,6 +87,11 @@ ModelChart::~ModelChart()
     EventManager::get()->removeAllEventsFromListener(this);
     
     removeAllCharts();    
+
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete m_chartableMatrixFileSelectionModel[i];
+        m_chartableMatrixFileSelectionModel[i] = NULL;
+    }
 }
 
 void
@@ -91,19 +100,15 @@ ModelChart::initializeCharts()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
         
-        m_chartModelDataSeries[i] =
-        new ChartModelDataSeries(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        m_chartModelDataSeries[i] = new ChartModelDataSeries();
         m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
         m_chartModelDataSeries[i]->getBottomAxis()->setText("Map Index");
         
-        m_chartModelTimeSeries[i] =
-        new ChartModelDataSeries(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
-                                 ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+        m_chartModelTimeSeries[i] = new ChartModelTimeSeries();
         m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
         m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
+        
+        m_chartableMatrixFileSelectionModel[i] = new ChartableMatrixFileSelectionModel(m_brain);
         
         m_chartModelMatrix[i] = new ChartModelMatrix();
     }    
@@ -166,13 +171,13 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                                          const int32_t surfaceNumberOfNodes,
                                          const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    std::map<ChartableInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::map<ChartableInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+    for (std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
          fileTabIter++) {
-        ChartableInterface* chartFile = fileTabIter->first;
+        ChartableBrainordinateInterface* chartFile = fileTabIter->first;
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
@@ -201,13 +206,13 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
 void
 ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
-    std::map<ChartableInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::map<ChartableInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+    for (std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
          fileTabIter++) {
-        ChartableInterface* chartFile = fileTabIter->first;
+        ChartableBrainordinateInterface* chartFile = fileTabIter->first;
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
@@ -298,7 +303,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
  *    tabs for which that chartable file is enabled.
  */
 void
-ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
+ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const
 {
     chartFileEnabledTabsOut.clear();
     
@@ -306,13 +311,13 @@ ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableInterface*, st
     EventManager::get()->sendEvent(allTabsEvent.getPointer());
     std::vector<int32_t> validTabIndices = allTabsEvent.getBrowserTabIndices();
     
-    std::vector<ChartableInterface*> chartFiles;
-    m_brain->getAllChartableDataFilesWithChartingEnabled(chartFiles);
+    std::vector<ChartableBrainordinateInterface*> chartFiles;
+    m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
     
-    for (std::vector<ChartableInterface*>::iterator iter = chartFiles.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
          iter != chartFiles.end();
          iter++) {
-        ChartableInterface* cf = *iter;
+        ChartableBrainordinateInterface* cf = *iter;
         std::vector<int32_t> chartFileTabIndices;
         
         for (std::vector<int32_t>::iterator tabIter = validTabIndices.begin();
@@ -347,13 +352,13 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                         const int32_t surfaceNumberOfNodes,
                                         const int32_t nodeIndex) throw (DataFileException)
 {
-    std::map<ChartableInterface*, std::vector<int32_t> > chartFileEnabledTabs;
+    std::map<ChartableBrainordinateInterface*, std::vector<int32_t> > chartFileEnabledTabs;
     getTabsAndChartFilesForChartLoading(chartFileEnabledTabs);
     
-    for (std::map<ChartableInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
+    for (std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >::iterator fileTabIter = chartFileEnabledTabs.begin();
          fileTabIter != chartFileEnabledTabs.end();
          fileTabIter++) {
-        ChartableInterface* chartFile = fileTabIter->first;
+        ChartableBrainordinateInterface* chartFile = fileTabIter->first;
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
 
         CaretAssert(chartFile);
@@ -550,6 +555,23 @@ ModelChart::saveModelSpecificInformationToScene(const SceneAttributes* sceneAttr
     sceneClass->addEnumeratedTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
                                                                                                 m_selectedChartDataType,
                                                                                                 tabIndices);
+
+    /*
+     * Save matrix chart models to scene.
+     */
+    SceneObjectMapIntegerKey* matrixSceneMap = new SceneObjectMapIntegerKey("chartableMatrixFileSelectionModelMap",
+                                                                            SceneObjectDataTypeEnum::SCENE_CLASS);
+    
+    std::vector<SceneClass*> matrixSelectionVector;
+    for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+         tabIter != tabIndices.end();
+         tabIter++) {
+        const int32_t tabIndex = *tabIter;
+        
+        matrixSceneMap->addClass(tabIndex, m_chartableMatrixFileSelectionModel[tabIndex]->saveToScene(sceneAttributes,
+                                                                                                      "m_chartableMatrixFileSelectionModel"));
+    }
+    sceneClass->addChild(matrixSceneMap);
 }
 
 /**
@@ -577,6 +599,22 @@ ModelChart::restoreModelSpecificInformationFromScene(const SceneAttributes* scen
     
     sceneClass->getEnumerateTypeArrayForTabIndices<ChartDataTypeEnum, ChartDataTypeEnum::Enum>("m_selectedChartDataType",
                                                                                                m_selectedChartDataType);
+
+    /*
+     * Restore matrix chart models from scene.
+     */
+    const SceneObjectMapIntegerKey* matrixSceneMap = sceneClass->getMapIntegerKey("chartableMatrixFileSelectionModelMap");
+    if (matrixSceneMap != NULL) {
+        const std::vector<int32_t> tabIndices = matrixSceneMap->getKeys();
+        for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+             tabIter != tabIndices.end();
+             tabIter++) {
+            const int32_t tabIndex = *tabIter;
+            const SceneClass* sceneClass = matrixSceneMap->classValue(tabIndex);
+            m_chartableMatrixFileSelectionModel[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                            sceneClass);
+        }
+    }
 }
 
 /**
@@ -609,30 +647,45 @@ ModelChart::saveChartModelsToScene(const SceneAttributes* sceneAttributes,
          tabIter++) {
         const int32_t tabIndex = *tabIter;
         
-        ChartModel* chartModel = getSelectedChartModel(tabIndex);
-        SceneClass* chartModelClass = chartModel->saveToScene(sceneAttributes,
-                                                              "chartModel");
-        if (chartModelClass == NULL) {
-            continue;
+        ChartModel* chartModel = NULL;
+        switch (getSelectedChartDataType(tabIndex)) {
+            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                chartModel = getSelectedDataSeriesChartModel(tabIndex);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                chartModel = getSelectedTimeSeriesChartModel(tabIndex);
+                break;
         }
         
-        SceneClass* chartClassContainer = new SceneClass("chartClassContainer",
-                                                "ChartClassContainer",
-                                                1);
-        chartClassContainer->addInteger("tabIndex", tabIndex);
-        chartClassContainer->addEnumeratedType<ChartDataTypeEnum,ChartDataTypeEnum::Enum>("chartDataType",
-                                                                                          chartModel->getChartDataType());
-        chartClassContainer->addClass(chartModelClass);
-        
-        chartModelVector.push_back(chartClassContainer);
-        
-        /*
-         * Add chart data that is in models saved to scene.
-         * 
-         */
-        std::vector<ChartData*> chartDatasInModel = chartModel->getAllChartDatas();
-        chartDataForSavingToSceneSet.insert(chartDatasInModel.begin(),
-                                            chartDatasInModel.end());
+        if (chartModel != NULL) {
+            SceneClass* chartModelClass = chartModel->saveToScene(sceneAttributes,
+                                                                  "chartModel");
+            if (chartModelClass == NULL) {
+                continue;
+            }
+            
+            SceneClass* chartClassContainer = new SceneClass("chartClassContainer",
+                                                             "ChartClassContainer",
+                                                             1);
+            chartClassContainer->addInteger("tabIndex", tabIndex);
+            chartClassContainer->addEnumeratedType<ChartDataTypeEnum,ChartDataTypeEnum::Enum>("chartDataType",
+                                                                                              chartModel->getChartDataType());
+            chartClassContainer->addClass(chartModelClass);
+            
+            chartModelVector.push_back(chartClassContainer);
+            
+            /*
+             * Add chart data that is in models saved to scene.
+             *
+             */
+            std::vector<ChartData*> chartDatasInModel = chartModel->getAllChartDatas();
+            chartDataForSavingToSceneSet.insert(chartDatasInModel.begin(),
+                                                chartDatasInModel.end());
+        }
     }
 
     if ( ! chartModelVector.empty()) {
@@ -803,14 +856,29 @@ void
 ModelChart::getDescriptionOfContent(const int32_t tabIndex,
                                     PlainTextStringBuilder& descriptionOut) const
 {
-    const ChartModel* chartModel = getSelectedChartModel(tabIndex);
+    ChartModel* chartModel = NULL;
+    switch (getSelectedChartDataType(tabIndex)) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            chartModel = const_cast<ChartModelDataSeries*>(getSelectedDataSeriesChartModel(tabIndex));
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            chartModel = const_cast<ChartModelTimeSeries*>(getSelectedTimeSeriesChartModel(tabIndex));
+            break;
+    }
+
+    const ChartModel* chartModelConst = chartModel;
+    
     if (chartModel != NULL) {
         descriptionOut.addLine("Chart Type: "
                                + ChartDataTypeEnum::toGuiName(chartModel->getChartDataType()));
 
         descriptionOut.pushIndentation();
         
-        const std::vector<const ChartData*> cdVec = chartModel->getAllChartDatas();
+        const std::vector<const ChartData*> cdVec = chartModelConst->getAllChartDatas();
         for (std::vector<const ChartData*>::const_iterator iter = cdVec.begin();
              iter != cdVec.end();
              iter++) {
@@ -856,6 +924,7 @@ ModelChart::copyTabContent(const int32_t sourceTabIndex,
     *m_chartModelDataSeries[destinationTabIndex] = *m_chartModelDataSeries[sourceTabIndex];
     *m_chartModelTimeSeries[destinationTabIndex] = *m_chartModelTimeSeries[sourceTabIndex];
     *m_chartModelMatrix[destinationTabIndex] = *m_chartModelMatrix[sourceTabIndex];
+    m_chartableMatrixFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixFileSelectionModel[sourceTabIndex]->getSelectedFile());
 }
 
 /**
@@ -894,69 +963,117 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
 }
 
 /**
- * Get the chart model selected in the given tab.
+ * Get the data series chart model selected in the given tab.
  *
  * @param tabIndex
  *    Index of tab.
  * @return
- *    Chart model in the given tab or none if not valid.
+ *    Data series chart model in the given tab.
  */
-ChartModel*
-ModelChart::getSelectedChartModel(const int32_t tabIndex)
+ChartModelDataSeries*
+ModelChart::getSelectedDataSeriesChartModel(const int32_t tabIndex)
 {
-    const ChartModel* model = getSelectedChartModelHelper(tabIndex);
+    const ChartModelDataSeries* model = getSelectedDataSeriesChartModelHelper(tabIndex);
     if (model == NULL) {
         return NULL;
     }
-    ChartModel* nonConstModel = const_cast<ChartModel*>(model);
+    ChartModelDataSeries* nonConstModel = const_cast<ChartModelDataSeries*>(model);
     return nonConstModel;
 }
 
 /**
- * Get the chart model selected in the given tab.
+ * Get the data series chart model selected in the given tab.
  *
  * @param tabIndex
  *    Index of tab.
  * @return
- *    Chart model in the given tab or none if not valid.
+ *    Data series chart model in the given tab.
  */
-const ChartModel*
-ModelChart::getSelectedChartModel(const int32_t tabIndex) const
+const ChartModelDataSeries*
+ModelChart::getSelectedDataSeriesChartModel(const int32_t tabIndex) const
 {
-    return getSelectedChartModelHelper(tabIndex);
+    return getSelectedDataSeriesChartModelHelper(tabIndex);
 }
 
 /**
- * Get the chart model selected in the given tab.
+ * Helper to get the data series chart model selected in the given tab.
  *
  * @param tabIndex
  *    Index of tab.
  * @return
- *    Chart model in the given tab or none if not valid.
+ *    Data series chart model in the given tab.
  */
-const ChartModel*
-ModelChart::getSelectedChartModelHelper(const int32_t tabIndex) const
+const ChartModelDataSeries*
+ModelChart::getSelectedDataSeriesChartModelHelper(const int32_t tabIndex) const
 {
-    const ChartDataTypeEnum::Enum chartType = getSelectedChartDataType(tabIndex);
-    
-    ChartModel* model = NULL;
-    
-    switch (chartType) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            model = m_chartModelMatrix[tabIndex];
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            model = m_chartModelDataSeries[tabIndex];
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-            model = m_chartModelTimeSeries[tabIndex];
-            break;
+    CaretAssertArrayIndex(m_chartModelDataSeries, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_chartModelDataSeries[tabIndex];
+}
+
+/**
+ * Get the time series chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    time series chart model in the given tab.
+ */
+ChartModelTimeSeries*
+ModelChart::getSelectedTimeSeriesChartModel(const int32_t tabIndex)
+{
+    const ChartModelTimeSeries* model = getSelectedTimeSeriesChartModelHelper(tabIndex);
+    if (model == NULL) {
+        return NULL;
     }
+    ChartModelTimeSeries* nonConstModel = const_cast<ChartModelTimeSeries*>(model);
+    return nonConstModel;
+}
+
+/**
+ * Get the time series chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    time series chart model in the given tab.
+ */
+const ChartModelTimeSeries*
+ModelChart::getSelectedTimeSeriesChartModel(const int32_t tabIndex) const
+{
+    return getSelectedTimeSeriesChartModelHelper(tabIndex);
+}
+
+/**
+ * Helper to get the time series chart model selected in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    time series chart model in the given tab.
+ */
+const ChartModelTimeSeries*
+ModelChart::getSelectedTimeSeriesChartModelHelper(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartModelTimeSeries, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_chartModelTimeSeries[tabIndex];
+}
+
+/**
+ * Get the chartable matrix file selection model for the given tab.
+ * 
+ * @param tabIndex
+ *     Index of the tab.
+ * @return 
+ *     Chartable file selection model for the tab.
+ */
+ChartableMatrixFileSelectionModel*
+ModelChart::getChartableMatrixFileSelectionModel(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_chartableMatrixFileSelectionModel,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
     
-    return model;
-    
+    return m_chartableMatrixFileSelectionModel[tabIndex];
 }
 
 /**
@@ -965,56 +1082,56 @@ ModelChart::getSelectedChartModelHelper(const int32_t tabIndex) const
 void
 ModelChart::updateChartMatrixModels()
 {
-
-    /*
-     * Get the matrix chartable files
-     */
-    std::vector<ChartableInterface*> chartableFiles;
-    m_brain->getAllChartableDataFilesForChartDataType(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX,
-                                                      chartableFiles);
- 
-    /*
-     * Test to see if files have NOT changed
-     */
-    if (chartableFiles.size() == m_previousChartMatrixFiles.size()) {
-        std::vector<ChartableInterface*> chartFilesSorted(chartableFiles);
-        std::sort(chartFilesSorted.begin(),
-                  chartFilesSorted.end());
-        if (std::equal(chartFilesSorted.begin(),
-                       chartFilesSorted.end(),
-                       m_previousChartMatrixFiles.begin())) {
-            return;
-        }
-        m_previousChartMatrixFiles = chartFilesSorted;
-    }
-    
-    std::cout << "Updating chart matrix models." << std::endl;
-    
-    /*
-     * Remove charts
-     */
-    std::vector<int32_t> allTabIndices(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        CaretAssertVectorIndex(allTabIndices, i);
-        allTabIndices[i] = i;
-
-        CaretAssertArrayIndex(m_chartModelMatrix, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, i);
-        m_chartModelMatrix[i]->removeChartData();
-    }
-    
-    /*
-     * Add charts
-     */
-    for (std::vector<ChartableInterface*>::iterator iter = chartableFiles.begin();
-         iter != chartableFiles.end();
-         iter++) {
-        ChartableInterface* chartFile = *iter;
-        ChartDataMatrix* matrix = chartFile->getMatrixChart();
-        if (matrix != NULL) {
-            addChartToChartModels(allTabIndices,
-                                  matrix);
-        }
-    }
+//
+//    /*
+//     * Get the matrix chartable files
+//     */
+//    std::vector<ChartableMatrixInterface*> chartableFiles;
+//    m_brain->getAllChartableMatrixDataFilesForChartDataType(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX,
+//                                                           chartableFiles);
+// 
+//    /*
+//     * Test to see if files have NOT changed
+//     */
+//    if (chartableFiles.size() == m_previousChartMatrixFiles.size()) {
+//        std::vector<ChartableMatrixInterface*> chartFilesSorted(chartableFiles);
+//        std::sort(chartFilesSorted.begin(),
+//                  chartFilesSorted.end());
+//        if (std::equal(chartFilesSorted.begin(),
+//                       chartFilesSorted.end(),
+//                       m_previousChartMatrixFiles.begin())) {
+//            return;
+//        }
+//        m_previousChartMatrixFiles = chartFilesSorted;
+//    }
+//    
+//    std::cout << "Updating chart matrix models." << std::endl;
+//    
+//    /*
+//     * Remove charts
+//     */
+//    std::vector<int32_t> allTabIndices(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+//        CaretAssertVectorIndex(allTabIndices, i);
+//        allTabIndices[i] = i;
+//
+//        CaretAssertArrayIndex(m_chartModelMatrix, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, i);
+//        m_chartModelMatrix[i]->removeChartData();
+//    }
+//    
+//    /*
+//     * Add charts
+//     */
+//    for (std::vector<ChartableMatrixInterface*>::iterator iter = chartableFiles.begin();
+//         iter != chartableFiles.end();
+//         iter++) {
+//        ChartableMatrixInterface* chartFile = *iter;
+//        ChartDataMatrix* matrix = chartFile->getMatrixChart();
+//        if (matrix != NULL) {
+//            addChartToChartModels(allTabIndices,
+//                                  matrix);
+//        }
+//    }
 }
 
 

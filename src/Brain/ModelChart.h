@@ -41,10 +41,13 @@ namespace caret {
 
     class ChartData;
     class ChartDataCartesian;
+    class ChartableMatrixInterface;
     class ChartModel;
     class ChartModelDataSeries;
     class ChartModelMatrix;
-    class ChartableInterface;
+    class ChartModelTimeSeries;
+    class ChartableBrainordinateInterface;
+    class ChartableMatrixFileSelectionModel;
     class CiftiConnectivityMatrixParcelFile;
     class OverlaySetArray;
     class SurfaceFile;
@@ -84,9 +87,13 @@ namespace caret {
         void setSelectedChartDataType(const int32_t tabIndex,
                                       const ChartDataTypeEnum::Enum dataType);
         
-        ChartModel* getSelectedChartModel(const int32_t tabIndex);
+        ChartModelDataSeries* getSelectedDataSeriesChartModel(const int32_t tabIndex);
         
-        const ChartModel* getSelectedChartModel(const int32_t tabIndex) const;
+        const ChartModelDataSeries* getSelectedDataSeriesChartModel(const int32_t tabIndex) const;
+        
+        ChartModelTimeSeries* getSelectedTimeSeriesChartModel(const int32_t tabIndex);
+        
+        const ChartModelTimeSeries* getSelectedTimeSeriesChartModel(const int32_t tabIndex) const;
         
         virtual void getDescriptionOfContent(const int32_t tabIndex,
                                              PlainTextStringBuilder& descriptionOut) const;
@@ -97,6 +104,8 @@ namespace caret {
         void reset();
         
         void updateChartMatrixModels();
+        
+        ChartableMatrixFileSelectionModel* getChartableMatrixFileSelectionModel(const int32_t tabIndex);
         
     protected:
         virtual void saveModelSpecificInformationToScene(const SceneAttributes* sceneAttributes,
@@ -117,7 +126,9 @@ namespace caret {
         
         void removeAllCharts();
         
-        const ChartModel* getSelectedChartModelHelper(const int32_t tabIndex) const;
+        const ChartModelDataSeries* getSelectedDataSeriesChartModelHelper(const int32_t tabIndex) const;
+        
+        const ChartModelTimeSeries* getSelectedTimeSeriesChartModelHelper(const int32_t tabIndex) const;
         
         void saveChartModelsToScene(const SceneAttributes* sceneAttributes,
                                     SceneClass* sceneClass,
@@ -127,7 +138,7 @@ namespace caret {
         void restoreChartModelsFromScene(const SceneAttributes* sceneAttributes,
                                          const SceneClass* sceneClass);
 
-        void getTabsAndChartFilesForChartLoading(std::map<ChartableInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const;
+        void getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateInterface*, std::vector<int32_t> >& chartFileEnabledTabsOut) const;
 
         /** Overlays sets for this model and for each tab */
         OverlaySetArray* m_overlaySetArray;
@@ -138,7 +149,7 @@ namespace caret {
         ChartModelDataSeries* m_chartModelDataSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Chart model for time-series data */
-        ChartModelDataSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        ChartModelTimeSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
         /** Chart model for matrices */
         ChartModelMatrix* m_chartModelMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
@@ -149,8 +160,10 @@ namespace caret {
         /** Contains time series charts */
         std::list<QWeakPointer<ChartDataCartesian> > m_timeSeriesChartData;
         
-        std::vector<ChartableInterface*> m_previousChartMatrixFiles;
+        std::vector<ChartableMatrixInterface*> m_previousChartMatrixFiles;
 
+        ChartableMatrixFileSelectionModel* m_chartableMatrixFileSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
         SceneClassAssistant* m_sceneAssistant;
     };
 

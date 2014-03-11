@@ -59,6 +59,8 @@ namespace caret {
         
         std::vector<int32_t> getIndicesOfTabsForSavingToScene() const;
         
+        bool isTabIndexSavedToScene(const int32_t tabIndex) const;
+        
         AString getSceneFileName() const;
         
         void setSceneFileName(const AString& sceneFileName);

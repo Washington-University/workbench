@@ -46,7 +46,8 @@
 namespace caret {
 
     class BrainOpenGLTextRenderInterface;
-    class ChartModel;
+    class ChartModelCartesian;
+    class ChartableMatrixInterface;
     
     class BrainOpenGLChartDrawingInterface {
         
@@ -56,19 +57,39 @@ namespace caret {
         virtual ~BrainOpenGLChartDrawingInterface() { }
         
         /**
-         * Draw the given chart in the given viewport.
+         * Draw a cartesian chart in the given viewport.
          *
          * @param viewport
          *     Viewport for the chart.
          * @param textRenderer
          *     Text rendering.
-         * @param chart
-         *     Chart that is drawn.
+         * @param cartesianChart
+         *     Cartesian Chart that is drawn.
+         * @param tabIndex
+         *     Index of the tab.
          */
-        virtual void drawChart(const int32_t viewport[4],
-                               BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart,
-                               const int32_t tabIndex) = 0;
+        virtual void drawCartesianChart(const int32_t viewport[4],
+                                        BrainOpenGLTextRenderInterface* textRenderer,
+                                        ChartModelCartesian* cartesianChart,
+                                        const int32_t tabIndex) = 0;
+        
+        /**
+         * Draw a matrix chart in the given viewport.
+         *
+         * @param viewport
+         *     Viewport for the chart.
+         * @param textRenderer
+         *     Text rendering.
+         * @param chartMatrixInterface
+         *     Chart matrix interface containing matrix data.
+         * @param tabIndex
+         *     Index of the tab.
+         */
+        virtual void drawMatrixChart(const int32_t viewport[4],
+                                     BrainOpenGLTextRenderInterface* textRenderer,
+                                     ChartableMatrixInterface* chartMatrixInterface,
+                                     const int32_t tabIndex) = 0;
+        
     private:
         BrainOpenGLChartDrawingInterface(const BrainOpenGLChartDrawingInterface&);
 

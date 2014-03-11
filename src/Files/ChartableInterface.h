@@ -34,25 +34,18 @@
  */
 /*LICENSE_END*/
 
-#include "ChartDataMatrixCreatorInterface.h"
 #include "ChartDataTypeEnum.h"
-#include "ChartTypeEnum.h"
-#include "DataFileException.h"
-#include "StructureEnum.h"
 
 namespace caret {
 
     class CaretMappableDataFile;
-    class ChartDataCartesian;
-    class ChartDataMatrix;
-    class TimeLine;
     
     /**
      * \class caret::ChartableInterface
      * \brief Interface for files that are able to produce charts.
      * \ingroup Files
      */
-    class ChartableInterface : public ChartDataMatrixCreatorInterface {
+    class ChartableInterface {
         
     public:
 //        ChartableInterface() { }
@@ -91,18 +84,6 @@ namespace caret {
                                         const bool enabled) = 0;
 
         /**
-         * Returns the Default Chart Type
-         */
-        
-        virtual ChartTypeEnum::Enum getDefaultChartType() const = 0;
-
-        /**
-         *   Returns a list of supported Chart Types
-         */
-
-        virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const = 0;
-
-        /**
          * Get chart data types supported by the file.
          *
          * @param chartDataTypesOut
@@ -111,107 +92,6 @@ namespace caret {
         virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
         
         bool isChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
-        
-        /**
-         * Get the matrix chart for files supporting matrix data.
-         *
-         * @return
-         *    Pointer to matrix or NULL if not valid.
-         */
-        virtual ChartDataMatrix* getMatrixChart() = 0;
-        
-        /**
-         * Load charting data for the surface with the given structure and node index.
-         *
-         * @param structure
-         *     The surface's structure.
-         * @param nodeIndex
-         *     Index of the node.
-         * @return
-         *     Pointer to the chart data.  If the data FAILED to load,
-         *     the returned pointer will be NULL.  Caller takes ownership
-         *     of the pointer and must delete it when no longer needed.
-         */
-        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
-                                                       const int32_t nodeIndex) throw (DataFileException) = 0;
-        
-        /**
-         * Load average charting data for the surface with the given structure and node indices.
-         *
-         * @param structure
-         *     The surface's structure.
-         * @param nodeIndices
-         *     Indices of the node.
-         * @return
-         *     Pointer to the chart data.  If the data FAILED to load,
-         *     the returned pointer will be NULL.  Caller takes ownership
-         *     of the pointer and must delete it when no longer needed.
-         */
-        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
-                                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException) = 0;
-
-        /**
-         * Load charting data for the voxel enclosing the given coordinate.
-         *
-         * @param xyz
-         *     Coordinate of voxel.
-         * @return
-         *     Pointer to the chart data.  If the data FAILED to load,
-         *     the returned pointer will be NULL.  Caller takes ownership
-         *     of the pointer and must delete it when no longer needed.
-         */
-        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException) = 0;
-        
-        /**
-         * Load the average of chart data for a group of surface nodes
-         * Note: This method will return a chart even if charting for
-         * this file is disabled.
-         *
-         * @param structure
-         *     The surface's structure
-         * @param nodeIndices
-         *     Indices of nodes whose chart data is averaged
-         * @param timeLineOut
-         *     Output charting data.
-         * @return
-         *     True if chart data is valid, else false.
-         */
-        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
-                                                     const std::vector<int32_t>& nodeIndices,
-                                                     TimeLine& timeLineOut) throw (DataFileException) = 0;
-        
-        /**
-         * Load chart data for a surface node
-         * Note: This method will return a chart even if charting for
-         * this file is disabled.
-         *
-         * @param structure
-         *     The surface's structure
-         * @param nodeIndex
-         *     Index of node
-         * @param timeLineOut
-         *     Output charting data.
-         * @return
-         *     True if chart data is valid, else false.
-         */
-        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum structure,
-                                             const int32_t nodeIndex,
-                                             TimeLine& timeLineOut) throw (DataFileException) = 0;
-        
-        /**
-         * Load chart data for a voxel
-         * Note: This method will return a chart even if charting for
-         * this file is disabled.
-         *
-         * @param xyz
-         *     Coordinate of voxel.
-         * @param timeLineOut
-         *     Output charting data.
-         * @return
-         *     True if chart data is valid, else false.
-         */
-        virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
-                                                   TimeLine& timeLineOut) throw (DataFileException) = 0;
         
     private:
 //        ChartableInterface(const ChartableInterface&);

@@ -71,7 +71,7 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
                                           CIFTI_INDEX_TYPE_PARCELS,
                                           CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS,
                                           CiftiMappableDataFile::DATA_ACCESS_INVALID)
-/*,ChartableInterface()*/
+/*,ChartableBrainordinateInterface()*/
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -159,17 +159,6 @@ CiftiConnectivityMatrixParcelFile::setChartingEnabled(const int32_t tabIndex,
     m_chartingEnabledForTab[tabIndex] = enabled;
 }
 
-ChartTypeEnum::Enum CiftiConnectivityMatrixParcelFile::getDefaultChartType() const
-{
-    return ChartTypeEnum::MATRIX;
-}
-
-void CiftiConnectivityMatrixParcelFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
-{
-    list.clear();
-    list.push_back(ChartTypeEnum::MATRIX);    
-}
-
 /**
  * Get chart data types supported by the file.
  *
@@ -199,60 +188,6 @@ const CaretMappableDataFile*
 CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile() const
 {
     return dynamic_cast<const CaretMappableDataFile*>(this);
-}
-
-/**
- * Load charting data for the surface with the given structure and node index.
- *
- * @param structure
- *     The surface's structure.
- * @param nodeIndex
- *     Index of the node.
- * @return
- *     Pointer to the chart data.  If the data FAILED to load,
- *     the returned pointer will be NULL.  Caller takes ownership
- *     of the pointer and must delete it when no longer needed.
- */
-ChartDataCartesian*
-CiftiConnectivityMatrixParcelFile::loadChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
-                                               const int32_t /*nodeIndex*/) throw (DataFileException)
-{
-    return NULL;
-}
-
-/**
- * Load average charting data for the surface with the given structure and node indices.
- *
- * @param structure
- *     The surface's structure.
- * @param nodeIndices
- *     Indices of the node.
- * @return
- *     Pointer to the chart data.  If the data FAILED to load,
- *     the returned pointer will be NULL.  Caller takes ownership
- *     of the pointer and must delete it when no longer needed.
- */
-ChartDataCartesian*
-CiftiConnectivityMatrixParcelFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum /*structure*/,
-                                                       const std::vector<int32_t>& /*nodeIndices*/) throw (DataFileException)
-{
-    return NULL;
-}
-
-/**
- * Load charting data for the voxel enclosing the given coordinate.
- *
- * @param xyz
- *     Coordinate of voxel.
- * @return
- *     Pointer to the chart data.  If the data FAILED to load,
- *     the returned pointer will be NULL.  Caller takes ownership
- *     of the pointer and must delete it when no longer needed.
- */
-ChartDataCartesian*
-CiftiConnectivityMatrixParcelFile::loadChartDataForVoxelAtCoordinate(const float* /*xyz[3]*/) throw (DataFileException)
-{
-    return NULL;
 }
 
 /**

@@ -45,6 +45,8 @@
 #include "CaretAssert.h"
 #include "ChartHistoryViewController.h"
 #include "ChartModel.h"
+#include "ChartModelDataSeries.h"
+#include "ChartModelTimeSeries.h"
 #include "ChartSelectionViewController.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -144,7 +146,11 @@ ChartToolBoxViewController::receiveEvent(Event* event)
                 }
             }
             
-            m_chartHistoryViewController->setEnabled(historyWidgetValid);
+            const int32_t historyTabIndex = m_tabWidget->indexOf(m_chartHistoryViewController);
+            if (historyTabIndex >= 0) {
+                m_tabWidget->setTabEnabled(historyTabIndex,
+                                           historyWidgetValid);
+            }
             if ( ! historyWidgetValid) {
                 m_tabWidget->setCurrentWidget(m_chartSelectionViewController);
             }
@@ -170,8 +176,17 @@ ChartToolBoxViewController::getSelectedChartModel()
     ChartModel* chartModel = NULL;
     
     ModelChart* modelChart = brain->getChartModel();
-    if (modelChart != NULL) {
-        chartModel = modelChart->getSelectedChartModel(browserTabIndex);
+    switch (modelChart->getSelectedChartDataType(browserTabIndex)) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            chartModel = modelChart->getSelectedDataSeriesChartModel(browserTabIndex);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            chartModel = modelChart->getSelectedTimeSeriesChartModel(browserTabIndex);
+            break;
     }
     
     return chartModel;

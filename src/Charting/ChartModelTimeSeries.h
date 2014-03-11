@@ -1,3 +1,5 @@
+#ifndef __CHART_MODEL_TIME_SERIES_H__
+#define __CHART_MODEL_TIME_SERIES_H__
 
 /*LICENSE_START*/
 /*
@@ -32,75 +34,37 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_MODEL_DATA_SERIES_DECLARE__
-#include "ChartModelDataSeries.h"
-#undef __CHART_MODEL_DATA_SERIES_DECLARE__
 
-#include "CaretAssert.h"
-using namespace caret;
+#include "ChartModelCartesian.h"
 
 
+
+namespace caret {
+
+    class ChartModelTimeSeries : public ChartModelCartesian {
+        
+    public:
+        ChartModelTimeSeries();
+        
+        virtual ~ChartModelTimeSeries();
+        
+        ChartModelTimeSeries(const ChartModelTimeSeries& obj);
+
+        ChartModelTimeSeries& operator=(const ChartModelTimeSeries& obj);
+        
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+        void copyHelperChartModelTimeSeries(const ChartModelTimeSeries& obj);
+
+        // ADD_NEW_MEMBERS_HERE
+
+    };
     
-/**
- * \class caret::ChartModelDataSeries 
- * \brief Chart model for line series charts.
- * \ingroup Charting
- */
+#ifdef __CHART_MODEL_TIME_SERIES_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CHART_MODEL_TIME_SERIES_DECLARE__
 
-/**
- * Constructor.
- */
-ChartModelDataSeries::ChartModelDataSeries()
-: ChartModelCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE)
-{
-    
-}
-
-/**
- * Destructor.
- */
-ChartModelDataSeries::~ChartModelDataSeries()
-{
-}
-
-/**
- * Copy constructor.
- * @param obj
- *    Object that is copied.
- */
-ChartModelDataSeries::ChartModelDataSeries(const ChartModelDataSeries& obj)
-: ChartModelCartesian(obj)
-{
-    this->copyHelperChartModelDataSeries(obj);
-}
-
-/**
- * Assignment operator.
- * @param obj
- *    Data copied from obj to this.
- * @return 
- *    Reference to this object.
- */
-ChartModelDataSeries&
-ChartModelDataSeries::operator=(const ChartModelDataSeries& obj)
-{
-    if (this != &obj) {
-        ChartModelCartesian::operator=(obj);
-        this->copyHelperChartModelDataSeries(obj);
-    }
-    return *this;    
-}
-
-/**
- * Helps with copying an object of this type.
- * @param obj
- *    Object that is copied.
- */
-void 
-ChartModelDataSeries::copyHelperChartModelDataSeries(const ChartModelDataSeries& /*obj*/)
-{
-    
-}
-
+} // namespace
+#endif  //__CHART_MODEL_TIME_SERIES_H__

@@ -54,23 +54,29 @@ namespace caret {
         
         virtual ~BrainOpenGLChartDrawingFixedPipeline();
         
-        virtual void drawChart(const int32_t viewport[4],
+        virtual void drawCartesianChart(const int32_t viewport[4],
                                BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart,
+                               ChartModelCartesian* cartesianChart,
                                const int32_t tabIndex);
+        
+        virtual void drawMatrixChart(const int32_t viewport[4],
+                                     BrainOpenGLTextRenderInterface* textRenderer,
+                                     ChartableMatrixInterface* chartMatrixInterface,
+                                     const int32_t tabIndex);
+        
     private:
         BrainOpenGLChartDrawingFixedPipeline(const BrainOpenGLChartDrawingFixedPipeline&);
 
         BrainOpenGLChartDrawingFixedPipeline& operator=(const BrainOpenGLChartDrawingFixedPipeline&);
         
-        void drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModel* chart);
+//        void drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
+//                               ChartModel* chart);
         
         void drawChartGraphicsLineSeries( BrainOpenGLTextRenderInterface* textRenderer,
-                                         ChartModelDataSeries* chart);
+                                         ChartModelCartesian* chart);
         
         void drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* textRenderer,
-                                     ChartModelMatrix* chart);
+                                     ChartableMatrixInterface* chartMatrixInterface);
 
         void drawChartAxesGrid(const float vpX,
                                const float vpY,

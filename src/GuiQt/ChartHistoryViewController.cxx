@@ -50,7 +50,8 @@
 #include "CaretAssert.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
-#include "ChartModelCartesian.h"
+#include "ChartModelDataSeries.h"
+#include "ChartModelTimeSeries.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -422,9 +423,33 @@ ChartHistoryViewController::getSelectedChartModelAndTab(ChartModel* &chartModelO
     tabIndexOut = browserTabContent->getTabNumber();
     
     ModelChart* modelChart = brain->getChartModel();
-    if (modelChart != NULL) {
-        chartModelOut = modelChart->getSelectedChartModel(tabIndexOut);
+    switch (modelChart->getSelectedChartDataType(tabIndexOut)) {
+        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+            chartModelOut = modelChart->getSelectedDataSeriesChartModel(tabIndexOut);
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+            break;
+        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+            chartModelOut = modelChart->getSelectedTimeSeriesChartModel(tabIndexOut);
+            break;
     }
+    
+//    return chartModel;
+//    Brain* brain = GuiManager::get()->getBrain();
+//    
+//    BrowserTabContent* browserTabContent =
+//    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+//    if (browserTabContent == NULL) {
+//        return;
+//    }
+//    tabIndexOut = browserTabContent->getTabNumber();
+//    
+//    ModelChart* modelChart = brain->getChartModel();
+//    if (modelChart != NULL) {
+//        chartModelOut = modelChart->getSelectedChartModel(tabIndexOut);
+//    }
 }
 
 

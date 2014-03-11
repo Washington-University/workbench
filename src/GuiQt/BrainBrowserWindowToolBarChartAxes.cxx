@@ -49,6 +49,7 @@
 #include "ChartAxis.h"
 #include "ChartAxisCartesian.h"
 #include "ChartModelDataSeries.h"
+#include "ChartModelTimeSeries.h"
 #include "ModelChart.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -267,89 +268,97 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
 //    m_topAxisWidgetGroup->blockAllSignals(true);
 //    m_rightAxisWidgetGroup->blockAllSignals(true);
     
-    ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
-    if (modelChart != NULL) {
-        const int32_t tabIndex = browserTabContent->getTabNumber();
-        ChartModel* chart = modelChart->getSelectedChartModel(tabIndex);
-        if (chart != NULL) {
-            const ChartDataTypeEnum::Enum chartType = chart->getChartDataType();
+    ChartModelCartesian* cartesianChart = getCartesianChart();
+    if (cartesianChart != NULL) {
+        if (cartesianChart != NULL) {
+            updateAxisWidgets(cartesianChart->getLeftAxis(),
+                              m_leftAxisLabel,
+                              m_leftAxisAutoRangeScaleCheckBox,
+                              m_leftAxisMinimumValueSpinBox,
+                              m_leftAxisMaximumValueSpinBox,
+                              m_leftAxisWidgetGroup);
             
-            ChartModelDataSeries* lineSeriesChart = NULL;
+            updateAxisWidgets(cartesianChart->getBottomAxis(),
+                              m_bottomAxisLabel,
+                              m_bottomAxisAutoRangeScaleCheckBox,
+                              m_bottomAxisMinimumValueSpinBox,
+                              m_bottomAxisMaximumValueSpinBox,
+                              m_bottomAxisWidgetGroup);
             
-            switch (chartType) {
-                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-                    break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                    break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-                    lineSeriesChart = dynamic_cast<ChartModelDataSeries*>(chart);
-                    break;
-                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-                    lineSeriesChart = dynamic_cast<ChartModelDataSeries*>(chart);
-                    break;
-            }
-            
-            if (lineSeriesChart != NULL) {
-                updateAxisWidgets(lineSeriesChart->getLeftAxis(),
-                                  m_leftAxisLabel,
-                                  m_leftAxisAutoRangeScaleCheckBox,
-                                  m_leftAxisMinimumValueSpinBox,
-                                  m_leftAxisMaximumValueSpinBox,
-                                  m_leftAxisWidgetGroup);
-                
-                updateAxisWidgets(lineSeriesChart->getBottomAxis(),
-                                  m_bottomAxisLabel,
-                                  m_bottomAxisAutoRangeScaleCheckBox,
-                                  m_bottomAxisMinimumValueSpinBox,
-                                  m_bottomAxisMaximumValueSpinBox,
-                                  m_bottomAxisWidgetGroup);
-                
-//                updateAxisWidgets(lineSeriesChart->getRightAxis(),
-//                                  m_rightAxisLabel,
-//                                  m_rightAxisAutoRangeScaleCheckBox,
-//                                  m_rightAxisMinimumValueSpinBox,
-//                                  m_rightAxisMaximumValueSpinBox,
-//                                  m_rightAxisWidgetGroup);
-//                
-//                updateAxisWidgets(lineSeriesChart->getTopAxis(),
-//                                  m_topAxisLabel,
-//                                  m_topAxisAutoRangeScaleCheckBox,
-//                                  m_topAxisMinimumValueSpinBox,
-//                                  m_topAxisMaximumValueSpinBox,
-//                                  m_topAxisWidgetGroup);
-            }
+            //                updateAxisWidgets(lineSeriesChart->getRightAxis(),
+            //                                  m_rightAxisLabel,
+            //                                  m_rightAxisAutoRangeScaleCheckBox,
+            //                                  m_rightAxisMinimumValueSpinBox,
+            //                                  m_rightAxisMaximumValueSpinBox,
+            //                                  m_rightAxisWidgetGroup);
+            //
+            //                updateAxisWidgets(lineSeriesChart->getTopAxis(),
+            //                                  m_topAxisLabel,
+            //                                  m_topAxisAutoRangeScaleCheckBox,
+            //                                  m_topAxisMinimumValueSpinBox,
+            //                                  m_topAxisMaximumValueSpinBox,
+            //                                  m_topAxisWidgetGroup);
         }
     }
+        
+//    ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
+//    if (modelChart != NULL) {
+//        const int32_t tabIndex = browserTabContent->getTabNumber();
+////        ChartModel* chart = modelChart->getSelectedChartModel(tabIndex);
+//            const ChartDataTypeEnum::Enum chartType = modelChart->getSelectedChartDataType(tabIndex);
+//            
+//            ChartModelCartesian* cartesianChart = NULL;
+//            
+//            switch (chartType) {
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+//                    cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
+//                    break;
+//                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+//                    cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
+//                    break;
+//            }
+//            
+//            if (cartesianChart != NULL) {
+//                updateAxisWidgets(cartesianChart->getLeftAxis(),
+//                                  m_leftAxisLabel,
+//                                  m_leftAxisAutoRangeScaleCheckBox,
+//                                  m_leftAxisMinimumValueSpinBox,
+//                                  m_leftAxisMaximumValueSpinBox,
+//                                  m_leftAxisWidgetGroup);
+//                
+//                updateAxisWidgets(cartesianChart->getBottomAxis(),
+//                                  m_bottomAxisLabel,
+//                                  m_bottomAxisAutoRangeScaleCheckBox,
+//                                  m_bottomAxisMinimumValueSpinBox,
+//                                  m_bottomAxisMaximumValueSpinBox,
+//                                  m_bottomAxisWidgetGroup);
+//                
+////                updateAxisWidgets(lineSeriesChart->getRightAxis(),
+////                                  m_rightAxisLabel,
+////                                  m_rightAxisAutoRangeScaleCheckBox,
+////                                  m_rightAxisMinimumValueSpinBox,
+////                                  m_rightAxisMaximumValueSpinBox,
+////                                  m_rightAxisWidgetGroup);
+////                
+////                updateAxisWidgets(lineSeriesChart->getTopAxis(),
+////                                  m_topAxisLabel,
+////                                  m_topAxisAutoRangeScaleCheckBox,
+////                                  m_topAxisMinimumValueSpinBox,
+////                                  m_topAxisMaximumValueSpinBox,
+////                                  m_topAxisWidgetGroup);
+//            }
+//        }
+////    }
     
     m_bottomAxisWidgetGroup->blockAllSignals(false);
     m_leftAxisWidgetGroup->blockAllSignals(false);
 //    m_topAxisWidgetGroup->blockAllSignals(false);
 //    m_rightAxisWidgetGroup->blockAllSignals(false);
     
-    
-//    m_chartTypeButtonGroup->blockSignals(true);
-//
-//    const ModelChart* chartModel = browserTabContent->getDisplayedChartModel();
-//    if (chartModel != NULL) {
-//        const int32_t tabIndex = browserTabContent->getTabNumber();
-//        const ChartDataTypeEnum::Enum chartType = chartModel->getSelectedChartDataType(tabIndex);
-//        
-//        switch (chartType) {
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-//                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-//                m_chartMatrixTypeRadioButton->setChecked(true);
-//                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-//                m_chartDataSeriesTypeRadioButton->setChecked(true);
-//                break;
-//            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-//                m_chartTimeSeriesTypeRadioButton->setChecked(true);
-//                break;
-//        }
-//    }
-//    
-//    m_chartTypeButtonGroup->blockSignals(false);
 }
 
 /**
@@ -361,15 +370,27 @@ BrainBrowserWindowToolBarChartAxes::getCartesianChart()
 {
     ChartModelCartesian* cartesianChart = NULL;
     
-    BrowserTabContent* btc = getTabContentFromSelectedTab();
-    if (btc != NULL) {
-        ModelChart* modelChart = btc->getDisplayedChartModel();
+    BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
+    if (browserTabContent != NULL) {
+        ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
         
         if (modelChart != NULL) {
-            const int32_t tabIndex = btc->getTabNumber();
-            ChartModel* chart = modelChart->getSelectedChartModel(tabIndex);
-            if (chart != NULL) {
-                cartesianChart = dynamic_cast<ChartModelCartesian*>(chart);
+            const int32_t tabIndex = browserTabContent->getTabNumber();
+            const ChartDataTypeEnum::Enum chartType = modelChart->getSelectedChartDataType(tabIndex);
+            
+            ChartModelCartesian* cartesianChart = NULL;
+            
+            switch (chartType) {
+                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                    cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                    cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
+                    break;
             }
         }
     }

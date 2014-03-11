@@ -40,15 +40,18 @@
 
 #include "EventListenerInterface.h"
 
+class QButtonGroup;
 class QCheckBox;
 class QGridLayout;
 class QLabel;
 class QLineEdit;
+class QRadioButton;
 class QSignalMapper;
 
 namespace caret {
 
-    class ChartableInterface;
+    class ChartableBrainordinateInterface;
+    class ChartableMatrixInterface;
     class ChartModel;
     
     class ChartSelectionViewController : public QWidget, public EventListenerInterface {
@@ -63,8 +66,10 @@ namespace caret {
         virtual ~ChartSelectionViewController();
         
     private slots:
-        void enabledCheckBoxClicked(int);
-    
+        void selectionCheckBoxClicked(int);
+        
+        void selectionRadioButtonClicked(int);
+        
     private:
         ChartSelectionViewController(const ChartSelectionViewController&);
 
@@ -77,14 +82,23 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private:
+        enum Mode {
+            MODE_INVALID,
+            MODE_BRAINORDINATE,
+            MODE_MATRIX
+        };
+        
         // ADD_NEW_MEMBERS_HERE
 
         void updateSelectionViewController();
         
-        void getFileAtIndex(const int32_t indx,
-                            ChartableInterface* &chartFilesOut);
+        ChartableBrainordinateInterface* getBrainordinateFileAtIndex(const int32_t indx);
         
-        ChartModel* getSelectedChartModel();
+        ChartableMatrixInterface* getMatrixFileAtIndex(const int32_t indx);
+        
+//        ChartModel* getSelectedChartModel();
+        
+        Mode m_mode;
         
         const int32_t m_browserWindowIndex;
         
@@ -92,20 +106,26 @@ namespace caret {
         
         std::vector<QLineEdit*> m_fileNameLineEdits;
         
+        std::vector<QRadioButton*> m_fileSelectionRadioButtons;
+        
+        QButtonGroup* m_selectionRadioButtonGroup;
+        
         QGridLayout* m_gridLayout;
         
         QSignalMapper* m_signalMapperFileEnableCheckBox;
         
         QLabel* m_averageLabel;
         
-        static int COLUMN_ENABLE_CHECKBOX;
-        static int COLUMN_NAME_LINE_EDIT;
+        static const int COLUMN_CHECKBOX;
+        static const int COLUMN_RADIOBUTTON;
+        static const int COLUMN_LINE_EDIT;
         
     };
     
 #ifdef __CHART_SELECTION_VIEW_CONTROLLER_DECLARE__
-    int ChartSelectionViewController::COLUMN_ENABLE_CHECKBOX = 0;
-    int ChartSelectionViewController::COLUMN_NAME_LINE_EDIT  = 1;
+    const int ChartSelectionViewController::COLUMN_CHECKBOX    = 0;
+    const int ChartSelectionViewController::COLUMN_RADIOBUTTON = 1;
+    const int ChartSelectionViewController::COLUMN_LINE_EDIT   = 2;
 #endif // __CHART_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

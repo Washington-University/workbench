@@ -48,6 +48,7 @@ CaretMappableDataFileAndMapSelector.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
+ChartableMatrixFileSelectionViewController.h
 ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
@@ -158,6 +159,7 @@ CaretMappableDataFileAndMapSelector.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
+ChartableMatrixFileSelectionViewController.h
 ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
@@ -289,6 +291,7 @@ CaretMappableDataFileAndMapSelector.cxx
 ChartHistoryViewController.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
+ChartableMatrixFileSelectionViewController.cxx
 ChartingDialog.cxx
 CiftiConnectivityMatrixViewController.cxx
 ColorEditorWidget.cxx

@@ -1,3 +1,5 @@
+#ifndef __CHARTABLE_MATRIX_INTERFACE_H__
+#define __CHARTABLE_MATRIX_INTERFACE_H__
 
 /*LICENSE_START*/
 /*
@@ -32,75 +34,36 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_MODEL_DATA_SERIES_DECLARE__
-#include "ChartModelDataSeries.h"
-#undef __CHART_MODEL_DATA_SERIES_DECLARE__
 
-#include "CaretAssert.h"
-using namespace caret;
+#include "ChartableInterface.h"
+#include "ChartDataMatrixCreatorInterface.h"
 
 
+
+namespace caret {
+
+    class ChartableMatrixInterface : public ChartableInterface, public ChartDataMatrixCreatorInterface {
+        
+    public:
+        ChartableMatrixInterface() { }
+        
+        virtual ~ChartableMatrixInterface() { }
+        
+
+        // ADD_NEW_METHODS_HERE
+
+    private:
+        ChartableMatrixInterface(const ChartableMatrixInterface&);
+
+        ChartableMatrixInterface& operator=(const ChartableMatrixInterface&);
+        
+        // ADD_NEW_MEMBERS_HERE
+
+    };
     
-/**
- * \class caret::ChartModelDataSeries 
- * \brief Chart model for line series charts.
- * \ingroup Charting
- */
+#ifdef __CHARTABLE_MATRIX_INTERFACE_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CHARTABLE_MATRIX_INTERFACE_DECLARE__
 
-/**
- * Constructor.
- */
-ChartModelDataSeries::ChartModelDataSeries()
-: ChartModelCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE)
-{
-    
-}
-
-/**
- * Destructor.
- */
-ChartModelDataSeries::~ChartModelDataSeries()
-{
-}
-
-/**
- * Copy constructor.
- * @param obj
- *    Object that is copied.
- */
-ChartModelDataSeries::ChartModelDataSeries(const ChartModelDataSeries& obj)
-: ChartModelCartesian(obj)
-{
-    this->copyHelperChartModelDataSeries(obj);
-}
-
-/**
- * Assignment operator.
- * @param obj
- *    Data copied from obj to this.
- * @return 
- *    Reference to this object.
- */
-ChartModelDataSeries&
-ChartModelDataSeries::operator=(const ChartModelDataSeries& obj)
-{
-    if (this != &obj) {
-        ChartModelCartesian::operator=(obj);
-        this->copyHelperChartModelDataSeries(obj);
-    }
-    return *this;    
-}
-
-/**
- * Helps with copying an object of this type.
- * @param obj
- *    Object that is copied.
- */
-void 
-ChartModelDataSeries::copyHelperChartModelDataSeries(const ChartModelDataSeries& /*obj*/)
-{
-    
-}
-
+} // namespace
+#endif  //__CHARTABLE_MATRIX_INTERFACE_H__

@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __CHART_MODEL_DATA_SERIES_DECLARE__
-#include "ChartModelDataSeries.h"
-#undef __CHART_MODEL_DATA_SERIES_DECLARE__
+#define __CHART_MODEL_TIME_SERIES_DECLARE__
+#include "ChartModelTimeSeries.h"
+#undef __CHART_MODEL_TIME_SERIES_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -42,7 +42,7 @@ using namespace caret;
 
     
 /**
- * \class caret::ChartModelDataSeries 
+ * \class caret::ChartModelTimeSeries 
  * \brief Chart model for line series charts.
  * \ingroup Charting
  */
@@ -50,9 +50,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-ChartModelDataSeries::ChartModelDataSeries()
-: ChartModelCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+ChartModelTimeSeries::ChartModelTimeSeries()
+: ChartModelCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+                      ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
                       ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE)
 {
     
@@ -61,7 +61,7 @@ ChartModelDataSeries::ChartModelDataSeries()
 /**
  * Destructor.
  */
-ChartModelDataSeries::~ChartModelDataSeries()
+ChartModelTimeSeries::~ChartModelTimeSeries()
 {
 }
 
@@ -70,10 +70,10 @@ ChartModelDataSeries::~ChartModelDataSeries()
  * @param obj
  *    Object that is copied.
  */
-ChartModelDataSeries::ChartModelDataSeries(const ChartModelDataSeries& obj)
+ChartModelTimeSeries::ChartModelTimeSeries(const ChartModelTimeSeries& obj)
 : ChartModelCartesian(obj)
 {
-    this->copyHelperChartModelDataSeries(obj);
+    this->copyHelperChartModelTimeSeries(obj);
 }
 
 /**
@@ -83,12 +83,12 @@ ChartModelDataSeries::ChartModelDataSeries(const ChartModelDataSeries& obj)
  * @return 
  *    Reference to this object.
  */
-ChartModelDataSeries&
-ChartModelDataSeries::operator=(const ChartModelDataSeries& obj)
+ChartModelTimeSeries&
+ChartModelTimeSeries::operator=(const ChartModelTimeSeries& obj)
 {
     if (this != &obj) {
         ChartModelCartesian::operator=(obj);
-        this->copyHelperChartModelDataSeries(obj);
+        this->copyHelperChartModelTimeSeries(obj);
     }
     return *this;    
 }
@@ -99,7 +99,7 @@ ChartModelDataSeries::operator=(const ChartModelDataSeries& obj)
  *    Object that is copied.
  */
 void 
-ChartModelDataSeries::copyHelperChartModelDataSeries(const ChartModelDataSeries& /*obj*/)
+ChartModelTimeSeries::copyHelperChartModelTimeSeries(const ChartModelTimeSeries& /*obj*/)
 {
     
 }

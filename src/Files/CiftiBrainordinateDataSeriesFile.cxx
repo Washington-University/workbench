@@ -529,27 +529,6 @@ CiftiBrainordinateDataSeriesFile::getMatrixChart()
 }
 
 /**
- * Get the matrix RGBA coloring for this matrix data creator.
- *
- * @param numberOfRowsOut
- *    Number of rows in the coloring matrix.
- * @param numberOfColumnsOut
- *    Number of rows in the coloring matrix.
- * @param rgbaOut
- *    RGBA coloring output with number of elements
- *    (numberOfRowsOut * numberOfColumnsOut * 4).
- * @return
- *    True if data output data is valid, else false.
- */
-bool
-CiftiBrainordinateDataSeriesFile::getMatrixDataRGBA(int32_t& /*numberOfRowsOut*/,
-                                                    int32_t& /*numberOfColumnsOut*/,
-                                                    std::vector<float>& /*rgbaOut*/) const
-{
-    return false;
-}
-
-/**
  * Save file data from the scene.  For subclasses that need to
  * save to a scene, this method should be overriden.  sceneClass
  * will be valid and any scene data should be added to it.

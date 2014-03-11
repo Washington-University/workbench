@@ -1466,18 +1466,18 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
 void
 GuiManager::removeInvalidTimeCourseDialogs()
 {
-    std::vector<ChartableInterface*> allChartFiles;
-    getBrain()->getAllChartableDataFiles(allChartFiles);
+    std::vector<ChartableBrainordinateInterface*> allChartFiles;
+    getBrain()->getAllChartableBrainordinateDataFiles(allChartFiles);
     
-    std::vector<ChartableInterface*> chartFilesNoLongerValid;
+    std::vector<ChartableBrainordinateInterface*> chartFilesNoLongerValid;
     
     /*
      * Find TimeCourse dialogs that should be updated or closed
      */
-    for (QMap<ChartableInterface *,TimeCourseDialog *>::iterator mapIter = timeCourseDialogs.begin();
+    for (QMap<ChartableBrainordinateInterface *,TimeCourseDialog *>::iterator mapIter = timeCourseDialogs.begin();
          mapIter != timeCourseDialogs.end();
          mapIter++) {
-        ChartableInterface* chartFile = mapIter.key();
+        ChartableBrainordinateInterface* chartFile = mapIter.key();
         if (std::find(allChartFiles.begin(),
                       allChartFiles.end(),
                       chartFile) == allChartFiles.end()) {
@@ -1485,10 +1485,10 @@ GuiManager::removeInvalidTimeCourseDialogs()
         }
     }
     
-    for (std::vector<ChartableInterface*>::iterator chartFileIter = chartFilesNoLongerValid.begin();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator chartFileIter = chartFilesNoLongerValid.begin();
          chartFileIter != chartFilesNoLongerValid.end();
          chartFileIter++) {
-        ChartableInterface* tcd = *chartFileIter;
+        ChartableBrainordinateInterface* tcd = *chartFileIter;
         removeTimeCourseDialog(tcd);
     }
 }
@@ -1510,7 +1510,7 @@ void GuiManager::processUpdateTimeCourseDialogs()
 /**
   * Allows Connectivity Manager to update the Time Course Dialog
   */
-TimeCourseDialog * GuiManager::getTimeCourseDialog(ChartableInterface *id)
+TimeCourseDialog * GuiManager::getTimeCourseDialog(ChartableBrainordinateInterface *id)
 {
     if(timeCourseDialogs.contains(id)) return timeCourseDialogs.value(id);
     BrainBrowserWindow* browserWindow = NULL;
@@ -1533,7 +1533,7 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog(ChartableInterface *id)
     return this->timeCourseDialogs[id];
 }
 
-ChartingDialog * GuiManager::getChartingDialog(ChartableInterface *id)
+ChartingDialog * GuiManager::getChartingDialog(ChartableBrainordinateInterface *id)
 {
     if(chartingDialogs.contains(id)) return chartingDialogs.value(id);
     BrainBrowserWindow* browserWindow = NULL;
@@ -1572,7 +1572,7 @@ void GuiManager::addTimeLines(QList <TimeLine> &tlV)
 /**
  * Removes Time Course Dialog from GuiManager and calls destroy on object
  */
-void GuiManager::removeTimeCourseDialog(ChartableInterface *id)
+void GuiManager::removeTimeCourseDialog(ChartableBrainordinateInterface *id)
 {
     TimeCourseDialog* tcd = timeCourseDialogs.value(id);
     this->timeCourseDialogs.remove(id);
@@ -1865,20 +1865,20 @@ GuiManager::getNameOfDataFileToOpenAfterStartup() const
 }
 
 // NOTE: This function will go away, and will be replaced with updateDialog event listeners on the matrix view GUI
-#include <ChartableInterface.h>
+#include <ChartableBrainordinateInterface.h>
 #include <CiftiMappableConnectivityMatrixDataFile.h>
 void
 GuiManager::updateMatrixViewDialogs()
 {
 	Brain *brain = GuiManager::get()->getBrain();
-	std::vector<ChartableInterface *> chartableFiles;
-	brain->getAllChartableDataFiles(chartableFiles);		
+	std::vector<ChartableBrainordinateInterface *> chartableFiles;
+	brain->getAllChartableBrainordinateDataFiles(chartableFiles);		
 
-	for (std::vector<ChartableInterface*>::iterator iter = chartableFiles.begin();
+	for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartableFiles.begin();
 		iter != chartableFiles.end();
 		iter++) 
 	{
-		ChartableInterface *ci = *iter;
+		ChartableBrainordinateInterface *ci = *iter;
 		if(ci->getDefaultChartType() != ChartTypeEnum::MATRIX) continue;
 		CiftiMappableConnectivityMatrixDataFile* cmdf = static_cast<CiftiMappableConnectivityMatrixDataFile*>((ci->getCaretMappableDataFile()));
 		if(cmdf == NULL) continue;

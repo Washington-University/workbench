@@ -24,6 +24,7 @@ ChartModel.h
 ChartModelCartesian.h
 ChartModelDataSeries.h
 ChartModelMatrix.h
+ChartModelTimeSeries.h
 ChartPoint.h
 ChartScaleAutoRanging.h
 ChartSelectionModeEnum.h
@@ -43,6 +44,7 @@ ChartModel.cxx
 ChartModelCartesian.cxx
 ChartModelDataSeries.cxx
 ChartModelMatrix.cxx
+ChartModelTimeSeries.cxx
 ChartPoint.cxx
 ChartScaleAutoRanging.cxx
 ChartSelectionModeEnum.cxx

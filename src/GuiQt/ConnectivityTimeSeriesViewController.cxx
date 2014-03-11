@@ -55,7 +55,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "ChartableInterface.h"
+#include "ChartableBrainordinateInterface.h"
 #include "ChartingDialog.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 //#include "ConnectivityLoaderFile.h"
@@ -156,7 +156,7 @@ ConnectivityTimeSeriesViewController::~ConnectivityTimeSeriesViewController()
  * @return The connectivity loader file in this view controller.
  * NULL if not valid.
  */
-ChartableInterface* 
+ChartableBrainordinateInterface* 
 ConnectivityTimeSeriesViewController::getChartableDataFile()
 {
     return this->chartableDataFile;
@@ -199,7 +199,7 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityTimeSeriesViewController::updateViewController(ChartableInterface* chartableDataFile)
+ConnectivityTimeSeriesViewController::updateViewController(ChartableBrainordinateInterface* chartableDataFile)
 {   
     this->chartableDataFile = chartableDataFile;
     if (this->chartableDataFile != NULL) {        

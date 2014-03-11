@@ -97,6 +97,26 @@ SceneAttributes::getIndicesOfTabsForSavingToScene() const
 }
 
 /**
+ * Is the given tab index for saving to the scene?
+ *
+ * @param tabIndex
+ *    The tab index.
+ * @return
+ *    True if saved to scene, else false.
+ */
+bool
+SceneAttributes::isTabIndexSavedToScene(const int32_t tabIndex) const
+{
+    if (std::find(m_indicesOfTabsForSavingToScene.begin(),
+                  m_indicesOfTabsForSavingToScene.end(),
+                  tabIndex) != m_indicesOfTabsForSavingToScene.end()) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * @return Name of the scene file.
  * May only have a value when restoring.
  */

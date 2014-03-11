@@ -50,7 +50,7 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class BugReportDialog;
-    class ChartableInterface;
+    class ChartableBrainordinateInterface;
     class ChartingDialog;
     class CursorManager;
     class CustomViewDialog;
@@ -141,10 +141,10 @@ namespace caret {
         void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
         
         void processUpdateTimeCourseDialogs();
-        TimeCourseDialog *getTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
-        ChartingDialog *getChartingDialog(ChartableInterface *id);
+        TimeCourseDialog *getTimeCourseDialog(ChartableBrainordinateInterface *id);//id is pointer to corresponding clf
+        ChartingDialog *getChartingDialog(ChartableBrainordinateInterface *id);
         void addTimeLines(QList <TimeLine> &tlV);
-        void removeTimeCourseDialog(ChartableInterface *id);//id is pointer to corresponding clf
+        void removeTimeCourseDialog(ChartableBrainordinateInterface *id);//id is pointer to corresponding clf
         void updateAnimationStartTime(double value); 
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -251,9 +251,9 @@ namespace caret {
          */
         std::vector<QWidget*> nonModalDialogs;
         
-        QMap<ChartableInterface *,TimeCourseDialog *> timeCourseDialogs;
+        QMap<ChartableBrainordinateInterface *,TimeCourseDialog *> timeCourseDialogs;
 
-        QMap<ChartableInterface *,ChartingDialog *> chartingDialogs;
+        QMap<ChartableBrainordinateInterface *,ChartingDialog *> chartingDialogs;
         
         /**
          * If Workbench is started by double-clicking a data file in

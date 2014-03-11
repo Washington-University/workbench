@@ -32,7 +32,7 @@
 #include "QVector"
 namespace caret {
     
-    class ChartableInterface;
+    class ChartableBrainordinateInterface;
     
 enum TimeLineType {
     NODE,
@@ -41,14 +41,14 @@ enum TimeLineType {
 class TimeLine {
 public:
     TimeLine();
-    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn,ChartableInterface * idIn = NULL);
+    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn,ChartableBrainordinateInterface * idIn = NULL);
     virtual ~TimeLine();
     uint64_t nodeid;
     double point[3];
     QVector<double> x;
     QVector<double> y;
     ColorId colorID;
-    ChartableInterface *id;//pointer to originating clf that helps us track where timeline came from
+    ChartableBrainordinateInterface *id;//pointer to originating clf that helps us track where timeline came from
     //void *id;//pointer to originating clf that helps us track where timeline came from
     AString filename;
     int64_t clmID; //the timelines number in the connectivity loader manager
