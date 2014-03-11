@@ -1231,7 +1231,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
     
-    bool showChartWidget = false;
+    bool showChartAxesWidget = false;
+    bool showChartTypeWidget = false;
     
     bool showClippingWidget = true;
     bool showModeWidget = true;
@@ -1259,9 +1260,27 @@ BrainBrowserWindowToolBar::updateToolBar()
             showVolumeIndicesWidget = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
-            showChartWidget = true;
+        {
+            showChartTypeWidget = true;
             showClippingWidget = false;
             showModeWidget = false;
+            
+            ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
+            if (modelChart != NULL) {
+                switch (modelChart->getSelectedChartDataType(browserTabContent->getTabNumber())) {
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                        showChartAxesWidget = true;
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                        break;
+                    case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                        showChartAxesWidget = true;
+                        break;
+                }
+            }
+        }
             break;
     }
     
@@ -1288,8 +1307,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
-    this->chartTypeWidget->setVisible(showChartWidget);
-    this->chartAxesWidget->setVisible(showChartWidget);
+    this->chartTypeWidget->setVisible(showChartTypeWidget);
+    this->chartAxesWidget->setVisible(showChartAxesWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
