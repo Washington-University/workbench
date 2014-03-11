@@ -46,7 +46,6 @@ namespace caret {
     
     class ChartData;
     class ChartDataCartesian;
-    class ChartDataMatrix;
     class CiftiFacade;
     class CiftiFiberTrajectoryFile;
     class CiftiInterface;

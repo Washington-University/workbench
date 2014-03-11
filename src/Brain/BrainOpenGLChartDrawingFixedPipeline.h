@@ -45,7 +45,6 @@ namespace caret {
     class ChartDataCartesian;
     class ChartModelCartesian;
     class ChartModelDataSeries;
-    class ChartModelMatrix;
     
     class BrainOpenGLChartDrawingFixedPipeline : public BrainOpenGLChartDrawingInterface {
         
@@ -68,9 +67,6 @@ namespace caret {
         BrainOpenGLChartDrawingFixedPipeline(const BrainOpenGLChartDrawingFixedPipeline&);
 
         BrainOpenGLChartDrawingFixedPipeline& operator=(const BrainOpenGLChartDrawingFixedPipeline&);
-        
-//        void drawChartGraphics(BrainOpenGLTextRenderInterface* textRenderer,
-//                               ChartModel* chart);
         
         void drawChartGraphicsLineSeries( BrainOpenGLTextRenderInterface* textRenderer,
                                          ChartModelCartesian* chart);
@@ -112,8 +108,6 @@ namespace caret {
         void drawChartDataCartesian(const ChartDataCartesian* chartDataCartesian,
                                     const float lineWidth,
                                     const float rgb[3]);
-        
-//        AString axisValueToText(const float axisValue) const;
         
         void restoreStateOfOpenGL();
         

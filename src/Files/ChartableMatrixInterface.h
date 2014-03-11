@@ -36,18 +36,32 @@
 
 
 #include "ChartableInterface.h"
-#include "ChartDataMatrixCreatorInterface.h"
-
-
 
 namespace caret {
 
-    class ChartableMatrixInterface : public ChartableInterface, public ChartDataMatrixCreatorInterface {
+    class ChartableMatrixInterface : public ChartableInterface {
         
     public:
         ChartableMatrixInterface() { }
         
         virtual ~ChartableMatrixInterface() { }
+        
+        /**
+         * Get the matrix RGBA coloring for this matrix data creator.
+         *
+         * @param numberOfRowsOut
+         *    Number of rows in the coloring matrix.
+         * @param numberOfColumnsOut
+         *    Number of rows in the coloring matrix.
+         * @param rgbaOut
+         *    RGBA coloring output with number of elements
+         *    (numberOfRowsOut * numberOfColumnsOut * 4).
+         * @return
+         *    True if data output data is valid, else false.
+         */
+        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                       int32_t& numberOfColumnsOut,
+                                       std::vector<float>& rgbaOut) const = 0;
         
 
         // ADD_NEW_METHODS_HERE

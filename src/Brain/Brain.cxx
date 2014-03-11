@@ -3919,10 +3919,6 @@ Brain::updateChartModel()
             m_modelChart->initializeOverlays();
         }
     }
-    
-    if (m_modelChart != NULL) {
-        m_modelChart->updateChartMatrixModels();
-    }
 }
 
 /**

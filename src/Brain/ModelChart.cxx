@@ -36,10 +36,8 @@
 #include "ChartableMatrixInterface.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
-#include "ChartDataMatrix.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
-#include "ChartModelMatrix.h"
 #include "ChartModelTimeSeries.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCiftiMappableDataFileColoringUpdated.h"
@@ -109,8 +107,6 @@ ModelChart::initializeCharts()
         m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
         
         m_chartableMatrixFileSelectionModel[i] = new ChartableMatrixFileSelectionModel(m_brain);
-        
-        m_chartModelMatrix[i] = new ChartModelMatrix();
     }    
 }
 
@@ -140,11 +136,6 @@ ModelChart::removeAllCharts()
         if (m_chartModelTimeSeries[i] != NULL) {
             delete m_chartModelTimeSeries[i];
             m_chartModelTimeSeries[i] = NULL;
-        }
-        
-        if (m_chartModelMatrix[i] != NULL) {
-            delete m_chartModelMatrix[i];
-            m_chartModelMatrix[i] = NULL;
         }
     }
     
@@ -249,18 +240,7 @@ ModelChart::addChartToChartModels(const std::vector<int32_t>& tabIndices,
             CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-        {
-            ChartDataMatrix* cdm = dynamic_cast<ChartDataMatrix*>(chartData);
-            CaretAssert(cdm);
-            QSharedPointer<ChartDataMatrix> cdmPtr(cdm);
-            for (std::vector<int32_t>::const_iterator iter = tabIndices.begin();
-                 iter != tabIndices.end();
-                 iter++) {
-                const int32_t tabIndex = *iter;
-                CaretAssertArrayIndex(m_chartModelMatrix, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
-                m_chartModelMatrix[tabIndex]->addChartData(cdmPtr);
-            }
-        }
+            CaretAssert(0);
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
         {
@@ -452,14 +432,6 @@ ModelChart::receiveEvent(Event* event)
 
         nodeChartID->setEventProcessed();
     }
-//    else if (event->getEventType() == EventTypeEnum::EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED) {
-//        EventCiftiMappableDataFileColoringUpdated* ciftiColorUpdate =
-//        dynamic_cast<EventCiftiMappableDataFileColoringUpdated*>(event);
-//        
-//        ciftiColorUpdate->setEventProcessed();
-//        
-//        updateChartMatrixModels();
-//    }
 }
 
 /**
@@ -923,7 +895,6 @@ ModelChart::copyTabContent(const int32_t sourceTabIndex,
     m_selectedChartDataType[destinationTabIndex] = m_selectedChartDataType[sourceTabIndex];
     *m_chartModelDataSeries[destinationTabIndex] = *m_chartModelDataSeries[sourceTabIndex];
     *m_chartModelTimeSeries[destinationTabIndex] = *m_chartModelTimeSeries[sourceTabIndex];
-    *m_chartModelMatrix[destinationTabIndex] = *m_chartModelMatrix[sourceTabIndex];
     m_chartableMatrixFileSelectionModel[destinationTabIndex]->setSelectedFile(m_chartableMatrixFileSelectionModel[sourceTabIndex]->getSelectedFile());
 }
 
@@ -1075,63 +1046,3 @@ ModelChart::getChartableMatrixFileSelectionModel(const int32_t tabIndex)
     
     return m_chartableMatrixFileSelectionModel[tabIndex];
 }
-
-/**
- * Update the chart matrix models.
- */
-void
-ModelChart::updateChartMatrixModels()
-{
-//
-//    /*
-//     * Get the matrix chartable files
-//     */
-//    std::vector<ChartableMatrixInterface*> chartableFiles;
-//    m_brain->getAllChartableMatrixDataFilesForChartDataType(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX,
-//                                                           chartableFiles);
-// 
-//    /*
-//     * Test to see if files have NOT changed
-//     */
-//    if (chartableFiles.size() == m_previousChartMatrixFiles.size()) {
-//        std::vector<ChartableMatrixInterface*> chartFilesSorted(chartableFiles);
-//        std::sort(chartFilesSorted.begin(),
-//                  chartFilesSorted.end());
-//        if (std::equal(chartFilesSorted.begin(),
-//                       chartFilesSorted.end(),
-//                       m_previousChartMatrixFiles.begin())) {
-//            return;
-//        }
-//        m_previousChartMatrixFiles = chartFilesSorted;
-//    }
-//    
-//    std::cout << "Updating chart matrix models." << std::endl;
-//    
-//    /*
-//     * Remove charts
-//     */
-//    std::vector<int32_t> allTabIndices(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
-//    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-//        CaretAssertVectorIndex(allTabIndices, i);
-//        allTabIndices[i] = i;
-//
-//        CaretAssertArrayIndex(m_chartModelMatrix, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, i);
-//        m_chartModelMatrix[i]->removeChartData();
-//    }
-//    
-//    /*
-//     * Add charts
-//     */
-//    for (std::vector<ChartableMatrixInterface*>::iterator iter = chartableFiles.begin();
-//         iter != chartableFiles.end();
-//         iter++) {
-//        ChartableMatrixInterface* chartFile = *iter;
-//        ChartDataMatrix* matrix = chartFile->getMatrixChart();
-//        if (matrix != NULL) {
-//            addChartToChartModels(allTabIndices,
-//                                  matrix);
-//        }
-//    }
-}
-
-

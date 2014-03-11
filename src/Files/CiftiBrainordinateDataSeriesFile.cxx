@@ -514,21 +514,6 @@ CiftiBrainordinateDataSeriesFile::getSupportedChartDataTypes(std::vector<ChartDa
 }
 
 /**
- * Get the matrix chart for files supporting matrix data.
- *
- * @return
- *    Pointer to matrix or NULL if not valid.
- */
-ChartDataMatrix*
-CiftiBrainordinateDataSeriesFile::getMatrixChart()
-{
-    /*
-     * Not supported
-     */
-    return NULL;
-}
-
-/**
  * Save file data from the scene.  For subclasses that need to
  * save to a scene, this method should be overriden.  sceneClass
  * will be valid and any scene data should be added to it.

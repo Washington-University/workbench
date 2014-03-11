@@ -156,21 +156,6 @@ CiftiParcelScalarFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum:
 }
 
 /**
- * Get the matrix chart for files supporting matrix data.
- *
- * @return
- *    Pointer to matrix or NULL if not valid.
- */
-ChartDataMatrix*
-CiftiParcelScalarFile::getMatrixChart()
-{
-    /*
-     * Not supported
-     */
-    return NULL;
-}
-
-/**
  * Set charting enabled for this file.
  *
  * @param enabled

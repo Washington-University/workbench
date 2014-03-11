@@ -37,7 +37,6 @@
 #undef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_DECLARE__
 
 #include "CaretLogger.h"
-#include "ChartDataMatrix.h"
 #include "CiftiFacade.h"
 #include "CiftiInterface.h"
 #include "FastStatistics.h"
@@ -84,16 +83,6 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
 CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
 {
     
-}
-
-/**
- * @return Chart matrix for the content of the parcel connectivity.
- */
-ChartDataMatrix*
-CiftiConnectivityMatrixParcelFile::getMatrixChart()
-{
-    ChartDataMatrix* chartMatrix = new ChartDataMatrix(this);
-    return chartMatrix;
 }
 
 /**

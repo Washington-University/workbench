@@ -40,7 +40,6 @@
 
 namespace caret {
 
-    class ChartDataMatrix;
     class PaletteFile;
     
     class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile, public ChartableMatrixInterface {
@@ -55,8 +54,6 @@ namespace caret {
 
         CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
 
-        virtual ChartDataMatrix* getMatrixChart();
-        
         virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                        int32_t& numberOfColumnsOut,
                                        std::vector<float>& rgbaOut) const;

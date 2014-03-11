@@ -169,21 +169,6 @@ CiftiParcelSeriesFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum:
 }
 
 /**
- * Get the matrix chart for files supporting matrix data.
- *
- * @return
- *    Pointer to matrix or NULL if not valid.
- */
-ChartDataMatrix*
-CiftiParcelSeriesFile::getMatrixChart()
-{
-    /*
-     * Not supported
-     */
-    return NULL;
-}
-
-/**
  * Load the average of chart data for a group of surface nodes.
  * Note: This method will return a chart even if charting for
  * this file is disabled.

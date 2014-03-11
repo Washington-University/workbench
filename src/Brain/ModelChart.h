@@ -44,7 +44,6 @@ namespace caret {
     class ChartableMatrixInterface;
     class ChartModel;
     class ChartModelDataSeries;
-    class ChartModelMatrix;
     class ChartModelTimeSeries;
     class ChartableBrainordinateInterface;
     class ChartableMatrixFileSelectionModel;
@@ -103,8 +102,6 @@ namespace caret {
         
         void reset();
         
-        void updateChartMatrixModels();
-        
         ChartableMatrixFileSelectionModel* getChartableMatrixFileSelectionModel(const int32_t tabIndex);
         
     protected:
@@ -151,9 +148,6 @@ namespace caret {
         /** Chart model for time-series data */
         ChartModelTimeSeries* m_chartModelTimeSeries[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
-        /** Chart model for matrices */
-        ChartModelMatrix* m_chartModelMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
         /** Contains data series charts */
         std::list<QWeakPointer<ChartDataCartesian> > m_dataSeriesChartData;
         

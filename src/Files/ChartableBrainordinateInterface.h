@@ -34,7 +34,6 @@
  */
 /*LICENSE_END*/
 
-#include "ChartDataMatrixCreatorInterface.h"
 #include "ChartDataTypeEnum.h"
 #include "ChartableInterface.h"
 #include "ChartTypeEnum.h"
@@ -45,7 +44,6 @@ namespace caret {
 
     class CaretMappableDataFile;
     class ChartDataCartesian;
-    class ChartDataMatrix;
     class TimeLine;
     
     /**
