@@ -370,8 +370,10 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         }
     }
     
-    m_chartToolBoxViewController->restoreFromScene(sceneAttributes,
-                                                   sceneClass->getClass("m_chartToolBoxViewController"));
+    if (m_chartToolBoxViewController != NULL) {
+        m_chartToolBoxViewController->restoreFromScene(sceneAttributes,
+                                                       sceneClass->getClass("m_chartToolBoxViewController"));
+    }
 //    const AString chartTabName = sceneClass->getStringValue("selectedChartTabName",
 //                                                            "");
 //    if ( ! chartTabName.isEmpty()) {
