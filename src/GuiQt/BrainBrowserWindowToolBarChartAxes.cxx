@@ -220,40 +220,6 @@ BrainBrowserWindowToolBarChartAxes::createAxisWidgets(QGridLayout* gridLayout,
                           Qt::AlignHCenter);
 }
 
-///**
-// * Called when a radio button is clicked.
-// */
-//void
-//BrainBrowserWindowToolBarChartType::chartTypeRadioButtonClicked(int)
-//{
-//    ChartDataTypeEnum::Enum chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
-//    
-//    if (m_chartDataSeriesTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
-//    }
-//    else if (m_chartMatrixTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX;
-//    }
-//    else if (m_chartTimeSeriesTypeRadioButton->isChecked()) {
-//        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
-//    }
-//    else {
-//        CaretAssertMessage(0, "Has a new chart radio button been added?");
-//    }
-//    
-//    m_parentToolBar->getTabContentFromSelectedTab();
-//    BrowserTabContent* btc = m_parentToolBar->getTabContentFromSelectedTab();
-//    ModelChart* chartModel = btc->getDisplayedChartModel();
-//    const int32_t tabIndex = btc->getTabNumber();
-//    chartModel->setSelectedChartDataType(tabIndex,
-//                                         chartDataType);
-//    
-//    //updateContent(btc);
-//    
-//    invalidateColoringAndUpdateGraphicsWindow();
-//    m_parentToolBar->updateUserInterface();
-//}
-
 /**
  * Update content of this tool bar component.
  *
@@ -261,7 +227,7 @@ BrainBrowserWindowToolBarChartAxes::createAxisWidgets(QGridLayout* gridLayout,
  *     Content of the browser tab.
  */
 void
-BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* /*browserTabContent*/)
 {
     m_bottomAxisWidgetGroup->blockAllSignals(true);
     m_leftAxisWidgetGroup->blockAllSignals(true);
@@ -300,59 +266,6 @@ BrainBrowserWindowToolBarChartAxes::updateContent(BrowserTabContent* browserTabC
             //                                  m_topAxisWidgetGroup);
         }
     }
-        
-//    ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
-//    if (modelChart != NULL) {
-//        const int32_t tabIndex = browserTabContent->getTabNumber();
-////        ChartModel* chart = modelChart->getSelectedChartModel(tabIndex);
-//            const ChartDataTypeEnum::Enum chartType = modelChart->getSelectedChartDataType(tabIndex);
-//            
-//            ChartModelCartesian* cartesianChart = NULL;
-//            
-//            switch (chartType) {
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-//                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-//                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-//                    cartesianChart = modelChart->getSelectedDataSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
-//                    break;
-//                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-//                    cartesianChart = modelChart->getSelectedTimeSeriesChartModel(tabIndex);  //dynamic_cast<ChartModelDataSeries*>(chart);
-//                    break;
-//            }
-//            
-//            if (cartesianChart != NULL) {
-//                updateAxisWidgets(cartesianChart->getLeftAxis(),
-//                                  m_leftAxisLabel,
-//                                  m_leftAxisAutoRangeScaleCheckBox,
-//                                  m_leftAxisMinimumValueSpinBox,
-//                                  m_leftAxisMaximumValueSpinBox,
-//                                  m_leftAxisWidgetGroup);
-//                
-//                updateAxisWidgets(cartesianChart->getBottomAxis(),
-//                                  m_bottomAxisLabel,
-//                                  m_bottomAxisAutoRangeScaleCheckBox,
-//                                  m_bottomAxisMinimumValueSpinBox,
-//                                  m_bottomAxisMaximumValueSpinBox,
-//                                  m_bottomAxisWidgetGroup);
-//                
-////                updateAxisWidgets(lineSeriesChart->getRightAxis(),
-////                                  m_rightAxisLabel,
-////                                  m_rightAxisAutoRangeScaleCheckBox,
-////                                  m_rightAxisMinimumValueSpinBox,
-////                                  m_rightAxisMaximumValueSpinBox,
-////                                  m_rightAxisWidgetGroup);
-////                
-////                updateAxisWidgets(lineSeriesChart->getTopAxis(),
-////                                  m_topAxisLabel,
-////                                  m_topAxisAutoRangeScaleCheckBox,
-////                                  m_topAxisMinimumValueSpinBox,
-////                                  m_topAxisMaximumValueSpinBox,
-////                                  m_topAxisWidgetGroup);
-//            }
-//        }
-////    }
     
     m_bottomAxisWidgetGroup->blockAllSignals(false);
     m_leftAxisWidgetGroup->blockAllSignals(false);
