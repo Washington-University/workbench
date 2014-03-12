@@ -87,15 +87,16 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->openGL = NULL;
     this->borderBeingDrawn = new Border();
 
-    this->textRenderer = new GlfFontTextRenderer();
-    if (this->textRenderer->isValid()) {
-        CaretLogConfig("GLF font system is being used for OpenGL fonts.");
-    }
-    else {
-        CaretLogConfig("GLF font system failed, switch to Qt's font system.");
-        delete this->textRenderer;
-        this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
-    }
+//    this->textRenderer = new GlfFontTextRenderer();
+//    if (this->textRenderer->isValid()) {
+//        CaretLogConfig("GLF font system is being used for OpenGL fonts.");
+//    }
+//    else {
+//        CaretLogConfig("GLF font system failed, switch to Qt's font system.");
+//        delete this->textRenderer;
+//        this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
+//    }
+    this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
     
     this->windowIndex = windowIndex;
     this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
