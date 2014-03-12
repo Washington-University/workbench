@@ -98,6 +98,8 @@ namespace caret {
          */
         static inline int32_t getMaximumNumberOfColumns() { return 20; }
         
+        void updateDefaultConfigurationRowsAndColumns(const int32_t numberOfTabs);
+        
         // ADD_NEW_METHODS_HERE
         
         

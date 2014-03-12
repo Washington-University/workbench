@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __TILE_TABS_CONFIGURATION_DECLARE__
 #include "TileTabsConfiguration.h"
 #undef __TILE_TABS_CONFIGURATION_DECLARE__
@@ -308,6 +310,34 @@ TileTabsConfiguration::setDefaultConfiguration(const bool defaultConfiguration)
 {
     m_defaultConfigurationFlag = defaultConfiguration;
 }
+
+/**
+ * Updates the number of rows and columns in this default configuration
+ * based upon the number of tabs.  If this is NOT the default configuration
+ * (isDefaultConfiguration() returns false), no action is taken.
+ *
+ * Since screen width typically exceeds height, ensure the number of 
+ * columns is always greater than the number of rows.
+ */
+void
+TileTabsConfiguration::updateDefaultConfigurationRowsAndColumns(const int32_t numberOfTabs)
+{
+    if (isDefaultConfiguration()) {
+        int32_t numRows = (int)std::sqrt((double)numberOfTabs);
+        int32_t numCols = numRows;
+        int32_t row2 = numRows * numRows;
+        if (row2 < numberOfTabs) {
+            numCols++;
+        }
+        if ((numRows * numCols) < numberOfTabs) {
+            numRows++;
+        }
+        
+        setNumberOfRows(numRows);
+        setNumberOfColumns(numCols);
+    }
+}
+
 
 /**
  * @return Encoded tile tabs configuration in XML

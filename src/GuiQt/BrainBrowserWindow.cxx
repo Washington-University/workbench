@@ -2703,9 +2703,14 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
 
 
     /*
-     * Save the selected configuration as the scene configuration
+     * Save the selected tile tabs configuration as the scene configuration
      */
     if (m_viewTileTabsSelected) {
+        /*
+         * Note: The number of rows and columns in the default tile tabs
+         * configuration is updated each time the graphics region of the 
+         * window is drawn in BrainOpenGLWidget::paintGL().
+         */
         const TileTabsConfiguration* tileTabs = getSelectedTileTabsConfiguration();
         if (tileTabs != NULL) {
             sceneClass->addString("m_sceneTileTabsConfiguration",

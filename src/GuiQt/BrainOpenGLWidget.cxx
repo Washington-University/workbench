@@ -329,13 +329,14 @@ BrainOpenGLWidget::paintGL()
         /*
          * Determine if default configuration for tiles
          */
-        bool defaultTabsLayout = true;
-        const TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
-        if (tileTabsConfiguration != NULL) {
-            if (tileTabsConfiguration->isDefaultConfiguration() == false) {
-                defaultTabsLayout = false;
-            }
-        }
+//        bool defaultTabsLayout = true;
+        TileTabsConfiguration* tileTabsConfiguration = getModelEvent.getTileTabsConfiguration();
+        CaretAssert(tileTabsConfiguration);
+//        if (tileTabsConfiguration != NULL) {
+//            if (tileTabsConfiguration->isDefaultConfiguration() == false) {
+//                defaultTabsLayout = false;
+//            }
+//        }
         
         /*
          * NOTE: When computing widths and heights, do not round.
@@ -344,21 +345,31 @@ BrainOpenGLWidget::paintGL()
          * column is not desired since it might cause the last model
          * to be drawn slightly smaller than the others.
          */
-        if (defaultTabsLayout) {
-            /**
-             * Determine the number of rows and columns for the montage.
-             * Since screen width typically exceeds height, always have
-             * columns greater than or equal to rows.
+//        if (defaultTabsLayout) {
+        if (tileTabsConfiguration->isDefaultConfiguration()) {
+//            /**
+//             * Determine the number of rows and columns for the montage.
+//             * Since screen width typically exceeds height, always have
+//             * columns greater than or equal to rows.
+//             */
+//            numRows = (int)std::sqrt((double)numToDraw);
+//            numCols = numRows;
+//            int32_t row2 = numRows * numRows;
+//            if (row2 < numToDraw) {
+//                numCols++;
+//            }
+//            if ((numRows * numCols) < numToDraw) {
+//                numRows++;
+//            }
+            
+            /*
+             * Update number of rows/columns in the default configuration
+             * so that if a scene is saved, the correct number of rows
+             * and columns are saved to the scene.
              */
-            numRows = (int)std::sqrt((double)numToDraw);
-            numCols = numRows;
-            int32_t row2 = numRows * numRows;
-            if (row2 < numToDraw) {
-                numCols++;
-            }
-            if ((numRows * numCols) < numToDraw) {
-                numRows++;
-            }
+            tileTabsConfiguration->updateDefaultConfigurationRowsAndColumns(numToDraw);
+            numRows = tileTabsConfiguration->getNumberOfRows();
+            numCols = tileTabsConfiguration->getNumberOfColumns();
             
             for (int32_t i = 0; i < numRows; i++) {
                 rowHeights.push_back(windowHeight / numRows);
