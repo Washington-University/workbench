@@ -34,6 +34,7 @@ namespace caret {
     class SelectionItem;
     class SelectionItemBorderSurface;
     class SelectionItemChartDataSeries;
+    class SelectionItemChartMatrix;
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
@@ -87,6 +88,10 @@ namespace caret {
         
         const SelectionItemChartDataSeries* getChartDataSeriesIdentification() const;
         
+        SelectionItemChartMatrix* getChartMatrixIdentification();
+        
+        const SelectionItemChartMatrix* getChartMatrixIdentification() const;
+        
         SelectionItemChartTimeSeries* getChartTimeSeriesIdentification();
         
         const SelectionItemChartTimeSeries* getChartTimeSeriesIdentification() const;
@@ -129,6 +134,8 @@ namespace caret {
         SelectionItemBorderSurface* m_surfaceBorderIdentification;
         
         SelectionItemChartDataSeries* m_chartDataSeriesIdentification;
+        
+        SelectionItemChartMatrix* m_chartMatrixIdentification;
         
         SelectionItemChartTimeSeries* m_chartTimeSeriesIdentification;
         

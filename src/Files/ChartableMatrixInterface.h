@@ -63,6 +63,27 @@ namespace caret {
                                        int32_t& numberOfColumnsOut,
                                        std::vector<float>& rgbaOut) const = 0;
         
+        /**
+         * Get the value, row name, and column name for a cell in the matrix.
+         *
+         * @param rowIndex
+         *     The row index.
+         * @param columnIndex
+         *     The column index.
+         * @param cellValueOut
+         *     Output containing value in the cell.
+         * @param rowNameOut
+         *     Name of row corresponding to row index.
+         * @param columnNameOut
+         *     Name of column corresponding to column index.
+         * @return
+         *     True if the output values are valid (valid row/column indices).
+         */
+        virtual bool getMatrixCellAttributes(const int32_t rowIndex,
+                                             const int32_t columnIndex,
+                                             float& cellValueOut,
+                                             AString& rowNameOut,
+                                             AString& columnNameOut) const = 0;
 
         // ADD_NEW_METHODS_HERE
 

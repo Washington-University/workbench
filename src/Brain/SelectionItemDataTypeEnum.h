@@ -55,6 +55,8 @@ public:
         BORDER_VOLUME,
         /** Data-Series Chart */
         CHART_DATA_SERIES,
+        /** Matrix chart */
+        CHART_MATRIX,
         /** Time-Series Chart */
         CHART_TIME_SERIES,
         /** Focus on Surface */

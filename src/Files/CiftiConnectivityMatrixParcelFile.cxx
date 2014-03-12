@@ -110,6 +110,56 @@ CiftiConnectivityMatrixParcelFile::getMatrixDataRGBA(int32_t& numberOfRowsOut,
 }
 
 /**
+ * Get the value, row name, and column name for a cell in the matrix.
+ *
+ * @param rowIndex
+ *     The row index.
+ * @param columnIndex
+ *     The column index.
+ * @param cellValueOut
+ *     Output containing value in the cell.
+ * @param rowNameOut
+ *     Name of row corresponding to row index.
+ * @param columnNameOut
+ *     Name of column corresponding to column index.
+ * @return
+ *     True if the output values are valid (valid row/column indices).
+ */
+bool
+CiftiConnectivityMatrixParcelFile::getMatrixCellAttributes(const int32_t rowIndex,
+                                                           const int32_t columnIndex,
+                                                           float& cellValueOut,
+                                                           AString& rowNameOut,
+                                                           AString& columnNameOut) const
+{
+    if ((rowIndex >= 0)
+        && (rowIndex < m_ciftiFacade->getNumberOfRows())
+        && (columnIndex >= 0)
+        && (columnIndex < m_ciftiFacade->getNumberOfColumns())) {
+        const CiftiXML& xml = m_ciftiInterface->getCiftiXML();
+        
+        const std::vector<CiftiParcelsMap::Parcel>& rowsParcelsMap = xml.getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
+        CaretAssertVectorIndex(rowsParcelsMap, rowIndex);
+        rowNameOut = rowsParcelsMap[rowIndex].m_name;
+        
+        const std::vector<CiftiParcelsMap::Parcel>& columnsParcelsMap = xml.getParcelsMap(CiftiXML::ALONG_ROW).getParcels();
+        CaretAssertVectorIndex(columnsParcelsMap, columnIndex);
+        columnNameOut = columnsParcelsMap[columnIndex].m_name;
+        
+        const int32_t numberOfElementsInRow = m_ciftiInterface->getNumberOfColumns();
+        std::vector<float> rowData(numberOfElementsInRow);
+        m_ciftiInterface->getRow(&rowData[0],
+                                 rowIndex);
+        CaretAssertVectorIndex(rowData, columnIndex);
+        cellValueOut = rowData[columnIndex];
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * @return Is charting enabled for this file?
  */
 bool

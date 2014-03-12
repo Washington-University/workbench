@@ -37,6 +37,7 @@
 
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -65,6 +66,7 @@ SelectionManager::SelectionManager()
 {
     m_surfaceBorderIdentification = new SelectionItemBorderSurface();
     m_chartDataSeriesIdentification = new SelectionItemChartDataSeries();
+    m_chartMatrixIdentification     = new SelectionItemChartMatrix();
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
@@ -75,6 +77,7 @@ SelectionManager::SelectionManager()
     
     m_allSelectionItems.push_back(m_surfaceBorderIdentification);
     m_allSelectionItems.push_back(m_chartDataSeriesIdentification);
+    m_allSelectionItems.push_back(m_chartMatrixIdentification);
     m_allSelectionItems.push_back(m_chartTimeSeriesIdentification);
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
@@ -112,6 +115,8 @@ SelectionManager::~SelectionManager()
     m_surfaceBorderIdentification = NULL;
     delete m_chartDataSeriesIdentification;
     m_chartDataSeriesIdentification = NULL;
+    delete m_chartMatrixIdentification;
+    m_chartMatrixIdentification = NULL;
     delete m_chartTimeSeriesIdentification;
     m_chartTimeSeriesIdentification = NULL;
     delete m_surfaceFocusIdentification;
@@ -522,11 +527,34 @@ SelectionManager::getChartDataSeriesIdentification()
     return m_chartDataSeriesIdentification;
 }
 
+/**
+ * @return Identification for data-series chart (const method).
+ */
 const SelectionItemChartDataSeries*
 SelectionManager::getChartDataSeriesIdentification() const
 {
     return m_chartDataSeriesIdentification;
 }
+
+/**
+ * @return Identification for matrix chart.
+ */
+SelectionItemChartMatrix*
+SelectionManager::getChartMatrixIdentification()
+{
+    return m_chartMatrixIdentification;
+}
+
+/**
+ * @return Identification for matrix chart (const method)
+ */
+const SelectionItemChartMatrix*
+SelectionManager::getChartMatrixIdentification() const
+{
+    return m_chartMatrixIdentification;
+}
+
+
 
 /**
  * @return Identification for time-series chart.
@@ -537,6 +565,9 @@ SelectionManager::getChartTimeSeriesIdentification()
     return m_chartTimeSeriesIdentification;
 }
 
+/**
+ * @return Identification for time-series chart (const method).
+ */
 const SelectionItemChartTimeSeries*
 SelectionManager::getChartTimeSeriesIdentification() const
 {

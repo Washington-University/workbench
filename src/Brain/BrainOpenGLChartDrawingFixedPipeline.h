@@ -48,6 +48,7 @@ namespace caret {
     class ChartModelCartesian;
     class ChartModelDataSeries;
     class ChartModelTimeSeries;
+    class ChartableMatrixInterface;
     
     class BrainOpenGLChartDrawingFixedPipeline : public BrainOpenGLChartDrawingInterface {
         
@@ -59,15 +60,17 @@ namespace caret {
         virtual void drawCartesianChart(Brain* brain,
                                         BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                         const int32_t viewport[4],
-                               BrainOpenGLTextRenderInterface* textRenderer,
-                               ChartModelCartesian* cartesianChart,
-                               const int32_t tabIndex);
+                                        BrainOpenGLTextRenderInterface* textRenderer,
+                                        ChartModelCartesian* cartesianChart,
+                                        const SelectionItemDataTypeEnum::Enum selectionItemDataType,
+                                        const int32_t tabIndex);
         
         virtual void drawMatrixChart(Brain* brain,
                                      BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                      const int32_t viewport[4],
                                      BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface,
+                                     const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                      const int32_t tabIndex);
         
     private:
@@ -117,10 +120,14 @@ namespace caret {
                                           const int32_t lineIndex,
                                           uint8_t rgbaForColorIdentification[4]);
         
+        void addToChartMatrixIdentification(const int32_t matrixRowIndex,
+                                          const int32_t matrixColumnIndex,
+                                          uint8_t rgbaForColorIdentification[4]);
+        
         void resetIdentification();
         
         void processIdentification();
-        
+
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -134,6 +141,12 @@ namespace caret {
         
         ChartModelTimeSeries* m_chartModelTimeSeriesBeingDrawnForIdentification;
         
+        SelectionItemDataTypeEnum::Enum m_chartCartesianSelectionTypeForIdentification;
+        
+        ChartableMatrixInterface* m_chartableMatrixInterfaceBeingDrawnForIdentification;
+        
+        SelectionItemDataTypeEnum::Enum m_chartableMatrixSelectionTypeForIdentification;
+        
         float m_foregroundColor[4];
         
         int32_t m_tabIndex;
@@ -145,10 +158,12 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         static const int32_t IDENTIFICATION_INDICES_PER_CHART_LINE;
+        static const int32_t IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT;
     };
     
 #ifdef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
     const int32_t BrainOpenGLChartDrawingFixedPipeline::IDENTIFICATION_INDICES_PER_CHART_LINE = 2;
+    const int32_t BrainOpenGLChartDrawingFixedPipeline::IDENTIFICATION_INDICES_PER_MATRIX_ELEMENT = 2;
 #endif // __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
 } // namespace

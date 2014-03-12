@@ -91,6 +91,10 @@ SelectionItemDataTypeEnum::initialize()
                                                  "CHART_DATA_SERIES",
                                                  "Data-Series Chart"));
     
+    enumData.push_back(SelectionItemDataTypeEnum(CHART_MATRIX,
+                                                 "CHART_MATRIX",
+                                                 "Matrix Chart"));
+    
     enumData.push_back(SelectionItemDataTypeEnum(CHART_TIME_SERIES,
                                                  "CHART_TIME_SERIES",
                                                  "Time-Series Chart"));

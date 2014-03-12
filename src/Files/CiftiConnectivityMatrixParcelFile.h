@@ -58,6 +58,12 @@ namespace caret {
                                        int32_t& numberOfColumnsOut,
                                        std::vector<float>& rgbaOut) const;
         
+        virtual bool getMatrixCellAttributes(const int32_t rowIndex,
+                                             const int32_t columnIndex,
+                                             float& cellValueOut,
+                                             AString& rowNameOut,
+                                             AString& columnNameOut) const;
+        
         virtual CaretMappableDataFile* getCaretMappableDataFile() ;
 
         virtual const CaretMappableDataFile* getCaretMappableDataFile() const;

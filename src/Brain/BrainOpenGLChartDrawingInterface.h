@@ -37,6 +37,8 @@
 
 #include "AString.h"
 
+#include "SelectionItemDataTypeEnum.h"
+
 /**
  * \class caret::BrainOpenGLTextRenderInterface
  * \brief Interface for drawing charts with OpenGL.
@@ -61,12 +63,18 @@ namespace caret {
         /**
          * Draw a cartesian chart in the given viewport.
          *
+         * @param brain
+         *     Brain.
+         * @param fixedPipelineDrawing
+         *     The fixed pipeline OpenGL drawing.
          * @param viewport
          *     Viewport for the chart.
          * @param textRenderer
          *     Text rendering.
          * @param cartesianChart
          *     Cartesian Chart that is drawn.
+         * @param selectionItemDataType
+         *     Selected data type.
          * @param tabIndex
          *     Index of the tab.
          */
@@ -75,17 +83,24 @@ namespace caret {
                                         const int32_t viewport[4],
                                         BrainOpenGLTextRenderInterface* textRenderer,
                                         ChartModelCartesian* cartesianChart,
+                                        const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                         const int32_t tabIndex) = 0;
         
         /**
          * Draw a matrix chart in the given viewport.
          *
+         * @param brain
+         *     Brain.
+         * @param fixedPipelineDrawing
+         *     The fixed pipeline OpenGL drawing.
          * @param viewport
          *     Viewport for the chart.
          * @param textRenderer
          *     Text rendering.
          * @param chartMatrixInterface
          *     Chart matrix interface containing matrix data.
+         * @param selectionItemDataType
+         *     Selected data type.
          * @param tabIndex
          *     Index of the tab.
          */
@@ -94,6 +109,7 @@ namespace caret {
                                      const int32_t viewport[4],
                                      BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface,
+                                     const SelectionItemDataTypeEnum::Enum selectionItemDataType,
                                      const int32_t tabIndex) = 0;
         
     private:

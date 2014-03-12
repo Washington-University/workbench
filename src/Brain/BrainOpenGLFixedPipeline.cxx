@@ -4938,20 +4938,25 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
     ChartableMatrixInterface* matrixChartFile = NULL;
     const ChartDataTypeEnum::Enum chartDataType = chartModel->getSelectedChartDataType(tabIndex);
 
+    SelectionItemDataTypeEnum::Enum selectionItemDataType = SelectionItemDataTypeEnum::INVALID;
+    
     switch (chartDataType) {
         case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
             cartesianChart = chartModel->getSelectedDataSeriesChartModel(tabIndex);
+            selectionItemDataType = SelectionItemDataTypeEnum::CHART_DATA_SERIES;
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
         {
             ChartableMatrixFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixFileSelectionModel(tabIndex);
             matrixChartFile = matrixFileSelector->getSelectedFile();
+            selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
         }
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
             cartesianChart = chartModel->getSelectedTimeSeriesChartModel(tabIndex);
+            selectionItemDataType = SelectionItemDataTypeEnum::CHART_TIME_SERIES;
             break;
     }
     
@@ -4962,6 +4967,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                                         viewport,
                                         this->textRenderer,
                                         cartesianChart,
+                                        selectionItemDataType,
                                         this->windowTabIndex);
     }
     else if (matrixChartFile != NULL) {
@@ -4971,6 +4977,7 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
                                      viewport,
                                      this->textRenderer,
                                      matrixChartFile,
+                                     selectionItemDataType,
                                      this->windowTabIndex);
     }
 }

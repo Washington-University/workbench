@@ -127,6 +127,7 @@ SelectionItemDataTypeEnum.h
 SelectionItem.h
 SelectionItemBorderSurface.h
 SelectionItemChartDataSeries.h
+SelectionItemChartMatrix.h
 SelectionItemChartTimeSeries.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
@@ -235,6 +236,7 @@ SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx
 SelectionItemBorderSurface.cxx
 SelectionItemChartDataSeries.cxx
+SelectionItemChartMatrix.cxx
 SelectionItemChartTimeSeries.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx

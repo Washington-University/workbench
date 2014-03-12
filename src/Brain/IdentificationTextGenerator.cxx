@@ -32,20 +32,24 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "ChartModelDataSeries.h"
+#include "ChartableMatrixInterface.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "FociFile.h"
 #include "Focus.h"
 #include "GiftiLabel.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartDataSeries.h"
+#include "SelectionItemChartMatrix.h"
 #include "SelectionItemChartTimeSeries.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -129,6 +133,9 @@ IdentificationTextGenerator::createIdentificationText(const SelectionManager* id
     
     this->generateChartTimeSeriesIdentificationText(idText,
                                                     idManager->getChartTimeSeriesIdentification());
+    
+    this->generateChartMatrixIdentificationText(idText,
+                                                idManager->getChartMatrixIdentification());
     
     return idText.toString();
 }
@@ -581,11 +588,123 @@ IdentificationTextGenerator::generateChartDataSeriesIdentificationText(Identific
         const ChartDataCartesian* chartDataCartesian = idChartDataSeries->getChartDataCartesian();
         
         const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
-        AString boldText = ("Data Series Chart: ");
-        const AString txt = chartDataSource->getDescription();
-        idText.addLine(false, boldText, txt);
+        generateChartDataSourceText(idText,
+                                    "DATA SERIES CHART",
+                                    chartDataSource);
     }
 }
+
+/**
+ * Generate identification text for a matrix chart.
+ * @param idText
+ *     String builder for identification text.
+ * @param idChartMatrix
+ *     Information for matrix chart id.
+ */
+void
+IdentificationTextGenerator::generateChartMatrixIdentificationText(IdentificationStringBuilder& idText,
+                                                                   const SelectionItemChartMatrix* idChartMatrix) const
+{
+    if (idChartMatrix->isValid()) {
+        const ChartableMatrixInterface* chartMatrixInterface = idChartMatrix->getChartableMatrixInterface();
+        const CaretMappableDataFile* caretMappableDataFile = chartMatrixInterface->getCaretMappableDataFile();
+        
+        const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
+        const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();
+        AString rowName;
+        AString columnName;
+        float cellValue;
+        const bool validData = chartMatrixInterface->getMatrixCellAttributes(rowIndex,
+                                                                             columnIndex,
+                                                                             cellValue,
+                                                                             rowName,
+                                                                             columnName);
+        
+        AString boldText("MATRIX CHART");
+        idText.addLine(false,
+                       boldText,
+                       caretMappableDataFile->getFileNameNoPath());
+        
+        if (validData) {
+            idText.addLine(true,
+                           ("Row " + AString::number(rowIndex)),
+                           rowName);
+            idText.addLine(true,
+                           ("Column " + AString::number(columnIndex)),
+                           columnName);
+            idText.addLine(true, "Value",
+                           AString::number(cellValue, 'f', 6));
+        }
+    }
+}
+
+/**
+ * Generate identification text for chart data source.
+ * @param idText
+ *     String builder for identification text.
+ * @param typeOfChartText
+ *     Text describing the type of chart.
+ * @param chartDataSource
+ *     Source of chart data.
+ */
+void
+IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBuilder& idText,
+                                                         const AString& typeOfChartText,
+                                                         const ChartDataSource* chartDataSource) const
+{
+    AString chartFileName = chartDataSource->getChartableFileName();
+    if (! chartFileName.isEmpty()) {
+        chartFileName = FileInformation(chartFileName).getFileName();
+    }
+    
+    idText.addLine(false,
+                   typeOfChartText,
+                   chartDataSource->getChartableFileName());
+    switch (chartDataSource->getDataSourceMode()) {
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_INVALID:
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
+        {
+            AString structureName;
+            int32_t numberOfNodes;
+            int32_t nodeIndex;
+            chartDataSource->getSurfaceNode(structureName,
+                                            numberOfNodes,
+                                            nodeIndex);
+            idText.addLine(true,
+                           "Structure",
+                           structureName);
+            idText.addLine(true,
+                           "Node Index",
+                           AString::number(nodeIndex));
+        }
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
+        {
+            AString structureName;
+            int32_t numberOfNodes;
+            std::vector<int32_t> nodeIndices;
+            chartDataSource->getSurfaceNodeAverage(structureName, numberOfNodes, nodeIndices);
+            idText.addLine(true,
+                           "Structure",
+                           structureName);
+            idText.addLine(true,
+                           "Node Average Count",
+                           AString::number(nodeIndices.size()));
+        }
+            break;
+        case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
+        {
+            float voxelXYZ[3];
+            chartDataSource->getVolumeVoxel(voxelXYZ);
+            idText.addLine(true,
+                           "Voxel XYZ",
+                           AString::fromNumbers(voxelXYZ, 3, ","));
+        }
+            break;
+    }
+}
+
 
 /**
  * Generate identification text for a time series chart.
@@ -603,9 +722,9 @@ IdentificationTextGenerator::generateChartTimeSeriesIdentificationText(Identific
         const ChartDataCartesian* chartDataCartesian = idChartTimeSeries->getChartDataCartesian();
         
         const ChartDataSource* chartDataSource = chartDataCartesian->getChartDataSource();
-        AString boldText = ("Time Series Chart: ");
-        const AString txt = chartDataSource->getDescription();
-        idText.addLine(false, boldText, txt);
+        generateChartDataSourceText(idText,
+                                    "TIME SERIES CHART",
+                                    chartDataSource);
     }
 }
 

@@ -33,8 +33,10 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class CaretMappableDataFile;
+    class ChartDataSource;
     class SelectionItemBorderSurface;
     class SelectionItemChartDataSeries;
+    class SelectionItemChartMatrix;
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
@@ -82,11 +84,18 @@ namespace caret {
         void generateChartDataSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                        const SelectionItemChartDataSeries* idChartDataSeries) const;
         
+        void generateChartMatrixIdentificationText(IdentificationStringBuilder& idText,
+                                                       const SelectionItemChartMatrix* idChartMatrix) const;
+        
         void generateChartTimeSeriesIdentificationText(IdentificationStringBuilder& idText,
                                                        const SelectionItemChartTimeSeries* idChartTimeSeries) const;
         
         void getMapIndicesOfFileUsedInOverlays(const CaretMappableDataFile* caretMappableDataFile,
                                                std::vector<int32_t>& mapIndicesOut) const;
+        
+        void generateChartDataSourceText(IdentificationStringBuilder& idText,
+                                         const AString& typeOfChartText,
+                                         const ChartDataSource* chartDataSource) const;
     };
     
 #ifdef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
