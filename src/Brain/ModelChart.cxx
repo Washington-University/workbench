@@ -68,7 +68,11 @@ ModelChart::ModelChart(Brain* brain)
                                             Overlay::INCLUDE_VOLUME_FILES_YES,
                                             "Chart View");
 
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartableMatrixFileSelectionModel[i] = new ChartableMatrixFileSelectionModel(m_brain);
+    }
     initializeCharts();
+    
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED);
@@ -105,8 +109,6 @@ ModelChart::initializeCharts()
         m_chartModelTimeSeries[i] = new ChartModelTimeSeries();
         m_chartModelTimeSeries[i]->getLeftAxis()->setText("Activity");
         m_chartModelTimeSeries[i]->getBottomAxis()->setText("Time");
-        
-        m_chartableMatrixFileSelectionModel[i] = new ChartableMatrixFileSelectionModel(m_brain);
     }    
 }
 
@@ -138,6 +140,7 @@ ModelChart::removeAllCharts()
             m_chartModelTimeSeries[i] = NULL;
         }
     }
+
     
     m_dataSeriesChartData.clear();
     m_timeSeriesChartData.clear();
