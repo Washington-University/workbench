@@ -3910,13 +3910,32 @@ Brain::getVolumeInteractionSurfaceNearestCoordinate(const float xyz[3],
 void
 Brain::updateChartModel()
 {
-    if (m_modelChart == NULL) {
-        m_modelChart = new ModelChart(this);
-        EventModelAdd eventAddModel(m_modelChart);
-        EventManager::get()->sendEvent(eventAddModel.getPointer());
-        
-        if (m_isSpecFileBeingRead == false) {
-            m_modelChart->initializeOverlays();
+    std::vector<ChartableBrainordinateInterface*> chartableBrainordinateFiles;
+    getAllChartableBrainordinateDataFiles(chartableBrainordinateFiles);
+    
+    std::vector<ChartableMatrixInterface*> chartableMatrixFiles;
+    getAllChartableMatrixDataFiles(chartableMatrixFiles);
+    
+    const int32_t numberOfChartableFiles = (chartableBrainordinateFiles.size()
+                                            + chartableMatrixFiles.size());
+    
+    if (numberOfChartableFiles > 0) {
+        if (m_modelChart == NULL) {
+            m_modelChart = new ModelChart(this);
+            EventModelAdd eventAddModel(m_modelChart);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+            
+            if (m_isSpecFileBeingRead == false) {
+                m_modelChart->initializeOverlays();
+            }
+        }
+    }
+    else {
+        if (m_modelChart != NULL) {
+            EventModelDelete eventDeleteModel(m_modelChart);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete m_modelChart;
+            m_modelChart = NULL;
         }
     }
 }

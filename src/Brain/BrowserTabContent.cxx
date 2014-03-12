@@ -854,7 +854,7 @@ BrowserTabContent::update(const std::vector<Model*> models)
             break;
         case ModelTypeEnum::MODEL_TYPE_CHART:
             if (m_chartModel == NULL) {
-                m_selectedModelType = ModelTypeEnum::MODEL_TYPE_CHART;
+                m_selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
     }

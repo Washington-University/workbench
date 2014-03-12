@@ -171,22 +171,24 @@ ChartToolBoxViewController::getSelectedChartModel()
     if (browserTabContent == NULL) {
         return NULL;
     }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     ChartModel* chartModel = NULL;
     
     ModelChart* modelChart = brain->getChartModel();
-    switch (modelChart->getSelectedChartDataType(browserTabIndex)) {
-        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
-            chartModel = modelChart->getSelectedDataSeriesChartModel(browserTabIndex);
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-            break;
-        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
-            chartModel = modelChart->getSelectedTimeSeriesChartModel(browserTabIndex);
-            break;
+    if (modelChart != NULL) {
+        const int32_t browserTabIndex = browserTabContent->getTabNumber();
+        switch (modelChart->getSelectedChartDataType(browserTabIndex)) {
+            case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                chartModel = modelChart->getSelectedDataSeriesChartModel(browserTabIndex);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                chartModel = modelChart->getSelectedTimeSeriesChartModel(browserTabIndex);
+                break;
+        }
     }
     
     return chartModel;
