@@ -1795,25 +1795,17 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             glGetBooleanv(GL_DEPTH_TEST,
                           &depthBufferEnabled);
 
-            if (drawCrosshairsFlag) {
-                glPushMatrix();
-                drawAxesCrosshairs(sliceViewPlane);
-                glPopMatrix();
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            
             /*
              * Use some polygon offset that will adjust the depth values of the
-             * foci so that the foci depth values place the foci in front of
+             * layers so that the layers depth values place the layers in front of
              * the volume slice.
              */
             glEnable(GL_POLYGON_OFFSET_FILL);
             glPolygonOffset(0.0, 1.0);
+            
+            if (drawOutlineFlag) {
+                drawSurfaceOutline(slicePlane);
+            }
             
             if (drawFibersFlag) {
                 glDisable(GL_DEPTH_TEST);
@@ -1829,11 +1821,20 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             if (drawFociFlag) {
                 drawVolumeSliceFoci(slicePlane);
             }
-            if (drawOutlineFlag) {
-                drawSurfaceOutline(slicePlane);
-            }
             
             glDisable(GL_POLYGON_OFFSET_FILL);
+            
+            if (drawCrosshairsFlag) {
+                glPushMatrix();
+                drawAxesCrosshairs(sliceViewPlane);
+                glPopMatrix();
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
+            }
             
             glPopMatrix();
             
@@ -3576,15 +3577,33 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
      * Crosshairs
      */
     if (drawCrosshairsFlag) {
-        m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
-                                             horizontalAxisStartXYZ,
-                                             horizontalAxisEndXYZ,
-                                             axesCrosshairRadius);
-        
-        m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
-                                             verticalAxisStartXYZ,
-                                             verticalAxisEndXYZ,
-                                             axesCrosshairRadius);
+        const bool drawAsLines = true;
+        if (drawAsLines) {
+            glLineWidth(1.0);
+            glColor3fv(horizontalAxisRGBA);
+            glBegin(GL_LINES);
+            glVertex3fv(horizontalAxisStartXYZ);
+            glVertex3fv(horizontalAxisEndXYZ);
+            glEnd();
+            
+            glLineWidth(1.0);
+            glColor3fv(verticalAxisRGBA);
+            glBegin(GL_LINES);
+            glVertex3fv(verticalAxisStartXYZ);
+            glVertex3fv(verticalAxisEndXYZ);
+            glEnd();
+        }
+        else {
+            m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
+                                                 horizontalAxisStartXYZ,
+                                                 horizontalAxisEndXYZ,
+                                                 axesCrosshairRadius);
+            
+            m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
+                                                 verticalAxisStartXYZ,
+                                                 verticalAxisEndXYZ,
+                                                 axesCrosshairRadius);
+        }
     }
     
     if (drawCrosshairLabelsFlag) {
