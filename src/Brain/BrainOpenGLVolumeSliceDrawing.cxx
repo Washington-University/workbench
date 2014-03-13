@@ -460,7 +460,9 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
                                                                          5,
                                                                          coordText,
                                                                          BrainOpenGLTextRenderInterface::X_RIGHT,
-                                                                         BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                                                                         BrainOpenGLTextRenderInterface::Y_BOTTOM,
+                                                                         BrainOpenGLTextRenderInterface::NORMAL,
+                                                                         12);
                         }
                     }
                     sliceIndex -= sliceStep;
@@ -504,7 +506,9 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
                                                                      5,
                                                                      coordText,
                                                                      BrainOpenGLTextRenderInterface::X_RIGHT,
-                                                                     BrainOpenGLTextRenderInterface::Y_BOTTOM);
+                                                                     BrainOpenGLTextRenderInterface::Y_BOTTOM,
+                                                                     BrainOpenGLTextRenderInterface::NORMAL,
+                                                                     12);
                     }
                 }
                 sliceIndex += sliceStep;
@@ -3513,8 +3517,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                 horizontalAxisEndXYZ[0]   += bigValue;
             }
             
-            verticalBottomText = "V";
-            verticalTopText    = "D";
+            verticalBottomText = "I";
+            verticalTopText    = "S";
             verticalAxisRGBA = paraRGBA;
             if (obliqueModeFlag) {
                 verticalAxisStartXYZ[1] -= bigValue;
@@ -3538,8 +3542,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                 horizontalAxisEndXYZ[1]   += bigValue;
             }
             
-            verticalBottomText = "V";
-            verticalTopText    = "D";
+            verticalBottomText = "I";
+            verticalTopText    = "S";
             verticalAxisRGBA = coronalRGBA;
             if (obliqueModeFlag) {
                 verticalAxisStartXYZ[1] -= bigValue;
@@ -3721,12 +3725,14 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                                                                    horizontalLeftText,
                                                                    BrainOpenGLTextRenderInterface::X_CENTER,
                                                                    BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::BOLD,
                                                                    fontHeight);
         m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textRightWindowXY[0],
                                                                    textRightWindowXY[1],
                                                                    horizontalRightText,
                                                                    BrainOpenGLTextRenderInterface::X_CENTER,
                                                                    BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::BOLD,
                                                                    fontHeight);
         
         glColor4fv(verticalAxisRGBA);
@@ -3735,12 +3741,14 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                                                                    verticalBottomText,
                                                                    BrainOpenGLTextRenderInterface::X_CENTER,
                                                                    BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::BOLD,
                                                                    fontHeight);
         m_fixedPipelineDrawing->drawTextWindowCoordsWithBackground(textTopWindowXY[0],
                                                                    textTopWindowXY[1],
                                                                    verticalTopText,
                                                                    BrainOpenGLTextRenderInterface::X_CENTER,
                                                                    BrainOpenGLTextRenderInterface::Y_CENTER,
+                                                                   BrainOpenGLTextRenderInterface::BOLD,
                                                                    fontHeight);
     }
     

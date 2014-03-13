@@ -402,21 +402,16 @@ namespace caret {
                                   const QString& text,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
                                   const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                  const int fontHeight = 12);
-        
-        void drawBoldTextWindowCoords(const int windowX,
-                                  const int windowY,
-                                  const QString& text,
-                                  const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
-                                  const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                  const int fontHeight = 12);
+                                  const BrainOpenGLTextRenderInterface::TextStyle textStyle,
+                                  const int fontHeight);
         
         void drawTextWindowCoordsWithBackground(const int windowX,
                                       const int windowY,
                                       const QString& text,
                                       const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
                                       const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY,
-                                      const int fontHeight = 12);
+                                      const BrainOpenGLTextRenderInterface::TextStyle textStyle,
+                                      const int fontHeight);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,
