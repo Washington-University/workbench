@@ -1,11 +1,32 @@
-#include "nifti1.h"
-/*! \struct nifti_2_header
-    \brief Data structure defining the fields in the nifti2 header.
-           This binary header should be found at the beginning of a valid
-           NIFTI-2 header file.
- */
 #ifndef __NIFTI2_HEADER
 #define __NIFTI2_HEADER
+
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "nifti1.h"
+
 /*=================*/
 #ifdef  __cplusplus
 extern "C" {
@@ -47,6 +68,11 @@ const int32_t NIFTI_ECODE_CIFTI=32;
 #pragma pack(push)
 #pragma pack(1)
 
+/*! \struct nifti_2_header
+    \brief Data structure defining the fields in the nifti2 header.
+           This binary header should be found at the beginning of a valid
+           NIFTI-2 header file.
+ */
 /*************************/  /************************/ /************/
 struct nifti_2_header {   /* NIFTI-2 usage         */  /* NIFTI-1 usage        */ /*  offset  */
     /*************************/  /************************/ /************/

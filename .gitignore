@@ -7,3 +7,4 @@ release
 debug
 qt*
 *.kate-swp
+.DS_Store

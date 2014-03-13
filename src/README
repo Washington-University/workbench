@@ -1,0 +1,63 @@
+Connectome Workbench requires QT4 to compile.  Recommended is the latest 4.8.x release.  The following configure options were used on linux for our builds:
+
+-system-zlib -webkit -qt-libmng -qt-libpng -qt-libtiff -qt-libjpeg -nomake demos -nomake examples -no-qt3support -no-dbus -opensource -exceptions -stl -no-multimedia -no-phonon -no-audio-backend -openssl
+
+It is currently set up to be compiled by cmake:
+
+mkdir build
+cd build
+cmake ../src
+#OR
+cmake-gui ../src
+make [-j cores]
+
+This produces 3 executables, 2 of which are useful to the end user (Desktop/workbench, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).  Install them however you see fit.
+
+It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
+
+To run the (few) tests available:
+
+ctest
+#OR
+make test
+
+Connectome Workbench itself is copyright 2014 Washington University School of Medicine, licensed under GPLv2 or later, see LICENSE file
+
+Some included code is from third party sources, with the following licenses:
+
+Quazip/*:
+QuaZIP 0.4.4, http://quazip.sourceforge.net/
+Copyright (C) 2005-2011 Sergey A. Tachenov
+Copyright (C) 1998-2005 Gilles Vollant
+Copyright (c) 1990-2000 Info-ZIP
+licensed under LGPLv2.1 and zlib, see Quazip/COPYING and Quazip/zip.h and Quazip/unzip.c
+
+Qwt/*:
+Copyright (C) 1997   Josef Wilgen
+Copyright (C) 2002   Uwe Rathmann
+Qwt 6.0.1, http://qwt.sourceforge.net/
+licensed under Qwt license v1.0 (LGPLv2.1, with exceptions), see src/Qwt/COPYING
+some unneeded files removed
+
+GlfFont/glf.*, src/Resources/*.glf:
+GLF Library
+Copyright (C) 2000, Romka Graphics
+originally licensed with custom permissive license, see src/GlfFont/glf.h
+modified to read from QT resources
+
+Common/Base64.*, Common/DataCompressZLib.*, Common/MathFunctions.*, Nifti/Matrix4x4.cxx:
+use code from VTK, http://www.kitware.com/opensource/vtk.html or http://www.vtk.org/
+Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+originally licensed under BSD 3-clause, see http://www.kitware.com/Copyright.htm or http://www.vtk.org/VTK/project/license.html
+
+GuiQt/WuQDialog.cxx:
+copied some code from from QT4, https://qt-project.org/
+Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+originally licensed LGPLv2.1 (or GPLv3)
+modified to change some UI behaviors otherwise hardcoded into QT classes
+
+Files/SignedDistanceHelper.cxx, Algorithms/AlgorithmVolumeToSurfaceMapping.cxx:
+make use of PNPOLY, http://www.ecse.rpi.edu/~wrf/Research/Short_Notes/pnpoly.html
+Copyright (c) 1970-2003, Wm. Randolph Franklin
+originally licensed with 3-clause BSD/MIT license, see files in question
+rewritten for different argument types, modified

@@ -22,6 +22,33 @@
  *
  */
 
+/*
+ * For the function pointInTri():
+ * Original copyright for PNPOLY, though my version is entirely rewritten and modified
+ * Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+ */
+/*
+Copyright (c) 1970-2003, Wm. Randolph Franklin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions
+and the following disclaimers.
+2. Redistributions in binary form must reproduce the above copyright notice in the documentation
+and/or other materials provided with the distribution.
+3. The name of W. Randolph Franklin may not be used to endorse or promote products derived from this
+Software without specific prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #include "BoundingBox.h"
 #include "CaretHeap.h"
 #include "SignedDistanceHelper.h"
@@ -477,30 +504,6 @@ int SignedDistanceHelper::computeSign(const float coord[3], SignedDistanceHelper
     return 1;
 }
 
-//Original copyright for PNPOLY, even though my version is entirely rewritten, and modified
-//Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-/**
-Copyright (c) 1970-2003, Wm. Randolph Franklin
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-and associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute,
-sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions
-and the following disclaimers.
-2. Redistributions in binary form must reproduce the above copyright notice in the documentation
-and/or other materials provided with the distribution.
-3. The name of W. Randolph Franklin may not be used to endorse or promote products derived from this
-Software without specific prior written permission.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-
 bool SignedDistanceHelper::pointInTri(Vector3D verts[3], Vector3D inPlane, int majAxis, int midAxis)
 {
     bool inside = false;
@@ -509,7 +512,7 @@ bool SignedDistanceHelper::pointInTri(Vector3D verts[3], Vector3D inPlane, int m
         if ((verts[i][majAxis] < inPlane[majAxis]) != (verts[j][majAxis] < inPlane[majAxis]))
         {//if one vertex is on one side of the point in the x direction, and the other is on the other side (equal case is treated as greater)
             int ti, tj;
-            if (verts[i][majAxis] < verts[j][majAxis])//reorient the segment consistently to prevent rounding error from affecting the result
+            if (verts[i][majAxis] < verts[j][majAxis])//reorient the segment consistently to get a consistent answer
             {
                 ti = i; tj = j;
             } else {
@@ -857,5 +860,5 @@ const int32_t* SignedDistanceHelperBase::getTriangle(const int32_t tileIndex) co
 }
 
 SignedDistanceHelperBase::~SignedDistanceHelperBase()
-{//just so that it compiles the destructor into an object file rather than regenerating default one in every file it is included into, which lets us hide TopologyHelper's definition
+{//so we don't need to put TopologyHelper.h in our header, due to the smart pointer destructor
 }

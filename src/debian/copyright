@@ -1,0 +1,177 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Connectome Workbench
+Source: http://www.humanconnectome.org/software/get-connectome-workbench.html
+Copyright: Copyright 2014 Washington University School of Medicine
+License: GPL-2+
+
+Files: *
+Copyright: Copyright 2014 Washington University School of Medicine
+License: GPL-2+
+
+Files: Quazip/*
+Copyright: Copyright 2005-2011 Sergey A. Tachenov
+           Copyright 1998-2005 Gilles Vollant
+           Copyright 1990-2000 Info-ZIP
+License: LGPL-2.0+ and Zlib
+
+Files: Qwt/*
+Copyright: Copyright 1997 Josef Wilgen
+           Copyright 2002 Uwe Rathmann
+License: Qwt-1.0
+
+Files: GlfFont/glf.* src/Resources/*.glf
+Copyright: Copyright 2000 Romka Graphics
+           Copyright 2014 Washington University School of Medicine
+License: GPL-2+
+
+Files: Common/Base64.* Common/DataCompressZLib.* Common/MathFunctions.* Nifti/Matrix4x4.cxx
+Copyright: Copyright 1993-2008 Ken Martin, Will Schroeder, Bill Lorensen
+           Copyright 2014 Washington University School of Medicine
+License: VTK-BSD-3-Clause and GPL-2+
+
+Files: GuiQt/WuQDialog.cxx
+Copyright: Copyright 2014 Washington University School of Medicine
+           Copyright 2012 Digia Plc and/or its subsidiary(-ies).
+License: GPL-2+
+
+Files: Files/SignedDistanceHelper.cxx src/Algorithms/AlgorithmVolumeToSurfaceMapping.cxx
+Copyright: Copyright 2014 Washington University School of Medicine
+           Copyright 1970-2003, Wm. Randolph Franklin
+License: GPL-2+ and PNPOLY-BSD-3-Clause
+
+License: GPL-2+
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
+ version.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this package; if not, write to the Free
+ Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.
+
+License: LGPL-2.0+
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or (at
+ your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser
+ General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software Foundation,
+ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ .
+ On Debian systems, the full text of the GNU Lesser General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/LGPL-2'.
+
+License: Zlib
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+ .
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+ .
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+License: Qwt-1.0
+ The Qwt library and included programs are provided under the terms
+ of the GNU LESSER GENERAL PUBLIC LICENSE (LGPL) with the following
+ exceptions:
+    1. Widgets that are subclassed from Qwt widgets do not
+       constitute a derivative work.
+ .
+    2. Static linking of applications and widgets to the
+       Qwt library does not constitute a derivative work
+       and does not require the author to provide source
+       code for the application or widget, use the shared
+       Qwt libraries, or link their applications or
+       widgets against a user-supplied version of Qwt.
+       If you link the application or widget to a modified
+       version of Qwt, then the changes to Qwt must be 
+       provided under the terms of the LGPL in sections
+       1, 2, and 4.
+ .
+    3. You do not have to provide a copy of the Qwt license
+       with programs that are linked to the Qwt library, nor
+       do you have to identify the Qwt license in your
+       program or documentation as required by section 6
+       of the LGPL.
+       However, programs must still identify their use of Qwt.
+       The following example statement can be included in user
+       documentation to satisfy this requirement:
+           [program/widget] is based in part on the work of
+           the Qwt project (http://qwt.sf.net).
+ .
+ On Debian systems, the full text of the GNU Lesser General
+ Public License can be found in the file
+ `/usr/share/common-licenses/LGPL'.
+
+License: VTK-BSD-3-Clause
+ Redistribution and use in source and binary forms, with or without modification,
+ are permitted provided that the following conditions are met:
+ 
+ * Redistributions of source code must retain the above copyright notice, this list
+ of conditions and the following disclaimer.
+ .
+ * Redistributions in binary form must reproduce the above copyright notice, this
+ list of conditions and the following disclaimer in the documentation and/or other
+ materials provided with the distribution.
+ .
+ * Neither name of Ken Martin, Will Schroeder, or Bill Lorensen nor the names of any
+ contributors may be used to endorse or promote products derived from this software
+ without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ DAMAGE.
+
+License: PNPOLY-BSD-3-Clause
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ and associated documentation files (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ 1. Redistributions of source code must retain the above copyright notice, this list of conditions
+ and the following disclaimers.
+ 2. Redistributions in binary form must reproduce the above copyright notice in the documentation
+ and/or other materials provided with the distribution.
+ 3. The name of W. Randolph Franklin may not be used to endorse or promote products derived from this
+ Software without specific prior written permission.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

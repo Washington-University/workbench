@@ -1,10 +1,3 @@
-/* 
- * File:   XmlWriter.h
- * Author: john
- *
- * Created on November 6, 2009, 10:22 AM
- */
-
 #ifndef __XML_WRITER_H__
 #define	__XML_WRITER_H__
 

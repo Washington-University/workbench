@@ -22,6 +22,33 @@
  *
  */
 
+/*
+ * For the function vertRayHit():
+ * Original copyright for PNPOLY, though my version is entirely rewritten and modified
+ * Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+ */
+/*
+Copyright (c) 1970-2003, Wm. Randolph Franklin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions
+and the following disclaimers.
+2. Redistributions in binary form must reproduce the above copyright notice in the documentation
+and/or other materials provided with the distribution.
+3. The name of W. Randolph Franklin may not be used to endorse or promote products derived from this
+Software without specific prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
 #include "AlgorithmVolumeToSurfaceMapping.h"
 #include "AlgorithmException.h"
 
@@ -767,30 +794,6 @@ void TriInfo::initialize(const float* xyz1, const float* xyz2, const float* xyz3
     }
 }
 
-//Original copyright for PNPOLY, even though my version is entirely rewritten and modified
-//Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-/**
-Copyright (c) 1970-2003, Wm. Randolph Franklin
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-and associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute,
-sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions
-and the following disclaimers.
-2. Redistributions in binary form must reproduce the above copyright notice in the documentation
-and/or other materials provided with the distribution.
-3. The name of W. Randolph Franklin may not be used to endorse or promote products derived from this
-Software without specific prior written permission.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
-NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
-
 bool TriInfo::vertRayHit(const float* xyz)
 {
     if (m_planeEq[0] != m_planeEq[0] || (m_planeEq[0] != 0.0f && m_planeEq[0] * 2.0f == m_planeEq[0]))
@@ -802,14 +805,14 @@ bool TriInfo::vertRayHit(const float* xyz)
     {//point is above the plane
         return false;
     }//test if the x, y projection has the point inside the triangle
-    //below code inspired by (lifted from) PNPOLY by Wm. Randolph Franklin, swapped x for y, and slightly rewritten, for the special case of 3 vertices
+    //below logic copied from PNPOLY by Wm. Randolph Franklin, swapped x for y, and slightly rewritten, for the special case of 3 vertices
     bool inside = false;
     for (int j = 2, i = 0; i < 3; ++i)//start with the wraparound case
     {
         if ((m_xyz[i][0] < xyz[0]) != (m_xyz[j][0] < xyz[0]))
         {//if one vertex is on one side of the point in the x direction, and the other is on the other side (equal case is treated as greater)
             int ti, tj;
-            if (m_xyz[i][0] < m_xyz[j][0])//reorient the segment consistently to prevent rounding error from affecting the result
+            if (m_xyz[i][0] < m_xyz[j][0])//reorient the segment consistently to get a consistent answer
             {
                 ti = i; tj = j;
             } else {
