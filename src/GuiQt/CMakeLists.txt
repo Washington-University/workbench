@@ -52,7 +52,6 @@ ChartableMatrixFileSelectionViewController.h
 ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
-ConnectivityTimeSeriesViewController.h
 CustomViewDialog.h
 DisplayGroupEnumComboBox.h
 EnumComboBoxTemplate.h
@@ -97,9 +96,6 @@ SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 Table.h
 TileTabsConfigurationDialog.h
-TimeCourseDialog.h
-TimeCoursePlotter.h
-TimeSeriesManagerForViewController.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
 UsernamePasswordWidget.h
@@ -162,7 +158,6 @@ ChartableMatrixFileSelectionViewController.h
 ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
-ConnectivityTimeSeriesViewController.h
 CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
@@ -180,9 +175,7 @@ EventGraphicsUpdateOneWindow.h
 EventImageCapture.h
 EventMapSettingsEditorDialogRequest.h
 EventOperatingSystemRequestOpenDataFile.h
-EventUpdateAnimationStartTime.h
 EventUpdateInformationWindows.h
-EventUpdateTimeCourseDialog.h
 EventUpdateYokedWindows.h
 EventUserInterfaceUpdate.h
 FiberOrientationSelectionViewController.h
@@ -229,9 +222,6 @@ SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
 Table.h
 TileTabsConfigurationDialog.h
-TimeCourseDialog.h
-TimeCoursePlotter.h
-TimeSeriesManagerForViewController.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
@@ -292,7 +282,6 @@ ChartableMatrixFileSelectionViewController.cxx
 ChartingDialog.cxx
 CiftiConnectivityMatrixViewController.cxx
 ColorEditorWidget.cxx
-ConnectivityTimeSeriesViewController.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx
@@ -309,9 +298,7 @@ EventGraphicsUpdateOneWindow.cxx
 EventImageCapture.cxx
 EventMapSettingsEditorDialogRequest.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
-EventUpdateAnimationStartTime.cxx
 EventUpdateInformationWindows.cxx
-EventUpdateTimeCourseDialog.cxx
 EventUpdateYokedWindows.cxx
 EventUserInterfaceUpdate.cxx
 FiberOrientationSelectionViewController.cxx
@@ -358,9 +345,6 @@ SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
 Table.cxx
 TileTabsConfigurationDialog.cxx
-TimeCourseDialog.cxx
-TimeCoursePlotter.cxx
-TimeSeriesManagerForViewController.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
 UserInputModeFoci.cxx
@@ -397,8 +381,7 @@ WuQtUtilities.cxx
 SET(FORMS
     ChartingDialog.ui
     MovieDialog.ui
-	Table.ui
-    TimeCourseDialog.ui)
+	Table.ui)
 
 
 #

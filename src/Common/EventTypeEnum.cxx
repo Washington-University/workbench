@@ -221,14 +221,6 @@ EventTypeEnum::initialize()
                                      "EVENT_UPDATE_INFORMATION_WINDOWS", 
                                      "Update the information windows"));
 
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG,
-                                     "EVENT_UPDATE_TIME_COURSE_DIALOG",
-                                     "Update the time course dialog after user has selected a node"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME,
-                                     "EVENT_UPDATE_ANIMATION_START_TIME", 
-                                     "Update the animation start time after user has modified the preference"));
-
     enumData.push_back(EventTypeEnum(EVENT_UPDATE_YOKED_WINDOWS,
                                      "EVENT_UPDATE_YOKED_WINDOWS",
                                      "Update yoked windows graphics and toolbar"));

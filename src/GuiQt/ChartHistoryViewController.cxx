@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <QBrush>
+#include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QPushButton>

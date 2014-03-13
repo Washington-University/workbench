@@ -43,7 +43,6 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventUpdateAnimationStartTime.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -98,7 +97,6 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     this->addLoggingItems();
     this->addOpenGLItems();
     this->addSplashItems();
-    this->addTimeCourseItems();
     this->addVolumeItems();
     this->addDevelopItems();
     
@@ -349,42 +347,7 @@ PreferencesDialog::addOpenGLItems()
     this->addWidgetToLayout("OpenGL Vertex Buffers",
                             m_openGLDrawingMethodEnumComboBox->getWidget());
 }
-/**
- * Creates time course widget.
- */
-void 
-PreferencesDialog::addTimeCourseItems()
-{
-    this->animationStartDoubleSpinBox = WuQFactory::newDoubleSpinBox();
-    QObject::connect(this->animationStartDoubleSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(animationStartChanged(double)));
-    
-    this->allWidgets->add(this->animationStartDoubleSpinBox);
 
-    /*double time;
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->getAnimationStartTime(time);
-    this->animationStartDoubleSpinBox->blockSignals(true);
-    this->animationStartDoubleSpinBox->setValue(time);    
-    this->animationStartDoubleSpinBox->blockSignals(false);
-
-    this->addWidgetToLayout("Timecourse Animation Starts at: ", 
-                             this->animationStartDoubleSpinBox);*/
-}
-
-/**
- * Slot for animationStartDoubleSpinBox valueChanged
- */
-void
-PreferencesDialog::animationStartChanged(double value)
-{
-   CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-   prefs->setAnimationStartTime(value); 
-   EventUpdateAnimationStartTime e;
-   e.setStartTime(value);
-   EventManager::get()->sendEvent(e.getPointer());
-   
-}
 /**
  * Creates logging widget.
  */

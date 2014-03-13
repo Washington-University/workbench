@@ -12,7 +12,6 @@
 #include "EventListenerInterface.h"
 #include "GuiManager.h"
 #include "ui_ChartingDialog.h"
-#include "TimeCourseControls.h"
 #include "PaletteFile.h"
 #include "Plot2d.h"
 #include "Table.h"
@@ -34,7 +33,6 @@ ChartingDialog::ChartingDialog(QWidget *parent) :
 #endif
     connect(this, SIGNAL(customContextMenuRequested(const QPoint &)),
             this, SLOT(customContextMenuRequestedSlot(const QPoint &)));
-    //form = new TimeCourseControls();
     table = new Table();
     //plot2d = new Plot2D();
     ui->comboBox->setCurrentIndex(1);

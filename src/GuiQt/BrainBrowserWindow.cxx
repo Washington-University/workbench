@@ -22,6 +22,7 @@
  *
  */
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QDesktopServices>

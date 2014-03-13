@@ -118,10 +118,6 @@ public:
         EVENT_PROGRESS_UPDATE,
         /** Update the information windows */
         EVENT_UPDATE_INFORMATION_WINDOWS,
-        /** Update and show the time course dialog */
-        EVENT_UPDATE_TIME_COURSE_DIALOG,
-        /** Update Animation start time */
-        EVENT_UPDATE_ANIMATION_START_TIME,
         /** Event to update yoked windows (graphics and toolbar) */
         EVENT_UPDATE_YOKED_WINDOWS,
         /** Event to track cifti mappable data file color updating */

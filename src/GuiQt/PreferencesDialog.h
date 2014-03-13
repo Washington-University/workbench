@@ -70,8 +70,6 @@ namespace caret {
         
         void developMenuEnabledComboBoxChanged(bool value);
         
-        void animationStartChanged(double value);
-        
     private:
         void addColorItems();
         void addDevelopItems();
@@ -79,7 +77,6 @@ namespace caret {
         void addOpenGLItems();
         void addSplashItems();
         void addVolumeItems();
-        void addTimeCourseItems();
         
         void addWidgetToLayout(const QString& labelText,
                                QWidget* widget);
@@ -109,8 +106,6 @@ namespace caret {
         WuQTrueFalseComboBox* splashScreenShowAtStartupComboBox;
         
         WuQTrueFalseComboBox* developMenuEnabledComboBox;
-        
-        QDoubleSpinBox* animationStartDoubleSpinBox;
         
         QGridLayout* gridLayout;
         

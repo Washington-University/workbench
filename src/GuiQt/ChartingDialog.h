@@ -11,7 +11,6 @@ class ChartingDialog;
 #include "EventListenerInterface.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include <QTableView>
-class TimeCourseControls;
 class Table;
 class Plot2D;
 
@@ -58,7 +57,6 @@ private slots:
 private:
     Table *table;
     Ui::ChartingDialog *ui;
-    TimeCourseControls *form;    
     Plot2D *plot2d;
     bool showDialogFirstTime;
     CiftiMappableConnectivityMatrixDataFile *cmf;

@@ -155,8 +155,6 @@ namespace caret {
         
         bool enableDataSeriesGraphsIfNoneEnabled();
         
-        void displayAllDataSeriesGraphs();
-        
         void addIdentificationActions();
         
         void addBorderRegionOfInterestActions();

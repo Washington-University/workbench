@@ -40,7 +40,6 @@
 #include "ChartModelDataSeries.h"
 #include "ChartModelTimeSeries.h"
 #include "EventBrowserTabGetAll.h"
-#include "EventCiftiMappableDataFileColoringUpdated.h"
 #include "EventManager.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
 #include "ModelChart.h"

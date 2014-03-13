@@ -63,7 +63,6 @@
 #include "EventOperatingSystemRequestOpenDataFile.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
-#include "EventUpdateTimeCourseDialog.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
 #include "IdentifiedItemNode.h"
@@ -186,7 +185,6 @@ GuiManager::GuiManager(QObject* parent)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
@@ -853,12 +851,6 @@ GuiManager::receiveEvent(Event* event)
         
         infoEvent->setEventProcessed();
     }
-    else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
-        this->processUpdateTimeCourseDialogs();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        this->removeInvalidTimeCourseDialogs();
-    }
     else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW) {
         EventMapSettingsEditorDialogRequest* mapEditEvent =
         dynamic_cast<EventMapSettingsEditorDialogRequest*>(event);
@@ -1460,79 +1452,6 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
 //    this->connectomeDatabaseWebView->activateWindow();
 }
 
-/**
- * Remove time course dialogs whose corresponding file no longer exists.
- */
-void
-GuiManager::removeInvalidTimeCourseDialogs()
-{
-    std::vector<ChartableBrainordinateInterface*> allChartFiles;
-    getBrain()->getAllChartableBrainordinateDataFiles(allChartFiles);
-    
-    std::vector<ChartableBrainordinateInterface*> chartFilesNoLongerValid;
-    
-    /*
-     * Find TimeCourse dialogs that should be updated or closed
-     */
-    for (QMap<ChartableBrainordinateInterface *,TimeCourseDialog *>::iterator mapIter = timeCourseDialogs.begin();
-         mapIter != timeCourseDialogs.end();
-         mapIter++) {
-        ChartableBrainordinateInterface* chartFile = mapIter.key();
-        if (std::find(allChartFiles.begin(),
-                      allChartFiles.end(),
-                      chartFile) == allChartFiles.end()) {
-            chartFilesNoLongerValid.push_back(chartFile);
-        }
-    }
-    
-    for (std::vector<ChartableBrainordinateInterface*>::iterator chartFileIter = chartFilesNoLongerValid.begin();
-         chartFileIter != chartFilesNoLongerValid.end();
-         chartFileIter++) {
-        ChartableBrainordinateInterface* tcd = *chartFileIter;
-        removeTimeCourseDialog(tcd);
-    }
-}
-
-/**
- * Show Timeseries Time Course
- */
-void GuiManager::processUpdateTimeCourseDialogs()
-{
-    removeInvalidTimeCourseDialogs();
-    //if(!this->timeCourseDialog) this->timeCourseDialog = this->getTimeCourseDialog();
-    QList<TimeCourseDialog *> list = this->timeCourseDialogs.values();
-    for(int i=0;i<list.size();i++)
-    {
-        list[i]->updateDialog();
-    }    
-}
-
-/**
-  * Allows Connectivity Manager to update the Time Course Dialog
-  */
-TimeCourseDialog * GuiManager::getTimeCourseDialog(ChartableBrainordinateInterface *id)
-{
-    if(timeCourseDialogs.contains(id)) return timeCourseDialogs.value(id);
-    BrainBrowserWindow* browserWindow = NULL;
-
-    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
-        if (m_brainBrowserWindows[i] != NULL && m_brainBrowserWindows[i]->isVisible()) {
-            if (m_brainBrowserWindows[i] != NULL) {
-                browserWindow = m_brainBrowserWindows[i];
-                break;
-            }
-        }
-    }
-
-    if(browserWindow == NULL) return NULL;//not the best error checking but at least it
-                                     //won't crash
-    if (this->timeCourseDialogs[id] == NULL) {
-        this->timeCourseDialogs.insert(id, new TimeCourseDialog(browserWindow));
-        this->nonModalDialogs.push_back(this->timeCourseDialogs[id]);
-    }
-    return this->timeCourseDialogs[id];
-}
-
 ChartingDialog * GuiManager::getChartingDialog(ChartableBrainordinateInterface *id)
 {
     if(chartingDialogs.contains(id)) return chartingDialogs.value(id);
@@ -1554,33 +1473,6 @@ ChartingDialog * GuiManager::getChartingDialog(ChartableBrainordinateInterface *
         this->nonModalDialogs.push_back(this->chartingDialogs[id]);
     }
     return this->chartingDialogs[id];
-}
-
-
-
-/**
- * Adds time lines to all corresponding time course dialogs
- */
-void GuiManager::addTimeLines(QList <TimeLine> &tlV)
-{
-    for(int i =0;i<tlV.size();i++)
-    {
-        this->getTimeCourseDialog(tlV[i].id)->addTimeLine(tlV[i]);
-    }
-}
-
-/**
- * Removes Time Course Dialog from GuiManager and calls destroy on object
- */
-void GuiManager::removeTimeCourseDialog(ChartableBrainordinateInterface *id)
-{
-    TimeCourseDialog* tcd = timeCourseDialogs.value(id);
-    this->timeCourseDialogs.remove(id);
-    if (tcd != NULL) {
-        removeNonModalDialog(tcd);
-        delete tcd;
-    }
-    //this->nonModalDialogs remove
 }
 
 /**
@@ -1999,17 +1891,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                                                                  nodeIndex,
                                                                  true, // only charting enabled files
                                                                  timeLines);
-                    if (timeLines.empty() == false) {
-                        const int numTimeLines = timeLines.size();
-                        for (int itl = 0; itl < numTimeLines; itl++) {
-                            surface->getTimeLineInformation(nodeIndex,
-                                                            timeLines[itl]);
-                        }
-                        GuiManager::get()->addTimeLines(timeLines);
-                        EventUpdateTimeCourseDialog e;
-                        EventManager::get()->sendEvent(e.getPointer());
-                    }
-                    
                     updateGraphicsFlag = true;
                 }
                 catch (const DataFileException& e) {
@@ -2060,12 +1941,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                     chartingDataManager->loadChartForVoxelAtCoordinate(xyz,
                                                                        true, // only charting enabled files
                                                                        timeLines);
-                    if (timeLines.empty() == false) {
-                        GuiManager::get()->addTimeLines(timeLines);
-                        
-                        EventUpdateTimeCourseDialog e;
-                        EventManager::get()->sendEvent(e.getPointer());
-                    }
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();

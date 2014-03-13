@@ -42,6 +42,7 @@
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QTextEdit>

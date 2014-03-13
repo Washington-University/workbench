@@ -31,12 +31,12 @@
 #include <vector>
 #include <stdint.h>
 
+#include <QMap>
 #include <QObject>
 
 #include "EventListenerInterface.h"
 #include "ImageCaptureMethodEnum.h"
 #include "SceneableInterface.h"
-#include "TimeCourseDialog.h"
 #include "WuQWebView.h"
 
 class QAction;
@@ -140,11 +140,7 @@ namespace caret {
         void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
         void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
         
-        void processUpdateTimeCourseDialogs();
-        TimeCourseDialog *getTimeCourseDialog(ChartableBrainordinateInterface *id);//id is pointer to corresponding clf
         ChartingDialog *getChartingDialog(ChartableBrainordinateInterface *id);
-        void addTimeLines(QList <TimeLine> &tlV);
-        void removeTimeCourseDialog(ChartableBrainordinateInterface *id);//id is pointer to corresponding clf
         void updateAnimationStartTime(double value); 
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -190,8 +186,6 @@ namespace caret {
         
         void showHideSceneDialog(const bool status,
                                  BrainBrowserWindow* parentBrainBrowserWindow);
-        
-        void removeInvalidTimeCourseDialogs();
         
         void removeNonModalDialog(QWidget* dialog);
         
@@ -251,8 +245,6 @@ namespace caret {
          */
         std::vector<QWidget*> nonModalDialogs;
         
-        QMap<ChartableBrainordinateInterface *,TimeCourseDialog *> timeCourseDialogs;
-
         QMap<ChartableBrainordinateInterface *,ChartingDialog *> chartingDialogs;
         
         /**

@@ -54,7 +54,6 @@
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
-#include "EventUpdateTimeCourseDialog.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
@@ -78,7 +77,6 @@
 #include "SelectionManager.h"
 #include "SessionManager.h"
 #include "Surface.h"
-#include "TimeCourseDialog.h"
 #include "UserInputModeFociWidget.h"
 #include "VolumeFile.h"
 #include "WuQMessageBox.h"
@@ -1339,84 +1337,6 @@ BrainOpenGLWidgetContextMenu::borderCiftiConnectivitySelected()
     }
 }
 
-///**
-// * Called when border connectivity is selected.
-// */
-//void 
-//BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
-//{
-//    SelectionItemBorderSurface* borderID = this->selectionManager->getSurfaceBorderIdentification();
-//    Border* border = borderID->getBorder();
-//    Surface* surface = borderID->getSurface();
-//    
-//    const int32_t numberOfNodes = surface->getNumberOfNodes();
-//    LabelFile labelFile;
-//    labelFile.setNumberOfNodesAndColumns(numberOfNodes, 1);
-//    const int32_t labelKey = labelFile.getLabelTable()->addLabel("TempLabel", 1.0f, 1.0f, 1.0f, 1.0f);
-//    const int32_t mapIndex = 0;
-//    
-//    try {
-//        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
-//                                                         surface,
-//                                                         border,
-//                                                         false,
-//                                                         mapIndex,
-//                                                         labelKey,
-//                                                         &labelFile);
-//        std::vector<int32_t> nodeIndices;
-//        nodeIndices.reserve(numberOfNodes);
-//        for (int32_t i = 0; i < numberOfNodes; i++) {
-//            if (labelFile.getLabelKey(i, mapIndex) == labelKey) {
-//                nodeIndices.push_back(i);
-//            }
-//        }
-//        
-//        if (nodeIndices.empty()) {
-//            WuQMessageBox::errorOk(this,
-//                                   "No vertices found inside border " + border->getName());
-//            return;
-//        }
-//        
-//        if (this->warnIfNetworkNodeCountIsLarge(borderID->getBrain()->getChartingDataManager(),
-//                                                nodeIndices) == false) {
-//            return;
-//        }
-//        
-//        try {
-//            ProgressReportingDialog progressDialog("Connectivity Within Border",
-//                                                    "",
-//                                                    this);
-//            progressDialog.setValue(0);
-//            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
-//            
-//            QList<TimeLine> timeLines;
-//            ChartingDataManager* chartingDataManger = borderID->getBrain()->getChartingDataManager();
-//            chartingDataManger->loadAverageChartForSurfaceNodes(surface,
-//                                                                 nodeIndices,
-//                                                                true,
-//                                                                 timeLines);
-//            if (showAllGraphs) {
-//                displayAllDataSeriesGraphs();
-//            }
-//            
-//            GuiManager::get()->addTimeLines(timeLines);
-//            EventUpdateTimeCourseDialog e;
-//            EventManager::get()->sendEvent(e.getPointer());
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//        }
-//        catch (const DataFileException& e) {
-//            WuQMessageBox::errorOk(this, e.whatString());
-//        }
-//        
-//        
-//        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
-//    }
-//    catch (const AlgorithmException& e) {
-//        WuQMessageBox::errorOk(this, e.whatString());
-//    }
-//}
-
 /**
  * Called when a connectivity action is selected.
  * @param action
@@ -1461,8 +1381,6 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
                                                this);
         progressDialog.setValue(0);
         
-        const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
-        
         QList<TimeLine> timeLines;
         switch (pc->parcelType) {
             case ParcelConnectivity::PARCEL_TYPE_INVALID:
@@ -1476,32 +1394,12 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
                 break;
         }
-
-        if(timeLines.size()!=0)
-        {
-            for (int i = 0; i < timeLines.size(); i++) {
-                TimeLine &tl = timeLines[i];
-                for(int i=0;i<3;i++) tl.point[i] = 0.0;
-                tl.parcelName = pc->labelName;
-                tl.structureName = StructureEnum::toGuiName(pc->surface->getStructure());
-                tl.label = tl.structureName + ":" + tl.parcelName;
-            }
-            
-            GuiManager::get()->addTimeLines(timeLines);
-            
-            if (showAllGraphs) {
-                displayAllDataSeriesGraphs();
-            }
-        }
-        EventUpdateTimeCourseDialog e;
-        EventManager::get()->sendEvent(e.getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     catch (const DataFileException& e) {
         cursor.restoreCursor();
         WuQMessageBox::errorOk(this, e.whatString());
     }   
-  
 }
 
 /**
@@ -1556,12 +1454,6 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
                                                    "",
                                                    this);
             progressDialog.setValue(0);
-//            TimeLine tl;
-//            for(int i=0;i<3;i++) tl.point[i] = 0.0;
-//            tl.borderClassName = border->getClassName();
-//            tl.borderName = border->getName();
-//            tl.structureName = StructureEnum::toGuiName(border->getStructure());
-//            tl.label =  tl.structureName + ":" + tl.borderClassName + ":" + tl.borderName;
             
             const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
             ChartingDataManager* chartingDataManager = borderID->getBrain()->getChartingDataManager();
@@ -1570,45 +1462,7 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
                                                                  nodeIndices,
                                                                  true,  // only files with charting enabled
                                                                  timeLines);
-            if (timeLines.empty() == false) {
-                const int numTimelines = timeLines.size();
-                for (int itl = 0; itl < numTimelines; itl++) {
-                    for(int i=0;i<3;i++) {
-                        timeLines[itl].point[i] = 0.0;
-                    }
-                    timeLines[itl].borderClassName = border->getClassName();
-                    timeLines[itl].borderName = border->getName();
-                    timeLines[itl].structureName = StructureEnum::toGuiName(border->getStructure());
-                    timeLines[itl].label =  timeLines[itl].structureName + ":" + timeLines[itl].borderClassName + ":" + timeLines[itl].borderName;
-                }
-                
-                if (showAllGraphs) {
-                    displayAllDataSeriesGraphs();
-                }
-                
-                GuiManager::get()->addTimeLines(timeLines);
-                EventUpdateTimeCourseDialog e;
-                EventManager::get()->sendEvent(e.getPointer());
-                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-            }
-            
-//            ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
-//            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
-//            connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(surface,
-//                                                                          nodeIndices,tl);
-//            QList <TimeLine> tlV;
-//            connectivityLoaderManager->getSurfaceTimeLines(tlV);
-//            if(tlV.size()!=0)
-//            {
-//                if (showAllGraphs) {
-//                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//                    displayAllDataSeriesGraphs();
-//                }
-//                GuiManager::get()->addTimeLines(tlV);
-//            }
-//            EventUpdateTimeCourseDialog e;
-//            EventManager::get()->sendEvent(e.getPointer());
-
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
         catch (const DataFileException& e) {
             cursor.restoreCursor();
@@ -1661,29 +1515,6 @@ BrainOpenGLWidgetContextMenu::enableDataSeriesGraphsIfNoneEnabled()
     }
 
     return true;
-}
-
-/**
- * Display all data-series graphs.
- */
-void
-BrainOpenGLWidgetContextMenu::displayAllDataSeriesGraphs()
-{
-    const int32_t tabIndex = this->browserTabContent->getTabNumber();
-    
-    Brain* brain = GuiManager::get()->getBrain();
-    std::vector<ChartableBrainordinateInterface*> chartFiles;
-    brain->getAllChartableBrainordinateDataFiles(chartFiles);
-    for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartFiles.begin();
-         iter != chartFiles.end();
-         iter++) {
-        ChartableBrainordinateInterface* chartFile = *iter;
-        chartFile->setChartingEnabled(tabIndex,
-                                      true);
-        TimeCourseDialog* tcd = GuiManager::get()->getTimeCourseDialog(chartFile);
-        tcd->setTimeSeriesGraphEnabled(true);
-        tcd->show();
-    }    
 }
 
 /**
