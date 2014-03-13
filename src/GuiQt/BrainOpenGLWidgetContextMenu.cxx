@@ -1381,15 +1381,12 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
                                                this);
         progressDialog.setValue(0);
         
-        QList<TimeLine> timeLines;
         switch (pc->parcelType) {
             case ParcelConnectivity::PARCEL_TYPE_INVALID:
                 break;
             case ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES:
                 pc->chartingDataManager->loadAverageChartForSurfaceNodes(pc->surface,
-                                                                         nodeIndices,
-                                                                         true,  // only files with charting enabled
-                                                                         timeLines);
+                                                                         nodeIndices);
                 break;
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
                 break;
@@ -1457,11 +1454,8 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
             
             const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
             ChartingDataManager* chartingDataManager = borderID->getBrain()->getChartingDataManager();
-            QList<TimeLine> timeLines;
             chartingDataManager->loadAverageChartForSurfaceNodes(surface,
-                                                                 nodeIndices,
-                                                                 true,  // only files with charting enabled
-                                                                 timeLines);
+                                                                 nodeIndices);
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
         catch (const DataFileException& e) {

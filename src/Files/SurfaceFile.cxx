@@ -1206,23 +1206,6 @@ CaretPointer<const CaretPointLocator> SurfaceFile::getPointLocator() const
 }
 
 /**
- * @populates timeline with surface coordinates and structure information
- */
-void
-SurfaceFile::getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const
-{
-    float point[3] = {0.0, 0.0, 0.0};
-    this->getCoordinate(nodeIndex,point);
-    AString structure = StructureEnum::toGuiName(this->getStructure());
-    AString label = structure + ":[" + AString::fromNumbers(point,3,AString(", ")) + "]";
-    for(int i = 0;i<3;i++) tl.point[i] = point[i];
-    tl.label = label;
-    
-    tl.surfaceNumberOfNodes = getNumberOfNodes();
-    tl.structure = getStructure();
-}
-
-/**
  * @return Information about the surface.
  */
 AString 

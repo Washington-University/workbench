@@ -48,7 +48,6 @@ CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 ConnectivityDataLoaded.h
 DataFileTypeEnum.h
-EventCiftiMappableDataFileColoringUpdated.h
 EventGetDisplayedDataFiles.h
 EventPaletteGetByName.h
 EventSurfaceColoringInvalidate.h
@@ -102,7 +101,6 @@ SurfaceProjectorException.h
 SurfaceResamplingHelper.h
 SurfaceResamplingMethodEnum.h
 SurfaceTypeEnum.h
-TimeLine.h
 TextFile.h
 TopologyHelper.h
 VolumeFile.h
@@ -140,7 +138,6 @@ CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 ConnectivityDataLoaded.cxx
 DataFileTypeEnum.cxx
-EventCiftiMappableDataFileColoringUpdated.cxx
 EventGetDisplayedDataFiles.cxx
 EventPaletteGetByName.cxx
 EventSurfaceColoringInvalidate.cxx
@@ -195,7 +192,6 @@ SurfaceResamplingHelper.cxx
 SurfaceResamplingMethodEnum.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
-TimeLine.cxx
 TopologyHelper.cxx
 VolumeFile.cxx
 VolumeFileVoxelColorizer.cxx

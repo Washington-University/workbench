@@ -49,7 +49,6 @@ ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
 ChartableMatrixFileSelectionViewController.h
-ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
 CustomViewDialog.h
@@ -94,7 +93,6 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
-Table.h
 TileTabsConfigurationDialog.h
 UserInputModeBordersWidget.h
 UserInputModeFociWidget.h
@@ -155,7 +153,6 @@ ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
 ChartableMatrixFileSelectionViewController.h
-ChartingDialog.h
 CiftiConnectivityMatrixViewController.h
 ColorEditorWidget.h
 CursorDisplayScoped.h
@@ -220,7 +217,6 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfacePropertiesEditorDialog.h
 SurfaceSelectionViewController.h
-Table.h
 TileTabsConfigurationDialog.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
@@ -279,7 +275,6 @@ ChartHistoryViewController.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
 ChartableMatrixFileSelectionViewController.cxx
-ChartingDialog.cxx
 CiftiConnectivityMatrixViewController.cxx
 ColorEditorWidget.cxx
 CursorDisplayScoped.cxx
@@ -343,7 +338,6 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfacePropertiesEditorDialog.cxx
 SurfaceSelectionViewController.cxx
-Table.cxx
 TileTabsConfigurationDialog.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
@@ -379,9 +373,7 @@ WuQtUtilities.cxx
 )
 
 SET(FORMS
-    ChartingDialog.ui
-    MovieDialog.ui
-	Table.ui)
+    MovieDialog.ui)
 
 
 #

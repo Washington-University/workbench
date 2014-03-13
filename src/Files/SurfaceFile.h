@@ -36,7 +36,6 @@
 #include "EventListenerInterface.h"
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
-#include "TimeLine.h"
 
 namespace caret {
 
@@ -173,8 +172,6 @@ namespace caret {
         
         void setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
                                               const float* rgbaNodeColorComponents);
-
-        void getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const;
 
         void invalidateNormals();
         

@@ -74,8 +74,6 @@ ModelChart::ModelChart(Brain* brain)
     
     
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED);
-    EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_NODE_IDENTIFICATION_COLORS_GET_FROM_CHARTS);
 }
 

@@ -225,10 +225,6 @@ EventTypeEnum::initialize()
                                      "EVENT_UPDATE_YOKED_WINDOWS",
                                      "Update yoked windows graphics and toolbar"));
 
-    enumData.push_back(EventTypeEnum(EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED,
-                                     "EVENT_CIFTI_MAPPABLE_DATA_FILE_COLORING_UPDATED",
-                                     "Cifti mappable data file's coloring has changed"));
-    
     enumData.push_back(EventTypeEnum(EVENT_COUNT,
                                     "EVENT_COUNT", 
                                     "Count of events"));

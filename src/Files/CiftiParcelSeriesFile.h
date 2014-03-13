@@ -40,8 +40,6 @@
 
 namespace caret {
 
-    class TimeLine;
-    
     class CiftiParcelSeriesFile : public CiftiMappableDataFile, public ChartableBrainordinateInterface {
         
     public:
@@ -66,27 +64,12 @@ namespace caret {
         
         virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
-        virtual bool loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
-                                                     const std::vector<int32_t>& nodeIndices,
-                                                     TimeLine& timeLineOut) throw (DataFileException);
-        
-        virtual bool loadChartForSurfaceNode(const StructureEnum::Enum structure,
-                                             const int32_t nodeIndex,
-                                             TimeLine& timeLineOut) throw (DataFileException);
-        
-        virtual bool loadChartForVoxelAtCoordinate(const float xyz[3],
-                                                   TimeLine& timeLineOut) throw (DataFileException);
-        
         virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         virtual CaretMappableDataFile* getCaretMappableDataFile();
         
         virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
 
-        virtual ChartTypeEnum::Enum getDefaultChartType() const;
-
-        virtual void getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const;
-        
     private:
         CiftiParcelSeriesFile(const CiftiParcelSeriesFile&);
 

@@ -46,7 +46,6 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "ChartingDataManager.h"
-#include "ChartingDialog.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CursorDisplayScoped.h"
@@ -1452,29 +1451,6 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
 //    this->connectomeDatabaseWebView->activateWindow();
 }
 
-ChartingDialog * GuiManager::getChartingDialog(ChartableBrainordinateInterface *id)
-{
-    if(chartingDialogs.contains(id)) return chartingDialogs.value(id);
-    BrainBrowserWindow* browserWindow = NULL;
-
-    for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
-        if (m_brainBrowserWindows[i] != NULL && m_brainBrowserWindows[i]->isVisible()) {
-            if (m_brainBrowserWindows[i] != NULL) {
-                browserWindow = m_brainBrowserWindows[i];
-                break;
-            }
-        }
-    }
-
-    if(browserWindow == NULL) return NULL;//not the best error checking but at least it
-    //won't crash
-    if (this->chartingDialogs[id] == NULL) {
-        this->chartingDialogs.insert(id, new ChartingDialog(browserWindow));
-        this->nonModalDialogs.push_back(this->chartingDialogs[id]);
-    }
-    return this->chartingDialogs[id];
-}
-
 /**
  * sets animation start time for Time Course Dialogs
  */
@@ -1756,36 +1732,6 @@ GuiManager::getNameOfDataFileToOpenAfterStartup() const
     return m_nameOfDataFileToOpenAfterStartup;
 }
 
-// NOTE: This function will go away, and will be replaced with updateDialog event listeners on the matrix view GUI
-#include <ChartableBrainordinateInterface.h>
-#include <CiftiMappableConnectivityMatrixDataFile.h>
-void
-GuiManager::updateMatrixViewDialogs()
-{
-	Brain *brain = GuiManager::get()->getBrain();
-	std::vector<ChartableBrainordinateInterface *> chartableFiles;
-	brain->getAllChartableBrainordinateDataFiles(chartableFiles);		
-
-	for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartableFiles.begin();
-		iter != chartableFiles.end();
-		iter++) 
-	{
-		ChartableBrainordinateInterface *ci = *iter;
-		if(ci->getDefaultChartType() != ChartTypeEnum::MATRIX) continue;
-		CiftiMappableConnectivityMatrixDataFile* cmdf = static_cast<CiftiMappableConnectivityMatrixDataFile*>((ci->getCaretMappableDataFile()));
-		if(cmdf == NULL) continue;
-
-		if (cmdf->isEmpty() == false) {
-			int64_t rowIndex = cmdf->getRowLoadedIndex();
-			QTableView *table = GuiManager::get()->getChartingDialog(ci)->getMatrixTableView();
-			if(table == NULL) continue;
-			table->blockSignals(true);
-			table->selectRow(rowIndex);
-			table->update();
-			table->blockSignals(false);
-		}
-	}	
-}
 /**
  * Process identification after item(s) selected using a selection manager.
  *
@@ -1886,11 +1832,8 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                                                                         surface,
                                                                         nodeIndex,
                                                                         ciftiLoadingInfo);
-                    QList<TimeLine> timeLines;
                     chartingDataManager->loadChartForSurfaceNode(surface,
-                                                                 nodeIndex,
-                                                                 true, // only charting enabled files
-                                                                 timeLines);
+                                                                 nodeIndex);
                     updateGraphicsFlag = true;
                 }
                 catch (const DataFileException& e) {
@@ -1937,10 +1880,7 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                     cursor.showWaitCursor();
                 }
                 try {
-                    QList<TimeLine> timeLines;
-                    chartingDataManager->loadChartForVoxelAtCoordinate(xyz,
-                                                                       true, // only charting enabled files
-                                                                       timeLines);
+                    chartingDataManager->loadChartForVoxelAtCoordinate(xyz);
                 }
                 catch (const DataFileException& e) {
                     cursor.restoreCursor();
@@ -2060,7 +2000,6 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
     }
     
     if (updateGraphicsFlag) {
-		updateMatrixViewDialogs();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());

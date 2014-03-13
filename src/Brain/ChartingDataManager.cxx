@@ -37,7 +37,6 @@
 #undef __CHARTING_DATA_MANAGER_DECLARE__
 
 #include "Brain.h"
-#include "ChartableBrainordinateInterface.h"
 #include "CaretAssert.h"
 #include "ModelChart.h"
 #include "SurfaceFile.h"
@@ -76,20 +75,10 @@ ChartingDataManager::~ChartingDataManager()
  *     The surface file
  * @param nodeIndices
  *     Indices of nodes whose chart data is averaged
- * @param requireChartingEnableInFiles
- *     If true, only files that have charting enabled have charts loaded.
- *     If false, charts are loaded from all files regardless of charting 
- *     enabled status.
- * @param timeLinesOut
- *     Will contain any newly created charts upon exit.
- * @return
- *     True if chart data was loaded, else false.
  */
 void
 ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceFile,
-                                                     const std::vector<int32_t>& nodeIndices,
-                                                     const bool requireChartingEnableInFiles,
-                                                     QList<TimeLine>& timeLinesOut) const throw (DataFileException)
+                                                     const std::vector<int32_t>& nodeIndices) const throw (DataFileException)
 {
     CaretAssert(surfaceFile);
     
@@ -97,30 +86,6 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
     modelChart->loadAverageChartDataForSurfaceNodes(surfaceFile->getStructure(),
                                                     surfaceFile->getNumberOfNodes(),
                                                     nodeIndices);
-    
-    timeLinesOut.clear();
-    
-    std::vector<ChartableBrainordinateInterface*> chartFiles;
-    if (requireChartingEnableInFiles) {
-        m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
-    }
-    else {
-        m_brain->getAllChartableBrainordinateDataFiles(chartFiles);
-    }
-    
-    const StructureEnum::Enum structure = surfaceFile->getStructure();
-    
-    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
-         fileIter != chartFiles.end();
-         fileIter++) {
-        ChartableBrainordinateInterface* chartFile = *fileIter;
-        TimeLine timeLine;
-        if (chartFile->loadAverageChartForSurfaceNodes(structure,
-                                                       nodeIndices,
-                                                       timeLine)) {
-            timeLinesOut.push_back(timeLine);
-        }
-    }
 }
 
 /**
@@ -130,18 +95,10 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
  *     The surface file
  * @param nodeIndex
  *     Index of node.
- * @param requireChartingEnableInFiles
- *     If true, only files that have charting enabled have charts loaded.
- *     If false, charts are loaded from all files regardless of charting
- *     enabled status.
- * @param timeLinesOut
- *     Will contain any newly created charts upon exit.
  */
 void
 ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
-                                             const int32_t nodeIndex,
-                                             const bool requireChartingEnableInFiles,
-                                             QList<TimeLine>& timeLinesOut) const throw (DataFileException)
+                                             const int32_t nodeIndex) const throw (DataFileException)
 {
     CaretAssert(surfaceFile);
     
@@ -149,31 +106,6 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
     modelChart->loadChartDataForSurfaceNode(surfaceFile->getStructure(),
                                             surfaceFile->getNumberOfNodes(),
                                             nodeIndex);
-    
-    timeLinesOut.clear();
-    
-    std::vector<ChartableBrainordinateInterface*> chartFiles;
-    if (requireChartingEnableInFiles) {
-        m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
-    }
-    else {
-        m_brain->getAllChartableBrainordinateDataFiles(chartFiles);
-    }
-    
-    const StructureEnum::Enum structure = surfaceFile->getStructure();
-    
-    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
-         fileIter != chartFiles.end();
-         fileIter++) {
-
-        ChartableBrainordinateInterface* chartFile = *fileIter;
-        TimeLine timeLine;
-        if (chartFile->loadChartForSurfaceNode(structure,
-                                               nodeIndex,
-                                               timeLine)) {
-            timeLinesOut.push_back(timeLine);
-        }
-    }
 }
 
 /**
@@ -181,42 +113,12 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
  *
  * @param xyz
  *     Coordinate of voxel.
- * @param requireChartingEnableInFiles
- *     If true, only files that have charting enabled have charts loaded.
- *     If false, charts are loaded from all files regardless of charting
- *     enabled status.
- * @param timeLinesOut
- *     Will contain any newly created charts upon exit.
- * @return
- *     True if chart data was loaded, else false.
  */
 void
-ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3],
-                                                   const bool requireChartingEnableInFiles,
-                                                   QList<TimeLine>& timeLinesOut) const throw (DataFileException)
+ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3]) const throw (DataFileException)
 {
     ModelChart* modelChart = m_brain->getChartModel();
     modelChart->loadChartDataForVoxelAtCoordinate(xyz);
-    
-    timeLinesOut.clear();
-    
-    std::vector<ChartableBrainordinateInterface*> chartFiles;
-    if (requireChartingEnableInFiles) {
-        m_brain->getAllChartableBrainordinateDataFilesWithChartingEnabled(chartFiles);
-    }
-    else {
-        m_brain->getAllChartableBrainordinateDataFiles(chartFiles);
-    }
-    
-    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = chartFiles.begin();
-         fileIter != chartFiles.end();
-         fileIter++) {
-        ChartableBrainordinateInterface* chartFile = *fileIter;
-        TimeLine timeLine;
-        if (chartFile->loadChartForVoxelAtCoordinate(xyz, timeLine)) {
-            timeLinesOut.push_back(timeLine);
-        }
-    }
 }
 
 /**

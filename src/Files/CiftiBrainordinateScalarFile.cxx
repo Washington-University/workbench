@@ -41,13 +41,11 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
-#include "ChartTypeEnum.h"
 #include "CiftiFile.h"
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
-#include "TimeLine.h"
 
 using namespace caret;
 
@@ -214,18 +212,6 @@ CiftiBrainordinateScalarFile::isChartingSupported() const
     return false;
 }
 
-
-ChartTypeEnum::Enum CiftiBrainordinateScalarFile::getDefaultChartType() const
-{
-    return ChartTypeEnum::PLOT2D;
-}
-
-void CiftiBrainordinateScalarFile::getSupportedChartTypes(std::vector<ChartTypeEnum::Enum> &list) const
-{
-    list.clear();
-    list.push_back(ChartTypeEnum::PLOT2D);    
-}
-
 /**
  * Set charting enabled for this file.
  *
@@ -275,77 +261,6 @@ CiftiBrainordinateScalarFile::getSupportedChartDataTypes(std::vector<ChartDataTy
             chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
             break;
     }
-}
-
-/**
- * Load the average of chart data for a group of surface nodes.
- * Note: This method will return a chart even if charting for
- * this file is disabled.
- *
- * @param structure
- *     The surface's structure
- * @param nodeIndices
- *     Indices of nodes whose chart data is averaged
- * @param timeLineOut
- *     Output charting data.
- * @return
- *     True if chart data is valid, else false.
- */
-bool
-CiftiBrainordinateScalarFile::loadAverageChartForSurfaceNodes(const StructureEnum::Enum structure,
-                                                                  const std::vector<int32_t>& nodeIndices,
-                                                                  TimeLine& timeLineOut) throw (DataFileException)
-{
-    std::vector<double> dataAverage;
-    double numValidNodes = 0.0;
-    
-    std::vector<float> data;
-    
-    const int64_t numNodeIndices = static_cast<int64_t>(nodeIndices.size());
-    for (int64_t iNode = 0; iNode < numNodeIndices; iNode++) {
-        if (getSeriesDataForSurfaceNode(structure,
-                                        nodeIndices[iNode],
-                                        data)) {
-            const int64_t numData = static_cast<int64_t>(data.size());
-            if (numData > 0) {
-                if (dataAverage.empty()) {
-                    dataAverage.resize(numData,
-                                       0.0);
-                }
-                
-                for (int64_t iData = 0; iData < numData; iData++) {
-                    dataAverage[iData] += data[iData];
-                }
-                numValidNodes += 1.0;
-            }
-        }
-    }
-    
-    if (numValidNodes > 0.0) {
-        const int64_t numData = static_cast<int64_t>(dataAverage.size());
-        for (int64_t i = 0; i < numData; i++) {
-            dataAverage[i] /= numValidNodes;
-        }
-        
-        timeLineOut.x.resize(numData);
-        timeLineOut.y.resize(numData);
-        for (int64_t i = 0; i < numData; i++) {
-            timeLineOut.x[i] = i;
-            timeLineOut.y[i] = dataAverage[i];
-        }
-        timeLineOut.nodeid = 0;
-        timeLineOut.type = AVERAGE;
-        timeLineOut.id = this;
-        timeLineOut.filename = getFileName();
-        
-        float start, step;
-        getMapIntervalStartAndStep(start, step);
-        timeLineOut.timeStep = step;
-        
-        return true;
-    }
-    
-    return false;
 }
 
 /**
@@ -440,90 +355,6 @@ CiftiBrainordinateScalarFile::loadChartDataForVoxelAtCoordinate(const float xyz[
 {
     ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
-}
-
-/**
- * Load chart data for a surface node
- * Note: This method will return a chart even if charting for
- * this file is disabled.
- *
- * @param structure
- *     The surface's structure
- * @param nodeIndex
- *     Index of node
- * @param timeLineOut
- *     Output charting data.
- * @return
- *     True if chart data is valid, else false.
- */
-bool
-CiftiBrainordinateScalarFile::loadChartForSurfaceNode(const StructureEnum::Enum structure,
-                                                          const int32_t nodeIndex,
-                                                          TimeLine& timeLineOut) throw (DataFileException)
-{
-    std::vector<float> data;
-    if (getSeriesDataForSurfaceNode(structure,
-                                    nodeIndex,
-                                    data)) {
-        const int64_t numData = static_cast<int64_t>(data.size());
-        timeLineOut.nodeid = nodeIndex;
-        timeLineOut.x.resize(numData);
-        timeLineOut.y.resize(numData);
-        for (int64_t i = 0; i < numData; i++) {
-            timeLineOut.x[i] = i;
-            timeLineOut.y[i] = data[i];
-        }
-        timeLineOut.id = this;
-        timeLineOut.filename = getFileName();
-        
-        float start, step;
-        getMapIntervalStartAndStep(start, step);
-        timeLineOut.timeStep = step;
-        
-        return true;
-    }
-    
-    return false;
-}
-
-/**
- * Load chart data for a voxel
- * Note: This method will return a chart even if charting for
- * this file is disabled.
- *
- * @param xyz
- *     Coordinate of voxel.
- * @param timeLineOut
- *     Output charting data.
- * @return
- *     True if chart data is valid, else false.
- */
-bool
-CiftiBrainordinateScalarFile::loadChartForVoxelAtCoordinate(const float xyz[3],
-                                                                TimeLine& timeLineOut) throw (DataFileException)
-{
-    std::vector<float> data;
-    if (getSeriesDataForVoxelAtCoordinate(xyz, data)) {
-        const int64_t numData = static_cast<int64_t>(data.size());
-        timeLineOut.x.resize(numData);
-        timeLineOut.y.resize(numData);
-        for (int64_t i = 0; i < numData; i++) {
-            timeLineOut.x[i] = i;
-            timeLineOut.y[i] = data[i];
-        }
-        timeLineOut.id = this;
-        timeLineOut.filename = getFileName();
-        
-        timeLineOut.label = "Voxel XYZ:[" + AString::fromNumbers(xyz,3,AString(", ")) + "]";
-        
-        float start, step;
-        getMapIntervalStartAndStep(start, step);
-        timeLineOut.timeStep = step;
-        
-        return true;
-    }
-    
-    return false;
 }
 
 /**

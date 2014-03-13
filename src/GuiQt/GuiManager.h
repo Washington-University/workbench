@@ -31,17 +31,14 @@
 #include <vector>
 #include <stdint.h>
 
-#include <QMap>
 #include <QObject>
 
 #include "EventListenerInterface.h"
-#include "ImageCaptureMethodEnum.h"
 #include "SceneableInterface.h"
 #include "WuQWebView.h"
 
 class QAction;
 class QDialog;
-class QWebView;
 class QWidget;
 class MovieDialog;
 namespace caret {
@@ -50,8 +47,6 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class BugReportDialog;
-    class ChartableBrainordinateInterface;
-    class ChartingDialog;
     class CursorManager;
     class CustomViewDialog;
     class ImageFile;
@@ -140,8 +135,7 @@ namespace caret {
         void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
         void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
         
-        ChartingDialog *getChartingDialog(ChartableBrainordinateInterface *id);
-        void updateAnimationStartTime(double value); 
+        void updateAnimationStartTime(double value);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -153,7 +147,6 @@ namespace caret {
 
         void processIdentification(SelectionManager* selectionManager,
                                    QWidget* parentWidget);
-		void updateMatrixViewDialogs();
         
     public slots:
         void processBringAllWindowsToFront();
@@ -244,8 +237,6 @@ namespace caret {
          * is reparented to a different BrainBrowserWindow.
          */
         std::vector<QWidget*> nonModalDialogs;
-        
-        QMap<ChartableBrainordinateInterface *,ChartingDialog *> chartingDialogs;
         
         /**
          * If Workbench is started by double-clicking a data file in
