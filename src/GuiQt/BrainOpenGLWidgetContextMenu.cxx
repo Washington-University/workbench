@@ -1452,7 +1452,6 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
                                                    this);
             progressDialog.setValue(0);
             
-            const bool showAllGraphs = enableDataSeriesGraphsIfNoneEnabled();
             ChartingDataManager* chartingDataManager = borderID->getBrain()->getChartingDataManager();
             chartingDataManager->loadAverageChartForSurfaceNodes(surface,
                                                                  nodeIndices);

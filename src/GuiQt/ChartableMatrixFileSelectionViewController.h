@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 #include <vector>
 
 #include "EventListenerInterface.h"
@@ -55,7 +56,7 @@ namespace caret {
 
     public:
         ChartableMatrixFileSelectionViewController(const int32_t browserWindowIndex,
-                                                   QObject* parent);
+                                                   QWidget* parent);
         
         virtual ~ChartableMatrixFileSelectionViewController();
 

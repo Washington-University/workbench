@@ -66,7 +66,7 @@ using namespace caret;
  *    Parent of this object.
  */
 ChartableMatrixFileSelectionViewController::ChartableMatrixFileSelectionViewController(const int32_t browserWindowIndex,
-                                                                                       QObject* parent)
+                                                                                       QWidget* parent)
 : WuQWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
