@@ -1716,37 +1716,6 @@ Matrix4x4::invert()
     }
 }
 
-/* ---------------------------------------------------------------------------
- *  Matrix Calculator - Java Application Version
- *  Original Date: October 1997
- *  Updated Swing GUI: June 2002
- *
- *  Version      : $Revision: 1.6 $
- *  Last Modified: $Date: 2005/06/30 06:28:10 $
- *
- *  Author: Marcus Kazmierczak
- *          marcus@mkaz.com
- *          http://www.mkaz.com/math/
- *
- *  Copyright (c) 1997-2002 mkaz.com
- *  Published under a BSD Open Source License
- *  More Info: http://mkaz.com/software/mklicense.html
- *
- *  Edited by Pierre Seguin on june 30, 2005
- *  seguin_pierre@yahoo.ca
- *
- *  ---------------------------------------------------------------------------
- *
-void
-Matrix4x4::Transpose(double matrix[4][4])
-{
-    for (int i = 0; i < a.length; i++)
-        for (int j = 0; j < a[i].length; j++)
-            output[j][i] = input[i][j];
-        }
-    }
-}
-*/
 /**
  * Inverse from VTK
  */
@@ -1786,6 +1755,9 @@ Matrix4x4::Inverse(const double a[4][4], double matrixOut[4][4]) const
     return true;
 }
 
+/**
+ * Adjoint from vtkMatrix4x4::Adjoint
+ */
 void
 Matrix4x4::Adjoint(const double inputMatrix[4][4], double outputMatrix[4][4]) const
 {
@@ -1864,146 +1836,9 @@ Matrix4x4::Adjoint(const double inputMatrix[4][4], double outputMatrix[4][4]) co
     Matrix4x4::Determinant3x3( a1, a2, a3, b1, b2, b3, c1, c2, c3);
 }
 
-void
-Matrix4x4::UpperTriangle3(const double inputMatrix[3][3], double outputMatrix[3][3]) const
-{
-    double f1 = 0;
-    double temp = 0;
-    int tms = 3; //m.length; // get This Matrix Size (could be smaller than
-    // global)
-    int v = 1;
-    
-    int iDF = 1;
-    
-    double m[3][3];
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            m[i][j] = inputMatrix[i][j];
-        }
-    }
-    
-    for (int col = 0; col < tms - 1; col++) {
-        for (int row = col + 1; row < tms; row++) {
-            v = 1;
-            
-outahere: while (m[col][col] == 0) // check if 0 in diagonal
-            { // if so switch until not
-                if (col + v >= tms) // check if switched all rows
-                {
-                    iDF = 0;
-                    goto outahere;
-                } else {
-                    for (int c = 0; c < tms; c++) {
-                        temp = m[col][c];
-                        m[col][c] = m[col + v][c]; // switch rows
-                        m[col + v][c] = temp;
-                    }
-                    v++; // count row switchs
-                    iDF = iDF * -1; // each switch changes determinant
-                    // factor
-                }
-            }
-            
-            if (m[col][col] != 0) {
-                /*
-                if (DEBUG) {
-                    System.out.println("tms = " + tms + "   col = " + col
-                                       + "   row = " + row);
-                }
-                */
-                
-                double bottom = m[col][col];
-                if (bottom != 0.0) {
-                    f1 = (-1) * m[row][col] / m[col][col];
-                    for (int i = col; i < tms; i++) {
-                        m[row][i] = f1 * m[col][i] + m[row][i];
-                    }
-                }
-                else {
-                    // std::cout << "Still Here!!!" std::endl;
-                }
-                
-            }
-            
-        }
-    }
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            outputMatrix[i][j] = m[i][j];
-        }
-    }
-}
-
-void
-Matrix4x4::UpperTriangle4(const double inputMatrix[4][4], double outputMatrix[4][4]) const
-{
-    double f1 = 0;
-    double temp = 0;
-    int tms = 4; //m.length; // get This Matrix Size (could be smaller than
-    // global)
-    int v = 1;
-    
-    int iDF = 1;
-    
-    double m[4][4];
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            m[i][j] = inputMatrix[i][j];
-        }
-    }
-    
-    for (int col = 0; col < tms - 1; col++) {
-        for (int row = col + 1; row < tms; row++) {
-            v = 1;
-            
-outahere: while (m[col][col] == 0) // check if 0 in diagonal
-            { // if so switch until not
-                if (col + v >= tms) // check if switched all rows
-                {
-                    iDF = 0;
-                    goto outahere;
-                } else {
-                    for (int c = 0; c < tms; c++) {
-                        temp = m[col][c];
-                        m[col][c] = m[col + v][c]; // switch rows
-                        m[col + v][c] = temp;
-                    }
-                    v++; // count row switchs
-                    iDF = iDF * -1; // each switch changes determinant
-                    // factor
-                }
-            }
-            
-            if (m[col][col] != 0) {
-                /*
-                 if (DEBUG) {
-                 System.out.println("tms = " + tms + "   col = " + col
-                 + "   row = " + row);
-                 }
-                 */
-                
-                double bottom = m[col][col];
-                if (bottom != 0.0) {
-                    f1 = (-1) * m[row][col] / m[col][col];
-                    for (int i = col; i < tms; i++) {
-                        m[row][i] = f1 * m[col][i] + m[row][i];
-                    }
-                }
-                else {
-                    // std::cout << "Still Here!!!" std::endl;
-                }
-                
-            }
-            
-        }
-    }
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            outputMatrix[i][j] = m[i][j];
-        }
-    }
-}
-
+/**
+ * From vtkMatrix4x4::Determinant
+ */
 double
 Matrix4x4::Determinant4x4(const double matrixIn[4][4]) const
 {
@@ -2046,37 +1881,6 @@ Matrix4x4::Determinant2x2(double a, double b, double c, double d)
 {
     return (a * d - b * c);
 };
-
-double
-Matrix4x4::Determinant3(const double matrixIn[3][3]) const
-{
-    //    if (INFO) {
-    //        System.out.println("Getting Determinant...");
-    //    }
-    double matrix[3][3];
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            matrix[i][j] = matrixIn[i][j];
-        }
-    }
-    int tms = 3; //matrix.length;
-    
-    double det = 1;
-    
-    double uppTriMatrix[3][3];
-    UpperTriangle3(matrix, uppTriMatrix);
-    
-    for (int i = 0; i < tms; i++) {
-        det = det * uppTriMatrix[i][i];
-    } // multiply down diagonal
-    
-    det = det * iDF; // adjust w/ determinant factor
-    
-    //    if (INFO) {
-    //        System.out.println("Determinant: " + det);
-    //    }
-    return det;
-}
 
 double
 Matrix4x4::Determinant3x3(double A[3][3])
