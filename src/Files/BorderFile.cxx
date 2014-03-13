@@ -339,6 +339,7 @@ BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                     borderPointOut = borderPoint;
                     borderPointIndexOut = pointIndex;
                     distanceToNearestPointOut = distanceToPoint;
+                    nearestDistance = distanceToPoint;
                 }
             }
         }
