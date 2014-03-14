@@ -104,11 +104,21 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     m_connectivityDataLoaded->reset();
 }
 
-int64_t
-CiftiMappableConnectivityMatrixDataFile::getRowLoadedIndex() const
+/**
+ * @return Pointer to the information about last loaded connectivity data.
+ */
+const ConnectivityDataLoaded*
+CiftiMappableConnectivityMatrixDataFile::getConnectivityDataLoaded() const
 {
-	return m_selectionIndex;
+    return m_connectivityDataLoaded;
 }
+
+
+//int64_t
+//CiftiMappableConnectivityMatrixDataFile::getRowLoadedIndex() const
+//{
+//	return m_selectionIndex;
+//}
 
 
 
@@ -458,6 +468,7 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
                                      rowIndex);
             
             CaretLogFine("Read row " + AString::number(rowIndex));
+            m_connectivityDataLoaded->setRowLoading(rowIndex);
         }
         else {
             throw DataFileException("Row "
@@ -473,7 +484,6 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
 
-    m_connectivityDataLoaded->setRowLoading(rowIndex);
 }
 
 /**
@@ -544,24 +554,27 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                 
                 CaretLogFine("Read row for node " + AString::number(nodeIndex));
                 
+                m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
+                                                                surfaceNumberOfNodes,
+                                                                nodeIndex,
+                                                                rowIndex);
                 dataWasLoaded = true;
             }
         }
         
         if (dataWasLoaded == false) {
             CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+            m_connectivityDataLoaded->reset();
         }
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
+        m_connectivityDataLoaded->reset();
     }
     
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
     
-    m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
-                                                    surfaceNumberOfNodes,
-                                                    nodeIndex);
     return (m_selectionIndex = rowIndex);
 }
 
@@ -784,9 +797,11 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
         CaretAssertVectorIndex(m_mapContent, 0);
         m_mapContent[0]->invalidateColoring();
 
-        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-                                                               surfaceNumberOfNodes,
-                                                               nodeIndices);
+        if (dataWasLoaded) {
+            m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                                   surfaceNumberOfNodes,
+                                                                   nodeIndices);
+        }
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
@@ -877,7 +892,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
         CaretAssertVectorIndex(m_mapContent, mapIndex);
         m_mapContent[mapIndex]->invalidateColoring();
         
-        m_connectivityDataLoaded->setVolumeXYZLoading(xyz);
+        m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
+                                                      rowIndex);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
@@ -1139,9 +1155,11 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
             StructureEnum::Enum structure;
             int32_t surfaceNumberOfNodes;
             int32_t surfaceNodeIndex;
+            int64_t rowIndex;
             m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
                                                             surfaceNumberOfNodes,
-                                                            surfaceNodeIndex);
+                                                            surfaceNodeIndex,
+                                                            rowIndex);
             loadMapDataForSurfaceNode(mapIndex,
                                       surfaceNumberOfNodes,
                                       structure,
@@ -1165,7 +1183,9 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
         case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
         {
             float volumeXYZ[3];
-            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ);
+            int64_t rowIndex;
+            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
+                                                          rowIndex);
             loadMapDataForVoxelAtCoordinate(mapIndex, volumeXYZ);
         }
             break;

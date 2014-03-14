@@ -1093,9 +1093,11 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
         
         m_connectivityDataLoaded->setSurfaceNodeLoading(structure,
                                                         surfaceNumberOfNodes,
-                                                        nodeIndex);
+                                                        nodeIndex,
+                                                        rowIndex);
     }
     else {
+        m_connectivityDataLoaded->reset();
         return -1;
     }
     
@@ -1284,6 +1286,8 @@ CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIn
 int64_t
 CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
+    m_connectivityDataLoaded->reset();
+    
     switch (m_fiberTrajectoryFileType) {
         case FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE:
             break;
@@ -1348,7 +1352,8 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
                                              + ", Structure: ");
         m_loadedDataDescriptionForFileCopy = ("Row_"
                                               + AString::number(rowIndex));
-        m_connectivityDataLoaded->setVolumeXYZLoading(xyz);
+        m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
+                                                      rowIndex);
     }
     else {
         return -1;
@@ -1508,9 +1513,11 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
             StructureEnum::Enum structure;
             int32_t surfaceNumberOfNodes;
             int32_t surfaceNodeIndex;
+            int64_t rowIndex;
             m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
                                                             surfaceNumberOfNodes,
-                                                            surfaceNodeIndex);
+                                                            surfaceNodeIndex,
+                                                            rowIndex);
             loadDataForSurfaceNode(structure,
                                    surfaceNumberOfNodes,
                                    surfaceNodeIndex);
@@ -1532,7 +1539,9 @@ CiftiFiberTrajectoryFile::finishRestorationOfScene() throw (DataFileException)
         case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
         {
             float volumeXYZ[3];
-            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ);
+            int64_t rowIndex;
+            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
+                                                          rowIndex);
             CaretAssert(0); // NEED TO IMPLEMENT
         }
             break;

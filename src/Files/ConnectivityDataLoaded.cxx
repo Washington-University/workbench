@@ -135,11 +135,14 @@ ConnectivityDataLoaded::setRowLoading(const int64_t rowIndex)
  *    Number of nodes in surface.
  * @param surfaceNodeIndex
  *    Index of the surface node.
+ * @param rowIndex
+ *    Index of row corresponding to the surface node.
  */
 void
 ConnectivityDataLoaded::getSurfaceNodeLoading(StructureEnum::Enum& structure,
                                               int32_t& surfaceNumberOfNodes,
-                                              int32_t& surfaceNodeIndex) const
+                                              int32_t& surfaceNodeIndex,
+                                              int64_t& rowIndex) const
 {
     structure = m_surfaceStructure;
     surfaceNumberOfNodes = m_surfaceNumberOfNodes;
@@ -149,6 +152,7 @@ ConnectivityDataLoaded::getSurfaceNodeLoading(StructureEnum::Enum& structure,
     else {
         surfaceNodeIndex = -1;
     }
+    rowIndex = m_rowIndex;
 }
 
 /**
@@ -160,11 +164,14 @@ ConnectivityDataLoaded::getSurfaceNodeLoading(StructureEnum::Enum& structure,
  *    Number of nodes in surface.
  * @param surfaceNodeIndex
  *    Index of the surface node.
+ * @param rowIndex
+ *    Index of row corresponding to the surface node.
  */
 void
 ConnectivityDataLoaded::setSurfaceNodeLoading(const StructureEnum::Enum structure,
                                               const int32_t surfaceNumberOfNodes,
-                                              const int32_t surfaceNodeIndex)
+                                              const int32_t surfaceNodeIndex,
+                                              const int64_t rowIndex)
 {
     reset();
     
@@ -172,6 +179,7 @@ ConnectivityDataLoaded::setSurfaceNodeLoading(const StructureEnum::Enum structur
     m_surfaceStructure = structure;
     m_surfaceNumberOfNodes = surfaceNumberOfNodes;
     m_surfaceNodeIndices.push_back(surfaceNodeIndex);
+    m_rowIndex = rowIndex;
 }
 
 /**
@@ -215,6 +223,7 @@ ConnectivityDataLoaded::setSurfaceAverageNodeLoading(const StructureEnum::Enum s
     m_surfaceStructure = structure;
     m_surfaceNumberOfNodes = surfaceNumberOfNodes;
     m_surfaceNodeIndices = surfaceNodeIndices;
+    m_rowIndex = -1;
 }
 
 /**
@@ -222,13 +231,17 @@ ConnectivityDataLoaded::setSurfaceAverageNodeLoading(const StructureEnum::Enum s
  *
  * @param volumeXYZ
  *    Coordinate of location.
+ * @param rowIndex
+ *    Index of row corresponding to the voxel.
  */
 void
-ConnectivityDataLoaded::getVolumeXYZLoading(float volumeXYZ[3]) const
+ConnectivityDataLoaded::getVolumeXYZLoading(float volumeXYZ[3],
+                                            int64_t& rowIndex) const
 {
     volumeXYZ[0] = m_volumeXYZ[0];
     volumeXYZ[1] = m_volumeXYZ[1];
     volumeXYZ[2] = m_volumeXYZ[2];
+    rowIndex = m_rowIndex;
 }
 
 void setVolumeXYZLoading(const float volumeXYZ[3]);
@@ -238,8 +251,11 @@ void setVolumeXYZLoading(const float volumeXYZ[3]);
  *
  * @param volumeXYZ
  *    Coordinate of location.
+ * @param rowIndex
+ *    Index of row corresponding to the voxel.
  */
-void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3])
+void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3],
+                                                 const int64_t rowIndex)
 {
     reset();
     
@@ -247,6 +263,7 @@ void ConnectivityDataLoaded::setVolumeXYZLoading(const float volumeXYZ[3])
     m_volumeXYZ[0] = volumeXYZ[0];
     m_volumeXYZ[1] = volumeXYZ[1];
     m_volumeXYZ[2] = volumeXYZ[2];
+    m_rowIndex = rowIndex;
 }
 
 /**
@@ -282,6 +299,7 @@ ConnectivityDataLoaded::setVolumeAverageVoxelLoading(const int64_t volumeDimensi
     m_volumeDimensionsIJK[2] = volumeDimensionsIJK[2];
     m_mode = MODE_VOXEL_IJK_AVERAGE;
     m_voxelIndices = voxelIndicesIJK;
+    m_rowIndex = -1;
 }
 
 

@@ -64,23 +64,27 @@ namespace caret {
         
         void getSurfaceNodeLoading(StructureEnum::Enum& structure,
                                    int32_t& surfaceNumberOfNodes,
-                                   int32_t& surfaceNodeIndex) const;
+                                   int32_t& surfaceNodeIndex,
+                                   int64_t& rowIndex) const;
         
         void setSurfaceNodeLoading(const StructureEnum::Enum structure,
                                    const int32_t surfaceNumberOfNodes,
-                                   const int32_t surfaceNodeIndex);
+                                   const int32_t surfaceNodeIndex,
+                                   const int64_t rowIndex);
         
         void getSurfaceAverageNodeLoading(StructureEnum::Enum& structure,
                                    int32_t& surfaceNumberOfNode,
-                                   std::vector<int32_t>& surfaceNodeIndices) const;
+                                          std::vector<int32_t>& surfaceNodeIndices) const;
         
         void setSurfaceAverageNodeLoading(const StructureEnum::Enum structure,
                                           const int32_t surfaceNumberOfNodes,
                                           const std::vector<int32_t>& surfaceNodeIndices);
         
-        void getVolumeXYZLoading(float volumeXYZ[3]) const;
+        void getVolumeXYZLoading(float volumeXYZ[3],
+                                 int64_t& rowIndex) const;
         
-        void setVolumeXYZLoading(const float volumeXYZ[3]);
+        void setVolumeXYZLoading(const float volumeXYZ[3],
+                                 const int64_t rowIndex);
         
         void getVolumeAverageVoxelLoading(int64_t volumeDimensionsIJK[3],
                                           std::vector<VoxelIJK>& voxelIndicesIJK) const;

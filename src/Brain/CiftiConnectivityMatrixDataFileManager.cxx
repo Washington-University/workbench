@@ -25,6 +25,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -60,6 +61,41 @@ CiftiConnectivityMatrixDataFileManager::CiftiConnectivityMatrixDataFileManager()
 CiftiConnectivityMatrixDataFileManager::~CiftiConnectivityMatrixDataFileManager()
 {
 }
+
+/**
+ * Load row from the given parcel file.
+ *
+ * @param brain
+ *    Brain for which data is loaded.
+ * @param parcelFile
+ *    The parcel file.
+ * @param rowIndex
+ *    Index of the row.
+ * @param rowColumnInformationOut
+ *    Appends one string for each row/column loaded
+ * @return
+ *    true if success, else false.
+ */
+bool
+CiftiConnectivityMatrixDataFileManager::loadRowFromParcelFile(Brain* brain,
+                                                              CiftiConnectivityMatrixParcelFile* parcelFile,
+                                                              const int32_t rowIndex,
+                                                              std::vector<AString>& rowColumnInformationOut) throw (DataFileException)
+{
+    CaretAssert(parcelFile);
+    parcelFile->loadDataForRowIndex(rowIndex);
+
+    PaletteFile* paletteFile = brain->getPaletteFile();
+    const int32_t mapIndex = 0;
+    parcelFile->updateScalarColoringForMap(mapIndex,
+                                    paletteFile);
+    
+    rowColumnInformationOut.push_back(parcelFile->getFileNameNoPath()
+                                      + " row index= "
+                                      + AString::number(rowIndex));
+    return true;
+}
+
 
 /**
  * Load data for the given surface node index.

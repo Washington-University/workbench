@@ -44,6 +44,7 @@
 #include "ChartingDataManager.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
@@ -75,6 +76,7 @@
 #include "SceneDialog.h"
 #include "SceneWindowGeometry.h"
 #include "SelectionManager.h"
+#include "SelectionItemChartMatrix.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemSurfaceNodeIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -1882,6 +1884,32 @@ GuiManager::processIdentification(SelectionManager* selectionManager,
                     cursor.restoreCursor();
                     QMessageBox::critical(parentWidget, "", e.whatString());
                     cursor.showWaitCursor();
+                }
+            }
+        }
+        
+        SelectionItemChartMatrix* idChartMatrix = selectionManager->getChartMatrixIdentification();
+        if (idChartMatrix->isValid()) {
+            ChartableMatrixInterface* chartMatrixInterface = idChartMatrix->getChartableMatrixInterface();
+            if (chartMatrixInterface != NULL) {
+                CiftiConnectivityMatrixParcelFile* ciftiParcelFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(chartMatrixInterface);
+                if (ciftiParcelFile != NULL) {
+                    const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
+                    if (rowIndex >= 0) {
+                        try {
+                            ciftiConnectivityManager->loadRowFromParcelFile(brain,
+                                                                            ciftiParcelFile,
+                                                                            rowIndex,
+                                                                            ciftiLoadingInfo);
+                            
+                        }
+                        catch (const DataFileException& e) {
+                            cursor.restoreCursor();
+                            QMessageBox::critical(parentWidget, "", e.whatString());
+                            cursor.showWaitCursor();
+                        }
+                        updateGraphicsFlag = true;
+                    }
                 }
             }
         }

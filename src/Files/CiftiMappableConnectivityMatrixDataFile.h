@@ -87,11 +87,13 @@ namespace caret {
 
         AString getRowLoadedText() const;
 
-		int64_t getRowLoadedIndex() const;
+		//int64_t getRowLoadedIndex() const;
 
         virtual void getMapData(const int32_t mapIndex, std::vector<float>& dataOut) const;
 
         bool loadMapData(const int32_t rowIndex) throw (DataFileException);
+        
+        const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
         
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);

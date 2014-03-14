@@ -832,6 +832,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const int32_t chart
     glEnd();
 }
 
+#include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "ConnectivityDataLoaded.h"
+
 /**
  * Draw graphics for the matrix chart..
  *
@@ -852,6 +855,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
     if (chartMatrixInterface->getMatrixDataRGBA(numberOfRows,
                                        numberOfColumns,
                                        matrixRGBA)) {
+        int64_t loadedRowIndex = -1;
+        CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(chartMatrixInterface);
+        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
+        if (connDataLoaded != NULL) {
+            connDataLoaded->getRowLoading(loadedRowIndex);
+        }
+        
         const float xMin = -1;
         const float xMax = numberOfColumns + 1;
         const float yMin = -1;
@@ -874,6 +884,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
         std::vector<uint8_t> quadVerticesByteRGBA;
         quadVerticesByteRGBA.reserve(numberOfRows * numberOfColumns * 4);
         
+        std::vector<float> loadedRowHighlightVerticesXYZ;
+        std::vector<float> loadedRowHighlightVerticesRGBA;
+        bool loadedRowDataValid = false;
+        
         float cellY = numberOfRows - 1;
         for (int32_t i = 0; i < numberOfRows; i++) {
             float cellX = 0;
@@ -884,7 +898,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                 
                 uint8_t idRGBA[4];
                 if (m_identificationModeFlag) {
-                    addToChartMatrixIdentification(i, j, idRGBA);
+                    addToChartMatrixIdentification(numberOfRows - i - 1, j, idRGBA);
                 }
                 
                 if (m_identificationModeFlag) {
@@ -950,8 +964,51 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                 quadVerticesXYZ.push_back(cellX);
                 quadVerticesXYZ.push_back(cellY + 1);
                 quadVerticesXYZ.push_back(0.0);
+                
                 
                 cellX += 1;
+            }
+            
+            if (! m_identificationModeFlag) {
+                if (cellY == loadedRowIndex) {
+                    loadedRowHighlightVerticesXYZ.push_back(0.0);
+                    loadedRowHighlightVerticesXYZ.push_back(cellY);
+                    loadedRowHighlightVerticesXYZ.push_back(0.0);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    
+                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns);
+                    loadedRowHighlightVerticesXYZ.push_back(cellY);
+                    loadedRowHighlightVerticesXYZ.push_back(0.0);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    
+                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns);
+                    loadedRowHighlightVerticesXYZ.push_back(cellY + 1);
+                    loadedRowHighlightVerticesXYZ.push_back(0.0);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    
+                    
+                    loadedRowHighlightVerticesXYZ.push_back(0.0);
+                    loadedRowHighlightVerticesXYZ.push_back(cellY + 1);
+                    loadedRowHighlightVerticesXYZ.push_back(0.0);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+
+                    CaretAssert(loadedRowHighlightVerticesXYZ.size() == 12);
+                    CaretAssert(loadedRowHighlightVerticesRGBA.size() == 16);
+                    
+                    loadedRowDataValid = true;
+                }
             }
             cellY -= 1;
         }
@@ -996,6 +1053,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                 outlineRGBA.push_back(m_foregroundColor[3]);
             }
             glPolygonMode(GL_FRONT, GL_LINE);
+            
             glLineWidth(1.0);
             glBegin(GL_QUADS);
             for (int32_t i = 0; i < numberQuadVertices; i++) {
@@ -1005,6 +1063,22 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                 glVertex3fv(&quadVerticesXYZ[i*3]);
             }
             glEnd();
+            
+            if (loadedRowDataValid) {
+                CaretAssert((loadedRowHighlightVerticesXYZ.size() / 3) == (loadedRowHighlightVerticesRGBA.size() / 4));
+                
+                const int32_t numberOfVertices = static_cast<int32_t>(loadedRowHighlightVerticesXYZ.size() / 3);
+                glLineWidth(3.0);
+                glBegin(GL_QUADS);
+                for (int32_t i = 0; i < numberOfVertices; i++) {
+                    CaretAssertVectorIndex(loadedRowHighlightVerticesRGBA, i*4 + 3);
+                    glColor4fv(&loadedRowHighlightVerticesRGBA[i*4]);
+                    CaretAssertVectorIndex(loadedRowHighlightVerticesXYZ, i*3 + 2);
+                    glVertex3fv(&loadedRowHighlightVerticesXYZ[i*3]);
+                }
+                glEnd();
+                glLineWidth(1.0);
+            }
             glPolygonMode(GL_FRONT, GL_FILL);
         }
     }
