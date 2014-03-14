@@ -93,6 +93,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         m_caching = caching;
         //Read CiftiHeader
         m_headerIO.readFile(fileName);
+        if (m_headerIO.getNiftiVersion() != 2) throw CiftiFileException("CIFTI files must be NIFTI-2 files");
         
         //read XML
         m_swapNeeded = m_headerIO.getSwapNeeded();

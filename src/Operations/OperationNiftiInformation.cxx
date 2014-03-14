@@ -67,7 +67,7 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     bool printXml = myParams->getOptionalParameter(4)->m_present;
     if (!printHeader && !printMatrix && !printXml) throw OperationException("you must specify a -print-* option");
     if(!QFile::exists(fileName)) throw OperationException("File '" + fileName + "' does not exist.");
-    if(!fileName.endsWith(".nii") && !fileName.endsWith(".nii.gz")) throw OperationException("File doesn't end with an expected extension, is this really a Nifti/Cifti file?");
+    if(!fileName.endsWith(".nii") && !fileName.endsWith(".nii.gz")) cout << "File doesn't end with an expected extension, is this really a Nifti/Cifti file?" << endl;
 
     bool validDataFileType = false;
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(fileName,
@@ -80,70 +80,50 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
             isCiftiFile = true;
         }
     }
-    if (isCiftiFile)
+    if(printHeader)
     {
-        CiftiFile cf(fileName, ON_DISK);
-        if(printHeader)
+        NiftiFile nf(fileName);
+        if(nf.getNiftiVersion()==1)
         {
-            CiftiHeader header;
-            cf.getHeader(header);
+            Nifti1Header header;
+            nf.getHeader(header);
             AString headerString;
             header.getHeaderAsString(headerString);
             cout << headerString << endl;
         }
-        if(printXml)
+        else if(nf.getNiftiVersion()==2)
         {
-            const CiftiXML& xml = cf.getCiftiXML();
-            AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with
-            cout << xmlString << endl;
+            Nifti2Header header;
+            nf.getHeader(header);
+            AString headerString;
+            header.getHeaderAsString(headerString);
+            cout << headerString << endl;
         }
-        if(printMatrix)
-        {
-            int64_t dim0 = cf.getNumberOfRows();
-            int64_t dim1 = cf.getNumberOfColumns();
-            vector<float> row(dim1);
-            AString rowString;
-            for(int64_t i = 0;i<dim0;i++)
-            {
-
-                cf.getRow(row.data(), i);
-
-                rowString = AString::fromNumbers(row, ",");
-                cout << "Row " << i << ": " << rowString << endl;
-            }
-        }
+        else throw OperationException("Unrecognized Nifti Version.");
     }
-    else
+    if(printXml)
     {
-        //print out nifti file
-        NiftiFile nf(fileName);
-        if(printHeader)
+        if (!isCiftiFile) cout << "attempting -print-xml on something that doesn't seem to be a cifti file" << endl;
+        CiftiFile cf(fileName, ON_DISK);
+        const CiftiXML& xml = cf.getCiftiXML();
+        AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with
+        cout << xmlString << endl;
+    }
+    if(printMatrix)
+    {
+        if (!isCiftiFile) cout << "attempting -print-matrix on something that doesn't seem to be a cifti file" << endl;
+        CiftiFile cf(fileName, ON_DISK);
+        int64_t dim0 = cf.getNumberOfRows();
+        int64_t dim1 = cf.getNumberOfColumns();
+        vector<float> row(dim1);
+        AString rowString;
+        for(int64_t i = 0;i<dim0;i++)
         {
-            if(nf.getNiftiVersion()==1)
-            {
-                Nifti1Header header;
-                nf.getHeader(header);
-                AString headerString;
-                header.getHeaderAsString(headerString);
-                cout << headerString << endl;
-            }
-            else if(nf.getNiftiVersion()==2)
-            {
-                Nifti2Header header;
-                nf.getHeader(header);
-                AString headerString;
-                header.getHeaderAsString(headerString);
-                cout << headerString << endl;
-            }
-            else throw OperationException("Unrecognized Nifti Version.");
-        }
-        if(printXml)
-        {
-            throw OperationException("Printing Xml is only supported for cifti files.");
-        }
-        if(printMatrix)
-        {
-            throw OperationException("Printing Matrix/Volume information is only supported for Cifti.");
+
+            cf.getRow(row.data(), i);
+
+            rowString = AString::fromNumbers(row, ",");
+            cout << "Row " << i << ": " << rowString << endl;
         }
     }
 }
