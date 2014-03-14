@@ -40,6 +40,8 @@
 #include "ChartableMatrixInterface.h"
 #include "CaretPreferences.h"
 #include "ChartPoint.h"
+#include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "ConnectivityDataLoaded.h"
 #include "IdentificationWithColor.h"
 #include "SelectionItemChartDataSeries.h"
 #include "SelectionItemChartMatrix.h"
@@ -742,6 +744,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
         return;
     }
  
+    m_fixedPipelineDrawing->enableLineAntiAliasing();
+    
     const ChartAxisCartesian* leftAxis = dynamic_cast<ChartAxisCartesian*>(chart->getLeftAxis());
     CaretAssert(leftAxis);
     const ChartAxisCartesian* bottomAxis = dynamic_cast<ChartAxisCartesian*>(chart->getBottomAxis());
@@ -762,6 +766,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    const float lineWidth = chart->getLineWidth();
     /*
      * Use a reverse iterator to start at the oldest chart and end with
      * the newest chart.
@@ -776,7 +781,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
             CaretColorEnum::Enum color = chartDataCart->getColor();
             drawChartDataCartesian(chartDataIndex,
                                    chartDataCart,
-                                   1.0,
+                                   lineWidth,
                                    CaretColorEnum::toRGB(color));
         }
     }
@@ -788,10 +793,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
             CaretAssert(chartDataCart);
             drawChartDataCartesian(-1,
                                    chartDataCart,
-                                   2.0,
+                                   lineWidth,
                                    m_foregroundColor);
         }
     }
+    
+    m_fixedPipelineDrawing->disableLineAntiAliasing();
 }
 
 /**
@@ -812,6 +819,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const int32_t chart
                                                              const float lineWidth,
                                                              const float rgb[3])
 {
+    if (lineWidth <= 0.0) {
+        return;
+    }
+    
     glColor3fv(rgb);
     
     glLineWidth(lineWidth);
@@ -831,9 +842,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const int32_t chart
     }
     glEnd();
 }
-
-#include "CiftiMappableConnectivityMatrixDataFile.h"
-#include "ConnectivityDataLoaded.h"
 
 /**
  * Draw graphics for the matrix chart..

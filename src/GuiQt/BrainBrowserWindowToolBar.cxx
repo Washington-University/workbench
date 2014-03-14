@@ -50,6 +50,7 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowToolBarChartAttributes.h"
 #include "BrainBrowserWindowToolBarChartAxes.h"
 #include "BrainBrowserWindowToolBarChartType.h"
 #include "BrainBrowserWindowToolBarSurfaceMontage.h"
@@ -271,6 +272,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->viewWidget = this->createViewWidget();
     this->orientationWidget = this->createOrientationWidget();
     this->chartAxesWidget = createChartAxesWidget();
+    this->chartAttributesWidget = createChartAttributesWidget();
     this->chartTypeWidget = createChartTypeWidget();
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
@@ -308,6 +310,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->chartTypeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->chartAxesWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
     
@@ -1229,6 +1233,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     bool showChartAxesWidget = false;
     bool showChartTypeWidget = false;
+    bool showChartAttributesWidget = false;
     
     bool showClippingWidget = true;
     bool showModeWidget = true;
@@ -1268,11 +1273,13 @@ BrainBrowserWindowToolBar::updateToolBar()
                         break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                         showChartAxesWidget = true;
+                        showChartAttributesWidget = true;
                         break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                         break;
                     case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                         showChartAxesWidget = true;
+                        showChartAttributesWidget = true;
                         break;
                 }
             }
@@ -1292,6 +1299,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->surfaceMontageSelectionWidget->setVisible(false);
     this->chartTypeWidget->setVisible(false);
     this->chartAxesWidget->setVisible(false);
+    this->chartAttributesWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
@@ -1305,6 +1313,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
     this->chartTypeWidget->setVisible(showChartTypeWidget);
     this->chartAxesWidget->setVisible(showChartAxesWidget);
+    this->chartAttributesWidget->setVisible(showChartAttributesWidget);
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -1320,6 +1329,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         this->updateSurfaceMontageOptionsWidget(browserTabContent);
         this->updateChartTypeWidget(browserTabContent);
         this->updateChartAxesWidget(browserTabContent);
+        this->updateChartAttributesWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
@@ -2650,10 +2660,10 @@ BrainBrowserWindowToolBar::updateChartTypeWidget(BrowserTabContent* browserTabCo
 }
 
 /**
- * Create the chart type widget.
+ * Create the chart axes widget.
  *
  * @return
- *    Widget containing the chart options.
+ *    Widget containing the chart axes.
  */
 QWidget*
 BrainBrowserWindowToolBar::createChartAxesWidget()
@@ -2682,6 +2692,40 @@ BrainBrowserWindowToolBar::updateChartAxesWidget(BrowserTabContent* browserTabCo
     }
     
     m_chartAxisToolBarComponent->updateContent(browserTabContent);
+}
+
+/**
+ * Create the chart attributes widget.
+ *
+ * @return
+ *    Widget containing the chart attributes.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createChartAttributesWidget()
+{
+    m_chartAttributesToolBarComponent = new BrainBrowserWindowToolBarChartAttributes(this);
+    QWidget* w = this->createToolWidget("Chart Attributes",
+                                        m_chartAttributesToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the chart attributes widget.
+ *
+ * @param browserTabContent
+ *   The active model display (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateChartAttributesWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->chartAttributesWidget->isHidden()) {
+        return;
+    }
+    m_chartAttributesToolBarComponent->updateContent(browserTabContent);
 }
 
 /**

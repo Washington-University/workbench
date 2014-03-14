@@ -136,6 +136,12 @@ namespace caret {
         
         virtual void updateAfterChartDataHasBeenAddedOrRemoved();
         
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass) = 0;
+        
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass) = 0;
+        
     private:
         void copyHelperChartModel(const ChartModel& obj);
         

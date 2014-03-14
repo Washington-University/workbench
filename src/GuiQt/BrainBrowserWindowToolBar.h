@@ -51,6 +51,7 @@ class QToolButton;
 namespace caret {
     
     class BrainBrowserWindowToolBarChartAxes;
+    class BrainBrowserWindowToolBarChartAttributes;
     class BrainBrowserWindowToolBarChartType;
     class BrainBrowserWindowToolBarSurfaceMontage;
     class BrainBrowserWindow;
@@ -128,6 +129,7 @@ namespace caret {
         QWidget* createModeWidget();
         QWidget* createWindowWidget();
         QWidget* createChartAxesWidget();
+        QWidget* createChartAttributesWidget();
         QWidget* createChartTypeWidget();
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createSurfaceMontageOptionsWidget();
@@ -144,6 +146,7 @@ namespace caret {
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
         void updateChartAxesWidget(BrowserTabContent* browserTabContent);
+        void updateChartAttributesWidget(BrowserTabContent* browserTabContent);
         void updateChartTypeWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
@@ -168,6 +171,7 @@ namespace caret {
         QWidget* clippingWidget;
         QWidget* chartTypeWidget;
         QWidget* chartAxesWidget;
+        QWidget* chartAttributesWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
         WuQWidgetObjectGroup* orientationWidgetGroup;
@@ -371,6 +375,7 @@ namespace caret {
     private:
         BrainBrowserWindowToolBarChartAxes* m_chartAxisToolBarComponent;
         BrainBrowserWindowToolBarChartType* m_chartTypeToolBarComponent;
+        BrainBrowserWindowToolBarChartAttributes* m_chartAttributesToolBarComponent;
         BrainBrowserWindowToolBarSurfaceMontage* m_surfaceMontageToolBarComponent;
         
     private:

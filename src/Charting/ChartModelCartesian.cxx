@@ -32,6 +32,7 @@
 #include "ChartDataCartesian.h"
 #include "ChartPoint.h"
 #include "ChartScaleAutoRanging.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -61,6 +62,8 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
 {
     m_averageChartData = NULL;
     
+    m_lineWidth = 1.0;
+    
     setLeftAxis(ChartAxis::newChartAxisForTypeAndLocation(ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN,
                                                           ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
     getLeftAxis()->setAxisUnits(dataAxisUnitsY);
@@ -68,6 +71,9 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
     setBottomAxis(ChartAxis::newChartAxisForTypeAndLocation(ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN,
                                                             ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
     getBottomAxis()->setAxisUnits(dataAxisUnitsX);
+
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add("m_lineWidth", &m_lineWidth);
 }
 
 /**
@@ -78,6 +84,8 @@ ChartModelCartesian::~ChartModelCartesian()
     if (m_averageChartData != NULL) {
         delete m_averageChartData;
     }
+    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -262,4 +270,70 @@ ChartModelCartesian::getBounds(float& boundsMinX,
         }
     }
 }
+
+/**
+ * Get the line width for the chart.
+ *
+ * @return
+ *    Line width for the chart.
+ */
+float
+ChartModelCartesian::getLineWidth() const
+{
+    return m_lineWidth;
+}
+
+/**
+ * Set the line width for the chart.
+ *
+ * param lineWidth
+ *    Line width for chart.
+ */
+void
+ChartModelCartesian::setLineWidth(const float lineWidth)
+{
+    m_lineWidth = lineWidth;
+}
+
+/**
+ * Save subclass data to the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.  Will always
+ *     be valid (non-NULL).
+ */
+void
+ChartModelCartesian::saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                            SceneClass* sceneClass)
+{
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+}
+
+/**
+ * Restore file data from the scene.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+ChartModelCartesian::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                 const SceneClass* sceneClass)
+{
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+}
+
+
 

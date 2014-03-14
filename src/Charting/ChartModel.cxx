@@ -800,6 +800,9 @@ ChartModel::saveToScene(const SceneAttributes* sceneAttributes,
                                                      "m_topAxis"));
     }
     
+    saveSubClassDataToScene(sceneAttributes,
+                            sceneClass);
+    
     return sceneClass;
 }
 
@@ -894,17 +897,8 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
                                           "");
     }
     
-//    /*
-//     * Restore my ChartData
-//     */
-//    const SceneClassArray* chartDataArray = sceneClass->getClassArray("chartDataArray");
-//    const int32_t numChartData = chartDataArray->getNumberOfArrayElements();
-//    for (int32_t i = 0; i < numChartData; i++) {
-//        const SceneClass* chartDataClass = chartDataArray->getClassAtIndex(i);
-//        ChartData* chartData = ChartData::newChartDataForChartDataType(m_chartDataType);
-//        chartData->restoreFromScene(sceneAttributes, chartDataClass);
-//        m_chartDatas.push_back(chartData);
-//    }
+    restoreSubClassDataFromScene(sceneAttributes,
+                                 sceneClass);
 }
 
 /**

@@ -21,7 +21,6 @@
  */
 /*LICENSE_END*/
 
-
 #include "ChartAxisUnitsEnum.h"
 #include "ChartModel.h"
 
@@ -52,16 +51,30 @@ namespace caret {
         
         virtual const ChartData* getAverageChartDataForDisplay(const int32_t tabIndex) const;
         
-
+        float getLineWidth() const;
+        
+        void setLineWidth(const float lineWidth);
+        
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
+                                             SceneClass* sceneClass);
+        
+        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
+                                                  const SceneClass* sceneClass);
+        
     private:
         void copyHelperChartModelCartesian(const ChartModelCartesian& obj);
 
 //        void adjustAxisDefaultRange(float& minValue,
 //                                    float& maxValue);
         
+        SceneClassAssistant* m_sceneAssistant;
+        
         mutable ChartDataCartesian* m_averageChartData;
+        
+        float m_lineWidth;
         
         // ADD_NEW_MEMBERS_HERE
 
