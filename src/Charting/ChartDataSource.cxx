@@ -320,14 +320,14 @@ ChartDataSource::getDescription() const
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDEX:
             s += (m_surfaceStructureName
-                  + ":  Node "
+                  + ":  Vertex "
                   + AString::number(m_nodeIndex));
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_SURFACE_NODE_INDICES_AVERAGE:
             s += (m_surfaceStructureName
                   + ":  Average of "
                   + AString::number(m_nodeIndicesAverage.size())
-                  + " Nodes");
+                  + " Vertices");
             break;
         case ChartDataSourceModeEnum::CHART_DATA_SOURCE_MODE_VOXEL_IJK:
             s += ("Voxel XYZ ("
