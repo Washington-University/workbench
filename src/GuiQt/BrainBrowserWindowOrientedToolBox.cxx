@@ -508,7 +508,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          */
         bool haveBorders    = false;
         bool haveConnFiles  = false;
-        bool haveChartFiles = false;
         bool haveFibers     = false;
         bool haveFoci       = false;
         bool haveLabels     = false;
@@ -522,15 +521,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
              iter++) {
             const CaretDataFile* caretDataFile = *iter;
             
-            const ChartableBrainordinateInterface* chartableBrainordinateInterface = dynamic_cast<const ChartableBrainordinateInterface*>(caretDataFile);
-            if (chartableBrainordinateInterface != NULL) {
-                haveChartFiles = true;
-            }
-            
-            const ChartableMatrixInterface* chartableMatrixInterface = dynamic_cast<const ChartableMatrixInterface*>(caretDataFile);
-            if (chartableMatrixInterface != NULL) {
-                haveChartFiles = true;
-            }
+//            const ChartableBrainordinateInterface* chartableBrainordinateInterface = dynamic_cast<const ChartableBrainordinateInterface*>(caretDataFile);
+//            if (chartableBrainordinateInterface != NULL) {
+//                haveChartFiles = true;
+//            }
+//            
+//            const ChartableMatrixInterface* chartableMatrixInterface = dynamic_cast<const ChartableMatrixInterface*>(caretDataFile);
+//            if (chartableMatrixInterface != NULL) {
+//                haveChartFiles = true;
+//            }
             
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
@@ -601,6 +600,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         int defaultTabIndex = -1;
         bool enableLayers = true;
         bool enableVolumeSurfaceOutline = false;
+        bool enableCharts = false;
         EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
         //const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
@@ -633,6 +633,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
+                        enableCharts = true;
                         break;
                 }
             }
@@ -642,7 +643,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * NOTE: Order is important so that overlay tab is 
          * automatically selected.
          */
-        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, haveChartFiles);
+        if (m_chartTabIndex >= 0) m_tabWidget->setTabEnabled(m_chartTabIndex, enableCharts);
         if (m_connectivityTabIndex >= 0) m_tabWidget->setTabEnabled(m_connectivityTabIndex, haveConnFiles);
         if (m_volumeSurfaceOutlineTabIndex >= 0) m_tabWidget->setTabEnabled(m_volumeSurfaceOutlineTabIndex, enableVolumeSurfaceOutline);
         
