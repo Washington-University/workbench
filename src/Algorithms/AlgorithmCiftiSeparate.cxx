@@ -566,7 +566,7 @@ void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiInterface* ciftiIn, c
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
-    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    sformOut = myBrainMap.getVolumeSpace().getSform();
     vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getVolumeStructureMap(myStruct);
     int64_t numVoxels = (int64_t)myMap.size();
     if (numVoxels > 0)
@@ -611,7 +611,7 @@ void AlgorithmCiftiSeparate::getCroppedVolSpaceAll(const CiftiInterface* ciftiIn
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     const CiftiBrainModelsMap& myBrainMap = myXML.getBrainModelsMap(myDir);
-    vector<vector<float> > mySform = myBrainMap.getVolumeSpace().getSform();
+    sformOut = myBrainMap.getVolumeSpace().getSform();
     vector<CiftiBrainModelsMap::VolumeMap> myMap = myBrainMap.getFullVolumeMap();
     int64_t numVoxels = (int64_t)myMap.size();
     if (numVoxels > 0)

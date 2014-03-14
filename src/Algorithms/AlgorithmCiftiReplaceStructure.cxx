@@ -63,11 +63,11 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
 
     OptionalParameter* volumeOpt = ret->createOptionalParameter(5, "-volume", "replace the data in a volume component");
     volumeOpt->addStringParameter(1, "structure", "the structure to replace the data of");
-    volumeOpt->addVolumeOutputParameter(2, "volume", "the input volume");
+    volumeOpt->addVolumeParameter(2, "volume", "the input volume");
     volumeOpt->createOptionalParameter(3, "-from-cropped", "the input is cropped to the size of the component");
 
     OptionalParameter* volumeAllOpt = ret->createOptionalParameter(6, "-volume-all", "replace the data in all volume components");
-    volumeAllOpt->addVolumeOutputParameter(1, "volume", "the input volume");
+    volumeAllOpt->addVolumeParameter(1, "volume", "the input volume");
     volumeAllOpt->createOptionalParameter(2, "-from-cropped", "the input is cropped to the size of the data");
 
     AString helpText = AString("You must specify -metric, -volume, or -label for this command to do anything.  Input volumes must line up with the ") +
