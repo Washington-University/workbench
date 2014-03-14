@@ -70,9 +70,11 @@ ChartingDataManager::loadAverageChartForSurfaceNodes(const SurfaceFile* surfaceF
     CaretAssert(surfaceFile);
     
     ModelChart* modelChart = m_brain->getChartModel();
-    modelChart->loadAverageChartDataForSurfaceNodes(surfaceFile->getStructure(),
-                                                    surfaceFile->getNumberOfNodes(),
-                                                    nodeIndices);
+    if (modelChart != NULL) {
+        modelChart->loadAverageChartDataForSurfaceNodes(surfaceFile->getStructure(),
+                                                        surfaceFile->getNumberOfNodes(),
+                                                        nodeIndices);
+    }
 }
 
 /**
@@ -90,9 +92,11 @@ ChartingDataManager::loadChartForSurfaceNode(const SurfaceFile* surfaceFile,
     CaretAssert(surfaceFile);
     
     ModelChart* modelChart = m_brain->getChartModel();
-    modelChart->loadChartDataForSurfaceNode(surfaceFile->getStructure(),
-                                            surfaceFile->getNumberOfNodes(),
-                                            nodeIndex);
+    if (modelChart != NULL) {
+        modelChart->loadChartDataForSurfaceNode(surfaceFile->getStructure(),
+                                                surfaceFile->getNumberOfNodes(),
+                                                nodeIndex);
+    }
 }
 
 /**
@@ -105,7 +109,9 @@ void
 ChartingDataManager::loadChartForVoxelAtCoordinate(const float xyz[3]) const throw (DataFileException)
 {
     ModelChart* modelChart = m_brain->getChartModel();
-    modelChart->loadChartDataForVoxelAtCoordinate(xyz);
+    if (modelChart != NULL) {
+        modelChart->loadChartDataForVoxelAtCoordinate(xyz);
+    }
 }
 
 /**
