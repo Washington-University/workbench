@@ -426,8 +426,8 @@ ChartSelectionViewController::getMatrixFileAtIndex(const int32_t indx)
 {
     ChartableMatrixInterface* filePointer = NULL;
     
-    CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
-    const QVariant filePointerVariant = m_fileEnableCheckBoxes[indx]->property(MATRIX_FILE_POINTER_PROPERTY_NAME);
+    CaretAssertVectorIndex(m_fileSelectionRadioButtons, indx);
+    const QVariant filePointerVariant = m_fileSelectionRadioButtons[indx]->property(MATRIX_FILE_POINTER_PROPERTY_NAME);
     if (filePointerVariant.isValid()) {
         void* ptr = filePointerVariant.value<void*>();
         filePointer = (ChartableMatrixInterface*)ptr;
