@@ -40,6 +40,7 @@
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
 #include "EventManager.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
@@ -385,6 +386,7 @@ ChartSelectionViewController::selectionRadioButtonClicked(int indx)
         ChartableMatrixFileSelectionModel* fileSelector =
            modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
         fileSelector->setSelectedFile(chartMatrixFile);
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 
