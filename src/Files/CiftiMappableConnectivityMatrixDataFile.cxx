@@ -113,14 +113,29 @@ CiftiMappableConnectivityMatrixDataFile::getConnectivityDataLoaded() const
     return m_connectivityDataLoaded;
 }
 
-
-//int64_t
-//CiftiMappableConnectivityMatrixDataFile::getRowLoadedIndex() const
-//{
-//	return m_selectionIndex;
-//}
-
-
+/**
+ * Get the nodes for the parcel for the given structure that corresponds
+ * to the last selected row.
+ *
+ * @param parcelNodesOut
+ *    Ouput containing the node indices.
+ * @param structure
+ *    The surface structure.
+ */
+bool
+CiftiMappableConnectivityMatrixDataFile::getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
+                                                                                const StructureEnum::Enum &structure) const
+{
+    bool validFlag = false;
+    
+    int64_t rowIndex = -1;
+    m_connectivityDataLoaded->getRowLoading(rowIndex);
+    if (rowIndex >= 0) {
+        validFlag = m_ciftiFacade->getParcelNodesElementForSelectedParcel(parcelNodesOut, structure, rowIndex);
+    }
+    
+    return validFlag;
+}
 
 /**
  * @return Is this file empty?
@@ -131,10 +146,6 @@ CiftiMappableConnectivityMatrixDataFile::isEmpty() const
     if (CiftiMappableDataFile::isEmpty()) {
         return true;
     }
-
-//    if (m_loadedRowData.empty()) {
-//        return true;
-//    }
     
     return false;
 }
@@ -349,7 +360,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
                         + DataFileTypeEnum::toName(getDataFileType()));
             break;
     }
-    m_selectionIndex = rowIndex;
     return rowIndex;
 }
 
@@ -413,7 +423,6 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(con
         }
     }
     
-    m_selectionIndex = rowIndex;
     return rowIndex;
 }
 
@@ -575,7 +584,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
     
-    return (m_selectionIndex = rowIndex);
+    return rowIndex;
 }
 
 
@@ -646,7 +655,6 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionInde
     CaretAssertVectorIndex(m_mapContent, 0);
     m_mapContent[0]->invalidateColoring();
     
-    m_selectionIndex = selectionIndex;
     return true;
 }
 
@@ -899,7 +907,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
         throw DataFileException(e.whatString());
     }
     
-    return (m_selectionIndex = rowIndex);
+    return rowIndex;
 }
 
 /**

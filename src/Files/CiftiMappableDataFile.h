@@ -313,7 +313,7 @@ namespace caret {
         virtual SelectionMode getSelectionMode() const;
         virtual void setSelectionMode(const SelectionMode &mode);
 
-		bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure) const;
+//		bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure) const;
         
     private:
         
@@ -466,8 +466,6 @@ namespace caret {
         std::vector<int64_t> m_niftiHeaderDimensions;
         
         NiftiDataTypeEnum::Enum m_niftiDataType;
-        
-        int64_t m_selectionIndex; //index into row or column with selection data
         
         // ADD_NEW_MEMBERS_HERE
         

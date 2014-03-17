@@ -95,6 +95,9 @@ namespace caret {
         
         const ConnectivityDataLoaded* getConnectivityDataLoaded() const;
         
+        bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
+                                                    const StructureEnum::Enum &structure) const;
+        
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
 

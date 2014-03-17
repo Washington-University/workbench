@@ -148,6 +148,9 @@ CiftiMappableDataFile::clearPrivate()
     m_forceUpdateOfGroupAndNameHierarchy = true;
 
     m_selectionMode = SELECTION_MODE_NONE;
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL) {
+        m_selectionMode = SELECTION_MODE_OUTLINE;
+    }
     
     m_niftiHeaderDimensions.clear();
     m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
@@ -2520,13 +2523,6 @@ CiftiMappableDataFile::getSeriesDataForVoxelAtCoordinate(const float xyz[3],
     
     return valid;
 }
-
-bool
-CiftiMappableDataFile::getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure) const
-{
-    return m_ciftiFacade->getParcelNodesElementForSelectedParcel(parcelNodesOut, structure, m_selectionIndex);
-}
-
 
 /**
  * Get the node coloring for the surface.
