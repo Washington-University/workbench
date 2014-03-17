@@ -768,11 +768,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
     
     const float lineWidth = chart->getLineWidth();
     /*
-     * Use a reverse iterator to start at the oldest chart and end with
-     * the newest chart.
+     * Start at the oldest chart and end with the newest chart.
      */
     const int32_t numChartData = static_cast<int32_t>(chartVector.size());
-    for (int32_t chartDataIndex = 0; chartDataIndex < numChartData; chartDataIndex++) {
+    for (int32_t chartDataIndex = (numChartData - 1); chartDataIndex >= 0; chartDataIndex--) {
         const ChartData* chartData = chartVector[chartDataIndex];
         if (chartData->isSelected(m_tabIndex)) {
             const ChartDataCartesian* chartDataCart = dynamic_cast<const ChartDataCartesian*>(chartData);
