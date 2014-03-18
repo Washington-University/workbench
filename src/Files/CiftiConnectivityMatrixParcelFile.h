@@ -27,6 +27,7 @@
 
 namespace caret {
 
+    class ChartMatrixDisplayProperties;
     class PaletteFile;
     
     class CiftiConnectivityMatrixParcelFile : public CiftiMappableConnectivityMatrixDataFile, public ChartableMatrixInterface {
@@ -64,6 +65,10 @@ namespace caret {
 
         virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const;
+        
+        ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex);
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -80,6 +85,8 @@ namespace caret {
 
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
+        ChartMatrixDisplayProperties* m_chartMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
     };
     
 #ifdef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_DECLARE__

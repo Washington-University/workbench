@@ -18,6 +18,8 @@ ChartDataCartesian.h
 ChartDataSource.h
 ChartDataSourceModeEnum.h
 ChartDataTypeEnum.h
+ChartMatrixDisplayProperties.h
+ChartMatrixScaleModeEnum.h
 ChartModel.h
 ChartModelCartesian.h
 ChartModelDataSeries.h
@@ -36,6 +38,8 @@ ChartDataCartesian.cxx
 ChartDataSource.cxx
 ChartDataSourceModeEnum.cxx
 ChartDataTypeEnum.cxx
+ChartMatrixDisplayProperties.cxx
+ChartMatrixScaleModeEnum.cxx
 ChartModel.cxx
 ChartModelCartesian.cxx
 ChartModelDataSeries.cxx

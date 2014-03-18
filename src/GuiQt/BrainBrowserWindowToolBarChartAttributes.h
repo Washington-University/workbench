@@ -25,10 +25,15 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QDoubleSpinBox;
+class QStackedWidget;
 
 namespace caret {
 
+    class CartesianChartAttributesWidget;
+    class ChartMatrixDisplayProperties;
     class ChartModelCartesian;
+    class EnumComboBoxTemplate;
+    class MatrixChartAttributesWidget;
     
     class BrainBrowserWindowToolBarChartAttributes : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -40,9 +45,6 @@ namespace caret {
         
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
-        private slots:
-            void cartesianLineWidthValueChanged(double value);
-        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -50,18 +52,81 @@ namespace caret {
 
         BrainBrowserWindowToolBarChartAttributes& operator=(const BrainBrowserWindowToolBarChartAttributes&);
         
-        QWidget* createCartesianChartAttributesWidget();
-        
         ChartModelCartesian* getCartesianChart();
         
-        QWidget* m_cartesianChartAttributesWidget;
+        ChartMatrixDisplayProperties* getChartableMatrixDisplayProperties();
+        
+        void updateGraphics();
+        
+        CartesianChartAttributesWidget* m_cartesianChartAttributesWidget;
+        
+        MatrixChartAttributesWidget* m_matrixChartAttributesWidget;
+        
+        QStackedWidget* m_stackedWidget;
+        
+        // ADD_NEW_MEMBERS_HERE
+        
+        friend class CartesianChartAttributesWidget;
+        friend class MatrixChartAttributesWidget;
+    };
+    
+    /*
+     * While this should be a private class in the class above
+     * Qt's meta-object compiler (moc) does not allow it to be.
+     */
+    class CartesianChartAttributesWidget : public QWidget {
+        Q_OBJECT
+    
+    public:
+        CartesianChartAttributesWidget(BrainBrowserWindowToolBarChartAttributes* brainBrowserWindowToolBarChartAttributes);
+        
+        ~CartesianChartAttributesWidget();
+        
+        virtual void updateContent();
+        
+    private slots:
+        void cartesianLineWidthValueChanged(double value);
+
+    private:
+        BrainBrowserWindowToolBarChartAttributes* m_brainBrowserWindowToolBarChartAttributes;
         
         QDoubleSpinBox* m_cartesianLineWidthDoubleSpinBox;
         
-        // ADD_NEW_MEMBERS_HERE
-
     };
     
+    /*
+     * While this should be a private class in the class above
+     * Qt's meta-object compiler (moc) does not allow it to be.
+     */
+    class MatrixChartAttributesWidget : public QWidget {
+        Q_OBJECT
+        
+    public:
+        MatrixChartAttributesWidget(BrainBrowserWindowToolBarChartAttributes* brainBrowserWindowToolBarChartAttributes);
+        
+        ~MatrixChartAttributesWidget();
+        
+        virtual void updateContent();
+        
+    private slots:
+        void chartMatrixScaleModeEnumComboBoxItemActivated();
+        
+        void cellWidthSpinBoxValueChanged(double value);
+        
+        void cellHeightSpinBoxValueChanged(double value);
+        
+        void resetButtonClicked();
+        
+    private:
+        BrainBrowserWindowToolBarChartAttributes* m_brainBrowserWindowToolBarChartAttributes;
+        
+        EnumComboBoxTemplate* m_chartMatrixScaleModeEnumComboBox;
+        
+        QDoubleSpinBox* m_cellWidthSpinBox;
+        
+        QDoubleSpinBox* m_cellHeightSpinBox;
+        
+    };
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ATTRIBUTES_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ATTRIBUTES_DECLARE__

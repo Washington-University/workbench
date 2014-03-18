@@ -24,6 +24,7 @@
 #undef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_FILE_DECLARE__
 
 #include "CaretLogger.h"
+#include "ChartMatrixDisplayProperties.h"
 #include "CiftiFacade.h"
 #include "CiftiInterface.h"
 #include "FastStatistics.h"
@@ -31,6 +32,7 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 
@@ -61,6 +63,7 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
+        m_chartMatrixDisplayProperties[i] = new ChartMatrixDisplayProperties();
     }
 }
 
@@ -69,7 +72,9 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
  */
 CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
 {
-    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete m_chartMatrixDisplayProperties[i];
+    }
 }
 
 /**
@@ -217,6 +222,27 @@ CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile() const
 }
 
 /**
+ * @return Chart matrix display properties (const method).
+ */
+const ChartMatrixDisplayProperties*
+CiftiConnectivityMatrixParcelFile::getChartMatrixDisplayProperties(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartMatrixDisplayProperties, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_chartMatrixDisplayProperties[tabIndex];
+}
+
+/**
+ * @return Chart matrix display properties.
+ */
+ChartMatrixDisplayProperties*
+CiftiConnectivityMatrixParcelFile::getChartMatrixDisplayProperties(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_chartMatrixDisplayProperties, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    return m_chartMatrixDisplayProperties[tabIndex];
+}
+
+
+/**
  * Save file data from the scene.  For subclasses that need to
  * save to a scene, this method should be overriden.  sceneClass
  * will be valid and any scene data should be added to it.
@@ -239,6 +265,23 @@ CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sc
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+
+    /*
+     * Save chart matrix properties
+     */
+    SceneObjectMapIntegerKey* chartMatrixPropertiesMap = new SceneObjectMapIntegerKey("m_chartMatrixDisplayPropertiesMap",
+                                                                                      SceneObjectDataTypeEnum::SCENE_CLASS);
+    const std::vector<int32_t> tabIndices = sceneAttributes->getIndicesOfTabsForSavingToScene();
+    for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+         tabIter != tabIndices.end();
+         tabIter++) {
+        const int32_t tabIndex = *tabIter;
+        
+        chartMatrixPropertiesMap->addClass(tabIndex,
+                                           m_chartMatrixDisplayProperties[tabIndex]->saveToScene(sceneAttributes,
+                                                                                                 "m_chartMatrixDisplayProperties"));
+    }
+    sceneClass->addChild(chartMatrixPropertiesMap);
 }
 
 /**
@@ -278,5 +321,22 @@ CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttribute
             m_chartingEnabledForTab[i] = chartingEnabled;
         }
     }
+    
+    /*
+     * Restore chart matrix properties
+     */
+    const SceneObjectMapIntegerKey* chartMatrixPropertiesMap = sceneClass->getMapIntegerKey("m_chartMatrixDisplayPropertiesMap");
+    if (chartMatrixPropertiesMap != NULL) {
+        const std::vector<int32_t> tabIndices = chartMatrixPropertiesMap->getKeys();
+        for (std::vector<int32_t>::const_iterator tabIter = tabIndices.begin();
+             tabIter != tabIndices.end();
+             tabIter++) {
+            const int32_t tabIndex = *tabIter;
+            const SceneClass* sceneClass = chartMatrixPropertiesMap->classValue(tabIndex);
+            m_chartMatrixDisplayProperties[tabIndex]->restoreFromScene(sceneAttributes,
+                                                                       sceneClass);
+        }
+    }
+    
 }
 

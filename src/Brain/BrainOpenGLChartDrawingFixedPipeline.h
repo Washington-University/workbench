@@ -68,7 +68,8 @@ namespace caret {
         void drawChartGraphicsLineSeries(BrainOpenGLTextRenderInterface* textRenderer,
                                          ChartModelCartesian* chart);
         
-        void drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* textRenderer,
+        void drawChartGraphicsMatrix(const int32_t viewport[4],
+                                     BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface);
 
         void drawChartAxesGrid(const float vpX,

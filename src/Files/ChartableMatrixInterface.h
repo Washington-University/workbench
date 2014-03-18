@@ -26,6 +26,8 @@
 
 namespace caret {
 
+    class ChartMatrixDisplayProperties;
+    
     class ChartableMatrixInterface : public ChartableInterface {
         
     public:
@@ -72,6 +74,10 @@ namespace caret {
                                              AString& rowNameOut,
                                              AString& columnNameOut) const = 0;
 
+        virtual const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const = 0;
+        
+        virtual ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) = 0;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

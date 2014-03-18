@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "BrainConstants.h"
 #include "CaretColorEnum.h"
 #include "CiftiMappableDataFile.h"
 #include "CiftiParcelColoringModeEnum.h"

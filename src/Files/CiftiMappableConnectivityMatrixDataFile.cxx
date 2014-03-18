@@ -60,6 +60,7 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
                         seriesDataAccess)
 {
     m_connectivityDataLoaded = new ConnectivityDataLoaded();
+    
     clearPrivate();
 
     m_sceneAssistant = new SceneClassAssistant();
@@ -80,6 +81,7 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
 CiftiMappableConnectivityMatrixDataFile::~CiftiMappableConnectivityMatrixDataFile()
 {
     clearPrivate();
+    
     delete m_connectivityDataLoaded;
     delete m_sceneAssistant;
 }
@@ -1160,6 +1162,7 @@ CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(const SceneAttribut
                                                sceneClass);
     
     m_sceneAssistant->saveMembers(sceneAttributes, sceneClass);
+    
 }
 
 /**
@@ -1186,6 +1189,8 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
     m_connectivityDataLoaded->reset();
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    
     /*
      * Loading of data may be disabled in the scene
      * so temporarily enabled loading and then

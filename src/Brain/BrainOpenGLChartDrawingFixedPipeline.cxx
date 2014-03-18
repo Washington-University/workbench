@@ -35,6 +35,7 @@
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
 #include "CaretLogger.h"
+#include "ChartMatrixDisplayProperties.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelTimeSeries.h"
 #include "ChartableMatrixInterface.h"
@@ -342,7 +343,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
                chartGraphicsDrawingViewport[2],
                chartGraphicsDrawingViewport[3]);
     
-    drawChartGraphicsMatrix(textRenderer,
+    drawChartGraphicsMatrix(chartGraphicsDrawingViewport,
+                            textRenderer,
                             chartMatrixInterface);
     
     /*
@@ -845,13 +847,16 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartDataCartesian(const int32_t chart
 /**
  * Draw graphics for the matrix chart..
  *
+ * @param viewport
+ *     The viewport.
  * @param textRenderer
  *     Text rendering.
  * @param chart
  *     Chart that is drawn.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRenderInterface* /*textRenderer*/,
+BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t viewport[4],
+                                                              BrainOpenGLTextRenderInterface* /*textRenderer*/,
                                                               ChartableMatrixInterface* chartMatrixInterface)
 {
     CaretAssert(chartMatrixInterface);
@@ -869,10 +874,36 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
             connDataLoaded->getRowLoading(loadedRowIndex);
         }
         
-        const float xMin = -1;
-        const float xMax = numberOfColumns + 1;
-        const float yMin = -1;
-        const float yMax = numberOfRows + 1;
+        float panningXY[2] = { 0.0, 0.0 };
+        float zooming = 1.0;
+        float cellWidth = 1.0;
+        float cellHeight = 1.0;
+        
+        float xMin = -1;
+        float xMax = numberOfColumns + 1;
+        float yMin = -1;
+        float yMax = numberOfRows + 1;
+        
+        const ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
+        CaretAssert(matrixProperties);
+        const ChartMatrixScaleModeEnum::Enum scaleMode = matrixProperties->getScaleMode();
+        switch (scaleMode) {
+            case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+                break;
+            case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+                matrixProperties->getViewPanning(panningXY);
+                zooming = matrixProperties->getViewZooming();
+                cellWidth = matrixProperties->getCellWidth();
+                cellHeight = matrixProperties->getCellHeight();
+                
+                const float margin = 10.0;
+                xMin = -margin;
+                xMax = viewport[2] + margin;
+                yMin = -margin;
+                yMax = viewport[3] + margin;
+                break;
+        }
+        
         
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -882,6 +913,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
         
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
+        glTranslatef(panningXY[0], panningXY[1], 0.0);
+        glScalef(zooming, zooming, 1.0);
         
         int32_t rgbaOffset = 0;
         std::vector<float> quadVerticesXYZ;
@@ -895,17 +928,19 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
         std::vector<float> loadedRowHighlightVerticesRGBA;
         bool loadedRowDataValid = false;
         
-        float cellY = numberOfRows - 1;
-        for (int32_t i = 0; i < numberOfRows; i++) {
+        float cellY = (numberOfRows - 1) * cellHeight;
+        for (int32_t rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
             float cellX = 0;
-            for (int32_t j = 0; j < numberOfColumns; j++) {
+            for (int32_t columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
                 CaretAssertVectorIndex(matrixRGBA, rgbaOffset+3);
                 const float* rgba = &matrixRGBA[rgbaOffset];
                 rgbaOffset += 4;
                 
                 uint8_t idRGBA[4];
                 if (m_identificationModeFlag) {
-                    addToChartMatrixIdentification(numberOfRows - i - 1, j, idRGBA);
+                    addToChartMatrixIdentification(rowIndex,
+                                                   columnIndex,
+                                                   idRGBA);
                 }
                 
                 if (m_identificationModeFlag) {
@@ -936,7 +971,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     quadVerticesFloatRGBA.push_back(rgba[2]);
                     quadVerticesFloatRGBA.push_back(rgba[3]);
                 }
-                quadVerticesXYZ.push_back(cellX + 1);
+                quadVerticesXYZ.push_back(cellX + cellWidth);
                 quadVerticesXYZ.push_back(cellY);
                 quadVerticesXYZ.push_back(0.0);
                 
@@ -952,8 +987,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     quadVerticesFloatRGBA.push_back(rgba[2]);
                     quadVerticesFloatRGBA.push_back(rgba[3]);
                 }
-                quadVerticesXYZ.push_back(cellX + 1);
-                quadVerticesXYZ.push_back(cellY + 1);
+                quadVerticesXYZ.push_back(cellX + cellWidth);
+                quadVerticesXYZ.push_back(cellY + cellHeight);
                 quadVerticesXYZ.push_back(0.0);
                 
                 if (m_identificationModeFlag) {
@@ -969,15 +1004,15 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     quadVerticesFloatRGBA.push_back(rgba[3]);
                 }
                 quadVerticesXYZ.push_back(cellX);
-                quadVerticesXYZ.push_back(cellY + 1);
+                quadVerticesXYZ.push_back(cellY + cellHeight);
                 quadVerticesXYZ.push_back(0.0);
                 
                 
-                cellX += 1;
+                cellX += cellWidth;
             }
             
             if (! m_identificationModeFlag) {
-                if (cellY == loadedRowIndex) {
+                if (rowIndex == loadedRowIndex) {
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesXYZ.push_back(cellY);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
@@ -986,7 +1021,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
                     
-                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns);
+                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns * cellWidth);
                     loadedRowHighlightVerticesXYZ.push_back(cellY);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
@@ -994,8 +1029,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
                     
-                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns);
-                    loadedRowHighlightVerticesXYZ.push_back(cellY + 1);
+                    loadedRowHighlightVerticesXYZ.push_back(numberOfColumns * cellWidth);
+                    loadedRowHighlightVerticesXYZ.push_back(cellY + cellHeight);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
@@ -1004,7 +1039,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     
                     
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesXYZ.push_back(cellY + 1);
+                    loadedRowHighlightVerticesXYZ.push_back(cellY + cellHeight);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
                     loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
@@ -1017,7 +1052,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(BrainOpenGLTextRen
                     loadedRowDataValid = true;
                 }
             }
-            cellY -= 1;
+            cellY -= cellHeight;
         }
         
         /*
