@@ -767,33 +767,35 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
 
 	
 	
-	if(selectedParcelValid)
-	{
-        switch(ciftiConnectivityMatrixFile->getSelectionMode()) {
-            case CiftiMappableDataFile::SELECTION_MODE_NONE:
+	if(selectedParcelValid)	{
+        const CaretColorEnum::Enum parcelColor = ciftiConnectivityMatrixFile->getSelectedParcelColor();
+        const float* rgb = CaretColorEnum::toRGB(parcelColor);
+        CaretAssert(rgb);
+
+        switch (ciftiConnectivityMatrixFile->getSelectedParcelColoringMode()) {
+            case CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_NORMAL:
                 break;
-            case CiftiMappableDataFile::SELECTION_MODE_FILL:
+            case CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_FILL:
             {
-		        for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
-		        {
+		        for(uint64_t pNode = 0; pNode < selectedParcelNodes.size(); pNode++) {
 			        int64_t nodeIndex = selectedParcelNodes[pNode];
 			        if(nodeIndex >= 0 && nodeIndex < numberOfNodes) {
-				        uint64_t node4 = nodeIndex*4;           
-				        rgbv[node4]   =  1.0;
-				        rgbv[node4+1] =  1.0;
-				        rgbv[node4+2] =  1.0;
-				        rgbv[node4+3] =  1.0; 
+				        uint64_t node4 = nodeIndex*4;
+				        rgbv[node4]   =  rgb[0];
+				        rgbv[node4+1] =  rgb[1];
+				        rgbv[node4+2] =  rgb[2];
+				        rgbv[node4+3] =  1.0;
 				        continue;
-                    } 
+                    }
                 }
-                break;
             }
-		    case CiftiMappableDataFile::SELECTION_MODE_OUTLINE:
-		    {
-			    /*
-			     * Check for any neighbors with different label key.
-				 */
-
+                break;
+            case CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_OUTLINE:
+            {
+                /*
+                 * Check for any neighbors with different label key.
+                 */
+                
                 //make a quick lookup table
                 std::vector<int64_t> selectedNodesLookup(numberOfNodes,0);
                 
@@ -801,33 +803,33 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
                 {
                     int64_t nodeIndex = selectedParcelNodes[pNode];
                     if(nodeIndex >= 0 && nodeIndex < (int64_t)selectedNodesLookup.size()) {
-                            selectedNodesLookup[nodeIndex] = 1;
+                        selectedNodesLookup[nodeIndex] = 1;
                     }
                 }
-
+                
                 for(uint64_t pNode = 0;pNode < selectedParcelNodes.size();pNode++)
                 {
                     int32_t numNeighbors = 0;
-                        
+                    
                     const int64_t nodeIndex = selectedParcelNodes[pNode];
                     const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(nodeIndex, numNeighbors);
                     for (int32_t n = 0; n < numNeighbors; n++) {
                         const int32_t neighbor = allNeighbors[n];
                         if (!selectedNodesLookup[neighbor]) {
                             int64_t node4 = nodeIndex*4;
-                            rgbv[node4] = 1.0;
-                            rgbv[node4+1] = 1.0;
-                            rgbv[node4+2] = 1.0;
+                            rgbv[node4]   = rgb[0];
+                            rgbv[node4+1] = rgb[1];
+                            rgbv[node4+2] = rgb[2];
                             rgbv[node4+3] = 1.0;
                             continue;
                         }
                     }
                 }
+            }
                 break;
-		    }
         }
 	}
-	        
+	   
     return true;
     
 }

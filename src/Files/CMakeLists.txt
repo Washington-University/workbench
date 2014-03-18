@@ -44,6 +44,7 @@ CiftiFiberOrientationFile.h
 CiftiFiberTrajectoryFile.h
 CiftiMappableDataFile.h
 CiftiMappableConnectivityMatrixDataFile.h
+CiftiParcelColoringModeEnum.h
 CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 ConnectivityDataLoaded.h
@@ -134,6 +135,7 @@ CiftiFiberOrientationFile.cxx
 CiftiFiberTrajectoryFile.cxx
 CiftiMappableDataFile.cxx
 CiftiMappableConnectivityMatrixDataFile.cxx
+CiftiParcelColoringModeEnum.cxx
 CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 ConnectivityDataLoaded.cxx

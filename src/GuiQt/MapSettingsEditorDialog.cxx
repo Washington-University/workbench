@@ -33,6 +33,7 @@
 
 #include "CaretMappableDataFile.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
@@ -42,6 +43,7 @@
 #include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLayerWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
+#include "MapSettingsParcelsWidget.h"
 #include "Overlay.h"
 #include "WuQtUtilities.h"
 
@@ -89,6 +91,8 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     m_paletteColorMappingWidget = new MapSettingsPaletteColorMappingWidget();
     
+    m_parcelsWidget = new MapSettingsParcelsWidget();
+    
     QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
     m_labelsWidget = createLabelsSection();
@@ -107,6 +111,9 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     
     m_paletteWidgetTabIndex = m_tabWidget->addTab(m_paletteColorMappingWidget,
                       "Palette");
+    
+    m_parcelsWidgetTabIndex = m_tabWidget->addTab(m_parcelsWidget,
+                                          "Parcels");
     
     m_trajectoryWidgetTabIndex = m_tabWidget->addTab(m_fiberTrajectoryWidget,
                       "Trajectory");
@@ -197,6 +204,7 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
     bool isMetadataValid = false;
     GiftiMetaData* metadata = NULL;
     bool isPaletteValid = false;
+    bool isParcelsValid = false;
     bool isFiberTrajectoryValid = false;
     bool isVolumeLayer = false;
     
@@ -258,6 +266,15 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
                 m_fiberTrajectoryWidget->updateEditor(trajFile);
             }
 
+            CiftiConnectivityMatrixParcelFile* parcelsFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(m_caretMappableDataFile);
+            if (parcelsFile != NULL) {
+                /*
+                 * Update parcels
+                 */
+                isParcelsValid = true;
+                m_parcelsWidget->updateEditor(parcelsFile);
+            }
+            
             /*
              * Is volume mappable
              */
@@ -285,6 +302,8 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
                                isMetadataValid);
     m_tabWidget->setTabEnabled(m_paletteWidgetTabIndex,
                                isPaletteValid);
+    m_tabWidget->setTabEnabled(m_parcelsWidgetTabIndex,
+                               isParcelsValid);
     m_tabWidget->setTabEnabled(m_trajectoryWidgetTabIndex,
                                isFiberTrajectoryValid);
 
@@ -294,11 +313,12 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
      * is the priority of the tabs.
      */
     std::vector<int32_t> priorityTabIndices;
+    priorityTabIndices.push_back(m_layersWidgetTabIndex);
     priorityTabIndices.push_back(m_paletteWidgetTabIndex);
+    priorityTabIndices.push_back(m_parcelsWidgetTabIndex);
     priorityTabIndices.push_back(m_labelsWidgetTabIndex);
     priorityTabIndices.push_back(m_trajectoryWidgetTabIndex);
     priorityTabIndices.push_back(m_metadataWidgetTabIndex);
-    priorityTabIndices.push_back(m_layersWidgetTabIndex);
     CaretAssertMessage((static_cast<int>(priorityTabIndices.size()) == m_tabWidget->count()),
                        "Number of elements in priorityTabIndices is different "
                        "than number of tab indices.  Was a new tab added?");

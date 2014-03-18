@@ -68,6 +68,10 @@ CiftiMappableConnectivityMatrixDataFile::CiftiMappableConnectivityMatrixDataFile
                           m_connectivityDataLoaded);
     m_sceneAssistant->add("m_dataLoadingEnabled",
                            &m_dataLoadingEnabled);
+    m_sceneAssistant->add<CiftiParcelColoringModeEnum, CiftiParcelColoringModeEnum::Enum>("m_selectedParcelColoringMode",
+                                                                                          &m_selectedParcelColoringMode);
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_selectedParcelColor",
+                                                                &m_selectedParcelColor);
 }
 
 /**
@@ -102,6 +106,8 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     m_rowLoadedText = "";
     m_dataLoadingEnabled = true;
     m_connectivityDataLoaded->reset();
+    m_selectedParcelColoringMode = CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_NORMAL;
+    m_selectedParcelColor = CaretColorEnum::WHITE;
 }
 
 /**
@@ -444,6 +450,49 @@ CiftiMappableConnectivityMatrixDataFile::setLoadedRowDataToAllZeros()
     m_rowLoadedText.clear();
     m_rowLoadedTextForMapName.clear();
 }
+
+/**
+ * @return Coloring mode for selected parcel.
+ */
+CiftiParcelColoringModeEnum::Enum
+CiftiMappableConnectivityMatrixDataFile::getSelectedParcelColoringMode() const
+{
+    return m_selectedParcelColoringMode;
+}
+
+/**
+ * Set the coloring mode for selected parcel.
+ *
+ * @param coloringMode
+ *    New value for coloring mode.
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode)
+{
+    m_selectedParcelColoringMode = coloringMode;
+}
+
+/**
+ * @return Color for selected parcel.
+ */
+CaretColorEnum::Enum
+CiftiMappableConnectivityMatrixDataFile::getSelectedParcelColor() const
+{
+    return m_selectedParcelColor;
+}
+
+/**
+ * Set color for selected parcel.
+ *
+ * @param color
+ *    New color for selected parcel.
+ */
+void
+CiftiMappableConnectivityMatrixDataFile::setSelectedParcelColor(const CaretColorEnum::Enum color)
+{
+    m_selectedParcelColor = color;
+}
+
 
 /**
  * Load the given row from the file even if the file is disabled.

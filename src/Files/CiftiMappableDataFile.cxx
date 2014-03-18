@@ -147,11 +147,6 @@ CiftiMappableDataFile::clearPrivate()
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
 
-    m_selectionMode = SELECTION_MODE_NONE;
-    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL) {
-        m_selectionMode = SELECTION_MODE_OUTLINE;
-    }
-    
     m_niftiHeaderDimensions.clear();
     m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
 }
@@ -3236,19 +3231,6 @@ CiftiMappableDataFile::getMappingSurfaceNumberOfNodes(const StructureEnum::Enum 
     //
     //    return numNodes;
 }
-
-CiftiMappableDataFile::SelectionMode
-CiftiMappableDataFile::getSelectionMode() const
-{
-    return this->m_selectionMode;
-}
-
-void
-CiftiMappableDataFile::setSelectionMode(const CiftiMappableDataFile::SelectionMode &mode)
-{
-    m_selectionMode = mode;
-}
-
 
 /**
  * Save file data from the scene.  For subclasses that need to

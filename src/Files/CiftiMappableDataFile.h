@@ -304,17 +304,6 @@ namespace caret {
                                                     int64_t ijkOut[3],
                                                     float xyzOut[3]) const;
 
-        enum SelectionMode {
-            SELECTION_MODE_NONE = 0,
-            SELECTION_MODE_FILL = 1,
-            SELECTION_MODE_OUTLINE = 2
-        };
-
-        virtual SelectionMode getSelectionMode() const;
-        virtual void setSelectionMode(const SelectionMode &mode);
-
-//		bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut, const StructureEnum::Enum &structure) const;
-        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);
@@ -460,8 +449,6 @@ namespace caret {
         
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
-
-        SelectionMode m_selectionMode; 
 
         std::vector<int64_t> m_niftiHeaderDimensions;
         

@@ -1,5 +1,5 @@
-#ifndef __CARET_COLOR_ENUM_COMBOBOX__H_
-#define __CARET_COLOR_ENUM_COMBOBOX__H_
+#ifndef __ENUM_COMBOBOX_TEMPLATE__H_
+#define __ENUM_COMBOBOX_TEMPLATE__H_
 
 /*LICENSE_START*/
 /*
@@ -226,9 +226,9 @@ namespace caret {
         QComboBox* m_itemComboBox;
     };
     
-#ifdef __CARET_COLOR_ENUM_COMBOBOX_DECLARE__
+#ifdef __ENUM_COMBOBOX_TEMPLATE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CARET_COLOR_ENUM_COMBOBOX_DECLARE__
+#endif // __ENUM_COMBOBOX_TEMPLATE_DECLARE__
 
 } // namespace
-#endif  //__CARET_COLOR_ENUM_COMBOBOX__H_
+#endif  //__ENUM_COMBOBOX_TEMPLATE__H_

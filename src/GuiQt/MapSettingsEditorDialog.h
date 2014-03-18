@@ -37,6 +37,7 @@ namespace caret {
     class MapSettingsFiberTrajectoryWidget;
     class MapSettingsLayerWidget;
     class MapSettingsPaletteColorMappingWidget;
+    class MapSettingsParcelsWidget;
     class Overlay;
     
     class MapSettingsEditorDialog : public WuQDialogNonModal {
@@ -89,6 +90,8 @@ namespace caret {
         
         MapSettingsPaletteColorMappingWidget* m_paletteColorMappingWidget;
         
+        MapSettingsParcelsWidget* m_parcelsWidget;
+        
         LabelTableEditorWidget* m_labelTableEditorWidget;
         
         MapSettingsFiberTrajectoryWidget* m_fiberTrajectoryWidget;
@@ -110,6 +113,8 @@ namespace caret {
         int32_t m_metadataWidgetTabIndex;
         
         int32_t m_paletteWidgetTabIndex;
+        
+        int32_t m_parcelsWidgetTabIndex;
         
         int32_t m_trajectoryWidgetTabIndex;
         

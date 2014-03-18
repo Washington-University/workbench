@@ -75,6 +75,7 @@ MapSettingsEditorDialog.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
+MapSettingsParcelsWidget.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieDialog.h
@@ -198,6 +199,7 @@ MapSettingsEditorDialog.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLayerWidget.h
 MapSettingsPaletteColorMappingWidget.h
+MapSettingsParcelsWidget.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
@@ -320,6 +322,7 @@ MapSettingsEditorDialog.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLayerWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
+MapSettingsParcelsWidget.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx

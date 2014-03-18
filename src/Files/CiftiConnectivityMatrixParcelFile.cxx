@@ -233,7 +233,7 @@ void
 CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                                   SceneClass* sceneClass)
 {
-    CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
+    CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
@@ -259,7 +259,7 @@ void
 CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                                        const SceneClass* sceneClass)
 {
-    CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
+    CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     
     const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");

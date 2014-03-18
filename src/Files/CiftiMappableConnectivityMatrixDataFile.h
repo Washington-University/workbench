@@ -21,8 +21,9 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretColorEnum.h"
 #include "CiftiMappableDataFile.h"
+#include "CiftiParcelColoringModeEnum.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -98,6 +99,14 @@ namespace caret {
         bool getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
                                                     const StructureEnum::Enum &structure) const;
         
+        CiftiParcelColoringModeEnum::Enum getSelectedParcelColoringMode() const;
+        
+        void setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode);
+        
+        CaretColorEnum::Enum getSelectedParcelColor() const;
+        
+        void setSelectedParcelColor(const CaretColorEnum::Enum color);
+        
     private:
         CiftiMappableConnectivityMatrixDataFile(const CiftiMappableConnectivityMatrixDataFile&);
 
@@ -141,6 +150,10 @@ namespace caret {
         AString m_rowLoadedText;
         
         ConnectivityDataLoaded* m_connectivityDataLoaded;
+        
+        CiftiParcelColoringModeEnum::Enum m_selectedParcelColoringMode;
+        
+        CaretColorEnum::Enum m_selectedParcelColor;
         
         friend class CiftiBrainordinateScalarFile;
 
