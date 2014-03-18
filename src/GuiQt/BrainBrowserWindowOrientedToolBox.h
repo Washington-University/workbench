@@ -32,8 +32,6 @@ class QTabWidget;
 
 namespace caret {
     class BorderSelectionViewController;
-    class ChartHistoryViewController;
-    class ChartSelectionViewController;
     class ChartToolBoxViewController;
     class CiftiConnectivityMatrixViewController;
     class FiberOrientationSelectionViewController;
@@ -87,10 +85,6 @@ namespace caret {
         
         ChartToolBoxViewController* m_chartToolBoxViewController;
         
-//        ChartSelectionViewController* m_chartSelectionViewController;
-//        
-//        ChartHistoryViewController* m_chartHistoryViewController;
-        
         FiberOrientationSelectionViewController* m_fiberOrientationViewController;
         
         FociSelectionViewController* m_fociSelectionViewController;
@@ -100,8 +94,6 @@ namespace caret {
         VolumeSurfaceOutlineSetViewController* m_volumeSurfaceOutlineSetViewController;
         
         QTabWidget* m_tabWidget;
-        
-//        QTabWidget* m_chartTabWidget;
         
         QString m_toolBoxTitle;
         

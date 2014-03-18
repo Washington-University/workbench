@@ -37,8 +37,6 @@
 #include "CaretPreferences.h"
 #include "ChartableBrainordinateInterface.h"
 #include "ChartableMatrixInterface.h"
-#include "ChartHistoryViewController.h"
-#include "ChartSelectionViewController.h"
 #include "ChartToolBoxViewController.h"
 #include "CiftiConnectivityMatrixViewController.h"
 #include "EventBrowserWindowContentGet.h"
@@ -114,8 +112,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     m_borderSelectionViewController = NULL;
     m_chartToolBoxViewController = NULL;
-//    m_chartHistoryViewController = NULL;
-//    m_chartSelectionViewController = NULL;
     m_connectivityMatrixViewController = NULL;
     m_fiberOrientationViewController = NULL;
     m_fociSelectionViewController = NULL;
@@ -124,7 +120,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new QTabWidget();
-//    m_chartTabWidget = NULL;
     
     m_borderTabIndex = -1;
     m_chartTabIndex = -1;
@@ -148,22 +143,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                       this);
         m_chartTabIndex = addToTabWidget(m_chartToolBoxViewController,
                                          "Charting");
-        
-//        m_chartSelectionViewController = new ChartSelectionViewController(orientation,
-//                                                                          browserWindowIndex,
-//                                                                          this);
-//        
-//        m_chartHistoryViewController = new ChartHistoryViewController(orientation,
-//                                                                      browserWindowIndex,
-//                                                                      this);
-//        
-//        m_chartTabWidget = new QTabWidget();
-//        m_chartTabWidget->addTab(m_chartSelectionViewController,
-//                                 "Loading");
-//        m_chartTabWidget->addTab(m_chartHistoryViewController,
-//                                 "History");
-//        m_chartTabIndex = addToTabWidget(m_chartTabWidget,
-//                                                "Charting");
     }
     if (isOverlayToolBox) {
         m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(orientation,
@@ -521,16 +500,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
              iter++) {
             const CaretDataFile* caretDataFile = *iter;
             
-//            const ChartableBrainordinateInterface* chartableBrainordinateInterface = dynamic_cast<const ChartableBrainordinateInterface*>(caretDataFile);
-//            if (chartableBrainordinateInterface != NULL) {
-//                haveChartFiles = true;
-//            }
-//            
-//            const ChartableMatrixInterface* chartableMatrixInterface = dynamic_cast<const ChartableMatrixInterface*>(caretDataFile);
-//            if (chartableMatrixInterface != NULL) {
-//                haveChartFiles = true;
-//            }
-            
             const DataFileTypeEnum::Enum dataFileType = caretDataFile->getDataFileType();
             switch (dataFileType) {
                 case DataFileTypeEnum::BORDER:
@@ -603,7 +572,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool enableCharts = false;
         EventBrowserWindowContentGet browserContentEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(browserContentEvent.getPointer());
-        //const int32_t numItemsInWindow = browserContentEvent.getNumberOfItemsToDraw();
         BrowserTabContent* windowContent = browserContentEvent.getSelectedBrowserTabContent();
             if (windowContent != NULL) {
                 switch (windowContent->getSelectedModelType()) {
@@ -637,6 +605,14 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         break;
                 }
             }
+
+        /*
+         * Get the selected tab BEFORE enabling/disabling tabs.
+         * Otherwise, the enabling/disabling of tabs may cause the selection
+         * to change
+         */
+        const int32_t tabIndex = m_tabWidget->currentIndex();
+
         
         /*
          * Enable/disable Tabs based upon data that is loaded
@@ -658,7 +634,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
          * Switch selected tab if it is not valid
          */
         bool tabIndexValid = false;
-        const int32_t tabIndex = m_tabWidget->currentIndex();
         if ((tabIndex >= 0)
             && (tabIndex < m_tabWidget->count())) {
             if (m_tabWidget->isTabEnabled(tabIndex)) {
