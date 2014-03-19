@@ -21,6 +21,7 @@
 #include "AlgorithmMetricFindClusters.h"
 #include "AlgorithmException.h"
 
+#include "CaretLogger.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
@@ -61,6 +62,9 @@ OperationParameters* AlgorithmMetricFindClusters::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
+    OptionalParameter* startOpt = ret->createOptionalParameter(9, "-start", "start labeling clusters from a value other than 1");
+    startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
+    
     ret->setHelpText(
         AString("Outputs a metric with cluster labels for all vertices within a large enough cluster, and zeros elsewhere.  ") +
         "By default, values greater than <value-threshold> are considered to be in a cluster, use -less-than to test for values less than the threshold.  " +
@@ -93,11 +97,17 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, columnNum);
+    OptionalParameter* startOpt = myParams->getOptionalParameter(9);
+    int startVal = 1;
+    if (startOpt->m_present)
+    {
+        startVal = (int)startOpt->getInteger(1);
+    }
+    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, columnNum, startVal);
 }
 
-AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& threshVal,
-                                                         const float& minArea, MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const int& columnNum) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& threshVal, const float& minArea,
+                                                         MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const int& columnNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
@@ -117,7 +127,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     mySurf->computeNodeAreas(nodeAreas);
     CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
     vector<int> toSearch;
-    int markVal = 1;//give each cluster a different value, including across maps
+    int markVal = startVal;//give each cluster a different value, including across maps
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, numCols);
@@ -171,6 +181,11 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                     }
                     if (area > minArea)
                     {
+                        if (markVal == 0)
+                        {
+                            CaretLogInfo("skipping 0 for cluster marking");
+                            ++markVal;
+                        }
                         float tempVal = markVal;
                         if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                         int clusterCount = (int)toSearch.size();
@@ -235,6 +250,11 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                 }
                 if (area > minArea)
                 {
+                    if (markVal == 0)
+                    {
+                        CaretLogInfo("skipping 0 for cluster marking");
+                        ++markVal;
+                    }
                     float tempVal = markVal;
                     if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                     int clusterCount = (int)toSearch.size();
@@ -249,6 +269,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
         }
         myMetricOut->setValuesForColumn(0, outData.data());
     }
+    if (endVal != NULL) *endVal = markVal;
 }
 
 float AlgorithmMetricFindClusters::getAlgorithmInternalWeight()

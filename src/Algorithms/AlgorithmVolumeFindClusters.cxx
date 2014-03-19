@@ -21,6 +21,7 @@
 #include "AlgorithmVolumeFindClusters.h"
 #include "AlgorithmException.h"
 
+#include "CaretLogger.h"
 #include "VolumeFile.h"
 #include "VoxelIJK.h"
 
@@ -59,6 +60,9 @@ OperationParameters* AlgorithmVolumeFindClusters::getParameters()
     OptionalParameter* subvolSelect = ret->createOptionalParameter(7, "-subvolume", "select a single subvolume");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
+    OptionalParameter* startOpt = ret->createOptionalParameter(8, "-start", "start labeling clusters from a value other than 1");
+    startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
+    
     ret->setHelpText(
         AString("Outputs a volume with cluster labels for all voxels within a large enough cluster, and zeros elsewhere.  ") +
         "By default, values greater than <value-threshold> are considered to be in a cluster, use -less-than to test for values less than the threshold.  " +
@@ -90,11 +94,17 @@ void AlgorithmVolumeFindClusters::useParameters(OperationParameters* myParams, P
             throw AlgorithmException("invalid subvolume specified");
         }
     }
-    AlgorithmVolumeFindClusters(myProgObj, volIn, threshValue, minVolume, volOut, lessThan, myRoi, subvolNum);
+    OptionalParameter* startOpt = myParams->getOptionalParameter(8);
+    int startVal = 1;
+    if (startOpt->m_present)
+    {
+        startVal = (int)startOpt->getInteger(1);
+    }
+    AlgorithmVolumeFindClusters(myProgObj, volIn, threshValue, minVolume, volOut, lessThan, myRoi, subvolNum, startVal);
 }
 
-AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgObj, const VolumeFile* volIn, const float& minValue, const float& minVolume,
-                                                         VolumeFile* volOut, const bool& lessThan, const VolumeFile* myRoi, const int& subvolNum) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgObj, const VolumeFile* volIn, const float& threshValue, const float& minVolume, VolumeFile* volOut,
+                                                         const bool& lessThan, const VolumeFile* myRoi, const int& subvolNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const VolumeSpace& mySpace = volIn->getVolumeSpace();
@@ -117,7 +127,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
     neighbors.push_back(VoxelIJK(0, -1, 0));
     neighbors.push_back(VoxelIJK(0, 0, 1));
     neighbors.push_back(VoxelIJK(0, 0, -1));
-    int markVal = 1;
+    int markVal = startVal;
     if (subvolNum == -1)
     {
         volOut->reinitialize(volIn->getOriginalDimensions(), volIn->getSform(), dims[4]);
@@ -132,7 +142,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                 {
                     for (int64_t i = 0; i < frameSize; ++i)
                     {
-                        if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < minValue)
+                        if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < threshValue)
                         {
                             marked[i] = 1;
                         }
@@ -140,7 +150,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                 } else {
                     for (int64_t i = 0; i < frameSize; ++i)
                     {
-                        if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > minValue)
+                        if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > threshValue)
                         {
                             marked[i] = 1;
                         }
@@ -178,6 +188,11 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                                 }
                                 if ((int64_t)voxelList.size() >= minVoxels)
                                 {
+                                    if (markVal == 0)
+                                    {
+                                        CaretLogInfo("skipping 0 for cluster marking");
+                                        ++markVal;
+                                    }
                                     float tempVal = markVal;
                                     if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                                     for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)
@@ -205,7 +220,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
             {
                 for (int64_t i = 0; i < frameSize; ++i)
                 {
-                    if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < minValue)
+                    if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] < threshValue)
                     {
                         marked[i] = 1;
                     }
@@ -213,7 +228,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
             } else {
                 for (int64_t i = 0; i < frameSize; ++i)
                 {
-                    if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > minValue)
+                    if ((roiFrame == NULL || roiFrame[i] > 0.0f) && inFrame[i] > threshValue)
                     {
                         marked[i] = 1;
                     }
@@ -251,6 +266,11 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                             }
                             if ((int64_t)voxelList.size() >= minVoxels)
                             {
+                                if (markVal == 0)
+                                {
+                                    CaretLogInfo("skipping 0 for cluster marking");
+                                    ++markVal;
+                                }
                                 float tempVal = markVal;
                                 if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                                 for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)
@@ -265,6 +285,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
             }
         }
     }
+    if (endVal != NULL) *endVal = markVal;
 }
 
 float AlgorithmVolumeFindClusters::getAlgorithmInternalWeight()

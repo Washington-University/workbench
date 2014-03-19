@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_VOLUME_FIND_CLUSTERS_H__
-#define __ALGORITHM_VOLUME_FIND_CLUSTERS_H__
+#ifndef __ALGORITHM_CIFTI_FIND_CLUSTERS_H__
+#define __ALGORITHM_CIFTI_FIND_CLUSTERS_H__
 
 /*LICENSE_START*/
 /*
@@ -25,24 +25,28 @@
 
 namespace caret {
     
-    class AlgorithmVolumeFindClusters : public AbstractAlgorithm
+    class CiftiInterface;
+    
+    class AlgorithmCiftiFindClusters : public AbstractAlgorithm
     {
-        AlgorithmVolumeFindClusters();
+        AlgorithmCiftiFindClusters();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmVolumeFindClusters(ProgressObject* myProgObj, const VolumeFile* volIn, const float& threshValue, const float& minVolume,
-                                    VolumeFile* volOut, const bool& lessThan = false, const VolumeFile* myRoi = NULL, const int& subvolNum = -1,
-                                    const int& startVal = 1, int* endVal = NULL);
+        AlgorithmCiftiFindClusters(ProgressObject* myProgObj, const CiftiInterface* myCifti,
+                                                       const float& surfThresh, const float& surfSize, const float& volThresh, const float& volSize,
+                                                       const int& myDir, CiftiFile* myCiftiOut, const bool& lessThan = false,
+                                                       const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
+                                                       const CiftiInterface* roiCifti = NULL, const bool& mergedVol = false, const int& startVal = 1, int* endVal = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmVolumeFindClusters> AutoAlgorithmVolumeFindClusters;
+    typedef TemplateAutoOperation<AlgorithmCiftiFindClusters> AutoAlgorithmCiftiFindClusters;
 
 }
 
-#endif //__ALGORITHM_VOLUME_FIND_CLUSTERS_H__
+#endif //__ALGORITHM_CIFTI_FIND_CLUSTERS_H__

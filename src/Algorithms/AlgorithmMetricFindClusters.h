@@ -32,8 +32,9 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& minVal,
-                                    const float& minArea, MetricFile* myMetricOut, const bool& lessThan = false, const MetricFile* myRoi = NULL, const int& columnNum = -1);
+        AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& minVal, const float& minArea,
+                                    MetricFile* myMetricOut, const bool& lessThan = false, const MetricFile* myRoi = NULL, const int& columnNum = -1,
+                                    const int& startVal = 1, int* endVal = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
