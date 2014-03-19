@@ -24,9 +24,7 @@
 #include <iterator>
 #include <stack>
 
-#define __ALGORITHM_NODES_INSIDE_BORDER_DECLARE__
 #include "AlgorithmNodesInsideBorder.h"
-#undef __ALGORITHM_NODES_INSIDE_BORDER_DECLARE__
 
 #include "AlgorithmException.h"
 #include "Border.h"
@@ -42,8 +40,75 @@
 
 using namespace caret;
 
+AString AlgorithmNodesInsideBorder::getCommandSwitch()
+{
+    return "-border-to-rois";//maybe the command should be in a separate file, and the nodes inside border code should be a helper class?
+}
 
+AString AlgorithmNodesInsideBorder::getShortDescription()
+{
+    return "MAKE METRIC ROIS FROM BORDERS";
+}
+
+OperationParameters* AlgorithmNodesInsideBorder::getParameters()
+{
+    OperationParameters* ret = new OperationParameters();
     
+    ret->addSurfaceParameter(1, "surface", "the surface the borders are drawn on");
+    
+    ret->addBorderParameter(2, "border-file", "the border file");
+    
+    ret->addMetricOutputParameter(3, "metric-out", "the output metric file");
+    
+    OptionalParameter* borderOpt = ret->createOptionalParameter(4, "-border", "create ROI for only one border");
+    borderOpt->addStringParameter(1, "name", "the name of the border");
+    
+    ret->createOptionalParameter(5, "-inverse", "use inverse selection (outside border)");
+    
+    ret->setHelpText(
+        AString("By default, draws ROIs inside all borders in the border file, as separate metric columns.")
+    );
+    return ret;
+}
+
+void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+{
+    SurfaceFile* mySurf = myParams->getSurface(1);
+    BorderFile* myBorderFile = myParams->getBorder(2);
+    MetricFile* myMetricOut = myParams->getOutputMetric(3);
+    OptionalParameter* borderOpt = myParams->getOptionalParameter(4);
+    bool inverse = myParams->getOptionalParameter(5)->m_present;
+    //TODO: check that border file is valid on this surface file
+    if (borderOpt->m_present)
+    {
+        AString findName = borderOpt->getString(1);
+        int numBorders = myBorderFile->getNumberOfBorders();
+        int borderIndx = -1;
+        for (int i = 0; i < numBorders; ++i)
+        {
+            if (myBorderFile->getBorder(i)->getName() == findName)
+            {
+                borderIndx = i;
+                break;
+            }
+        }
+        if (borderIndx == -1) throw AlgorithmException("border name not found");
+        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
+        myMetricOut->setStructure(mySurf->getStructure());
+        myMetricOut->setColumnName(0, findName);
+        AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(borderIndx), inverse, 0, 1.0f, myMetricOut);
+    } else {
+        int numBorders = myBorderFile->getNumberOfBorders();
+        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numBorders);
+        myMetricOut->setStructure(mySurf->getStructure());
+        for (int i = 0; i < numBorders; ++i)
+        {
+            myMetricOut->setColumnName(i, myBorderFile->getBorder(i)->getName());
+            AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(i), inverse, i, 1.0f, myMetricOut);
+        }
+    }
+}
+
 /**
  * \class caret::AlgorithmNodesInsideBorder 
  * \brief Assign attribute values to nodes within a closed border.
@@ -81,7 +146,7 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(metricFileInOut);
-    CaretAssert(surfaceFile->getNumberOfNodes() == metricFileInOut->getNumberOfNodes());
+    if (surfaceFile->getNumberOfNodes() != metricFileInOut->getNumberOfNodes()) throw AlgorithmException("metric file must be initialized to same number of nodes");//a method that requires this really shouldn't be public
     
     this->isInverseSelection = isInverseSelection;
     
@@ -111,7 +176,7 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(labelFileInOut);
-    CaretAssert(surfaceFile->getNumberOfNodes() == labelFileInOut->getNumberOfNodes());
+    if (surfaceFile->getNumberOfNodes() != labelFileInOut->getNumberOfNodes()) throw AlgorithmException("metric file must be initialized to same number of nodes");//a method that requires this really shouldn't be public
     
     this->isInverseSelection = isInverseSelection;
     

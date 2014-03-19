@@ -104,27 +104,32 @@ OperationParametersEnum::initialize()
                                     "Cifti"));
     
     enumData.push_back(OperationParametersEnum(FOCI, 
-                                    4, 
+                                    5, 
                                     "Foci File", 
-                                    "Foci"));
+                                    "Foci File"));
+    
+    enumData.push_back(OperationParametersEnum(BORDER, 
+                                    6, 
+                                    "Border File", 
+                                    "Border File"));
     
     enumData.push_back(OperationParametersEnum(DOUBLE, 
-                                    5, 
+                                    7, 
                                     "Floating Point", 
                                     "Floating Point"));
     
     enumData.push_back(OperationParametersEnum(INT, 
-                                    6, 
+                                    8, 
                                     "Integer", 
                                     "Integer"));
     
     enumData.push_back(OperationParametersEnum(STRING, 
-                                    7, 
+                                    9, 
                                     "String", 
                                     "String"));
     
     enumData.push_back(OperationParametersEnum(BOOL, 
-                                    8, 
+                                    10, 
                                     "Boolean", 
                                     "Boolean"));
     

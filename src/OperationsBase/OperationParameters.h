@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class BorderFile;
     class CiftiFile;
     class FociFile;
     class LabelFile;
@@ -125,11 +126,17 @@ namespace caret {
         ///get a cifti with a key
         CiftiFile* getCifti(const int32_t key);
         
-        ///add a parameter to get next item as a cifti file
+        ///add a parameter to get next item as a foci file
         void addFociParameter(const int32_t key, const AString& name, const AString& description);
         
-        ///get a cifti with a key
+        ///get a foci file with a key
         FociFile* getFoci(const int32_t key);
+        
+        ///add a parameter to get next item as a border file
+        void addBorderParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a border file with a key
+        BorderFile* getBorder(const int32_t key);
         
         ///add a parameter to get next item as a surface
         void addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description);
@@ -161,11 +168,17 @@ namespace caret {
         ///get a cifti with a key
         CiftiFile* getOutputCifti(const int32_t key);
         
-        ///add a parameter to get next item as a cifti file
+        ///add a parameter to get next item as a foci file
         void addFociOutputParameter(const int32_t key, const AString& name, const AString& description);
         
-        ///get a cifti with a key
+        ///get a foci file with a key
         FociFile* getOutputFoci(const int32_t key);
+        
+        ///add a parameter to get next item as a border file
+        void addBorderOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a border file with a key
+        BorderFile* getOutputBorder(const int32_t key);
         
         ///convenience method to create, add, and return an optional parameter
         OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description);
@@ -305,6 +318,7 @@ namespace caret {
     typedef PointerTemplateParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
     typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
     typedef PointerTemplateParameter<FociFile, OperationParametersEnum::FOCI> FociParameter;
+    typedef PointerTemplateParameter<BorderFile, OperationParametersEnum::BORDER> BorderParameter;
     typedef PrimitiveTemplateParameter<double, OperationParametersEnum::DOUBLE> DoubleParameter;
     typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntegerParameter;
     typedef PrimitiveTemplateParameter<bool, OperationParametersEnum::BOOL> BooleanParameter;

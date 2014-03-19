@@ -49,9 +49,14 @@ namespace caret {
                                    const int32_t assignToLabelMapIndex,
                                    const int32_t assignLabelKey,
                                    LabelFile* labelFileInOut);
+        
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters* myParams, 
+                                  ProgressObject* myProgObj);
+        static AString getCommandSwitch();
+        static AString getShortDescription();
+    
     private:
-        AlgorithmNodesInsideBorder();
-
         void findNodesInsideBorder(const SurfaceFile* surfaceFile,
                                    const Border* border,
                                    std::vector<int32_t>& nodesInsideBorderOut);
@@ -83,18 +88,9 @@ namespace caret {
         
         bool isInverseSelection;
   
-//        static OperationParameters* getParameters();
-//        static void useParameters(OperationParameters* myParams, 
-//                                  ProgressObject* myProgObj);
-//        static AString getCommandSwitch();
-//        static AString getShortDescription();
-//    
-//        typedef TemplateAutoOperation<AlgorithmNodesInsideBorder> AutoAlgorithmNodesInsideBorder;
     };
     
-#ifdef __ALGORITHM_NODES_INSIDE_BORDER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ALGORITHM_NODES_INSIDE_BORDER_DECLARE__
+    typedef TemplateAutoOperation<AlgorithmNodesInsideBorder> AutoAlgorithmNodesInsideBorder;
 
 } // namespace
 #endif  //__ALGORITHM_NODES_INSIDE_BORDER__H_

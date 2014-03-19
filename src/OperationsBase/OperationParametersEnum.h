@@ -35,25 +35,16 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
         SURFACE,
-        /** */
         VOLUME,
-        /** */
         METRIC,
-        /** */
         LABEL,
-        /** */
         CIFTI,
-        /** */
         FOCI,
-        /** */
+        BORDER,
         DOUBLE,
-        /** */
         INT,
-        /** */
         STRING,
-        /** */
         BOOL
     };
 

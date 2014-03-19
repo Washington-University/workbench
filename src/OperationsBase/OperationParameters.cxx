@@ -21,6 +21,7 @@
 #include "OperationParameters.h"
 #include "CaretAssert.h"
 
+#include "BorderFile.h"
 #include "CiftiFile.h"
 #include "FociFile.h"
 #include "LabelFile.h"
@@ -236,6 +237,12 @@ void ParameterComponent::addFociParameter(const int32_t key, const AString& name
     m_paramList.push_back(new FociParameter(key, name, description));
 }
 
+void ParameterComponent::addBorderParameter(const int32_t key, const AString& name, const AString& description)
+{
+    CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::BORDER), "input border parameter created with previously used key");
+    m_paramList.push_back(new BorderParameter(key, name, description));
+}
+
 void ParameterComponent::addDoubleParameter(const int32_t key, const AString& name, const AString& description)
 {
     CaretAssertMessage(checkUniqueInput(key, OperationParametersEnum::DOUBLE), "input double parameter created with previously used key");
@@ -295,6 +302,12 @@ void ParameterComponent::addFociOutputParameter(const int32_t key, const AString
     m_outputList.push_back(new FociParameter(key, name, description));
 }
 
+void ParameterComponent::addBorderOutputParameter(const int32_t key, const AString& name, const AString& description)
+{
+    CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::BORDER), "output foci parameter created with previously used key");
+    m_outputList.push_back(new BorderParameter(key, name, description));
+}
+
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     CaretAssertMessage(checkUniqueOutput(key, OperationParametersEnum::METRIC), "output metric parameter created with previously used key");
@@ -343,6 +356,11 @@ FociFile* ParameterComponent::getFoci(const int32_t key)
     return ((FociParameter*)getInputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
 }
 
+BorderFile* ParameterComponent::getBorder(const int32_t key)
+{
+    return ((BorderParameter*)getInputParameter(key, OperationParametersEnum::BORDER))->m_parameter.getPointer();
+}
+
 double ParameterComponent::getDouble(const int32_t key)
 {
     return ((DoubleParameter*)getInputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter;
@@ -386,6 +404,11 @@ CiftiFile* ParameterComponent::getOutputCifti(const int32_t key)
 FociFile* ParameterComponent::getOutputFoci(const int32_t key)
 {
     return ((FociParameter*)getOutputParameter(key, OperationParametersEnum::FOCI))->m_parameter.getPointer();
+}
+
+BorderFile* ParameterComponent::getOutputBorder(const int32_t key)
+{
+    return ((BorderParameter*)getOutputParameter(key, OperationParametersEnum::BORDER))->m_parameter.getPointer();
 }
 
 LabelFile* ParameterComponent::getOutputLabel(const int32_t key)
