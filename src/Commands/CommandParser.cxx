@@ -22,6 +22,7 @@
 
 #include "AlgorithmException.h"
 #include "ApplicationInformation.h"
+#include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
 #include "CaretLogger.h"
@@ -139,6 +140,30 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 {
                     cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
                     cout << (((BooleanParameter*)myComponent->m_paramList[i])->m_parameter ? "true" : "false") << endl;
+                }
+                break;
+            }
+            case OperationParametersEnum::BORDER:
+            {
+                CaretPointer<BorderFile> myFile(new BorderFile());
+                myFile->readFile(nextArg);
+                if (m_doProvenance)
+                {
+                    const GiftiMetaData* md = myFile->getFileMetaData();
+                    if (md != NULL)
+                    {
+                        AString prov = md->get(PROVENANCE_NAME);
+                        if (prov != "")
+                        {
+                            m_parentProvenance += nextArg + ":\n" + prov + "\n\n";
+                        }
+                    }
+                }
+                ((BorderParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
                 }
                 break;
             }
@@ -345,8 +370,14 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         OutputAssoc tempItem;
         tempItem.m_fileName = nextArg;
         tempItem.m_param = myComponent->m_outputList[i];
-        switch (myComponent->m_outputList[i]->getType())//set the immediate provenance metadata so that it can be overridden, but the parent provenance metadata can be incomplete at this point and should not be overridden
+        switch (myComponent->m_outputList[i]->getType())//allocate outputs that only have in-memory implementations
         {
+            case OperationParametersEnum::BORDER:
+            {
+                CaretPointer<BorderFile>& myFile = ((BorderParameter*)(myComponent->m_outputList[i]))->m_parameter;
+                myFile.grabNew(new BorderFile());
+                break;
+            }
             case OperationParametersEnum::CIFTI:
                 break;//we create this in makeOnDiskOutputs(), and do the metadata stuff in provenanceForOnDiskOutputs() for this type
             case OperationParametersEnum::FOCI:
@@ -478,6 +509,12 @@ void CommandParser::provenanceBeforeOperation(const vector<OutputAssoc>& outAsso
         GiftiMetaData* md = NULL;//do the common case with the same single piece of code
         switch (myParam->getType())
         {
+            case OperationParametersEnum::BORDER:
+            {
+                BorderFile* myFile = ((BorderParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
             case OperationParametersEnum::CIFTI:
             {
                 CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;
@@ -557,6 +594,12 @@ void CommandParser::provenanceAfterOperation(const vector<OutputAssoc>& outAssoc
         GiftiMetaData* md = NULL;
         switch (myParam->getType())
         {
+            case OperationParametersEnum::BORDER:
+            {
+                BorderFile* myFile = ((BorderParameter*)myParam)->m_parameter;
+                md = myFile->getFileMetaData();
+                break;
+            }
             case OperationParametersEnum::FOCI:
             {
                 FociFile* myFile = ((FociParameter*)myParam)->m_parameter;
@@ -640,6 +683,12 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
             case OperationParametersEnum::BOOL://ignores the name you give the output for now, but what gives primitive type output and how is it used?
                 cout << "Output Boolean \"" << myParam->m_shortName << "\" value is " << ((BooleanParameter*)myParam)->m_parameter << endl;
                 break;
+            case OperationParametersEnum::BORDER:
+            {
+                BorderFile* myFile = ((BorderParameter*)myParam)->m_parameter;
+                myFile->writeFile(outAssociation[i].m_fileName);
+                break;
+            }
             case OperationParametersEnum::CIFTI:
             {
                 CiftiFile* myFile = ((CiftiParameter*)myParam)->m_parameter;//we can't set metadata here because the XML is already on disk, see provenanceForOnDiskOutputs
