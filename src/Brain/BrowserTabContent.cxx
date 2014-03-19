@@ -33,6 +33,9 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartData.h"
+#include "ChartMatrixDisplayProperties.h"
+#include "ChartableMatrixFileSelectionModel.h"
+#include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -645,6 +648,19 @@ BrowserTabContent::isCerebellumDisplayed() const
     return false;
 }
 
+/**
+ * @return True if the displayed model is a chart
+ */
+bool
+BrowserTabContent::isChartDisplayed() const
+{
+    const ModelChart* chartModel = getDisplayedChartModel();
+    if (chartModel != NULL) {
+        return true;
+    }
+    
+    return false;
+}
 
 /**
  * @return Is the displayed model a volume slice model?
@@ -1826,6 +1842,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 break;
         }
     }
+    else if (isChartDisplayed()) {
+        /* no rotation for chart */
+    }
     else if (isCerebellumDisplayed()) {
         const float screenDX = mouseDeltaX;
         const float screenDY = mouseDeltaY;
@@ -2021,6 +2040,28 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         }
         m_volumeSliceViewingTransformation->setScaling(scaling);
     }
+    else if (isChartDisplayed()) {
+        ModelChart* modelChart = getDisplayedChartModel();
+        CaretAssert(modelChart);
+        
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+            ChartableMatrixFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
+            if (matrixSelectionModel != NULL) {
+                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFile();
+                if (chartableInterface != NULL) {
+                    ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
+                    float scaling = matrixProperties->getViewZooming();
+                    if (mouseDY != 0.0) {
+                        scaling *= (1.0f + (mouseDY * 0.01));
+                    }
+                    if (scaling < 0.01) {
+                        scaling = 0.01;
+                    }
+                    matrixProperties->setViewZooming(scaling);
+                }
+            }
+        }        
+    }
     else if (isCerebellumDisplayed()) {
         float scaling = m_cerebellumViewingTransformation->getScaling();
         if (mouseDY != 0.0) {
@@ -2138,6 +2179,25 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         translation[2] += dz;
         m_volumeSliceViewingTransformation->setTranslation(translation);
     }
+    else if (isChartDisplayed()) {
+        ModelChart* modelChart = getDisplayedChartModel();
+        CaretAssert(modelChart);
+        
+        if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
+            ChartableMatrixFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
+            if (matrixSelectionModel != NULL) {
+                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFile();
+                if (chartableInterface != NULL) {
+                    ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
+                    float translation[2];
+                    matrixProperties->getViewPanning(translation);
+                    translation[0] += mouseDX;
+                    translation[1] += mouseDY;
+                    matrixProperties->setViewPanning(translation);
+                }
+            }
+        }
+    }
     else if (isCerebellumDisplayed()) {
         const float screenDX = mouseDX;
         const float screenDY = mouseDY;
@@ -2222,6 +2282,8 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         float dy = mouseDY;
         
         ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
+        
+        
         if (montageModel != NULL) {
             std::vector<const SurfaceMontageViewport*> montageViewports;
             montageModel->getSurfaceMontageViewportsForTransformation(getTabNumber(),

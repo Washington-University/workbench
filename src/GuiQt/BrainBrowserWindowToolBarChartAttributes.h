@@ -34,6 +34,7 @@ namespace caret {
     class ChartModelCartesian;
     class EnumComboBoxTemplate;
     class MatrixChartAttributesWidget;
+    class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarChartAttributes : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -125,6 +126,8 @@ namespace caret {
         QDoubleSpinBox* m_cellWidthSpinBox;
         
         QDoubleSpinBox* m_cellHeightSpinBox;
+
+        WuQWidgetObjectGroup* m_manualWidgetsGroup;
         
     };
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_CHART_ATTRIBUTES_DECLARE__

@@ -119,6 +119,8 @@ namespace caret {
         
         bool isCerebellumDisplayed() const;
         
+        bool isChartDisplayed() const;
+        
         bool isVolumeSlicesDisplayed() const;
         
         bool isWholeBrainDisplayed() const;

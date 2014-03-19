@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <QAction>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -42,6 +43,7 @@
 #include "EventManager.h"
 #include "ModelChart.h"
 #include "WuQFactory.h"
+#include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -313,7 +315,6 @@ MatrixChartAttributesWidget::MatrixChartAttributesWidget(BrainBrowserWindowToolB
                                                                                         0.1,
                                                                                         this,
                                                                                         SLOT(cellWidthSpinBoxValueChanged(double)));
-    m_cellWidthSpinBox->setFixedWidth(70);
 
     QLabel* cellHeightLabel = new QLabel("Cell Height");
     m_cellHeightSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(1.0,
@@ -322,7 +323,6 @@ MatrixChartAttributesWidget::MatrixChartAttributesWidget(BrainBrowserWindowToolB
                                                                                         0.1,
                                                                                         this,
                                                                                         SLOT(cellHeightSpinBoxValueChanged(double)));
-    m_cellHeightSpinBox->setFixedWidth(70);
     
     QAction* resetButtonAction = WuQtUtilities::createAction("Reset",
                                                              "Reset panning (shift-mouse movement) and zooming (CTRL-mouse movement)",
@@ -332,6 +332,14 @@ MatrixChartAttributesWidget::MatrixChartAttributesWidget(BrainBrowserWindowToolB
     QToolButton* resetToolButton = new QToolButton();
     resetToolButton->setDefaultAction(resetButtonAction);
     
+    WuQtUtilities::matchWidgetWidths(m_cellHeightSpinBox,
+                                     m_cellWidthSpinBox,
+                                     m_chartMatrixScaleModeEnumComboBox->getComboBox());
+    
+    m_manualWidgetsGroup = new WuQWidgetObjectGroup(this);
+    m_manualWidgetsGroup->add(m_cellWidthSpinBox);
+    m_manualWidgetsGroup->add(m_cellHeightSpinBox);
+    m_manualWidgetsGroup->add(resetToolButton);
     
     const int32_t COLUMN_LABEL = 0;
     const int32_t COLUMN_WIDGET = 1;
@@ -384,6 +392,15 @@ MatrixChartAttributesWidget::updateContent()
         m_cellHeightSpinBox->blockSignals(true);
         m_cellHeightSpinBox->setValue(matrixDisplayProperties->getCellHeight());
         m_cellHeightSpinBox->blockSignals(false);
+        
+        switch (scaleMode) {
+            case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+                m_manualWidgetsGroup->setEnabled(false);
+                break;
+            case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+                m_manualWidgetsGroup->setEnabled(true);
+                break;
+        }
     }
 }
 
@@ -397,6 +414,7 @@ MatrixChartAttributesWidget::chartMatrixScaleModeEnumComboBoxItemActivated()
     if (matrixDisplayProperties != NULL) {
         const ChartMatrixScaleModeEnum::Enum scaleMode = m_chartMatrixScaleModeEnumComboBox->getSelectedItem<ChartMatrixScaleModeEnum,ChartMatrixScaleModeEnum::Enum>();
         matrixDisplayProperties->setScaleMode(scaleMode);
+        updateContent();
         m_brainBrowserWindowToolBarChartAttributes->updateGraphics();
     }
 }
