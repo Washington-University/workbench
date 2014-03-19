@@ -49,10 +49,6 @@ namespace caret {
         
         void setMaximumValue(const float maximumValue);
         
-        float getStepValue() const;
-        
-        int32_t getDigitsRightOfDecimal() const;
-        
         void getLabelsAndPositions(const float axisLengthInPixels,
                                    const float fontSizeInPixels,
                                    std::vector<float>& labelOffsetInPixelsOut,
@@ -81,9 +77,11 @@ namespace caret {
         
         mutable float m_minimumValue;
         
-        mutable float m_stepValue;
-        
         mutable int32_t m_digitsRightOfDecimal;
+        
+        mutable float m_axisLabelsMinimumValue;
+        
+        mutable float m_axisLabelsMaximumValue;
         
         // ADD_NEW_MEMBERS_HERE
         

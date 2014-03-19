@@ -100,8 +100,8 @@ ChartAxisCartesian::copyHelperChartAxisCartesian(const ChartAxisCartesian& obj)
 {
     m_maximumValue   = obj.m_maximumValue;
     m_minimumValue   = obj.m_minimumValue;
-    m_stepValue      = obj.m_stepValue;
     m_digitsRightOfDecimal = obj.m_digitsRightOfDecimal;
+    
 }
 
 /**
@@ -112,13 +112,15 @@ ChartAxisCartesian::initializeMembersChartAxisCartesian()
 {
     m_minimumValue   = 0.0;
     m_maximumValue   = 1.0;
-    m_stepValue      = 1.0;
     m_digitsRightOfDecimal = 1;
+    m_axisLabelsMinimumValue = 0.0;
+    m_axisLabelsMaximumValue = 1.0;
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_minimumValue", &m_minimumValue);
     m_sceneAssistant->add("m_maximumValue", &m_maximumValue);
-    m_sceneAssistant->add("m_stepValue", &m_stepValue);
     m_sceneAssistant->add("m_digitsRightOfDecimal", &m_digitsRightOfDecimal);
+    m_sceneAssistant->add("m_axisLabelsMinimumValue", &m_axisLabelsMinimumValue);
+    m_sceneAssistant->add("m_axisLabelsMaximumValue", &m_axisLabelsMaximumValue);
 }
 
 /**
@@ -164,24 +166,6 @@ ChartAxisCartesian::setMaximumValue(const float maximumValue)
 }
 
 /**
- * @return The step value.
- */
-float
-ChartAxisCartesian::getStepValue() const
-{
-    return m_stepValue;
-}
-
-/**
- * @return Digits right of decimal for axis.
- */
-int32_t
-ChartAxisCartesian::getDigitsRightOfDecimal() const
-{
-    return m_digitsRightOfDecimal;
-}
-
-/**
  * Update for auto range scale.
  */
 void
@@ -216,22 +200,43 @@ ChartAxisCartesian::updateForAutoRangeScale()
                 break;
         }
         
-        double scaleStep = 0.0;
-        double scaleMin  = 0.0;
-        double scaleMax  = 0.0;
-        int32_t digitsRightOfDecimal = 0;
-        
-        ChartScaleAutoRanging::createAutoScale(minValue,
-                                               maxValue,
-                                               scaleMin,
-                                               scaleMax,
-                                               scaleStep,
-                                               digitsRightOfDecimal);
-        
-        m_minimumValue = scaleMin;
-        m_maximumValue = scaleMax;
-        m_stepValue    = scaleStep;
-        m_digitsRightOfDecimal = digitsRightOfDecimal;
+        m_minimumValue = minValue;
+        m_maximumValue = maxValue;
+    }
+    
+    double scaleStep = 0.0;
+    double scaleMin  = 0.0;
+    double scaleMax  = 0.0;
+    int32_t digitsRightOfDecimal = 0;
+    
+    ChartScaleAutoRanging::createAutoScale(m_minimumValue,
+                                           m_maximumValue,
+                                           scaleMin,
+                                           scaleMax,
+                                           scaleStep,
+                                           digitsRightOfDecimal);
+    m_axisLabelsMinimumValue = scaleMin;
+    m_axisLabelsMaximumValue = scaleMax;
+    m_digitsRightOfDecimal = digitsRightOfDecimal;
+
+    /**
+     * Use auto-scaled range for left and right axis
+     */
+    if (isAutoRangeScaleEnabled()) {
+        switch (getAxisLocation()) {
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+                m_minimumValue = m_axisLabelsMinimumValue;
+                m_maximumValue = m_axisLabelsMaximumValue;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+                m_minimumValue = m_axisLabelsMinimumValue;
+                m_maximumValue = m_axisLabelsMaximumValue;
+                break;
+            case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+                break;
+        }
     }
 }
 
@@ -262,48 +267,54 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
     
     updateForAutoRangeScale();
     
-//    double scaleStep = 0.0;
-//    double scaleMin  = 0.0;
-//    double scaleMax  = 0.0;
-//    int32_t digitsRightOfDecimal = 0;
-//    
-//    ChartScaleAutoRanging::createAutoScale(m_minimumValue,
-//                                           m_maximumValue,
-//                                           scaleMin,
-//                                           scaleMax,
-//                                           scaleStep,
-//                                           digitsRightOfDecimal);
-    
     const float numberOfTicks = 5;
     
     float dataStart = m_minimumValue;
     float dataRange = (m_maximumValue - m_minimumValue);
-    if (isAutoRangeScaleEnabled()) {
-//        dataStart = scaleMin;
-//        dataRange = scaleMax - scaleMin;
-    }
     if (dataRange <= 0.0) {
         return;
     }
     
-    const float tickDataStep = dataRange / numberOfTicks;
-    
-    const float tickPixelStep = axisLengthInPixels / numberOfTicks;
-    if (tickPixelStep <= 0.0) {
+    float labelsStart = m_axisLabelsMinimumValue;
+    float labelsRange = (m_axisLabelsMaximumValue - m_axisLabelsMinimumValue);
+    if (labelsRange <= 0.0) {
+        return;
+    }
+    const float tickLabelsStep = labelsRange / numberOfTicks;
+    if (tickLabelsStep <= 0.0) {
         return;
     }
     
-    float labelOffset = 0.0;
-    float labelValue  = dataStart;
+    float labelValue  = labelsStart;
     for (int32_t i = 0; i <= numberOfTicks; i++) {
-        if (i > 0) {
+        float labelParametricValue = (labelValue - dataStart) / dataRange;
+        if (dataRange >= 10.0) {
+            if (labelParametricValue < 0.0) {
+                if (labelParametricValue >= -0.01) {
+                    labelParametricValue = 0.0;
+                }
+            }
             
+            if (labelParametricValue > 1.0) {
+                if (labelParametricValue < 1.01) {
+                    labelParametricValue = 1.0;
+                }
+            }
         }
-        labelOffsetInPixelsOut.push_back(labelOffset);
-        labelTextOut.push_back(AString::number(labelValue, 'f', m_digitsRightOfDecimal));
         
-        labelOffset += tickPixelStep;
-        labelValue  += tickDataStep;
+        if ((labelParametricValue >= 0.0)
+            && (labelParametricValue <= 1.0)) {
+            const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
+            const AString labelText = AString::number(labelValue, 'f', m_digitsRightOfDecimal);
+            
+            labelOffsetInPixelsOut.push_back(labelPixelsPosition);
+            labelTextOut.push_back(labelText);
+        }
+        else {
+//            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
+        }
+        
+        labelValue  += tickLabelsStep;
     }
 }
 

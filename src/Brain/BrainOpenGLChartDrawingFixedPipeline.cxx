@@ -572,15 +572,15 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             const float tickEndX = tickStartX + tickDeltaXY[0];
             const float tickEndY = tickStartY + tickDeltaXY[1];
 
-            if ((i > 0)
-                && (i < lastIndex)) {
+//            if ((i > 0)
+//                && (i < lastIndex)) {
                 glBegin(GL_LINES);
                 glVertex2f(tickStartX,
                            tickStartY);
                 glVertex2f(tickEndX,
                            tickEndY);
                 glEnd();
-            }
+//            }
             
             const float textX = tickEndX;
             const float textY = tickEndY;
