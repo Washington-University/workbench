@@ -58,7 +58,7 @@ OperationParameters* AlgorithmCiftiLabelToROI::getParameters()
     mapOpt->addStringParameter(1, "map", "the map number or name");
     
     ret->setHelpText(
-        AString("For each map in <label-in>, a map is created in <scalar-out> where the all locations labeled with <label-name> or with a key of <label-key> are given a value of 1, and all other locations are given 0.  ") +
+        AString("For each map in <label-in>, a map is created in <scalar-out> where all locations labeled with <label-name> or with a key of <label-key> are given a value of 1, and all other locations are given 0.  ") +
         "Exactly one of -name and -key must be specified.  " +
         "Specify -map to use only one map from <label-in>."
     );
