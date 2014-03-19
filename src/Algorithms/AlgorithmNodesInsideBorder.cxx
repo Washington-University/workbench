@@ -30,6 +30,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
+#include "CaretOMP.h"
 #include "CaretLogger.h"
 #include "GeodesicHelper.h"
 #include "LabelFile.h"
@@ -101,6 +102,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
         int numBorders = myBorderFile->getNumberOfBorders();
         myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numBorders);
         myMetricOut->setStructure(mySurf->getStructure());
+#pragma omp CARET_PARFOR
         for (int i = 0; i < numBorders; ++i)
         {
             myMetricOut->setColumnName(i, myBorderFile->getBorder(i)->getName());
