@@ -773,7 +773,7 @@ SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainSt
         CaretAssert(rgb);
 
         switch (ciftiConnectivityMatrixFile->getSelectedParcelColoringMode()) {
-            case CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_NORMAL:
+            case CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_OFF:
                 break;
             case CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_FILL:
             {

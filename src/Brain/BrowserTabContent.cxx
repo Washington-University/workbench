@@ -2050,14 +2050,25 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
                 ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFile();
                 if (chartableInterface != NULL) {
                     ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
-                    float scaling = matrixProperties->getViewZooming();
-                    if (mouseDY != 0.0) {
-                        scaling *= (1.0f + (mouseDY * 0.01));
+                    bool allowAdjustmentFlag = false;
+                    switch (matrixProperties->getScaleMode()) {
+                        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+                            break;
+                        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+                            allowAdjustmentFlag = true;
+                            break;
                     }
-                    if (scaling < 0.01) {
-                        scaling = 0.01;
+                    
+                    if (allowAdjustmentFlag) {
+                        float scaling = matrixProperties->getViewZooming();
+                        if (mouseDY != 0.0) {
+                            scaling *= (1.0f + (mouseDY * 0.01));
+                        }
+                        if (scaling < 0.01) {
+                            scaling = 0.01;
+                        }
+                        matrixProperties->setViewZooming(scaling);
                     }
-                    matrixProperties->setViewZooming(scaling);
                 }
             }
         }        
@@ -2189,11 +2200,23 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFile();
                 if (chartableInterface != NULL) {
                     ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
-                    float translation[2];
-                    matrixProperties->getViewPanning(translation);
-                    translation[0] += mouseDX;
-                    translation[1] += mouseDY;
-                    matrixProperties->setViewPanning(translation);
+                    
+                    bool allowAdjustmentFlag = false;
+                    switch (matrixProperties->getScaleMode()) {
+                        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+                            break;
+                        case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
+                            allowAdjustmentFlag = true;
+                            break;
+                    }
+                    
+                    if (allowAdjustmentFlag) {
+                        float translation[2];
+                        matrixProperties->getViewPanning(translation);
+                        translation[0] += mouseDX;
+                        translation[1] += mouseDY;
+                        matrixProperties->setViewPanning(translation);                        
+                    }
                 }
             }
         }

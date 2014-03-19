@@ -108,7 +108,7 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     m_rowLoadedText = "";
     m_dataLoadingEnabled = true;
     m_connectivityDataLoaded->reset();
-    m_selectedParcelColoringMode = CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_NORMAL;
+    m_selectedParcelColoringMode = CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_OFF;
     m_selectedParcelColor = CaretColorEnum::WHITE;
 }
 

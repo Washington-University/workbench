@@ -35,8 +35,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** normal coloring */
-        CIFTI_PARCEL_COLORING_NORMAL,
+        /** off (no special coloring) */
+        CIFTI_PARCEL_COLORING_OFF,
         /** fill with user defined color */
         CIFTI_PARCEL_COLORING_FILL,
         /** outline with user defined color */

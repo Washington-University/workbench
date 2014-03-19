@@ -31,7 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::CiftiParcelColoringModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Enumerated type for selected parcel coloring.
  *
  * Enumerated type for coloring of selected CIFTI parcel
  *
@@ -108,9 +108,9 @@ CiftiParcelColoringModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(CiftiParcelColoringModeEnum(CIFTI_PARCEL_COLORING_NORMAL, 
-                                    "CIFTI_PARCEL_COLORING_NORMAL", 
-                                    "Normal"));
+    enumData.push_back(CiftiParcelColoringModeEnum(CIFTI_PARCEL_COLORING_OFF, 
+                                    "CIFTI_PARCEL_COLORING_OFF", 
+                                    "Off"));
     
     enumData.push_back(CiftiParcelColoringModeEnum(CIFTI_PARCEL_COLORING_FILL, 
                                     "CIFTI_PARCEL_COLORING_FILL", 
