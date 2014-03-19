@@ -204,20 +204,8 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         MetricFile myMetric, myRoi, myMetricOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
         if (roiCifti != NULL)
-        {
-            MetricFile roiPiece;
-            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &roiPiece);//due to testing for matching mapping above, we know this works, and gives same size metric
-            int numNodes = myRoi.getNumberOfNodes();
-            vector<float> outCol(numNodes, 0.0f);
-            const float* separateCol = myRoi.getValuePointerForColumn(0), *roiCol = roiPiece.getValuePointerForColumn(0);
-            for (int i = 0; i < numNodes; ++i)
-            {
-                if (separateCol[i] > 0.0f && roiCol[i] > 0.0f)
-                {
-                    outCol[i] = 1.0f;
-                }
-            }
-            myRoi.setValuesForColumn(0, outCol.data());
+        {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
+            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, surfaceList[whichStruct], &myRoi);
         }
         AlgorithmMetricSmoothing(NULL, mySurf, &myMetric, surfKern, &myMetricOut, &myRoi, fixZerosSurf);
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
@@ -228,22 +216,8 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
         if (roiCifti != NULL)
-        {
-            VolumeFile roiPiece;
-            int64_t roioffset[3];//will be the same, but is a mandatory parameter
-            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &roiPiece, roioffset, NULL, true);//due to testing for matching mapping above, we know this works, and gives same size metric
-            vector<int64_t> dims = myRoi.getDimensions();
-            int64_t frameSize = dims[0] * dims[1] * dims[2];
-            vector<float> tempframe(frameSize, 0.0f);
-            const float* separateFrame = myRoi.getFrame(), *roiFrame = roiPiece.getFrame();
-            for (int i = 0; i < frameSize; ++i)
-            {
-                if (separateFrame[i] > 0.0f && roiFrame[i] > 0.0f)
-                {
-                    tempframe[i] = 1.0f;
-                }
-            }
-            myRoi.setFrame(tempframe.data());
+        {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
+            AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXMLOld::ALONG_COLUMN, volumeList[whichStruct], &myRoi, offset, NULL, true);
         }
         AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);

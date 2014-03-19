@@ -860,5 +860,5 @@ AString CommandParser::getIndentString(int desired)
 
 bool CommandParser::takesParameters()
 {
-    return CommandOperation::takesParameters();
+    return m_autoOper->takesParameters();
 }

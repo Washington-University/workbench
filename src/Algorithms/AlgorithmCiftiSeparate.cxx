@@ -184,7 +184,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
 {
     LevelProgress myProgress(myProgObj);
     if (ciftiIn->getCiftiXML().getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
-    if (myDir > 1) throw AlgorithmException("direction not supported in cifti separate");
+    if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
     if (ciftiIn->getCiftiXML().getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");
     if (ciftiIn->getCiftiXML().getMappingType(1 - myDir) == CiftiMappingType::LABELS) CaretLogWarning("creating a metric file from cifti label data");
     const CiftiBrainModelsMap& myBrainModelsMap = ciftiIn->getCiftiXML().getBrainModelsMap(myDir);
