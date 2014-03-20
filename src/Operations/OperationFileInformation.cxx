@@ -24,6 +24,8 @@
 
 #include "CaretDataFile.h"
 #include "CaretDataFileHelper.h"
+#include "CaretMappableDataFile.h"
+#include "CaretPointer.h"
 #include "DataFileContentInformation.h"
 #include "OperationFileInformation.h"
 #include "OperationException.h"
@@ -63,7 +65,9 @@ OperationFileInformation::getParameters()
     
     ret->addStringParameter(1, "data-file", "data file");
     
-    ret->createOptionalParameter(2, "-no-map-info", "Do not show map information for files that support maps");
+    ret->createOptionalParameter(2, "-no-map-info", "do not show map information for files that support maps");
+    
+    ret->createOptionalParameter(3, "-only-step-interval", "print only the interval between maps");
 
     AString helpText("List information about the content of a data file.  "
                      "The information listed is dependent upon the type of "
@@ -86,21 +90,27 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     const AString dataFileName = myParams->getString(1);
     
     const bool showMapInformationFlag = ! (myParams->getOptionalParameter(2)->m_present);
+    
+    bool onlyTimestep = myParams->getOptionalParameter(3)->m_present;
 
-    try {
-        CaretDataFile* caretDataFile = CaretDataFileHelper::readAnyCaretDataFile(dataFileName);
-        
+    CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(dataFileName));
+    
+    if (onlyTimestep)
+    {
+        CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
+        if (mappableFile == NULL) throw OperationException("file does not support maps");//TODO: also give error on things that it doesn't make sense on
+        if (mappableFile->getMapIntervalUnits() == NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN) throw OperationException("file does not support series data");
+        float start, step;
+        mappableFile->getMapIntervalStartAndStep(start, step);
+        std::cout << step << std::endl;
+    } else {
         DataFileContentInformation dataFileContentInformation;
         dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
-                                                 showMapInformationFlag);
+                                                showMapInformationFlag);
         
         caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
         
         std::cout << qPrintable(dataFileContentInformation.getInformationInString()) << std::endl;
-        delete caretDataFile;
-    }
-    catch (const DataFileException& dfe) {
-        throw OperationException(dfe.whatString());
     }
 }
 

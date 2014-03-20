@@ -102,7 +102,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
         int numBorders = myBorderFile->getNumberOfBorders();
         myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numBorders);
         myMetricOut->setStructure(mySurf->getStructure());
-#pragma omp CARET_PARFOR
+#pragma omp CARET_PARFOR schedule(dynamic)
         for (int i = 0; i < numBorders; ++i)
         {
             myMetricOut->setColumnName(i, myBorderFile->getBorder(i)->getName());
