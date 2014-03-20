@@ -42,6 +42,7 @@ namespace caret {
 
         CiftiConnectivityMatrixParcelFile& operator=(const CiftiConnectivityMatrixParcelFile&);
 
+    public:
         virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
                                        int32_t& numberOfColumnsOut,
                                        std::vector<float>& rgbaOut) const;
@@ -69,6 +70,14 @@ namespace caret {
         
         ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex);
         
+        virtual CiftiParcelColoringModeEnum::Enum getSelectedParcelColoringMode() const;
+        
+        virtual void setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode);
+        
+        virtual CaretColorEnum::Enum getSelectedParcelColor() const;
+        
+        virtual void setSelectedParcelColor(const CaretColorEnum::Enum color);
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -83,9 +92,15 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
+        SceneClassAssistant* m_sceneAssistant;
+        
         bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
         ChartMatrixDisplayProperties* m_chartMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        CiftiParcelColoringModeEnum::Enum m_selectedParcelColoringMode;
+        
+        CaretColorEnum::Enum m_selectedParcelColor;
         
     };
     

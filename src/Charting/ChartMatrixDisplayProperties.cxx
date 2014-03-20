@@ -43,7 +43,9 @@ using namespace caret;
 ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
 : CaretObject()
 {
-    m_scaleMode      = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO;
+    m_scaleMode  = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO;
+    m_cellWidth  = 10.0;
+    m_cellHeight = 10.0;
     resetManualModeProperties();
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -99,8 +101,8 @@ ChartMatrixDisplayProperties::resetManualModeProperties()
     m_viewPanning[0] = 0.0;
     m_viewPanning[1] = 0.0;
     m_viewZooming    = 1.0;
-    m_cellWidth      = 10.0;
-    m_cellHeight      = 10.0;
+//    m_cellWidth      = 10.0;
+//    m_cellHeight     = 10.0;
 }
 
 /**
@@ -115,7 +117,7 @@ ChartMatrixDisplayProperties::copyHelperChartMatrixDisplayProperties(const Chart
     m_viewPanning[1] = obj.m_viewPanning[1];
     m_viewZooming    = obj.m_viewZooming;
     m_cellWidth      = obj.m_cellWidth;
-    m_cellHeight      = obj.m_cellHeight;
+    m_cellHeight     = obj.m_cellHeight;
     m_scaleMode      = obj.m_scaleMode;
 }
 

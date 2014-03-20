@@ -35,6 +35,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "SceneClassAssistant.h"
 
 using namespace caret;
 
@@ -65,6 +66,15 @@ CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
         m_chartingEnabledForTab[i] = false;
         m_chartMatrixDisplayProperties[i] = new ChartMatrixDisplayProperties();
     }
+    
+    m_selectedParcelColoringMode = CiftiParcelColoringModeEnum::CIFTI_PARCEL_COLORING_OUTLINE;
+    m_selectedParcelColor = CaretColorEnum::WHITE;
+    
+    m_sceneAssistant = new SceneClassAssistant();
+    m_sceneAssistant->add<CiftiParcelColoringModeEnum, CiftiParcelColoringModeEnum::Enum>("m_selectedParcelColoringMode",
+                                                                                          &m_selectedParcelColoringMode);
+    m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_selectedParcelColor",
+                                                                &m_selectedParcelColor);
 }
 
 /**
@@ -75,6 +85,8 @@ CiftiConnectivityMatrixParcelFile::~CiftiConnectivityMatrixParcelFile()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         delete m_chartMatrixDisplayProperties[i];
     }
+    
+    delete m_sceneAssistant;
 }
 
 /**
@@ -262,6 +274,9 @@ CiftiConnectivityMatrixParcelFile::saveFileDataToScene(const SceneAttributes* sc
     CiftiMappableConnectivityMatrixDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
+    m_sceneAssistant->saveMembers(sceneAttributes,
+                                  sceneClass);
+    
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
@@ -305,6 +320,9 @@ CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttribute
     CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     
+    m_sceneAssistant->restoreMembers(sceneAttributes,
+                                     sceneClass);
+    
     const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
     if (tabArray != NULL) {
         sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
@@ -339,4 +357,47 @@ CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttribute
     }
     
 }
+
+/**
+ * @return Coloring mode for selected parcel.
+ */
+CiftiParcelColoringModeEnum::Enum
+CiftiConnectivityMatrixParcelFile::getSelectedParcelColoringMode() const
+{
+    return m_selectedParcelColoringMode;
+}
+
+/**
+ * Set the coloring mode for selected parcel.
+ *
+ * @param coloringMode
+ *    New value for coloring mode.
+ */
+void
+CiftiConnectivityMatrixParcelFile::setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode)
+{
+    m_selectedParcelColoringMode = coloringMode;
+}
+
+/**
+ * @return Color for selected parcel.
+ */
+CaretColorEnum::Enum
+CiftiConnectivityMatrixParcelFile::getSelectedParcelColor() const
+{
+    return m_selectedParcelColor;
+}
+
+/**
+ * Set color for selected parcel.
+ *
+ * @param color
+ *    New color for selected parcel.
+ */
+void
+CiftiConnectivityMatrixParcelFile::setSelectedParcelColor(const CaretColorEnum::Enum color)
+{
+    m_selectedParcelColor = color;
+}
+
 

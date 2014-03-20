@@ -874,37 +874,67 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             connDataLoaded->getRowLoading(loadedRowIndex);
         }
         
+        bool applyTransformationsFlag = false;
         float panningXY[2] = { 0.0, 0.0 };
         float zooming = 1.0;
         float cellWidth = 1.0;
         float cellHeight = 1.0;
         
-        float xMin = -1;
-        float xMax = numberOfColumns + 1;
-        float yMin = -1;
-        float yMax = numberOfRows + 1;
-        
-        const ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
+        /*
+         * Setup width/height of area in which matrix is drawn with a
+         * small margin along all of the edges
+         */
+        float margin = 10.0;
+        if ((viewport[2] < (margin * 3.0))
+            || (viewport[3] < (margin * 3.0))) {
+            margin = 0.0;
+        }
+        const float graphicsWidth  = viewport[2] - (margin * 2.0);
+        const float graphicsHeight = viewport[3] - (margin * 2.0);
+
+        /*
+         * Set the width and neight of each matrix cell.
+         */
+        ChartMatrixDisplayProperties* matrixProperties = chartMatrixInterface->getChartMatrixDisplayProperties(m_tabIndex);
         CaretAssert(matrixProperties);
         const ChartMatrixScaleModeEnum::Enum scaleMode = matrixProperties->getScaleMode();
         switch (scaleMode) {
             case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO:
+                /*
+                 * Auto scale 'fills' the matrix region
+                 * and updates the width and height in the
+                 * matrix properties for use in manual mode.
+                 * There is NO zooming or panning for Auto scale.
+                 */
+                cellWidth  = graphicsWidth / numberOfColumns;
+                cellHeight = graphicsHeight / numberOfRows;
+                
+                matrixProperties->setCellWidth(cellWidth);
+                matrixProperties->setCellHeight(cellHeight);
                 break;
             case ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL:
-                matrixProperties->getViewPanning(panningXY);
-                zooming = matrixProperties->getViewZooming();
+                /*
+                 * Use the cell width and height for manual mode
+                 * and allow both panning and zooming.
+                 */
                 cellWidth = matrixProperties->getCellWidth();
                 cellHeight = matrixProperties->getCellHeight();
-                
-                const float margin = 10.0;
-                xMin = -margin;
-                xMax = viewport[2] + margin;
-                yMin = -margin;
-                yMax = viewport[3] + margin;
+
+                matrixProperties->getViewPanning(panningXY);
+                zooming = matrixProperties->getViewZooming();
+                applyTransformationsFlag = true;
                 break;
         }
         
+        /*
+         * Set the coordinates for the area in which the matrix is drawn.
+         */
+        const float xMin = -margin;
+        const float xMax = graphicsWidth + margin;
+        const float yMin = -margin;
+        const float yMax = graphicsHeight + margin;
         
+
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glOrtho(xMin, xMax,
@@ -913,8 +943,25 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
         
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glTranslatef(panningXY[0], panningXY[1], 0.0);
-        glScalef(zooming, zooming, 1.0);
+        if (applyTransformationsFlag) {
+            glTranslatef(panningXY[0],
+                         panningXY[1],
+                         0.0);
+            
+            const float chartWidth  = cellWidth  * numberOfColumns;
+            const float chartHeight = cellHeight * numberOfRows;
+            const float halfWidth   = chartWidth  / 2.0;
+            const float halfHeight  = chartHeight / 2.0;
+            glTranslatef(halfWidth,
+                         halfHeight,
+                         0.0);
+            glScalef(zooming,
+                     zooming,
+                     1.0);
+            glTranslatef(-halfWidth,
+                         -halfHeight,
+                         0.0);
+        }
         
         int32_t rgbaOffset = 0;
         std::vector<float> quadVerticesXYZ;
@@ -1011,40 +1058,42 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 cellX += cellWidth;
             }
             
-            if (! m_identificationModeFlag) {
+            if ( ! m_identificationModeFlag) {
                 if (rowIndex == loadedRowIndex) {
+                    const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
+                    const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesXYZ.push_back(cellY);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(1.0);
                     
                     loadedRowHighlightVerticesXYZ.push_back(numberOfColumns * cellWidth);
                     loadedRowHighlightVerticesXYZ.push_back(cellY);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(1.0);
                     
                     loadedRowHighlightVerticesXYZ.push_back(numberOfColumns * cellWidth);
                     loadedRowHighlightVerticesXYZ.push_back(cellY + cellHeight);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(1.0);
                     
                     
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
                     loadedRowHighlightVerticesXYZ.push_back(cellY + cellHeight);
                     loadedRowHighlightVerticesXYZ.push_back(0.0);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[0]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[1]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[2]);
-                    loadedRowHighlightVerticesRGBA.push_back(m_foregroundColor[3]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[0]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[1]);
+                    loadedRowHighlightVerticesRGBA.push_back(highlightRGB[2]);
+                    loadedRowHighlightVerticesRGBA.push_back(1.0);
 
                     CaretAssert(loadedRowHighlightVerticesXYZ.size() == 12);
                     CaretAssert(loadedRowHighlightVerticesRGBA.size() == 16);
@@ -1110,7 +1159,13 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                 CaretAssert((loadedRowHighlightVerticesXYZ.size() / 3) == (loadedRowHighlightVerticesRGBA.size() / 4));
                 
                 const int32_t numberOfVertices = static_cast<int32_t>(loadedRowHighlightVerticesXYZ.size() / 3);
-                glLineWidth(3.0);
+                
+                /*
+                 * As cells get larger, increase linewidth for selected row
+                 */
+                float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                glLineWidth(highlightLineWidth);
+                
                 glBegin(GL_QUADS);
                 for (int32_t i = 0; i < numberOfVertices; i++) {
                     CaretAssertVectorIndex(loadedRowHighlightVerticesRGBA, i*4 + 3);

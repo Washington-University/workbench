@@ -30,7 +30,7 @@
 namespace caret {
 
     class CaretColorEnumComboBox;
-    class CiftiMappableConnectivityMatrixDataFile;
+    class CiftiConnectivityMatrixParcelFile;
     class EnumComboBoxTemplate;
     
     class MapSettingsParcelsWidget : public QWidget {
@@ -42,7 +42,7 @@ namespace caret {
         
         virtual ~MapSettingsParcelsWidget();
         
-        void updateEditor(CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile);
+        void updateEditor(CiftiConnectivityMatrixParcelFile* ciftiMatrixFile);
         
         void updateWidget();
         
@@ -62,7 +62,7 @@ namespace caret {
         
         CaretColorEnumComboBox* m_parcelColorEnumComboBox;
         
-        CiftiMappableConnectivityMatrixDataFile* m_ciftiMatrixFile;
+        CiftiConnectivityMatrixParcelFile* m_ciftiParcelFile;
         
         // ADD_NEW_MEMBERS_HERE
 

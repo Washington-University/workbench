@@ -21,8 +21,9 @@
  */
 /*LICENSE_END*/
 
-
+#include "CaretColorEnum.h"
 #include "ChartableInterface.h"
+#include "CiftiParcelColoringModeEnum.h"
 
 namespace caret {
 
@@ -74,9 +75,41 @@ namespace caret {
                                              AString& rowNameOut,
                                              AString& columnNameOut) const = 0;
 
+        /**
+         * @return The CaretMappableDataFile that implements this interface (const methdod).
+         */
         virtual const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const = 0;
         
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
         virtual ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) = 0;
+        
+        /**
+         * @return Coloring mode for selected parcel.
+         */
+        virtual CiftiParcelColoringModeEnum::Enum getSelectedParcelColoringMode() const = 0;
+        
+        /**
+         * Set the coloring mode for selected parcel.
+         *
+         * @param coloringMode
+         *    New value for coloring mode.
+         */
+        virtual void setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode) = 0;
+        
+        /**
+         * @return Color for selected parcel.
+         */
+        virtual CaretColorEnum::Enum getSelectedParcelColor() const = 0;
+        
+        /**
+         * Set color for selected parcel.
+         *
+         * @param color
+         *    New color for selected parcel.
+         */
+        virtual void setSelectedParcelColor(const CaretColorEnum::Enum color) = 0;
         
         // ADD_NEW_METHODS_HERE
 

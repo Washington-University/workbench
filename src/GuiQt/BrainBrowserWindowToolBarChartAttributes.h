@@ -23,6 +23,7 @@
 
 
 #include "BrainBrowserWindowToolBarComponent.h"
+#include "EventListenerInterface.h"
 
 class QDoubleSpinBox;
 class QStackedWidget;
@@ -99,13 +100,15 @@ namespace caret {
      * While this should be a private class in the class above
      * Qt's meta-object compiler (moc) does not allow it to be.
      */
-    class MatrixChartAttributesWidget : public QWidget {
+    class MatrixChartAttributesWidget : public QWidget, public EventListenerInterface {
         Q_OBJECT
         
     public:
         MatrixChartAttributesWidget(BrainBrowserWindowToolBarChartAttributes* brainBrowserWindowToolBarChartAttributes);
         
         ~MatrixChartAttributesWidget();
+        
+        virtual void receiveEvent(Event* event);
         
         virtual void updateContent();
         

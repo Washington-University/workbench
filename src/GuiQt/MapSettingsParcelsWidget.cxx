@@ -28,7 +28,7 @@
 
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
-#include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiParcelColoringModeEnum.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -49,7 +49,7 @@ using namespace caret;
 MapSettingsParcelsWidget::MapSettingsParcelsWidget(QWidget* parent)
 : QWidget(parent)
 {
-    m_ciftiMatrixFile = NULL;
+    m_ciftiParcelFile = NULL;
     
     QLabel* colorModeLabel = new QLabel("Color Mode");
     m_parcelColoringModeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -93,12 +93,12 @@ MapSettingsParcelsWidget::~MapSettingsParcelsWidget()
  * Update the editor with the given CIFTI matrix file.
  */
 void
-MapSettingsParcelsWidget::updateEditor(CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile)
+MapSettingsParcelsWidget::updateEditor(CiftiConnectivityMatrixParcelFile* ciftiParcelFile)
 {
-    CaretAssert(ciftiMatrixFile);
-    m_ciftiMatrixFile = ciftiMatrixFile;
-    m_parcelColoringModeEnumComboBox->setSelectedItem<CiftiParcelColoringModeEnum,CiftiParcelColoringModeEnum::Enum>(m_ciftiMatrixFile->getSelectedParcelColoringMode());
-    m_parcelColorEnumComboBox->setSelectedColor(m_ciftiMatrixFile->getSelectedParcelColor());
+    CaretAssert(ciftiParcelFile);
+    m_ciftiParcelFile = ciftiParcelFile;
+    m_parcelColoringModeEnumComboBox->setSelectedItem<CiftiParcelColoringModeEnum,CiftiParcelColoringModeEnum::Enum>(m_ciftiParcelFile->getSelectedParcelColoringMode());
+    m_parcelColorEnumComboBox->setSelectedColor(m_ciftiParcelFile->getSelectedParcelColor());
 }
 
 /**
@@ -107,7 +107,7 @@ MapSettingsParcelsWidget::updateEditor(CiftiMappableConnectivityMatrixDataFile* 
 void
 MapSettingsParcelsWidget::updateWidget()
 {
-    updateEditor(m_ciftiMatrixFile);
+    updateEditor(m_ciftiParcelFile);
 }
 
 /**
@@ -116,7 +116,7 @@ MapSettingsParcelsWidget::updateWidget()
 void
 MapSettingsParcelsWidget::parcelColorSelected(const CaretColorEnum::Enum color)
 {
-    m_ciftiMatrixFile->setSelectedParcelColor(color);
+    m_ciftiParcelFile->setSelectedParcelColor(color);
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -128,7 +128,7 @@ void
 MapSettingsParcelsWidget::ciftiParcelColoringModeEnumComboBoxItemActivated()
 {
     const CiftiParcelColoringModeEnum::Enum colorMode = m_parcelColoringModeEnumComboBox->getSelectedItem<CiftiParcelColoringModeEnum,CiftiParcelColoringModeEnum::Enum>();
-    m_ciftiMatrixFile->setSelectedParcelColoringMode(colorMode);
+    m_ciftiParcelFile->setSelectedParcelColoringMode(colorMode);
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
