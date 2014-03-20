@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
 #include "CaretObject.h"
 
@@ -31,6 +32,19 @@ namespace caret {
     class DataFileContentInformation : public CaretObject {
         
     public:
+        /**
+         * Option flags for commands.
+         * All options are off by default.
+         * If an option should be on by default, call setOptionFlag()
+         * from this class' constructor.
+         */
+        enum OptionFlag {
+            /**
+             * Show information about each map for files that support maps.
+             */
+            OPTION_SHOW_MAP_INFORMATION
+        };
+        
         DataFileContentInformation();
         
         virtual ~DataFileContentInformation();
@@ -55,6 +69,11 @@ namespace caret {
         
         AString getInformationInString() const;
         
+        bool isOptionFlag(const OptionFlag optionFlag) const;
+        
+        void setOptionFlag(const OptionFlag optionFlag,
+                           const bool flagValue);
+        
     private:
         DataFileContentInformation(const DataFileContentInformation&);
 
@@ -68,6 +87,8 @@ namespace caret {
         std::vector<std::pair<AString, AString> > m_namesAndValues;
         
         AString m_text;
+        
+        std::map<OptionFlag, bool> m_optionFlags;
         
         // ADD_NEW_MEMBERS_HERE
 

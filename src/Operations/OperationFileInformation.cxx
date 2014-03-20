@@ -63,6 +63,8 @@ OperationFileInformation::getParameters()
     
     ret->addStringParameter(1, "data-file", "data file");
     
+    ret->createOptionalParameter(2, "-no-map-info", "Do not show map information for files that support maps");
+
     AString helpText("List information about the content of a data file.  "
                      "The information listed is dependent upon the type of "
                      "data file.");
@@ -83,10 +85,17 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     
     const AString dataFileName = myParams->getString(1);
     
+    const bool showMapInformationFlag = ! (myParams->getOptionalParameter(2)->m_present);
+
     try {
         CaretDataFile* caretDataFile = CaretDataFileHelper::readAnyCaretDataFile(dataFileName);
+        
         DataFileContentInformation dataFileContentInformation;
+        dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
+                                                 showMapInformationFlag);
+        
         caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
+        
         std::cout << qPrintable(dataFileContentInformation.getInformationInString()) << std::endl;
         delete caretDataFile;
     }

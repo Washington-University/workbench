@@ -42,7 +42,10 @@ using namespace caret;
 DataFileContentInformation::DataFileContentInformation()
 : CaretObject()
 {
-    
+    /*
+     * Initialize options
+     */
+    setOptionFlag(OPTION_SHOW_MAP_INFORMATION, true);
 }
 
 /**
@@ -177,5 +180,46 @@ DataFileContentInformation::getInformationInString() const
     textOut.append(m_text);
     
     return textOut;
+}
+
+/**
+ * Is an option flag on?
+ *
+ * @param optionFlag
+ *    The option flag.
+ * @return 
+ *    True if the option flag is on, else false.
+ */
+bool
+DataFileContentInformation::isOptionFlag(const OptionFlag optionFlag) const
+{
+    std::map<OptionFlag, bool>::const_iterator iter = m_optionFlags.find(optionFlag);
+    if (iter != m_optionFlags.end()) {
+        return iter->second;
+    }
+    
+    return false;
+}
+
+/**
+ * Set an option flag.
+ *
+ * @param optionFlag
+ *    The option flag.
+ * @param flagValue
+ *    New value for option flag.
+ */
+void
+DataFileContentInformation::setOptionFlag(const OptionFlag optionFlag,
+                                          const bool flagValue)
+{
+    std::map<OptionFlag, bool>::iterator iter = m_optionFlags.find(optionFlag);
+    if (iter != m_optionFlags.end()) {
+        iter->second = flagValue;
+    }
+    else {
+        m_optionFlags.insert(std::make_pair<OptionFlag, bool>(optionFlag,
+                                                              flagValue));
+    }
 }
 

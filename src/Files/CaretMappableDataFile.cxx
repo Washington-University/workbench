@@ -462,7 +462,7 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
             float mapIntervalStart, mapIntervalStep;
             getMapIntervalStartAndStep(mapIntervalStart, mapIntervalStep);
             dataFileInformation.addNameAndValue("Map Interval Start", mapIntervalStart);
-            dataFileInformation.addNameAndValue("Map Interval Stop", mapIntervalStep);
+            dataFileInformation.addNameAndValue("Map Interval Step", mapIntervalStep);
         }
     }
     
@@ -476,6 +476,13 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     const bool ciftiMatrixFlag = (dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(this)
                                   != NULL);
     if (ciftiMatrixFlag) {
+        showMapFlag = false;
+    }
+    
+    /*
+     * Did user override display of map information?
+     */
+    if ( ! dataFileInformation.isOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION)) {
         showMapFlag = false;
     }
     
@@ -611,33 +618,37 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                                         + stringTable.getInString()
                                         + "\n");
             
-            if (isMappedWithLabelTable()) {
-                /*
-                 * Show label table for each map.
-                 * However, some files contain only a single label table used
-                 * for all maps and this condition is detected if the first
-                 * two label tables use the same pointer.
-                 */
-                bool haveLabelTableForEachMap = false;
-                if (numMaps > 1) {
-                    if (getMapLabelTable(0) != getMapLabelTable(1)) {
-                        haveLabelTableForEachMap = true;
-                    }
+        }
+    }
+    
+    if (showMapFlag) {
+        if (isMappedWithLabelTable()) {
+            /*
+             * Show label table for each map.
+             * However, some files contain only a single label table used
+             * for all maps and this condition is detected if the first
+             * two label tables use the same pointer.
+             */
+            const int32_t numMaps = getNumberOfMaps();
+            bool haveLabelTableForEachMap = false;
+            if (numMaps > 1) {
+                if (getMapLabelTable(0) != getMapLabelTable(1)) {
+                    haveLabelTableForEachMap = true;
                 }
-                for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
-                    const AString labelTableName = ("Label table for "
-                                                    + (haveLabelTableForEachMap
-                                                       ? ("map " + AString::number(mapIndex + 1) + ": " + getMapName(mapIndex))
-                                                       : ("ALL maps"))
-                                                    + "\n");
-                    
-                    dataFileInformation.addText(labelTableName
-                                                + getMapLabelTable(mapIndex)->toFormattedString("    ")
+            }
+            for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+                const AString labelTableName = ("Label table for "
+                                                + (haveLabelTableForEachMap
+                                                   ? ("map " + AString::number(mapIndex + 1) + ": " + getMapName(mapIndex))
+                                                   : ("ALL maps"))
                                                 + "\n");
-                    
-                    if ( ! haveLabelTableForEachMap) {
-                        break;
-                    }
+                
+                dataFileInformation.addText(labelTableName
+                                            + getMapLabelTable(mapIndex)->toFormattedString("    ")
+                                            + "\n");
+                
+                if ( ! haveLabelTableForEachMap) {
+                    break;
                 }
             }
         }
