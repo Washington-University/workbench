@@ -614,19 +614,6 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeightsRibbon(vector<vector<Voxe
                     }
                 }
             }
-            /*if (node == 100634)//debug - get the kernel for any single node
-            {
-                vector<int64_t> myDims;
-                myVolume->getDimensions(myDims);
-                myDims.resize(3);
-                VolumeFile debugVol(myDims, myVolSpace);
-                debugVol.setValueAllVoxels(0.0f);
-                for (int i = 0; i < (int)myWeights[node].size(); ++i)
-                {
-                    debugVol.setValue(myWeights[node][i].weight, myWeights[node][i].ijk);
-                }
-                debugVol.writeFile("debug.nii");
-            }//*/
             if ((int)myWeights[node].size() > maxVoxelCount)
             {//capacity() would use more memory
                 maxVoxelCount = myWeights[node].size();
