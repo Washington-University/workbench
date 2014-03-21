@@ -90,7 +90,8 @@ namespace caret {
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut, const VolumeFile::InterpType& myMethod,
                                         const int64_t& mySubVol = -1);
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
-                                        const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol = NULL, const int32_t& subdivisions = 3, const int64_t& mySubVol = -1);
+                                        const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol = NULL, const int32_t& subdivisions = 3,
+                                        const int64_t& mySubVol = -1, const int& weightsOutVertex = -1, VolumeFile* weightsOut = NULL);
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                         const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol = -1);
         static OperationParameters* getParameters();

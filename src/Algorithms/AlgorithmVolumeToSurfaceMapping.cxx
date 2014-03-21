@@ -90,10 +90,13 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
-    OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(4, "-volume-roi", "use a volume roi");
+    OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(3, "-volume-roi", "use a volume roi");
     roiVol->addVolumeParameter(1, "roi-volume", "the volume file");
-    OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
+    OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(4, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
+    OptionalParameter* ribbonWeights = ribbonOpt->createOptionalParameter(5, "-output-weights", "write the voxel weights for a vertex to a volume file");
+    ribbonWeights->addIntegerParameter(1, "vertex", "the vertex number to get the voxel weights for, 0-based");
+    ribbonWeights->addVolumeOutputParameter(2, "weights-out", "volume to write the weights to");
     
     OptionalParameter* myelinStyleOpt = ret->createOptionalParameter(9, "-myelin-style", "use the method from myelin mapping");
     myelinStyleOpt->addVolumeParameter(1, "ribbon-roi", "an roi volume of the cortical ribbon for this hemisphere");
@@ -201,8 +204,14 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         {
             SurfaceFile* innerSurf = ribbonOpt->getSurface(1);
             SurfaceFile* outerSurf = ribbonOpt->getSurface(2);
+            OptionalParameter* roiVol = ribbonOpt->getOptionalParameter(3);
+            VolumeFile* myRoiVol = NULL;
+            if (roiVol->m_present)
+            {
+                myRoiVol = roiVol->getVolume(1);
+            }
             int32_t subdivisions = 3;
-            OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(3);
+            OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(4);
             if (ribbonSubdiv->m_present)
             {
                 subdivisions = ribbonSubdiv->getInteger(1);
@@ -211,13 +220,15 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                     throw AlgorithmException("invalid number of subdivisions specified");
                 }
             }
-            OptionalParameter* roiVol = ribbonOpt->getOptionalParameter(4);
-            VolumeFile* myRoiVol = NULL;
-            if (roiVol->m_present)
+            int weightsOutVertex = -1;
+            VolumeFile* weightsOut = NULL;
+            OptionalParameter* ribbonWeights = ribbonOpt->getOptionalParameter(5);
+            if (ribbonWeights->m_present)
             {
-                myRoiVol = roiVol->getVolume(1);
+                weightsOutVertex = (int)ribbonWeights->getInteger(1);
+                weightsOut = ribbonWeights->getOutputVolume(2);
             }
-            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, mySubVol);
+            AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, subdivisions, mySubVol, weightsOutVertex, weightsOut);
             break;
         }
         case MYELIN_STYLE:
@@ -322,7 +333,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 //ribbon mapping
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                                                  const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol,
-                                                                 const int32_t& subdivisions, const int64_t& mySubVol) : AbstractAlgorithm(myProgObj)
+                                                                 const int32_t& subdivisions, const int64_t& mySubVol, const int& weightsOutVertex, VolumeFile* weightsOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -349,8 +360,25 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     {
         throw AlgorithmException("roi volume is not in the same volume space as input volume");
     }
+    if (weightsOut != NULL)
+    {
+        if (weightsOutVertex < 0 || weightsOutVertex >= numNodes) throw AlgorithmException("invalid vertex for voxel weights output");
+        vector<int64_t> weightDims = myVolDims;
+        weightDims.resize(3);
+        weightsOut->reinitialize(weightDims, myVolume->getSform());
+    }
     vector<vector<VoxelWeight> > myWeights;
     precomputeWeightsRibbon(myWeights, myVolume, innerSurf, outerSurf, roiVol, subdivisions);
+    if (weightsOut != NULL)
+    {
+        weightsOut->setValueAllVoxels(0.0f);
+        const vector<VoxelWeight>& vertexWeights = myWeights[weightsOutVertex];
+        int numWeights = (int)vertexWeights.size();
+        for (int i = 0; i < numWeights; ++i)
+        {
+            weightsOut->setValue(vertexWeights[i].weight, vertexWeights[i].ijk);
+        }
+    }
     CaretArray<float> myScratchArray(numNodes);
     float* myScratch = myScratchArray.getArray();
     if (mySubVol == -1)
