@@ -35,7 +35,7 @@ void CiftiBrainModelsMap::addSurfaceModel(const int64_t& numberOfNodes, const St
     tempVector.reserve(numberOfNodes);//to make it allocate only once
     for (int64_t i = 0; i < numberOfNodes; ++i)
     {
-        if (roi[i] > 0.0f)
+        if (roi == NULL || roi[i] > 0.0f)
         {
             tempVector.push_back(i);
         }
