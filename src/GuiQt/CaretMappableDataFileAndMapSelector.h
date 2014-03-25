@@ -21,14 +21,16 @@
  */
 /*LICENSE_END*/
 
-#include <map>
+#include <set>
 #include <vector>
 
 #include "AString.h"
+#include "CaretMappableDataFile.h"
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
 #include "WuQWidget.h"
 
+class QAction;
 class QComboBox;
 class QDoubleSpinBox;
 class QLineEdit;
@@ -36,10 +38,13 @@ class QStackedWidget;
 
 namespace caret {
     
+    class Brain;
     class BrainStructure;
+    class CiftiBrainordinateScalarFile;
     class GiftiTypeFile;
     class LabelFile;
     class MetricFile;
+    class StructureEnumComboBox;
     class WuQWidgetObjectGroup;
     
     class CaretMappableDataFileAndMapSelector : public WuQWidget {
@@ -48,16 +53,20 @@ namespace caret {
 
     public:
         CaretMappableDataFileAndMapSelector(const AString defaultName,
-                                            BrainStructure* brainStructure,
+                                            Brain* brain,
+                                            const std::vector<DataFileTypeEnum::Enum> supportedMapFileTypes,
+                                            const StructureEnum::Enum structure,
                                             QObject* parent);
         
         virtual ~CaretMappableDataFileAndMapSelector();
         
         QWidget* getWidget();
         
-        GiftiTypeFile* getSelectedMapFile();
+        CaretMappableDataFile* getSelectedMapFile();
         
         DataFileTypeEnum::Enum getSelectedMapFileType() const;
+        
+        StructureEnum::Enum getSelectedMapFileStructure() const;
         
         int32_t getSelectedMapIndex();
         
@@ -84,13 +93,15 @@ namespace caret {
     private slots:
         void mapFileTypeComboBoxSelected(int);
         
+        void mapFileStructureComboBoxSelected(const StructureEnum::Enum);
+        
         void mapFileComboBoxSelected(int);
         
         void mapNameComboBoxSelected(int);
         
         void labelNameComboBoxSelected(int);
         
-        void metricValueChanged(double);
+        void floatValueChanged(double);
         
         void newMapFileToolButtonSelected();
         
@@ -113,68 +124,91 @@ namespace caret {
         
         void updateFileTypeSelections(const DataFileTypeEnum::Enum dataFileType);
         
+        void enableDisableNewMapAction();
+        
         QWidget* widget;
         
         QComboBox* mapFileTypeComboBox;
+        
+        StructureEnumComboBox* m_mapFileStructureComboBox;
         
         QComboBox* mapFileComboBox;
         
         QComboBox* mapNameComboBox;
         
-        BrainStructure* brainStructure;
+        QAction* m_newMapAction;
         
-        WuQWidgetObjectGroup* metricValueControlsGroup;
+        Brain* m_brain;
         
-        QDoubleSpinBox* metricValueSpinBox;
+        
+        QWidget* m_valueWidgetFloat;
+        
+        WuQWidgetObjectGroup* m_floatValueControlsGroup;
+        
+        QDoubleSpinBox* m_floatValueSpinBox;
+        
+        
+        QWidget* valueWidgetLabel;
         
         WuQWidgetObjectGroup* labelValueControlsGroup;
         
         QComboBox* labelSelectionComboBox;
         
+
         QStackedWidget* valueEntryStackedWidget;
-        
-        QWidget* valueWidgetMetric;
-        
-        QWidget* valueWidgetLabel;
         
         std::vector<DataFileTypeEnum::Enum> supportedMapFileTypes;
         
+        std::vector<DataFileTypeEnum::Enum> m_mapFileTypesThatAllowAddingMaps;
+        
         AString m_defaultName;
         
-        class Selections {
+        class PreviousSelection {
         public:
-            DataFileTypeEnum::Enum dataFileType;
+            StructureEnum::Enum m_structure;
+            DataFileTypeEnum::Enum m_dataFileType;
 
-            LabelFile* labelFile;
-            AString labelMapName;
-            AString labelName;
+            CaretMappableDataFile* m_mapFile;
+            AString m_mapName;
             
-            MetricFile* metricFile;
-            AString metricMapName;
-            float metricValue;
+            AString m_labelName;
+            float m_scalarValue;
             
-            Selections() {
-                this->dataFileType = DataFileTypeEnum::METRIC;
+            PreviousSelection(const StructureEnum::Enum structure,
+                              const DataFileTypeEnum::Enum dataFileType,
+                              CaretMappableDataFile* mapFile,
+                              const AString& mapName,
+                              const AString& labelName,
+                              const float scalarValue) {
+                m_structure    = structure;
+                m_dataFileType = dataFileType;
+                m_mapFile = mapFile;
+                m_mapName = mapName;
+                m_labelName = labelName;
+                m_scalarValue = scalarValue;
+            }
+            
+            bool operator=(const PreviousSelection& ps) const {
+                if ((m_structure == ps.m_structure)
+                    && (m_dataFileType == ps.m_dataFileType)) {
+                    return true;
+                }
                 
-                this->labelFile = NULL;
-                this->labelMapName = "";
-                this->labelName = "";
-                
-                this->metricFile = NULL;
-                this->metricMapName = "";
-                this->metricValue = 1.0;
+                return false;
             }
         };
         
-        Selections* getPreviousSelection(const StructureEnum::Enum structure);
+        PreviousSelection* getPreviousSelection(const DataFileTypeEnum::Enum dataFileType,
+                                                const StructureEnum::Enum structure);
         
-        void applyPreviousSelection(const bool useFileTypeFromPreviousSelection);
+        void loadLastSelectionsForFileType(const DataFileTypeEnum::Enum dataFileType);
         
-        static std::map<StructureEnum::Enum, Selections*> previousSelections;
+        static std::vector<PreviousSelection*> previousSelections;
     };
     
+    
 #ifdef __CARET_MAPPABLE_DATA_FILE_AND_MAP_SELECTOR_DECLARE__
-    std::map<StructureEnum::Enum, CaretMappableDataFileAndMapSelector::Selections*> CaretMappableDataFileAndMapSelector::previousSelections;
+    std::vector<CaretMappableDataFileAndMapSelector::PreviousSelection*> CaretMappableDataFileAndMapSelector::previousSelections;
 #endif // __CARET_MAPPABLE_DATA_FILE_AND_MAP_SELECTOR_DECLARE__
 
 } // namespace

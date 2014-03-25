@@ -28,6 +28,8 @@
 namespace caret {
 
     class Border;
+    class CiftiBrainordinateLabelFile;
+    class CiftiBrainordinateScalarFile;
     class MetricFile;
     class LabelFile;
     class SurfaceFile;
@@ -42,7 +44,23 @@ namespace caret {
                                    const float assignMetricValue,
                                    MetricFile* metricFileInOut);
         
-        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
+                                   const SurfaceFile* surfaceFile,
+                                   const Border* border,
+                                   const bool isInverseSelection,
+                                   const int32_t assignToCiftiScalarMapIndex,
+                                   const float assignScalarValue,
+                                   CiftiBrainordinateScalarFile* ciftiScalarFileInOut);
+        
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
+                                   const SurfaceFile* surfaceFile,
+                                   const Border* border,
+                                   const bool isInverseSelection,
+                                   const int32_t assignToCiftiLabelMapIndex,
+                                   const int32_t assignLabelKey,
+                                   CiftiBrainordinateLabelFile* ciftiLabelFileInOut);
+        
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
                                    const SurfaceFile* surfaceFile,
                                    const Border* border, 
                                    const bool isInverseSelection,

@@ -32,6 +32,9 @@
 #include "CaretAssert.h"
 #include "CaretOMP.h"
 #include "CaretLogger.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiBrainordinateScalarFile.h"
+#include "CiftiFile.h"
 #include "GeodesicHelper.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -195,6 +198,114 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                     assignLabelKey);
     }
 }
+
+/**
+ * Constructor.
+ *
+ * @param myProgObj
+ *
+ * @param surfaceFile
+ *    Surface file for nodes inside border.
+ * @param border
+ *    Border for which nodes inside are found.
+ * @param isInverseSelection
+ *    Invert the selection.
+ * @param assignToCiftiScalarMapIndex
+ *    Map index in cifti scalar file to which assigments are made for
+ *    nodes inside the border.
+ * @param assignScalarValue
+ *    Scalar value assigned to nodes within the border.
+ * @param ciftiScalarFileInOut
+ *    CIFTI scalar file that has map set with nodes inside border.
+ */
+AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
+                           const SurfaceFile* surfaceFile,
+                           const Border* border,
+                           const bool isInverseSelection,
+                           const int32_t assignToCiftiScalarMapIndex,
+                           const float assignScalarValue,
+                           CiftiBrainordinateScalarFile* ciftiScalarFileInOut)
+: AbstractAlgorithm(myProgObj)
+{
+    CaretAssert(surfaceFile);
+    CaretAssert(border);
+    CaretAssert(ciftiScalarFileInOut);
+    
+    this->isInverseSelection = isInverseSelection;
+    
+    std::vector<int32_t> nodesInsideBorder;
+    this->findNodesInsideBorder(surfaceFile,
+                                border,
+                                nodesInsideBorder);
+    
+    std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
+                                      0.0);
+    
+    const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
+    for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
+        const int32_t nodeIndex = nodesInsideBorder[i];
+        CaretAssertVectorIndex(surfaceMapData, nodeIndex);
+        surfaceMapData[nodeIndex] = assignScalarValue;
+    }
+    ciftiScalarFileInOut->setMapDataForSurface(assignToCiftiScalarMapIndex,
+                                               surfaceFile->getStructure(),
+                                               surfaceMapData);
+}
+
+/**
+ * Constructor.
+ *
+ * @param myProgObj
+ *
+ * @param surfaceFile
+ *    Surface file for nodes inside border.
+ * @param border
+ *    Border for which nodes inside are found.
+ * @param isInverseSelection
+ *    Invert the selection.
+ * @param assignToCiftiScalarMapIndex
+ *    Map index in cifti scalar file to which assigments are made for
+ *    nodes inside the border.
+ * @param assignScalarValue
+ *    Scalar value assigned to nodes within the border.
+ * @param ciftiScalarFileInOut
+ *    CIFTI scalar file that has map set with nodes inside border.
+ */
+AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj,
+                                                       const SurfaceFile* surfaceFile,
+                                                       const Border* border,
+                                                       const bool isInverseSelection,
+                                                       const int32_t assignToCiftiLabelMapIndex,
+                                                       const int32_t assignLabelKey,
+                                                       CiftiBrainordinateLabelFile* ciftiLabelFileInOut)
+: AbstractAlgorithm(myProgObj)
+{
+    CaretAssert(surfaceFile);
+    CaretAssert(border);
+    CaretAssert(ciftiLabelFileInOut);
+    
+    this->isInverseSelection = isInverseSelection;
+    
+    std::vector<int32_t> nodesInsideBorder;
+    this->findNodesInsideBorder(surfaceFile,
+                                border,
+                                nodesInsideBorder);
+    
+    std::vector<float> surfaceMapData(surfaceFile->getNumberOfNodes(),
+                                      0.0);
+    
+    const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
+    for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
+        const int32_t nodeIndex = nodesInsideBorder[i];
+        CaretAssertVectorIndex(surfaceMapData, nodeIndex);
+        surfaceMapData[nodeIndex] = assignLabelKey;
+    }
+    ciftiLabelFileInOut->setMapDataForSurface(assignToCiftiLabelMapIndex,
+                                               surfaceFile->getStructure(),
+                                               surfaceMapData);
+    
+}
+
 
 /**
  * Find nodes inside the border.

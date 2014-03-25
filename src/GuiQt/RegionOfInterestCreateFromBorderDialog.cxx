@@ -47,6 +47,8 @@ using namespace caret;
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFileAndMapSelector.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -173,6 +175,12 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
     QWidget* widget = new QWidget();
     QVBoxLayout* mapSelectionLayout = new QVBoxLayout(widget);
     
+    std::vector<DataFileTypeEnum::Enum> allowedMapFileTypes;
+    allowedMapFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL);
+    allowedMapFileTypes.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR);
+    allowedMapFileTypes.push_back(DataFileTypeEnum::LABEL);
+    allowedMapFileTypes.push_back(DataFileTypeEnum::METRIC);
+
     for (std::set<StructureEnum::Enum>::iterator structureIter = requiredStructures.begin();
          structureIter != requiredStructures.end();
          structureIter++) {
@@ -183,10 +191,11 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
              surfaceIter++) {
             Surface* surface = *surfaceIter;
             if (surface->getStructure() == structure) {
-                BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretMappableDataFileAndMapSelector* mapSelector =
                     new CaretMappableDataFileAndMapSelector(borderName,
-                                                            brainStructure,
+                                                            GuiManager::get()->getBrain(),
+                                                            allowedMapFileTypes,
+                                                            surface->getStructure(),
                                                             this);
                 QObject::connect(mapSelector, SIGNAL(selectionChanged(CaretMappableDataFileAndMapSelector*)),
                                  this, SLOT(fileSelectionWasChanged(CaretMappableDataFileAndMapSelector*)));
@@ -261,6 +270,100 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
                 mapSelector->saveCurrentSelections(); // save for next time
                 
                 switch (mapSelector->getSelectedMapFileType()) {
+                    case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                    {
+                        AString errorMessage;
+                        CiftiBrainordinateLabelFile* ciftiLabelFile = dynamic_cast<CiftiBrainordinateLabelFile*>(mapSelector->getSelectedMapFile());
+                        CaretAssert(ciftiLabelFile);
+                        const int32_t mapIndex = mapSelector->getSelectedMapIndex();
+                        const int32_t labelKey = mapSelector->getSelectedLabelKey();
+                        
+                        Surface* surface = NULL;
+                        for (std::vector<Surface*>::iterator surfaceIterator = this->surfaces.begin();
+                             surfaceIterator != this->surfaces.end();
+                             surfaceIterator++) {
+                            Surface* s = *surfaceIterator;
+                            if (s->getStructure() == structure) {
+                                surface = s;
+                                break;
+                            }
+                        }
+                        CaretAssert(surface);
+                        
+                        if (surface != NULL) {
+                            try {
+                                AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+                                                                                 surface,
+                                                                                 border,
+                                                                                 isInverseSelection,
+                                                                                 mapIndex,
+                                                                                 labelKey,
+                                                                                 ciftiLabelFile);
+                            }
+                            catch (const AlgorithmException& e) {
+                                if (errorMessage.isEmpty() == false) {
+                                    errorMessage += "\n";
+                                }
+                                errorMessage += e.whatString();
+                            }
+                        }
+                        else {
+                            if (errorMessage.isEmpty() == false) {
+                                errorMessage += "\n";
+                            }
+                            errorMessage += ("Surface for structure "
+                                             + StructureEnum::toGuiName(structure)
+                                             + " was not found");
+                        }
+                    }
+                        break;
+                    case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                    {
+                        AString errorMessage;
+                        CiftiBrainordinateScalarFile* ciftiScalarFile = dynamic_cast<CiftiBrainordinateScalarFile*>(mapSelector->getSelectedMapFile());
+                        CaretAssert(ciftiScalarFile);
+                        const int32_t mapIndex = mapSelector->getSelectedMapIndex();
+                        const float value = mapSelector->getSelectedMetricValue();
+                        
+                        Surface* surface = NULL;
+                        for (std::vector<Surface*>::iterator surfaceIterator = this->surfaces.begin();
+                             surfaceIterator != this->surfaces.end();
+                             surfaceIterator++) {
+                            Surface* s = *surfaceIterator;
+                            if (s->getStructure() == structure) {
+                                surface = s;
+                                break;
+                            }
+                        }
+                        CaretAssert(surface);
+                        
+                        if (surface != NULL) {
+                            try {
+                                AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+                                                                                 surface,
+                                                                                 border,
+                                                                                 isInverseSelection,
+                                                                                 mapIndex,
+                                                                                 value,
+                                                                                 ciftiScalarFile);
+                            }
+                            catch (const AlgorithmException& e) {
+                                if (errorMessage.isEmpty() == false) {
+                                    errorMessage += "\n";
+                                }
+                                errorMessage += e.whatString();
+                            }
+                        }
+                        else {
+                            if (errorMessage.isEmpty() == false) {
+                                errorMessage += "\n";
+                            }
+                            errorMessage += ("Surface for structure "
+                                             + StructureEnum::toGuiName(structure)
+                                             + " was not found");
+                        }
+                    }
+                        break;
                     case DataFileTypeEnum::LABEL:
                     {
                         LabelFile* labelFile = dynamic_cast<LabelFile*>(mapSelector->getSelectedMapFile());
