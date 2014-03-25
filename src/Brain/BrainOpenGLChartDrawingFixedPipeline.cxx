@@ -564,7 +564,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             axisVpHeight
         };
         
-        const float lastIndex = numLabelsToDraw - 1;
+//        const float lastIndex = numLabelsToDraw - 1;
         for (int32_t i = 0; i < numLabelsToDraw; i++) {
             const float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
             const float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;

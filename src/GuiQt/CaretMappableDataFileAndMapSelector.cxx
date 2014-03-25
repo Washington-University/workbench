@@ -330,7 +330,7 @@ CaretMappableDataFileAndMapSelector::enableDisableNewMapAction()
  *    Selected structure.
  */
 void
-CaretMappableDataFileAndMapSelector::mapFileStructureComboBoxSelected(const StructureEnum::Enum structure)
+CaretMappableDataFileAndMapSelector::mapFileStructureComboBoxSelected(const StructureEnum::Enum /*structure*/)
 {
     loadLastSelectionsForFileType(getSelectedMapFileType());
     emit selectionChanged(this);
@@ -622,9 +622,9 @@ CaretMappableDataFileAndMapSelector::newMapToolButtonSelected()
     CaretMappableDataFile* mapFile = this->getSelectedMapFile();
     if (mapFile != NULL) {
         const StructureEnum::Enum structure = getSelectedMapFileStructure();
-        if (mapFile->isMappableToSurfaceStructure(structure) <= 0) {
+        if ( ! mapFile->isMappableToSurfaceStructure(structure)) {
             WuQMessageBox::errorOk(this->getWidget(), 
-                                   "The selected file is invalid, use the New button to create a new file.");
+                                   "The selected file cannot be mapped to the given structure, use the New button to create a new file.");
             return;
         }
         
