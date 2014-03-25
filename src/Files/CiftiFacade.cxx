@@ -24,9 +24,11 @@
 #undef __CIFTI_FACADE_DECLARE__
 
 #include "CaretAssert.h"
-#include "CiftiInterface.h"
 #include "CaretLogger.h"
+#include "CiftiFile.h"
+#include "CiftiInterface.h"
 #include "GiftiMetaData.h"
+
 using namespace caret;
 
 
@@ -979,6 +981,45 @@ CiftiFacade::getDataForMapOrSeriesIndex(const int32_t mapIndex,
     }
     else {
         CaretAssert(0);
+    }
+    
+    return false;
+}
+
+/**
+ * Set the data for the given map or series index.
+ * NOTE: This method WILL ONLY WORK for CiftiFile (not CiftiXNAT).
+ *
+ * @param mapIndex
+ *    Index of map or series.
+ * @param dataIn
+ *    Data for given map or series is loaded into this.
+ * @return
+ *    True if file data was updated, else false.
+ */
+bool
+CiftiFacade::setDataForMapOrSeriesIndex(const int32_t mapIndex,
+                                        const std::vector<float>& dataIn)
+{
+    CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(m_ciftiInterface);
+    if (ciftiFile != NULL) {
+        CaretAssert((mapIndex >= 0) && (mapIndex < m_numberOfMaps));
+        if (m_loadBrainordinateDataFromColumns) {
+            ciftiFile->setColumn((float*)&dataIn[0],
+                                 mapIndex);
+            return true;
+        }
+        else if (m_loadBrainordinateDataFromRows) {
+            ciftiFile->setRow((float*)&dataIn[0],
+                              mapIndex);
+            return true;
+        }
+        else {
+            CaretAssert(0);
+        }
+    }
+    else {
+        CaretLogSevere("Cannot set map data for CIFTI that that is not a CiftiFile");
     }
     
     return false;

@@ -104,6 +104,9 @@ namespace caret {
         bool getDataForMapOrSeriesIndex(const int32_t mapIndex,
                                         std::vector<float>& dataOut) const;
         
+        bool setDataForMapOrSeriesIndex(const int32_t mapIndex,
+                                        const std::vector<float>& dataIn);
+        
         bool getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
                                          const int32_t nodeIndex,
                                          std::vector<float>& seriesDataOut) const;
