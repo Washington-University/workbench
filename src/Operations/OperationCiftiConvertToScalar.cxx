@@ -50,7 +50,6 @@ OperationParameters* OperationCiftiConvertToScalar::getParameters()
     nameFileOpt->addStringParameter(1, "file", "text file containing map names, one per line");
     ret->setHelpText(
         AString("Creates a new cifti file with the same data as the input, but with one of the dimensions set to contain strings identifying each map.  ") +
-        "DO NOT try to overwrite the existing cifti with the output with this command, it may read/write rows from/to disk on an as-needed basis.  " +
         "Specifying ROW means each row will contain one value from each scalar map.  This is the timepoints direction in dtseries."
     );
     return ret;
