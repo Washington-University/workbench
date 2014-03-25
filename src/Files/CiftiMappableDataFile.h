@@ -77,6 +77,11 @@ namespace caret {
     public:
         virtual ~CiftiMappableDataFile();
         
+        static CiftiMappableDataFile* newInstanceForCiftiFileTypeAndSurface(const DataFileTypeEnum::Enum ciftiFileType,
+                                                                     const StructureEnum::Enum structure,
+                                                                     const int32_t numberOfNodes,
+                                                                     AString& errorMessageOut);
+        
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         virtual void clear();
@@ -304,6 +309,10 @@ namespace caret {
                                                     int64_t ijkOut[3],
                                                     float xyzOut[3]) const;
 
+        void setMapDataForSurface(const int32_t mapIndex,
+                                  const StructureEnum::Enum structure,
+                                  const std::vector<float> surfaceMapData) throw (DataFileException);
+        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);

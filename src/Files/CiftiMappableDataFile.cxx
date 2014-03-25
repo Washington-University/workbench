@@ -28,6 +28,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
+#include "CiftiBrainordinateLabelFile.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "CiftiFacade.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFile.h"
@@ -107,6 +109,133 @@ m_seriesDataAccess(seriesDataAccess)
 CiftiMappableDataFile::~CiftiMappableDataFile()
 {
     clearPrivate();
+}
+
+
+/**
+ * Create a new instance of a CIFTI file from the given CIFTI data file type
+ * for the given surface structure and number of nodes.  NOT all CIFTI file 
+ * types are supported.  
+ *
+ * @param ciftiFileType
+ *    Data file type for the returned CIFTI file.
+ * @param structure
+ *    The surface structure.
+ * @param numberOfNodes
+ *    Number of nodes in the surface.
+ * @param errorMessageOut
+ *    Will describe problem if there was an error such as an unsupported
+ *    CIFTI file type.
+ * @param
+ *    Pointer to the newly created CIFTI file.  If there is an
+ *    error, NULL will be returned and errorMessageOut will describe the
+ *    problem.  User will need to 'dynamic_cast' the returned pointer to
+ *    the class corresponding to the CIFTI file type.
+ */
+CiftiMappableDataFile*
+CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeEnum::Enum ciftiFileType,
+                                                             const StructureEnum::Enum structure,
+                                                             const int32_t numberOfNodes,
+                                                             AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    CiftiFile* ciftiFile = NULL;
+    CiftiMappableDataFile* ciftiMappableFile = NULL;
+    
+    try {
+        bool hasLabelsFlag  = false;
+        bool hasScalarsFlag = false;
+        
+        /*
+         * Create the appropriate file type.
+         */
+        switch (ciftiFileType) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                ciftiMappableFile = new CiftiBrainordinateLabelFile();
+                hasLabelsFlag = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                ciftiMappableFile = new CiftiBrainordinateScalarFile();
+                hasScalarsFlag = true;
+                break;
+            default:
+                errorMessageOut = ("Creation of "
+                                   + DataFileTypeEnum::toGuiName(ciftiFileType)
+                                   + " is not supported.");
+                break;
+        }
+        
+        /*
+         * Create the XML.
+         */
+        CiftiXML myXML;
+        myXML.setNumberOfDimensions(2);
+        
+        /*
+         * Add labels or scalars to XML.
+         */
+        if (hasLabelsFlag) {
+            CiftiLabelsMap labelsMap;
+            labelsMap.setLength(1);
+            myXML.setMap(CiftiXML::ALONG_ROW,
+                         labelsMap);
+        }
+        else if (hasScalarsFlag) {
+            CiftiScalarsMap scalarsMap;
+            scalarsMap.setLength(1);
+            myXML.setMap(CiftiXML::ALONG_ROW,
+                         scalarsMap);            
+        }
+        else {
+            CaretAssert(0);
+        }
+
+        /*
+         * Add brainordinates to the XML.
+         */
+        std::vector<float> roi(numberOfNodes,
+                               1.0);
+        CiftiBrainModelsMap brainModelsMap;
+        brainModelsMap.addSurfaceModel(numberOfNodes,
+                                       structure,
+                                       &roi[0]);
+        myXML.setMap(CiftiXML::ALONG_COLUMN,
+                     brainModelsMap);
+
+        /*
+         * Add XML to the CIFTI file.
+         */
+        ciftiFile = new CiftiFile();
+        ciftiFile->setCiftiXML(myXML);
+        
+        /*
+         * Add the CiftiFile to the Cifti Mappable File
+         */
+        const AString defaultFileName = ciftiMappableFile->getFileName();
+        ciftiMappableFile->initializeFromCiftiInterface(ciftiFile,
+                                                     defaultFileName);
+        ciftiMappableFile->setModified();
+        
+        return ciftiMappableFile;
+    }
+    catch (const CiftiFileException& ce) {
+        errorMessageOut = ce.whatString();
+    }
+    catch (const DataFileException& de) {
+        errorMessageOut = de.whatString();
+    }
+    
+    if (ciftiMappableFile != NULL) {
+        delete ciftiMappableFile;
+        ciftiMappableFile = NULL;
+    }
+    if (ciftiFile != NULL) {
+        delete ciftiFile;
+        ciftiFile = NULL;
+    }
+
+    return NULL;
 }
 
 /**
@@ -3697,6 +3826,83 @@ CiftiMappableDataFile::helpLoadChartDataForSurfaceNode(const StructureEnum::Enum
     
     return chartData;
 }
+
+/**
+ * Set the map data for the given structure.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param structure
+ *    The surface structure.
+ * @param surfaceMapData
+ *    Data for surface map that must contain same number of elements as
+ *    in the brain models map for the surface.
+ * @throw
+ *    DataFileException if there is an error.
+ *
+ */
+void
+CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
+                                                   const StructureEnum::Enum structure,
+                                                   const std::vector<float> surfaceMapData) throw (DataFileException)
+{
+    CaretAssertVectorIndex(m_mapContent, mapIndex);
+    
+    
+    if (isCiftiInterfaceValid() == false) {
+        return;
+    }
+    
+    CaretAssertVectorIndex(m_mapContent,
+                           mapIndex);
+    
+    const int32_t surfaceNumberOfNodes = static_cast<int32_t>(surfaceMapData.size());
+    const int32_t numCiftiNodes = getMappingSurfaceNumberOfNodes(structure);
+    
+    if (numCiftiNodes != surfaceNumberOfNodes) {
+        return;
+    }
+    
+    std::vector<float> mapData;
+    m_ciftiFacade->getDataForMapOrSeriesIndex(mapIndex,
+                                              mapData);
+    
+    /*
+     * Map data may be empty for connectivity matrix files with no rows loaded.
+     */
+    if (mapData.empty()) {
+        return;
+    }
+    
+    const std::vector<int64_t>* dataIndicesForNodes =
+    m_ciftiFacade->getSurfaceDataIndicesForMappingToBrainordinates(structure,
+                                                                   surfaceNumberOfNodes);
+    if (dataIndicesForNodes == NULL) {
+        return;
+    }
+    
+    for (int32_t iNode = 0; iNode < surfaceNumberOfNodes; iNode++) {
+        CaretAssertVectorIndex((*dataIndicesForNodes),
+                               iNode);
+        
+        const int64_t dataIndex = (*dataIndicesForNodes)[iNode];
+        if (dataIndex >= 0) {
+            mapData[dataIndex] = surfaceMapData[iNode];
+        }
+    }
+    
+    const bool dataUpdateValid = m_ciftiFacade->setDataForMapOrSeriesIndex(mapIndex,
+                                                                       mapData);
+
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    
+    m_mapContent[mapIndex]->invalidateColoring();
+    
+    if ( ! dataUpdateValid) {
+        throw DataFileException("Writing of data failed.  Is this file remote (on the Web)?");
+    }
+}
+
 
 /**
  * Help load matrix chart data.
