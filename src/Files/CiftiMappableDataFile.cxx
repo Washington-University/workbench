@@ -194,12 +194,9 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
         /*
          * Add brainordinates to the XML.
          */
-        std::vector<float> roi(numberOfNodes,
-                               1.0);
         CiftiBrainModelsMap brainModelsMap;
         brainModelsMap.addSurfaceModel(numberOfNodes,
-                                       structure,
-                                       &roi[0]);
+                                       structure);
         myXML.setMap(CiftiXML::ALONG_COLUMN,
                      brainModelsMap);
 
