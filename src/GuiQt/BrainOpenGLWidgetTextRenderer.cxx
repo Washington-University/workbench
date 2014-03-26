@@ -127,15 +127,25 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const int fontHeight,
                                                       const AString& fontName)
 {
+    int32_t width, height;
+    getTextBoundsInPixels(text,
+                          textStyle,
+                          fontHeight,
+                          fontName,
+                          width,
+                          height);
+    
     /*
      * Find font
      */
     QFont* font = findFont(fontName,
                            fontHeight,
                            textStyle);
-    CaretAssert(font);
-    
-    QFontMetrics fontMetrics(*font);
+//    CaretAssert(font);
+//    
+//    QFontMetrics fontMetrics(*font);
+//    width = fontMetrics.width(text);
+//    height = fontMetrics.height();
     
     /*
      * X-Coordinate of text
@@ -145,10 +155,10 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
         case X_LEFT:
             break;
         case X_CENTER:
-            x -= fontMetrics.width(text) / 2;
+            x -= width / 2;
             break;
         case X_RIGHT:
-            x -= fontMetrics.width(text);
+            x -= width;
             break;
     }
     
@@ -161,17 +171,17 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
         case Y_BOTTOM:
             break;
         case Y_CENTER:
-            y += fontMetrics.height() / 2;
+            y += height / 2;
             break;
         case Y_TOP:
-            y += fontMetrics.height();
+            y += height;
             break;
     }
     
     m_glWidget->renderText(x,
-                               y,
-                               text,
-                               *font);
+                           y,
+                           text,
+                           *font);
 }
 
 /**
