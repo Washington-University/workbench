@@ -261,7 +261,7 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     const float fontHeight = ((fontHeightIn > 0) ? fontHeightIn : 14);
     //const float aspect = static_cast<float>(viewport[2]) / static_cast<float>(viewport[3]);
     //const float aspect = static_cast<float>(viewport[3]) / static_cast<float>(viewport[2]);
-    const float aspect = 1.0;
+    const float aspect = 0.8;
     const float fontSizeY = fontHeight;
     const float fontSizeX = fontHeight * aspect;
    
@@ -277,15 +277,19 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     const float width = (xmax - xmin) * (scaleX / 1.2);
     const float height = (ymax - ymin) * (scaleY);
     
+    /* 
+     * By default, it appears that the center of the character is drawn
+     * at the coordinate.
+     */
     int x = windowX + viewport[0];
     switch (alignmentX) {
         case X_LEFT:
+            x += (width / 2.0);
             break;
         case X_CENTER:
-            x -= (width / 2.0);
             break;
         case X_RIGHT:
-            x -= width;
+            x -= (width / 2.0);
             break;
     }
 //    switch (alignmentX) {
@@ -399,6 +403,39 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
     
     restoreStateOfOpenGL();
 }
+
+/**
+ * Get the bounds of the text (in pixels) using the given text
+ * attributes.
+ *
+ * @param text
+ *   Text that is to be drawn.
+ * @param textStyle
+ *   Style of the text.
+ * @param fontHeight
+ *   Height of the text.
+ * @param fontName
+ *   Name of the font.
+ * @param widthOut
+ *   Output containing width of text characters.
+ * @param heightOut
+ *   Output containing height of text characters.
+ */
+void
+GlfFontTextRenderer::getTextBoundsInPixels(const QString& text,
+                                   const TextStyle textStyle,
+                                   const int fontHeight,
+                                           const AString& fontName,
+                                           int32_t& widthOut,
+                                           int32_t& heightOut)
+{
+    const float width = fontHeight * 0.80;
+    const float numberOfCharacters = text.length();
+    
+    widthOut  = width * numberOfCharacters;
+    heightOut = fontHeight * numberOfCharacters;
+}
+
 
 /**
  * Draw text at the given model coordinates.

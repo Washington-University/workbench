@@ -54,6 +54,13 @@ namespace caret {
                                    const int fontHeight = 14,
                                    const AString& fontName = "");
         
+         void getTextBoundsInPixels(const QString& text,
+                                           const TextStyle textStyle,
+                                           const int fontHeight,
+                                    const AString& fontName,
+                                    int32_t& widthOut,
+                                    int32_t& heightOut);
+        
     private:
         void drawString(char *str);
         

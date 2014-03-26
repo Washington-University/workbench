@@ -23,6 +23,7 @@
 
 #include <QContextMenuEvent>
 #include <QMouseEvent>
+#include <QToolTip>
 #include <QWheelEvent>
 
 #define __BRAIN_OPENGL_WIDGET_DEFINE__
@@ -508,6 +509,48 @@ BrainOpenGLWidget::paintGL()
 }
 
 /**
+ * Override of event handling.
+ */
+bool
+BrainOpenGLWidget::event(QEvent* event)
+{
+    const bool toolTipsEnabled = false;
+    if (toolTipsEnabled) {
+        if (event->type() == QEvent::ToolTip) {
+            QHelpEvent* helpEvent = dynamic_cast<QHelpEvent*>(event);
+            CaretAssert(helpEvent);
+            
+            QPoint globalXY = helpEvent->globalPos();
+            QPoint xy = helpEvent->pos();
+            
+            static int counter = 0;
+            
+            std::cout
+            << "Displaying tooltip "
+            << counter++
+            << " at global ("
+            << globalXY.x()
+            << ", "
+            << globalXY.y()
+            << ") at pos ("
+            << xy.x()
+            << ", "
+            << xy.y()
+            << ")"
+            << std::endl;
+            
+            QToolTip::showText(globalXY,
+                               "This is the tooltip " + AString::number(counter));
+            
+            return true;
+        }
+    }
+    
+    return QGLWidget::event(event);
+}
+
+
+/**
  * Receive Content Menu events from Qt.
  * @param contextMenuEvent
  *    The context menu event.
@@ -848,7 +891,7 @@ BrainOpenGLWidget::performProjection(const int x,
  */
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
-{
+{    
     Qt::MouseButton button = me->button();
     Qt::KeyboardModifiers keyModifiers = me->modifiers();
     Qt::MouseButtons mouseButtons = me->buttons();

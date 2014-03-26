@@ -217,9 +217,45 @@ BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
 }
 
 /**
+ * Get the bounds of the text (in pixels) using the given text
+ * attributes.
+ *
+ * @param text
+ *   Text that is to be drawn.
+ * @param textStyle
+ *   Style of the text.
+ * @param fontHeight
+ *   Height of the text.
+ * @param fontName
+ *   Name of the font.
+ * @param widthOut
+ *   Output containing width of text characters.
+ * @param heightOut
+ *   Output containing height of text characters.
+ */
+void
+BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(const QString& text,
+                                                     const TextStyle textStyle,
+                                                     const int fontHeight,
+                                                     const AString& fontName,
+                                                     int32_t& widthOut,
+                                                     int32_t& heightOut)
+{
+    QFont* font = findFont(fontName,
+                           fontHeight,
+                           textStyle);
+    CaretAssert(font);
+    
+    QFontMetricsF fontMetrics(*font);
+    QRectF boundsRect = fontMetrics.boundingRect(text);
+    widthOut  = boundsRect.width();
+    heightOut = boundsRect.height();
+}
+
+/**
  * Find a font with the given name, height, and style.
  * Once a font is created it is cached so that it can be
- * used again and avoids font creation which may be 
+ * used again and avoids font creation which may be
  * expensive.
  *
  * @return a font

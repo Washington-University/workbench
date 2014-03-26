@@ -81,21 +81,23 @@ namespace caret {
         void getViewPortSize(int &w, int &h);
         
     protected:
-        void initializeGL();
+        virtual void initializeGL();
         
-        void resizeGL(int w, int h);
+        virtual void resizeGL(int w, int h);
         
-        void paintGL();
+        virtual void paintGL();
         
-        void contextMenuEvent(QContextMenuEvent* contextMenuEvent);
+        virtual void contextMenuEvent(QContextMenuEvent* contextMenuEvent);
         
-        void mouseMoveEvent(QMouseEvent* e);
+        virtual bool event(QEvent* event);
         
-        void mousePressEvent(QMouseEvent* e);
+        virtual void mouseMoveEvent(QMouseEvent* e);
         
-        void mouseReleaseEvent(QMouseEvent* e);
+        virtual void mousePressEvent(QMouseEvent* e);
         
-        void wheelEvent(QWheelEvent* e);
+        virtual void mouseReleaseEvent(QMouseEvent* e);
+        
+        virtual void wheelEvent(QWheelEvent* e);
         
     private:
         void clearDrawingViewportContents();

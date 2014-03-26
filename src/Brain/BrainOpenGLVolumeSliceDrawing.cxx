@@ -4143,8 +4143,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
         
         if (drawLabelsFlag) {
             glColor3fv(blue);
-            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "V");
-            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "D");
+            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMin, "I");
+            m_fixedPipelineDrawing->drawTextModelCoords(axialTextMax, "S");
         }
         
         

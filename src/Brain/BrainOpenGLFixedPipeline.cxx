@@ -5716,11 +5716,22 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
                                                              const int fontHeight)
 {
     if (this->textRenderer != NULL) {
+        
+        int32_t textWidth  = 0;
+        int32_t textHeight = 0;
+        this->textRenderer->getTextBoundsInPixels(text,
+                                                  textStyle,
+                                                  fontHeight,
+                                                  "",
+                                                  textWidth,
+                                                  textHeight);
+        std::cout << "Text bounds: " << qPrintable(text) << ": " << textWidth << ", " << textHeight << std::endl;
+        
         const int textCenter[2] = {
             windowX,
             windowY
         };
-        const int halfFontSize = fontHeight / 2;
+//        const int halfFontSize = fontHeight / 2;
         
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         uint8_t backgroundRGBA[4];
@@ -5730,10 +5741,17 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         GLint savedViewport[4];
         glGetIntegerv(GL_VIEWPORT, savedViewport);
         
-        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
-        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
-        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
-        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
+        const int halfWidth = (textWidth + 3) / 2.0;
+        const int halfHeight = (textHeight + 3) / 2.0;
+        
+        int vpLeftX   = savedViewport[0] + textCenter[0] - halfWidth;
+        int vpRightX  = savedViewport[0] + textCenter[0] + halfWidth;
+        int vpBottomY = savedViewport[1] + textCenter[1] - halfHeight;
+        int vpTopY    = savedViewport[1] + textCenter[1] + halfHeight;
+//        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
+//        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
+//        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
+//        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
         MathFunctions::limitRange(vpLeftX,
                                   savedViewport[0],
                                   savedViewport[0] + savedViewport[2]);
