@@ -45,7 +45,7 @@ AString OperationCiftiConvert::getCommandSwitch()
 
 AString OperationCiftiConvert::getShortDescription()
 {
-    return "CONVERT TO OR FROM CIFTI";
+    return "DUMP CIFTI MATRIX INTO OTHER FORMATS";
 }
 
 OperationParameters* OperationCiftiConvert::getParameters()

@@ -32,7 +32,7 @@ XnatTest::XnatTest(const AString& identifier) : TestInterface(identifier)
 
 void XnatTest::execute()
 {
-    //setFailed("no authentication info present"); return;//comment this out to run the test
+    setFailed("no authentication info present"); return;//comment this out to run the test
     AString myUrl("");//test url goes here
     AString user("");//test auth goes here
     AString pass("");
