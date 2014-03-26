@@ -354,6 +354,23 @@ BrainOpenGL::initializeOpenGL()
     s_supportsImmediateMode = false;
     s_supportsVertexBuffers = false;
     
+    GLint maximumNumberOfClipPlanes;
+    glGetIntegerv(GL_MAX_CLIP_PLANES,
+                  & maximumNumberOfClipPlanes);
+    lineInfo += ("\n\nMaximum number of clipping planes is "
+                 + AString::number(maximumNumberOfClipPlanes));
+    
+    GLint redBits, greenBits, blueBits, alphaBits;
+    glGetIntegerv(GL_RED_BITS,   &redBits);
+    glGetIntegerv(GL_GREEN_BITS, &greenBits);
+    glGetIntegerv(GL_BLUE_BITS,  &blueBits);
+    glGetIntegerv(GL_ALPHA_BITS, &alphaBits);
+    lineInfo += ("\n\nBuffer bits red/green/blue/apha: ("
+                 + AString::number(redBits) + ", "
+                 + AString::number(greenBits) + ", "
+                 + AString::number(blueBits) + ", "
+                 + AString::number(alphaBits) + ")");
+    
     /*
      * Get the OpenGL Extensions.
      */
