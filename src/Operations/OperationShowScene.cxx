@@ -279,7 +279,6 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                  * Index of selected browser tab (NOT the tabBar)
                  */
                 const int32_t selectedTabIndex = toolbarClass->getIntegerValue("selectedTabIndex", -1);
-                std::cout << "Restoring tab: " << selectedTabIndex << " in window " << i << std::endl;
 
                 EventBrowserTabGet getTabContent(selectedTabIndex);
                 EventManager::get()->sendEvent(getTabContent.getPointer());

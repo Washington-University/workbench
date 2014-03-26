@@ -5725,7 +5725,7 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
                                                   "",
                                                   textWidth,
                                                   textHeight);
-        std::cout << "Text bounds: " << qPrintable(text) << ": " << textWidth << ", " << textHeight << std::endl;
+        //std::cout << "Text bounds: " << qPrintable(text) << ": " << textWidth << ", " << textHeight << std::endl;
         
         const int textCenter[2] = {
             windowX,
