@@ -72,7 +72,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     toNifti->addCiftiParameter(1, "cifti-in", "the input cifti file");
     toNifti->addVolumeOutputParameter(2, "nifti-out", "the output nifti file");
     
-    OptionalParameter* fromNifti = ret->createOptionalParameter(4, "-from-nifti", "convert from NIFTI (1 or 2)");
+    OptionalParameter* fromNifti = ret->createOptionalParameter(4, "-from-nifti", "convert a NIFTI (1 or 2) file made with this command back into CIFTI");
     fromNifti->addVolumeParameter(1, "nifti-in", "the input nifti file");
     fromNifti->addCiftiParameter(2, "cifti-template", "a cifti file with the dimension(s) and mapping(s) that should be used");
     fromNifti->addCiftiOutputParameter(3, "cifti-out", "the output cifti file");
