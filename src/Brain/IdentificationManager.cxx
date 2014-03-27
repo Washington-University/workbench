@@ -26,7 +26,6 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ColorManager.h"
 #include "IdentifiedItemNode.h"
 #include "SceneClassAssistant.h"
 #include "SceneClass.h"
