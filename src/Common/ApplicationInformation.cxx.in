@@ -41,9 +41,9 @@ using namespace caret;
  */
 ApplicationInformation::ApplicationInformation()
 : CaretObject()
-{
+{ 
     this->name    = "Workbench";
-    this->version = "Beta 0.84";
+    this->version = "Beta 0.85";
     this->commit = "commit: @COMMIT@";
     this->commitDate = "commit date: @COMMIT_DATE@";
 
