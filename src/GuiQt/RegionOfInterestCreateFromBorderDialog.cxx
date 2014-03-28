@@ -191,11 +191,13 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
              surfaceIter++) {
             Surface* surface = *surfaceIter;
             if (surface->getStructure() == structure) {
+                std::vector<StructureEnum::Enum> allowedStructures;
+                allowedStructures.push_back(surface->getStructure());
                 CaretMappableDataFileAndMapSelector* mapSelector =
                     new CaretMappableDataFileAndMapSelector(borderName,
                                                             GuiManager::get()->getBrain(),
                                                             allowedMapFileTypes,
-                                                            surface->getStructure(),
+                                                            allowedStructures,
                                                             this);
                 QObject::connect(mapSelector, SIGNAL(selectionChanged(CaretMappableDataFileAndMapSelector*)),
                                  this, SLOT(fileSelectionWasChanged(CaretMappableDataFileAndMapSelector*)));
