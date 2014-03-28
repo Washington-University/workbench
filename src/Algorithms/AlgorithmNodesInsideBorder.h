@@ -85,6 +85,7 @@ namespace caret {
         
         void findNodesEnclosedByUnconnectedPathCCW(const SurfaceFile* surfaceFile,
                                                    const std::vector<int32_t>& unconnectedNodesPath,
+                                                   std::vector<int32_t>& connectedNodesPathOut,
                                                    std::vector<int32_t>& nodesEnclosedByPathOut);
         
 //        void findNodesEnclosedByConnectedNodesPath(const SurfaceFile* surfaceFile,

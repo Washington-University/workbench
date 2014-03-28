@@ -472,8 +472,10 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPath(const SurfaceFile
      * Find the nodes enclosed by the unconnected path
      * assuming the path is oriented counter-clockwise
      */
+    std::vector<int32_t> connectedNodesPath;
     findNodesEnclosedByUnconnectedPathCCW(surfaceFile,
                                           unconnectedNodesPath,
+                                          connectedNodesPath,
                                           nodesEnclosedByPathOut);
     
     /*
@@ -489,13 +491,32 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPath(const SurfaceFile
         
         findNodesEnclosedByUnconnectedPathCCW(surfaceFile,
                                               reversedUnconnectedNodesPath,
+                                              connectedNodesPath,
                                               nodesEnclosedByPathOut);
     }
+    
+    bool doInverseFlag = this->isInverseSelection;
+    bool excludePathNodesInInverse = false;
+    
+    /*
+     * This should NEVER happen, but, apparently, it does.
+     */
+    if (static_cast<int32_t>(nodesEnclosedByPathOut.size()) > halfNumberOfSurfaceNodes) {
+        CaretLogSevere("FAILURE to correctly find nodes inside path. Number of nodes "
+                       "inside path is greater than half number of nodes in surface. "
+                       "Flipping result but it may not be correct around the border nodes.");
 
+        /*
+         * Flip the inverse flag 
+         */
+        doInverseFlag = ! doInverseFlag;
+        excludePathNodesInInverse = true;
+    }
+    
     /*
      * User requested inverse (nodes outside path)
      */
-    if (this->isInverseSelection) {
+    if (doInverseFlag) {
         /*
          * Get the topology helper for the surface with neighbors sorted.
          */
@@ -515,6 +536,14 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPath(const SurfaceFile
 
         nodesEnclosedByPathOut.clear();
         for (int32_t i = 0; i < numberOfNodes; i++) {
+            if (excludePathNodesInInverse) {
+                if (std::find(connectedNodesPath.begin(),
+                              connectedNodesPath.end(),
+                              i) != connectedNodesPath.end()) {
+                    continue;
+                }
+            }
+            
             CaretAssertVectorIndex(insideROI, i);
             if (insideROI[i]) {
                 if (th->getNodeHasNeighbors(i)) {
@@ -532,14 +561,18 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPath(const SurfaceFile
  *    Surface file for nodes inside connected path.
  * @param unconnectedNodesPath
  *    Unconnected path for which nodes inside are found.
+ * @param connectedNodesPathOut
+ *    Connected path formed from unconnected path.
  * @param nodesEnclosedByPathOut
  *    Nodes enclosed by the path.
  */
 void
 AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceFile* surfaceFile,
                                                                   const std::vector<int32_t>& unconnectedNodesPath,
+                                                                  std::vector<int32_t>& connectedNodesPathOut,
                                                                   std::vector<int32_t>& nodesEnclosedByPathOut)
 {
+    connectedNodesPathOut.clear();
     nodesEnclosedByPathOut.clear();
     
     /*
@@ -562,6 +595,8 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceF
     this->findNodesEnclosedByConnectedNodesPathCounterClockwise(surfaceFile,
                                                 connectedNodesPath,
                                                 nodesEnclosedByPathOut);
+    
+    connectedNodesPathOut = connectedNodesPath;
 }
 
 /**
