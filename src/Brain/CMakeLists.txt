@@ -71,6 +71,7 @@ ChartableMatrixFileSelectionModel.h
 ChartingDataManager.h
 CiftiConnectivityMatrixDataFileManager.h
 CiftiFiberTrajectoryManager.h
+ClippingPlaneGroup.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
 DisplayPropertiesFiberOrientation.h
@@ -181,6 +182,7 @@ ChartableMatrixFileSelectionModel.cxx
 ChartingDataManager.cxx
 CiftiConnectivityMatrixDataFileManager.cxx
 CiftiFiberTrajectoryManager.cxx
+ClippingPlaneGroup.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
 DisplayPropertiesFiberOrientation.cxx

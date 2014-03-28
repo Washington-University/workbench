@@ -38,6 +38,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class CaretDataFile;
     class CaretMappableDataFile;
+    class ClippingPlaneGroup;
     class Matrix4x4;
     class ModelChart;
     class ModelSurface;
@@ -145,6 +146,10 @@ namespace caret {
         VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet();
         
         const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
+        
+        ClippingPlaneGroup* getClippingPlaneGroup();
+        
+        const ClippingPlaneGroup* getClippingPlaneGroup() const;
         
         bool isClippingPlaneEnabled(const int32_t indx) const;
         
@@ -371,6 +376,11 @@ namespace caret {
          * User can set the name of the tab.
          */
         AString m_userName;
+        
+        /**
+         * Clipping planes
+         */
+        ClippingPlaneGroup* m_clippingPlaneGroup;
         
         /**
          * Clipping thickness along axes.

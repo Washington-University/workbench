@@ -37,6 +37,7 @@
 #include "ChartableMatrixFileSelectionModel.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
+#include "ClippingPlaneGroup.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GroupAndNameHierarchyName.h"
@@ -113,6 +114,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 
     m_volumeSliceSettings = new VolumeSliceSettings();
     
+    m_clippingPlaneGroup = new ClippingPlaneGroup();
+    
     m_clippingCoordinate[0] = 0.0;
     m_clippingCoordinate[1] = 0.0;
     m_clippingCoordinate[2] = 0.0;
@@ -138,6 +141,11 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_volumeSurfaceOutlineSetModel",
                                "VolumeSurfaceOutlineSetModel",
                                m_volumeSurfaceOutlineSetModel);
+    
+    m_sceneClassAssistant->add("m_clippingPlaneGroup",
+                               "ClippingPlaneGroup",
+                               m_clippingPlaneGroup);
+    
     m_sceneClassAssistant->addArray("m_clippingCoordinate",
                                     m_clippingCoordinate,
                                     3,
@@ -187,6 +195,7 @@ BrowserTabContent::~BrowserTabContent()
  
     s_allBrowserTabContent.erase(this);
     
+    delete m_clippingPlaneGroup;
     delete m_cerebellumViewingTransformation;
     delete m_viewingTransformation;
     delete m_volumeSliceViewingTransformation;
@@ -238,6 +247,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
 //    m_wholeBrainModel = tabToClone->m_wholeBrainModel;
 //    m_surfaceMontageModel = tabToClone->m_surfaceMontageModel;
 //    m_chartData = tabToClone->m_chartData;
+    
+    *m_clippingPlaneGroup = *tabToClone->m_clippingPlaneGroup;
     
     m_yokingGroup = tabToClone->m_yokingGroup;
     
@@ -2719,6 +2730,63 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             *m_volumeSliceSettings = settings;
         }
     }
+    
+    /**
+     * Check for now obsolete clipping coordinate array.  If found it is an
+     * old scene so update the clipping planes.
+     */
+    const SceneClassArray* oldClippingCoordinateClassArray = sceneClass->getClassArray("m_clippingCoordinate");
+    if (oldClippingCoordinateClassArray != NULL) {
+        float clipCoords[3];
+        if (sceneClass->getFloatArrayValue("m_clippingCoordinate",
+                                           clipCoords,
+                                           3) != 3) {
+            clipCoords[0] = 0.0;
+            clipCoords[1] = 0.0;
+            clipCoords[2] = 0.0;
+        }
+        
+        float clipThick[3];
+        if (sceneClass->getFloatArrayValue("m_clippingThickness",
+                                           clipThick,
+                                           3) != 3) {
+            clipThick[0] = 0.0;
+            clipThick[1] = 0.0;
+            clipThick[2] = 0.0;
+        }
+        
+        bool clipEnabled[3];
+        if (sceneClass->getBooleanArrayValue("m_clippingEnabled",
+                                             clipEnabled,
+                                             3) != 3) {
+            clipEnabled[0] = false;
+            clipEnabled[1] = false;
+            clipEnabled[2] = false;
+        }
+        
+        m_clippingPlaneGroup->resetToDefaultValues();
+        m_clippingPlaneGroup->setTranslation(clipCoords);
+        m_clippingPlaneGroup->setThickness(clipThick);
+        m_clippingPlaneGroup->setSelectionStatus(clipEnabled);
+    }
+}
+
+/**
+ * @return The clipping plane group.
+ */
+ClippingPlaneGroup*
+BrowserTabContent::getClippingPlaneGroup()
+{
+    return m_clippingPlaneGroup;
+}
+
+/**
+ * @return The clipping plane group (const method)
+ */
+const ClippingPlaneGroup*
+BrowserTabContent::getClippingPlaneGroup() const
+{
+    return m_clippingPlaneGroup;
 }
 
 /**
@@ -3358,6 +3426,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 *m_cerebellumViewingTransformation = *btc->m_cerebellumViewingTransformation;
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
+                *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
                 break;
             }
         }
@@ -3398,6 +3467,7 @@ BrowserTabContent::updateYokedBrowserTabs()
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
+                *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 //*btc->m_wholeBrainSurfaceSettings = *m_wholeBrainSurfaceSettings;
             }
         }
