@@ -42,6 +42,8 @@ namespace caret {
         StructureEnum::Enum getSelectedStructure() const;
         
         int count() const;
+
+        void listOnlyTheseStructures(const std::vector<StructureEnum::Enum>& structures);
         
         void listOnlyValidStructures();
         

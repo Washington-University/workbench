@@ -78,6 +78,28 @@ StructureEnumComboBox::count() const
 }
 
 /**
+ * Limit the available structure to the given structures
+ *
+ * @param structures
+ *    Structures for display in combo box.
+ */
+void
+StructureEnumComboBox::listOnlyTheseStructures(const std::vector<StructureEnum::Enum>& structures)
+{
+    this->structureComboBox->clear();
+    this->structureComboBox->blockSignals(true);
+    
+    const int32_t numStructures = static_cast<int32_t>(structures.size());
+    for (int32_t i = 0; i < numStructures; i++) {
+        const StructureEnum::Enum structure = structures[i];
+        this->structureComboBox->addItem(StructureEnum::toGuiName(structure));
+        this->structureComboBox->setItemData(i, StructureEnum::toIntegerCode(structure));
+    }
+    
+    this->structureComboBox->blockSignals(false);
+}
+
+/**
  * Limit selections to those structures that are loaded.
  */
 void
