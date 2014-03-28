@@ -54,8 +54,8 @@ namespace caret {
     public:
         CaretMappableDataFileAndMapSelector(const AString defaultName,
                                             Brain* brain,
-                                            const std::vector<DataFileTypeEnum::Enum> supportedMapFileTypes,
-                                            const StructureEnum::Enum structure,
+                                            const std::vector<DataFileTypeEnum::Enum>& supportedMapFileTypes,
+                                            const std::vector<StructureEnum::Enum>& supportedStructures,
                                             QObject* parent);
         
         virtual ~CaretMappableDataFileAndMapSelector();
@@ -157,7 +157,9 @@ namespace caret {
 
         QStackedWidget* valueEntryStackedWidget;
         
-        std::vector<DataFileTypeEnum::Enum> supportedMapFileTypes;
+        std::vector<DataFileTypeEnum::Enum> m_supportedMapFileTypes;
+        
+        std::vector<StructureEnum::Enum> m_supportedStructures;
         
         std::vector<DataFileTypeEnum::Enum> m_mapFileTypesThatAllowAddingMaps;
         

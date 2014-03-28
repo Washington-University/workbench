@@ -84,8 +84,8 @@ using namespace caret;
  */
 CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(const AString defaultName,
                                                                          Brain* brain,
-                                                                         const std::vector<DataFileTypeEnum::Enum> supportedMapFileTypes,
-                                                                         const StructureEnum::Enum structure,
+                                                                         const std::vector<DataFileTypeEnum::Enum>& supportedMapFileTypes,
+                                                                         const std::vector<StructureEnum::Enum>& supportedStructures,
                                                                          QObject* parent)
 : WuQWidget(parent)
 {
@@ -93,7 +93,8 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(const A
     m_defaultName = defaultName;
     m_newMapAction = NULL;
 
-    this->supportedMapFileTypes = supportedMapFileTypes;
+    m_supportedMapFileTypes = supportedMapFileTypes;
+    m_supportedStructures   = supportedStructures;
     
     m_mapFileTypesThatAllowAddingMaps.push_back(DataFileTypeEnum::LABEL);
     m_mapFileTypesThatAllowAddingMaps.push_back(DataFileTypeEnum::METRIC);
@@ -103,8 +104,8 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(const A
      */
     QLabel* mapFileTypeLabel = new QLabel("File Type: ");
     this->mapFileTypeComboBox = new QComboBox();
-    for (std::vector<DataFileTypeEnum::Enum>::iterator dataFileTypeIterator = this->supportedMapFileTypes.begin();
-         dataFileTypeIterator != this->supportedMapFileTypes.end();
+    for (std::vector<DataFileTypeEnum::Enum>::iterator dataFileTypeIterator = m_supportedMapFileTypes.begin();
+         dataFileTypeIterator != m_supportedMapFileTypes.end();
          dataFileTypeIterator++) {
         const DataFileTypeEnum::Enum dataFileType = *dataFileTypeIterator;
         const AString name = DataFileTypeEnum::toGuiName(dataFileType);
@@ -119,8 +120,10 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(const A
      */
     QLabel* mapFileStructureLabel = new QLabel("Structure: ");
     m_mapFileStructureComboBox = new StructureEnumComboBox(this);
-    m_mapFileStructureComboBox->listOnlyValidStructures();
-    m_mapFileStructureComboBox->setSelectedStructure(structure);
+    m_mapFileStructureComboBox->listOnlyTheseStructures(supportedStructures);
+    if ( ! supportedStructures.empty()) {
+        m_mapFileStructureComboBox->setSelectedStructure(supportedStructures[0]);
+    }
     QObject::connect(m_mapFileStructureComboBox, SIGNAL(structureSelected(const StructureEnum::Enum)),
                      this, SLOT(mapFileStructureComboBoxSelected(const StructureEnum::Enum)));
     
