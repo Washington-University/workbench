@@ -39,6 +39,7 @@ OperationException.h
 OperationFileInformation.h
 OperationFociGetProjectionVertex.h
 OperationFociListCoords.h
+OperationLabelExportTable.h
 OperationLabelMask.h
 OperationMetadataRemoveProvenance.h
 OperationMetadataStringReplace.h
@@ -97,6 +98,7 @@ OperationEstimateFiberBinghams.cxx
 OperationFileInformation.cxx
 OperationFociGetProjectionVertex.cxx
 OperationFociListCoords.cxx
+OperationLabelExportTable.cxx
 OperationLabelMask.cxx
 OperationMetadataRemoveProvenance.cxx
 OperationMetadataStringReplace.cxx

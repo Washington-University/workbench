@@ -135,6 +135,7 @@
 #include "OperationFileInformation.h"
 #include "OperationFociGetProjectionVertex.h"
 #include "OperationFociListCoords.h"
+#include "OperationLabelExportTable.h"
 #include "OperationLabelMask.h"
 #include "OperationMetadataRemoveProvenance.h"
 #include "OperationMetadataStringReplace.h"
@@ -338,6 +339,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationFileInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociGetProjectionVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationFociListCoords()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationLabelMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataRemoveProvenance()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetadataStringReplace()));
