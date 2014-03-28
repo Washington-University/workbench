@@ -591,7 +591,7 @@ BorderFile::invalidateAllAssignedColors()
     const int32_t numBorders = getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
         m_borders[i]->setClassRgbaInvalid();
-        //m_foci[i]->setNameRgbaInvalid();
+        m_borders[i]->setNameRgbaInvalid();
     }
     m_forceUpdateOfGroupAndNameHierarchy = true;
 }

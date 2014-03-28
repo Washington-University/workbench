@@ -585,8 +585,24 @@ BorderPropertiesEditorDialog::displayClassEditor()
         return;
     }
     
+    /*
+     * Need to detect a change in the name class table.
+     * So:
+     *  (1) Save the modified status
+     *  (2) Clear the modified status
+     *  (3) After editing, see if the modified status is on indicating
+     *      that the user has made a change to the table
+     *  (4) If user modified table, invalidate border colors so that
+     *      the borders get the new color(s).
+     *  (5) If user DID NOT modify table, restore the modification
+     *      status of the table.
+     */
+    GiftiLabelTable* classTable = borderFile->getClassColorTable();
+    const bool modifiedStatus = classTable->isModified();
+    classTable->clearModified();
+    
     GiftiLabelTableEditor editor(borderFile,
-                                 borderFile->getClassColorTable(),
+                                 classTable,
                                  "Edit Class Attributes",
                                  GiftiLabelTableEditor::OPTION_NONE,
                                  this);
@@ -605,6 +621,22 @@ BorderPropertiesEditorDialog::displayClassEditor()
             m_classComboBox->setSelectedLabelName(selectedClassName);
         }
     }
+    
+    if (classTable->isModified()) {
+        /*
+         * User changed something in the table.
+         */
+        borderFile->invalidateAllAssignedColors();
+    }
+    else {
+        if (modifiedStatus) {
+            /*
+             * User did not change anything but need to restore
+             * modified status.
+             */
+            classTable->setModified();
+        }
+    }
 }
 
 /**
@@ -620,8 +652,24 @@ BorderPropertiesEditorDialog::displayNameEditor()
         return;
     }
     
+    /*
+     * Need to detect a change in the name color table.
+     * So:
+     *  (1) Save the modified status
+     *  (2) Clear the modified status
+     *  (3) After editing, see if the modified status is on indicating
+     *      that the user has made a change to the table
+     *  (4) If user modified table, invalidate border colors so that
+     *      the borders get the new color(s).
+     *  (5) If user DID NOT modify table, restore the modification
+     *      status of the table.
+     */
+    GiftiLabelTable* nameTable = borderFile->getNameColorTable();
+    const bool modifiedStatus = nameTable->isModified();
+    nameTable->clearModified();
+    
     GiftiLabelTableEditor editor(borderFile,
-                                 borderFile->getNameColorTable(),
+                                 nameTable,
                                  "Edit Name Attributes",
                                  GiftiLabelTableEditor::OPTION_UNASSIGNED_LABEL_HIDDEN,
                                  this);
@@ -638,6 +686,22 @@ BorderPropertiesEditorDialog::displayNameEditor()
         const QString selectedName = editor.getLastSelectedLabelName();
         if (selectedName.isEmpty() == false) {
             m_nameComboBox->setSelectedLabelName(selectedName);
+        }
+    }
+    
+    if (nameTable->isModified()) {
+        /*
+         * User changed something in the table.
+         */
+        borderFile->invalidateAllAssignedColors();
+    }
+    else {
+        if (modifiedStatus) {
+            /*
+             * User did not change anything but need to restore
+             * modified status.
+             */
+            nameTable->setModified();
         }
     }
 }
