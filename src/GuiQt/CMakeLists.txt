@@ -36,6 +36,7 @@ BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBarChartAttributes.h
 BrainBrowserWindowToolBarChartAxes.h
 BrainBrowserWindowToolBarChartType.h
+BrainBrowserWindowToolBarClipping.h
 BrainBrowserWindowToolBarComponent.h
 BrainBrowserWindowToolBarSurfaceMontage.h
 BrainOpenGLWidget.h
@@ -51,6 +52,7 @@ ChartSelectionViewController.h
 ChartToolBoxViewController.h
 ChartableMatrixFileSelectionViewController.h
 CiftiConnectivityMatrixViewController.h
+ClippingPlanesDialog.h
 ColorEditorWidget.h
 CustomViewDialog.h
 DisplayGroupEnumComboBox.h
@@ -141,6 +143,7 @@ BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBarChartAttributes.h
 BrainBrowserWindowToolBarChartAxes.h
 BrainBrowserWindowToolBarChartType.h
+BrainBrowserWindowToolBarClipping.h
 BrainBrowserWindowToolBarComponent.h
 BrainBrowserWindowToolBarSurfaceMontage.h
 BrainOpenGLWidget.h
@@ -157,6 +160,7 @@ ChartSelectionViewController.h
 ChartToolBoxViewController.h
 ChartableMatrixFileSelectionViewController.h
 CiftiConnectivityMatrixViewController.h
+ClippingPlanesDialog.h
 ColorEditorWidget.h
 CursorDisplayScoped.h
 CursorEnum.h
@@ -265,6 +269,7 @@ BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBarChartAttributes.cxx
 BrainBrowserWindowToolBarChartAxes.cxx
 BrainBrowserWindowToolBarChartType.cxx
+BrainBrowserWindowToolBarClipping.cxx
 BrainBrowserWindowToolBarComponent.cxx
 BrainBrowserWindowToolBarSurfaceMontage.cxx
 BrainOpenGLWidget.cxx
@@ -281,6 +286,7 @@ ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
 ChartableMatrixFileSelectionViewController.cxx
 CiftiConnectivityMatrixViewController.cxx
+ClippingPlanesDialog.cxx
 ColorEditorWidget.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx

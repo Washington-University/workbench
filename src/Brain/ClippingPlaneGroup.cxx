@@ -50,7 +50,9 @@ ClippingPlaneGroup::ClippingPlaneGroup()
     m_sceneAssistant->addArray("m_translation", m_translation, 3, 0.0);
     m_sceneAssistant->addArray("m_thickness", m_thickness, 3, 20.0);
     m_sceneAssistant->addArray("m_selectionStatus", m_selectionStatus, 3, false);
-    
+    m_sceneAssistant->add("m_surfaceSelectionStatus", &m_surfaceSelectionStatus);
+    m_sceneAssistant->add("m_volumeSelectionStatus", &m_volumeSelectionStatus);
+    m_sceneAssistant->add("m_featuresSelectionStatus", &m_featuresSelectionStatus);
 }
 
 /**
@@ -103,29 +105,7 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
         m_selectionStatus[i] = obj.m_selectionStatus[i];
     }
     
-    for (int32_t i = 0; i < 4; i++) {
-        for (int32_t j = 0; j < 4; j++) {
-            m_rotation[i][j] = obj.m_rotation[i][j];
-        }
-    }
-}
-
-/***
- * Set the rotation matrix to identity.
- */
-void
-ClippingPlaneGroup::setRotationToIdentity()
-{
-    for (int32_t i = 0; i < 4; i++) {
-        for (int32_t j = 0; j < 4; j++) {
-            if (i == j) {
-                m_rotation[i][j] = 1.0;
-            }
-            else {
-                m_rotation[i][j] = 0.0;
-            }
-        }
-    }
+    m_rotationMatrix = obj.m_rotationMatrix;
 }
 
 /**
@@ -140,38 +120,64 @@ ClippingPlaneGroup::resetToDefaultValues()
         m_selectionStatus[i] = false;
     }
     
-    setRotationToIdentity();
+    m_rotationMatrix.identity();
+    
+    m_surfaceSelectionStatus  = true;
+    m_volumeSelectionStatus   = true;
+    m_featuresSelectionStatus = true;
 }
 
 /**
- * Get the translation values
- *
- * @param translation
- *    The translation values.
+ * @return The rotation matrix.
  */
-void
-ClippingPlaneGroup::getTranslation(float translation[3]) const
+Matrix4x4
+ClippingPlaneGroup::getRotationMatrix() const
 {
-    translation[0] = m_translation[0];
-    translation[1] = m_translation[1];
-    translation[2] = m_translation[2];
+    return m_rotationMatrix;
 }
 
 /**
- * Get the rotation values
+ * Replace the rotation matrix.
  *
- * @param rotation
- *    The rotation values.
+ * @param rotationMatrix
+ *    New rotation matrix.
  */
 void
-ClippingPlaneGroup::getRotation(float rotation[4][4]) const
+ClippingPlaneGroup::setRotationMatrix(const Matrix4x4& rotationMatrix)
 {
-    for (int32_t i = 0; i < 4; i++) {
-        for (int32_t j = 0; j < 4; j++) {
-            rotation[i][j] = m_rotation[i][j];
-        }
-    }
+    m_rotationMatrix = rotationMatrix;
 }
+
+/**
+ * Get the rotation matrix using the given angles.
+ *
+ * @param rotationAngles
+ *    The X, Y, and Z rotation angles.
+ */
+void
+ClippingPlaneGroup::getRotationAngles(float rotationAngles[3]) const
+{
+    double x, y, z;
+    m_rotationMatrix.getRotation(x, y, z);
+    rotationAngles[0] = x;
+    rotationAngles[1] = y;
+    rotationAngles[2] = z;
+}
+
+/**
+ * Set the rotation matrix using the given angles.
+ *
+ * @param rotationAngles
+ *    The X, Y, and Z rotation angles.
+ */
+void
+ClippingPlaneGroup::setRotationAngles(const float rotationAngles[3])
+{
+    m_rotationMatrix.setRotation(rotationAngles[0],
+                                 rotationAngles[1],
+                                 rotationAngles[2]);
+}
+
 
 /**
  * Get the thickness values
@@ -188,13 +194,13 @@ ClippingPlaneGroup::getThickness(float thickness[3]) const
 }
 
 /**
- * Get the selection status values
+ * Get the selection status values for the axes
  *
  * @param selectionStatus
  *    The selection status values.
  */
 void
-ClippingPlaneGroup::getSelectionStatus(bool selectionStatus[3]) const
+ClippingPlaneGroup::getAxisSelectionStatus(bool selectionStatus[3]) const
 {
     selectionStatus[0] = m_selectionStatus[0];
     selectionStatus[1] = m_selectionStatus[1];
@@ -216,19 +222,17 @@ ClippingPlaneGroup::setTranslation(const float translation[3])
 }
 
 /**
- * Set the rotation values.
+ * Get the translation values
  *
- * @param rotation
- *    The rotation values.
+ * @param translation
+ *    The translation values.
  */
 void
-ClippingPlaneGroup::setRotation(const float rotation[4][4])
+ClippingPlaneGroup::getTranslation(float translation[3]) const
 {
-    for (int32_t i = 0; i < 4; i++) {
-        for (int32_t j = 0; j < 4; j++) {
-            m_rotation[i][j] = rotation[i][j];
-        }
-    }
+    translation[0] = m_translation[0];
+    translation[1] = m_translation[1];
+    translation[2] = m_translation[2];
 }
 
 /**
@@ -246,18 +250,82 @@ ClippingPlaneGroup::setThickness(const float thickness[3])
 }
 
 /**
- * Set the selection status values.
+ * Set the selection status values for the axes
  *
  * @param selectionStatus
  *    The selection status values.
  */
 void
-ClippingPlaneGroup::setSelectionStatus(const bool selectionStatus[3])
+ClippingPlaneGroup::setAxisSelectionStatus(const bool selectionStatus[3])
 {
     m_selectionStatus[0] = selectionStatus[0];
     m_selectionStatus[1] = selectionStatus[1];
     m_selectionStatus[2] = selectionStatus[2];
 }
+
+/**
+ * @return Is surface selected for clipping?
+ */
+bool
+ClippingPlaneGroup::isSurfaceSelected() const
+{
+    return m_surfaceSelectionStatus;
+}
+
+/**
+ * Set surface selected
+ *
+ * @param selected
+ *    New status.
+ */
+void
+ClippingPlaneGroup::setSurfaceSelected(const bool selected)
+{
+    m_surfaceSelectionStatus = selected;
+}
+
+/**
+ * @return Is volume selected for clipping?
+ */
+bool
+ClippingPlaneGroup::isVolumeSelected() const
+{
+    return m_volumeSelectionStatus;
+}
+
+/**
+ * Set volume selected
+ *
+ * @param selected
+ *    New status.
+ */
+void
+ClippingPlaneGroup::setVolumeSelected(const bool selected)
+{
+    m_volumeSelectionStatus = selected;
+}
+
+/**
+ * @return Is features selected for clipping?
+ */
+bool
+ClippingPlaneGroup::isFeaturesSelected() const
+{
+    return m_featuresSelectionStatus;
+}
+
+/**
+ * Set features selected
+ *
+ * @param selected
+ *    New status.
+ */
+void
+ClippingPlaneGroup::setFeaturesSelected(const bool selected)
+{
+    m_featuresSelectionStatus = selected;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -290,8 +358,9 @@ ClippingPlaneGroup::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
-    float* rotationPointer = &m_rotation[0][0];
-    sceneClass->addFloatArray("m_rotation", rotationPointer, 16);
+    float m[4][4];
+    m_rotationMatrix.getMatrix(m);
+    sceneClass->addFloatArray("m_rotationMatrix", &m[0][0], 16);
     
     // Uncomment if sub-classes must save to scene
     //saveSubClassDataToScene(sceneAttributes,
@@ -324,12 +393,15 @@ ClippingPlaneGroup::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     
-    float* rotationPointer = &m_rotation[0][0];
-    const int32_t numElem = sceneClass->getFloatArrayValue("m_rotation",
-                                                           rotationPointer,
+    float m[4][4];
+    const int32_t numElem = sceneClass->getFloatArrayValue("m_rotationMatrix",
+                                                           &m[0][0],
                                                            16);
-    if (numElem != 16) {
-        setRotationToIdentity();
+    if (numElem == 16) {
+        m_rotationMatrix.setMatrix(m);
+    }
+    else {
+        m_rotationMatrix.identity();
     }
     
     //Uncomment if sub-classes must restore from scene

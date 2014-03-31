@@ -53,6 +53,7 @@ namespace caret {
     class BrainBrowserWindowToolBarChartAxes;
     class BrainBrowserWindowToolBarChartAttributes;
     class BrainBrowserWindowToolBarChartType;
+    class BrainBrowserWindowToolBarClipping;
     class BrainBrowserWindowToolBarSurfaceMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
@@ -133,6 +134,7 @@ namespace caret {
         QWidget* createChartTypeWidget();
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createSurfaceMontageOptionsWidget();
+        QWidget* createClippingOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         QWidget* createClippingWidget();
@@ -148,9 +150,10 @@ namespace caret {
         void updateChartAxesWidget(BrowserTabContent* browserTabContent);
         void updateChartAttributesWidget(BrowserTabContent* browserTabContent);
         void updateChartTypeWidget(BrowserTabContent* browserTabContent);
+        void updateClippingWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
-        void updateClippingWidget(BrowserTabContent* browserTabContent);
+        void updateClippingOptionsWidget(BrowserTabContent* browserTabContent);
         
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,
@@ -166,6 +169,7 @@ namespace caret {
         QWidget* windowWidget;
         QWidget* singleSurfaceSelectionWidget;
         QWidget* surfaceMontageSelectionWidget;
+        QWidget* m_clippingOptionsWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
         QWidget* clippingWidget;
@@ -378,6 +382,8 @@ namespace caret {
         BrainBrowserWindowToolBarChartAttributes* m_chartAttributesToolBarComponent;
         BrainBrowserWindowToolBarSurfaceMontage* m_surfaceMontageToolBarComponent;
         
+        BrainBrowserWindowToolBarClipping* m_clippingToolBarComponent;
+        
     private:
         QAction* volumePlaneParasagittalToolButtonAction;
         QAction* volumePlaneCoronalToolButtonAction;
@@ -446,6 +452,7 @@ namespace caret {
         friend class BrainBrowserWindow;
         friend class BrainBrowserWindowToolBarChartAxes;
         friend class BrainBrowserWindowToolBarChartType;
+        friend class BrainBrowserWindowToolBarClipping;
         friend class BrainBrowserWindowToolBarComponent;
         friend class BrainBrowserWindowToolBarSurfaceMontage;
         

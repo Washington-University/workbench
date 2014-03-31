@@ -53,6 +53,7 @@
 #include "BrainBrowserWindowToolBarChartAttributes.h"
 #include "BrainBrowserWindowToolBarChartAxes.h"
 #include "BrainBrowserWindowToolBarChartType.h"
+#include "BrainBrowserWindowToolBarClipping.h"
 #include "BrainBrowserWindowToolBarSurfaceMontage.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -280,6 +281,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->windowWidget = this->createWindowWidget();
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
+    m_clippingOptionsWidget = createClippingOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     this->clippingWidget = this->createClippingWidget();
@@ -316,6 +318,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->clippingWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(m_clippingOptionsWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
 
@@ -1227,6 +1231,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showWholeBrainSurfaceOptionsWidget = false;
     bool showSingleSurfaceOptionsWidget = false;
     bool showSurfaceMontageOptionsWidget = false;
+    bool showClippingOptionsWidget = true;
     bool showVolumeIndicesWidget = false;
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
@@ -1264,6 +1269,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         {
             showChartTypeWidget = true;
             showClippingWidget = false;
+            showClippingOptionsWidget = false;
             showModeWidget = false;
             
             ModelChart* modelChart = browserTabContent->getDisplayedChartModel();
@@ -1306,6 +1312,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeMontageWidget->setVisible(false);
     this->modeWidget->setVisible(false);
     this->windowWidget->setVisible(false);
+    m_clippingOptionsWidget->setVisible(false);
     this->clippingWidget->setVisible(false);
     
     this->orientationWidget->setVisible(showOrientationWidget);
@@ -1320,6 +1327,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
     this->modeWidget->setVisible(showModeWidget);
     this->clippingWidget->setVisible(showClippingWidget);
+    m_clippingOptionsWidget->setVisible(showClippingOptionsWidget);
     this->windowWidget->setVisible(showWindowWidget);
 
     if (browserTabContent != NULL) {
@@ -1336,6 +1344,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         this->updateModeWidget(browserTabContent);
         this->updateWindowWidget(browserTabContent);
         this->updateClippingWidget(browserTabContent);
+        this->updateClippingOptionsWidget(browserTabContent);
     }
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -2822,6 +2831,39 @@ BrainBrowserWindowToolBar::updateSurfaceMontageOptionsWidget(BrowserTabContent* 
     }
 
     m_surfaceMontageToolBarComponent->updateContent(browserTabContent);
+}
+
+/**
+ * @return Create and return the clipping options component.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createClippingOptionsWidget()
+{
+    m_clippingToolBarComponent = new BrainBrowserWindowToolBarClipping(this->browserWindowIndex,
+                                                                       this);
+    QWidget* w = this->createToolWidget("Clipping",
+                                        m_clippingToolBarComponent,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_TOP,
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+/**
+ * Update the clipping options widget.
+ *
+ * @param browserTabContent
+ *   The active browser tab.
+ */
+void
+BrainBrowserWindowToolBar::updateClippingOptionsWidget(BrowserTabContent* browserTabContent)
+{
+    if (m_clippingOptionsWidget->isHidden()) {
+        return;
+    }
+    
+    m_clippingToolBarComponent->updateContent(browserTabContent);
 }
 
 /**

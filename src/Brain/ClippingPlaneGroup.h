@@ -23,7 +23,7 @@
 
 
 #include "CaretObject.h"
-
+#include "Matrix4x4.h"
 #include "SceneableInterface.h"
 
 
@@ -45,11 +45,29 @@ namespace caret {
         
         void getTranslation(float translation[3]) const;
         
-        void getRotation(float rotation[4][4]) const;
+        Matrix4x4 getRotationMatrix() const;
+        
+        void setRotationMatrix(const Matrix4x4& rotationMatrix);
+        
+        void getRotationAngles(float rotationAngles[3]) const;
+        
+        void setRotationAngles(const float rotationAngles[3]);
         
         void getThickness(float thickness[3]) const;
         
-        void getSelectionStatus(bool selectionStatus[3]) const;
+        void getAxisSelectionStatus(bool selectionStatus[3]) const;
+        
+        bool isSurfaceSelected() const;
+        
+        void setSurfaceSelected(const bool selected);
+        
+        bool isVolumeSelected() const;
+        
+        void setVolumeSelected(const bool selected);
+        
+        bool isFeaturesSelected() const;
+        
+        void setFeaturesSelected(const bool selected);
         
         void setTranslation(const float translation[3]);
         
@@ -57,7 +75,7 @@ namespace caret {
         
         void setThickness(const float thickness[3]);
 
-        void setSelectionStatus(const bool selectionStatus[3]);
+        void setAxisSelectionStatus(const bool selectionStatus[3]);
         
         // ADD_NEW_METHODS_HERE
 
@@ -87,17 +105,21 @@ namespace caret {
     private:
         void copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj);
 
-        void setRotationToIdentity();
-        
         SceneClassAssistant* m_sceneAssistant;
 
         float m_translation[3];
         
-        float m_rotation[4][4];
+        Matrix4x4 m_rotationMatrix;
         
         float m_thickness[3];
         
         bool m_selectionStatus[3];
+        
+        bool m_surfaceSelectionStatus;
+        
+        bool m_volumeSelectionStatus;
+        
+        bool m_featuresSelectionStatus;
         
         // ADD_NEW_MEMBERS_HERE
 

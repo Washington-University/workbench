@@ -2763,11 +2763,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             clipEnabled[1] = false;
             clipEnabled[2] = false;
         }
+        m_clippingPlaneGroup->setAxisSelectionStatus(clipEnabled);
         
         m_clippingPlaneGroup->resetToDefaultValues();
         m_clippingPlaneGroup->setTranslation(clipCoords);
         m_clippingPlaneGroup->setThickness(clipThick);
-        m_clippingPlaneGroup->setSelectionStatus(clipEnabled);
     }
 }
 

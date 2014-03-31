@@ -45,6 +45,7 @@
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "ClippingPlanesDialog.h"
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
@@ -114,6 +115,7 @@ GuiManager::GuiManager(QObject* parent)
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
     m_bugReportDialog = NULL;
+    m_clippingPlanesDialog = NULL;
     m_customViewDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->movieDialog = NULL;
@@ -1226,7 +1228,7 @@ GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
     if (m_bugReportDialog == NULL) {
         m_bugReportDialog = new BugReportDialog(browserWindow,
                                                 openGLInformation);
-        this->nonModalDialogs.push_back(m_customViewDialog);
+        this->nonModalDialogs.push_back(m_bugReportDialog);
     }
     
     m_bugReportDialog->setVisible(true);
@@ -1319,6 +1321,26 @@ GuiManager::removeNonModalDialog(QWidget* dialog)
     if (iter != nonModalDialogs.end()) {
         nonModalDialogs.erase(iter);
     }
+}
+
+/**
+ * Show the clipping planes dialog.
+ * @param browserWindow
+ *    Window on which dialog was requested.
+ */
+void
+GuiManager::processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_clippingPlanesDialog == NULL) {
+        m_clippingPlanesDialog = new ClippingPlanesDialog(browserWindow);
+        this->nonModalDialogs.push_back(m_clippingPlanesDialog);
+    }
+    
+    const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
+    m_clippingPlanesDialog->updateContent(browserWindowIndex);
+    m_clippingPlanesDialog->setVisible(true);
+    m_clippingPlanesDialog->show();
+    m_clippingPlanesDialog->activateWindow();
 }
 
 

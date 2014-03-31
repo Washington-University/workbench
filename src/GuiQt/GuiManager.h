@@ -43,6 +43,7 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class BugReportDialog;
+    class ClippingPlanesDialog;
     class CursorManager;
     class CustomViewDialog;
     class ImageFile;
@@ -113,6 +114,7 @@ namespace caret {
         
         void processShowBugReportDialog(BrainBrowserWindow* browserWindow,
                                         const AString& openGLInformation);
+        void processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow);
         void processShowCustomViewDialog(BrainBrowserWindow* browserWindow);
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowMovieDialog(BrainBrowserWindow* browserWindow);
@@ -201,6 +203,8 @@ namespace caret {
         std::set<MapSettingsEditorDialog*> m_mappingSettingsEditors;
         
         TileTabsConfigurationDialog* m_tileTabsConfigurationDialog;
+        
+        ClippingPlanesDialog* m_clippingPlanesDialog;
         
         CustomViewDialog* m_customViewDialog;
         
