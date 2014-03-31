@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iterator>
 #include <stack>
+#include <vector>
 
 #include "AlgorithmNodesInsideBorder.h"
 
@@ -82,6 +83,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* borderOpt = myParams->getOptionalParameter(4);
     bool inverse = myParams->getOptionalParameter(5)->m_present;
+    if (mySurf->getStructure() == StructureEnum::INVALID) throw AlgorithmException("surface file needs a valid structure to find the right borders in the file");
     //TODO: check that border file is valid on this surface file
     if (borderOpt->m_present)
     {
@@ -90,26 +92,35 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
         int borderIndx = -1;
         for (int i = 0; i < numBorders; ++i)
         {
-            if (myBorderFile->getBorder(i)->getName() == findName)
+            if (myBorderFile->getBorder(i)->getName() == findName && myBorderFile->getBorder(i)->getStructure() == mySurf->getStructure())
             {
                 borderIndx = i;
                 break;
             }
         }
-        if (borderIndx == -1) throw AlgorithmException("border name not found");
+        if (borderIndx == -1) throw AlgorithmException("border name not found for surface structure");
         myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
         myMetricOut->setStructure(mySurf->getStructure());
         myMetricOut->setColumnName(0, findName);
         AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(borderIndx), inverse, 0, 1.0f, myMetricOut);
     } else {
         int numBorders = myBorderFile->getNumberOfBorders();
-        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numBorders);
-        myMetricOut->setStructure(mySurf->getStructure());
-#pragma omp CARET_PARFOR schedule(dynamic)
+        vector<int> borderSelect;
         for (int i = 0; i < numBorders; ++i)
         {
-            myMetricOut->setColumnName(i, myBorderFile->getBorder(i)->getName());
-            AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(i), inverse, i, 1.0f, myMetricOut);
+            const Border* thisBorder = myBorderFile->getBorder(i);
+            if (thisBorder->getStructure() != mySurf->getStructure()) continue;
+            borderSelect.push_back(i);
+        }
+        int numSelect = (int)borderSelect.size();
+        if (numSelect < 1) throw AlgorithmException("no borders match the structure of the surface");
+        myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), numSelect);
+        myMetricOut->setStructure(mySurf->getStructure());
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int i = 0; i < numSelect; ++i)
+        {
+            myMetricOut->setColumnName(i, myBorderFile->getBorder(borderSelect[i])->getName());
+            AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(borderSelect[i]), inverse, i, 1.0f, myMetricOut);
         }
     }
 }
