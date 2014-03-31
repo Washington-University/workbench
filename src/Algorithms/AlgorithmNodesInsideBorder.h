@@ -28,6 +28,7 @@
 namespace caret {
 
     class Border;
+    class BorderFile;
     class CiftiBrainordinateLabelFile;
     class CiftiBrainordinateScalarFile;
     class MetricFile;
@@ -68,12 +69,16 @@ namespace caret {
                                    const int32_t assignLabelKey,
                                    LabelFile* labelFileInOut);
         
+        virtual ~AlgorithmNodesInsideBorder();
+        
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, 
                                   ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     
+        const BorderFile* getDebugBorderFile();
+        
     private:
         void findNodesInsideBorder(const SurfaceFile* surfaceFile,
                                    const Border* border,
@@ -100,13 +105,18 @@ namespace caret {
                                       const std::vector<int32_t>& unconnectedNodesPath,
                                       std::vector<int32_t>& connectedNodesPathOut);
         
-        void cleanConnectedNodesPath(std::vector<int32_t>& connectedNodesPath);
+        void cleanNodePath(std::vector<int32_t>& nodePath);
         
         void validateConnectedNodesPath(const SurfaceFile* surfaceFile,
                                         const std::vector<int32_t>& connectedNodesPath);
         
+        void addDebugBorder(Border* b);
+        
         bool isInverseSelection;
-  
+        
+        BorderFile* m_debugBorderFile;
+        
+        AString m_borderName;  
     };
     
     typedef TemplateAutoOperation<AlgorithmNodesInsideBorder> AutoAlgorithmNodesInsideBorder;

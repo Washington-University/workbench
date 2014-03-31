@@ -44,6 +44,10 @@ namespace caret {
 
         Border& operator=(const Border& obj);
         
+        static Border* newInstanceFromSurfaceNodes(const AString& borderName,
+                                                   const SurfaceFile* surfaceFile,
+                                                   std::vector<int32_t>& nodeIndices);
+        
         virtual AString toString() const;
         
         void clear();

@@ -43,6 +43,7 @@ using namespace caret;
 #include "AlgorithmException.h"
 #include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
+#include "BorderFile.h"
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
@@ -247,6 +248,8 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
         }
     }
     
+    BorderFile* debugBorderFile = NULL;
+    
     const bool isInverseSelection = this->inverseCheckBox->isChecked();
     
     bool allowDialogToClose = true;
@@ -301,6 +304,10 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
                                                                                  mapIndex,
                                                                                  labelKey,
                                                                                  ciftiLabelFile);
+                                const BorderFile* dbf = algorithmInsideBorder.getDebugBorderFile();
+                                if (dbf != NULL) {
+                                    debugBorderFile = new BorderFile(*dbf);
+                                }
                             }
                             catch (const AlgorithmException& e) {
                                 if (errorMessage.isEmpty() == false) {
@@ -348,6 +355,10 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
                                                                                  mapIndex,
                                                                                  value,
                                                                                  ciftiScalarFile);
+                                const BorderFile* dbf = algorithmInsideBorder.getDebugBorderFile();
+                                if (dbf != NULL) {
+                                    debugBorderFile = new BorderFile(*dbf);
+                                }
                             }
                             catch (const AlgorithmException& e) {
                                 if (errorMessage.isEmpty() == false) {
@@ -394,6 +405,10 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
                                                                                  mapIndex,
                                                                                  labelKey,
                                                                                  labelFile);
+                                const BorderFile* dbf = algorithmInsideBorder.getDebugBorderFile();
+                                if (dbf != NULL) {
+                                    debugBorderFile = new BorderFile(*dbf);
+                                }
                             }
                             catch (const AlgorithmException& e) {
                                 if (errorMessage.isEmpty() == false) {
@@ -440,6 +455,10 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
                                                                                  mapIndex,
                                                                                  value,
                                                                                  metricFile);
+                                const BorderFile* dbf = algorithmInsideBorder.getDebugBorderFile();
+                                if (dbf != NULL) {
+                                    debugBorderFile = new BorderFile(*dbf);
+                                }
                             }
                             catch (const AlgorithmException& e) {
                                 if (errorMessage.isEmpty() == false) {
@@ -468,6 +487,10 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
                 
             }
         }        
+    }
+    
+    if (debugBorderFile != NULL) {
+        GuiManager::get()->getBrain()->addDataFile(debugBorderFile);
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

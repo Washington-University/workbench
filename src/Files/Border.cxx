@@ -56,6 +56,44 @@ Border::Border()
 }
 
 /**
+ * Create a new border using the given surface's node indices.
+ *
+ * @param borderName
+ *    Name for border.
+ * @param surfaceFile
+ *    The surface file.
+ * @param nodeIndices
+ *    Indices of the surface nodes.
+ * @return
+ *    Pointer to the newly created border.
+ */
+Border*
+Border::newInstanceFromSurfaceNodes(const AString& borderName,
+                                    const SurfaceFile* surfaceFile,
+                                    std::vector<int32_t>& nodeIndices)
+{
+    CaretAssert(surfaceFile);
+    
+    Border* border = new Border();
+    border->setName(borderName);
+    
+    const int32_t numNodes = static_cast<int32_t>(nodeIndices.size());
+    for (int32_t i = 0; i < numNodes; i++) {
+        const int32_t nodeIndex = nodeIndices[i];
+        
+        const float* xyz = surfaceFile->getCoordinate(nodeIndex);
+        
+        SurfaceProjectedItem* spi = new SurfaceProjectedItem();
+        spi->setStereotaxicXYZ(xyz);
+        spi->setStructure(surfaceFile->getStructure());
+        
+        border->addPoint(spi);
+    }
+    
+    return border;
+}
+
+/**
  * Destructor.
  */
 Border::~Border()
