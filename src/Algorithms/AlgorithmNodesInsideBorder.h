@@ -108,6 +108,9 @@ namespace caret {
                                            const std::vector<int32_t>& connectedNodesPath,
                                            std::vector<int32_t>& nodesInsidePathOut);
         
+        void findNodesOutsideOfConnectedPath(const std::vector<int32_t>& connectedNodesPath,
+                                              std::vector<int32_t>& nodesInsidePathOut);
+        
         int32_t findNodeFurthestFromConnectedPathCenterOfGravity(const TopologyHelper* topologyHelper,
                                                                  const std::vector<int32_t>& connectedNodesPath,
                                                                  std::vector<NodeInsideBorderStatus>& nodeSearchStatus);
@@ -121,6 +124,9 @@ namespace caret {
                                       std::vector<int32_t>& connectedNodesPathOut);
         
         void cleanNodePath(std::vector<int32_t>& nodePath);
+        
+        void moveBorderPointsToNearestNodes(const Border* border,
+                                            std::vector<int32_t>& nodeIndicesFollowingBorder);
         
         void validateConnectedNodesPath(const SurfaceFile* surfaceFile,
                                         const std::vector<int32_t>& connectedNodesPath);

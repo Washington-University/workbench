@@ -401,45 +401,144 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
     /*
      * Move border points to the nearest nodes.
      */
-    std::vector<int32_t> nodesAlongBorder;
-    const int32_t originalNumberOfBorderPoints = border->getNumberOfPoints();
-    for (int32_t i = 0; i < originalNumberOfBorderPoints; i++) {
-        const SurfaceProjectedItem* spi = border->getPoint(i);
-        float xyz[3];
-        if (spi->getProjectedPosition(*surfaceFile, xyz, true)) {
-            const int32_t nearestNode = surfaceFile->closestNode(xyz);
-            if (nearestNode >= 0) {
-                nodesAlongBorder.push_back(nearestNode);
-            }
-        }
-    }
-    cleanNodePath(nodesAlongBorder);
-    
-    /*
-     * Make sure first and last nodes are not the same
-     */
-    int32_t numberOfPointsInBorder = static_cast<int32_t>(nodesAlongBorder.size());
-    if (nodesAlongBorder.size() < 4) {
-        throw AlgorithmException("Border is too small.  "
-                                 "When moved to nearest vertices, border consists of four or fewer vertices.");
-    }
-    if (nodesAlongBorder[0] == nodesAlongBorder[numberOfPointsInBorder - 1]) {
-        nodesAlongBorder.resize(numberOfPointsInBorder - 1);
-    }
-    numberOfPointsInBorder = static_cast<int32_t>(nodesAlongBorder.size());
-    
+    std::vector<int32_t> unconnectedNodesPath;
+    moveBorderPointsToNearestNodes(border,
+                                   unconnectedNodesPath);
+
     if (DEBUG_FLAG) {
         Border* b = Border::newInstanceFromSurfaceNodes(("DEBUG_UNCONNECTED_PATH_"
                                                          + m_borderName),
                                                         surfaceFile,
-                                                        nodesAlongBorder);
+                                                        unconnectedNodesPath);
         addDebugBorder(b);
     }
     
-    findNodesEnclosedByUnconnectedPath(surfaceFile,
-                                       nodesAlongBorder,
-                                       nodesInsideBorderOut);
+    /*
+     * Convert the unconnected nodes path into a connected nodes path
+     */
+    std::vector<int32_t> connectedNodesPath;
+    createConnectedNodesPath(surfaceFile,
+                             unconnectedNodesPath,
+                             connectedNodesPath);
+    
+    int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+    if (numberOfNodesInConnectedPath < 4) {
+        throw AlgorithmException("Connected path is too small "
+                                 "as it consists of fewer than four vertices.");
+    }
+    
+    if (DEBUG_FLAG) {
+        Border* b = Border::newInstanceFromSurfaceNodes(("DEBUG_CONNECTED_PATH_"
+                                                         + m_borderName),
+                                                        surfaceFile,
+                                                        connectedNodesPath);
+        addDebugBorder(b);
+    }
+    
+    /*
+     * Find nodes that are OUTSIDE the connected path
+     */
+    std::vector<int32_t> nodesOutsidePath;
+    findNodesOutsideOfConnectedPath(connectedNodesPath,
+                                    nodesOutsidePath);
+
+    /*
+     * Identify nodes INSIDE the connected path
+     */
+    const int32_t numberOfSurfaceNodes = m_surfaceFile->getNumberOfNodes();
+    std::vector<bool> nodeInsideRegionFlags(numberOfSurfaceNodes,
+                                            true);
+    
+    const int32_t numberOfNodesOutsidePath = static_cast<int32_t>(nodesOutsidePath.size());
+    for (int32_t i = 0; i < numberOfNodesOutsidePath; i++) {
+        const int32_t nodeIndex = nodesOutsidePath[i];
+        CaretAssertVectorIndex(nodeInsideRegionFlags, nodeIndex);
+        nodeInsideRegionFlags[nodeIndex] = false;
+    }
+    
+    /*
+     * Handle inverse selection or possibility outside selection was
+     * accidentally inside selection
+     */
+    bool doInverseFlag = isInverseSelection;
+    
+    const int32_t halfNumberOfSurfaceNodes = numberOfSurfaceNodes / 2;
+    if (numberOfNodesOutsidePath < halfNumberOfSurfaceNodes) {
+        doInverseFlag = ( ! doInverseFlag);
+    }
+    
+    const CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper();
+    /*
+     * Identify nodes
+     */
+    for (int32_t i = 0; i < numberOfSurfaceNodes; i++) {
+        bool insideFlag = nodeInsideRegionFlags[i];
+        if (doInverseFlag) {
+            insideFlag = ( ! insideFlag);
+        }
+
+        if (th->getNodeHasNeighbors(i)) {
+            if (std::find(connectedNodesPath.begin(),
+                          connectedNodesPath.end(),
+                          i) != connectedNodesPath.end()) {
+                insideFlag = false;
+            }
+        }
+        else {
+            insideFlag = false;
+        }
+
+        if (insideFlag) {
+            nodesInsideBorderOut.push_back(i);
+        }
+    }
 }
+
+/**
+ * Move the points in the given border to the nearest nodes.
+ * The output path is "cleaned" so that it does not contain 
+ * any consecutive points.
+ *
+ * @param border
+ *    The input border.
+ * @param nodeIndicesFollowingBorder
+ *    Output containing nodes nearest border points.
+ */
+void
+AlgorithmNodesInsideBorder::moveBorderPointsToNearestNodes(const Border* border,
+                                                           std::vector<int32_t>& nodeIndicesFollowingBorder)
+{
+    nodeIndicesFollowingBorder.clear();
+    
+    /*
+     * Move border points to the nearest nodes.
+     */
+    const int32_t originalNumberOfBorderPoints = border->getNumberOfPoints();
+    for (int32_t i = 0; i < originalNumberOfBorderPoints; i++) {
+        const SurfaceProjectedItem* spi = border->getPoint(i);
+        float xyz[3];
+        if (spi->getProjectedPosition(*m_surfaceFile, xyz, true)) {
+            const int32_t nearestNode = m_surfaceFile->closestNode(xyz);
+            if (nearestNode >= 0) {
+                nodeIndicesFollowingBorder.push_back(nearestNode);
+            }
+        }
+    }
+    cleanNodePath(nodeIndicesFollowingBorder);
+    
+    /*
+     * Make sure first and last nodes are not the same
+     */
+    int32_t numberOfPointsInBorder = static_cast<int32_t>(nodeIndicesFollowingBorder.size());
+    if (nodeIndicesFollowingBorder.size() < 4) {
+        throw AlgorithmException("Border is too small.  "
+                                 "When moved to nearest vertices, border consists of four or fewer vertices.");
+    }
+    if (nodeIndicesFollowingBorder[0] == nodeIndicesFollowingBorder[numberOfPointsInBorder - 1]) {
+        nodeIndicesFollowingBorder.resize(numberOfPointsInBorder - 1);
+    }
+}
+
 
 /**
  * Given an path consisting of unconnected nodes, create a path
@@ -705,6 +804,118 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceF
     
     connectedNodesPathOut = connectedNodesPath;
 }
+
+/**
+ * Find the nodes OUTSIDE the given connected path.
+ *
+ * @param connectedNodesPath
+ *    Connected path for which nodes inside are found.
+ * @param nodesOutsidePathOut
+ *    Vector into which nodes OUTSIDE connected path are loaded. 
+ */
+void
+AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<int32_t>& connectedNodesPath,
+                                                             std::vector<int32_t>& nodesOutsidePathOut)
+{
+    nodesOutsidePathOut.clear();
+
+    /*
+     * Track nodes that are found inside and/or have been visited.
+     */
+    const int32_t numberOfNodes = m_surfaceFile->getNumberOfNodes();
+    std::vector<NodeInsideBorderStatus> nodeSearchStatus(numberOfNodes,
+                                                         NODE_UNVISITED);
+    std::vector<bool> insideBorderFlag(numberOfNodes, false);
+    
+    /*
+     * Mark all nodes in connected path as visited.
+     */
+    const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+    for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
+        CaretAssertVectorIndex(nodeSearchStatus, connectedNodesPath[i]);
+        nodeSearchStatus[connectedNodesPath[i]] = NODE_VISITED;
+    }
+    
+    /*
+     * Get the topology helper for the surface with neighbors sorted.
+     */
+    CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper(true);
+    
+    int32_t startNode = findNodeFurthestFromConnectedPathCenterOfGravity(th,
+                                                                         connectedNodesPath,
+                                                                         nodeSearchStatus);
+    
+    if (startNode < 0) {
+        throw AlgorithmException("Failed to find vertex that is not inside of the connected path.");
+    }
+    
+    /*
+     * Mark the starting node as 'inside'.
+     */
+    CaretAssertVectorIndex(insideBorderFlag, startNode);
+    insideBorderFlag[startNode] = true;
+    
+    /*
+     * Use a stack to help with search.
+     */
+    std::stack<int32_t> stack;
+    stack.push(startNode);
+    
+    /*
+     * Search until no more to search.
+     */
+    while (stack.empty() == false) {
+        const int32_t nodeNumber = stack.top();
+        stack.pop();
+        
+        /*
+         * Has node been visited?
+         */
+        CaretAssertVectorIndex(nodeSearchStatus, nodeNumber);
+        if (nodeSearchStatus[nodeNumber] == NODE_UNVISITED) {
+            nodeSearchStatus[nodeNumber] = NODE_VISITED;
+            
+            /*
+             * Set node as inside
+             */
+            CaretAssertVectorIndex(insideBorderFlag, nodeNumber);
+            insideBorderFlag[nodeNumber] = true;
+            
+            /*
+             * Get neighbors of this node
+             */
+            int numNeighbors = 0;
+            const int* neighbors = th->getNodeNeighbors(nodeNumber, numNeighbors);
+            
+            /*
+             * add neighbors to search
+             */
+            for (int i = 0; i < numNeighbors; i++) {
+                const int neighborNode = neighbors[i];
+                CaretAssertVectorIndex(nodeSearchStatus, neighborNode);
+                if (nodeSearchStatus[neighborNode] != NODE_VISITED) {
+                    stack.push(neighborNode);
+                }
+            }
+        }
+    }
+    
+    /*
+     * Return nodes inside the path
+     */
+    int32_t insideCount = 0;
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        CaretAssertVectorIndex(insideBorderFlag, i);
+        if (insideBorderFlag[i]) {
+            nodesOutsidePathOut.push_back(i);
+            insideCount++;
+        }
+    }
+
+    std::cout << "Final inside count: " << insideCount << std::endl;
+    std::cout << "nodesOutsidePathOut.size()=" << nodesOutsidePathOut.size() << std::endl;
+}
+
 
 /**
  * Find the nodes inside the connected path on the surface assuming the
