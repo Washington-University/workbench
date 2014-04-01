@@ -34,6 +34,7 @@ namespace caret {
     class MetricFile;
     class LabelFile;
     class SurfaceFile;
+    class TopologyHelper;
     
     class AlgorithmNodesInsideBorder : public AbstractAlgorithm {
     public:
@@ -80,6 +81,12 @@ namespace caret {
         const BorderFile* getDebugBorderFile();
         
     private:
+        enum NodeInsideBorderStatus {
+            NODE_UNVISITED,
+            NODE_BOUNDARY,
+            NODE_VISITED
+        };
+        
         void findNodesInsideBorder(const SurfaceFile* surfaceFile,
                                    const Border* border,
                                    std::vector<int32_t>& nodesInsideBorderOut);
@@ -101,6 +108,14 @@ namespace caret {
                                            const std::vector<int32_t>& connectedNodesPath,
                                            std::vector<int32_t>& nodesInsidePathOut);
         
+        int32_t findNodeFurthestFromConnectedPathCenterOfGravity(const TopologyHelper* topologyHelper,
+                                                                 const std::vector<int32_t>& connectedNodesPath,
+                                                                 std::vector<NodeInsideBorderStatus>& nodeSearchStatus);
+        
+        int32_t findUnvisitedNodeInsideConnectedPath(const TopologyHelper* topologyHelper,
+                                                     const std::vector<int32_t>& connectedNodesPath,
+                                                     std::vector<NodeInsideBorderStatus>& nodeSearchStatus);
+        
         void createConnectedNodesPath(const SurfaceFile* surfaceFile,
                                       const std::vector<int32_t>& unconnectedNodesPath,
                                       std::vector<int32_t>& connectedNodesPathOut);
@@ -110,7 +125,11 @@ namespace caret {
         void validateConnectedNodesPath(const SurfaceFile* surfaceFile,
                                         const std::vector<int32_t>& connectedNodesPath);
         
+        bool isNodePathSelfIntersecting(const std::vector<int32_t>& nodePath);
+        
         void addDebugBorder(Border* b);
+        
+        const SurfaceFile* m_surfaceFile;
         
         bool isInverseSelection;
         

@@ -38,6 +38,7 @@
 #include "CiftiFile.h"
 #include "GeodesicHelper.h"
 #include "LabelFile.h"
+#include "MathFunctions.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
@@ -165,7 +166,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const int32_t assignToMetricMapIndex,
                                                        const float assignMetricValue,
                                                        MetricFile* metricFileInOut)
-: AbstractAlgorithm(myProgObj)
+: AbstractAlgorithm(myProgObj),
+m_surfaceFile(surfaceFile)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
@@ -197,7 +199,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const int32_t assignToLabelMapIndex,
                                                        const int32_t assignLabelKey,
                                                        LabelFile* labelFileInOut)
-: AbstractAlgorithm(myProgObj)
+: AbstractAlgorithm(myProgObj),
+m_surfaceFile(surfaceFile)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
@@ -248,7 +251,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                            const int32_t assignToCiftiScalarMapIndex,
                            const float assignScalarValue,
                            CiftiBrainordinateScalarFile* ciftiScalarFileInOut)
-: AbstractAlgorithm(myProgObj)
+: AbstractAlgorithm(myProgObj),
+m_surfaceFile(surfaceFile)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
@@ -302,7 +306,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
                                                        const int32_t assignToCiftiLabelMapIndex,
                                                        const int32_t assignLabelKey,
                                                        CiftiBrainordinateLabelFile* ciftiLabelFileInOut)
-: AbstractAlgorithm(myProgObj)
+: AbstractAlgorithm(myProgObj),
+m_surfaceFile(surfaceFile)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
@@ -663,6 +668,9 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceF
     connectedNodesPathOut.clear();
     nodesEnclosedByPathOut.clear();
     
+    std::cout << "UNCONNECTED: ";
+    isNodePathSelfIntersecting(unconnectedNodesPath);
+    
     /*
      * Convert the unconnected nodes path into a connected nodes path
      */
@@ -685,6 +693,9 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceF
         addDebugBorder(b);
     }
 
+    std::cout << "CONNECTED: ";
+    isNodePathSelfIntersecting(connectedNodesPath);
+    
     /*
      * Determine the nodes inside the connected path
      */
@@ -706,145 +717,563 @@ AlgorithmNodesInsideBorder::findNodesEnclosedByUnconnectedPathCCW(const SurfaceF
  * @param nodesInsidePathOut
  *    Vector into which nodes inside connected path are loaded.
  */
-void 
+void
 AlgorithmNodesInsideBorder::findNodesEnclosedByConnectedNodesPathCounterClockwise(const SurfaceFile* surfaceFile,
-                                                          const std::vector<int32_t>& connectedNodesPath,
-                                                          std::vector<int32_t>& nodesInsidePathOut)
+                                                                                  const std::vector<int32_t>& connectedNodesPath,
+                                                                                  std::vector<int32_t>& nodesInsidePathOut)
 {
+    nodesInsidePathOut.clear();
+    
+    /*
+     * Track nodes that are found inside and/or have been visited.
+     */
+    const int32_t numberOfNodes = surfaceFile->getNumberOfNodes();
+    std::vector<NodeInsideBorderStatus> nodeSearchStatus(numberOfNodes,
+                                                         NODE_UNVISITED);
+    std::vector<bool> insideBorderFlag(numberOfNodes, false);
+    
+    /*
+     * Mark all nodes in connected path as boundary.
+     */
+    const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+    for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
+        CaretAssertVectorIndex(nodeSearchStatus, connectedNodesPath[i]);
+        nodeSearchStatus[connectedNodesPath[i]] = NODE_BOUNDARY;
+    }
+    
     /*
      * Get the topology helper for the surface with neighbors sorted.
      */
     CaretPointer<TopologyHelper> th = surfaceFile->getTopologyHelper(true);
     
     /*
-     * Using three nodes, find a node that is 'on the left'
-     * assuming the path is oriented counter-clockwise.
+     * Multiple iterations may be required to find the nodes inside the border.
+     * Very skinny borders may "close" that results in only a part of the
+     * region inside the border from being identified.  This can be 
+     * detected by finding any boundary nodes that remain.
      */
-    int32_t startNode = -1;
-    const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
-    for (int32_t i = 1; i < (numberOfNodesInConnectedPath - 1); i++) {
-        const int prevPathNode = connectedNodesPath[i - 1];
-        const int pathNode     = connectedNodesPath[i];
-        const int nextPathNode = connectedNodesPath[i + 1];
-        
-        int numNeighbors;
-        const int* neighbors = th->getNodeNeighbors(pathNode, numNeighbors);
-        if (numNeighbors > 2) {
-            int32_t prevIndex = -1;
-            int32_t nextIndex = -1;
-            for (int32_t j = 0; j < numNeighbors; j++) {
-                if (neighbors[j] == prevPathNode) {
-                    prevIndex = j;
-                }
-                else if (neighbors[j] == nextPathNode) {
-                    nextIndex = j;
-                }
-            }
-            
-            if ((nextIndex >= 0) && (prevIndex >= 0)) {
-                if (nextIndex >= (numNeighbors - 1)) {
-                    if (prevIndex > 0) {
-                        startNode = neighbors[0];
-                    }
-                }
-                else {
-                    if (prevIndex != (nextIndex + 1)) {
-                        startNode = neighbors[nextIndex + 1];
-                    }
-                }
-            }
-            
-            if (startNode >= 0) {
-                if (std::find(connectedNodesPath.begin(),
-                              connectedNodesPath.end(),
-                              startNode) != connectedNodesPath.end()) {
-                    startNode = -1;
-                }
-                
-                if (startNode >= 0) {
-                    break;
-                }
-            }
-        }
-    }
-    
-    if (startNode < 0) {
-        throw AlgorithmException("Failed to find vertex that is not inside of the connected path.");
-    }
-    
-    /*
-     * Track nodes that are found inside and/or have been visited.
-     */
-    const int32_t numberOfNodes = surfaceFile->getNumberOfNodes();
-    std::vector<bool> visited(numberOfNodes, false);
-    std::vector<bool> inside(numberOfNodes, false);
-    
-    /*
-     * Mark all nodes in connected path as visited.
-     */
-    for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
-        visited[connectedNodesPath[i]] = true;
-    }
-    
-    /*
-     * Mark the starting node as 'inside'.
-     */
-    inside[startNode] = true;
-    
-    /*
-     * Use a stack to help with search.
-     */
-    std::stack<int32_t> stack;
-    stack.push(startNode);
-    
-    /*
-     * Search until no more to search.
-     */
-    while (stack.empty() == false) {
-        const int32_t nodeNumber = stack.top();
-        stack.pop();
-        
+    int32_t loopIterationCounter = 0;
+    bool doSearchFlag = true;
+    while (doSearchFlag) {
         /*
-         * Has node been visited?
+         * Using three nodes, find a node that is 'on the left'
+         * assuming the path is oriented counter-clockwise.
          */
-        if (visited[nodeNumber] == false){
-            visited[nodeNumber] = true;
+//        int32_t startNode = findUnvisitedNodeInsideConnectedPath(th,
+//                                                                 connectedNodesPath,
+//                                                                 nodeSearchStatus);
+        
+        
+        
+        
+        
+        for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
+            CaretAssertVectorIndex(nodeSearchStatus, connectedNodesPath[i]);
+            nodeSearchStatus[connectedNodesPath[i]] = NODE_VISITED;
+        }
+        int32_t startNode = findNodeFurthestFromConnectedPathCenterOfGravity(th,
+                                                                     connectedNodesPath,
+                                                                     nodeSearchStatus);
+        
+        
+        
+        
+        if (startNode >= 0) {
+            std::cout << "Start node: " << startNode
+            << " loop: " << loopIterationCounter << std::endl;
+        }
+    
+        if (startNode >= 0) {
+            /*
+             * Mark the starting node as 'inside'.
+             */
+            CaretAssertVectorIndex(insideBorderFlag, startNode);
+            insideBorderFlag[startNode] = true;
             
             /*
-             * Set node as inside
+             * Use a stack to help with search.
              */
-            inside[nodeNumber] = true;
+            std::stack<int32_t> stack;
+            stack.push(startNode);
             
             /*
-             * Get neighbors of this node
+             * Search until no more to search.
              */
-            int numNeighbors = 0;
-            const int* neighbors = th->getNodeNeighbors(nodeNumber, numNeighbors);
-            
-            /*
-             * add neighbors to search
-             */
-            for (int i = 0; i < numNeighbors; i++) {
-                const int neighborNode = neighbors[i];
-                if (visited[neighborNode] == false) {
-                    stack.push(neighborNode);
+            while (stack.empty() == false) {
+                const int32_t nodeNumber = stack.top();
+                stack.pop();
+                
+                /*
+                 * Has node been visited?
+                 */
+                CaretAssertVectorIndex(nodeSearchStatus, nodeNumber);
+                if (nodeSearchStatus[nodeNumber] == NODE_BOUNDARY) {
+                    /*
+                     * Boundary nodes are not included inside the region
+                     * and its 'status' is changed from BOUNDARY to 
+                     * VISITED to indicate that it has been encountered.
+                     * This assists with very skinny borders where
+                     * opposite sides of a border may be adjacent.
+                     */
+                    nodeSearchStatus[nodeNumber] = NODE_VISITED;
+                }
+                else if (nodeSearchStatus[nodeNumber] == NODE_UNVISITED) {
+                    nodeSearchStatus[nodeNumber] = NODE_VISITED;
+                    
+                    /*
+                     * Set node as inside
+                     */
+                    CaretAssertVectorIndex(insideBorderFlag, nodeNumber);
+                    insideBorderFlag[nodeNumber] = true;
+                    
+                    /*
+                     * Get neighbors of this node
+                     */
+                    int numNeighbors = 0;
+                    const int* neighbors = th->getNodeNeighbors(nodeNumber, numNeighbors);
+                    
+                    /*
+                     * add neighbors to search
+                     */
+                    for (int i = 0; i < numNeighbors; i++) {
+                        const int neighborNode = neighbors[i];
+                        CaretAssertVectorIndex(nodeSearchStatus, neighborNode);
+                        if (nodeSearchStatus[neighborNode] != NODE_VISITED) {
+                            stack.push(neighborNode);
+                        }
+                    }
                 }
             }
+            
+            /*
+             * Count the nodes that still have a BOUNDARY status which 
+             * may indicate a narrow skinny border with a multiple 
+             * closed regions.
+             */
+            int32_t boundaryCount = 0;
+            for (int32_t i = 0; i < numberOfNodes; i++) {
+                CaretAssertVectorIndex(nodeSearchStatus, i);
+                if (nodeSearchStatus[i] == NODE_BOUNDARY) {
+                    boundaryCount++;
+                }
+            }
+            std::cout << "Loop " << loopIterationCounter << " boundary nodes " << std::endl;
+            if (boundaryCount < 3) { 
+                doSearchFlag = false;
+            }
+        }
+        else {
+            /*
+             * No "start" node found.
+             * If NOT first iteration, this is acceptable.
+             */
+            if (loopIterationCounter > 0) {
+                doSearchFlag = false;
+            }
+            else {
+                throw AlgorithmException("Failed to find vertex that is not inside of the connected path.");
+            }
+        }
+        
+        int32_t insideCount = 0;
+        for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
+            CaretAssertVectorIndex(insideBorderFlag, iNode);
+            if (insideBorderFlag[iNode]) {
+                insideCount++;
+            }
+        }
+        std::cout << "Loop " << loopIterationCounter << " inside count: " << insideCount << std::endl;
+        
+        loopIterationCounter++;
+    }
+    
+    int32_t boundaryCount = 0;
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        CaretAssertVectorIndex(nodeSearchStatus, i);
+        if (nodeSearchStatus[i] == NODE_BOUNDARY) {
+            boundaryCount++;
         }
     }
+    CaretLogSevere(AString::number(boundaryCount)
+                   + " boundary nodes remaining after "
+                   + AString::number(loopIterationCounter)
+                   + " loop iterations.");
     
     /*
      * Return nodes inside the path
      */
     for (int32_t i = 0; i < numberOfNodes; i++) {
-        if (inside[i]) {
+        CaretAssertVectorIndex(insideBorderFlag, i);
+        if (insideBorderFlag[i]) {
             nodesInsidePathOut.push_back(i);
         }
     }
+    
+    int32_t insideCount = 0;
+    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
+        CaretAssertVectorIndex(insideBorderFlag, iNode);
+        if (insideBorderFlag[iNode]) {
+            insideCount++;
+        }
+    }
+    std::cout << "Final inside count: " << insideCount << std::endl;
+    std::cout << "nodesInsidePathOut.size()=" << nodesInsidePathOut.size() << std::endl;
 }
 
 /**
+ * Find an unvisited node that is FURTHEST from the center-of-gravity of
+ * the ROI
+ */
+int32_t
+AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(const TopologyHelper* topologyHelper,
+                                                         const std::vector<int32_t>& connectedNodesPath,
+                                                         std::vector<NodeInsideBorderStatus>& nodeSearchStatus)
+{
+    double sumX = 0.0;
+    double sumY = 0.0;
+    double sumZ = 0.0;
+    double sumCount = 0.0;
+    
+    const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+    
+    for (int32_t i = 1; i < (numberOfNodesInConnectedPath - 1); i++) {
+        const float* xyz = m_surfaceFile->getCoordinate(connectedNodesPath[i]);
+        sumX += xyz[0];
+        sumY += xyz[1];
+        sumZ += xyz[2];
+        sumCount++;
+    }
+    
+    if (sumCount >= 1.0) {
+        const float cog[3] = {
+            sumX / sumCount,
+            sumY / sumCount,
+            sumZ / sumCount
+        };
+        
+        float maxDist = -1.0;
+        int32_t maxDistNodeIndex = -1;
+        
+        const int32_t numberOfNodes = m_surfaceFile->getNumberOfNodes();
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            if (nodeSearchStatus[i] == NODE_UNVISITED) {
+                if (topologyHelper->getNodeHasNeighbors(i)) {
+                    const float* coordXYZ = m_surfaceFile->getCoordinate(i);
+                    const float distSQ = MathFunctions::distanceSquared3D(cog,
+                                                                          coordXYZ);
+                    if (distSQ > maxDist) {
+                        maxDist = distSQ;
+                        maxDistNodeIndex = i;
+                    }
+                }
+            }
+        }
+        
+        return maxDistNodeIndex;
+    }
+    
+    return -1;
+}
+
+
+/**
+ * Find an 'unvisited' node inside the connected path.
+ * The connected path is assumed to be oriented in a counter-clockwise orientation.
+ * So, find three consecutive boundary (connected path nodes) and then
+ * find a node 'to the left' of these consecutive boundary nodes.
+ *
+ * @param topologyHelper
+ *     Topology helper used for examining a node's neighbors.
+ * @param connectedNodesPath
+ *     The connected path that forms the region's boundary.
+ * @param nodeSearchStatus
+ *     Search status of each node.
+ * @return
+ *     Index of an 'unvisited' node inside the connected path or a negative
+ *     value if no node was found.
+ */
+int32_t
+AlgorithmNodesInsideBorder::findUnvisitedNodeInsideConnectedPath(const TopologyHelper* topologyHelper,
+                                                                 const std::vector<int32_t>& connectedNodesPath,
+                                                                 std::vector<NodeInsideBorderStatus>& nodeSearchStatus)
+{
+    const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+    
+    for (int32_t i = 1; i < (numberOfNodesInConnectedPath - 1); i++) {
+        const int pathNode     = connectedNodesPath[i];
+        CaretAssertVectorIndex(nodeSearchStatus, pathNode);
+        const int prevPathNode = connectedNodesPath[i - 1];
+        const int nextPathNode = connectedNodesPath[i + 1];
+        
+        if ((nodeSearchStatus[pathNode] == NODE_BOUNDARY)
+            && (nodeSearchStatus[prevPathNode] == NODE_BOUNDARY)
+            && (nodeSearchStatus[nextPathNode] == NODE_BOUNDARY)) {
+            int numNeighbors = 0;
+            const int* neighbors = topologyHelper->getNodeNeighbors(pathNode, numNeighbors);
+            if (numNeighbors > 2) {
+                /*
+                 * Located the next and previous nodes in the pathNode's neighbors
+                 */
+                int32_t prevIndex = -1;
+                int32_t nextIndex = -1;
+                for (int32_t j = 0; j < numNeighbors; j++) {
+                    if (neighbors[j] == prevPathNode) {
+                        prevIndex = j;
+                    }
+                    else if (neighbors[j] == nextPathNode) {
+                        nextIndex = j;
+                    }
+                }
+                
+                if ((nextIndex >= 0) && (prevIndex >= 0)) {
+                    /*
+                     * Neighbors are ALWAYS oriented counter-clockwise.
+                     * So, we want to examine nodes that are in the 
+                     * neighbors array AFTER 'next' and before 'prev'.
+                     */
+                    std::vector<int32_t> neighborsOfInterest;
+                    if (prevIndex > nextIndex) {
+                        /*
+                         * Find neighbors in between next and prev
+                         */
+                        for (int32_t k = (nextIndex + 1); k < prevIndex; k++) {
+                            neighborsOfInterest.push_back(neighbors[k]);
+                        }
+                    }
+                    else {
+                        /*
+                         * When 'prev' is less than 'next' we have
+                         * wrapped the array so just want any nodes
+                         * greater than 'next' or less than 'prev'.
+                         */
+                        for (int32_t k = 0; k < numNeighbors; k++) {
+                            if ((k > nextIndex)
+                                || (k < prevIndex)) {
+                                neighborsOfInterest.push_back(neighbors[k]);
+                            }
+                        }
+                    }
+                    
+                    /*
+                     * Examine any nodes that may be inside the region
+                     * to see if any remain unvisited.
+                     */
+                    for (std::vector<int32_t>::iterator iter = neighborsOfInterest.begin();
+                         iter != neighborsOfInterest.end();
+                         iter++) {
+                        const int32_t nodeIndex = *iter;
+                        CaretAssertVectorIndex(nodeSearchStatus, nodeIndex);
+                        if (nodeSearchStatus[nodeIndex] == NODE_UNVISITED) {
+                            const AString msg = ("Path nodes: ("
+                                                 + AString::number(prevPathNode)
+                                                 + ", "
+                                                 + AString::number(pathNode)
+                                                 + ", "
+                                                 + AString::number(nextPathNode)
+                                                 + ") neighbors: ("
+                                                 + AString::fromNumbers(neighbors, numNeighbors, ", ")
+                                                 + " interior node: "
+                                                 + AString::number(nodeIndex));
+                            std::cout << qPrintable(msg) << std::endl;
+                            
+                            /*
+                             * FOUND unvisited node inside region so
+                             * RETURN IT!
+                             */
+                            return nodeIndex;
+                        }
+                    }
+                }
+                
+//                if (insideNodeIndex >= 0) {
+//                    if (nodeSearchStatus[insideNodeIndex] != NODE_UNVISITED) {
+//                        insideNodeIndex = -1;
+//                    }
+//                    else if (std::find(connectedNodesPath.begin(),
+//                                       connectedNodesPath.end(),
+//                                       insideNodeIndex) != connectedNodesPath.end()) {
+//                        insideNodeIndex = -1;
+//                    }
+//                    
+//                    if (insideNodeIndex >= 0) {
+//                        std::cout << "Start node: " << insideNodeIndex << " from boundary ("
+//                        << prevPathNode << ", " << pathNode << ", " << nextPathNode << ")"
+//                        << " loop " << loopIterationCounter << std::endl;
+//                        break;
+//                    }
+//                }
+            }
+        }
+    }
+    
+    return -1;
+}
+
+
+///**
+// * Find the nodes inside the connected path on the surface assuming the
+// * path is counter-clockwise around the region.
+// *
+// * @param surfaceFile
+// *    Surface file for nodes inside connected path.
+// * @param connectedNodesPath
+// *    Connected path for which nodes inside are found.
+// * @param nodesInsidePathOut
+// *    Vector into which nodes inside connected path are loaded.
+// */
+//void 
+//AlgorithmNodesInsideBorder::findNodesEnclosedByConnectedNodesPathCounterClockwise(const SurfaceFile* surfaceFile,
+//                                                          const std::vector<int32_t>& connectedNodesPath,
+//                                                          std::vector<int32_t>& nodesInsidePathOut)
+//{
+//    /*
+//     * Get the topology helper for the surface with neighbors sorted.
+//     */
+//    CaretPointer<TopologyHelper> th = surfaceFile->getTopologyHelper(true);
+//    
+//    /*
+//     * Using three nodes, find a node that is 'on the left'
+//     * assuming the path is oriented counter-clockwise.
+//     */
+//    int32_t startNode = -1;
+//    const int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedNodesPath.size());
+//    for (int32_t i = 1; i < (numberOfNodesInConnectedPath - 1); i++) {
+//        const int prevPathNode = connectedNodesPath[i - 1];
+//        const int pathNode     = connectedNodesPath[i];
+//        const int nextPathNode = connectedNodesPath[i + 1];
+//        
+//        int numNeighbors;
+//        const int* neighbors = th->getNodeNeighbors(pathNode, numNeighbors);
+//        if (numNeighbors > 2) {
+//            int32_t prevIndex = -1;
+//            int32_t nextIndex = -1;
+//            for (int32_t j = 0; j < numNeighbors; j++) {
+//                if (neighbors[j] == prevPathNode) {
+//                    prevIndex = j;
+//                }
+//                else if (neighbors[j] == nextPathNode) {
+//                    nextIndex = j;
+//                }
+//            }
+//            
+//            if ((nextIndex >= 0) && (prevIndex >= 0)) {
+//                if (nextIndex >= (numNeighbors - 1)) {
+//                    if (prevIndex > 0) {
+//                        startNode = neighbors[0];
+//                    }
+//                }
+//                else {
+//                    if (prevIndex != (nextIndex + 1)) {
+//                        startNode = neighbors[nextIndex + 1];
+//                    }
+//                }
+//            }
+//            
+//            if (startNode >= 0) {
+//                if (std::find(connectedNodesPath.begin(),
+//                              connectedNodesPath.end(),
+//                              startNode) != connectedNodesPath.end()) {
+//                    startNode = -1;
+//                }
+//                
+//                if (startNode >= 0) {
+//                    break;
+//                }
+//            }
+//        }
+//    }
+//    
+//    if (startNode < 0) {
+//        throw AlgorithmException("Failed to find vertex that is not inside of the connected path.");
+//    }
+//    
+//    /*
+//     * Track nodes that are found inside and/or have been visited.
+//     */
+//    const int32_t numberOfNodes = surfaceFile->getNumberOfNodes();
+//    std::vector<NodeInsideBorderStatus> visitedStatus(numberOfNodes,
+//                                                      NODE_UNVISITED);
+//    std::vector<bool> inside(numberOfNodes, false);
+//    
+//    /*
+//     * Mark all nodes in connected path as visited.
+//     */
+//    for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
+//        visitedStatus[connectedNodesPath[i]] = NODE_BOUNDARY;
+//    }
+//    
+//    /*
+//     * Mark the starting node as 'inside'.
+//     */
+//    inside[startNode] = true;
+//    
+//    /*
+//     * Use a stack to help with search.
+//     */
+//    std::stack<int32_t> stack;
+//    stack.push(startNode);
+//    
+//    /*
+//     * Search until no more to search.
+//     */
+//    while (stack.empty() == false) {
+//        const int32_t nodeNumber = stack.top();
+//        stack.pop();
+//        
+//        /*
+//         * Has node been visited?
+//         */
+//        if (visitedStatus[nodeNumber] == NODE_BOUNDARY) {
+//            visitedStatus[nodeNumber] = NODE_VISITED;
+//        }
+//        else if (visitedStatus[nodeNumber] == NODE_UNVISITED) {
+//            visitedStatus[nodeNumber] = NODE_VISITED;
+//            
+//            /*
+//             * Set node as inside
+//             */
+//            inside[nodeNumber] = true;
+//            
+//            /*
+//             * Get neighbors of this node
+//             */
+//            int numNeighbors = 0;
+//            const int* neighbors = th->getNodeNeighbors(nodeNumber, numNeighbors);
+//            
+//            /*
+//             * add neighbors to search
+//             */
+//            for (int i = 0; i < numNeighbors; i++) {
+//                const int neighborNode = neighbors[i];
+//                if (visitedStatus[neighborNode] != NODE_VISITED) {
+//                    stack.push(neighborNode);
+//                }
+//            }
+//        }
+//    }
+//    
+//    int32_t boundaryCount = 0;
+//    for (int32_t i = 0; i < numberOfNodes; i++) {
+//        if (visitedStatus[i] == NODE_BOUNDARY) {
+//            boundaryCount++;
+//        }
+//    }
+//    CaretLogSevere(AString::number(boundaryCount)
+//                   + " boundary nodes were not visited.");
+//    
+//    /*
+//     * Return nodes inside the path
+//     */
+//    for (int32_t i = 0; i < numberOfNodes; i++) {
+//        if (inside[i]) {
+//            nodesInsidePathOut.push_back(i);
+//        }
+//    }
+//}
+
+/**
  * Clean the path by removing any consecutive nodes that are identical.
+ *
  * @param nodePath
  *    Path that is cleaned.
  */
@@ -861,6 +1290,66 @@ AlgorithmNodesInsideBorder::cleanNodePath(std::vector<int32_t>& nodePath)
                      path.end(),
                      back_inserter(nodePath));
 }
+
+/**
+ * Try to find out if the path intersects itself. that intersect each other.
+ *
+ * @param nodePath
+ *    Path tested for intersection.
+ */
+bool
+AlgorithmNodesInsideBorder::isNodePathSelfIntersecting(const std::vector<int32_t>& nodePath)
+{
+    const int32_t numNodes = static_cast<int32_t>(nodePath.size());
+    
+    int32_t positiveCount = 0;
+    int32_t negativeCount = 0;
+    
+    for (int32_t iNode = 0; iNode < numNodes; iNode++) {
+        CaretAssertVectorIndex(nodePath, iNode);
+        int32_t iPrev = iNode - 1;
+        if (iPrev < 0) {
+            iPrev = numNodes - 1;
+        }
+        
+        int32_t iNext = iNode + 1;
+        if (iNext >= numNodes) {
+            iNext = 0;
+        }
+        
+        CaretAssertVectorIndex(nodePath, iPrev);
+        const int32_t prevNode = nodePath[iPrev];
+        
+        CaretAssertVectorIndex(nodePath, iNext);
+        const int32_t nextNode = nodePath[iNext];
+        
+        const float* p1 = m_surfaceFile->getCoordinate(prevNode);
+        const float* p2 = m_surfaceFile->getCoordinate(iNode);
+        const float* p3 = m_surfaceFile->getCoordinate(nextNode);
+        
+        float a[3], b[3];
+        MathFunctions::subtractVectors(p2, p1, a);
+        MathFunctions::subtractVectors(p3, p1, b);
+        const float aLength = MathFunctions::vectorLength(a);
+        const float bLength = MathFunctions::vectorLength(b);
+        if ((aLength > 0)
+            && (bLength > 0)) {
+            const float dot = MathFunctions::dotProduct(a, b);
+            
+            if (dot > 0) {
+                positiveCount++;
+            }
+            else if (dot < 0.0) {
+                negativeCount++;
+            }
+        }
+    }
+    
+    std::cout << "Positive angles: " << positiveCount << " Negative angles: " << negativeCount << std::endl;
+    
+    return false;
+}
+
 
 /**
  * Verify that the connect nodes path is fully connected.
