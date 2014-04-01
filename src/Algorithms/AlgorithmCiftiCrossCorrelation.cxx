@@ -163,6 +163,7 @@ AlgorithmCiftiCrossCorrelation::AlgorithmCiftiCrossCorrelation(ProgressObject* m
 void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const CiftiFile* myCiftiB, const CiftiFile* myCiftiOut, const vector<float>* weights)
 {
     m_numCols = myCiftiA->getNumberOfColumns();
+    if (myCiftiB->getNumberOfColumns() != m_numCols) throw AlgorithmException("input cifti files have different row lengths");
     m_numRowsA = myCiftiA->getNumberOfRows();
     m_numRowsB = myCiftiB->getNumberOfRows();
     m_ciftiA = myCiftiA;
@@ -170,7 +171,6 @@ void AlgorithmCiftiCrossCorrelation::init(const CiftiFile* myCiftiA, const Cifti
     m_ciftiOut = myCiftiOut;
     m_rowInfoA.resize(m_numRowsA);//calls default constructors, setting m_haveCalculated and m_cacheIndex
     m_rowInfoB.resize(m_numRowsB);
-    if (myCiftiB->getNumberOfColumns() != m_numCols) throw AlgorithmException("input cifti files have different row lengths");
     if (weights != NULL)
     {
         m_weightSum = 0.0;
@@ -330,18 +330,18 @@ void AlgorithmCiftiCrossCorrelation::cacheRowsA(const int64_t& begin, const int6
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t i = begin; i < end; ++i)
     {
-        CacheRow& myRow = m_rowCacheA[i - begin];
-        myRow.m_row.resize(m_numCols);
         int64_t myindex;
 #pragma omp critical
         {
             myindex = counter;
             ++counter;
-            m_ciftiA->getRow(myRow.m_row.data(), myindex);
+            m_rowCacheA[myindex - begin].m_row.resize(m_numCols);
+            m_ciftiA->getRow(m_rowCacheA[myindex - begin].m_row.data(), myindex);
         }
-        myRow.m_ciftiIndex = i;
-        m_rowInfoA[i].m_cacheIndex = i - begin;
-        adjustRow(myRow.m_row.data(), m_rowInfoA[i]);
+        CacheRow& myRow = m_rowCacheA[myindex - begin];
+        myRow.m_ciftiIndex = myindex;
+        m_rowInfoA[myindex].m_cacheIndex = myindex - begin;
+        adjustRow(myRow.m_row.data(), m_rowInfoA[myindex]);
     }
 }
 

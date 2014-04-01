@@ -143,7 +143,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                     1, 0, 0,
                     -1, 0, 0 };
     vector<vector<float> > volSpace = volIn->getSform();
-    Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
+    Vector3D ivec, jvec, kvec, origin;
     ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
     ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];
     ivec[2] = volSpace[2][0]; jvec[2] = volSpace[2][1]; kvec[2] = volSpace[2][2]; origin[2] = volSpace[2][3];//TODO: special case orthogonal volumes (central difference)?
