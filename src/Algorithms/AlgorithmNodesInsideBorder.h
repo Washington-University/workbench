@@ -83,61 +83,33 @@ namespace caret {
     private:
         enum NodeInsideBorderStatus {
             NODE_UNVISITED,
-            NODE_BOUNDARY,
             NODE_VISITED
         };
         
-        void findNodesInsideBorder(const SurfaceFile* surfaceFile,
-                                   const Border* border,
-                                   std::vector<int32_t>& nodesInsideBorderOut);
-        
-        void findNodesEnclosedByUnconnectedPath(const SurfaceFile* surfaceFile,
-                                                   const std::vector<int32_t>& unconnectedNodesPath,
-                                                   std::vector<int32_t>& nodesEnclosedByPathOut);
-        
-        void findNodesEnclosedByUnconnectedPathCCW(const SurfaceFile* surfaceFile,
-                                                   const std::vector<int32_t>& unconnectedNodesPath,
-                                                   std::vector<int32_t>& connectedNodesPathOut,
-                                                   std::vector<int32_t>& nodesEnclosedByPathOut);
-        
-//        void findNodesEnclosedByConnectedNodesPath(const SurfaceFile* surfaceFile,
-//                                           const std::vector<int32_t>& connectedNodesPath,
-//                                           std::vector<int32_t>& nodesInsidePathOut);
-        
-        void findNodesEnclosedByConnectedNodesPathCounterClockwise(const SurfaceFile* surfaceFile,
-                                           const std::vector<int32_t>& connectedNodesPath,
-                                           std::vector<int32_t>& nodesInsidePathOut);
+        void findNodesInsideBorder(std::vector<int32_t>& nodesInsideBorderOut);
         
         void findNodesOutsideOfConnectedPath(const std::vector<int32_t>& connectedNodesPath,
                                               std::vector<int32_t>& nodesInsidePathOut);
         
-        int32_t findNodeFurthestFromConnectedPathCenterOfGravity(const TopologyHelper* topologyHelper,
-                                                                 const std::vector<int32_t>& connectedNodesPath,
+        int32_t findNodeFurthestFromConnectedPathCenterOfGravity(const std::vector<int32_t>& connectedNodesPath,
                                                                  std::vector<NodeInsideBorderStatus>& nodeSearchStatus);
         
-        int32_t findUnvisitedNodeInsideConnectedPath(const TopologyHelper* topologyHelper,
-                                                     const std::vector<int32_t>& connectedNodesPath,
-                                                     std::vector<NodeInsideBorderStatus>& nodeSearchStatus);
-        
-        void createConnectedNodesPath(const SurfaceFile* surfaceFile,
-                                      const std::vector<int32_t>& unconnectedNodesPath,
+        void createConnectedNodesPath(const std::vector<int32_t>& unconnectedNodesPath,
                                       std::vector<int32_t>& connectedNodesPathOut);
         
         void cleanNodePath(std::vector<int32_t>& nodePath);
         
-        void moveBorderPointsToNearestNodes(const Border* border,
-                                            std::vector<int32_t>& nodeIndicesFollowingBorder);
+        void moveBorderPointsToNearestNodes(std::vector<int32_t>& nodeIndicesFollowingBorder);
         
-        void validateConnectedNodesPath(const SurfaceFile* surfaceFile,
-                                        const std::vector<int32_t>& connectedNodesPath);
-        
-        bool isNodePathSelfIntersecting(const std::vector<int32_t>& nodePath);
+        void validateConnectedNodesPath(const std::vector<int32_t>& connectedNodesPath);
         
         void addDebugBorder(Border* b);
         
         const SurfaceFile* m_surfaceFile;
         
-        bool isInverseSelection;
+        const Border* m_border;
+        
+        const bool m_inverseSelectionFlag;
         
         BorderFile* m_debugBorderFile;
         
