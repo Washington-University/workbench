@@ -137,8 +137,36 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
  * \class caret::AlgorithmNodesInsideBorder 
  * \brief Assign attribute values to nodes within a closed border.
  *
- * Identify nodes within a closed border and assign metric or
+ * Identify nodes within a closed border and assign scalar or
  * label values to those nodes.
+ *
+ * Identifying nodes within a border can be troublesome for several reasons.
+ * (1) Some borders are very narrow and opposite sides of a border may
+ * be adjacent (like a figure eight) such that there are multiple closed 
+ * regions.  (2) Borders may self intersect.  (3) One end of a border may 
+ * overlay the other end of the border.  (4) Combinations of 1, 2, and/or 3.
+ *
+ * The original implementation of this algorithm assumed the border was 
+ * oriented in a counter-clockwise orientation:  
+ * (1) Identified a node to the left (inside) the border and filled
+ * the region using the border as a boundary.
+ * (2) If the number of selected nodes was greater than half then number
+ * of nodes in the surface, it indicated that the border must have been
+ * a clockwise orientation and the node selection was inverted.
+ *
+ * Corrections were made for a couple of the problems listed above but
+ * when combinations of the problems were present the algorithm failed.
+ * 
+ * Since finding nodes inside a border was too challenging, it was realized
+ * that finding nodes outside a border was much easier.  So, the algorithm
+ * was re-written to identify nodes outside the border and then the selection
+ * is inverted.
+ * (1) Find the center of gravity (average coordinate) of the border.
+ * (2) Find the surface node furthest from the border's center of gravity.
+ * (3) Perform a connected fill operation but stopping anytime a border
+ *     node is encountered.
+ * (4) Invert the selection (verifying that the selected number of nodes
+ *     is greater than half the number of nodes in the surface).
  */
 
 /**
@@ -392,8 +420,6 @@ AlgorithmNodesInsideBorder::addDebugBorder(Border* border)
 /**
  * Find nodes inside the border.
  *
- * @param border
- *    Border for which nodes inside are found.
  * @param nodesInsideBorderOut
  *    Vector into which nodes inside border are loaded.
  */
@@ -686,6 +712,10 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
      */
     CaretPointer<TopologyHelper> th = m_surfaceFile->getTopologyHelper(true);
     
+    /*
+     * Find the node that is furthest from the connected path's
+     * center of gravity (average coordinate)
+     */
     int32_t startNode = findNodeFurthestFromConnectedPathCenterOfGravity(connectedNodesPath,
                                                                          nodeSearchStatus);
     
@@ -763,12 +793,12 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const std::vector<in
  *
  * @param connectedNodesPath
  *     Path of connected nodes.
- * @param 
+ * @param nodeSearchStatus
  *     Search status of the nodes.
  */
 int32_t
 AlgorithmNodesInsideBorder::findNodeFurthestFromConnectedPathCenterOfGravity(const std::vector<int32_t>& connectedNodesPath,
-                                                         std::vector<NodeInsideBorderStatus>& nodeSearchStatus)
+                                                                             std::vector<NodeInsideBorderStatus>& nodeSearchStatus)
 {
     double sumX = 0.0;
     double sumY = 0.0;
