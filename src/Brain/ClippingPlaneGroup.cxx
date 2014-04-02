@@ -69,7 +69,8 @@ ClippingPlaneGroup::~ClippingPlaneGroup()
  *    Object that is copied.
  */
 ClippingPlaneGroup::ClippingPlaneGroup(const ClippingPlaneGroup& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface()
 {
     this->copyHelperClippingPlaneGroup(obj);
 }
