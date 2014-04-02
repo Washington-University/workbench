@@ -53,7 +53,7 @@ OperationParameters* AlgorithmLabelDilate::getParameters()
     
     ret->addLabelOutputParameter(4, "label-out", "the output label file");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with value zero");
+    OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-vertex-roi", "specify an roi of vertices to overwrite, rather than vertices with the unlabeled key");
     roiOpt->addMetricParameter(1, "roi-metric", "metric file, positive values denote vertices to have their values replaced");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
@@ -61,8 +61,8 @@ OperationParameters* AlgorithmLabelDilate::getParameters()
     
     ret->setHelpText(
         AString("Fills in label information for all vertices designated as bad, up to the specified distance away from other labels.  ") +
-        "If -bad-vertex-roi is specified, all vertices, including those with value zero, are good, except for vertices with a positive value in the ROI.  " +
-        "If it is not specified, only vertices with a value of zero are bad."
+        "If -bad-vertex-roi is specified, all vertices, including those with the unlabeled key, are good, except for vertices with a positive value in the ROI.  " +
+        "If it is not specified, only vertices with the unlabeled key are bad."
     );
     return ret;
 }
