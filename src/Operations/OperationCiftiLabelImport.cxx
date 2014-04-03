@@ -127,7 +127,7 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
             labelListFile >> blue;
             if (!(labelListFile >> alpha))//yes, that is seriously the correct way to check if input was successfully extracted...so much fail
             {
-                throw OperationException("label list file is malformed for label #" + AString::number(labelCount) + ": " + AString(labelName.c_str()));
+                throw OperationException("label list file is malformed for entry #" + AString::number(labelCount) + ": " + AString(labelName.c_str()));
             }
             while (isspace(labelListFile.peek()))
             {
