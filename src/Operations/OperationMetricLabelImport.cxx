@@ -125,17 +125,20 @@ void OperationMetricLabelImport::useParameters(OperationParameters* myParams, Pr
         }
         string labelName;
         int32_t value, red, green, blue, alpha;
+        int labelCount = 0;
         translate[unlabeledValue] = 0;//placeholder, we don't know the correct translated value yet
         while (labelListFile.good())
         {
+            ++labelCount;//just for error messages, so start at 1
             getline(labelListFile, labelName);
             labelListFile >> value;
+            if (labelListFile.eof() && labelName == "") break;//if end of file trying to read an int, and label name is empty, its really just end of file
             labelListFile >> red;
             labelListFile >> green;
             labelListFile >> blue;
             if (!(labelListFile >> alpha))//yes, that is seriously the correct way to check if input was successfully extracted...so much fail
             {
-                break;//stop at malformed lines
+                throw OperationException("label list file is malformed for label #" + AString::number(labelCount) + ": " + AString(labelName.c_str()));
             }
             while (isspace(labelListFile.peek()))
             {
