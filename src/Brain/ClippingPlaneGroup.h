@@ -24,7 +24,9 @@
 
 #include "CaretObject.h"
 #include "Matrix4x4.h"
+#include "Plane.h"
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 
 namespace caret {
@@ -41,7 +43,11 @@ namespace caret {
 
         ClippingPlaneGroup& operator=(const ClippingPlaneGroup& obj);
         
+        void resetTransformation();
+        
         void resetToDefaultValues();
+        
+        std::vector<Plane> getActiveClippingPlanesForStructure(const StructureEnum::Enum structure) const;
         
         void getTranslation(float translation[3]) const;
         
@@ -55,7 +61,17 @@ namespace caret {
         
         void getThickness(float thickness[3]) const;
         
-        void getAxisSelectionStatus(bool selectionStatus[3]) const;
+        bool isXAxisSelected() const;
+        
+        bool isYAxisSelected() const;
+        
+        bool isZAxisSelected() const;
+        
+        void setXAxisSelected(const bool xAxisSelected);
+        
+        void setYAxisSelected(const bool yAxisSelected);
+        
+        void setZAxisSelected(const bool zAxisSelected);
         
         bool isSurfaceSelected() const;
         
@@ -74,8 +90,6 @@ namespace caret {
         void setRotation(const float rotation[4][4]);
         
         void setThickness(const float thickness[3]);
-
-        void setAxisSelectionStatus(const bool selectionStatus[3]);
         
         // ADD_NEW_METHODS_HERE
 
@@ -103,8 +117,19 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        enum PlaneIdentifier {
+            PLANE_MINIMUM_X,
+            PLANE_MAXIMUM_X,
+            PLANE_MINIMUM_Y,
+            PLANE_MAXIMUM_Y,
+            PLANE_MINIMUM_Z,
+            PLANE_MAXIMUM_Z
+        };
+        
         void copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj);
 
+        Plane createClippingPlane(const PlaneIdentifier planeIdentifier) const;
+        
         SceneClassAssistant* m_sceneAssistant;
 
         float m_translation[3];
@@ -113,7 +138,11 @@ namespace caret {
         
         float m_thickness[3];
         
-        bool m_selectionStatus[3];
+        bool m_xAxisSelectionStatus;
+        
+        bool m_yAxisSelectionStatus;
+        
+        bool m_zAxisSelectionStatus;
         
         bool m_surfaceSelectionStatus;
         

@@ -49,6 +49,10 @@ namespace caret {
         
         void invalidateColoringAndUpdateGraphicsWindow();
         
+        void updateGraphicsWindow();
+        
+        void updateOtherYokedWindows();
+        
         void updateUserInterface();
         
     private:

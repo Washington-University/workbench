@@ -2763,30 +2763,148 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
             clipEnabled[1] = false;
             clipEnabled[2] = false;
         }
-        m_clippingPlaneGroup->setAxisSelectionStatus(clipEnabled);
         
         m_clippingPlaneGroup->resetToDefaultValues();
+        
+        m_clippingPlaneGroup->setXAxisSelected(clipEnabled[0]);
+        m_clippingPlaneGroup->setYAxisSelected(clipEnabled[1]);
+        m_clippingPlaneGroup->setZAxisSelected(clipEnabled[2]);
+        
         m_clippingPlaneGroup->setTranslation(clipCoords);
         m_clippingPlaneGroup->setThickness(clipThick);
     }
 }
 
 /**
- * @return The clipping plane group.
+ * Get the clipping planes enabled attributes
+ *
+ * @param xEnabled
+ *    X clipping plane enabled.
+ * @param yEnabled
+ *    Y clipping plane enabled.
+ * @param zEnabled
+ *    Z clipping plane enabled.
+ * @param surfaceEnabled
+ *    Surface clipping enabled.
+ * @param volumeEnabled
+ *    Volume clipping enabled.
+ * @param featuresEnabled
+ *    Features enabled.
  */
-ClippingPlaneGroup*
-BrowserTabContent::getClippingPlaneGroup()
+void
+BrowserTabContent::getClippingPlaneEnabled(bool& xEnabled,
+                                           bool& yEnabled,
+                                           bool& zEnabled,
+                                           bool& surfaceEnabled,
+                                           bool& volumeEnabled,
+                                           bool& featuresEnabled) const
 {
-    return m_clippingPlaneGroup;
+    xEnabled = m_clippingPlaneGroup->isXAxisSelected();
+    yEnabled = m_clippingPlaneGroup->isYAxisSelected();
+    zEnabled = m_clippingPlaneGroup->isZAxisSelected();
+    
+    surfaceEnabled = m_clippingPlaneGroup->isSurfaceSelected();
+    volumeEnabled  = m_clippingPlaneGroup->isVolumeSelected();
+    featuresEnabled = m_clippingPlaneGroup->isFeaturesSelected();
 }
 
 /**
- * @return The clipping plane group (const method)
+ * Set the clipping planes enabled attributes
+ *
+ * @param xEnabled
+ *    X clipping plane enabled.
+ * @param yEnabled
+ *    Y clipping plane enabled.
+ * @param zEnabled
+ *    Z clipping plane enabled.
+ * @param surfaceEnabled
+ *    Surface clipping enabled.
+ * @param volumeEnabled
+ *    Volume clipping enabled.
+ * @param featuresEnabled
+ *    Features enabled.
+ */
+void
+BrowserTabContent::setClippingPlaneEnabled(const bool xEnabled,
+                                           const bool yEnabled,
+                                           const bool zEnabled,
+                                           const bool surfaceEnabled,
+                                           const bool volumeEnabled,
+                                           const bool featuresEnabled)
+{
+    m_clippingPlaneGroup->setXAxisSelected(xEnabled);
+    m_clippingPlaneGroup->setYAxisSelected(yEnabled);
+    m_clippingPlaneGroup->setZAxisSelected(zEnabled);
+    
+    m_clippingPlaneGroup->setSurfaceSelected(surfaceEnabled);
+    m_clippingPlaneGroup->setVolumeSelected(volumeEnabled);
+    m_clippingPlaneGroup->setFeaturesSelected(featuresEnabled);
+
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Get the clipping planes transformations.
+ *
+ * @param panning
+ *    Panning (translation) of the clipping planes.
+ * @param rotation
+ *    Rotation of clipping planes.
+ * @param thickness
+ *    Thickness of the clipping planes.
+ */
+void
+BrowserTabContent::getClippingPlaneTransformation(float panning[3],
+                                                  float rotation[3],
+                                                  float thickness[3]) const
+{
+    m_clippingPlaneGroup->getTranslation(panning);
+    m_clippingPlaneGroup->getRotationAngles(rotation);
+    m_clippingPlaneGroup->getThickness(thickness);
+}
+
+/**
+ * Set the clipping planes transformations.
+ *
+ * @param panning
+ *    Panning (translation) of the clipping planes.
+ * @param rotation
+ *    Rotation of clipping planes.
+ * @param thickness
+ *    Thickness of the clipping planes.
+ */
+void
+BrowserTabContent::setClippingPlaneTransformation(const float panning[3],
+                                                  const float rotation[3],
+                                                  const float thickness[3])
+{
+    m_clippingPlaneGroup->setTranslation(panning);
+    m_clippingPlaneGroup->setRotationAngles(rotation);
+    m_clippingPlaneGroup->setThickness(thickness);
+
+    updateYokedBrowserTabs();
+}
+
+/**
+ * Get the clipping plane group (const method).
+ *
+ * NOTE: Because of yoking, only a const instance of the clipping plane
+ * group is available.  To adjust the clipping planes use the methods
+ * in this class so that yoking is properly updated.
  */
 const ClippingPlaneGroup*
 BrowserTabContent::getClippingPlaneGroup() const
 {
     return m_clippingPlaneGroup;
+}
+
+/**
+ * Reset the clipping plane transformations.
+ */
+void
+BrowserTabContent::resetClippingPlaneTransformation()
+{
+    m_clippingPlaneGroup->resetTransformation();
 }
 
 /**

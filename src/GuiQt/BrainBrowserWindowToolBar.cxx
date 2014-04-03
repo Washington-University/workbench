@@ -4045,16 +4045,17 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged()
     CaretLogEntering();
     this->checkUpdateCounter();
 
-        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-        if (btc == NULL) {
-            return;
-        }
-        
-        YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
-        btc->setYokingGroup(yokingGroup);
-            this->updateVolumeIndicesWidget(btc);
-            this->updateVolumeMontageWidget(btc);
-            this->updateVolumePlaneWidget(btc);
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    if (btc == NULL) {
+        return;
+    }
+    
+    YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
+    btc->setYokingGroup(yokingGroup);
+    this->updateVolumeIndicesWidget(btc);
+    this->updateVolumeMontageWidget(btc);
+    this->updateVolumePlaneWidget(btc);
+    this->updateClippingOptionsWidget(btc);
     this->updateGraphicsWindow();
 }
 

@@ -115,6 +115,12 @@ namespace caret {
         virtual AString getStateOfOpenGL() const;
         
     private:
+//        enum ClippingDataType {
+//            CLIPPING_DATA_TYPE_FEATURES,
+//            CLIPPING_DATA_TYPE_SURFACE,
+//            CLIPPING_DATA_TYPE_,
+//            CLIPPI
+//        }
         class VolumeDrawInfo {
         public:
             VolumeDrawInfo(CaretMappableDataFile* mapFile,
@@ -444,7 +450,7 @@ namespace caret {
         
         void setPointSize(const float pointSize);
         
-        void applyClippingPlanes();
+        void applyClippingPlanes(const StructureEnum::Enum structure);
         
         void disableClippingPlanes();
         

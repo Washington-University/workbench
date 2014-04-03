@@ -1661,7 +1661,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
         
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     
-    m_fixedPipelineDrawing->applyClippingPlanes();
+    m_fixedPipelineDrawing->applyClippingPlanes(StructureEnum::ALL);
     
     /*
      * Check for a 'selection' type mode

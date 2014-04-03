@@ -32,7 +32,6 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ClippingPlaneGroup.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -124,17 +123,26 @@ BrainBrowserWindowToolBarClipping::~BrainBrowserWindowToolBarClipping()
 void
 BrainBrowserWindowToolBarClipping::updateContent(BrowserTabContent* browserTabContent)
 {
-    ClippingPlaneGroup* clippingGroup = browserTabContent->getClippingPlaneGroup();
-    bool clipEnabled[3];
-    clippingGroup->getAxisSelectionStatus(clipEnabled);
-
-    m_xClippingEnabledCheckBox->setChecked(clipEnabled[0]);
-    m_yClippingEnabledCheckBox->setChecked(clipEnabled[1]);
-    m_zClippingEnabledCheckBox->setChecked(clipEnabled[2]);
+    bool xEnabled;
+    bool yEnabled;
+    bool zEnabled;
+    bool surfaceEnabled;
+    bool volumeEnabled;
+    bool featuresEnabled;
+    browserTabContent->getClippingPlaneEnabled(xEnabled,
+                                               yEnabled,
+                                               zEnabled,
+                                               surfaceEnabled,
+                                               volumeEnabled,
+                                               featuresEnabled);
     
-    m_surfaceClippingEnabledCheckBox->setChecked(clippingGroup->isSurfaceSelected());
-    m_volumeClippingEnabledCheckBox->setChecked(clippingGroup->isVolumeSelected());
-    m_featuresClippingEnabledCheckBox->setChecked(clippingGroup->isFeaturesSelected());
+    m_xClippingEnabledCheckBox->setChecked(xEnabled);
+    m_yClippingEnabledCheckBox->setChecked(yEnabled);
+    m_zClippingEnabledCheckBox->setChecked(zEnabled);
+    
+    m_surfaceClippingEnabledCheckBox->setChecked(surfaceEnabled);
+    m_volumeClippingEnabledCheckBox->setChecked(volumeEnabled);
+    m_featuresClippingEnabledCheckBox->setChecked(featuresEnabled);
 }
 
 /**
@@ -145,18 +153,15 @@ BrainBrowserWindowToolBarClipping::clippingCheckBoxCheckStatusChanged()
 {
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
-        ClippingPlaneGroup* clippingGroup = browserTabContent->getClippingPlaneGroup();
+        browserTabContent->setClippingPlaneEnabled(m_xClippingEnabledCheckBox->isChecked(),
+                                                   m_yClippingEnabledCheckBox->isChecked(),
+                                                   m_zClippingEnabledCheckBox->isChecked(),
+                                                   m_surfaceClippingEnabledCheckBox->isChecked(),
+                                                   m_volumeClippingEnabledCheckBox->isChecked(),
+                                                   m_featuresClippingEnabledCheckBox->isChecked());
         
-        const bool clipEnabled[3] = {
-            m_xClippingEnabledCheckBox->isChecked(),
-            m_yClippingEnabledCheckBox->isChecked(),
-            m_zClippingEnabledCheckBox->isChecked()
-        };
-        clippingGroup->setAxisSelectionStatus(clipEnabled);
-        
-        clippingGroup->setSurfaceSelected(m_surfaceClippingEnabledCheckBox->isChecked());
-        clippingGroup->setVolumeSelected(m_volumeClippingEnabledCheckBox->isChecked());
-        clippingGroup->setFeaturesSelected(m_featuresClippingEnabledCheckBox->isChecked());
+        this->updateGraphicsWindow();
+        this->updateOtherYokedWindows();
     }
 }
 

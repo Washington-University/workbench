@@ -27,6 +27,7 @@
 #include "EventListenerInterface.h"
 #include "Model.h"
 #include "ModelTypeEnum.h"
+#include "Plane.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
 #include "VolumeSliceViewModeEnum.h"
@@ -147,10 +148,33 @@ namespace caret {
         
         const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
         
-        ClippingPlaneGroup* getClippingPlaneGroup();
+        void getClippingPlaneEnabled(bool& xEnabled,
+                                     bool& yEnabled,
+                                     bool& zEnabled,
+                                     bool& surfaceEnabled,
+                                     bool& volumeEnabled,
+                                     bool& featuresEnabled) const;
         
+        void setClippingPlaneEnabled(const bool xEnabled,
+                                     const bool yEnabled,
+                                     const bool zEnabled,
+                                     const bool surfaceEnabled,
+                                     const bool volumeEnabled,
+                                     const bool featuresEnabled);
+        
+        void getClippingPlaneTransformation(float panning[3],
+                                            float rotation[3],
+                                            float thickness[3]) const;
+        
+        void setClippingPlaneTransformation(const float panning[3],
+                                            const float rotation[3],
+                                            const float thickness[3]);
+
         const ClippingPlaneGroup* getClippingPlaneGroup() const;
+
+        void resetClippingPlaneTransformation();
         
+        /* OLD CLIPPING */
         bool isClippingPlaneEnabled(const int32_t indx) const;
         
         void setClippingPlaneEnabled(const int32_t indx,

@@ -49,7 +49,9 @@ ClippingPlaneGroup::ClippingPlaneGroup()
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->addArray("m_translation", m_translation, 3, 0.0);
     m_sceneAssistant->addArray("m_thickness", m_thickness, 3, 20.0);
-    m_sceneAssistant->addArray("m_selectionStatus", m_selectionStatus, 3, false);
+    m_sceneAssistant->add("m_xAxisSelectionStatus", &m_xAxisSelectionStatus);
+    m_sceneAssistant->add("m_yAxisSelectionStatus", &m_yAxisSelectionStatus);
+    m_sceneAssistant->add("m_zAxisSelectionStatus", &m_zAxisSelectionStatus);
     m_sceneAssistant->add("m_surfaceSelectionStatus", &m_surfaceSelectionStatus);
     m_sceneAssistant->add("m_volumeSelectionStatus", &m_volumeSelectionStatus);
     m_sceneAssistant->add("m_featuresSelectionStatus", &m_featuresSelectionStatus);
@@ -103,10 +105,33 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
     for (int32_t i = 0; i < 3; i++) {
         m_translation[i]     = obj.m_translation[i];
         m_thickness[i]       = obj.m_thickness[i];
-        m_selectionStatus[i] = obj.m_selectionStatus[i];
     }
     
     m_rotationMatrix = obj.m_rotationMatrix;
+    
+    m_xAxisSelectionStatus = obj.m_xAxisSelectionStatus;
+    m_yAxisSelectionStatus = obj.m_yAxisSelectionStatus;
+    m_zAxisSelectionStatus = obj.m_zAxisSelectionStatus;
+    
+    m_surfaceSelectionStatus  = obj.m_surfaceSelectionStatus;
+    m_volumeSelectionStatus   = obj.m_volumeSelectionStatus;
+    m_featuresSelectionStatus = obj.m_featuresSelectionStatus;
+}
+
+/**
+ * Reset the transformation.
+ */
+void
+ClippingPlaneGroup::resetTransformation()
+{
+    for (int32_t i = 0; i < 3; i++) {
+        m_translation[i] = 0.0;
+    }
+    m_thickness[0] = 180.0;
+    m_thickness[1] = 250.0;
+    m_thickness[2] = 220.0;
+    
+    m_rotationMatrix.identity();
 }
 
 /**
@@ -115,17 +140,117 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
 void
 ClippingPlaneGroup::resetToDefaultValues()
 {
-    for (int32_t i = 0; i < 3; i++) {
-        m_translation[i]     = 0.0;
-        m_thickness[i]       = 20.0;
-        m_selectionStatus[i] = false;
-    }
+    resetTransformation();
     
-    m_rotationMatrix.identity();
+    m_xAxisSelectionStatus = false;
+    m_yAxisSelectionStatus = false;
+    m_zAxisSelectionStatus = false;
     
     m_surfaceSelectionStatus  = true;
     m_volumeSelectionStatus   = true;
     m_featuresSelectionStatus = true;
+}
+
+/**
+ * Create the plane equation for the given plane identifier.
+ *
+ * @param planeIdentifier
+ *    Identifies plane that is created.
+ */
+Plane
+ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier) const
+{
+    float normalVector[3] = { 0.0, 0.0, 0.0 };
+    float pointOnPlane[3] = { 0.0, 0.0, 0.0 };
+    
+    /*
+     * Note: the planes form a rectangular cuboid and we want to
+     * clip what is OUTSIDE this rectangular cuboid.
+     */
+    switch (planeIdentifier) {
+        case PLANE_MINIMUM_X:
+            /*
+             * X Minimum
+             */
+            normalVector[0] = 1.0;
+            pointOnPlane[0] = m_translation[0] - (m_thickness[0] / 2.0);
+            break;
+        case PLANE_MAXIMUM_X:
+            /*
+             * X Maximum
+             */
+            normalVector[0] = -1.0;
+            pointOnPlane[0] = m_translation[0] + (m_thickness[0] / 2.0);
+            break;
+        case PLANE_MINIMUM_Y:
+            /*
+             * Y Minimum
+             */
+            normalVector[1] = 1.0;
+            pointOnPlane[1] = m_translation[1] - (m_thickness[1] / 2.0);
+            break;
+        case PLANE_MAXIMUM_Y:
+            /*
+             * Y Maximum
+             */
+            normalVector[1] = -1.0;
+            pointOnPlane[1] = m_translation[1] + (m_thickness[1] / 2.0);
+            break;
+        case PLANE_MINIMUM_Z:
+            /*
+             * Z Minimum
+             */
+            normalVector[2] = 1.0;
+            pointOnPlane[2] = m_translation[2] - (m_thickness[2] / 2.0);
+            break;
+        case PLANE_MAXIMUM_Z:
+            /*
+             * Z Maximum
+             */
+            normalVector[2] = -1.0;
+            pointOnPlane[2] = m_translation[2] + (m_thickness[2] / 2.0);
+            break;
+        default:
+            CaretAssert(0);
+    }
+    
+    m_rotationMatrix.multiplyPoint3(normalVector);
+    m_rotationMatrix.multiplyPoint3(pointOnPlane);
+    
+    Plane plane(normalVector,
+                pointOnPlane);
+    return plane;
+}
+
+/**
+ * @return Planes representing the active clipping planes for the given
+ * structure.  
+ *
+ * @param structure
+ *     The structure.  If the structure is a "right side" structure, the
+ *     rotations are mirror flipped.
+ */
+std::vector<Plane>
+ClippingPlaneGroup::getActiveClippingPlanesForStructure(const StructureEnum::Enum structure) const
+{
+    std::vector<Plane> planes;
+    
+    if (m_xAxisSelectionStatus) {
+        planes.push_back(createClippingPlane(PLANE_MINIMUM_X));
+        planes.push_back(createClippingPlane(PLANE_MAXIMUM_X));
+    }
+    
+    if (m_yAxisSelectionStatus) {
+        planes.push_back(createClippingPlane(PLANE_MINIMUM_Y));
+        planes.push_back(createClippingPlane(PLANE_MAXIMUM_Y));
+    }
+    
+    if (m_zAxisSelectionStatus) {
+        planes.push_back(createClippingPlane(PLANE_MINIMUM_Z));
+        planes.push_back(createClippingPlane(PLANE_MAXIMUM_Z));
+    }
+    
+    return planes;
 }
 
 /**
@@ -195,20 +320,6 @@ ClippingPlaneGroup::getThickness(float thickness[3]) const
 }
 
 /**
- * Get the selection status values for the axes
- *
- * @param selectionStatus
- *    The selection status values.
- */
-void
-ClippingPlaneGroup::getAxisSelectionStatus(bool selectionStatus[3]) const
-{
-    selectionStatus[0] = m_selectionStatus[0];
-    selectionStatus[1] = m_selectionStatus[1];
-    selectionStatus[2] = m_selectionStatus[2];
-}
-
-/**
  * Set the translation values.
  *
  * @param translation
@@ -248,20 +359,6 @@ ClippingPlaneGroup::setThickness(const float thickness[3])
     m_thickness[0] = thickness[0];
     m_thickness[1] = thickness[1];
     m_thickness[2] = thickness[2];
-}
-
-/**
- * Set the selection status values for the axes
- *
- * @param selectionStatus
- *    The selection status values.
- */
-void
-ClippingPlaneGroup::setAxisSelectionStatus(const bool selectionStatus[3])
-{
-    m_selectionStatus[0] = selectionStatus[0];
-    m_selectionStatus[1] = selectionStatus[1];
-    m_selectionStatus[2] = selectionStatus[2];
 }
 
 /**
@@ -327,6 +424,68 @@ ClippingPlaneGroup::setFeaturesSelected(const bool selected)
     m_featuresSelectionStatus = selected;
 }
 
+/**
+ * @return Is the X clipping axis selected?
+ */
+bool
+ClippingPlaneGroup::isXAxisSelected() const
+{
+    return m_xAxisSelectionStatus;
+}
+
+/**
+ * @return Is the Y clipping axis selected?
+ */
+bool
+ClippingPlaneGroup::isYAxisSelected() const
+{
+    return m_yAxisSelectionStatus;
+}
+
+/**
+ * @return Is the Z clipping axis selected?
+ */
+bool
+ClippingPlaneGroup::isZAxisSelected() const
+{
+    return m_zAxisSelectionStatus;
+}
+
+/**
+ * Set the selection status for the X-axis.
+ *
+ * @param xAxisSelected
+ *     New selection status for the X-axis.
+ */
+void
+ClippingPlaneGroup::setXAxisSelected(const bool xAxisSelected)
+{
+    m_xAxisSelectionStatus = xAxisSelected;
+}
+
+/**
+ * Set the selection status for the Y-axis.
+ *
+ * @param yAxisSelected
+ *     New selection status for the Y-axis.
+ */
+void
+ClippingPlaneGroup::setYAxisSelected(const bool yAxisSelected)
+{
+    m_yAxisSelectionStatus = yAxisSelected;
+}
+
+/**
+ * Set the selection status for the Z-axis.
+ *
+ * @param zAxisSelected
+ *     New selection status for the Z-axis.
+ */
+void
+ClippingPlaneGroup::setZAxisSelected(const bool zAxisSelected)
+{
+    m_zAxisSelectionStatus = zAxisSelected;
+}
 
 /**
  * Get a description of this object's content.

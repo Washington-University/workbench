@@ -31,12 +31,12 @@
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "ClippingPlaneGroup.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -170,6 +170,18 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     QObject::connect(m_zThicknessDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingValueChanged()));
     
+    
+    m_clippingWidgetGroup = new WuQWidgetObjectGroup(this);
+    m_clippingWidgetGroup->add(m_xPanDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_yPanDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_zPanDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_xRotateDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_yRotateDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_zRotateDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_xThicknessDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_yThicknessDoubleSpinBox);
+    m_clippingWidgetGroup->add(m_zThicknessDoubleSpinBox);
+    
     /*------------------------------------------------------------------------*/
     /*
      * Layout widgets
@@ -251,6 +263,8 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
      * Remove apply button by using an empty name
      */
     setApplyButtonText("");
+
+    m_resetPushButton = addUserPushButton("Reset", QDialogButtonBox::NoRole);
     
     setCentralWidget(gridWidget,
                      WuQDialog::SCROLL_AREA_NEVER);
@@ -275,6 +289,36 @@ ClippingPlanesDialog::~ClippingPlanesDialog()
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
+/**
+ * Called when a user (added) push button is clicked.
+ *
+ * @param userPushButton
+ *     Button that was clicked.
+ */
+WuQDialogNonModal::NonModalDialogUserButtonResult
+ClippingPlanesDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    if (userPushButton == m_resetPushButton) {
+        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+        if (bbw != NULL) {
+            BrowserTabContent* btc = bbw->getBrowserTabContent();
+            if (btc != NULL) {
+                btc->resetClippingPlaneTransformation();
+                updateContent(btc->getTabNumber());
+            }
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    return WuQDialogNonModal::RESULT_NONE;
+}
+
+
+/**
+ * Called when a clipping value is changed.
+ */
 void
 ClippingPlanesDialog::clippingValueChanged()
 {
@@ -303,11 +347,9 @@ ClippingPlanesDialog::clippingValueChanged()
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
-            ClippingPlaneGroup* clippingGroup = btc->getClippingPlaneGroup();
-            
-            clippingGroup->setTranslation(panning);
-            clippingGroup->setRotationAngles(rotation);
-            clippingGroup->setThickness(thickness);
+            btc->setClippingPlaneTransformation(panning,
+                                                rotation,
+                                                thickness);
             
             updateGraphicsWindow();
         }
@@ -367,25 +409,28 @@ ClippingPlanesDialog::updateContent(const int32_t browserWindowIndex)
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
-            ClippingPlaneGroup* clippingGroup = btc->getClippingPlaneGroup();
+            m_clippingWidgetGroup->blockAllSignals(true);
             
             float panning[3];
-            clippingGroup->getTranslation(panning);
+            float rotation[3];
+            float thickness[3];
+            btc->getClippingPlaneTransformation(panning,
+                                                rotation,
+                                                thickness);
+            
             m_xPanDoubleSpinBox->setValue(panning[0]);
             m_yPanDoubleSpinBox->setValue(panning[1]);
             m_zPanDoubleSpinBox->setValue(panning[2]);
             
-            float rotationAngles[3];
-            clippingGroup->getRotationAngles(rotationAngles);
-            m_xRotateDoubleSpinBox->setValue(rotationAngles[0]);
-            m_yRotateDoubleSpinBox->setValue(rotationAngles[1]);
-            m_zRotateDoubleSpinBox->setValue(rotationAngles[2]);
+            m_xRotateDoubleSpinBox->setValue(rotation[0]);
+            m_yRotateDoubleSpinBox->setValue(rotation[1]);
+            m_zRotateDoubleSpinBox->setValue(rotation[2]);
             
-            float thickness[3];
-            clippingGroup->getThickness(thickness);
             m_xThicknessDoubleSpinBox->setValue(thickness[0]);
             m_yThicknessDoubleSpinBox->setValue(thickness[1]);
             m_zThicknessDoubleSpinBox->setValue(thickness[2]);
+
+            m_clippingWidgetGroup->blockAllSignals(false);
         }
     }
 }

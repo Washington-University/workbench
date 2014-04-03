@@ -27,9 +27,12 @@
 #include "EventListenerInterface.h"
 
 class QDoubleSpinBox;
+class QPushButton;
 
 namespace caret {
 
+    class WuQWidgetObjectGroup;
+    
     class ClippingPlanesDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
@@ -54,6 +57,8 @@ namespace caret {
     protected:
         void focusGained();
         
+        virtual NonModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        
     private:
         void updateGraphicsWindow();
         
@@ -61,7 +66,11 @@ namespace caret {
 
         ClippingPlanesDialog& operator=(const ClippingPlanesDialog&);
         
+        QPushButton* m_resetPushButton;
+        
         int32_t m_browserWindowIndex;
+        
+        WuQWidgetObjectGroup* m_clippingWidgetGroup;
         
         QDoubleSpinBox* m_xPanDoubleSpinBox;
         

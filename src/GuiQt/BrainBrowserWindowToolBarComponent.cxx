@@ -124,8 +124,25 @@ void
 BrainBrowserWindowToolBarComponent::invalidateColoringAndUpdateGraphicsWindow()
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    updateGraphicsWindow();
+}
+
+/**
+ * Update the graphics window.
+ */
+void
+BrainBrowserWindowToolBarComponent::updateGraphicsWindow()
+{
     m_parentToolBar->updateGraphicsWindow();
-    
+}
+
+/**
+ * Update toolbars in other yoked windows.
+ */
+void
+BrainBrowserWindowToolBarComponent::updateOtherYokedWindows()
+{
+    m_parentToolBar->updateOtherYokedWindows();
 }
 
 /**
