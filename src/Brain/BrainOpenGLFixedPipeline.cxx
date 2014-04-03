@@ -580,13 +580,16 @@ BrainOpenGLFixedPipeline::disableClippingPlanes()
 }
 
 /**
- * Apply the clipping planes for the given structure.
+ * Apply the clipping planes for the given data type and structure.
  *
+ * @param clippingDataType
+ *    Type of data that is being clipped.
  * @param structure
  *    The structure.
  */
 void
-BrainOpenGLFixedPipeline::applyClippingPlanes(const StructureEnum::Enum structure)
+BrainOpenGLFixedPipeline::applyClippingPlanes(const ClippingDataType clippingDataType,
+                                              const StructureEnum::Enum structure)
 {
     disableClippingPlanes();
     
@@ -598,67 +601,69 @@ BrainOpenGLFixedPipeline::applyClippingPlanes(const StructureEnum::Enum structur
     clippingPlaneGroup->getRotationAngles(rotation);
 
     float panning[3];
-    clippingPlaneGroup->getTranslation(panning);
+    clippingPlaneGroup->getTranslationForStructure(structure,
+                                                   panning);
     
     float thickness[3];
     clippingPlaneGroup->getThickness(thickness);
+
+    const bool showClippingBounds = false;
+    if (showClippingBounds) {
+        glColor3f(1.0, 0.0, 0.0);
+        glLineWidth(2.0);
+        glPushMatrix();
+        glTranslatef(panning[0], panning[1], panning[2]);
+        float minX = -thickness[0] / 2.0;
+        float maxX =  thickness[0] / 2.0;
+        float minY = -thickness[1] / 2.0;
+        float maxY =  thickness[1] / 2.0;
+        float minZ = -thickness[2] / 2.0;
+        float maxZ =  thickness[2] / 2.0;
+        
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(minX, minY, minZ);
+        glVertex3f(maxX, minY, minZ);
+        glVertex3f(maxX, maxY, minZ);
+        glVertex3f(minX, maxY, minZ);
+        glEnd();
+        
+        glBegin(GL_LINE_LOOP);
+        glVertex3f(minX, minY, maxZ);
+        glVertex3f(maxX, minY, maxZ);
+        glVertex3f(maxX, maxY, maxZ);
+        glVertex3f(minX, maxY, maxZ);
+        glEnd();
+        
+        glBegin(GL_LINES);
+        glVertex3f(minX, minY, minZ);
+        glVertex3f(minX, minY, maxZ);
+        glVertex3f(maxX, minY, minZ);
+        glVertex3f(maxX, minY, maxZ);
+        glVertex3f(maxX, maxY, minZ);
+        glVertex3f(maxX, maxY, maxZ);
+        glVertex3f(minX, maxY, minZ);
+        glVertex3f(minX, maxY, maxZ);
+        glEnd();
+        glPopMatrix();
+    }
     
-    const bool xEnabled = clippingPlaneGroup->isXAxisSelected();
-    const bool yEnabled = clippingPlaneGroup->isYAxisSelected();
-    const bool zEnabled = clippingPlaneGroup->isZAxisSelected();
-    const bool surfaceEnabled  = clippingPlaneGroup->isSurfaceSelected();
-    const bool volumeEnabled   = clippingPlaneGroup->isVolumeSelected();
-    const bool featuresEnabled = clippingPlaneGroup->isFeaturesSelected();
-    
-    glColor3f(1.0, 0.0, 0.0);
-    glLineWidth(2.0);
-    glPushMatrix();
-    glTranslatef(panning[0], panning[1], panning[2]);
-//    const float big = 1000.0;
-    float minX = -thickness[0] / 2.0;
-    float maxX =  thickness[0] / 2.0;
-    float minY = -thickness[1] / 2.0;
-    float maxY =  thickness[1] / 2.0;
-    float minZ = -thickness[2] / 2.0;
-    float maxZ =  thickness[2] / 2.0;
-//    if (xEnabled) {
-//        minX = -thickness[0] / 2.0;
-//        maxX =  thickness[0] / 2.0;
-//    }
-//    if (yEnabled) {
-//        minY = -thickness[1] / 2.0;
-//        maxY =  thickness[1] / 2.0;
-//    }
-//    if (zEnabled) {
-//        minZ = -thickness[2] / 2.0;
-//        maxZ =  thickness[2] / 2.0;
-//    }
-    
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(minX, minY, minZ);
-    glVertex3f(maxX, minY, minZ);
-    glVertex3f(maxX, maxY, minZ);
-    glVertex3f(minX, maxY, minZ);
-    glEnd();
-    
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(minX, minY, maxZ);
-    glVertex3f(maxX, minY, maxZ);
-    glVertex3f(maxX, maxY, maxZ);
-    glVertex3f(minX, maxY, maxZ);
-    glEnd();
-    
-    glBegin(GL_LINES);
-    glVertex3f(minX, minY, minZ);
-    glVertex3f(minX, minY, maxZ);
-    glVertex3f(maxX, minY, minZ);
-    glVertex3f(maxX, minY, maxZ);
-    glVertex3f(maxX, maxY, minZ);
-    glVertex3f(maxX, maxY, maxZ);
-    glVertex3f(minX, maxY, minZ);
-    glVertex3f(minX, maxY, maxZ);
-    glEnd();
-    glPopMatrix();
+    switch (clippingDataType) {
+        case CLIPPING_DATA_TYPE_FEATURES:
+            if (! clippingPlaneGroup->isFeaturesSelected()) {
+                return;
+            }
+            break;
+        case CLIPPING_DATA_TYPE_SURFACE:
+            if (! clippingPlaneGroup->isSurfaceSelected()) {
+                return;
+            }
+            break;
+        case CLIPPING_DATA_TYPE_VOLUME:
+            if (! clippingPlaneGroup->isVolumeSelected()) {
+                return;
+            }
+            break;
+    }
     
     std::vector<Plane> planes = clippingPlaneGroup->getActiveClippingPlanesForStructure(structure);
     const int32_t numPlanes = static_cast<int32_t>(planes.size());
@@ -672,119 +677,6 @@ BrainOpenGLFixedPipeline::applyClippingPlanes(const StructureEnum::Enum structur
         glEnable(GL_CLIP_PLANE0 + i);
     }
 }
-
-///**
-// * Apply the clipping planes.
-// */
-//void
-//BrainOpenGLFixedPipeline::applyClippingPlanes()
-//{
-//    disableClippingPlanes();
-//
-//    if (browserTabContent != NULL) {
-//        /*
-//         * Slab along X-Axis
-//         */
-//        if (browserTabContent->isClippingPlaneEnabled(0)) {
-//            const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
-//                                     * 0.5);
-//            const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
-//                                    - halfThick);
-//            const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
-//                                    + halfThick);
-//            
-//            GLdouble planeMin[4] = {
-//                1.0,
-//                0.0,
-//                0.0,
-//                -minValue
-//            };
-//            
-//            glClipPlane(GL_CLIP_PLANE0,
-//                        planeMin);
-//            glEnable(GL_CLIP_PLANE0);
-//
-//            GLdouble planeMax[4] = {
-//               -1.0,
-//                0.0,
-//                0.0,
-//                maxValue
-//            };
-//            
-//            glClipPlane(GL_CLIP_PLANE1,
-//                        planeMax);
-//            glEnable(GL_CLIP_PLANE1);
-//        }
-//        
-//        /*
-//         * Slab along Y-Axis
-//         */
-//        if (browserTabContent->isClippingPlaneEnabled(1)) {
-//            const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
-//                                     * 0.5);
-//            const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
-//                                    - halfThick);
-//            const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
-//                                    + halfThick);
-//            
-//            GLdouble planeMin[4] = {
-//                0.0,
-//                1.0,
-//                0.0,
-//                -minValue
-//            };
-//            
-//            glClipPlane(GL_CLIP_PLANE2,
-//                        planeMin);
-//            glEnable(GL_CLIP_PLANE2);
-//            
-//            GLdouble planeMax[4] = {
-//                0.0,
-//               -1.0,
-//                0.0,
-//                maxValue
-//            };
-//            
-//            glClipPlane(GL_CLIP_PLANE3,
-//                        planeMax);
-//            glEnable(GL_CLIP_PLANE3);
-//        }
-//        
-//        /*
-//         * Slab along Z-Axis
-//         */
-//        if (browserTabContent->isClippingPlaneEnabled(2)) {
-//            const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
-//                                     * 0.5);
-//            const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
-//                                    - halfThick);
-//            const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
-//                                    + halfThick);
-//            
-//            GLdouble planeMin[4] = {
-//                0.0,
-//                0.0,
-//                1.0,
-//                -minValue
-//            };
-//            
-//            glClipPlane(GL_CLIP_PLANE4,
-//                        planeMin);
-//            glEnable(GL_CLIP_PLANE4);
-//            
-//            GLdouble planeMax[4] = {
-//                0.0,
-//                0.0,
-//               -1.0,
-//                maxValue
-//            };
-//            
-//            glClipPlane(GL_CLIP_PLANE5,
-//                        planeMax);
-//            glEnable(GL_CLIP_PLANE5);
-//        }
-//    }
-//}
 
 /**
  * Apply the viewing transformations for the content of the browser tab.
@@ -1214,6 +1106,7 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
 
 /**
  * Draw a surface.
+ *
  * @param surface
  *    Surface that is drawn.
  * @param nodeColoringRGBA
@@ -1229,7 +1122,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     
     glEnable(GL_DEPTH_TEST);
     
-    applyClippingPlanes(surface->getStructure());
+    applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_SURFACE,
+                        surface->getStructure());
     
     this->enableLighting();
     
@@ -1285,6 +1179,9 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                     }
                     break;
             }
+            
+            this->disableClippingPlanes();
+            
             if (dps->isDisplayNormalVectors()) {
                 drawSurfaceNormalVectors(surface);
             }
@@ -1303,6 +1200,12 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                        nodeColoringRGBA);
                 this->drawSurfaceTriangles(surface,
                                            nodeColoringRGBA);
+            }
+
+            this->disableClippingPlanes();
+            
+            if (dps->isDisplayNormalVectors()) {
+                drawSurfaceNormalVectors(surface);
             }
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
@@ -1329,6 +1232,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     }
     
     this->disableLighting();
+    
+    this->disableClippingPlanes();
 }
 
 /**
@@ -2082,6 +1987,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         }
     }    
 
+    const ClippingPlaneGroup* clippingPlaneGroup = this->browserTabContent->getClippingPlaneGroup();
+    const bool doClipping = clippingPlaneGroup->isFeaturesAndAnyAxisSelected();
+    
     const int32_t numPointsToDraw = static_cast<int32_t>(pointXYZ.size() / 3);
     
     /*
@@ -2093,6 +2001,14 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             const int32_t i3 = i * 3;
             
             const float* xyz = &pointXYZ[i3];
+            
+            if (doClipping) {
+                if ( ! clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                        xyz)) {
+                    continue;
+                }
+            }
+            
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             
@@ -2174,20 +2090,60 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 
                 const float* xyz1 = &pointXYZ[i3 - 3];
                 const float* xyz2 = &pointXYZ[i3];
-                glBegin(GL_LINES);
-                glVertex3fv(xyz1);
-                glVertex3fv(xyz2);
-                glEnd();
+                
+                bool drawIt = true;
+                if (doClipping) {
+                    if (clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                         xyz1)
+                        && (clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                             xyz2)) ) {
+                        /* nothing */
+                    }
+                    else {
+                        drawIt = false;
+                    }
+                }
+                
+                if (drawIt) {
+                    glBegin(GL_LINES);
+                    glVertex3fv(xyz1);
+                    glVertex3fv(xyz2);
+                    glEnd();
+                }
             }
         }
         else {
             glColor3fv(borderDrawInfo.rgba);
-            glBegin(GL_LINE_STRIP);
-            for (int32_t i = 0; i < numPointsToDraw; i++) {
+            
+            /*
+             * Start at one, since need two points for each line
+             */
+            glBegin(GL_LINES);
+            for (int32_t i = 1; i < numPointsToDraw; i++) {
                 const int32_t i3 = i * 3;
-                const float* xyz = &pointXYZ[i3];
-                glVertex3fv(xyz);
-            }            
+                const float* xyz1 = &pointXYZ[i3 - 3];
+                const float* xyz2 = &pointXYZ[i3];
+                
+                bool drawIt = true;
+                if (doClipping) {
+                    if (clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                         xyz1)
+                        && (clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                             xyz2)) ) {
+                        /* nothing */
+                    }
+                    else {
+                        drawIt = false;
+                    }
+                }
+                
+                if (drawIt) {
+                    glBegin(GL_LINES);
+                    glVertex3fv(xyz1);
+                    glVertex3fv(xyz2);
+                    glEnd();
+                }
+            }
             glEnd();
         }
         
@@ -2281,6 +2237,9 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     const StructureEnum::Enum surfaceStructure = surface->getStructure();
     const StructureEnum::Enum surfaceContralateralStructure = StructureEnum::getContralateralStructure(surfaceStructure);
     
+    const ClippingPlaneGroup* clippingPlaneGroup = this->browserTabContent->getClippingPlaneGroup();
+    const bool doClipping = clippingPlaneGroup->isFeaturesAndAnyAxisSelected();
+    
     bool drawAsSpheres = false;
     switch (fociDisplayProperties->getDrawingType(displayGroup,
                                                   this->windowTabIndex)) {
@@ -2371,6 +2330,13 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     else if (isContralateralEnabled) {
                         if (focusStructure == surfaceContralateralStructure) {
                             drawIt = true;
+                        }
+                    }
+
+                    if (doClipping) {
+                        if ( ! clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                             xyz)) {
+                            drawIt = false;
                         }
                     }
                     
@@ -3735,14 +3701,15 @@ void
 BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
                                                          const DisplayGroupEnum::Enum displayGroup,
                                                          const int32_t tabIndex,
-                                                         BoundingBox* boundingBox,
+                                                         const ClippingPlaneGroup* clippingPlaneGroup,
                                                          Plane* plane,
+                                                         const StructureEnum::Enum structure,
                                                          FiberTrajectoryColorModel::Item* colorSource,
                                     FiberOrientationDisplayInfo& dispInfo)
 {
     dispInfo.aboveLimit = dpfo->getAboveLimit(displayGroup, tabIndex);
     dispInfo.belowLimit = dpfo->getBelowLimit(displayGroup, tabIndex);
-    dispInfo.boundingBox = boundingBox;
+    dispInfo.clippingPlaneGroup = clippingPlaneGroup;
     dispInfo.colorSource = colorSource;
     dispInfo.fiberOrientationColorType = dpfo->getColoringType(displayGroup, tabIndex);
     dispInfo.fanMultiplier = dpfo->getFanMultiplier(displayGroup, tabIndex);
@@ -3750,6 +3717,7 @@ BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayProperties
     dispInfo.minimumMagnitude = dpfo->getMinimumMagnitude(displayGroup, tabIndex);
     dispInfo.magnitudeMultiplier = dpfo->getLengthMultiplier(displayGroup, tabIndex);
     dispInfo.plane = plane;
+    dispInfo.structure = structure;
     dispInfo.symbolType = dpfo->getSymbolType(displayGroup, tabIndex);
 }
 
@@ -3760,9 +3728,12 @@ BrainOpenGLFixedPipeline::setFiberOrientationDisplayInfo(const DisplayProperties
  *    If not NULL, it is the plane of the volume slice being drawn and
  *    only fibers within the above and below limits from the plane will
  *    be drawn.
+ * @param structure
+ *    The structure.
  */
 void
-BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
+BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane,
+                                                const StructureEnum::Enum structure)
 {
     const DisplayPropertiesFiberOrientation* dpfo = m_brain->getDisplayPropertiesFiberOrientation();
     const DisplayGroupEnum::Enum displayGroup = dpfo->getDisplayGroupForTab(this->windowTabIndex);
@@ -3771,42 +3742,42 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
     }
     const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
     
-    /*
-     * Clipping planes
-     */
-    BoundingBox clippingBoundingBox;
-    clippingBoundingBox.resetWithMaximumExtent();
-    
-    if (browserTabContent->isClippingPlaneEnabled(0)) {
-        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
-                                 * 0.5);
-        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
-                                - halfThick);
-        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
-                                + halfThick);
-        clippingBoundingBox.setMinX(minValue);
-        clippingBoundingBox.setMaxX(maxValue);
-    }
-    if (browserTabContent->isClippingPlaneEnabled(1)) {
-        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
-                                 * 0.5);
-        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
-                                - halfThick);
-        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
-                                + halfThick);
-        clippingBoundingBox.setMinY(minValue);
-        clippingBoundingBox.setMaxY(maxValue);
-    }
-    if (browserTabContent->isClippingPlaneEnabled(2)) {
-        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
-                                 * 0.5);
-        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
-                                - halfThick);
-        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
-                                + halfThick);
-        clippingBoundingBox.setMinZ(minValue);
-        clippingBoundingBox.setMaxZ(maxValue);
-    }
+//    /*
+//     * Clipping planes
+//     */
+//    BoundingBox clippingBoundingBox;
+//    clippingBoundingBox.resetWithMaximumExtent();
+//    
+//    if (browserTabContent->isClippingPlaneEnabled(0)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
+//                                + halfThick);
+//        clippingBoundingBox.setMinX(minValue);
+//        clippingBoundingBox.setMaxX(maxValue);
+//    }
+//    if (browserTabContent->isClippingPlaneEnabled(1)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
+//                                + halfThick);
+//        clippingBoundingBox.setMinY(minValue);
+//        clippingBoundingBox.setMaxY(maxValue);
+//    }
+//    if (browserTabContent->isClippingPlaneEnabled(2)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
+//                                + halfThick);
+//        clippingBoundingBox.setMinZ(minValue);
+//        clippingBoundingBox.setMaxZ(maxValue);
+//    }
     
     /*
      * Save status of clipping and disable clipping.
@@ -3852,8 +3823,9 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane)
     setFiberOrientationDisplayInfo(dpfo,
                                    displayGroup,
                                    this->windowTabIndex,
-                                   &clippingBoundingBox,
+                                   this->browserTabContent->getClippingPlaneGroup(),
                                    const_cast<Plane*>(plane),
+                                   structure,
                                    &colorUseFiber,
                                    fiberOrientDispInfo);
     /*
@@ -3926,8 +3898,11 @@ BrainOpenGLFixedPipeline::addFiberOrientationForDrawing(const FiberOrientationDi
             return;
         }
     }
-    if (fodi->boundingBox->isCoordinateWithinBoundingBox(fiberOrientation->m_xyz) == false) {
-        return;
+    if (fodi->clippingPlaneGroup->isFeaturesAndAnyAxisSelected()) {
+        if ( ! fodi->clippingPlaneGroup->isCoordinateInsideClippingPlanesForStructure(fodi->structure,
+                                                                                      fiberOrientation->m_xyz)) {
+            return;
+        }
     }
     
     m_fiberOrientationsForDrawing.push_back(const_cast<FiberOrientation*>(fiberOrientation));
@@ -4263,55 +4238,59 @@ BrainOpenGLFixedPipeline::drawAllFiberOrientations(const FiberOrientationDisplay
  * Draw fiber trajectories on a surface.
  */
 void
-BrainOpenGLFixedPipeline::drawSurfaceFiberTrajectories()
+BrainOpenGLFixedPipeline::drawSurfaceFiberTrajectories(const StructureEnum::Enum structure)
 {
-    drawFiberTrajectories(NULL);
+    drawFiberTrajectories(NULL,
+                          structure);
 }
 
 /**
  * Draw the fiber trajectories.
  * @param plane
  *    If a volume it is non-NULL and contains the plane of the slice.
+ * @param structure
+ *    The structure.
  */
 void
-BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
+BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane,
+                                                const StructureEnum::Enum structure)
 {
-    /*
-     * Clipping planes
-     */
-    BoundingBox clippingBoundingBox;
-    clippingBoundingBox.resetWithMaximumExtent();
-    
-    if (browserTabContent->isClippingPlaneEnabled(0)) {
-        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
-                                 * 0.5);
-        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
-                                - halfThick);
-        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
-                                + halfThick);
-        clippingBoundingBox.setMinX(minValue);
-        clippingBoundingBox.setMaxX(maxValue);
-    }
-    if (browserTabContent->isClippingPlaneEnabled(1)) {
-        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
-                                 * 0.5);
-        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
-                                - halfThick);
-        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
-                                + halfThick);
-        clippingBoundingBox.setMinY(minValue);
-        clippingBoundingBox.setMaxY(maxValue);
-    }
-    if (browserTabContent->isClippingPlaneEnabled(2)) {
-        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
-                                 * 0.5);
-        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
-                                - halfThick);
-        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
-                                + halfThick);
-        clippingBoundingBox.setMinZ(minValue);
-        clippingBoundingBox.setMaxZ(maxValue);
-    }
+//    /*
+//     * Clipping planes
+//     */
+//    BoundingBox clippingBoundingBox;
+//    clippingBoundingBox.resetWithMaximumExtent();
+//    
+//    if (browserTabContent->isClippingPlaneEnabled(0)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
+//                                + halfThick);
+//        clippingBoundingBox.setMinX(minValue);
+//        clippingBoundingBox.setMaxX(maxValue);
+//    }
+//    if (browserTabContent->isClippingPlaneEnabled(1)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
+//                                + halfThick);
+//        clippingBoundingBox.setMinY(minValue);
+//        clippingBoundingBox.setMaxY(maxValue);
+//    }
+//    if (browserTabContent->isClippingPlaneEnabled(2)) {
+//        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
+//                                 * 0.5);
+//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
+//                                - halfThick);
+//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
+//                                + halfThick);
+//        clippingBoundingBox.setMinZ(minValue);
+//        clippingBoundingBox.setMaxZ(maxValue);
+//    }
     
     /*
      * Save status of clipping and disable clipping.
@@ -4403,8 +4382,9 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane)
         setFiberOrientationDisplayInfo(dpfo,
                                        displayGroup,
                                        this->windowTabIndex,
-                                       &clippingBoundingBox,
+                                       browserTabContent->getClippingPlaneGroup(),
                                        const_cast<Plane*>(plane),
+                                       structure,
                                        ftmp->getFiberTrajectoryColorModel()->getSelectedItem(),
                                        fiberOrientDispInfo);
         
@@ -4723,11 +4703,15 @@ BrainOpenGLFixedPipeline::drawCylinder(const float rgba[4],
 
 /**
  * Draw fiber orientations on surface models.
+ *
+ * @param structure
+ *    The structure.
  */
 void
-BrainOpenGLFixedPipeline::drawSurfaceFiberOrientations()
+BrainOpenGLFixedPipeline::drawSurfaceFiberOrientations(const StructureEnum::Enum structure)
 {
-    drawFiberOrientations(NULL);
+    drawFiberOrientations(NULL,
+                          structure);
 }
 
 /**
@@ -4946,8 +4930,8 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
             }
         }
     }
-    drawSurfaceFiberOrientations();
-    drawSurfaceFiberTrajectories();
+    drawSurfaceFiberOrientations(StructureEnum::ALL);
+    drawSurfaceFiberTrajectories(StructureEnum::ALL);
     
     /*
      * Draw surfaces last so that opacity works.

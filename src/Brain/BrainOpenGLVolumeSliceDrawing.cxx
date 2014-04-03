@@ -1661,7 +1661,8 @@ BrainOpenGLVolumeSliceDrawing::drawSliceForSliceView(const VolumeSliceViewPlaneE
         
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     
-    m_fixedPipelineDrawing->applyClippingPlanes(StructureEnum::ALL);
+    m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
+                                                StructureEnum::ALL);
     
     /*
      * Check for a 'selection' type mode
@@ -1800,8 +1801,10 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
             
             if (drawFibersFlag) {
                 glDisable(GL_DEPTH_TEST);
-                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane);
-                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane);
+                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
+                                                              StructureEnum::ALL);
+                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
+                                                              StructureEnum::ALL);
                 if (depthBufferEnabled) {
                     glEnable(GL_DEPTH_TEST);
                 }

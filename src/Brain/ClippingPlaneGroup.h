@@ -51,6 +51,9 @@ namespace caret {
         
         void getTranslation(float translation[3]) const;
         
+        void getTranslationForStructure(const StructureEnum::Enum structure,
+                                        float translation[3]) const;
+        
         Matrix4x4 getRotationMatrix() const;
         
         void setRotationMatrix(const Matrix4x4& rotationMatrix);
@@ -83,6 +86,8 @@ namespace caret {
         
         bool isFeaturesSelected() const;
         
+        bool isFeaturesAndAnyAxisSelected() const;
+        
         void setFeaturesSelected(const bool selected);
         
         void setTranslation(const float translation[3]);
@@ -90,6 +95,9 @@ namespace caret {
         void setRotation(const float rotation[4][4]);
         
         void setThickness(const float thickness[3]);
+        
+        bool isCoordinateInsideClippingPlanesForStructure(const StructureEnum::Enum structure,
+                                                          const float xyz[3]) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -128,10 +136,13 @@ namespace caret {
         
         void copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj);
 
-        Plane createClippingPlane(const PlaneIdentifier planeIdentifier) const;
+        Plane createClippingPlane(const PlaneIdentifier planeIdentifier,
+                                  const StructureEnum::Enum structure) const;
         
         SceneClassAssistant* m_sceneAssistant;
 
+        float getXCoordinateForStructure(const StructureEnum::Enum structure) const;
+        
         float m_translation[3];
         
         Matrix4x4 m_rotationMatrix;

@@ -53,6 +53,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CaretMappableDataFile;
+    class ClippingPlaneGroup;
     class FastStatistics;
     class DisplayPropertiesFiberOrientation;
     class DescriptiveStatistics;
@@ -145,7 +146,7 @@ namespace caret {
         struct FiberOrientationDisplayInfo {
             float aboveLimit;
             float belowLimit;
-            BoundingBox* boundingBox;
+            const ClippingPlaneGroup* clippingPlaneGroup;
             FiberTrajectoryColorModel::Item* colorSource;
             FiberOrientationColoringTypeEnum::Enum fiberOrientationColorType;
             float fanMultiplier;
@@ -154,13 +155,15 @@ namespace caret {
             float magnitudeMultiplier;
             Plane* plane;
             FiberOrientationSymbolTypeEnum::Enum symbolType;
+            StructureEnum::Enum structure;
         };
         
         void setFiberOrientationDisplayInfo(const DisplayPropertiesFiberOrientation* dpfo,
                                             const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex,
-                                            BoundingBox* boundingBox,
+                                            const ClippingPlaneGroup* clippingPlaneGroup,
                                             Plane* plane,
+                                            const StructureEnum::Enum structure,
                                             FiberTrajectoryColorModel::Item* colorSource,
                                             FiberOrientationDisplayInfo& dispInfo);
         
@@ -218,9 +221,10 @@ namespace caret {
         
         void drawSurfaceNormalVectors(const Surface* surface);
         
-        void drawSurfaceFiberOrientations();
+        void drawSurfaceFiberOrientations(const StructureEnum::Enum structure);
         
-        void drawFiberOrientations(const Plane* plane);
+        void drawFiberOrientations(const Plane* plane,
+                                   const StructureEnum::Enum structure);
         
         void addFiberOrientationForDrawing(const FiberOrientationDisplayInfo* fodi,
                                            const FiberOrientation* fiberOrientation);
@@ -230,9 +234,10 @@ namespace caret {
         void drawAllFiberOrientations(const FiberOrientationDisplayInfo* fodi,
                                       const bool isSortFibers);
         
-        void drawSurfaceFiberTrajectories();
+        void drawSurfaceFiberTrajectories(const StructureEnum::Enum structure);
         
-        void drawFiberTrajectories(const Plane* plane);
+        void drawFiberTrajectories(const Plane* plane,
+                                   const StructureEnum::Enum structure);
         
         void drawVolumeModel(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeModel,
@@ -450,7 +455,14 @@ namespace caret {
         
         void setPointSize(const float pointSize);
         
-        void applyClippingPlanes(const StructureEnum::Enum structure);
+        enum ClippingDataType {
+            CLIPPING_DATA_TYPE_FEATURES,
+            CLIPPING_DATA_TYPE_SURFACE,
+            CLIPPING_DATA_TYPE_VOLUME
+        };
+        
+        void applyClippingPlanes(const ClippingDataType clippingDataType,
+                                 const StructureEnum::Enum structure);
         
         void disableClippingPlanes();
         

@@ -174,22 +174,6 @@ namespace caret {
 
         void resetClippingPlaneTransformation();
         
-        /* OLD CLIPPING */
-        bool isClippingPlaneEnabled(const int32_t indx) const;
-        
-        void setClippingPlaneEnabled(const int32_t indx,
-                                     const bool status);
-        
-        float getClippingPlaneThickness(const int32_t indx) const;
-        
-        void setClippingPlaneThickness(const int32_t indx,
-                                       const float value);
-        
-        float getClippingPlaneCoordinate(const int32_t indx) const;
-        
-        void setClippingPlaneCoordinate(const int32_t indx,
-                                        const float value);
-        
         const float* getTranslation() const;
         
         void getTranslation(float translationOut[3]) const;
@@ -405,21 +389,6 @@ namespace caret {
          * Clipping planes
          */
         ClippingPlaneGroup* m_clippingPlaneGroup;
-        
-        /**
-         * Clipping thickness along axes.
-         */
-        float m_clippingThickness[3];
-        
-        /**
-         * Clipping coordinate along axes.
-         */
-        float m_clippingCoordinate[3];
-        
-        /**
-         * Clipping enabled.
-         */
-        bool m_clippingEnabled[3];
         
         /**
          * Rotation matrix for oblique volume viewing

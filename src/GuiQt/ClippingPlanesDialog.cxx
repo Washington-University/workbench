@@ -137,6 +137,15 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     QObject::connect(m_zRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingValueChanged()));
     
+    
+    
+    /* DISABLE ROTATION UNTIL AFTER RELEASE */
+    m_xRotateDoubleSpinBox->setEnabled(false);
+    m_yRotateDoubleSpinBox->setEnabled(false);
+    m_zRotateDoubleSpinBox->setEnabled(false);
+    
+    
+    
     /*
      * Thickness
      */

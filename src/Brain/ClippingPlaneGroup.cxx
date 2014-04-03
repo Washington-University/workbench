@@ -152,13 +152,33 @@ ClippingPlaneGroup::resetToDefaultValues()
 }
 
 /**
+ * @return The X-coordinate for the structure.
+ *
+ * @param structure
+ *     The structure.  Note that right and left hemispheres are mirror flipped.
+ */
+float
+ClippingPlaneGroup::getXCoordinateForStructure(const StructureEnum::Enum structure) const
+{
+    float x = m_translation[0];
+    if (StructureEnum::isLeft(structure)) {
+        x = -x;
+    }
+ 
+    return x;
+}
+
+/**
  * Create the plane equation for the given plane identifier.
  *
  * @param planeIdentifier
  *    Identifies plane that is created.
+ * @param structure
+ *     The structure.  Note that right and left hemispheres are mirror flipped.
  */
 Plane
-ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier) const
+ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier,
+                                        const StructureEnum::Enum structure) const
 {
     float normalVector[3] = { 0.0, 0.0, 0.0 };
     float pointOnPlane[3] = { 0.0, 0.0, 0.0 };
@@ -173,14 +193,14 @@ ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier) c
              * X Minimum
              */
             normalVector[0] = 1.0;
-            pointOnPlane[0] = m_translation[0] - (m_thickness[0] / 2.0);
+            pointOnPlane[0] = getXCoordinateForStructure(structure) - (m_thickness[0] / 2.0);
             break;
         case PLANE_MAXIMUM_X:
             /*
              * X Maximum
              */
             normalVector[0] = -1.0;
-            pointOnPlane[0] = m_translation[0] + (m_thickness[0] / 2.0);
+            pointOnPlane[0] = getXCoordinateForStructure(structure) + (m_thickness[0] / 2.0);
             break;
         case PLANE_MINIMUM_Y:
             /*
@@ -227,8 +247,7 @@ ClippingPlaneGroup::createClippingPlane(const PlaneIdentifier planeIdentifier) c
  * structure.  
  *
  * @param structure
- *     The structure.  If the structure is a "right side" structure, the
- *     rotations are mirror flipped.
+ *     The structure.  Note that right and left hemispheres are mirror flipped.
  */
 std::vector<Plane>
 ClippingPlaneGroup::getActiveClippingPlanesForStructure(const StructureEnum::Enum structure) const
@@ -236,18 +255,24 @@ ClippingPlaneGroup::getActiveClippingPlanesForStructure(const StructureEnum::Enu
     std::vector<Plane> planes;
     
     if (m_xAxisSelectionStatus) {
-        planes.push_back(createClippingPlane(PLANE_MINIMUM_X));
-        planes.push_back(createClippingPlane(PLANE_MAXIMUM_X));
+        planes.push_back(createClippingPlane(PLANE_MINIMUM_X,
+                                             structure));
+        planes.push_back(createClippingPlane(PLANE_MAXIMUM_X,
+                                             structure));
     }
     
     if (m_yAxisSelectionStatus) {
-        planes.push_back(createClippingPlane(PLANE_MINIMUM_Y));
-        planes.push_back(createClippingPlane(PLANE_MAXIMUM_Y));
+        planes.push_back(createClippingPlane(PLANE_MINIMUM_Y,
+                                             structure));
+        planes.push_back(createClippingPlane(PLANE_MAXIMUM_Y,
+                                             structure));
     }
     
     if (m_zAxisSelectionStatus) {
-        planes.push_back(createClippingPlane(PLANE_MINIMUM_Z));
-        planes.push_back(createClippingPlane(PLANE_MAXIMUM_Z));
+        planes.push_back(createClippingPlane(PLANE_MINIMUM_Z,
+                                             structure));
+        planes.push_back(createClippingPlane(PLANE_MAXIMUM_Z,
+                                             structure));
     }
     
     return planes;
@@ -348,6 +373,22 @@ ClippingPlaneGroup::getTranslation(float translation[3]) const
 }
 
 /**
+ * Get the translation values for the given structure.
+ *
+ * @param structure
+ *     The structure.  Note that right and left hemispheres are mirror flipped.
+ * @param translation
+ *    The translation values.
+ */
+void
+ClippingPlaneGroup::getTranslationForStructure(const StructureEnum::Enum structure,
+                                float translation[3]) const
+{
+    getTranslation(translation);
+    translation[0] = getXCoordinateForStructure(structure);
+}
+
+/**
  * Set the thickness values.
  *
  * @param thickness
@@ -411,6 +452,25 @@ ClippingPlaneGroup::isFeaturesSelected() const
 {
     return m_featuresSelectionStatus;
 }
+
+
+/**
+ * @return Is features and any one or more axes selected for clipping?
+ */
+bool
+ClippingPlaneGroup::isFeaturesAndAnyAxisSelected() const
+{
+    if (m_featuresSelectionStatus) {
+        if (m_xAxisSelectionStatus
+            || m_yAxisSelectionStatus
+            || m_zAxisSelectionStatus) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * Set features selected
@@ -485,6 +545,49 @@ void
 ClippingPlaneGroup::setZAxisSelected(const bool zAxisSelected)
 {
     m_zAxisSelectionStatus = zAxisSelected;
+}
+
+/**
+ * Is the coordinate inside the clipping planes?
+ *
+ * If a clipping plane for an axis is off, the coordinate is considered
+ * to be inside the clipping plane.
+ *
+ * @param structure
+ *     The structure.  Note that right and left hemispheres are mirror flipped.
+ * @param xyz
+ *     The coordinate.
+ *
+ * @return
+ *     True if inside the clipping planes, else false.
+ */
+bool
+ClippingPlaneGroup::isCoordinateInsideClippingPlanesForStructure(const StructureEnum::Enum structure,
+                                                                 const float xyz[3]) const
+{
+    if (m_xAxisSelectionStatus) {
+        const float x = getXCoordinateForStructure(structure);
+        const float minX = x - (m_thickness[0] / 2.0);
+        const float maxX = x + (m_thickness[0] / 2.0);
+        if (xyz[0] < minX) return false;
+        if (xyz[0] > maxX) return false;
+    }
+    
+    if (m_yAxisSelectionStatus) {
+        const float minY = m_translation[1] - (m_thickness[1] / 2.0);
+        const float maxY = m_translation[1] + (m_thickness[1] / 2.0);
+        if (xyz[1] < minY) return false;
+        if (xyz[1] > maxY) return false;
+    }
+    
+    if (m_zAxisSelectionStatus) {
+        const float minZ = m_translation[2] - (m_thickness[2] / 2.0);
+        const float maxZ = m_translation[2] + (m_thickness[2] / 2.0);
+        if (xyz[2] < minZ) return false;
+        if (xyz[2] > maxZ) return false;
+    }
+    
+    return true;
 }
 
 /**

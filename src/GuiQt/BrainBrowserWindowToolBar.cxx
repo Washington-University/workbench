@@ -284,7 +284,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     m_clippingOptionsWidget = createClippingOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
-    this->clippingWidget = this->createClippingWidget();
     
     /*
      * Layout the toolbar's widgets.
@@ -316,8 +315,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->chartAttributesWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->modeWidget, 0, Qt::AlignLeft);
-    
-    this->toolbarWidgetLayout->addWidget(this->clippingWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(m_clippingOptionsWidget, 0, Qt::AlignLeft);
     
@@ -436,7 +433,6 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->singleSurfaceSelectionWidgetGroup->clear();
     this->volumeMontageWidgetGroup->clear();
     this->volumePlaneWidgetGroup->clear();
-    this->clippingWidgetGroup->clear();
     
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
         this->tabClosed(i);
@@ -1240,7 +1236,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showChartTypeWidget = false;
     bool showChartAttributesWidget = false;
     
-    bool showClippingWidget = true;
     bool showModeWidget = true;
     bool showWindowWidget = true;
     
@@ -1268,7 +1263,6 @@ BrainBrowserWindowToolBar::updateToolBar()
         case ModelTypeEnum::MODEL_TYPE_CHART:
         {
             showChartTypeWidget = true;
-            showClippingWidget = false;
             showClippingOptionsWidget = false;
             showModeWidget = false;
             
@@ -1313,7 +1307,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->modeWidget->setVisible(false);
     this->windowWidget->setVisible(false);
     m_clippingOptionsWidget->setVisible(false);
-    this->clippingWidget->setVisible(false);
     
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
@@ -1326,7 +1319,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
     this->modeWidget->setVisible(showModeWidget);
-    this->clippingWidget->setVisible(showClippingWidget);
     m_clippingOptionsWidget->setVisible(showClippingOptionsWidget);
     this->windowWidget->setVisible(showWindowWidget);
 
@@ -1343,7 +1335,6 @@ BrainBrowserWindowToolBar::updateToolBar()
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateModeWidget(browserTabContent);
         this->updateWindowWidget(browserTabContent);
-        this->updateClippingWidget(browserTabContent);
         this->updateClippingOptionsWidget(browserTabContent);
     }
     
@@ -4620,193 +4611,4 @@ BrainBrowserWindowToolBar::restoreFromScene(const SceneAttributes* sceneAttribut
                                                          true);
     showHideToolBar(showToolBar);
 }
-
-/**
- * @return The clipping widget.
- */
-QWidget*
-BrainBrowserWindowToolBar::createClippingWidget()
-{
-    QLabel* axisLabel = new QLabel("Axis");
-    QLabel* thicknessLabel = new QLabel("Thickness");
-    QLabel* coordLabel = new QLabel(" Coords");
-    
-    this->clippingXCheckBox = new QCheckBox("X: ");
-    this->clippingYCheckBox = new QCheckBox("Y: ");
-    this->clippingZCheckBox = new QCheckBox("Z: ");
-
-    QObject::connect(this->clippingXCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    QObject::connect(this->clippingYCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    QObject::connect(this->clippingZCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    
-    const int   thickBoxWidth = 65;
-    const float thicknessMin = 0.0;
-    const float thicknessMax = std::numeric_limits<float>::max();
-    const float thicknessStep = 1.0;
-    const int   thicknessDecimals = 1;
-    
-    this->clippingXThicknessSpinBox = WuQFactory::newDoubleSpinBox();
-    this->clippingXThicknessSpinBox->setRange(thicknessMin,
-                                              thicknessMax);
-    this->clippingXThicknessSpinBox->setSingleStep(thicknessStep);
-    this->clippingXThicknessSpinBox->setDecimals(thicknessDecimals);
-    this->clippingXThicknessSpinBox->setFixedWidth(thickBoxWidth);
-    
-    this->clippingYThicknessSpinBox = WuQFactory::newDoubleSpinBox();
-    this->clippingYThicknessSpinBox->setRange(thicknessMin,
-                                              thicknessMax);
-    this->clippingYThicknessSpinBox->setSingleStep(thicknessStep);
-    this->clippingYThicknessSpinBox->setDecimals(thicknessDecimals);
-    this->clippingYThicknessSpinBox->setFixedWidth(thickBoxWidth);
-    
-    this->clippingZThicknessSpinBox = WuQFactory::newDoubleSpinBox();
-    this->clippingZThicknessSpinBox->setRange(thicknessMin,
-                                              thicknessMax);
-    this->clippingZThicknessSpinBox->setSingleStep(thicknessStep);
-    this->clippingZThicknessSpinBox->setDecimals(thicknessDecimals);
-    this->clippingZThicknessSpinBox->setFixedWidth(thickBoxWidth);
-    
-    QObject::connect(this->clippingXThicknessSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    QObject::connect(this->clippingYThicknessSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    QObject::connect(this->clippingZThicknessSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    
-    const int   coordBoxWidth = 60;
-    const float coordMin = -std::numeric_limits<float>::max();
-    const float coordMax =  std::numeric_limits<float>::max();
-    const float coordStep = 1.0;
-    const int   coordDecimals = 1;
-    
-    this->clippingXCoordSpinBox = WuQFactory::newDoubleSpinBox();
-    this->clippingXCoordSpinBox->setRange(coordMin,
-                                          coordMax);
-    this->clippingXCoordSpinBox->setSingleStep(coordStep);
-    this->clippingXCoordSpinBox->setDecimals(coordDecimals);
-    this->clippingXCoordSpinBox->setFixedWidth(coordBoxWidth);
-    
-    this->clippingYCoordSpinBox = WuQFactory::newDoubleSpinBox();
-    this->clippingYCoordSpinBox->setRange(coordMin,
-                                          coordMax);
-    this->clippingYCoordSpinBox->setSingleStep(coordStep);
-    this->clippingYCoordSpinBox->setDecimals(coordDecimals);
-    this->clippingYCoordSpinBox->setFixedWidth(coordBoxWidth);
-    
-    this->clippingZCoordSpinBox = WuQFactory::newDoubleSpinBox();
-    this->clippingZCoordSpinBox->setRange(coordMin,
-                                          coordMax);
-    this->clippingZCoordSpinBox->setSingleStep(coordStep);
-    this->clippingZCoordSpinBox->setDecimals(coordDecimals);
-    this->clippingZCoordSpinBox->setFixedWidth(coordBoxWidth);
-    
-    QObject::connect(this->clippingXCoordSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    QObject::connect(this->clippingYCoordSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    QObject::connect(this->clippingZCoordSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(clippingWidgetControlChanged()));
-    
-    this->clippingWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->clippingWidgetGroup->add(clippingXCheckBox);
-    this->clippingWidgetGroup->add(clippingYCheckBox);
-    this->clippingWidgetGroup->add(clippingZCheckBox);
-    this->clippingWidgetGroup->add(clippingXThicknessSpinBox);
-    this->clippingWidgetGroup->add(clippingYThicknessSpinBox);
-    this->clippingWidgetGroup->add(clippingZThicknessSpinBox);
-    this->clippingWidgetGroup->add(clippingXCoordSpinBox);
-    this->clippingWidgetGroup->add(clippingYCoordSpinBox);
-    this->clippingWidgetGroup->add(clippingZCoordSpinBox);
-    
-    QWidget* widget = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
-    int row = 0;
-    gridLayout->addWidget(axisLabel, row, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(coordLabel, row, 1, Qt::AlignLeft);
-    gridLayout->addWidget(thicknessLabel, row, 2, Qt::AlignLeft);
-    row++;
-    gridLayout->addWidget(this->clippingXCheckBox, row, 0);
-    gridLayout->addWidget(this->clippingXCoordSpinBox, row, 1);
-    gridLayout->addWidget(this->clippingXThicknessSpinBox, row, 2);
-    row++;
-    gridLayout->addWidget(this->clippingYCheckBox, row, 0);
-    gridLayout->addWidget(this->clippingYCoordSpinBox, row, 1);
-    gridLayout->addWidget(this->clippingYThicknessSpinBox, row, 2);
-    row++;
-    gridLayout->addWidget(this->clippingZCheckBox, row, 0);
-    gridLayout->addWidget(this->clippingZCoordSpinBox, row, 1);
-    gridLayout->addWidget(this->clippingZThicknessSpinBox, row, 2);
-    row++;
-    
-    widget->setSizePolicy(QSizePolicy::Fixed,
-                     QSizePolicy::Fixed);
-    
-    QWidget* w = this->createToolWidget("Clipping",
-                                        widget,
-                                        WIDGET_PLACEMENT_LEFT,
-                                        WIDGET_PLACEMENT_TOP,
-                                        0);
-    return w;
-}
-
-
-/**
- * Update the clipping widgets.
- * @param browserTabContent
- *    Currently displayed content.
- */
-void
-BrainBrowserWindowToolBar::updateClippingWidget(BrowserTabContent* browserTabContent)
-{
-    if (browserTabContent == NULL) {
-        return;
-    }
-    
-    this->clippingWidgetGroup->blockAllSignals(true);
-    
-    this->clippingXCheckBox->setChecked(browserTabContent->isClippingPlaneEnabled(0));
-    this->clippingYCheckBox->setChecked(browserTabContent->isClippingPlaneEnabled(1));
-    this->clippingZCheckBox->setChecked(browserTabContent->isClippingPlaneEnabled(2));
-
-    this->clippingXCoordSpinBox->setValue(browserTabContent->getClippingPlaneCoordinate(0));
-    this->clippingYCoordSpinBox->setValue(browserTabContent->getClippingPlaneCoordinate(1));
-    this->clippingZCoordSpinBox->setValue(browserTabContent->getClippingPlaneCoordinate(2));
-    
-    this->clippingXThicknessSpinBox->setValue(browserTabContent->getClippingPlaneThickness(0));
-    this->clippingYThicknessSpinBox->setValue(browserTabContent->getClippingPlaneThickness(1));
-    this->clippingZThicknessSpinBox->setValue(browserTabContent->getClippingPlaneThickness(2));
-    
-    this->clippingWidgetGroup->blockAllSignals(false);
-}
-
-/**
- * Gets called when a control in the clipping widget changes due to user input.
- */
-void
-BrainBrowserWindowToolBar::clippingWidgetControlChanged()
-{
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    
-    if (btc != NULL) {
-        btc->setClippingPlaneEnabled(0, this->clippingXCheckBox->isChecked());
-        btc->setClippingPlaneEnabled(1, this->clippingYCheckBox->isChecked());
-        btc->setClippingPlaneEnabled(2, this->clippingZCheckBox->isChecked());
-        
-        btc->setClippingPlaneCoordinate(0, this->clippingXCoordSpinBox->value());
-        btc->setClippingPlaneCoordinate(1, this->clippingYCoordSpinBox->value());
-        btc->setClippingPlaneCoordinate(2, this->clippingZCoordSpinBox->value());
-        
-        btc->setClippingPlaneThickness(0, this->clippingXThicknessSpinBox->value());
-        btc->setClippingPlaneThickness(1, this->clippingYThicknessSpinBox->value());
-        btc->setClippingPlaneThickness(2, this->clippingZThicknessSpinBox->value());
-        
-        updateGraphicsWindow();
-    }
-}
-
-
 
