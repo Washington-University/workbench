@@ -145,6 +145,26 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
             {
                 throw OperationException("label list file is malformed for entry #" + AString::number(labelCount) + ": " + AString(labelName.c_str()));
             }
+            if (red < 0 || red > 255)
+            {
+                throw OperationException("bad value for red for entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + ": " + AString::number(red));
+            }
+            if (green < 0 || green > 255)
+            {
+                throw OperationException("bad value for green for entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + ": " + AString::number(green));
+            }
+            if (blue < 0 || blue > 255)
+            {
+                throw OperationException("bad value for blue for entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + ": " + AString::number(blue));
+            }
+            if (alpha < 0 || alpha > 255)
+            {
+                throw OperationException("bad value for alpha for entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + ": " + AString::number(alpha));
+            }
+            if (value == GiftiLabel::getInvalidLabelKey())
+            {
+                throw OperationException("entry #" + AString::number(labelCount) + ", " + AString(labelName.c_str()) + " specifies unusable key value: " + value);
+            }
             while (isspace(labelListFile.peek()))
             {
                 labelListFile.ignore();//drop the newline, possible carriage return or other whitespace so that getline doesn't get nothing, and cause int extraction to fail

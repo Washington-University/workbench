@@ -24,6 +24,8 @@
 #include "GiftiLabel.h"
 #undef __GIFTI_LABEL_DECLARE__
 
+#include "CaretLogger.h"
+
 using namespace caret;
 
 /**
@@ -66,10 +68,10 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     this->name = name;
-    this->red = red;
-    this->green = green;
-    this->blue = blue;
-    this->alpha = alpha;
+    this->red = colorClamp(red);
+    this->green = colorClamp(green);
+    this->blue = colorClamp(blue);
+    this->alpha = colorClamp(alpha);
 }
 
 /**
@@ -97,10 +99,10 @@ GiftiLabel::GiftiLabel(const int32_t key,
     this->initializeMembersGiftiLabel();
     this->key = key;
     this->name = name;
-    this->red = red;
-    this->green = green;
-    this->blue = blue;
-    this->alpha = alpha;
+    this->red = colorClamp(red);
+    this->green = colorClamp(green);
+    this->blue = colorClamp(blue);
+    this->alpha = colorClamp(alpha);
     this->x = x;
     this->y = y;
     this->z = z;
@@ -129,10 +131,10 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     this->name = name;
-    this->red = red;
-    this->green = green;
-    this->blue = blue;
-    this->alpha = alpha;
+    this->red = colorClamp(red);
+    this->green = colorClamp(green);
+    this->blue = colorClamp(blue);
+    this->alpha = colorClamp(alpha);
 }
 
 /**
@@ -152,10 +154,10 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     this->name = name;
-    this->red = rgba[0];
-    this->green = rgba[1];
-    this->blue = rgba[2];
-    this->alpha = rgba[3];
+    this->red = colorClamp(rgba[0]);
+    this->green = colorClamp(rgba[1]);
+    this->blue = colorClamp(rgba[2]);
+    this->alpha = colorClamp(rgba[3]);
 }
 
 /**
@@ -181,10 +183,10 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     this->name = name;
-    this->red = red / 255.0;
-    this->green = green / 255.0;
-    this->blue = blue / 255.0;
-    this->alpha = alpha / 255.0;
+    this->red = colorClamp(red / 255.0);
+    this->green = colorClamp(green / 255.0);
+    this->blue = colorClamp(blue / 255.0);
+    this->alpha = colorClamp(alpha / 255.0);
 }
 
 /**
@@ -204,10 +206,10 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     this->name = name;
-    this->red = rgba[0] / 255.0;
-    this->green = rgba[1] / 255.0;
-    this->blue = rgba[2] / 255.0;
-    this->alpha = rgba[3] / 255.0;
+    this->red = colorClamp(rgba[0] / 255.0);
+    this->green = colorClamp(rgba[1] / 255.0);
+    this->blue = colorClamp(rgba[2] / 255.0);
+    this->alpha = colorClamp(rgba[3] / 255.0);
 }
 
 /**
@@ -223,7 +225,7 @@ GiftiLabel::GiftiLabel(
     this->initializeMembersGiftiLabel();
     this->key = key;
     if (this->key == 0) {
-        this->name = "???";    
+        this->name = "???";
     }
     else {
         std::stringstream str;
@@ -237,6 +239,18 @@ GiftiLabel::GiftiLabel(
  */
 GiftiLabel::~GiftiLabel()
 {
+}
+
+float GiftiLabel::colorClamp(const float& in)
+{
+    if (in < 0.0f) return 0.0f;
+    if (in > 1.0f) return 1.0f;
+    if (in != in)
+    {
+        CaretLogWarning("GiftiLabel was given NaN as a color, changing to 1.0");
+        return 1.0f;
+    }
+    return in;
 }
 
 /**
@@ -447,10 +461,10 @@ GiftiLabel::getColor(float rgbaOut[]) const
 void
 GiftiLabel::setColor(const float rgba[])
 {
-    this->red = rgba[0];
-    this->green = rgba[1];
-    this->blue = rgba[2];
-    this->alpha = rgba[3];
+    this->red = colorClamp(rgba[0]);
+    this->green = colorClamp(rgba[1]);
+    this->blue = colorClamp(rgba[2]);
+    this->alpha = colorClamp(rgba[3]);
     this->setModified();
 }
 
@@ -479,10 +493,10 @@ GiftiLabel::getColorInt() const
 void
 GiftiLabel::setColorInt(const int32_t rgba[])
 {
-    this->red = rgba[0] / 255.0;
-    this->green = rgba[1] / 255.0;
-    this->blue = rgba[2] / 255.0;
-    this->alpha = rgba[3] / 255.0;
+    this->red = colorClamp(rgba[0] / 255.0);
+    this->green = colorClamp(rgba[1] / 255.0);
+    this->blue = colorClamp(rgba[2] / 255.0);
+    this->alpha = colorClamp(rgba[3] / 255.0);
     this->setModified();
 }
 

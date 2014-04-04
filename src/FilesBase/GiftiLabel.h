@@ -99,6 +99,8 @@ namespace caret {
         virtual ~GiftiLabel();
         
     private:
+        static float colorClamp(const float& in);
+        
         void copyHelper(const GiftiLabel& o);
         
         void initializeMembersGiftiLabel();
