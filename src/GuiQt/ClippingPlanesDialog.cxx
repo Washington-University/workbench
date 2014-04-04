@@ -140,6 +140,10 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     
     
     /* DISABLE ROTATION UNTIL AFTER RELEASE */
+    rotateLabel->setHidden(true);
+    m_xRotateDoubleSpinBox->setHidden(true);
+    m_yRotateDoubleSpinBox->setHidden(true);
+    m_zRotateDoubleSpinBox->setHidden(true);
     m_xRotateDoubleSpinBox->setEnabled(false);
     m_yRotateDoubleSpinBox->setEnabled(false);
     m_zRotateDoubleSpinBox->setEnabled(false);
