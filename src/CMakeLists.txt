@@ -11,13 +11,6 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 #TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
 
 #
-# The definition VELAB_INTERNAL_RELEASE_ONLY is used to allow compilation
-# of source code that should only be used within the Van Essen Lab and
-# others but not for a release to everybody.
-#
-ADD_DEFINITIONS(-DVELAB_INTERNAL_RELEASE_ONLY)
-
-#
 # Setting the compiler MUST be done before the PROJECT
 # statement or else an infinite loop will occur indicating
 # that the compiler has been redefined.
