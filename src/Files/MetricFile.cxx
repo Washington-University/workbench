@@ -50,7 +50,8 @@ MetricFile::MetricFile()
  *     Surface file that is copied.
  */
 MetricFile::MetricFile(const MetricFile& sf)
-: GiftiTypeFile(sf)
+: GiftiTypeFile(sf),
+ChartableBrainordinateInterface()
 {
     this->copyHelperMetricFile(sf);
 }
