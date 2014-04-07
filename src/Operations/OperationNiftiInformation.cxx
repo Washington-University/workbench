@@ -82,24 +82,72 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     }
     if(printHeader)
     {
-        NiftiFile nf(fileName);
-        if(nf.getNiftiVersion()==1)
-        {
-            Nifti1Header header;
-            nf.getHeader(header);
-            AString headerString;
-            header.getHeaderAsString(headerString);
-            cout << headerString << endl;
+        const bool readWithHeaderFlag = true;
+        
+        if (readWithHeaderFlag) {
+            /*
+             * Reads header only so should be fast for any size file
+             */
+            try {
+                std::vector<int64_t> dimensions;
+                
+                NiftiHeaderIO niftiHeaderIO(fileName);
+                switch (niftiHeaderIO.getNiftiVersion()) {
+                    case 1:
+                    {
+                        Nifti1Header header;
+                        niftiHeaderIO.getHeader(header);
+                        AString headerString;
+                        header.getHeaderAsString(headerString);
+                        header.getDimensions(dimensions);
+                        cout << headerString << endl;
+                        cout << getMemorySizeAsString(dimensions) << endl;
+                    }
+                        break;
+                    case 2:
+                    {
+                        Nifti2Header header;
+                        niftiHeaderIO.getHeader(header);
+                        AString headerString;
+                        header.getHeaderAsString(headerString);
+                        header.getDimensions(dimensions);
+                        cout << headerString << endl;
+                        cout << getMemorySizeAsString(dimensions) << endl;
+                    }
+                        break;
+                    default:
+                        throw NiftiException("Unrecognized NIFTI version: "
+                                             + AString::number(niftiHeaderIO.getNiftiVersion()));
+                        
+                }
+            }
+            catch (const NiftiException& e) {
+                throw OperationException(e);
+            }
         }
-        else if(nf.getNiftiVersion()==2)
-        {
-            Nifti2Header header;
-            nf.getHeader(header);
-            AString headerString;
-            header.getHeaderAsString(headerString);
-            cout << headerString << endl;
+        else {
+            /*
+             * Reads entire file so may be very slow for large files
+             */
+            NiftiFile nf(fileName);
+            if(nf.getNiftiVersion()==1)
+            {
+                Nifti1Header header;
+                nf.getHeader(header);
+                AString headerString;
+                header.getHeaderAsString(headerString);
+                cout << headerString << endl;
+            }
+            else if(nf.getNiftiVersion()==2)
+            {
+                Nifti2Header header;
+                nf.getHeader(header);
+                AString headerString;
+                header.getHeaderAsString(headerString);
+                cout << headerString << endl;
+            }
+            else throw OperationException("Unrecognized Nifti Version.");
         }
-        else throw OperationException("Unrecognized Nifti Version.");
     }
     if(printXml)
     {
@@ -127,3 +175,64 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
         }
     }
 }
+
+/**
+ * Get the memory usage based upon the given volume dimensions.
+ *
+ * @param dimensions
+ *    The volumes dimensions.
+ */
+AString
+OperationNiftiInformation::getMemorySizeAsString(const std::vector<int64_t>& dimensions)
+{
+
+    AString str;
+    
+    int64_t numVoxelComponents = 0;
+    
+    const int64_t numDims = static_cast<int64_t>(dimensions.size());
+    if (numDims > 0) {
+        numVoxelComponents = 1;
+        for (int64_t i = 0; i < numDims; i++) {
+            CaretAssertVectorIndex(dimensions, i);
+            numVoxelComponents *= dimensions[i];
+        }
+    }
+    
+    const int64_t numberOfBytes = sizeof(float) * numVoxelComponents;
+    
+    str += ("Data Size in (float) memory, Bytes: "
+            + AString::number(numberOfBytes));
+    
+    const double oneKilobyte = 1024;
+    const double kilobytes = numberOfBytes / oneKilobyte;
+    
+    const double oneMegabyte = 1048576;
+    const double megabytes   = numberOfBytes / oneMegabyte;
+    
+    const double oneGigabyte = 1073741824;
+    const double gigabytes   = numberOfBytes / oneGigabyte;
+    
+    const double oneTerabyte = 1099511627776;
+    const double terabytes   = numberOfBytes / oneTerabyte;
+    
+    if (terabytes >= 1.0) {
+        str += ("  Terabytes: "
+                + AString::number(terabytes));
+    }
+    else if (gigabytes >= 1.0) {
+        str += ("  Gigabytes: "
+                + AString::number(gigabytes));
+    }
+    else if (megabytes >= 1.0) {
+        str += ("  Megabytes: "
+                + AString::number(megabytes));
+    }
+    else if (kilobytes >= 1.0) {
+        str += ("  Kilobytes: "
+                + AString::number(kilobytes));
+    }
+    
+    return str;
+}
+

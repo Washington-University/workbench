@@ -32,6 +32,8 @@ namespace caret {
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
+    private:
+        static AString getMemorySizeAsString(const std::vector<int64_t>& dimensions);
     };
 
     typedef TemplateAutoOperation<OperationNiftiInformation> AutoOperationNiftiInformation;
