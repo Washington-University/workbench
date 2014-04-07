@@ -9,8 +9,10 @@ Copyright: Copyright 2014 Washington University School of Medicine
 License: GPL-2+
 
 Files: Quazip/*
-Copyright: Copyright 2005-2011 Sergey A. Tachenov
-           Copyright 1998-2005 Gilles Vollant
+Copyright: Copyright 2005-2012 Sergey A. Tachenov
+           Copyright 1998-2010 Gilles Vollant
+           Copyright 2009-2010 Mathias Svensson
+           Copyright 2007-2008 Even Rouault
            Copyright 1990-2000 Info-ZIP
 License: LGPL-2.0+ and Zlib
 

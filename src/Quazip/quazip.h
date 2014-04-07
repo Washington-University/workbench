@@ -115,6 +115,15 @@ class QUAZIP_EXPORT QuaZip {
       csSensitive=1, ///< Case sensitive.
       csInsensitive=2 ///< Case insensitive.
     };
+    /// Returns the actual case sensitivity for the specified QuaZIP one.
+    /**
+      \param cs The value to convert.
+      \returns If CaseSensitivity::csDefault, then returns the default
+      file name case sensitivity for the platform. Otherwise, just
+      returns the appropriate value from the Qt::CaseSensitivity enum.
+      */
+    static Qt::CaseSensitivity convertCaseSensitivity(
+            CaseSensitivity cs);
   private:
     QuaZipPrivate *p;
     // not (and will not be) implemented
@@ -165,7 +174,11 @@ class QUAZIP_EXPORT QuaZip {
      * by its file name. The default API (qioapi.cpp) just delegates
      * everything to the QIODevice API. Not only this allows to use a
      * QIODevice instead of file name, but also has a nice side effect
-     * of raising the file size limit from 2G to 4G.
+     * of raising the file size limit from 2G to 4G (in non-zip64 archives).
+     *
+     * \note If the zip64 support is needed, the ioApi argument \em must be NULL
+     * because due to the backwards compatibility issues it can be used to
+     * provide a 32-bit API only.
      *
      * In short: just forget about the \a ioApi argument and you'll be
      * fine.
@@ -249,8 +262,12 @@ class QUAZIP_EXPORT QuaZip {
     int getEntriesCount() const;
     /// Returns global comment in the ZIP file.
     QString getComment() const;
-    /// Sets global comment in the ZIP file.
-    /** Comment will be written to the archive on close operation.
+    /// Sets the global comment in the ZIP file.
+    /** The comment will be written to the archive on close operation.
+     * QuaZip makes a distinction between a null QByteArray() comment 
+     * and an empty &quot;&quot; comment in the QuaZip::mdAdd mode. 
+     * A null comment is the default and it means &quot;don't change 
+     * the comment&quot;. An empty comment removes the original comment.
      *
      * \sa open()
      **/
@@ -317,13 +334,26 @@ class QUAZIP_EXPORT QuaZip {
      *
      * Does nothing and returns \c false in any of the following cases.
      * - ZIP is not open;
-     * - ZIP does not have current file;
-     * - \a info is \c NULL;
+     * - ZIP does not have current file.
      *
-     * In all these cases getZipError() returns \c UNZ_OK since there
+     * In both cases getZipError() returns \c UNZ_OK since there
      * is no ZIP/UNZIP API call.
+     *
+     * This overload doesn't support zip64.
+     *
+     * \sa getCurrentFileInfo(QuaZipFileInfo64* info)const
      **/
     bool getCurrentFileInfo(QuaZipFileInfo* info)const;
+    /// Retrieves information about the current file.
+    /** \overload
+     *
+     * This function supports zip64. If the archive doesn't use zip64, it is
+     * completely equivalent to getCurrentFileInfo(QuaZipFileInfo* info)
+     * except for the argument type.
+     *
+     * \sa
+     **/
+    bool getCurrentFileInfo(QuaZipFileInfo64* info)const;
     /// Returns the current file name.
     /** Equivalent to calling getCurrentFileInfo() and then getting \c
      * name field of the QuaZipFileInfo structure, but faster and more
@@ -401,6 +431,62 @@ class QUAZIP_EXPORT QuaZip {
       \sa getFileNameList()
       */
     QList<QuaZipFileInfo> getFileInfoList() const;
+    /// Enables the zip64 mode.
+    /**
+     * @param zip64 If \c true, the zip64 mode is enabled, disabled otherwise.
+     *
+     * Once this is enabled, all new files (until the mode is disabled again)
+     * will be created in the zip64 mode, thus enabling the ability to write
+     * files larger than 4 GB. By default, the zip64 mode is off due to
+     * compatibility reasons.
+     *
+     * \sa isZip64Enabled()
+     */
+    void setZip64Enabled(bool zip64);
+    /// Returns whether the zip64 mode is enabled.
+    /**
+     * @return \c true if and only if the zip64 mode is enabled.
+     *
+     * \sa setZip64Enabled()
+     */
+    bool isZip64Enabled() const;
+    /// Sets the default file name codec to use.
+    /**
+     * The default codec is used by the constructors, so calling this function
+     * won't affect the QuaZip instances already created at that moment.
+     *
+     * The codec specified here can be overriden by calling setFileNameCodec().
+     * If neither function is called, QTextCodec::codecForLocale() will be used
+     * to decode or encode file names. Use this function with caution if
+     * the application uses other libraries that depend on QuaZIP. Those
+     * libraries can either call this function by themselves, thus overriding
+     * your setting or can rely on the default encoding, thus failing
+     * mysteriously if you change it. For these reasons, it isn't recommended
+     * to use this function if you are developing a library, not an application.
+     * Instead, ask your library users to call it in case they need specific
+     * encoding.
+     *
+     * In most cases, using setFileNameCodec() instead is the right choice.
+     * However, if you depend on third-party code that uses QuaZIP, then the
+     * reasons stated above can actually become a reason to use this function
+     * in case the third-party code in question fails because it doesn't
+     * understand the encoding you need and doesn't provide a way to specify it.
+     * This applies to the JlCompress class as well, as it was contributed and
+     * doesn't support explicit encoding parameters.
+     *
+     * In short: use setFileNameCodec() when you can, resort to
+     * setDefaultFileNameCodec() when you don't have access to the QuaZip
+     * instance.
+     *
+     * @param codec The codec to use by default. If NULL, resets to default.
+     */
+    static void setDefaultFileNameCodec(QTextCodec *codec);
+    /**
+     * @overload
+     * Equivalent to calling
+     * setDefltFileNameCodec(QTextCodec::codecForName(codecName)).
+     */
+    static void setDefaultFileNameCodec(const char *codecName);
 };
 
 #endif

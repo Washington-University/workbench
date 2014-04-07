@@ -27,8 +27,10 @@ Some included code is from third party sources, with the following licenses:
 
 Quazip/*:
 QuaZIP 0.4.4, http://quazip.sourceforge.net/
-Copyright (C) 2005-2011 Sergey A. Tachenov
-Copyright (C) 1998-2005 Gilles Vollant
+Copyright (C) 2005-2012 Sergey A. Tachenov
+Copyright (C) 1998-2010 Gilles Vollant
+Copyright (C) 2009-2010 Mathias Svensson
+Copyright (C) 2007-2008 Even Rouault
 Copyright (c) 1990-2000 Info-ZIP
 licensed under LGPLv2.1 and zlib, see Quazip/COPYING and Quazip/zip.h and Quazip/unzip.c
 
