@@ -27,6 +27,8 @@
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretTemporaryFile.h"
+#include "ChartDataCartesian.h"
+#include "ChartDataSource.h"
 #include "DataFileContentInformation.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
@@ -74,6 +76,9 @@ VolumeFile::VolumeFile()
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
     m_niftiHeaderInfo.m_valid = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
     validateMembers();
 }
 
@@ -84,6 +89,9 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
     m_niftiHeaderInfo.m_valid = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
     validateMembers();
     setType(whatType);
 }
@@ -95,6 +103,9 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
     m_niftiHeaderInfo.m_valid = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
     validateMembers();
     setType(whatType);
 }
@@ -1488,6 +1499,10 @@ VolumeFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
     CaretMappableDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
+    sceneClass->addBooleanArray("m_chartingEnabledForTab",
+                                m_chartingEnabledForTab,
+                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    
     if (isMappedWithLabelTable()) {
         sceneClass->addClass(m_classNameHierarchy->saveToScene(sceneAttributes,
                                                                "m_classNameHierarchy"));
@@ -1514,6 +1529,18 @@ VolumeFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
 {
     CaretMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
+    
+    const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
+    if (tabArray != NULL) {
+        sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
+                                         m_chartingEnabledForTab,
+                                         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    }
+    else {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_chartingEnabledForTab[i] = false;
+        }
+    }
     
     if (isMappedWithLabelTable()) {
         const SceneClass* sc = sceneClass->getClass("m_classNameHierarchy");
@@ -1628,4 +1655,147 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
                                         AString::fromNumbers(spacing, 3, ", "));
     
 }
+
+/**
+ * @return Is charting enabled for this file?
+ */
+bool
+VolumeFile::isChartingEnabled(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_chartingEnabledForTab[tabIndex];
+}
+
+/**
+ * @return Return true if the file's current state supports
+ * charting data, else false.  Typically a brainordinate file
+ * is chartable if it contains more than one map.
+ */
+bool
+VolumeFile::isChartingSupported() const
+{
+    if (getNumberOfMaps() > 1) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Set charting enabled for this file.
+ *
+ * @param enabled
+ *    New status for charting enabled.
+ */
+void
+VolumeFile::setChartingEnabled(const int32_t tabIndex,
+                               const bool enabled)
+{
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_chartingEnabledForTab[tabIndex] = enabled;
+}
+
+/**
+ * Get chart data types supported by the file.
+ *
+ * @param chartDataTypesOut
+ *    Chart types supported by this file.
+ */
+void
+VolumeFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
+}
+
+/**
+ * Load charting data for the surface with the given structure and node index.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+VolumeFile::loadChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
+                                        const int32_t /*nodeIndex*/) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    return chartData;
+}
+
+/**
+ * Load average charting data for the surface with the given structure and node indices.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndices
+ *     Indices of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+VolumeFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum /*structure*/,
+                                                const std::vector<int32_t>& /*nodeIndices*/) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    return chartData;
+}
+
+/**
+ * Load charting data for the voxel enclosing the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+VolumeFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+
+    if (isMappedWithPalette()) {
+        int64_t ijk[3];
+        enclosingVoxel(xyz,
+                       ijk);
+        
+        if (indexValid(ijk)) {
+            std::vector<float> data;
+            
+            const int32_t numMaps = getNumberOfMaps();
+            for (int32_t iMap = 0; iMap < numMaps; iMap++) {
+                data.push_back(getValue(ijk, iMap));
+            }
+            
+            try {
+                chartData = helpCreateCartesianChartData(data);
+                ChartDataSource* dataSource = chartData->getChartDataSource();
+                dataSource->setVolumeVoxel(getFileName(), xyz);
+            }
+            catch (const DataFileException& dfe) {
+                if (chartData != NULL) {
+                    delete chartData;
+                    chartData = NULL;
+                }
+                
+                throw dfe;
+            }
+        }
+    }
+    
+    return chartData;
+}
+
 

@@ -3463,117 +3463,117 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     }
 }
 
-/**
- * Create cartesian chart data from the given data.
- *
- * @param
- *     Data for the Y-axis.
- */
-ChartDataCartesian*
-CiftiMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException)
-{
-    ChartDataCartesian* chartData = NULL;
-    
-    const int64_t numData = static_cast<int64_t>(data.size());
-    
-    /*
-     * Some files may have time data
-     */
-    bool timeSeriesFlag = false;
-    bool dataSeriesFlag = false;
-    bool mayHaveTimeUnitsFlag = false;
-    switch (getDataFileType()) {
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
-            dataSeriesFlag = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            mayHaveTimeUnitsFlag = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
-            dataSeriesFlag = true;
-            break;
-        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
-            mayHaveTimeUnitsFlag = true;
-            break;
-        default:
-            const AString msg("Has a new type of connectivity file for chart data loading been added?");
-            CaretAssertMessage(0, msg);
-            CaretLogSevere(msg);
-            throw DataFileException(msg);
-            break;
-    }
-    
-    float convertTimeToSeconds = 1.0;
-    if (mayHaveTimeUnitsFlag) {
-        switch (getMapIntervalUnits()) {
-            case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-                break;
-            case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-                timeSeriesFlag = true;
-                convertTimeToSeconds = 1000.0;
-                break;
-            case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-                break;
-            case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-                convertTimeToSeconds = 1.0;
-                timeSeriesFlag = true;
-                break;
-            case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-                dataSeriesFlag = true;
-                break;
-            case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-                convertTimeToSeconds = 1000000.0;
-                timeSeriesFlag = true;
-                break;
-        }
-        
-        if (timeSeriesFlag) {
-            dataSeriesFlag = false;
-        }
-    }
-    
-    if (dataSeriesFlag) {
-        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-    }
-    else if (timeSeriesFlag) {
-        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
-                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
-                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-    }
-    else {
-        const AString msg = "New type of units for data series flag, needs updating for charting";
-        CaretAssertMessage(0, msg);
-        throw DataFileException(msg);
-    }
-    
-    if (chartData != NULL) {
-        float timeStart = 0.0;
-        float timeStep  = 1.0;
-        if (timeSeriesFlag) {
-            getMapIntervalStartAndStep(timeStart,
-                                       timeStep);
-            timeStart *= convertTimeToSeconds;
-            timeStep  *= convertTimeToSeconds;
-            chartData->setTimeStartInSecondsAxisX(timeStart);
-            chartData->setTimeStepInSecondsAxisX(timeStep);
-        }
-        
-        for (int64_t i = 0; i < numData; i++) {
-            float xValue = i;
-            
-            if (timeSeriesFlag) {
-                xValue = timeStart + (i * timeStep);
-            }
-            
-            chartData->addPoint(xValue,
-                                data[i]);
-        }
-    }
-    
-    return chartData;
-}
+///**
+// * Create cartesian chart data from the given data.
+// *
+// * @param
+// *     Data for the Y-axis.
+// */
+//ChartDataCartesian*
+//CiftiMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException)
+//{
+//    ChartDataCartesian* chartData = NULL;
+//    
+//    const int64_t numData = static_cast<int64_t>(data.size());
+//    
+//    /*
+//     * Some files may have time data
+//     */
+//    bool timeSeriesFlag = false;
+//    bool dataSeriesFlag = false;
+//    bool mayHaveTimeUnitsFlag = false;
+//    switch (getDataFileType()) {
+//        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+//            dataSeriesFlag = true;
+//            break;
+//        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+//            mayHaveTimeUnitsFlag = true;
+//            break;
+//        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+//            dataSeriesFlag = true;
+//            break;
+//        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+//            mayHaveTimeUnitsFlag = true;
+//            break;
+//        default:
+//            const AString msg("Has a new type of connectivity file for chart data loading been added?");
+//            CaretAssertMessage(0, msg);
+//            CaretLogSevere(msg);
+//            throw DataFileException(msg);
+//            break;
+//    }
+//    
+//    float convertTimeToSeconds = 1.0;
+//    if (mayHaveTimeUnitsFlag) {
+//        switch (getMapIntervalUnits()) {
+//            case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+//                break;
+//            case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+//                timeSeriesFlag = true;
+//                convertTimeToSeconds = 1000.0;
+//                break;
+//            case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+//                break;
+//            case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+//                convertTimeToSeconds = 1.0;
+//                timeSeriesFlag = true;
+//                break;
+//            case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+//                dataSeriesFlag = true;
+//                break;
+//            case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+//                convertTimeToSeconds = 1000000.0;
+//                timeSeriesFlag = true;
+//                break;
+//        }
+//        
+//        if (timeSeriesFlag) {
+//            dataSeriesFlag = false;
+//        }
+//    }
+//    
+//    if (dataSeriesFlag) {
+//        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+//                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+//                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//    }
+//    else if (timeSeriesFlag) {
+//        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+//                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
+//                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+//    }
+//    else {
+//        const AString msg = "New type of units for data series flag, needs updating for charting";
+//        CaretAssertMessage(0, msg);
+//        throw DataFileException(msg);
+//    }
+//    
+//    if (chartData != NULL) {
+//        float timeStart = 0.0;
+//        float timeStep  = 1.0;
+//        if (timeSeriesFlag) {
+//            getMapIntervalStartAndStep(timeStart,
+//                                       timeStep);
+//            timeStart *= convertTimeToSeconds;
+//            timeStep  *= convertTimeToSeconds;
+//            chartData->setTimeStartInSecondsAxisX(timeStart);
+//            chartData->setTimeStepInSecondsAxisX(timeStep);
+//        }
+//        
+//        for (int64_t i = 0; i < numData; i++) {
+//            float xValue = i;
+//            
+//            if (timeSeriesFlag) {
+//                xValue = timeStart + (i * timeStep);
+//            }
+//            
+//            chartData->addPoint(xValue,
+//                                data[i]);
+//        }
+//    }
+//    
+//    return chartData;
+//}
 
 /**
  * Help load charting data for the surface with the given structure and node average.

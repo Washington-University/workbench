@@ -22,10 +22,12 @@
  */
 /*LICENSE_END*/
 
+#include "BrainConstants.h"
 #include "VolumeBase.h"
 #include "CaretMappableDataFile.h"
 #include "CaretMutex.h"
 #include "CaretVolumeExtension.h"
+#include "ChartableBrainordinateInterface.h"
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
@@ -40,7 +42,7 @@ namespace caret {
     class VolumeFileVoxelColorizer;
     class VolumeSpline;
     
-    class VolumeFile : public VolumeBase, public CaretMappableDataFile
+    class VolumeFile : public VolumeBase, public CaretMappableDataFile, public ChartableBrainordinateInterface
     {
         VolumeFile(const VolumeFile&);
         
@@ -97,6 +99,8 @@ namespace caret {
         
         mutable std::vector<VolumeSpline> m_frameSplines;
         
+        bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+
         mutable bool m_dataRangeValid;
         
         mutable float m_dataRangeMinimum;
@@ -295,6 +299,24 @@ namespace caret {
         GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel();
         
         const GroupAndNameHierarchyModel* getGroupAndNameHierarchyModel() const;
+        
+        virtual bool isChartingEnabled(const int32_t tabIndex) const;
+        
+        virtual void setChartingEnabled(const int32_t tabIndex,
+                                        const bool enabled);
+        
+        virtual bool isChartingSupported() const;
+        
+        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                                const int32_t nodeIndex) throw (DataFileException);
+        
+        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                                        const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+        
+        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        
+        
+        virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
     };
 

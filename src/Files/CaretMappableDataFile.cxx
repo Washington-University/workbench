@@ -25,6 +25,8 @@
 
 #include <limits>
 
+#include "CaretLogger.h"
+#include "ChartDataCartesian.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "DataFileContentInformation.h"
 #include "FastStatistics.h"
@@ -711,6 +713,123 @@ CaretMappableDataFile::isModified() const
     }
     
     return false;
+}
+
+/**
+ * Create cartesian chart data from the given data.
+ *
+ * @param
+ *     Data for the Y-axis.
+ * @return 
+ *     Pointer to the ChartDataCartesian instance.
+ */
+ChartDataCartesian*
+CaretMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException)
+{
+    const int64_t numData = static_cast<int64_t>(data.size());
+    
+    /*
+     * Some files may have time data but initially assume data-series
+     */
+    bool timeSeriesFlag = false;
+    
+    float convertTimeToSeconds = 1.0;
+    switch (getMapIntervalUnits()) {
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+            timeSeriesFlag = true;
+            convertTimeToSeconds = 1000.0;
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+            convertTimeToSeconds = 1.0;
+            timeSeriesFlag = true;
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+            convertTimeToSeconds = 1000000.0;
+            timeSeriesFlag = true;
+            break;
+    }
+    
+    ChartDataCartesian* chartData = NULL;
+    
+    if (timeSeriesFlag) {
+        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_TIME_SECONDS,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+    }
+    else {
+        chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                           ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+    }
+
+    if (chartData != NULL) {
+        float timeStart = 0.0;
+        float timeStep  = 1.0;
+        if (timeSeriesFlag) {
+            getMapIntervalStartAndStep(timeStart,
+                                       timeStep);
+            timeStart *= convertTimeToSeconds;
+            timeStep  *= convertTimeToSeconds;
+            chartData->setTimeStartInSecondsAxisX(timeStart);
+            chartData->setTimeStepInSecondsAxisX(timeStep);
+        }
+        
+        for (int64_t i = 0; i < numData; i++) {
+            float xValue = i;
+            
+            if (timeSeriesFlag) {
+                xValue = timeStart + (i * timeStep);
+            }
+            
+            chartData->addPoint(xValue,
+                                data[i]);
+        }
+    }
+    
+    return chartData;
+}
+
+/**
+ * Helper for getting chart data types supported by files that create
+ * charts from brainordinates (multi-map files).
+ * The chart data types are a function of the map interval units.
+ *
+ * @param chartDataTypesOut
+ *    Chart types supported by this file.
+ */
+void
+CaretMappableDataFile::helpGetSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    chartDataTypesOut.clear();
+    
+    switch (getMapIntervalUnits()) {
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+            CaretLogSevere("Units - HZ not supported");
+            CaretAssertMessage(0, "Units - HZ not supported");
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+            CaretLogSevere("Units - PPM not supported");
+            CaretAssertMessage(0, "Units - PPM not supported");
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+    }
 }
 
 

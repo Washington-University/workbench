@@ -23,10 +23,12 @@
 
 
 #include "CaretDataFile.h"
+#include "ChartDataTypeEnum.h"
 #include "NiftiEnums.h"
 
 namespace caret {
 
+    class ChartDataCartesian;
     class DescriptiveStatistics;
     class FastStatistics;
     class GiftiMetaData;
@@ -393,6 +395,10 @@ namespace caret {
         CaretMappableDataFile(const CaretMappableDataFile&);
 
         CaretMappableDataFile& operator=(const CaretMappableDataFile&);
+        
+        ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException);
+        
+        void helpGetSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);

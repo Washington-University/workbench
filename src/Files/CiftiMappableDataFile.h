@@ -327,8 +327,8 @@ namespace caret {
 
         virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
     
-    private:
-        ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException);
+//    private:
+//        ChartDataCartesian* helpCreateCartesianChartData(const std::vector<float>& data) throw (DataFileException);
     
     protected:
         ChartDataCartesian* helpLoadChartDataForSurfaceNode(const StructureEnum::Enum structure,

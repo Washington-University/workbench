@@ -140,30 +140,7 @@ CiftiParcelSeriesFile::setChartingEnabled(const int32_t tabIndex,
 void
 CiftiParcelSeriesFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    chartDataTypesOut.clear();
-    
-    switch (getMapIntervalUnits()) {
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-            CaretLogSevere("Units - HZ not supported");
-            CaretAssertMessage(0, "Units - HZ not supported");
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-            CaretLogSevere("Units - PPM not supported");
-            CaretAssertMessage(0, "Units - PPM not supported");
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
-            break;
-    }
+    helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
 }
 
 /**

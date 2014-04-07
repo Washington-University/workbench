@@ -465,30 +465,7 @@ MetricFile::setChartingEnabled(const int32_t tabIndex,
 void
 MetricFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
-    chartDataTypesOut.clear();
-    
-    switch (getMapIntervalUnits()) {
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
-            CaretLogSevere("Units - HZ not supported");
-            CaretAssertMessage(0, "Units - HZ not supported");
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
-            CaretLogSevere("Units - PPM not supported");
-            CaretAssertMessage(0, "Units - PPM not supported");
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
-            break;
-        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
-            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
-            break;
-    }
+    helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
 }
 
 /**
@@ -513,15 +490,13 @@ MetricFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
         try {
             const int32_t numMaps = getNumberOfMaps();
             
-            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            std::vector<float> data;
             for (int64_t iMap = 0; iMap < numMaps; iMap++) {
-                float xValue = iMap;
-                chartData->addPoint(xValue,
-                                    getValue(nodeIndex,
-                                             iMap));
+                data.push_back(getValue(nodeIndex,
+                                        iMap));
             }
+            
+            chartData = helpCreateCartesianChartData(data);
             
             ChartDataSource* dataSource = chartData->getChartDataSource();
             dataSource->setSurfaceNode(getFileName(),
@@ -582,21 +557,15 @@ MetricFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
                     }
                 }
                 
-                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
-                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
-                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
-                
+                std::vector<float> data;
                 for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
                     CaretAssertVectorIndex(dataSum, iMap);
                     
                     const float mapAverageValue = dataSum[iMap] / numberOfNodeIndices;
-                    
-                    float xValue = iMap;
-                    chartData->addPoint(xValue,
-                                        mapAverageValue);
-                    
+                    data.push_back(mapAverageValue);
                 }
                 
+                chartData = helpCreateCartesianChartData(data);
                 ChartDataSource* dataSource = chartData->getChartDataSource();
                 dataSource->setSurfaceNodeAverage(getFileName(),
                                                   StructureEnum::toName(structure),
