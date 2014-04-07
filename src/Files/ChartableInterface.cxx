@@ -22,6 +22,8 @@
 #include "ChartableInterface.h"
 #undef __CHARTABLE_INTERFACE_DECLARE__
 
+#include "CaretMappableDataFile.h"
+
 using namespace caret;
 
 /**
@@ -53,3 +55,28 @@ ChartableInterface::isChartDataTypeSupported(const ChartDataTypeEnum::Enum chart
     
     return false;
 }
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
+ */
+CaretMappableDataFile*
+ChartableInterface::getCaretMappableDataFile()
+{
+    CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(this);
+    CaretAssert(cmdf);
+    return cmdf;
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
+ */
+const CaretMappableDataFile*
+ChartableInterface::getCaretMappableDataFile() const
+{
+    const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(this);
+    CaretAssert(cmdf);
+    return cmdf;
+}
+

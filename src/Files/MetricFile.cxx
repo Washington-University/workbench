@@ -630,28 +630,10 @@ MetricFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-MetricFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+MetricFile::loadChartDataForVoxelAtCoordinate(const float * /*xyz[3]*/) throw (DataFileException)
 {
     ChartDataCartesian* chartData = NULL; //helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
-}
-
-/**
- * @return The CaretMappableDataFile that implements this interface.
- */
-CaretMappableDataFile*
-MetricFile::getCaretMappableDataFile()
-{
-    return dynamic_cast<CaretMappableDataFile*>(this);
-}
-
-/**
- * @return The CaretMappableDataFile that implements this interface.
- */
-const CaretMappableDataFile*
-MetricFile::getCaretMappableDataFile() const
-{
-    return dynamic_cast<const CaretMappableDataFile*>(this);
 }
 
 /**

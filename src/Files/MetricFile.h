@@ -92,10 +92,6 @@ namespace caret {
         
         virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
-        virtual CaretMappableDataFile* getCaretMappableDataFile();
-        
-        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
-        
     protected:
         /**
          * Validate the contents of the file after it

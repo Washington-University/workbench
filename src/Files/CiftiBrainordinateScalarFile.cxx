@@ -345,24 +345,6 @@ CiftiBrainordinateScalarFile::loadChartDataForVoxelAtCoordinate(const float xyz[
 }
 
 /**
- * @return The CaretMappableDataFile that implements this interface.
- */
-CaretMappableDataFile*
-CiftiBrainordinateScalarFile::getCaretMappableDataFile()
-{
-    return dynamic_cast<CaretMappableDataFile*>(this);
-}
-
-/**
- * @return The CaretMappableDataFile that implements this interface.
- */
-const CaretMappableDataFile*
-CiftiBrainordinateScalarFile::getCaretMappableDataFile() const
-{
-    return dynamic_cast<const CaretMappableDataFile*>(this);
-}
-
-/**
  * Save file data from the scene.  For subclasses that need to
  * save to a scene, this method should be overriden.  sceneClass
  * will be valid and any scene data should be added to it.

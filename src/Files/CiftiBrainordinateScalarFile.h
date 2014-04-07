@@ -58,10 +58,6 @@ namespace caret {
 
         virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
-        virtual CaretMappableDataFile* getCaretMappableDataFile();
-        
-        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
-        
     private:
         CiftiBrainordinateScalarFile(const CiftiBrainordinateScalarFile&);
 

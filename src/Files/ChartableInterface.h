@@ -42,12 +42,12 @@ namespace caret {
         /**
          * @return The CaretMappableDataFile that implements this interface.
          */
-        virtual CaretMappableDataFile* getCaretMappableDataFile() = 0;
+        virtual CaretMappableDataFile* getCaretMappableDataFile();
         
         /**
          * @return The CaretMappableDataFile that implements this interface.
          */
-        virtual const CaretMappableDataFile* getCaretMappableDataFile() const = 0;
+        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
         
         /**
          * @return Is charting enabled for this file in the given tab?

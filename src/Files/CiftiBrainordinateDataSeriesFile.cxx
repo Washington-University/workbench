@@ -280,24 +280,6 @@ CiftiBrainordinateDataSeriesFile::loadChartDataForVoxelAtCoordinate(const float 
 }
 
 /**
- * @return The CaretMappableDataFile that implements this interface.
- */
-CaretMappableDataFile*
-CiftiBrainordinateDataSeriesFile::getCaretMappableDataFile()
-{
-    return dynamic_cast<CaretMappableDataFile*>(this);
-}
-
-/**
- * @return The CaretMappableDataFile that implements this interface.
- */
-const CaretMappableDataFile*
-CiftiBrainordinateDataSeriesFile::getCaretMappableDataFile() const
-{
-    return dynamic_cast<const CaretMappableDataFile*>(this);
-}
-
-/**
  * Get chart data types supported by the file.
  *
  * @param chartDataTypesOut

@@ -53,10 +53,6 @@ namespace caret {
                                              AString& rowNameOut,
                                              AString& columnNameOut) const;
         
-        virtual CaretMappableDataFile* getCaretMappableDataFile() ;
-
-        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
-
         virtual bool isChartingEnabled(const int32_t tabIndex) const;
 
         virtual bool isChartingSupported() const;

@@ -216,24 +216,6 @@ CiftiConnectivityMatrixParcelFile::getSupportedChartDataTypes(std::vector<ChartD
 }
 
 /**
- * @return The CaretMappableDataFile that implements this interface.
- */
-CaretMappableDataFile*
-CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile()
-{
-    return dynamic_cast<CaretMappableDataFile*>(this);
-}
-
-/**
- * @return The CaretMappableDataFile that implements this interface.
- */
-const CaretMappableDataFile*
-CiftiConnectivityMatrixParcelFile::getCaretMappableDataFile() const
-{
-    return dynamic_cast<const CaretMappableDataFile*>(this);
-}
-
-/**
  * @return Chart matrix display properties (const method).
  */
 const ChartMatrixDisplayProperties*
