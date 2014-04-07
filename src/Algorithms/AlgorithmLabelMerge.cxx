@@ -138,6 +138,7 @@ AlgorithmLabelMerge::AlgorithmLabelMerge(ProgressObject* myProgObj, const vector
                         colScratch[n] = iter->second;
                     }
                 }
+                labelOut->setColumnName(curCol, labelList[i]->getColumnName(j));
                 labelOut->setLabelKeysForColumn(curCol, colScratch.data());
                 ++curCol;
             }
@@ -153,6 +154,7 @@ AlgorithmLabelMerge::AlgorithmLabelMerge(ProgressObject* myProgObj, const vector
                     colScratch[n] = iter->second;
                 }
             }
+            labelOut->setColumnName(curCol, labelList[i]->getColumnName(indexList[i]));
             labelOut->setLabelKeysForColumn(curCol, colScratch.data());
             ++curCol;
         }
