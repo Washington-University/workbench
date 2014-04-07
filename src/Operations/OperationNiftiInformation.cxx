@@ -204,16 +204,16 @@ OperationNiftiInformation::getMemorySizeAsString(const std::vector<int64_t>& dim
     str += ("Data Size in (float) memory, Bytes: "
             + AString::number(numberOfBytes));
     
-    const double oneKilobyte = 1024;
+    const double oneKilobyte = 1024.0;
     const double kilobytes = numberOfBytes / oneKilobyte;
     
-    const double oneMegabyte = 1048576;
+    const double oneMegabyte = 1048576.0;
     const double megabytes   = numberOfBytes / oneMegabyte;
     
-    const double oneGigabyte = 1073741824;
+    const double oneGigabyte = 1073741824.0;
     const double gigabytes   = numberOfBytes / oneGigabyte;
     
-    const double oneTerabyte = 1099511627776;
+    const double oneTerabyte = 1099511627776.0;
     const double terabytes   = numberOfBytes / oneTerabyte;
     
     if (terabytes >= 1.0) {
