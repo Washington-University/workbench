@@ -89,15 +89,12 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
         myBaseDir += "/";//so, add the trailing slash to the path
     }
     AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
-    if (!sceneFilePath.endsWith('/'))
-    {
-        sceneFilePath += "/";
-    }
     if (!sceneFilePath.startsWith(myBaseDir))
     {
         throw OperationException("scene file lies outside the base directory");
     }
     set<AString> allFiles;
+    allFiles.insert(sceneFilePath);
     SceneFile sceneFile;
     sceneFile.readFile(sceneFileName);
     const int numScenes = sceneFile.getNumberOfScenes();
