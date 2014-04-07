@@ -20,12 +20,15 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ChartDataCartesian.h"
+#include "ChartDataSource.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "NiftiEnums.h"
 #include "PaletteColorMapping.h"
+#include "SceneClass.h"
 
 #include <limits>
 
@@ -197,6 +200,9 @@ MetricFile::getNumberOfColumns() const
 void 
 MetricFile::initializeMembersMetricFile()
 {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
 }
 
 /**
@@ -206,9 +212,13 @@ MetricFile::initializeMembersMetricFile()
  *    File that is copied.
  */
 void 
-MetricFile::copyHelperMetricFile(const MetricFile& /*sf*/)
+MetricFile::copyHelperMetricFile(const MetricFile& mf)
 {
     this->validateDataArraysAfterReading();
+
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = mf.m_chartingEnabledForTab[i];
+    }
 }
 
 /**
@@ -402,6 +412,307 @@ MetricFile::getDataRangeFromAllMaps(float& dataRangeMinimumOut,
     
     return true;
 }
+
+/**
+ * @return Is charting enabled for this file?
+ */
+bool
+MetricFile::isChartingEnabled(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_chartingEnabledForTab[tabIndex];
+}
+
+/**
+ * @return Return true if the file's current state supports
+ * charting data, else false.  Typically a brainordinate file
+ * is chartable if it contains more than one map.
+ */
+bool
+MetricFile::isChartingSupported() const
+{
+    if (getNumberOfMaps() > 1) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Set charting enabled for this file.
+ *
+ * @param enabled
+ *    New status for charting enabled.
+ */
+void
+MetricFile::setChartingEnabled(const int32_t tabIndex,
+                                                 const bool enabled)
+{
+    CaretAssertArrayIndex(m_chartingEnabledForTab,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    m_chartingEnabledForTab[tabIndex] = enabled;
+}
+
+/**
+ * Get chart data types supported by the file.
+ *
+ * @param chartDataTypesOut
+ *    Chart types supported by this file.
+ */
+void
+MetricFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+{
+    chartDataTypesOut.clear();
+    
+    switch (getMapIntervalUnits()) {
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_HZ:
+            CaretLogSevere("Units - HZ not supported");
+            CaretAssertMessage(0, "Units - HZ not supported");
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_MSEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_PPM:
+            CaretLogSevere("Units - PPM not supported");
+            CaretAssertMessage(0, "Units - PPM not supported");
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_SEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
+            break;
+        case NiftiTimeUnitsEnum::NIFTI_UNITS_USEC:
+            chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+            break;
+    }
+}
+
+/**
+ * Load charting data for the surface with the given structure and node index.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndex
+ *     Index of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+MetricFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                          const int32_t nodeIndex) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+
+    if (getStructure() == structure) {
+        try {
+            const int32_t numMaps = getNumberOfMaps();
+            
+            chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                               ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+            for (int64_t iMap = 0; iMap < numMaps; iMap++) {
+                float xValue = iMap;
+                chartData->addPoint(xValue,
+                                    getValue(nodeIndex,
+                                             iMap));
+            }
+            
+            ChartDataSource* dataSource = chartData->getChartDataSource();
+            dataSource->setSurfaceNode(getFileName(),
+                                       StructureEnum::toName(structure),
+                                       getNumberOfNodes(),
+                                       nodeIndex);
+        }
+        catch (const DataFileException& dfe) {
+            if (chartData != NULL) {
+                delete chartData;
+                chartData = NULL;
+            }
+            
+            throw dfe;
+        }
+    }
+
+    return chartData;
+}
+
+/**
+ * Load average charting data for the surface with the given structure and node indices.
+ *
+ * @param structure
+ *     The surface's structure.
+ * @param nodeIndices
+ *     Indices of the node.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+MetricFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                                  const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL;
+    
+    if (getStructure() == structure) {
+        ChartDataCartesian* chartData = NULL;
+        
+        try {
+            const int32_t numberOfNodeIndices = static_cast<int32_t>(nodeIndices.size());
+            const int32_t numberOfMaps  = getNumberOfMaps();
+            
+            if ((numberOfNodeIndices > 0)
+                && (numberOfMaps > 0)) {
+                
+                std::vector<double> dataSum(numberOfMaps, 0.0);
+                
+                for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
+                    CaretAssertVectorIndex(dataSum, iMap);
+                    
+                    for (int32_t iNode = 0; iNode < numberOfNodeIndices; iNode++) {
+                        const int32_t nodeIndex = nodeIndices[iNode];
+                        dataSum[iMap] += getValue(nodeIndex,
+                                                  iMap);
+                    }
+                }
+                
+                chartData = new ChartDataCartesian(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES,
+                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE,
+                                                   ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE);
+                
+                for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
+                    CaretAssertVectorIndex(dataSum, iMap);
+                    
+                    const float mapAverageValue = dataSum[iMap] / numberOfNodeIndices;
+                    
+                    float xValue = iMap;
+                    chartData->addPoint(xValue,
+                                        mapAverageValue);
+                    
+                }
+                
+                ChartDataSource* dataSource = chartData->getChartDataSource();
+                dataSource->setSurfaceNodeAverage(getFileName(),
+                                                  StructureEnum::toName(structure),
+                                                  numberOfNodeIndices,
+                                                  nodeIndices);
+            }
+        }
+        catch (const DataFileException& dfe) {
+            if (chartData != NULL) {
+                delete chartData;
+                chartData = NULL;
+            }
+            
+            throw dfe;
+        }
+        
+        return chartData;
+    }
+    
+    return chartData;
+}
+
+/**
+ * Load charting data for the voxel enclosing the given coordinate.
+ *
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *     Pointer to the chart data.  If the data FAILED to load,
+ *     the returned pointer will be NULL.  Caller takes ownership
+ *     of the pointer and must delete it when no longer needed.
+ */
+ChartDataCartesian*
+MetricFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    ChartDataCartesian* chartData = NULL; //helpLoadChartDataForVoxelAtCoordinate(xyz);
+    return chartData;
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+CaretMappableDataFile*
+MetricFile::getCaretMappableDataFile()
+{
+    return dynamic_cast<CaretMappableDataFile*>(this);
+}
+
+/**
+ * @return The CaretMappableDataFile that implements this interface.
+ */
+const CaretMappableDataFile*
+MetricFile::getCaretMappableDataFile() const
+{
+    return dynamic_cast<const CaretMappableDataFile*>(this);
+}
+
+/**
+ * Save file data from the scene.  For subclasses that need to
+ * save to a scene, this method should be overriden.  sceneClass
+ * will be valid and any scene data should be added to it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass to which data members should be added.
+ */
+void
+MetricFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                                  SceneClass* sceneClass)
+{
+    GiftiTypeFile::saveFileDataToScene(sceneAttributes,
+                                               sceneClass);
+    
+    sceneClass->addBooleanArray("m_chartingEnabledForTab",
+                                m_chartingEnabledForTab,
+                                BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+}
+
+/**
+ * Restore file data from the scene.  For subclasses that need to
+ * restore from a scene, this method should be overridden. The scene class
+ * will be valid and any scene data may be obtained from it.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  Will NEVER be NULL.
+ */
+void
+MetricFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                                       const SceneClass* sceneClass)
+{
+    GiftiTypeFile::restoreFileDataFromScene(sceneAttributes,
+                                                    sceneClass);
+    
+    const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
+    if (tabArray != NULL) {
+        sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
+                                         m_chartingEnabledForTab,
+                                         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    }
+    else {
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            m_chartingEnabledForTab[i] = false;
+        }
+    }
+}
+
 
 
 

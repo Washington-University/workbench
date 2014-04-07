@@ -25,6 +25,8 @@
 #include <vector>
 #include <stdint.h>
 
+#include "ChartableBrainordinateInterface.h"
+#include "BrainConstants.h"
 #include "GiftiTypeFile.h"
 
 namespace caret {
@@ -34,7 +36,7 @@ namespace caret {
     /**
      * \brief A Metric data file.
      */
-    class MetricFile : public GiftiTypeFile {
+    class MetricFile : public GiftiTypeFile, public ChartableBrainordinateInterface {
         
     public:
         MetricFile();
@@ -72,6 +74,28 @@ namespace caret {
         virtual bool getDataRangeFromAllMaps(float& dataRangeMinimumOut,
                                              float& dataRangeMaximumOut) const;
         
+        virtual bool isChartingEnabled(const int32_t tabIndex) const;
+        
+        virtual void setChartingEnabled(const int32_t tabIndex,
+                                        const bool enabled);
+        
+        virtual bool isChartingSupported() const;
+        
+        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+                                                                const int32_t nodeIndex) throw (DataFileException);
+        
+        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                                                        const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+        
+        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        
+        
+        virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
+        virtual CaretMappableDataFile* getCaretMappableDataFile();
+        
+        virtual const CaretMappableDataFile* getCaretMappableDataFile() const;
+        
     protected:
         /**
          * Validate the contents of the file after it
@@ -84,9 +108,17 @@ namespace caret {
         
         void initializeMembersMetricFile();
         
+        virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
+                                         SceneClass* sceneClass);
+        
+        virtual void restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
+                                              const SceneClass* sceneClass);
+        
     private:
         /** Points to actual data in each Gifti Data Array */
         std::vector<float*> columnDataPointers;
+
+        bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 } // namespace
