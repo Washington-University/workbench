@@ -452,7 +452,12 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
             }
             
             if (operation == NULL) {
-                printAllCommandsMatching(commandSwitch);
+                if (!parameters.hasNext())
+                {
+                    printAllCommandsMatching(commandSwitch);
+                } else {
+                    throw CommandException("Command \"" + commandSwitch + "\" not found.");
+                }
             } else {
                 if (!parameters.hasNext() && operation->takesParameters())
                 {
