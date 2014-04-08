@@ -2,7 +2,9 @@ Connectome Workbench requires QT4 to compile.  Recommended is the latest 4.8.x r
 
 -system-zlib -webkit -qt-libmng -qt-libpng -qt-libtiff -qt-libjpeg -nomake demos -nomake examples -no-qt3support -no-dbus -opensource -exceptions -stl -no-multimedia -no-phonon -no-audio-backend -openssl
 
-It is currently set up to be compiled by cmake:
+Optionally, it can use OSMesa, which allows the -show-scene command to work.  Use it by setting OSMESA_DIR as an environment variable, such that $OSMESA_DIR/include/GL/osmesa.h exists, before running cmake.
+
+It is compiled using cmake, on linux do:
 
 mkdir build
 cd build
@@ -11,9 +13,11 @@ cmake ../src
 cmake-gui ../src
 make [-j cores]
 
-This produces 3 executables, 2 of which are useful to the end user (Desktop/workbench, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).  Install them however you see fit.
+For other OSes, see http://www.cmake.org/cmake/help/runningcmake.html
 
-It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
+You may want to set CMAKE_BUILD_TYPE to Release or Debug before building, as the default build behavior may be non-optimized and without debug symbols.
+
+This produces 3 executables, 2 of which are useful to the end user (Desktop/workbench, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).
 
 To run the (few) tests available:
 
@@ -21,18 +25,24 @@ ctest
 #OR
 make test
 
+To install workbench and wb_command with the prefix configured in CMAKE_INSTALL_PREFIX:
+
+make install
+
+It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
+
 Connectome Workbench itself is copyright 2014 Washington University School of Medicine, licensed under GPLv2 or later, see LICENSE file
 
 Some included code is from third party sources, with the following licenses:
 
 Quazip/*:
-QuaZIP 0.4.4, http://quazip.sourceforge.net/
+QuaZIP 0.6, http://quazip.sourceforge.net/
 Copyright (C) 2005-2012 Sergey A. Tachenov
 Copyright (C) 1998-2010 Gilles Vollant
 Copyright (C) 2009-2010 Mathias Svensson
 Copyright (C) 2007-2008 Even Rouault
 Copyright (c) 1990-2000 Info-ZIP
-licensed under LGPLv2.1 and zlib, see Quazip/COPYING and Quazip/zip.h and Quazip/unzip.c
+licensed under LGPLv2 and zlib, see Quazip/COPYING, Quazip/quazip.h, Quazip/zip.h and Quazip/unzip.c
 
 Qwt/*:
 Copyright (C) 1997   Josef Wilgen
