@@ -2138,10 +2138,8 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 }
                 
                 if (drawIt) {
-                    glBegin(GL_LINES);
                     glVertex3fv(xyz1);
                     glVertex3fv(xyz2);
-                    glEnd();
                 }
             }
             glEnd();
