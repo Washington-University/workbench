@@ -187,7 +187,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                             ++markVal;
                         }
                         float tempVal = markVal;
-                        if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+                        if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                         int clusterCount = (int)toSearch.size();
                         for (int index = 0; index < clusterCount; ++index)
                         {
@@ -256,7 +256,7 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
                         ++markVal;
                     }
                     float tempVal = markVal;
-                    if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+                    if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                     int clusterCount = (int)toSearch.size();
                     for (int index = 0; index < clusterCount; ++index)
                     {

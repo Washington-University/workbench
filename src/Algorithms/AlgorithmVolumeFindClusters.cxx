@@ -194,7 +194,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                                         ++markVal;
                                     }
                                     float tempVal = markVal;
-                                    if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+                                    if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                                     for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)
                                     {
                                         volOut->setValue(tempVal, voxelList[index].m_ijk, s, c);
@@ -272,7 +272,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
                                     ++markVal;
                                 }
                                 float tempVal = markVal;
-                                if (tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
+                                if ((int)tempVal != markVal) throw AlgorithmException("too many clusters, unable to mark them uniquely");
                                 for (int64_t index = 0; index < (int64_t)voxelList.size(); ++index)
                                 {
                                     volOut->setValue(tempVal, voxelList[index].m_ijk, 0, c);
