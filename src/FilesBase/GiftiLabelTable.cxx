@@ -1418,6 +1418,7 @@ GiftiLabelTable::readFromXmlString(const AString& /*s*/)
 void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
 {
     clear();
+    bool haveUnassigned = false;//because clear() creates the default "???" label
     if (!xml.isStartElement() || xml.name() != GiftiXmlElements::TAG_LABEL_TABLE)
     {//TODO: try to recover instead of erroring?
         xml.raiseError("tried to read GiftiLabelTable when current element is not " + GiftiXmlElements::TAG_LABEL_TABLE);
@@ -1454,6 +1455,19 @@ void GiftiLabelTable::readFromQXmlStreamReader(QXmlStreamReader& xml)
             if (!ok) xml.raiseError("alpha attribute not a number");
         }
         temp = xml.readElementText();
+        if ((temp == "unknown" || temp == "Unknown") && rgba[3] == 0.0f)
+        {
+            if (haveUnassigned)
+            {
+                CaretLogWarning("found multiple label elements that should be interpreted as unlabeled");
+            } else {
+                CaretLogFiner("Using '" + temp + "' label as unlabeled key");
+                haveUnassigned = true;
+                temp = "???";//pretend they are actually our internal unlabeled name
+            }
+        } else if (temp == "???") {
+            haveUnassigned = true;
+        }
         setLabel(key, temp, rgba[0], rgba[1], rgba[2], rgba[3]);
     }
 }
