@@ -54,6 +54,8 @@ OperationParameters* AlgorithmCiftiReorder::getParameters()
     
     ret->setHelpText(
         AString("The mapping along the specified direction must be parcels, scalars, or labels.  ") +
+        "For pscalar or ptseries, use COLUMN to reorder the parcels.  " +
+        "For dlabel, use ROW.  " +
         "The <reorder-list> file must contain 1-based indices separated by whitespace (spaces, newlines, tabs, etc), with as many indices as <cifti-in> has along the specified dimension.  " +
         "These indices specify which current index should end up in that position, for instance, if the current order is 'A B C D', and the desired order is 'D A B C', the text file " +
         "should contain '4 1 2 3'."
