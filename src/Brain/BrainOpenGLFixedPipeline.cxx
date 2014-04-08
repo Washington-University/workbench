@@ -1944,6 +1944,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             break;
     }
     
+    const bool flatSurfaceFlag = (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT);
     const float drawAtDistanceAboveSurface = 0.0;
 
     std::vector<float> pointXYZ;
@@ -2079,6 +2080,20 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
              * Start at one, since need two points for each line
              */
             for (int32_t i = 1; i < numPointsToDraw; i++) {
+                /*
+                 * On a flat surface, do not draw a line segment if it is
+                 * from non-consecutive border points.  This occurs when
+                 * a border point does not project to the flat surface 
+                 * due to a cut or removal of the medial wall.  If helps
+                 * prevent long border lines stretching from one edge of the
+                 * surface to a far away edge.
+                 */
+                if (flatSurfaceFlag) {
+                    if (pointIndex[i] != (pointIndex[i-1] + 1)) {
+                        continue;
+                    }
+                }
+                
                 const int32_t i3 = i * 3;
                 uint8_t idRGBA[4];
                 this->colorIdentification->addItem(idRGBA,
@@ -2120,6 +2135,20 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
              */
             glBegin(GL_LINES);
             for (int32_t i = 1; i < numPointsToDraw; i++) {
+                /*
+                 * On a flat surface, do not draw a line segment if it is
+                 * from non-consecutive border points.  This occurs when
+                 * a border point does not project to the flat surface
+                 * due to a cut or removal of the medial wall.  If helps
+                 * prevent long border lines stretching from one edge of the
+                 * surface to a far away edge.
+                 */
+                if (flatSurfaceFlag) {
+                    if (pointIndex[i] != (pointIndex[i-1] + 1)) {
+                        continue;
+                    }
+                }
+                
                 const int32_t i3 = i * 3;
                 const float* xyz1 = &pointXYZ[i3 - 3];
                 const float* xyz2 = &pointXYZ[i3];
