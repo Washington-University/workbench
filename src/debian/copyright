@@ -31,7 +31,7 @@ Copyright: Copyright 1993-2008 Ken Martin, Will Schroeder, Bill Lorensen
            Copyright 2014 Washington University School of Medicine
 License: VTK-BSD-3-Clause and GPL-2+
 
-Files: GuiQt/WuQDialog.cxx
+Files: GuiQt/WuQDialog.cxx Brain/GlfFontTextRenderer.cxx
 Copyright: Copyright 2014 Washington University School of Medicine
            Copyright 2012 Digia Plc and/or its subsidiary(-ies).
 License: GPL-2+
