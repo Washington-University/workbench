@@ -1956,6 +1956,20 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const bool flatSurfaceFlag = (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT);
     const float drawAtDistanceAboveSurface = 0.0;
 
+    const int32_t surfaceNumberOfNodes = borderDrawInfo.surface->getNumberOfNodes();
+    
+    CaretPointer<TopologyHelper> th = borderDrawInfo.surface->getTopologyHelper();
+    std::vector<int32_t> nodeIsEdgeNodeFlag(surfaceNumberOfNodes,
+                                         false);
+    const bool excludeEdgeNodesFlag = false;
+    if (excludeEdgeNodesFlag) {
+        for (int32_t i = 0; i < surfaceNumberOfNodes; i++) {
+            if (th->getNodeEdges(i).size() < 2) {
+                nodeIsEdgeNodeFlag[i] = true;
+            }
+        }
+    }
+    
     std::vector<float> pointXYZ;
     std::vector<float> pointAnatomicalXYZ;
     std::vector<int32_t> pointIndex;
@@ -1986,12 +2000,35 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         }
         
         float xyz[3];
-        const bool isXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface, 
+        bool isXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.surface, 
                                                                     xyz,
                                                                     drawAtDistanceAboveSurface);
         
+        /*
+         * On a flat surface do not draw border points when the barycentric
+         * projection nodes are all edge nodes and this will likely place
+         * the border point in the wrong location and possibly outside of
+         * the surface.
+         */
         if (isXyzValid) {
-            
+            if (excludeEdgeNodesFlag) {
+                if (flatSurfaceFlag) {
+                    if (p->getBarycentricProjection()->isValid()) {
+                        const int32_t* nodes = p->getBarycentricProjection()->getTriangleNodes();
+                        int32_t edgeCount = 0;
+                        if (nodeIsEdgeNodeFlag[nodes[0]]) edgeCount++;
+                        if (nodeIsEdgeNodeFlag[nodes[1]]) edgeCount++;
+                        if (nodeIsEdgeNodeFlag[nodes[2]]) edgeCount++;
+                        if (edgeCount > 0) {
+                            isXyzValid = false;
+                            std::cout << "Edge count: " << edgeCount << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (isXyzValid) {
             if (drawUnstretchedLinesFlag) {
                 float anatXYZ[3];
                 const bool isAnatXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
