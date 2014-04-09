@@ -45,9 +45,10 @@ namespace caret {
         
         void getVoxelIJK(int64_t voxelIJK[3]) const;
         
-        void setVolumeFile(VolumeMappableInterface* volumeFile);
-        
-        void setVoxelIJK(const int64_t voxelIJK[3]);
+        void setVoxelIdentification(Brain* brain,
+                                    VolumeMappableInterface* volumeFile,
+                                    const int64_t voxelIJK[3],
+                                    const double screenDepth);
         
         virtual void reset();
         

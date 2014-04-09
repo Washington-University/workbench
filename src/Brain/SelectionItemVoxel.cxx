@@ -135,26 +135,28 @@ SelectionItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
 
 /**
  * Set the volume file.
+ *
+ * @param brain
+ *    Brain containing the volume.
  * @param volumeFile
  *    New value for volume file.
- */
-void 
-SelectionItemVoxel::setVolumeFile(VolumeMappableInterface* volumeFile)
-{
-    m_volumeFile = volumeFile;
-}
-
-/**
- * Set the voxel indices.
  * @param voxelIJK
  *    New value for voxel indices.
+ * @param screenDepth
+ *    The screen depth.
  */
 void 
-SelectionItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
+SelectionItemVoxel::setVoxelIdentification(Brain* brain,
+                                           VolumeMappableInterface* volumeFile,
+                                           const int64_t voxelIJK[3],
+                                           const double screenDepth)
 {
+    setBrain(brain);
+    m_volumeFile = volumeFile;
     m_voxelIJK[0] = voxelIJK[0];
     m_voxelIJK[1] = voxelIJK[1];
     m_voxelIJK[2] = voxelIJK[2];
+    setScreenDepth(screenDepth);
 }
 
 /**

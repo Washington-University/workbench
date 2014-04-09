@@ -3919,9 +3919,10 @@ BrainOpenGLVolumeSliceDrawing::processIdentification()
         
         SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
         if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-            voxelID->setVolumeFile(vf);
-            voxelID->setVoxelIJK(voxelIndices);
-            voxelID->setScreenDepth(depth);
+            voxelID->setVoxelIdentification(m_brain,
+                                            vf,
+                                            voxelIndices,
+                                            depth);
             
             float voxelCoordinates[3];
             vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],

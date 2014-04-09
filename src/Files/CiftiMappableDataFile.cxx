@@ -2849,37 +2849,43 @@ CiftiMappableDataFile::getMapVolumeVoxelValue(const int32_t mapIndex,
                 }
             }
             else {
+                /*
+                 * Note: For a Dense connectivity file, it may not have 
+                 * data loaded since data is loaded upon demand.
+                 */
                 std::vector<float> mapData;
                 getMapData(mapIndex,
                            mapData);
-                CaretAssertVectorIndex(mapData,
-                                       dataOffset);
-                numericalValueOut = mapData[dataOffset];
-                
-                if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
-                    textValueOut = "Invalid Label Index";
+                if ( ! mapData.empty()) {
+                    CaretAssertVectorIndex(mapData,
+                                           dataOffset);
+                    numericalValueOut = mapData[dataOffset];
                     
-                    const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
-                    const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
-                    const GiftiLabel* gl = glt->getLabel(labelKey);
-                    if (gl != NULL) {
-                        textValueOut = gl->getName();
+                    if (m_ciftiFacade->isBrainordinateDataColoredWithLabelTable()) {
+                        textValueOut = "Invalid Label Index";
+                        
+                        const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                        const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
+                        const GiftiLabel* gl = glt->getLabel(labelKey);
+                        if (gl != NULL) {
+                            textValueOut = gl->getName();
+                        }
+                        else {
+                            textValueOut += ("InvalidLabelKey="
+                                             + AString::number(labelKey));
+                        }
+                        numericalValueOutValid = true;
+                    }
+                    else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
+                        numericalValueOutValid = true;
+                        textValueOut = AString::number(numericalValueOut);
                     }
                     else {
-                        textValueOut += ("InvalidLabelKey="
-                                         + AString::number(labelKey));
+                        CaretAssert(0);
                     }
-                    numericalValueOutValid = true;
+                    
+                    return true;
                 }
-                else if (m_ciftiFacade->isBrainordinateDataColoredWithPalette()) {
-                    numericalValueOutValid = true;
-                    textValueOut = AString::number(numericalValueOut);
-                }
-                else {
-                    CaretAssert(0);
-                }
-                
-                return true;
             }
         }
     }
