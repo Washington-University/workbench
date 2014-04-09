@@ -248,6 +248,17 @@ main(int argc, char* argv[])
         * Handle uncaught exceptions
         */
         SystemUtilities::setHandlersForUnexpected(argc, argv);
+        /*
+        * Parameters for the program.
+        */
+        ProgramParameters* parameters = new ProgramParameters(argc, argv);
+        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
+
+        //begin parsing command line
+        ProgramState myState;
+        FileInformation progInfo(argv[0]);
+        AString progName = progInfo.getFileName();
+        parseCommandLine(progName, parameters, myState);
         
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
 #ifdef CARET_OS_MACOSX
@@ -306,21 +317,10 @@ main(int argc, char* argv[])
         CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
         
         /*
-        * Parameters for the program.
-        */
-        ProgramParameters* parameters = new ProgramParameters(argc, argv);
-        caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
-
-        /*
         * Log the command parameters.
         */
         CaretLogFine("Running: " + caret_global_commandLine);
         
-        //begin parsing command line
-        ProgramState myState;
-        FileInformation progInfo(argv[0]);
-        AString progName = progInfo.getFileName();
-        parseCommandLine(progName, parameters, myState);
         //sanity check command line
         bool haveSpec = false;
         bool haveFiles = false;
