@@ -1943,11 +1943,21 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             drawSphericalPoints = true;
             break;
     }
+    bool drawUnstretchedLinesFlag = false;
+    float unstretchedLinesLength = -1.0;
+    if (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT) {
+        if ((borderDrawInfo.anatomicalSurface != NULL)
+            && (borderDrawInfo.unstretchedLinesLength > 0.0)) {
+            drawUnstretchedLinesFlag = true;
+            unstretchedLinesLength = borderDrawInfo.unstretchedLinesLength;
+        }
+    }
     
     const bool flatSurfaceFlag = (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT);
     const float drawAtDistanceAboveSurface = 0.0;
 
     std::vector<float> pointXYZ;
+    std::vector<float> pointAnatomicalXYZ;
     std::vector<int32_t> pointIndex;
     
     /*
@@ -1981,10 +1991,29 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                                                     drawAtDistanceAboveSurface);
         
         if (isXyzValid) {
-            pointXYZ.push_back(xyz[0]);
-            pointXYZ.push_back(xyz[1]);
-            pointXYZ.push_back(xyz[2]);
-            pointIndex.push_back(i);
+            
+            if (drawUnstretchedLinesFlag) {
+                float anatXYZ[3];
+                const bool isAnatXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
+                                                                                anatXYZ,
+                                                                                drawAtDistanceAboveSurface);
+                if (isAnatXyzValid) {
+                    pointXYZ.push_back(xyz[0]);
+                    pointXYZ.push_back(xyz[1]);
+                    pointXYZ.push_back(xyz[2]);
+                    pointAnatomicalXYZ.push_back(anatXYZ[0]);
+                    pointAnatomicalXYZ.push_back(anatXYZ[1]);
+                    pointAnatomicalXYZ.push_back(anatXYZ[2]);
+                    pointIndex.push_back(i);
+                    
+                }
+            }
+            else {
+                pointXYZ.push_back(xyz[0]);
+                pointXYZ.push_back(xyz[1]);
+                pointXYZ.push_back(xyz[2]);
+                pointIndex.push_back(i);
+            }
         }
     }    
 
@@ -1992,6 +2021,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const bool doClipping = clippingPlaneGroup->isFeaturesAndAnyAxisSelected();
     
     const int32_t numPointsToDraw = static_cast<int32_t>(pointXYZ.size() / 3);
+    if (drawUnstretchedLinesFlag) {
+        CaretAssert(pointXYZ.size() == pointAnatomicalXYZ.size());
+    }
     
     /*
      * Draw points
@@ -2103,6 +2135,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                                    pointIndex[i]);
                 glColor3ubv(idRGBA);
                 
+                CaretAssertVectorIndex(pointXYZ, i3 + 2);
                 const float* xyz1 = &pointXYZ[i3 - 3];
                 const float* xyz2 = &pointXYZ[i3];
                 
@@ -2119,6 +2152,18 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                     }
                 }
                 
+                if (drawIt) {
+                    if (drawUnstretchedLinesFlag) {
+                        CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
+                        if (unstretchedBorderLineTest(xyz1,
+                                                      xyz2,
+                                                      &pointAnatomicalXYZ[i3],
+                                                      &pointAnatomicalXYZ[i3-3],
+                                                      unstretchedLinesLength)) {
+                            drawIt = false;
+                        }
+                    }
+                }
                 if (drawIt) {
                     glBegin(GL_LINES);
                     glVertex3fv(xyz1);
@@ -2150,6 +2195,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 }
                 
                 const int32_t i3 = i * 3;
+                CaretAssertVectorIndex(pointXYZ, i3 + 2);
                 const float* xyz1 = &pointXYZ[i3 - 3];
                 const float* xyz2 = &pointXYZ[i3];
                 
@@ -2166,6 +2212,20 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                     }
                 }
                 
+                
+                if (drawIt) {
+                    if (drawUnstretchedLinesFlag) {
+                        CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
+                        if (unstretchedBorderLineTest(xyz1,
+                                                      xyz2,
+                                                      &pointAnatomicalXYZ[i3],
+                                                      &pointAnatomicalXYZ[i3-3],
+                                                      unstretchedLinesLength)) {
+                            drawIt = false;
+                        }
+                    }
+                }
+                
                 if (drawIt) {
                     glVertex3fv(xyz1);
                     glVertex3fv(xyz2);
@@ -2177,6 +2237,45 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         this->enableLighting();
     }
 }
+
+/**
+ * Determine if the ratio if border length over anatomical border length
+ * is greater than the unstretched lines factor.
+ *
+ * @param p1
+ *    Position of border point in surface.
+ * @param p1
+ *    Position of next border point in surface.
+ * @param anat1
+ *    Position of border point in anatomical surface.
+ * @param anat2
+ *    Position of next border point in anatomical surface.
+ * @param unstretchedLinesFactor
+ *    The unstretched lines factor.
+ * @return
+ *    True if the border is too long and should NOT be drawn, else false.
+ */
+bool
+BrainOpenGLFixedPipeline::unstretchedBorderLineTest(const float p1[3],
+                                                    const float p2[3],
+                                                    const float anat1[3],
+                                                    const float anat2[3],
+                                                    const float unstretchedLinesFactor) const
+{
+    const float dist = MathFunctions::distance3D(p1, p2);
+    const float anatDist = MathFunctions::distance3D(anat1,
+                                                     anat2);
+    
+    if (anatDist > 0.0) {
+        const float ratio = dist / anatDist;
+        if (ratio > unstretchedLinesFactor) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 
 /**
  * Set the OpenGL line width.  Value is clamped
@@ -2481,6 +2580,13 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         return;
     }
     
+    float unstretchedLinesLength = -1.0;
+    if (borderDisplayProperties->isUnstretchedLinesEnabled(displayGroup,
+                                                           this->windowTabIndex)) {
+        unstretchedLinesLength = borderDisplayProperties->getUnstretchedLinesLength(displayGroup,
+                                                                                    this->windowTabIndex);
+    }
+    
     const FeatureColoringTypeEnum::Enum borderColoringType = borderDisplayProperties->getColoringType(displayGroup,
                                                                                                       this->windowTabIndex);
     const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(displayGroup,
@@ -2549,6 +2655,16 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             borderDrawInfo.isSelect = isSelect;
             borderDrawInfo.isContralateralEnabled = isContralateralEnabled;
             borderDrawInfo.isHighlightEndPoints = m_drawHighlightedEndPoints;
+            
+            borderDrawInfo.anatomicalSurface = NULL;
+            borderDrawInfo.unstretchedLinesLength = unstretchedLinesLength;
+            
+            BrainStructure* bs = brain->getBrainStructure(border->getStructure(),
+                                                          false);
+            if (bs != NULL) {
+                borderDrawInfo.anatomicalSurface = bs->getVolumeInteractionSurface();
+            }
+            
             this->drawBorder(borderDrawInfo);
         }
     }
@@ -2609,6 +2725,9 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
         borderDrawInfo.isSelect = false;
         borderDrawInfo.isContralateralEnabled = false;
         borderDrawInfo.isHighlightEndPoints = false;
+        borderDrawInfo.anatomicalSurface = NULL;
+        borderDrawInfo.unstretchedLinesLength = -1.0;
+        
         this->drawBorder(borderDrawInfo);
     }
 }

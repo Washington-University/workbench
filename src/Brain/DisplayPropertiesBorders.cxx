@@ -55,6 +55,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
     const float defaultLineSize  = 1.0;
     const BorderDrawingTypeEnum::Enum defaultDrawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
     const FeatureColoringTypeEnum::Enum defaultColoringType = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
+    const float defaultUnstretchedLinesLength = 5.0;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
@@ -64,6 +65,8 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
         m_pointSizeInTab[i] = defaultPointSize;
         m_coloringTypeInTab[i] = defaultColoringType;
         m_drawingTypeInTab[i] = defaultDrawingType;
+        m_unstretchedLinesLengthInTab[i] = defaultUnstretchedLinesLength;
+        m_unstretchedLinesStatusInTab[i] = false;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -73,6 +76,8 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
         m_pointSizeInDisplayGroup[i] = defaultPointSize;
         m_coloringTypeInDisplayGroup[i] = defaultColoringType;
         m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
+        m_unstretchedLinesLengthInDisplayGroup[i] = defaultUnstretchedLinesLength;
+        m_unstretchedLinesStatusInDisplayGroup[i] = false;
     }
 
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
@@ -125,6 +130,19 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
     
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<BorderDrawingTypeEnum, BorderDrawingTypeEnum::Enum>("m_drawingTypeInTab",
                                                                                                            m_drawingTypeInTab);
+    
+    m_sceneAssistant->addTabIndexedFloatArray("m_unstretchedLinesLengthInTab",
+                                              m_unstretchedLinesLengthInTab);
+    m_sceneAssistant->addTabIndexedBooleanArray("m_unstretchedLinesStatusInTab",
+                                                m_unstretchedLinesStatusInTab);
+    m_sceneAssistant->addArray("m_unstretchedLinesLengthInDisplayGroup",
+                               m_unstretchedLinesLengthInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               defaultUnstretchedLinesLength);
+    m_sceneAssistant->addArray("m_unstretchedLinesStatusInDisplayGroup",
+                               m_unstretchedLinesStatusInDisplayGroup,
+                               DisplayGroupEnum::NUMBER_OF_GROUPS,
+                               false);
 }
 
 /**
@@ -177,6 +195,7 @@ DisplayPropertiesBorders::copyDisplayProperties(const int32_t sourceTabIndex,
     this->m_drawingTypeInTab[targetTabIndex] = this->m_drawingTypeInTab[sourceTabIndex];
     this->m_lineWidthInTab[targetTabIndex]   = this->m_lineWidthInTab[sourceTabIndex];
     this->m_pointSizeInTab[targetTabIndex]   = this->m_pointSizeInTab[sourceTabIndex];
+    this->m_unstretchedLinesLengthInTab[targetTabIndex] = this->m_unstretchedLinesLengthInTab[sourceTabIndex];
 }
 
 /**
@@ -413,6 +432,111 @@ DisplayPropertiesBorders::setLineWidth(const DisplayGroupEnum::Enum  displayGrou
         m_lineWidthInDisplayGroup[displayGroup] = lineWidth;
     }
 }
+
+/**
+ * @return  Is unstretched lines enabled?
+ *
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+bool
+DisplayPropertiesBorders::isUnstretchedLinesEnabled(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_unstretchedLinesStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_unstretchedLinesStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_unstretchedLinesStatusInTab[tabIndex];
+    }
+    return m_unstretchedLinesStatusInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the unstretched lines status to the given value.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param unstretchedLinesEnabled
+ *     New value for line unstretched lines status.
+ */
+void
+DisplayPropertiesBorders::setUnstretchedLinesEnabled(const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
+                                const bool unstretchedLinesEnabled)
+{
+    CaretAssertArrayIndex(m_unstretchedLinesStatusInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_unstretchedLinesStatusInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_unstretchedLinesStatusInTab[tabIndex] = unstretchedLinesEnabled;
+    }
+    else {
+        m_unstretchedLinesStatusInDisplayGroup[displayGroup] = unstretchedLinesEnabled;
+    }
+}
+
+/**
+ * @return  Get unstretched lines length
+ *
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+float
+DisplayPropertiesBorders::getUnstretchedLinesLength(const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_unstretchedLinesLengthInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_unstretchedLinesLengthInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_unstretchedLinesLengthInTab[tabIndex];
+    }
+    return m_unstretchedLinesLengthInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the unstretched lines length to the given value.
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param unstretchedLinesLength
+ *     New value for unstretched lines length.
+ */
+void
+DisplayPropertiesBorders::setUnstretchedLinesLength(const DisplayGroupEnum::Enum displayGroup,
+                               const int32_t tabIndex,
+                               const float unstretchedLinesLength)
+{
+    CaretAssertArrayIndex(m_unstretchedLinesLengthInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_unstretchedLinesLengthInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_unstretchedLinesLengthInTab[tabIndex] = unstretchedLinesLength;
+    }
+    else {
+        m_unstretchedLinesLengthInDisplayGroup[displayGroup] = unstretchedLinesLength;
+    }
+}
+
 
 /**
  * @return The drawing type.

@@ -197,6 +197,20 @@ BorderSelectionViewController::createAttributesWidget()
     QObject::connect(m_pointSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
+    m_enableUnstretchedLinesCheckBox = new QCheckBox("Unstretched Lines");
+    QObject::connect(m_enableUnstretchedLinesCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_unstretchedLinesLengthSpinBox = WuQFactory::newDoubleSpinBox();
+    m_unstretchedLinesLengthSpinBox->setFixedWidth(80);
+    m_unstretchedLinesLengthSpinBox->setRange(0.0,
+                                              10000000.0);
+    m_unstretchedLinesLengthSpinBox->setSingleStep(1.0);
+    m_unstretchedLinesLengthSpinBox->setDecimals(1);
+    m_unstretchedLinesLengthSpinBox->setToolTip("Adjust the size of borders drawn as points");
+    m_unstretchedLinesLengthSpinBox->setSuffix("mm");
+    QObject::connect(m_unstretchedLinesLengthSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
@@ -217,6 +231,10 @@ BorderSelectionViewController::createAttributesWidget()
     row++;
     gridLayout->addWidget(pointSizeLabel, row, 0);
     gridLayout->addWidget(m_pointSizeSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(m_enableUnstretchedLinesCheckBox, row, 0);
+    gridLayout->addWidget(m_unstretchedLinesLengthSpinBox, row, 1);
+    
     gridWidget->setSizePolicy(QSizePolicy::Fixed,
                               QSizePolicy::Fixed);
     
@@ -268,6 +286,12 @@ BorderSelectionViewController::processAttributesChanges()
     dpb->setPointSize(displayGroup,
                       browserTabIndex,
                       m_pointSizeSpinBox->value());
+    dpb->setUnstretchedLinesEnabled(displayGroup,
+                                    browserTabIndex,
+                                    m_enableUnstretchedLinesCheckBox->isChecked());
+    dpb->setUnstretchedLinesLength(displayGroup,
+                                   browserTabIndex,
+                                   m_unstretchedLinesLengthSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -374,6 +398,13 @@ BorderSelectionViewController::updateBorderViewController()
     m_pointSizeSpinBox->setValue(dpb->getPointSize(displayGroup,
                                                    browserTabIndex));
     m_pointSizeSpinBox->blockSignals(false);
+    
+    m_enableUnstretchedLinesCheckBox->setChecked(dpb->isUnstretchedLinesEnabled(displayGroup,
+                                                                                browserTabIndex));
+    m_unstretchedLinesLengthSpinBox->blockSignals(true);
+    m_unstretchedLinesLengthSpinBox->setValue(dpb->getUnstretchedLinesLength(displayGroup,
+                                                                             browserTabIndex));
+    m_unstretchedLinesLengthSpinBox->blockSignals(false);
 }
 
 /**

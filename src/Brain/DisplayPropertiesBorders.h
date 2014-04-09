@@ -90,6 +90,20 @@ namespace caret {
                             const int32_t tabIndex,
                             const FeatureColoringTypeEnum::Enum drawingType);
         
+        bool isUnstretchedLinesEnabled(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const;
+        
+        void setUnstretchedLinesEnabled(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex,
+                                       const bool unstretchedLinesEnabled);
+        
+        float getUnstretchedLinesLength(const DisplayGroupEnum::Enum displayGroup,
+                                       const int32_t tabIndex) const;
+        
+        void setUnstretchedLinesLength(const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
+                                        const float unstretchedLinesLength);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -125,6 +139,14 @@ namespace caret {
         FeatureColoringTypeEnum::Enum m_coloringTypeInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
         FeatureColoringTypeEnum::Enum m_coloringTypeInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool m_unstretchedLinesStatusInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        bool m_unstretchedLinesStatusInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float m_unstretchedLinesLengthInDisplayGroup[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        float m_unstretchedLinesLengthInTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
     
 #ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__

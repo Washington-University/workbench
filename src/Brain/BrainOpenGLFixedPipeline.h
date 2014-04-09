@@ -205,6 +205,7 @@ namespace caret {
         void drawSurfaceBorders(Surface* surface);
         
         struct BorderDrawInfo {
+            Surface* anatomicalSurface;
             Surface* surface;
             Border* border;
             int32_t borderFileIndex;
@@ -213,9 +214,16 @@ namespace caret {
             bool isSelect;
             bool isContralateralEnabled;
             bool isHighlightEndPoints;
+            float unstretchedLinesLength;
         };
         
         void drawBorder(const BorderDrawInfo& borderDrawInfo);
+        
+        bool unstretchedBorderLineTest(const float p1[3],
+                                       const float p2[3],
+                                       const float anat1[3],
+                                       const float anat2[3],
+                                       const float unstretchedLinesFactor) const;
         
         void drawSurfaceFoci(Surface* surface);
         
