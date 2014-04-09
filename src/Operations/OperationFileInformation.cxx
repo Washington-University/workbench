@@ -72,8 +72,8 @@ OperationFileInformation::getParameters()
     ret->createOptionalParameter(4, "-only-number-of-maps", "suppress normal output, print the number of maps");
 
     AString helpText("List information about the content of a data file.  "
-                     "The information listed is dependent upon the type of "
-                     "data file.");
+                     "Only one -only option may be specified.  "
+                     "The information listed when no -only option is present is dependent upon the type of data file.");
     
     ret->setHelpText(helpText);
     
@@ -96,6 +96,8 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     bool onlyTimestep = myParams->getOptionalParameter(3)->m_present;
 
     bool onlyNumMaps = myParams->getOptionalParameter(4)->m_present;
+    
+    if (onlyTimestep && onlyNumMaps) throw OperationException("only one -only option may be specified");
 
     CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(dataFileName));
     
