@@ -248,12 +248,25 @@ main(int argc, char* argv[])
         * Handle uncaught exceptions
         */
         SystemUtilities::setHandlersForUnexpected(argc, argv);
+        
+        /*
+        * Create the session manager.
+        */
+        SessionManager::createSessionManager();
+        caretLoggerIsValid = true;
+        qInstallMsgHandler(messageHandlerForQt);//this handler uses caretlogger, so we must install it after the logger is available
+
         /*
         * Parameters for the program.
         */
         ProgramParameters* parameters = new ProgramParameters(argc, argv);
         caret_global_commandLine = AString(argv[0]) + " " + parameters->getAllParametersInString();
 
+        /*
+        * Log the command parameters.
+        */
+        CaretLogFine("Running: " + caret_global_commandLine);
+        
         //begin parsing command line
         ProgramState myState;
         FileInformation progInfo(argv[0]);
@@ -303,23 +316,10 @@ main(int argc, char* argv[])
         */
         BrainOpenGLWidget::initializeDefaultGLFormat();
         
-        
-        /*
-        * Create the session manager.
-        */
-        SessionManager::createSessionManager();
-        caretLoggerIsValid = true;
-        qInstallMsgHandler(messageHandlerForQt);//this handler uses caretlogger, so we must install it after the logger is available
-
         /*
          * Log debug status
          */
         CaretLogConfig(applicationInformation.getCompiledWithDebugStatus());
-        
-        /*
-        * Log the command parameters.
-        */
-        CaretLogFine("Running: " + caret_global_commandLine);
         
         //sanity check command line
         bool haveSpec = false;
