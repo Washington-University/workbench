@@ -56,6 +56,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
     const BorderDrawingTypeEnum::Enum defaultDrawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
     const FeatureColoringTypeEnum::Enum defaultColoringType = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
     const float defaultUnstretchedLinesLength = 5.0;
+    const bool defaultUnstretchedLinesSelection = true;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
@@ -66,7 +67,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
         m_coloringTypeInTab[i] = defaultColoringType;
         m_drawingTypeInTab[i] = defaultDrawingType;
         m_unstretchedLinesLengthInTab[i] = defaultUnstretchedLinesLength;
-        m_unstretchedLinesStatusInTab[i] = false;
+        m_unstretchedLinesStatusInTab[i] = defaultUnstretchedLinesSelection;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
@@ -77,7 +78,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
         m_coloringTypeInDisplayGroup[i] = defaultColoringType;
         m_drawingTypeInDisplayGroup[i] = defaultDrawingType;
         m_unstretchedLinesLengthInDisplayGroup[i] = defaultUnstretchedLinesLength;
-        m_unstretchedLinesStatusInDisplayGroup[i] = false;
+        m_unstretchedLinesStatusInDisplayGroup[i] = defaultUnstretchedLinesSelection;
     }
 
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
@@ -142,7 +143,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders()
     m_sceneAssistant->addArray("m_unstretchedLinesStatusInDisplayGroup",
                                m_unstretchedLinesStatusInDisplayGroup,
                                DisplayGroupEnum::NUMBER_OF_GROUPS,
-                               false);
+                               defaultUnstretchedLinesSelection);
 }
 
 /**
