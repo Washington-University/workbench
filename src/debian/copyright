@@ -83,13 +83,13 @@ License: LGPL-2.0+
  `/usr/share/common-licenses/LGPL-2'.
 
 License: Zlib
-  This software is provided 'as-is', without any express or implied
-  warranty.  In no event will the authors be held liable for any damages
-  arising from the use of this software.
+ This software is provided 'as-is', without any express or implied
+ warranty.  In no event will the authors be held liable for any damages
+ arising from the use of this software.
  .
-  Permission is granted to anyone to use this software for any purpose,
-  including commercial applications, and to alter it and redistribute it
-  freely, subject to the following restrictions:
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
  .
   1. The origin of this software must not be misrepresented; you must not
      claim that you wrote the original software. If you use this software
@@ -135,7 +135,7 @@ License: Qwt-1.0
 License: VTK-BSD-3-Clause
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
- 
+ .
  * Redistributions of source code must retain the above copyright notice, this list
  of conditions and the following disclaimer.
  .
