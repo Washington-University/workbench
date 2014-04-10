@@ -1943,36 +1943,27 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             drawSphericalPoints = true;
             break;
     }
-    bool drawUnstretchedLinesFlag = false;
+
+    const bool flatSurfaceFlag = (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT);
+    bool flatSurfaceDrawUnstretchedLinesFlag = false;
     float unstretchedLinesLength = -1.0;
-    if (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT) {
+    if (flatSurfaceFlag) {
         if ((borderDrawInfo.anatomicalSurface != NULL)
             && (borderDrawInfo.unstretchedLinesLength > 0.0)) {
-            drawUnstretchedLinesFlag = true;
+            flatSurfaceDrawUnstretchedLinesFlag = true;
             unstretchedLinesLength = borderDrawInfo.unstretchedLinesLength;
         }
     }
     
-    const bool flatSurfaceFlag = (borderDrawInfo.surface->getSurfaceType() == SurfaceTypeEnum::FLAT);
     const float drawAtDistanceAboveSurface = 0.0;
 
-    const int32_t surfaceNumberOfNodes = borderDrawInfo.surface->getNumberOfNodes();
-    
-    CaretPointer<TopologyHelper> th = borderDrawInfo.surface->getTopologyHelper();
-    std::vector<int32_t> nodeIsEdgeNodeFlag(surfaceNumberOfNodes,
-                                         false);
-    const bool excludeEdgeNodesFlag = false;
-    if (excludeEdgeNodesFlag) {
-        for (int32_t i = 0; i < surfaceNumberOfNodes; i++) {
-            if (th->getNodeEdges(i).size() < 2) {
-                nodeIsEdgeNodeFlag[i] = true;
-            }
-        }
-    }
-    
     std::vector<float> pointXYZ;
     std::vector<float> pointAnatomicalXYZ;
     std::vector<int32_t> pointIndex;
+    
+    const CaretPointer<TopologyHelper> th = borderDrawInfo.surface->getTopologyHelper();
+    const std::vector<int32_t>& nodesBoundaryEdgeCount = th->getNumberOfBoundaryEdgesForAllNodes();
+    CaretAssert(static_cast<int32_t>(nodesBoundaryEdgeCount.size()) == borderDrawInfo.surface->getNumberOfNodes());
     
     /*
      * Find points valid for this surface
@@ -2004,24 +1995,22 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                                                                     xyz,
                                                                     drawAtDistanceAboveSurface);
         
-        /*
-         * On a flat surface do not draw border points when the barycentric
-         * projection nodes are all edge nodes and this will likely place
-         * the border point in the wrong location and possibly outside of
-         * the surface.
-         */
         if (isXyzValid) {
-            if (excludeEdgeNodesFlag) {
-                if (flatSurfaceFlag) {
-                    if (p->getBarycentricProjection()->isValid()) {
-                        const int32_t* nodes = p->getBarycentricProjection()->getTriangleNodes();
-                        int32_t edgeCount = 0;
-                        if (nodeIsEdgeNodeFlag[nodes[0]]) edgeCount++;
-                        if (nodeIsEdgeNodeFlag[nodes[1]]) edgeCount++;
-                        if (nodeIsEdgeNodeFlag[nodes[2]]) edgeCount++;
-                        if (edgeCount > 0) {
+            /*
+             * On a flat surface, do not draw border points that are attached to all edge nodes
+             * as they will likely result in points outside of the flat surface 
+             * (near cuts and medial wall)
+             */
+            if (flatSurfaceDrawUnstretchedLinesFlag){
+                if (p->getBarycentricProjection()->isValid()) {
+                    const int32_t* baryNodes = p->getBarycentricProjection()->getTriangleNodes();
+                    if (baryNodes != NULL) {
+                        int32_t edgeNodeCount = 0;
+                        if (nodesBoundaryEdgeCount[baryNodes[0]] > 0) edgeNodeCount++;
+                        if (nodesBoundaryEdgeCount[baryNodes[1]] > 0) edgeNodeCount++;
+                        if (nodesBoundaryEdgeCount[baryNodes[2]] > 0) edgeNodeCount++;
+                        if (edgeNodeCount >= 3) {
                             isXyzValid = false;
-                            std::cout << "Edge count: " << edgeCount << std::endl;
                         }
                     }
                 }
@@ -2029,7 +2018,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
         }
         
         if (isXyzValid) {
-            if (drawUnstretchedLinesFlag) {
+            if (flatSurfaceDrawUnstretchedLinesFlag) {
                 float anatXYZ[3];
                 const bool isAnatXyzValid = p->getProjectedPositionAboveSurface(*borderDrawInfo.anatomicalSurface,
                                                                                 anatXYZ,
@@ -2058,7 +2047,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     const bool doClipping = clippingPlaneGroup->isFeaturesAndAnyAxisSelected();
     
     const int32_t numPointsToDraw = static_cast<int32_t>(pointXYZ.size() / 3);
-    if (drawUnstretchedLinesFlag) {
+    if (flatSurfaceDrawUnstretchedLinesFlag) {
         CaretAssert(pointXYZ.size() == pointAnatomicalXYZ.size());
     }
     
@@ -2157,7 +2146,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                  * prevent long border lines stretching from one edge of the
                  * surface to a far away edge.
                  */
-                if (flatSurfaceFlag) {
+                if (flatSurfaceDrawUnstretchedLinesFlag) {
                     if (pointIndex[i] != (pointIndex[i-1] + 1)) {
                         continue;
                     }
@@ -2190,7 +2179,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 }
                 
                 if (drawIt) {
-                    if (drawUnstretchedLinesFlag) {
+                    if (flatSurfaceDrawUnstretchedLinesFlag) {
                         CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
                         if (unstretchedBorderLineTest(xyz1,
                                                       xyz2,
@@ -2225,7 +2214,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                  * prevent long border lines stretching from one edge of the
                  * surface to a far away edge.
                  */
-                if (flatSurfaceFlag) {
+                if (flatSurfaceDrawUnstretchedLinesFlag) {
                     if (pointIndex[i] != (pointIndex[i-1] + 1)) {
                         continue;
                     }
@@ -2251,7 +2240,7 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
                 
                 
                 if (drawIt) {
-                    if (drawUnstretchedLinesFlag) {
+                    if (flatSurfaceDrawUnstretchedLinesFlag) {
                         CaretAssertVectorIndex(pointAnatomicalXYZ, i3 + 2);
                         if (unstretchedBorderLineTest(xyz1,
                                                       xyz2,
