@@ -1378,12 +1378,14 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
                 break;
         }
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     catch (const DataFileException& e) {
         cursor.restoreCursor();
         WuQMessageBox::errorOk(this, e.whatString());
     }   
+
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -1442,7 +1444,6 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
             ChartingDataManager* chartingDataManager = borderID->getBrain()->getChartingDataManager();
             chartingDataManager->loadAverageChartForSurfaceNodes(surface,
                                                                  nodeIndices);
-            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
         catch (const DataFileException& e) {
             cursor.restoreCursor();
@@ -1453,6 +1454,8 @@ BrainOpenGLWidgetContextMenu::borderDataSeriesSelected()
         WuQMessageBox::errorOk(this, e.whatString());
     }
 
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
