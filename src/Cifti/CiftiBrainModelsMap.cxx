@@ -177,13 +177,12 @@ int64_t CiftiBrainModelsMap::getIndexForNode(const int64_t& node, const Structur
 
 int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t* ijk) const
 {
-    CaretAssert(ijk[0] >= 0);//in theory, nothing should ever ask for the index of an invalid voxel
-    CaretAssert(ijk[1] >= 0);//they can use the VolumeSpace to check that the index is valid first, if nothing else
-    CaretAssert(ijk[2] >= 0);//if this turns out to be a problem, we can make these return -1 rather than asserting
-    CaretAssert(ijk[0] < m_volSpace.getDims()[0]);//ugly, but done so that we don't get unused warnings in release
-    CaretAssert(ijk[1] < m_volSpace.getDims()[1]);
-    CaretAssert(ijk[2] < m_volSpace.getDims()[2]);
-    const pair<int64_t, StructureEnum::Enum>* iter = m_voxelToIndexLookup.find(ijk);
+    return getIndexForVoxel(ijk[0], ijk[1], ijk[2]);
+}
+
+int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const
+{
+    const pair<int64_t, StructureEnum::Enum>* iter = m_voxelToIndexLookup.find(i, j, k);//the lookup tolerates weirdness like negatives
     if (iter == NULL) return -1;
     return iter->first;
 }

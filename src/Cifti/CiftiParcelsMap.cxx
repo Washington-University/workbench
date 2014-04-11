@@ -166,7 +166,12 @@ int64_t CiftiParcelsMap::getIndexForNode(const int64_t& node, const StructureEnu
 
 int64_t CiftiParcelsMap::getIndexForVoxel(const int64_t* ijk) const
 {
-    const int64_t* test = m_volLookup.find(ijk);
+    return getIndexForVoxel(ijk[0], ijk[1], ijk[2]);
+}
+
+int64_t CiftiParcelsMap::getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const
+{
+    const int64_t* test = m_volLookup.find(i, j, k);//the lookup tolerates weirdness like negatives
     if (test == NULL) return -1;
     return *test;
 }

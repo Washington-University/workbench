@@ -52,6 +52,7 @@ namespace caret
         int64_t getSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
         int64_t getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         int64_t getIndexForVoxel(const int64_t* ijk) const;
+        int64_t getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const;
         std::vector<StructureEnum::Enum> getParcelSurfaceStructures() const;
         const std::vector<Parcel>& getParcels() const { return m_parcels; }
         

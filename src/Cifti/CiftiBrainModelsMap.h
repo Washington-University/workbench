@@ -60,6 +60,7 @@ namespace caret
         bool hasSurfaceData(const StructureEnum::Enum& structure) const;
         int64_t getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         int64_t getIndexForVoxel(const int64_t* ijk) const;
+        int64_t getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const;
         std::vector<SurfaceMap> getSurfaceMap(const StructureEnum::Enum& structure) const;
         std::vector<VolumeMap> getFullVolumeMap() const;
         std::vector<VolumeMap> getVolumeStructureMap(const StructureEnum::Enum& structure) const;

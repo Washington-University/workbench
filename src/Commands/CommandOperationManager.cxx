@@ -39,6 +39,7 @@
 #include "AlgorithmCiftiFalseCorrelation.h"
 #include "AlgorithmCiftiFindClusters.h"
 #include "AlgorithmCiftiGradient.h"
+#include "AlgorithmCiftiLabelAdjacency.h"
 #include "AlgorithmCiftiLabelToROI.h"
 #include "AlgorithmCiftiMerge.h"
 #include "AlgorithmCiftiMergeDense.h"
@@ -243,6 +244,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFalseCorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiFindClusters()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelAdjacency()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiMergeDense()));
