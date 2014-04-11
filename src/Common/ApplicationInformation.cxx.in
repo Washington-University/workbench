@@ -42,7 +42,7 @@ using namespace caret;
 ApplicationInformation::ApplicationInformation()
 : CaretObject()
 { 
-    this->name    = "Workbench";
+    this->name    = "Connectome Workbench";
     this->version = "Beta 0.85";
     this->commit = "commit: @COMMIT@";
     this->commitDate = "commit date: @COMMIT_DATE@";
