@@ -26,6 +26,7 @@
 
 #include "EventListenerInterface.h"
 
+class QCheckBox;
 class QDoubleSpinBox;
 class QPushButton;
 
@@ -89,6 +90,8 @@ namespace caret {
         QDoubleSpinBox* m_yThicknessDoubleSpinBox;
         
         QDoubleSpinBox* m_zThicknessDoubleSpinBox;
+        
+        QCheckBox* m_displayClippingBoxCheckBox;
         
         bool m_blockDialogUpdate;
         

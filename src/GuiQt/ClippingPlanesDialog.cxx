@@ -23,6 +23,7 @@
 #include "ClippingPlanesDialog.h"
 #undef __CLIPPING_PLANES_DIALOG_DECLARE__
 
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -137,19 +138,6 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     QObject::connect(m_zRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(clippingValueChanged()));
     
-    
-    
-    /* DISABLE ROTATION UNTIL AFTER RELEASE */
-    rotateLabel->setHidden(true);
-    m_xRotateDoubleSpinBox->setHidden(true);
-    m_yRotateDoubleSpinBox->setHidden(true);
-    m_zRotateDoubleSpinBox->setHidden(true);
-    m_xRotateDoubleSpinBox->setEnabled(false);
-    m_yRotateDoubleSpinBox->setEnabled(false);
-    m_zRotateDoubleSpinBox->setEnabled(false);
-    
-    
-    
     /*
      * Thickness
      */
@@ -194,6 +182,13 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     m_clippingWidgetGroup->add(m_xThicknessDoubleSpinBox);
     m_clippingWidgetGroup->add(m_yThicknessDoubleSpinBox);
     m_clippingWidgetGroup->add(m_zThicknessDoubleSpinBox);
+    
+    /*
+     * Show clipping box checkbox
+     */
+    m_displayClippingBoxCheckBox = new QCheckBox("Show Clipping Box Outline");
+    QObject::connect(m_displayClippingBoxCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(clippingValueChanged()));
     
     /*------------------------------------------------------------------------*/
     /*
@@ -266,6 +261,11 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
                           row,
                           COLUMN_Z);
     row++;
+    gridLayout->addWidget(m_displayClippingBoxCheckBox,
+                          row,
+                          COLUMN_LABEL,
+                          1,
+                          4);
     
     
     /*------------------------------------------------------------------------*/
@@ -318,6 +318,7 @@ ClippingPlanesDialog::userButtonPressed(QPushButton* userPushButton)
             if (btc != NULL) {
                 btc->resetClippingPlaneTransformation();
                 updateContent(btc->getTabNumber());
+                updateGraphicsWindow();
             }
         }
     }
@@ -362,8 +363,8 @@ ClippingPlanesDialog::clippingValueChanged()
         if (btc != NULL) {
             btc->setClippingPlaneTransformation(panning,
                                                 rotation,
-                                                thickness);
-            
+                                                thickness,
+                                                m_displayClippingBoxCheckBox->isChecked());
             updateGraphicsWindow();
         }
     }
@@ -427,9 +428,11 @@ ClippingPlanesDialog::updateContent(const int32_t browserWindowIndex)
             float panning[3];
             float rotation[3];
             float thickness[3];
+            bool displayClippingBox;
             btc->getClippingPlaneTransformation(panning,
                                                 rotation,
-                                                thickness);
+                                                thickness,
+                                                displayClippingBox);
             
             m_xPanDoubleSpinBox->setValue(panning[0]);
             m_yPanDoubleSpinBox->setValue(panning[1]);
@@ -442,6 +445,8 @@ ClippingPlanesDialog::updateContent(const int32_t browserWindowIndex)
             m_xThicknessDoubleSpinBox->setValue(thickness[0]);
             m_yThicknessDoubleSpinBox->setValue(thickness[1]);
             m_zThicknessDoubleSpinBox->setValue(thickness[2]);
+            
+            m_displayClippingBoxCheckBox->setChecked(displayClippingBox);
 
             m_clippingWidgetGroup->blockAllSignals(false);
         }

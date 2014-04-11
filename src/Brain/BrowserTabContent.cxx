@@ -2765,6 +2765,8 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
  *    Volume clipping enabled.
  * @param featuresEnabled
  *    Features enabled.
+ * @param displayClippingBox
+ *    Display the clipping box.
  */
 void
 BrowserTabContent::getClippingPlaneEnabled(bool& xEnabled,
@@ -2798,6 +2800,8 @@ BrowserTabContent::getClippingPlaneEnabled(bool& xEnabled,
  *    Volume clipping enabled.
  * @param featuresEnabled
  *    Features enabled.
+ * @param displayClippingBox
+ *    Display the clipping box.
  */
 void
 BrowserTabContent::setClippingPlaneEnabled(const bool xEnabled,
@@ -2831,11 +2835,14 @@ BrowserTabContent::setClippingPlaneEnabled(const bool xEnabled,
 void
 BrowserTabContent::getClippingPlaneTransformation(float panning[3],
                                                   float rotation[3],
-                                                  float thickness[3]) const
+                                                  float thickness[3],
+                                                  bool& displayClippingBox) const
 {
     m_clippingPlaneGroup->getTranslation(panning);
     m_clippingPlaneGroup->getRotationAngles(rotation);
     m_clippingPlaneGroup->getThickness(thickness);
+    
+    displayClippingBox = m_clippingPlaneGroup->isDisplayClippingBoxSelected();
 }
 
 /**
@@ -2851,11 +2858,14 @@ BrowserTabContent::getClippingPlaneTransformation(float panning[3],
 void
 BrowserTabContent::setClippingPlaneTransformation(const float panning[3],
                                                   const float rotation[3],
-                                                  const float thickness[3])
+                                                  const float thickness[3],
+                                                  const bool displayClippingBox)
 {
     m_clippingPlaneGroup->setTranslation(panning);
     m_clippingPlaneGroup->setRotationAngles(rotation);
     m_clippingPlaneGroup->setThickness(thickness);
+    
+    m_clippingPlaneGroup->setDisplayClippingBoxSelected(displayClippingBox);
 
     updateYokedBrowserTabs();
 }

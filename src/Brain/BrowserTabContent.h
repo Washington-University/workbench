@@ -164,11 +164,13 @@ namespace caret {
         
         void getClippingPlaneTransformation(float panning[3],
                                             float rotation[3],
-                                            float thickness[3]) const;
+                                            float thickness[3],
+                                            bool& displayClippingBox) const;
         
         void setClippingPlaneTransformation(const float panning[3],
                                             const float rotation[3],
-                                            const float thickness[3]);
+                                            const float thickness[3],
+                                            const bool displayClippingBox);
 
         const ClippingPlaneGroup* getClippingPlaneGroup() const;
 
