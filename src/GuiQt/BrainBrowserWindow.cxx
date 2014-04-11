@@ -707,6 +707,12 @@ BrainBrowserWindow::createMenuDevelop()
     QMenu* menu = new QMenu("Develop",
                             this);
     menu->addAction(m_developerExportVtkFileAction);
+    
+    /*
+     * Hide the Export to VTK menu item
+     */
+    m_developerExportVtkFileAction->setVisible(false);
+    
     menu->addAction(m_developerGraphicsTimingAction);
     
     return menu;

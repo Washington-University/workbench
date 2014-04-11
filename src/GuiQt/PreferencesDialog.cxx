@@ -114,8 +114,10 @@ PreferencesDialog::~PreferencesDialog()
  *    Text for label.
  * @param widget
  *    Widget for right column.
+ * @return
+ *    The label that corresponds to the widget.
  */
-void 
+QLabel*
 PreferencesDialog::addWidgetToLayout(const QString& labelText,
                                      QWidget* widget)
 {
@@ -123,6 +125,8 @@ PreferencesDialog::addWidgetToLayout(const QString& labelText,
     label->setAlignment(Qt::AlignRight);
     this->addWidgetsToLayout(label, 
                              widget);
+    
+    return label;
 }
 
 /**
@@ -340,8 +344,14 @@ PreferencesDialog::addOpenGLItems()
     
     this->addWidgetToLayout("Image Capture Method",
                             m_imageCaptureMethodEnumComboBox->getWidget());
-    this->addWidgetToLayout("OpenGL Vertex Buffers",
-                            m_openGLDrawingMethodEnumComboBox->getWidget());
+    QLabel* vertexBuffersLabel = this->addWidgetToLayout("OpenGL Vertex Buffers",
+                                 m_openGLDrawingMethodEnumComboBox->getWidget());
+
+    /*
+     * HIDE THE VERTEX BUFFERS OPTION
+     */
+    vertexBuffersLabel->setHidden(true);
+    m_openGLDrawingMethodEnumComboBox->getWidget()->setHidden(true);
 }
 
 /**

@@ -28,6 +28,7 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QGridLayout;
+class QLabel;
 class QSpinBox;
 
 namespace caret {
@@ -74,8 +75,8 @@ namespace caret {
         void addSplashItems();
         void addVolumeItems();
         
-        void addWidgetToLayout(const QString& labelText,
-                               QWidget* widget);
+        QLabel* addWidgetToLayout(const QString& labelText,
+                                  QWidget* widget);
         
         void addWidgetsToLayout(QWidget* leftWidget,
                              QWidget* rightWidget);

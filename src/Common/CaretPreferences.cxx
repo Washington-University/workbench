@@ -1030,7 +1030,14 @@ CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
 OpenGLDrawingMethodEnum::Enum
 CaretPreferences::getOpenDrawingMethod() const
 {
-    return this->openGLDrawingMethod;
+    OpenGLDrawingMethodEnum::Enum drawMethod = this->openGLDrawingMethod;
+
+    /*
+     * Disable vertex buffers for now
+     */
+    drawMethod = OpenGLDrawingMethodEnum::DRAW_WITH_VERTEX_BUFFERS_OFF;
+    
+    return drawMethod;
 }
 
 /**
