@@ -6,7 +6,7 @@ PROJECT(Desktop)
 #
 # Name of executable
 #
-set (EXE_NAME workbench)
+set (EXE_NAME wb_view)
 
 #
 #  QT Libraries

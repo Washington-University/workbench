@@ -63,17 +63,15 @@ make -j2
 # Run 'macdeployqt' on the App so that frameworks are copied
 #
 echo "RUNNING MACDEPLOYQT"
-macdeployqt Desktop/workbench.app
+macdeployqt Desktop/wb_view.app
 
 #
 # Copy to distribution directory
 #
-DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/macosx32_apps
-scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
-scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
-
-ssh caret@myelin1 touch ${DIST_DIR}/workbench.app
 echo "COPYING PROGRAMS"
+DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/macosx32_apps
+scp -rv Desktop/wb_view.app caret@myelin1:${DIST_DIR}
+scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 

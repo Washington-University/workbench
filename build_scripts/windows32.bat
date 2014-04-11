@@ -30,6 +30,6 @@ cd ..
 set DIST_DIR=caret@myelin1:/mainpool/storage/distribution/caret7_distribution/workbench/bin_windows32
 
 echo "Copying Files"
-c:\cygwin\bin\scp build/Desktop/workbench.exe %DIST_DIR%
+c:\cygwin\bin\scp build/Desktop/wb_view.exe %DIST_DIR%
 c:\cygwin\bin\scp build/CommandLine/wb_command.exe %DIST_DIR%
 echo "Finished Copying Files"
