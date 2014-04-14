@@ -10,8 +10,8 @@ for the purpose of associating several static methods).  On the other hand,
 Operations only operate from arguments given to a parser of some kind.
 
 As such, Operations should be used only for things that would not be useful
-to other code (printing information to stdout, providing command line access
-to something that is already trivial to do in code).
+to other code (printing information to stdout or a text file, providing
+command line access to something that is already trivial to do in code).
 
 Once you know whether the command should be an Algorithm or Operation, open
 either Algorithms/AlgorithmTemplate.h.txt or Operations/OperationTemplate.h.txt,

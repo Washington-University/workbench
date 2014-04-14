@@ -68,6 +68,7 @@ OperationSurfaceInformation.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCapturePlane.h
 OperationVolumeCreate.h
+OperationVolumeLabelExportTable.h
 OperationVolumeLabelImport.h
 OperationVolumeMath.h
 OperationVolumePalette.h
@@ -128,6 +129,7 @@ OperationSurfaceInformation.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCapturePlane.cxx
 OperationVolumeCreate.cxx
+OperationVolumeLabelExportTable.cxx
 OperationVolumeLabelImport.cxx
 OperationVolumeMath.cxx
 OperationVolumePalette.cxx
