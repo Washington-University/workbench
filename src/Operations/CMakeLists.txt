@@ -24,6 +24,7 @@ OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
 OperationCiftiEstimateFWHM.h
+OperationCiftiLabelExportTable.h
 OperationCiftiLabelImport.h
 OperationCiftiMath.h
 OperationCiftiPalette.h
@@ -83,6 +84,7 @@ OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx
 OperationCiftiEstimateFWHM.cxx
+OperationCiftiLabelExportTable.cxx
 OperationCiftiLabelImport.cxx
 OperationCiftiMath.cxx
 OperationCiftiPalette.cxx

@@ -23,6 +23,7 @@
 
 #include "stdint.h"
 
+#include <QString>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
@@ -42,6 +43,7 @@ namespace caret
         virtual CiftiMappingType* clone() const = 0;//make a copy, preserving the actual type - NOTE: this returns a dynamic allocation that is not owned by anything
         virtual MappingType getType() const = 0;
         virtual int64_t getLength() const = 0;
+        virtual int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
         virtual bool operator==(const CiftiMappingType& rhs) const = 0;//used to check for merging mappings when writing the XML - must compare EVERYTHING that goes into the XML
         bool operator!=(const CiftiMappingType& rhs) const { return !((*this) == rhs); }
         virtual bool approximateMatch(const CiftiMappingType& rhs) const = 0;//check if things like doing index-wise math would make sense

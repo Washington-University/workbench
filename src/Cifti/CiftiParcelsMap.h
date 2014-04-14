@@ -55,6 +55,7 @@ namespace caret
         int64_t getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const;
         std::vector<StructureEnum::Enum> getParcelSurfaceStructures() const;
         const std::vector<Parcel>& getParcels() const { return m_parcels; }
+        int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
         
         CiftiParcelsMap() { m_haveVolumeSpace = false; m_ignoreVolSpace = false; }
         void addSurface(const int& numberOfNodes, const StructureEnum::Enum& structure);
@@ -74,7 +75,7 @@ namespace caret
     private:
         std::vector<Parcel> m_parcels;
         VolumeSpace m_volSpace;
-        bool m_haveVolumeSpace, m_ignoreVolSpace;//second is needed for parsing cifti-1;
+        bool m_haveVolumeSpace, m_ignoreVolSpace;//second is needed for parsing cifti-1
         struct SurfaceInfo
         {
             int64_t m_numNodes;

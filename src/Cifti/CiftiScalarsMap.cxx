@@ -45,6 +45,24 @@ const QString& CiftiScalarsMap::getMapName(const int64_t& index) const
     return m_maps[index].m_name;
 }
 
+int64_t CiftiScalarsMap::getIndexFromNumberOrName(const QString& numberOrName) const
+{
+    bool ok = false;
+    int64_t ret = numberOrName.toLongLong(&ok) - 1;//quirk: use string "1" as the first index
+    if (ok)
+    {
+        if (ret < 0 || ret >= getLength()) return -1;//if it is a number, do not try to use it as a name, under any circumstances
+        return ret;
+    } else {
+        int64_t length = getLength();
+        for (int64_t i = 0; i < length; ++i)
+        {
+            if (numberOrName == getMapName(i)) return i;
+        }
+        return -1;
+    }
+}
+
 PaletteColorMapping* CiftiScalarsMap::getMapPalette(const int64_t& index) const
 {
     CaretAssertVectorIndex(m_maps, index);

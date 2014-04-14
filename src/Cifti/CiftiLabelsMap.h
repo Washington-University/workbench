@@ -38,10 +38,11 @@ namespace caret
         GiftiMetaData* getMapMetadata(const int64_t& index) const;//HACK: allow modification of label table and metadata within XML without setting the xml on a file again
         GiftiLabelTable* getMapLabelTable(const int64_t& index) const;
         const QString& getMapName(const int64_t& index) const;
+        int64_t getIndexFromNumberOrName(const QString& numberOrName) const;
         
-        void setMapName(const int64_t& index, const QString& mapName) const;//ditto
+        void setMapName(const int64_t& index, const QString& mapName) const;//HACK: ditto
         void setLength(const int64_t& length);
-        void clear();//do we need this?
+        void clear();
         
         CiftiMappingType* clone() const { return new CiftiLabelsMap(*this); }
         MappingType getType() const { return LABELS; }
