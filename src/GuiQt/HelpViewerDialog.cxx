@@ -23,6 +23,7 @@
 #include "HelpViewerDialog.h"
 #undef __HELP_DIALOG_DECLARE__
 
+#include <QDir>
 #include <QLabel>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -31,6 +32,7 @@
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "HelpViewerTopicEnum.h"
 
 using namespace caret;
@@ -119,33 +121,87 @@ void
 HelpViewerDialog::loadHelpTopics()
 {
     m_indexListWidget->blockSignals(true);
-    QListWidgetItem* defaultHelpItem = NULL;
-    std::vector<HelpViewerTopicEnum::Enum> helpTopics;
-    HelpViewerTopicEnum::getAllEnums(helpTopics);
-    for (std::vector<HelpViewerTopicEnum::Enum>::iterator iter = helpTopics.begin();
-         iter != helpTopics.end();
-         iter++) {
-        HelpViewerTopicEnum::Enum topic = *iter;
-        const QString text         = HelpViewerTopicEnum::toGuiName(topic);
-        const QString resourceName = HelpViewerTopicEnum::toResourceFileName(topic);
-        
-        if (( ! text.isEmpty())
-            && (! resourceName.isEmpty())) {
-            QListWidgetItem* lwi = new QListWidgetItem(text);
-            lwi->setData(Qt::UserRole, resourceName);
-            m_indexListWidget->addItem(lwi);
-            
-            if (defaultHelpItem == NULL) {
-                defaultHelpItem = lwi;
+    
+//    QListWidgetItem* defaultHelpItem = NULL;
+//    std::vector<HelpViewerTopicEnum::Enum> helpTopics;
+//    HelpViewerTopicEnum::getAllEnums(helpTopics);
+//    for (std::vector<HelpViewerTopicEnum::Enum>::iterator iter = helpTopics.begin();
+//         iter != helpTopics.end();
+//         iter++) {
+//        HelpViewerTopicEnum::Enum topic = *iter;
+//        const QString text         = HelpViewerTopicEnum::toGuiName(topic);
+//        const QString resourceName = HelpViewerTopicEnum::toResourceFileName(topic);
+//        
+//        if (( ! text.isEmpty())
+//            && (! resourceName.isEmpty())) {
+//            QListWidgetItem* lwi = new QListWidgetItem(text);
+//            lwi->setData(Qt::UserRole, resourceName);
+//            m_indexListWidget->addItem(lwi);
+//            
+//            if (defaultHelpItem == NULL) {
+//                defaultHelpItem = lwi;
+//            }
+//        }
+//    }
+//
+//    if (defaultHelpItem != NULL) {
+//        m_indexListWidget->setCurrentItem(defaultHelpItem);
+//        indexListWidgetItemClicked(defaultHelpItem);
+//    }
+//    
+//    std::map<QString, QString> helpTitleAndFileMap;
+    
+    QDir resourceDir(":/");
+    if (resourceDir.exists()) {
+        QDir helpFilesDir = resourceDir;
+        helpFilesDir.cd("HelpFiles");
+        if (helpFilesDir.exists()) {
+            QStringList htmlFileFilter;
+            htmlFileFilter << "*.htm" << "*.html";
+            QFileInfoList fileList = helpFilesDir.entryInfoList(htmlFileFilter,
+                                                               QDir::Files,
+                                                               QDir::Name);
+            if (fileList.size() > 0) {
+                for (int i = 0; i < fileList.size(); i++) {
+                    const QString pathName = fileList.at(i).absoluteFilePath();
+                    const QString indexName = fileList.at(i).baseName().replace('_', ' ');
+                    //                helpTitleAndFileMap.insert(std::make_pair<QString, QString>(indexName, pathName));
+                    
+                    const QString resourcePathName = "qrc" + pathName;
+                    //                std::cout << "File " << i << ": " << qPrintable(resourcePathName) << std::endl;
+                    QListWidgetItem* lwi = new QListWidgetItem(indexName);
+                    lwi->setData(Qt::UserRole, resourcePathName);
+                    m_indexListWidget->addItem(lwi);
+                }
+            }
+            else {
+                CaretLogSevere("No HTML (*.html, *.htm) Help Files Found in Resource directory "
+                               + helpFilesDir.absolutePath()
+                               + " not found.");
             }
         }
+        else {
+            CaretLogSevere("Help Files Resource directory "
+                           + helpFilesDir.absolutePath()
+                           + " not found.");
+        }
     }
-    m_indexListWidget->blockSignals(false);
+    else {
+        CaretLogSevere("Resource directory "
+                       + resourceDir.absolutePath()
+                       + " not found.");
+    }
 
-    if (defaultHelpItem != NULL) {
-        m_indexListWidget->setCurrentItem(defaultHelpItem);
-        indexListWidgetItemClicked(defaultHelpItem);
+    /*
+     * Select the first item in the help index
+     */
+    if (m_indexListWidget->count() > 0) {
+        QListWidgetItem* firstItem = m_indexListWidget->item(0);
+        m_indexListWidget->setCurrentItem(firstItem);
+        indexListWidgetItemClicked(firstItem);
     }
+    
+    m_indexListWidget->blockSignals(false);
 }
 
 /**
