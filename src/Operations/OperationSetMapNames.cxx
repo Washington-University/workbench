@@ -20,11 +20,10 @@
 
 #include "OperationSetMapNames.h"
 #include "OperationException.h"
-#include "DataFileTypeEnum.h"
-#include "CiftiFile.h"
-#include "LabelFile.h"
-#include "MetricFile.h"
-#include "VolumeFile.h"
+#include "CaretDataFile.h"
+#include "CaretDataFileHelper.h"
+#include "CaretMappableDataFile.h"
+#include "CaretPointer.h"
 
 #include <vector>
 
@@ -64,7 +63,19 @@ void OperationSetMapNames::useParameters(OperationParameters* myParams, Progress
     LevelProgress myProgress(myProgObj);
     AString fileName = myParams->getString(1);
     const vector<ParameterComponent*>& mapOpts = *(myParams->getRepeatableParameterInstances(2));
-    bool ok = false;
+    CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(fileName));
+    CaretMappableDataFile* mappableFile = dynamic_cast<CaretMappableDataFile*>(caretDataFile.getPointer());
+    if (mappableFile == NULL) throw OperationException("cannot set map name on this file type");
+    for (int i = 0; i < (int)mapOpts.size(); ++i)
+    {
+        int mapIndex = (int)mapOpts[i]->getInteger(1) - 1;
+        if (mapIndex < 0) throw OperationException("invalid map index, indices are 1-based");
+        if (mapIndex >= mappableFile->getNumberOfMaps()) throw OperationException("invalid map index, file doesn't have enough maps");
+        AString newName = mapOpts[i]->getString(2);
+        mappableFile->setMapName(mapIndex, newName);
+    }
+    mappableFile->writeFile(fileName);
+    /*bool ok = false;
     DataFileTypeEnum::Enum myType = DataFileTypeEnum::fromFileExtension(fileName, &ok);
     if (!ok)
     {
@@ -148,5 +159,5 @@ void OperationSetMapNames::useParameters(OperationParameters* myParams, Progress
         }
         default:
             throw OperationException("cannot set map name on this file type");
-    }
+    }//*/
 }
