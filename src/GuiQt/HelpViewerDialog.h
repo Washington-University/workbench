@@ -43,7 +43,8 @@ namespace caret {
         
         virtual void updateDialog();
         
-
+        void showHelpPageWithName(const AString& helpPageName);
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:

@@ -195,7 +195,6 @@ GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
 HelpViewerDialog.h
-HelpViewerTopicEnum.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
@@ -323,7 +322,6 @@ GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
 HelpViewerDialog.cxx
-HelpViewerTopicEnum.cxx
 HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx

@@ -23,7 +23,6 @@
 
 
 #include "Event.h"
-#include "HelpViewerTopicEnum.h"
 
 namespace caret {
     class BrainBrowserWindow;
@@ -37,7 +36,7 @@ namespace caret {
         
         BrainBrowserWindow* getBrainBrowserWindow() const;
         
-        HelpViewerTopicEnum::Enum getHelpViewerTopic() const;
+        AString getHelpPageName() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -48,7 +47,8 @@ namespace caret {
         
         BrainBrowserWindow* m_brainBrowserWindow;
         
-        HelpViewerTopicEnum::Enum m_helpViewerTopic;
+        AString m_helpPageName;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

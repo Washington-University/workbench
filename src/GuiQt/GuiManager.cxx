@@ -916,7 +916,7 @@ GuiManager::receiveEvent(Event* event)
         CaretAssert(helpEvent);
         
         processShowHelpViewerDialog(helpEvent->getBrainBrowserWindow(),
-                                    helpEvent->getHelpViewerTopic());
+                                    helpEvent->getHelpPageName());
     }
 }
 
@@ -1234,20 +1234,27 @@ GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
  *
  * @param browserWindow
  *    Parent of dialog if it needs to be created.
- * @param helpTopic
- *    Help topic for display.
+ * @param helpPageName
+ *    Name of help page for display.
  */
 void
 GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
-                                        const HelpViewerTopicEnum::Enum /*helpTopic*/)
+                                        const AString& helpPageName)
 {
     CaretAssert(browserWindow);
     
     if (m_helpViewerDialog == NULL) {
-        m_helpViewerDialog = new HelpViewerDialog(browserWindow);
+        BrainBrowserWindow* bbw = browserWindow;
+        if (bbw = NULL) {
+            bbw = getActiveBrowserWindow();
+        }
+        m_helpViewerDialog = new HelpViewerDialog(bbw);
         this->nonModalDialogs.push_back(m_helpViewerDialog);
     }
+    
     m_helpViewerDialog->updateDialog();
+
+    m_helpViewerDialog->showHelpPageWithName(helpPageName);
     
     m_helpViewerDialog->setVisible(true);
     m_helpViewerDialog->show();

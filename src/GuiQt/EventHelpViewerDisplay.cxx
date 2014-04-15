@@ -43,7 +43,7 @@ EventHelpViewerDisplay::EventHelpViewerDisplay(BrainBrowserWindow* brainBrowserW
 : Event(EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY)
 {
     m_brainBrowserWindow = brainBrowserWindow;
-    m_helpViewerTopic    = HelpViewerTopicEnum::HELP_TOPIC_DEFAULT;
+    m_helpPageName       = "";
 }
 
 /**
@@ -55,6 +55,7 @@ EventHelpViewerDisplay::~EventHelpViewerDisplay()
 
 /**
  * @return Brain browser window on which a new help viewer dialog is displayed
+ * May be NULL in which case any browser window should be used as parent.
  */
 BrainBrowserWindow*
 EventHelpViewerDisplay::getBrainBrowserWindow() const
@@ -63,11 +64,11 @@ EventHelpViewerDisplay::getBrainBrowserWindow() const
 }
 
 /**
- * @return Topic for display in the window.
+ * @return Name of page for display (may be empty string).
  */
-HelpViewerTopicEnum::Enum
-EventHelpViewerDisplay::getHelpViewerTopic() const
+AString
+EventHelpViewerDisplay::getHelpPageName() const
 {
-    return m_helpViewerTopic;
+    return m_helpPageName;
 }
 

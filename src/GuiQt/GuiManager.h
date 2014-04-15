@@ -30,7 +30,6 @@
 #include <QObject>
 
 #include "EventListenerInterface.h"
-#include "HelpViewerTopicEnum.h"
 #include "SceneableInterface.h"
 #include "WuQWebView.h"
 
@@ -179,7 +178,7 @@ namespace caret {
                                  BrainBrowserWindow* parentBrainBrowserWindow);
         
         void processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
-                                         const HelpViewerTopicEnum::Enum helpTopic);
+                                         const AString& helpPageName);
         
         void removeNonModalDialog(QWidget* dialog);
         

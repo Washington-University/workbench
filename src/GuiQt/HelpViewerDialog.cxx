@@ -33,7 +33,6 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "HelpViewerTopicEnum.h"
 
 using namespace caret;
 
@@ -165,10 +164,8 @@ HelpViewerDialog::loadHelpTopics()
                 for (int i = 0; i < fileList.size(); i++) {
                     const QString pathName = fileList.at(i).absoluteFilePath();
                     const QString indexName = fileList.at(i).baseName().replace('_', ' ');
-                    //                helpTitleAndFileMap.insert(std::make_pair<QString, QString>(indexName, pathName));
                     
                     const QString resourcePathName = "qrc" + pathName;
-                    //                std::cout << "File " << i << ": " << qPrintable(resourcePathName) << std::endl;
                     QListWidgetItem* lwi = new QListWidgetItem(indexName);
                     lwi->setData(Qt::UserRole, resourcePathName);
                     m_indexListWidget->addItem(lwi);
@@ -202,6 +199,28 @@ HelpViewerDialog::loadHelpTopics()
     }
     
     m_indexListWidget->blockSignals(false);
+}
+
+/**
+ * Show the help page with the given name (Name.
+ */
+void
+HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
+{
+    const AString pageName = QString(helpPageName).replace('_', ' ');
+    
+    for (int i = 0; i < m_indexListWidget->count(); i++) {
+        QListWidgetItem* lwi = m_indexListWidget->item(i);
+        if (lwi->text() == pageName) {
+            m_indexListWidget->setCurrentItem(lwi);
+            indexListWidgetItemClicked(lwi);
+            return;
+        }
+    }
+    
+    CaretLogSevere("Could not find help page \""
+                   + helpPageName
+                   + "\" for loading.");
 }
 
 /**
