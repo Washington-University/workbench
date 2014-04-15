@@ -74,6 +74,8 @@ public:
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */
         EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+        /** Display the help viewer */
+        EVENT_HELP_VIEWER_DISPLAY,
         /** Highlight location when an identification occurs */
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
         /** Remove all identification symbols */

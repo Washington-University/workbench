@@ -66,6 +66,7 @@ GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
+HelpViewerDialog.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
@@ -176,6 +177,7 @@ EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
+EventHelpViewerDisplay.h
 EventImageCapture.h
 EventMapSettingsEditorDialogRequest.h
 EventOperatingSystemRequestOpenDataFile.h
@@ -192,6 +194,8 @@ GiftiLabelTableSelectionComboBox.h
 GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
+HelpViewerDialog.h
+HelpViewerTopicEnum.h
 HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
@@ -301,6 +305,7 @@ EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
+EventHelpViewerDisplay.cxx
 EventImageCapture.cxx
 EventMapSettingsEditorDialogRequest.cxx
 EventOperatingSystemRequestOpenDataFile.cxx
@@ -317,6 +322,8 @@ GiftiLabelTableSelectionComboBox.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx
+HelpViewerDialog.cxx
+HelpViewerTopicEnum.cxx
 HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx

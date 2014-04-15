@@ -54,6 +54,7 @@
 #include "ElapsedTimer.h"
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventDataFileRead.h"
+#include "EventHelpViewerDisplay.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -619,22 +620,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processReportWorkbenchBug()));
     
-    m_helpOnlineAction =
-    WuQtUtilities::createAction("Show Help (Online)...",
-                                "Show the Help Window",
+    m_helpViewerAction =
+    WuQtUtilities::createAction("Workbench Help...",
+                                "Show the Help Viewer",
                                 this,
-                                guiManager,
-                                SLOT(processShowHelpOnlineWindow()));
-    m_helpOnlineAction->setEnabled(false);
+                                this,
+                                SLOT(processShowHelpViewer()));
     
-    m_helpSearchOnlineAction =
-    WuQtUtilities::createAction("Search Help (Online)...",
-                                "Show the Search Helper Window",
-                                this,
-                                guiManager,
-                                SLOT(processShowSearchHelpOnlineWindow()));
-    m_helpSearchOnlineAction->setEnabled(false);
-
     m_connectToAllenDatabaseAction =
     WuQtUtilities::createAction("Allen Brain Institute Database...",
                                 "Open a connection to the Allen Brain Institute Database",
@@ -1338,17 +1330,16 @@ BrainBrowserWindow::createMenuWindow()
  * Create the help menu.
  * @return the help menu.
  */
-QMenu* 
+QMenu*
 BrainBrowserWindow::createMenuHelp()
 {
     QMenu* menu = new QMenu("Help", this);
     
+    menu->addAction(m_helpViewerAction);
+    menu->addSeparator();
     menu->addAction(m_helpHcpWebsiteAction);
     menu->addAction(m_helpWorkbenchBugReportAction);
     menu->addAction(m_helpHcpFeatureRequestAction);
-    menu->addSeparator();
-    menu->addAction(m_helpOnlineAction);
-    menu->addAction(m_helpSearchOnlineAction);
     
     return menu;
 }
@@ -2631,6 +2622,16 @@ QMenu*
 BrainBrowserWindow::createPopupMenu()
 {
     return NULL;
+}
+
+/**
+ * Show the help viewer
+ */
+void
+BrainBrowserWindow::processShowHelpViewer()
+{
+    EventHelpViewerDisplay helpEvent(this);
+    EventManager::get()->sendEvent(helpEvent.getPointer());
 }
 
 /**

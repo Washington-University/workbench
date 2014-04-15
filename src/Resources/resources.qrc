@@ -35,6 +35,11 @@
 <file>time_series_graph.png</file>
 <file>toolbar.png</file>
 <file>toolbox.png</file>
+<file>HelpFiles/Splash_Screen.htm</file>
+<file>HelpFiles/Splash_Screen_files/image001.png</file>
+<file>HelpFiles/Preferences.htm</file>
+<file>HelpFiles/Preferences_files/image001.png</file>
+<file>HelpFiles/Preferences_files/image002.png</file>
 </qresource>
 </RCC>
 

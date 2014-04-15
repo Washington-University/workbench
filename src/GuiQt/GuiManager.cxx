@@ -53,6 +53,7 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventHelpViewerDisplay.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "EventMapSettingsEditorDialogRequest.h"
@@ -62,6 +63,7 @@
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociPropertiesEditorDialog.h"
+#include "HelpViewerDialog.h"
 #include "IdentifiedItemNode.h"
 #include "IdentificationManager.h"
 #include "IdentificationStringBuilder.h"
@@ -122,6 +124,7 @@ GuiManager::GuiManager(QObject* parent)
     m_informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
+    m_helpViewerDialog = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
@@ -183,10 +186,11 @@ GuiManager::GuiManager(QObject* parent)
     m_sceneDialogDisplayAction->blockSignals(false);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -774,24 +778,6 @@ void GuiManager::processTileWindows()
 }
 
 /**
- * Called when show help online is selected.
- */
-void
-GuiManager::processShowHelpOnlineWindow()
-{
-    
-}
-
-/**
- * Called when search help online is selected.
- */
-void
-GuiManager::processShowSearchHelpOnlineWindow()
-{
-    
-}
-
-/**
  * @return Name of the application.
  */
 QString 
@@ -924,6 +910,13 @@ GuiManager::receiveEvent(Event* event)
             //CaretLogSevere("No browser window open for loading file from operating system.");
             //CaretAssert(0);
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY) {
+        EventHelpViewerDisplay* helpEvent = dynamic_cast<EventHelpViewerDisplay*>(event);
+        CaretAssert(helpEvent);
+        
+        processShowHelpViewerDialog(helpEvent->getBrainBrowserWindow(),
+                                    helpEvent->getHelpViewerTopic());
     }
 }
 
@@ -1234,6 +1227,31 @@ GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
     m_bugReportDialog->setVisible(true);
     m_bugReportDialog->show();
     m_bugReportDialog->activateWindow();
+}
+
+/**
+ * Show the Help Viewer Dialog.
+ *
+ * @param browserWindow
+ *    Parent of dialog if it needs to be created.
+ * @param helpTopic
+ *    Help topic for display.
+ */
+void
+GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
+                                        const HelpViewerTopicEnum::Enum /*helpTopic*/)
+{
+    CaretAssert(browserWindow);
+    
+    if (m_helpViewerDialog == NULL) {
+        m_helpViewerDialog = new HelpViewerDialog(browserWindow);
+        this->nonModalDialogs.push_back(m_helpViewerDialog);
+    }
+    m_helpViewerDialog->updateDialog();
+    
+    m_helpViewerDialog->setVisible(true);
+    m_helpViewerDialog->show();
+    m_helpViewerDialog->activateWindow();
 }
 
 /**
