@@ -671,7 +671,7 @@ IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBui
                            "Structure",
                            structureName);
             idText.addLine(true,
-                           "Node Index",
+                           "Vertex Index",
                            AString::number(nodeIndex));
         }
             break;
@@ -685,7 +685,7 @@ IdentificationTextGenerator::generateChartDataSourceText(IdentificationStringBui
                            "Structure",
                            structureName);
             idText.addLine(true,
-                           "Node Average Count",
+                           "Vertex Average Count",
                            AString::number(nodeIndices.size()));
         }
             break;
