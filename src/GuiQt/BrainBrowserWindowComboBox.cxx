@@ -91,7 +91,8 @@ BrainBrowserWindowComboBox::updateComboBox()
     const int32_t numWindows = static_cast<int32_t>(browserWindows.size());
     for (int32_t i = 0; i < numWindows; i++) {
         BrainBrowserWindow* bbw = browserWindows[i];
-        m_comboBox->addItem(QString::number(i + 1));
+        const int32_t browserWindowIndex = bbw->getBrowserWindowIndex();
+        m_comboBox->addItem(QString::number(browserWindowIndex + 1));
         m_comboBox->setItemData(i,
                                 qVariantFromValue((void*)bbw));
         
@@ -133,6 +134,7 @@ BrainBrowserWindowComboBox::setBrowserWindowByIndex(const int32_t browserWindowI
             m_comboBox->blockSignals(true);
             m_comboBox->setCurrentIndex(i);
             m_comboBox->blockSignals(false);
+            return;
         }
     }
 }
