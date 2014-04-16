@@ -37,8 +37,8 @@ class QAction;
 class QDialog;
 class QWidget;
 class MovieDialog;
-namespace caret {
-    
+
+namespace caret {    
     class Brain;
     class BrainBrowserWindow;
     class BrowserTabContent;

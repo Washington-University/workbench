@@ -26,7 +26,6 @@
 #include <QAction>
 #include <QApplication>
 #include <QDesktopWidget>
-#include <QWebView>
 
 #define __GUI_MANAGER_DEFINE__
 #include "GuiManager.h"
@@ -338,8 +337,8 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
     if (isBrowserWindowAllowedToClose) {
         for (int32_t i = 0; i < static_cast<int32_t>(m_brainBrowserWindows.size()); i++) {
             if (m_brainBrowserWindows[i] == brainBrowserWindow) {
-                this->reparentNonModalDialogs(m_brainBrowserWindows[i]);
-                m_brainBrowserWindows[i] = NULL;
+                m_brainBrowserWindows[i] = NULL; // must set to NULL BEFORE reparenting non-modal dialogs so they dont' see it
+                this->reparentNonModalDialogs(brainBrowserWindow);
             }
         }
     }
@@ -1034,6 +1033,14 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
                     d->hide();
                 }
             }
+            
+            /*
+             * Update any dialogs that are WuQ non modal dialogs.
+             */
+            WuQDialogNonModal* wuqNonModalDialog = dynamic_cast<WuQDialogNonModal*>(d);
+            if (wuqNonModalDialog != NULL) {
+                wuqNonModalDialog->updateDialog();
+            }
         }
     }
 }
@@ -1245,7 +1252,7 @@ GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
     
     if (m_helpViewerDialog == NULL) {
         BrainBrowserWindow* bbw = browserWindow;
-        if (bbw = NULL) {
+        if (bbw == NULL) {
             bbw = getActiveBrowserWindow();
         }
         m_helpViewerDialog = new HelpViewerDialog(bbw);
