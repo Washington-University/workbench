@@ -123,6 +123,8 @@ ClippingPlaneGroup::copyHelperClippingPlaneGroup(const ClippingPlaneGroup& obj)
     m_volumeSelectionStatus   = obj.m_volumeSelectionStatus;
     m_featuresSelectionStatus = obj.m_featuresSelectionStatus;
 
+    m_displayClippingBoxStatus = obj.m_displayClippingBoxStatus;
+    
     invalidateActiveClippingPlainEquations();
 }
 
