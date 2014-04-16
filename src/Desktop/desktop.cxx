@@ -254,7 +254,6 @@ main(int argc, char* argv[])
         */
         SessionManager::createSessionManager();
         caretLoggerIsValid = true;
-        qInstallMsgHandler(messageHandlerForQt);//this handler uses caretlogger, so we must install it after the logger is available
 
         /*
         * Parameters for the program.
@@ -316,6 +315,7 @@ main(int argc, char* argv[])
         */
         BrainOpenGLWidget::initializeDefaultGLFormat();
         
+        qInstallMsgHandler(messageHandlerForQt);//this handler uses CaretLogger and GuiManager, so we must install it after the logger is available and the application is created
         /*
          * Log debug status
          */
