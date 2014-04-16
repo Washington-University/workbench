@@ -784,7 +784,16 @@ CaretMappableDataFile::helpCreateCartesianChartData(const std::vector<float>& da
             float xValue = i;
             
             if (timeSeriesFlag) {
+                /*
+                 * X-Value is "time"
+                 */
                 xValue = timeStart + (i * timeStep);
+            }
+            else {
+                /*
+                 * X-Value is the map index and map indices start at one
+                 */
+                xValue = i + 1;
             }
             
             chartData->addPoint(xValue,

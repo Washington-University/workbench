@@ -270,6 +270,7 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
     const float numberOfTicks = 5;
     
     float dataStart = m_minimumValue;
+    float dataEnd   = m_maximumValue;
     float dataRange = (m_maximumValue - m_minimumValue);
     if (dataRange <= 0.0) {
         return;
@@ -288,10 +289,44 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
     float labelValue  = labelsStart;
     for (int32_t i = 0; i <= numberOfTicks; i++) {
         float labelParametricValue = (labelValue - dataStart) / dataRange;
+        
+        float labelValueForText = labelValue;
+        
         if (dataRange >= 10.0) {
+            if (i == 0) {
+                /*
+                 * Handles case when the minimum DATA value is just a little
+                 * bit greater than the minimum value for axis labels such
+                 * as in Data-Series data when the minimum data value is "1"
+                 * and the minimum axis label value is "0".  Without this
+                 * code no value is displayed at the left edge of the axis.
+                 */
+                if (labelParametricValue < 0.0) {
+                    const float nextParametricValue = ((labelValue + tickLabelsStep) - dataStart) / dataRange;
+                    if (nextParametricValue > 0.05) {
+                        labelParametricValue = 0.0;
+                        labelValueForText = dataStart;
+                    }
+                }
+            }
+            
             if (labelParametricValue < 0.0) {
                 if (labelParametricValue >= -0.01) {
                     labelParametricValue = 0.0;
+                }
+            }
+            
+            if (i == numberOfTicks) {
+                /*
+                 * Like above, ensures a value is displayed at the right
+                 * edge of the axis.
+                 */
+                if (labelParametricValue > 1.0) {
+                    const float prevParametricValue = ((labelValue - tickLabelsStep) - dataStart) / dataRange;
+                    if (prevParametricValue < 0.95) {
+                        labelParametricValue = 1.0;
+                        labelValueForText = dataEnd;
+                    }
                 }
             }
             
@@ -305,7 +340,7 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
         if ((labelParametricValue >= 0.0)
             && (labelParametricValue <= 1.0)) {
             const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
-            const AString labelText = AString::number(labelValue, 'f', m_digitsRightOfDecimal);
+            const AString labelText = AString::number(labelValueForText, 'f', m_digitsRightOfDecimal);
             
             labelOffsetInPixelsOut.push_back(labelPixelsPosition);
             labelTextOut.push_back(labelText);
