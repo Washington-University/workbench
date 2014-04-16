@@ -302,13 +302,40 @@ ClippingPlaneGroup::getRotationMatrixForStructure(const StructureEnum::Enum stru
                                      rotationY,
                                      rotationZ);
         
-        const double rotationFlippedY = 180.0 - rotationY;
-        const double rotationFlippedZ = 180.0 - rotationZ;
+        const int flipMode = 2;
+        switch (flipMode) {
+            case 1:
+                rotationY = 180.0 - rotationY;
+                rotationZ = 180.0 - rotationZ;
+                break;
+            case 2:
+                rotationY = -rotationY;
+                rotationZ = -rotationZ;
+                break;
+            case 3:
+                rotationY = 180.0 - rotationY;
+                rotationZ = -rotationZ;
+                break;
+            case 4:
+                rotationY = - rotationY;
+                rotationZ = 180.0 -rotationZ;
+                break;
+        }
+        
         Matrix4x4 mat;
-        mat.setRotation(rotationX, //rotationFlippedX,
-                        rotationFlippedY,
-                        rotationFlippedZ);
+        mat.setRotation(rotationX,
+                        rotationY,
+                        rotationZ);
         return mat;
+        
+        
+//        const double rotationFlippedY = 180.0 - rotationY;
+//        const double rotationFlippedZ = 180.0 - rotationZ;
+//        Matrix4x4 mat;
+//        mat.setRotation(rotationX, //rotationFlippedX,
+//                        rotationFlippedY,
+//                        rotationFlippedZ);
+//        return mat;
         
     }
     return m_rotationMatrix;

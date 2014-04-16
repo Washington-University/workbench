@@ -51,6 +51,8 @@ namespace caret {
         
         void getTranslation(float translation[3]) const;
         
+        void setTranslation(const float translation[3]);
+        
         void getTranslationForStructure(const StructureEnum::Enum structure,
                                         float translation[3]) const;
         
@@ -62,7 +64,11 @@ namespace caret {
         
         void setRotationAngles(const float rotationAngles[3]);
         
+        void setRotation(const float rotation[4][4]);
+        
         void getThickness(float thickness[3]) const;
+        
+        void setThickness(const float thickness[3]);
         
         bool isXAxisSelected() const;
         
@@ -93,12 +99,6 @@ namespace caret {
         bool isFeaturesAndAnyAxisSelected() const;
         
         void setFeaturesSelected(const bool selected);
-        
-        void setTranslation(const float translation[3]);
-        
-        void setRotation(const float rotation[4][4]);
-        
-        void setThickness(const float thickness[3]);
         
         bool isCoordinateInsideClippingPlanesForStructure(const StructureEnum::Enum structure,
                                                           const float xyz[3]) const;
