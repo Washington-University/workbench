@@ -30,6 +30,7 @@
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowComboBox.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -56,7 +57,6 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
 : WuQDialogNonModal("Clipping Planes",
                     parent)
 {
-    m_browserWindowIndex = -1;
     m_blockDialogUpdate = true;
     
     /*------------------------------------------------------------------------*/
@@ -64,6 +64,19 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
      * Create widgets
      */
 
+    /*
+     * Window number
+     */
+    QLabel* windowLabel = new QLabel("Workbench Window: ");
+    m_browserWindowComboBox = new BrainBrowserWindowComboBox(this);
+    m_browserWindowComboBox->getWidget()->setFixedWidth(50);
+    QObject::connect(m_browserWindowComboBox, SIGNAL(browserWindowSelected(BrainBrowserWindow*)),
+                     this, SLOT(browserWindowComboBoxValueChanged(BrainBrowserWindow*)));
+    QHBoxLayout* windowLayout = new QHBoxLayout();
+    windowLayout->addWidget(windowLabel);
+    windowLayout->addWidget(m_browserWindowComboBox->getWidget());
+    windowLayout->addStretch();
+    
     /*
      * X, Y, Z column labels
      */
@@ -76,7 +89,7 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
      * Panning
      */
     const double panStep = 1.0;
-    QLabel* panLabel = new QLabel("Panning:");
+    QLabel* panLabel = new QLabel("Pan:");
     m_xPanDoubleSpinBox = new QDoubleSpinBox;
     m_xPanDoubleSpinBox->setMinimum(-100000.0);
     m_xPanDoubleSpinBox->setMaximum( 100000.0);
@@ -109,7 +122,7 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     const double rotationMinimum = -360.0;
     const double rotationMaximum =  360.0;
     const double rotateStep = 1.0;
-    QLabel* rotateLabel = new QLabel("Rotation: ");
+    QLabel* rotateLabel = new QLabel("Rotate: ");
     m_xRotateDoubleSpinBox = new QDoubleSpinBox;
     m_xRotateDoubleSpinBox->setWrapping(true);
     m_xRotateDoubleSpinBox->setMinimum(rotationMinimum);
@@ -260,18 +273,20 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
     gridLayout->addWidget(m_zThicknessDoubleSpinBox,
                           row,
                           COLUMN_Z);
-    row++;
-    gridLayout->addWidget(m_displayClippingBoxCheckBox,
-                          row,
-                          COLUMN_LABEL,
-                          1,
-                          4);
-    
     
     /*------------------------------------------------------------------------*/
     /*
      * Finish up
      */
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 4);
+    layout->addLayout(windowLayout);
+    layout->addWidget(m_displayClippingBoxCheckBox);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addWidget(gridWidget);
+    widget->setFixedSize(widget->sizeHint());
+    
     /*
      * Remove apply button by using an empty name
      */
@@ -279,7 +294,7 @@ ClippingPlanesDialog::ClippingPlanesDialog(QWidget* parent)
 
     m_resetPushButton = addUserPushButton("Reset", QDialogButtonBox::NoRole);
     
-    setCentralWidget(gridWidget,
+    setCentralWidget(widget,
                      WuQDialog::SCROLL_AREA_NEVER);
     
     /*
@@ -312,7 +327,7 @@ WuQDialogNonModal::NonModalDialogUserButtonResult
 ClippingPlanesDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_resetPushButton) {
-        BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+        BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
         if (bbw != NULL) {
             BrowserTabContent* btc = bbw->getBrowserTabContent();
             if (btc != NULL) {
@@ -327,6 +342,20 @@ ClippingPlanesDialog::userButtonPressed(QPushButton* userPushButton)
     }
     
     return WuQDialogNonModal::RESULT_NONE;
+}
+
+/**
+ * Called when window number combo box value changed.
+ */
+void
+ClippingPlanesDialog::browserWindowComboBoxValueChanged(BrainBrowserWindow* browserWindow)
+{
+    int32_t windowIndex = -1;
+    if (browserWindow != NULL) {
+        windowIndex = browserWindow->getBrowserWindowIndex();
+    }
+    
+    updateContent(windowIndex);
 }
 
 
@@ -357,7 +386,7 @@ ClippingPlanesDialog::clippingValueChanged()
     /*
      * Update, set, and validate selected browser window
      */
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    BrainBrowserWindow* bbw = m_browserWindowComboBox->getSelectedBrowserWindow();
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
@@ -396,17 +425,19 @@ ClippingPlanesDialog::focusGained()
 void
 ClippingPlanesDialog::updateDialog()
 {
-    updateContent(m_browserWindowIndex);
+    m_browserWindowComboBox->updateComboBox();
+    updateContent(m_browserWindowComboBox->getSelectedBrowserWindowIndex());
 }
 
 
 /**
- * Update the dialog.
+ * Update the content in the dialog
+ * @param browserWindowIndexIn
+ *    Index of the browser window.
  */
 void
-ClippingPlanesDialog::updateContent(const int32_t browserWindowIndex)
+ClippingPlanesDialog::updateContent(const int32_t browserWindowIndexIn)
 {
-    m_browserWindowIndex = browserWindowIndex;
     
     /*
      * May get updates when graphics are redrawn by this dialog
@@ -419,7 +450,11 @@ ClippingPlanesDialog::updateContent(const int32_t browserWindowIndex)
     /*
      * Update, set, and validate selected browser window
      */
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    m_browserWindowComboBox->updateComboBox();
+    m_browserWindowComboBox->setBrowserWindowByIndex(browserWindowIndexIn);
+    const int32_t browserWindowIndex = m_browserWindowComboBox->getSelectedBrowserWindowIndex();
+    
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(browserWindowIndex);
     if (bbw != NULL) {
         BrowserTabContent* btc = bbw->getBrowserTabContent();
         if (btc != NULL) {
