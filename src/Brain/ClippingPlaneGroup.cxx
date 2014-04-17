@@ -138,6 +138,10 @@ ClippingPlaneGroup::resetTransformation()
         m_translation[i] = 0.0;
     }
 
+    m_thickness[0] = 180.0;
+    m_thickness[1] = 250.0;
+    m_thickness[2] = 220.0;
+    
     m_rotationMatrix.identity();
 
     invalidateActiveClippingPlainEquations();
@@ -150,10 +154,6 @@ void
 ClippingPlaneGroup::resetToDefaultValues()
 {
     resetTransformation();
-    
-    m_thickness[0] = 180.0;
-    m_thickness[1] = 250.0;
-    m_thickness[2] = 220.0;
     
     m_displayClippingBoxStatus = false;
     
