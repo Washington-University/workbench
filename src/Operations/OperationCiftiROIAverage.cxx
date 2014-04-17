@@ -58,7 +58,7 @@ OperationParameters* OperationCiftiROIAverage::getParameters()
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
     ret->setHelpText(
-        AString("Take the average across each row in any ROI, and write the result to a text file, seperated by newlines.")
+        AString("Average the rows that are within the specified ROIs, and write the resulting average row to a text file, seperated by newlines.")
     );
     return ret;
 }
