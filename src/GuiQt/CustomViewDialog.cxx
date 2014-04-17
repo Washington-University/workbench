@@ -629,7 +629,6 @@ CustomViewDialog::browserWindowComboBoxValueChanged(BrainBrowserWindow* browserW
 {
     int32_t windowIndex = -1;
     if (browserWindow != NULL) {
-        std::cout << "Selected " << browserWindow->getBrowserWindowIndex() << std::endl;
         windowIndex = browserWindow->getBrowserWindowIndex();
     }
     
