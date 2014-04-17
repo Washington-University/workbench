@@ -20,6 +20,7 @@
 
 //try to force large file support from zlib, any other file reading calls
 #define _LARGEFILE64_SOURCE
+#define _LFS64_LARGEFILE
 #define _FILE_OFFSET_BITS 64
 
 #include "CaretBinaryFile.h"
@@ -198,8 +199,8 @@ void ZFileImpl::seek(const int64_t& position)
 {
     if (m_zfile == NULL) throw DataFileException("seek called on unopened ZFileImpl");//shouldn't happen
     if (pos() == position) return;//slight hack, since gzseek is slow or nonfunctional for some cases, so don't try it unless necessary
-    off64_t ret = gzseek64(m_zfile, position, SEEK_SET);
-    if (ret != (off64_t)position) throw DataFileException("seek failed in compressed file '" + m_fileName + "'");
+    z_off64_t ret = gzseek64(m_zfile, position, SEEK_SET);
+    if (ret != (z_off64_t)position) throw DataFileException("seek failed in compressed file '" + m_fileName + "'");
 }
 
 int64_t ZFileImpl::pos()
