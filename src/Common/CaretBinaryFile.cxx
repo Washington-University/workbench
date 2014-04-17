@@ -29,11 +29,6 @@
 #include <QFile>
 #include "zlib.h"
 
-//fix old versions of zlib using off64_t directly
-#ifndef z_off64_t
-#define z_off64_t off64_t
-#endif
-
 using namespace caret;
 using namespace std;
 
@@ -156,7 +151,11 @@ void ZFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
         default:
             throw DataFileException("compressed file only supports READ and WRITE_TRUNCATE modes");
     }
+#if ZLIB_VERNUM > 0x1232
     m_zfile = gzopen64(filename.toLocal8Bit().constData(), mode);
+#else
+    m_zfile = gzopen(filename.toLocal8Bit().constData(), mode);
+#endif
     if (m_zfile == NULL)
     {
         throw DataFileException("error opening compressed file '" + filename + "'");
@@ -176,7 +175,7 @@ void ZFileImpl::read(void* dataOut, const int64_t& count, int64_t* numRead)
     if (m_zfile == NULL) throw DataFileException("read called on unopened ZFileImpl");//shouldn't happen
     const int64_t CHUNK_SIZE = (1<<26);//64MB, should be large enough for good performance, and small enough not to give zlib trouble - needs to convert to unsigned int
     int64_t totalRead = 0;
-    int readret;//to preserve the info of the read that broke early
+    int readret = 0;//to preserve the info of the read that broke early
     while (totalRead < count)
     {
         int64_t iterSize = count - totalRead;
@@ -204,8 +203,12 @@ void ZFileImpl::seek(const int64_t& position)
 {
     if (m_zfile == NULL) throw DataFileException("seek called on unopened ZFileImpl");//shouldn't happen
     if (pos() == position) return;//slight hack, since gzseek is slow or nonfunctional for some cases, so don't try it unless necessary
-    z_off64_t ret = gzseek64(m_zfile, position, SEEK_SET);
-    if (ret != (z_off64_t)position) throw DataFileException("seek failed in compressed file '" + m_fileName + "'");
+#if ZLIB_VERNUM > 0x1232
+    int64_t ret = gzseek64(m_zfile, position, SEEK_SET);
+#else
+    int64_t ret = gzseek(m_zfile, position, SEEK_SET);
+#endif
+    if (ret != position) throw DataFileException("seek failed in compressed file '" + m_fileName + "'");
 }
 
 int64_t ZFileImpl::pos()
