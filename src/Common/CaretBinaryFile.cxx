@@ -29,6 +29,11 @@
 #include <QFile>
 #include "zlib.h"
 
+//fix old versions of zlib using off64_t directly
+#ifndef z_off64_t
+#define z_off64_t off64_t
+#endif
+
 using namespace caret;
 using namespace std;
 
