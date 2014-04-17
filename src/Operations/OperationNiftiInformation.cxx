@@ -22,7 +22,7 @@
 #include "OperationException.h"
 
 #include "CiftiFile.h"
-#include "NiftiFile.h"
+#include "NiftiIO.h"
 #include "CiftiXML.h"
 #include "DataFileTypeEnum.h"
 
@@ -67,91 +67,16 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     bool printXml = myParams->getOptionalParameter(4)->m_present;
     if (!printHeader && !printMatrix && !printXml) throw OperationException("you must specify a -print-* option");
     if(!QFile::exists(fileName)) throw OperationException("File '" + fileName + "' does not exist.");
-    if(!fileName.endsWith(".nii") && !fileName.endsWith(".nii.gz")) cout << "File doesn't end with an expected extension, is this really a Nifti/Cifti file?" << endl;
 
-    bool validDataFileType = false;
-    const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(fileName,
-                                                                                &validDataFileType);
-    bool isCiftiFile = false;
-    if (validDataFileType)
-    {
-        if (DataFileTypeEnum::isConnectivityDataType(dataFileType))
-        {
-            isCiftiFile = true;
-        }
-    }
     if(printHeader)
     {
-        const bool readWithHeaderFlag = true;
-        
-        if (readWithHeaderFlag) {
-            /*
-             * Reads header only so should be fast for any size file
-             */
-            try {
-                std::vector<int64_t> dimensions;
-                
-                NiftiHeaderIO niftiHeaderIO(fileName);
-                switch (niftiHeaderIO.getNiftiVersion()) {
-                    case 1:
-                    {
-                        Nifti1Header header;
-                        niftiHeaderIO.getHeader(header);
-                        AString headerString;
-                        header.getHeaderAsString(headerString);
-                        header.getDimensions(dimensions);
-                        cout << headerString << endl;
-                        cout << getMemorySizeAsString(dimensions) << endl;
-                    }
-                        break;
-                    case 2:
-                    {
-                        Nifti2Header header;
-                        niftiHeaderIO.getHeader(header);
-                        AString headerString;
-                        header.getHeaderAsString(headerString);
-                        header.getDimensions(dimensions);
-                        cout << headerString << endl;
-                        cout << getMemorySizeAsString(dimensions) << endl;
-                    }
-                        break;
-                    default:
-                        throw NiftiException("Unrecognized NIFTI version: "
-                                             + AString::number(niftiHeaderIO.getNiftiVersion()));
-                        
-                }
-            }
-            catch (const NiftiException& e) {
-                throw OperationException(e);
-            }
-        }
-        else {
-            /*
-             * Reads entire file so may be very slow for large files
-             */
-            NiftiFile nf(fileName);
-            if(nf.getNiftiVersion()==1)
-            {
-                Nifti1Header header;
-                nf.getHeader(header);
-                AString headerString;
-                header.getHeaderAsString(headerString);
-                cout << headerString << endl;
-            }
-            else if(nf.getNiftiVersion()==2)
-            {
-                Nifti2Header header;
-                nf.getHeader(header);
-                AString headerString;
-                header.getHeaderAsString(headerString);
-                cout << headerString << endl;
-            }
-            else throw OperationException("Unrecognized Nifti Version.");
-        }
+        NiftiIO myIO;
+        myIO.openRead(fileName);
+        cout << myIO.getHeader().toString() << endl;
+        cout << getMemorySizeAsString(myIO.getDimensions()) << endl;
     }
     if(printXml)
     {
-        if (!isCiftiFile) cout << "attempting -print-xml on something that doesn't seem to be a cifti file" << endl;
         CiftiFile cf(fileName, ON_DISK);
         const CiftiXML& xml = cf.getCiftiXML();
         AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with
@@ -159,7 +84,6 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     }
     if(printMatrix)
     {
-        if (!isCiftiFile) cout << "attempting -print-matrix on something that doesn't seem to be a cifti file" << endl;
         CiftiFile cf(fileName, ON_DISK);
         int64_t dim0 = cf.getNumberOfRows();
         int64_t dim1 = cf.getNumberOfColumns();
