@@ -19,7 +19,6 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Files
 AffineFile.h
-BinaryFileReader.h
 Border.h
 BorderException.h
 BorderFile.h
@@ -112,7 +111,6 @@ VtkFileExporter.h
 WarpfieldFile.h
 
 AffineFile.cxx
-BinaryFileReader.cxx
 Border.cxx
 BorderException.cxx
 BorderFile.cxx

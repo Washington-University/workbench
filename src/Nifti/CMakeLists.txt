@@ -23,7 +23,9 @@ Matrix4x4.h
 NiftiAbstractHeader.h
 NiftiAbstractVolumeExtension.h
 NiftiFile.h
+NiftiHeader.h
 NiftiHeaderIO.h
+NiftiIO.h
 Nifti1Header.h
 Nifti2Header.h
 NiftiMatrix.h
@@ -31,7 +33,9 @@ NiftiMatrix.h
 Layout.cxx
 Matrix4x4.cxx
 NiftiFile.cxx
+NiftiHeader.cxx
 NiftiHeaderIO.cxx
+NiftiIO.cxx
 Nifti1Header.cxx
 Nifti2Header.cxx
 NiftiMatrix.cxx

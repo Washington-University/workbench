@@ -204,7 +204,7 @@ NiftiDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     createDataTypes();
 
     bool validFlag = false;
-    Enum e = NIFTI_TYPE_FLOAT32;
+    Enum e = NIFTI_TYPE_INVALID;
 
     for (std::vector<NiftiDataTypeEnum>::iterator iter = dataTypes.begin();
          iter != dataTypes.end();

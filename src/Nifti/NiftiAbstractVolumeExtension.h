@@ -42,7 +42,7 @@ public:
     virtual ~NiftiAbstractVolumeExtension(void)
     {
     }
-    ExtensionType getType()
+    ExtensionType getType() const
     {
         switch (m_niftiVersion)
         {

@@ -33,7 +33,8 @@
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
-#include "NiftiFile.h"
+#include "MultiDimIterator.h"
+#include "NiftiIO.h"
 #include "Palette.h"
 #include "SceneClass.h"
 #include "VolumeFile.h"
@@ -75,7 +76,6 @@ VolumeFile::VolumeFile()
     m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
-    m_niftiHeaderInfo.m_valid = false;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
@@ -88,7 +88,6 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
-    m_niftiHeaderInfo.m_valid = false;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
@@ -102,7 +101,6 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_classNameHierarchy = NULL;
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_voxelColorizer = NULL;
-    m_niftiHeaderInfo.m_valid = false;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
     }
@@ -195,97 +193,60 @@ VolumeFile::clear()
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
     clear();
-    checkFileReadability(filename);
-    
+    AString fileToRead;
     try {
-        NiftiFile myNifti(true);
-        
         if (DataFile::isFileOnNetwork(filename)) {
             CaretTemporaryFile tempFile;
             tempFile.readFile(filename);
-            
-            myNifti.readVolumeFile(*this,
-                                   tempFile.getFileName());
-            this->setFileName(filename);
-            
-//            /*
-//             * Read file on network.
-//             * Sort of a kludge, read from the network as a string of bytes
-//             * and then write the bytes to a temporary file.  Lastly,
-//             * read the temporary file as a VolumeFile.
-//             */
-//            CaretHttpRequest request;
-//            request.m_method = CaretHttpManager::GET;
-//            request.m_url = filename;
-//            CaretHttpResponse response;
-//            CaretHttpManager::httpRequest(request,
-//                                          response);
-//            if (response.m_ok == false) {
-//                QString msg = ("HTTP error retrieving: "
-//                               + filename
-//                               + "\nHTTP Response Code="
-//                               + AString::number(response.m_responseCode));
-//                throw XmlSaxParserException(msg);
-//            }
-//            
-//            const int64_t numBytes = response.m_body.size();
-//            if (numBytes > 0) {
-//                QTemporaryFile tempFile;
-//                if (tempFile.open()) {
-//                    const int64_t numBytesWritten = tempFile.write(&response.m_body[0],
-//                                                                   numBytes);
-//                    if (numBytesWritten != numBytes) {
-//                        throw DataFileException("Error reading remote file "
-//                                                + filename
-//                                                + "  Tried to write "
-//                                                + QString::number(numBytes)
-//                                                + " bytes to temporary file but only wrote "
-//                                                + AString::number(numBytesWritten)
-//                                                + " bytes.");
-//                    }
-//                    
-//                    tempFile.close();
-//                }
-//                else {
-//                    throw DataFileException("Unable to create temporary file for reading remote file: "
-//                                            + filename);
-//                }
-//                
-//                myNifti.readVolumeFile(*this,
-//                                       tempFile.fileName());
-//                this->setFileName(filename);
-//            }
-//            else {
-//                throw DataFileException("Failed to read any data from remote file: "
-//                                        + filename);
-//            }
+            fileToRead = tempFile.getFileName();
+            setFileName(filename);
+        } else {
+            setFileName(filename);
+            fileToRead = filename;
         }
-        else {
-            /*
-             * Read local file.
-             */
-            this->setFileName(filename);
-            myNifti.readVolumeFile(*this, filename);
+        checkFileReadability(fileToRead);
+        NiftiIO myIO;//begin nifti specific code - should this go somewhere else?
+        myIO.openRead(fileToRead);
+        const NiftiHeader& inHeader = myIO.getHeader();
+        int numComponents = myIO.getNumComponents();
+        reinitialize(myIO.getDimensions(), inHeader.getSForm(), numComponents);
+        vector<int64_t> myDims = myIO.getDimensions();
+        vector<int64_t> extraDims;//non-spatial dims
+        if (myDims.size() > 3)
+        {
+            extraDims = vector<int64_t>(myDims.begin() + 3, myDims.end());
         }
+        int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
+        if (numComponents != 1)
+        {
+            vector<float> tempFrame(frameSize), readBuffer(frameSize * numComponents);
+            for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
+            {
+                myIO.readData(readBuffer.data(), 3, *myiter);
+                for (int c = 0; c < numComponents; ++c)
+                {
+                    for (int64_t i = 0; i < frameSize; ++i)
+                    {
+                        tempFrame[i] = readBuffer[i * numComponents + c];
+                    }
+                    setFrame(tempFrame.data(), getBrickIndexFromNonSpatialIndexes(*myiter), c);
+                }
+            }
+        } else {//avoid the added allocation for separating components
+            vector<float> tempFrame(frameSize);
+            for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
+            {
+                myIO.readData(tempFrame.data(), 3, *myiter);
+                setFrame(tempFrame.data(), getBrickIndexFromNonSpatialIndexes(*myiter));
+            }
+        }
+        m_header.grabNew(new NiftiHeader(inHeader));
+        for (int64_t i = 0; i < (int64_t)inHeader.m_extensions.size(); ++i)
+        {
+            m_extensions.push_back(inHeader.m_extensions[i]);
+        }//end nifti-specific code
         parseExtensions();
         clearModified();
-        
-        m_niftiHeaderInfo.m_versionNumber = myNifti.getNiftiVersion();
-        
-        Nifti1Header niftiHeader;
-        myNifti.getHeader(niftiHeader);
-        
-        niftiHeader.getNiftiDataTypeEnum(m_niftiHeaderInfo.m_dataType);
-        
-        nifti_1_header niftiHeaderStruct;
-        niftiHeader.getHeaderStruct(niftiHeaderStruct);
-        
-        m_niftiHeaderInfo.m_dimensions.clear();
-        for (int32_t i = 0; i < 8; i++) {
-            m_niftiHeaderInfo.m_dimensions.push_back(niftiHeaderStruct.dim[i]);
-        }
-        
-        m_niftiHeaderInfo.m_valid = true;
     } catch (const CaretException& e) {
         clear();
         throw DataFileException(e);
@@ -317,9 +278,43 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
     checkFileWritability(filename);
     
     try {
+        if (getNumberOfComponents() != 1)
+        {
+            throw DataFileException("writing multi-component volumes is not currently supported");//its a hassle, and uncommon, and there is only one 3-component type, restricted to 0-255
+        }
         updateCaretExtension();
-        NiftiFile myNifti(true);
-        myNifti.writeVolumeFile(*this, filename);
+        NiftiHeader outHeader;//begin nifti-specific code
+        if (m_header != NULL && (m_header->getType() == AbstractHeader::NIFTI))
+        {
+            outHeader = *((NiftiHeader*)m_header.getPointer());
+        }
+        outHeader.clearDataScaling();
+        outHeader.setSForm(m_volSpace.getSform());
+        outHeader.setDimensions(m_origDims);
+        outHeader.setDataType(NIFTI_TYPE_FLOAT32);
+        outHeader.m_extensions.clear();
+        for (int64_t i = 0; i < (int64_t)m_extensions.size(); ++i)
+        {
+            if (m_extensions[i]->getType() == AbstractVolumeExtension::NIFTI)
+            {//ugliness due to smart pointer operator= not allowing you to go from base to derived - could use dynamic_cast internally, but might allow more stupid mistakes past the compiler
+                outHeader.m_extensions.push_back(CaretPointer<NiftiExtension>(new NiftiExtension(*((NiftiExtension*)m_extensions[i].getPointer()))));
+            }
+        }
+        NiftiIO myIO;
+        int outVersion = 1;
+        if (!outHeader.canWriteVersion(1)) outVersion = 2;
+        myIO.writeNew(filename, outHeader, outVersion);
+        const vector<int64_t>& origDims = getOriginalDimensions();
+        vector<int64_t> extraDims;//non-spatial dims
+        if (origDims.size() > 3)
+        {
+            extraDims = vector<int64_t>(origDims.begin() + 3, origDims.end());
+        }
+        for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
+        {
+            myIO.writeData(getFrame(getBrickIndexFromNonSpatialIndexes(*myiter)), 3, *myiter);//NOTE: does not deal with multi-component volumes
+        }
+        m_header.grabNew(new NiftiHeader(outHeader));//update header to last written version, end nifti-specific code
     }
     catch (const CaretException& e) {
         throw DataFileException(e);
@@ -460,24 +455,23 @@ void VolumeFile::parseExtensions()
     {
         switch (m_extensions[i]->getType())
         {
-            case AbstractVolumeExtension::NIFTI1:
-            case AbstractVolumeExtension::NIFTI2:
+            case AbstractVolumeExtension::NIFTI:
+            {
+                NiftiExtension* myNiftiExtension = (NiftiExtension*)m_extensions[i].getPointer();
+                switch (myNiftiExtension->m_ecode)
                 {
-                    NiftiAbstractVolumeExtension* myNiftiExtension = (NiftiAbstractVolumeExtension*)m_extensions[i].getPointer();
-                    switch (myNiftiExtension->m_ecode)
-                    {
-                        case NIFTI_ECODE_CARET:
-                            if (100 > whichType)//mostly to make it use the first caret extension it finds in the list of extensions
-                            {
-                                whichExt = i;
-                                whichType = 100;//caret extension gets maximum priority
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
+                    case NIFTI_ECODE_CARET:
+                        if (100 > whichType)//mostly to make it use the first caret extension it finds in the list of extensions
+                        {
+                            whichExt = i;
+                            whichType = 100;//caret extension gets maximum priority
+                        }
+                        break;
+                    default:
+                        break;
                 }
+                break;
+            }
             default:
                 break;
         }
@@ -509,10 +503,9 @@ void VolumeFile::updateCaretExtension()
     {
         switch (m_extensions[i]->getType())
         {
-            case AbstractVolumeExtension::NIFTI1:
-            case AbstractVolumeExtension::NIFTI2:
+            case AbstractVolumeExtension::NIFTI:
                 {
-                    NiftiAbstractVolumeExtension* myNiftiExtension = (NiftiAbstractVolumeExtension*)m_extensions[i].getPointer();
+                    NiftiExtension* myNiftiExtension = (NiftiExtension*)m_extensions[i].getPointer();
                     if (myNiftiExtension->m_ecode == NIFTI_ECODE_CARET)
                     {
                         m_extensions.erase(m_extensions.begin() + i);
@@ -528,7 +521,7 @@ void VolumeFile::updateCaretExtension()
     stringstream mystream;
     XmlWriter myWriter(mystream);
     m_caretVolExt.writeAsXML(myWriter);
-    NiftiAbstractVolumeExtension* newExt = new NiftiAbstractVolumeExtension();//use default nifti version from this constructor
+    NiftiExtension* newExt = new NiftiExtension();//use default nifti version from this constructor
     newExt->m_ecode = NIFTI_ECODE_CARET;
     string myStr = mystream.str();
     int length = myStr.length();
@@ -1563,19 +1556,27 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
 
     dataFileInformation.addNameAndValue("Orthogonal", isPlumb());
     
-    if (m_niftiHeaderInfo.m_valid) {
+    if (m_header != NULL && m_header->getType() == AbstractHeader::NIFTI) {
+        const NiftiHeader& myHeader = *((NiftiHeader*)m_header.getPointer());
         dataFileInformation.addNameAndValue("NIFTI Version",
-                                            m_niftiHeaderInfo.m_versionNumber);
+                                            myHeader.versionRead());
+        bool ok = false;
         dataFileInformation.addNameAndValue("NIFTI Data Type",
-                                            NiftiDataTypeEnum::toName(m_niftiHeaderInfo.m_dataType));
-        
-        const int32_t numDims = static_cast<int32_t>(m_niftiHeaderInfo.m_dimensions.size());
+                                            NiftiDataTypeEnum::toName(NiftiDataTypeEnum::fromIntegerCode(myHeader.getDataType(), &ok)));//fromIntegerCode basically just ignores invalid values
+        if (!ok)
+        {
+            CaretLogWarning("found invalid NIFTI datatype code while adding file information");
+        }
+        vector<int64_t> dims = myHeader.getDimensions();
+        const int32_t numDims = static_cast<int32_t>(dims.size());
+        dataFileInformation.addNameAndValue(("Dim[0]"),
+                                            AString::number(numDims));
         for (int32_t i = 0; i < numDims; i++) {
             dataFileInformation.addNameAndValue(("Dim["
-                                                 + AString::number(i)
+                                                 + AString::number(i + 1)
                                                  + "]"),
-                                                AString::number(m_niftiHeaderInfo.m_dimensions[i]));
-        }
+                                                AString::number(dims[i]));
+        }//*/
     }
     else {
         int64_t dimI, dimJ, dimK, dimMaps, dimComponents;

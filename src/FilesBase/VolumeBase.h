@@ -35,11 +35,12 @@ namespace caret {
     {
         enum ExtensionType
         {
+            NIFTI,
             NIFTI1,
             NIFTI2
         };
         CaretArray<char> m_bytes;
-        virtual ExtensionType getType() = 0;
+        virtual ExtensionType getType() const = 0;
         virtual ~AbstractVolumeExtension();
     };
     
@@ -47,10 +48,11 @@ namespace caret {
     {
         enum HeaderType
         {
+            NIFTI,
             NIFTI1,
             NIFTI2
         };
-        virtual HeaderType getType() = 0;
+        virtual HeaderType getType() const = 0;
         virtual ~AbstractHeader();
     };
     

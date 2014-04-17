@@ -34,6 +34,7 @@ ByteOrderEnum.h
 ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
+CaretBinaryFile.h
 CaretColorEnum.h
 CaretCommandLine.h
 CaretCompact3DLookup.h
@@ -83,6 +84,7 @@ MathFunctionEnum.h
 MathFunctions.h
 MatrixFunctions.h
 ModelTransform.h
+MultiDimIterator.h
 NameIndexSort.h
 NetworkException.h
 OctTree.h
@@ -114,6 +116,7 @@ BrainConstants.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
+CaretBinaryFile.cxx
 CaretColorEnum.cxx
 CaretCommandLine.cxx
 CaretException.cxx

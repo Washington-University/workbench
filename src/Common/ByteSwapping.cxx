@@ -124,3 +124,8 @@ ByteSwapping::swapBytes(double* n, const uint64_t numToSwap)
    swapBytes((int64_t*)n, numToSwap);
 }
 
+void 
+ByteSwapping::swapBytes(long double* n, const uint64_t numToSwap)
+{
+    swapArray(n, numToSwap);
+}

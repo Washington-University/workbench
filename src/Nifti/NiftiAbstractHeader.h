@@ -39,7 +39,7 @@ public:
    {
    }
    
-   HeaderType getType() {
+   HeaderType getType() const {
         switch (m_niftiVersion)
         {
         case 1:
