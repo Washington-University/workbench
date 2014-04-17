@@ -214,7 +214,11 @@ void ZFileImpl::seek(const int64_t& position)
 int64_t ZFileImpl::pos()
 {
     if (m_zfile == NULL) throw DataFileException("seek called on unopened ZFileImpl");//shouldn't happen
+#if ZLIB_VERNUM > 0x1232
     return gztell64(m_zfile);
+#else
+    return gztell(m_zfile);
+#endif
 }
 
 void ZFileImpl::write(const void* dataIn, const int64_t& count)
