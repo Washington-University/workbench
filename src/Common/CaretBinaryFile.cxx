@@ -20,7 +20,7 @@
 
 //try to force large file support from zlib, any other file reading calls
 #define _LARGEFILE64_SOURCE
-#define _LFS64_LARGEFILE
+#define _LFS64_LARGEFILE 1
 #define _FILE_OFFSET_BITS 64
 
 #include "CaretBinaryFile.h"
