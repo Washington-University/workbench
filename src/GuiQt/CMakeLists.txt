@@ -211,7 +211,6 @@ MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
 MovieDialog.h
-OSMesaDummy.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -339,7 +338,6 @@ MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx
 MovieDialog.cxx
-OSMesaDummy.c
 OverlaySetViewController.cxx
 OverlayViewController.cxx
 PreferencesDialog.cxx
@@ -426,6 +424,7 @@ ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/OSMesaDummy
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Palette

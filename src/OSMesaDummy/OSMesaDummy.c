@@ -19,6 +19,8 @@
  */
 /*LICENSE_END*/
 
+#include "assert.h"
+
 #define __O_S_MESA_DUMMY_DECLARE__
 #include "OSMesaDummy.h"
 #undef __O_S_MESA_DUMMY_DECLARE__
@@ -55,6 +57,8 @@ OSMesaCreateContextExt(GLenum format, GLint depthBits, GLint stencilBits,
         
     }
 
+    assert(0);
+
     return 0;
 }
 
@@ -64,6 +68,7 @@ OSMesaDestroyContext( OSMesaContext ctx )
     if (ctx) {
         
     }
+    assert(0);
 }
 
 /*GLAPI*/ GLboolean /*GLAPIENTRY*/
@@ -77,6 +82,7 @@ OSMesaMakeCurrent( OSMesaContext ctx, void * buffer, GLenum type,
         || height) {
         
     }
+    assert(0);
     return GL_FALSE;
 }
 

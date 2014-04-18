@@ -93,6 +93,7 @@ Operations
 Algorithms
 OperationsBase
 Qwt
+OSMesaDummy
 Brain
 GlfFont
 Files
