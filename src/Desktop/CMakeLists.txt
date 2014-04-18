@@ -88,6 +88,7 @@ ENDIF (NOT APPLE)
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
 GuiQt
+Commands
 Operations
 Algorithms
 OperationsBase
@@ -156,6 +157,7 @@ ENDIF (APPLE)
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Desktop
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/FilesBase

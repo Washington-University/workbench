@@ -27,6 +27,8 @@
 class QListWidget;
 class QListWidgetItem;
 class QSplitter;
+class QTreeWidget;
+class QTreeWidgetItem;
 class QTextBrowser;
 
 namespace caret {
@@ -48,17 +50,23 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void indexListWidgetItemClicked(QListWidgetItem* item);
+        void topicTreeItemSelected(QTreeWidgetItem*,int);
         
     private:
+        enum TreeItemType {
+            TREE_ITEM_NONE,
+            TREE_ITEM_HELP_PAGE,
+            TREE_ITEM_WB_COMMAND
+        };
+        
         HelpViewerDialog(const HelpViewerDialog&);
 
         HelpViewerDialog& operator=(const HelpViewerDialog&);
 
         void loadHelpTopics();
         
-        QListWidget* m_indexListWidget;
-        
+        QTreeWidget* m_topicTreeWidget;
+
         QSplitter* m_splitter;
         
         QTextBrowser* m_helpBrowserWidget;

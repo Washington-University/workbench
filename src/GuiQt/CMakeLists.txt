@@ -211,6 +211,7 @@ MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MouseEvent.h
 MovieDialog.h
+OSMesaDummy.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -338,6 +339,7 @@ MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MouseEvent.cxx
 MovieDialog.cxx
+OSMesaDummy.c
 OverlaySetViewController.cxx
 OverlayViewController.cxx
 PreferencesDialog.cxx
@@ -416,6 +418,7 @@ ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Qwt
 ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Charting
 ${CMAKE_SOURCE_DIR}/GlfFont
 ${CMAKE_SOURCE_DIR}/FilesBase

@@ -28,14 +28,18 @@
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QSplitter>
+#include <QTabWidget>
 #include <QTextBrowser>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CommandOperation.h"
+#include "CommandOperationManager.h"
 
 using namespace caret;
-
 
     
 /**
@@ -63,45 +67,58 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     setApplyButtonText("");
     
     QLabel* topicLabel = new QLabel("Topic");
-    
-    m_indexListWidget = new QListWidget();
-    m_indexListWidget->setSelectionMode(QListWidget::SingleSelection);
-    QObject::connect(m_indexListWidget, SIGNAL(itemClicked(QListWidgetItem*)),
-                     this, SLOT(indexListWidgetItemClicked(QListWidgetItem*)));
+        
+    //
+    // Create the tree widget for the indices
+    //
+    QStringList indexTreeHeaderLabels;
+    indexTreeHeaderLabels << "Help Page Index" << "Location";
+    m_topicTreeWidget = new QTreeWidget();
+    m_topicTreeWidget->setHeaderHidden(true);
+//    m_topicTreeWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+//    m_topicTreeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+//    m_topicTreeWidget->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    m_topicTreeWidget->setColumnCount(2);
+    m_topicTreeWidget->setHeaderLabels(indexTreeHeaderLabels);
+    m_topicTreeWidget->setColumnHidden(0, false);
+    m_topicTreeWidget->setColumnHidden(1, true);
+    QObject::connect(m_topicTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(topicTreeItemSelected(QTreeWidgetItem*,int)));
     
     m_helpBrowserWidget = new QTextBrowser();
     
     QWidget* leftColumnWidget = new QWidget();
     QVBoxLayout* leftColumnLayout = new QVBoxLayout(leftColumnWidget);
     leftColumnLayout->addWidget(topicLabel, 0, Qt::AlignHCenter);
-    leftColumnLayout->addWidget(m_indexListWidget, 100);
+    leftColumnLayout->addWidget(m_topicTreeWidget, 100);
     leftColumnLayout->addStretch();
     
     m_splitter = new QSplitter();
     m_splitter->setOrientation(Qt::Horizontal);
     m_splitter->addWidget(leftColumnWidget);
     m_splitter->addWidget(m_helpBrowserWidget);
+    QList<int> sizeList;
+    sizeList << 225 << 400;
+    m_splitter->setSizes(sizeList);
     setCentralWidget(m_splitter,
                      WuQDialog::SCROLL_AREA_NEVER);
     
     loadHelpTopics();
 
-    /*
-     * Set the 
-     */
-    const int indexListWidgetWidth = m_indexListWidget->sizeHint().width();
-    if (indexListWidgetWidth > 50) {
-        m_indexListWidget->setMaximumWidth(indexListWidgetWidth);
-        const int leftWidgetWidth = leftColumnWidget->sizeHint().width();
-        if (leftWidgetWidth > 50) {
-            const int browserWidgetWidth = indexListWidgetWidth * 4;
-            QList<int> widgetSizes;
-            widgetSizes << (leftWidgetWidth + 20) << browserWidgetWidth;
-            m_splitter->setSizes(widgetSizes);
-        }
-    }
-    
-    // READ ALL RESOURCE TO FIND HELP PAGES
+//    /*
+//     * Set the 
+//     */
+//    //m_topicTreeWidget->resizeToFitContent();
+//    const int topicTreeWidgetWidth = m_topicTreeWidget->sizeHint().width();
+//    if (topicTreeWidgetWidth > 50) {
+//        const int leftWidgetWidth = leftColumnWidget->sizeHint().width();
+//        if (leftWidgetWidth > 50) {
+//            const int browserWidgetWidth = topicTreeWidgetWidth * 4;
+//            QList<int> widgetSizes;
+//            widgetSizes << (leftWidgetWidth + 20) << browserWidgetWidth;
+//            m_splitter->setSizes(widgetSizes);
+//        }
+//    }
     
     setMinimumHeight(500);
 }
@@ -119,36 +136,12 @@ HelpViewerDialog::~HelpViewerDialog()
 void
 HelpViewerDialog::loadHelpTopics()
 {
-    m_indexListWidget->blockSignals(true);
+    m_topicTreeWidget->blockSignals(true);
     
-//    QListWidgetItem* defaultHelpItem = NULL;
-//    std::vector<HelpViewerTopicEnum::Enum> helpTopics;
-//    HelpViewerTopicEnum::getAllEnums(helpTopics);
-//    for (std::vector<HelpViewerTopicEnum::Enum>::iterator iter = helpTopics.begin();
-//         iter != helpTopics.end();
-//         iter++) {
-//        HelpViewerTopicEnum::Enum topic = *iter;
-//        const QString text         = HelpViewerTopicEnum::toGuiName(topic);
-//        const QString resourceName = HelpViewerTopicEnum::toResourceFileName(topic);
-//        
-//        if (( ! text.isEmpty())
-//            && (! resourceName.isEmpty())) {
-//            QListWidgetItem* lwi = new QListWidgetItem(text);
-//            lwi->setData(Qt::UserRole, resourceName);
-//            m_indexListWidget->addItem(lwi);
-//            
-//            if (defaultHelpItem == NULL) {
-//                defaultHelpItem = lwi;
-//            }
-//        }
-//    }
-//
-//    if (defaultHelpItem != NULL) {
-//        m_indexListWidget->setCurrentItem(defaultHelpItem);
-//        indexListWidgetItemClicked(defaultHelpItem);
-//    }
-//    
-//    std::map<QString, QString> helpTitleAndFileMap;
+    
+    QTreeWidgetItem* workbenchItem = new QTreeWidgetItem(m_topicTreeWidget,
+                                                         TREE_ITEM_NONE);
+    workbenchItem->setText(0, "Workbench");
     
     QDir resourceDir(":/");
     if (resourceDir.exists()) {
@@ -166,9 +159,10 @@ HelpViewerDialog::loadHelpTopics()
                     const QString indexName = fileList.at(i).baseName().replace('_', ' ');
                     
                     const QString resourcePathName = "qrc" + pathName;
-                    QListWidgetItem* lwi = new QListWidgetItem(indexName);
-                    lwi->setData(Qt::UserRole, resourcePathName);
-                    m_indexListWidget->addItem(lwi);
+                    QTreeWidgetItem* twi = new QTreeWidgetItem(workbenchItem,
+                                                               TREE_ITEM_HELP_PAGE);
+                    twi->setText(0, indexName);
+                    twi->setData(0, Qt::UserRole, resourcePathName);
                 }
             }
             else {
@@ -188,17 +182,40 @@ HelpViewerDialog::loadHelpTopics()
                        + resourceDir.absolutePath()
                        + " not found.");
     }
+    
+    m_topicTreeWidget->setItemExpanded(workbenchItem,
+                                       true);
 
     /*
-     * Select the first item in the help index
+     * Load commands
      */
-    if (m_indexListWidget->count() > 0) {
-        QListWidgetItem* firstItem = m_indexListWidget->item(0);
-        m_indexListWidget->setCurrentItem(firstItem);
-        indexListWidgetItemClicked(firstItem);
-    }
+    CommandOperationManager* commandOperationManager = CommandOperationManager::getCommandOperationManager();
+    std::vector<CommandOperation*> commandOperations = commandOperationManager->getCommandOperations();
     
-    m_indexListWidget->blockSignals(false);
+    if ( ! commandOperations.empty()) {
+        std::map<AString, CommandOperation*> cmdMap;
+        const uint64_t numberOfCommands = commandOperations.size();
+        for (uint64_t i = 0; i < numberOfCommands; i++) {
+            CommandOperation* op = commandOperations[i];
+            cmdMap[op->getOperationShortDescription()] = op;
+        }
+        
+        QTreeWidgetItem* wbCommandItem = new QTreeWidgetItem(m_topicTreeWidget,
+                                                             TREE_ITEM_NONE);
+        wbCommandItem->setText(0, "wb_command");
+        
+        for (std::map<AString, CommandOperation*>::iterator iter = cmdMap.begin();
+             iter != cmdMap.end();
+             iter++) {
+            QTreeWidgetItem* twi = new QTreeWidgetItem(wbCommandItem,
+                                                       TREE_ITEM_WB_COMMAND);
+            twi->setText(0, iter->second->getOperationShortDescription());
+            QVariant commandPointer = qVariantFromValue((void*)iter->second);
+            twi->setData(0, Qt::UserRole, commandPointer);
+        }
+    }
+
+    m_topicTreeWidget->blockSignals(false);
 }
 
 /**
@@ -208,15 +225,18 @@ void
 HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
 {
     const AString pageName = QString(helpPageName).replace('_', ' ');
-    
-    for (int i = 0; i < m_indexListWidget->count(); i++) {
-        QListWidgetItem* lwi = m_indexListWidget->item(i);
-        if (lwi->text() == pageName) {
-            m_indexListWidget->setCurrentItem(lwi);
-            indexListWidgetItemClicked(lwi);
-            return;
-        }
+    if (pageName.isEmpty()) {
+        return;
     }
+    
+//    for (int i = 0; i < m_topicTreeWidget->count(); i++) {
+//        QListWidgetItem* lwi = m_workbenchIndexListWidget->item(i);
+//        if (lwi->text() == pageName) {
+//            m_workbenchIndexListWidget->setCurrentItem(lwi);
+//            workbenchIndexListWidgetItemClicked(lwi);
+//            return;
+//        }
+//    }
     
     CaretLogSevere("Could not find help page \""
                    + helpPageName
@@ -231,14 +251,30 @@ HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
  *    List widget item that was clicked.
  */
 void
-HelpViewerDialog::indexListWidgetItemClicked(QListWidgetItem* item)
+HelpViewerDialog::topicTreeItemSelected(QTreeWidgetItem* item,int column)
 {
     if (item != NULL) {
-        QVariant itemData = item->data(Qt::UserRole);
-        QString urlText = itemData.toString();
-        if (! urlText.isEmpty()) {
-            QUrl url(urlText);
-            m_helpBrowserWidget->setSource(url);
+        switch (item->type()) {
+            case TREE_ITEM_NONE:
+                break;
+            case TREE_ITEM_HELP_PAGE:
+            {
+                QVariant itemData = item->data(column, Qt::UserRole);
+                QString urlText = itemData.toString();
+                if (! urlText.isEmpty()) {
+                    QUrl url(urlText);
+                    m_helpBrowserWidget->setSource(url);
+                }
+            }
+                break;
+            case TREE_ITEM_WB_COMMAND:
+            {
+                QVariant itemData = item->data(column, Qt::UserRole);
+                void* ptr = itemData.value<void*>();
+                CommandOperation* command = (CommandOperation*)ptr;
+                m_helpBrowserWidget->setText(command->getHelpInformation("wb_command"));
+            }
+                break;
         }
     }
 }

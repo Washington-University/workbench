@@ -38,6 +38,7 @@
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "CommandOperationManager.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -579,6 +580,11 @@ main(int argc, char* argv[])
         * Delete the GUI Manager.
         */
         GuiManager::deleteGuiManager();
+        
+        /*
+         * Delete the command manager
+         */
+        CommandOperationManager::deleteCommandOperationManager();
         
         /*
         * Delete the session manager.
