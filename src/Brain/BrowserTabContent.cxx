@@ -2890,6 +2890,7 @@ void
 BrowserTabContent::resetClippingPlaneTransformation()
 {
     m_clippingPlaneGroup->resetTransformation();
+    updateYokedBrowserTabs();
 }
 
 /**
