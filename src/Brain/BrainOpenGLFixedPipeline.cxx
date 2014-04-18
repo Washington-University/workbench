@@ -317,10 +317,10 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
         const int* windowVP = vpContent->getWindowViewport();
         glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
         
-        CaretLogFinest("Drawing Model "
-                       + AString::number(i)
-                       + ": "
-                       + AString::fromNumbers(vpContent->getModelViewport(), 4, ", "));
+//        CaretLogFinest("Drawing Model "
+//                       + AString::number(i)
+//                       + ": "
+//                       + AString::fromNumbers(vpContent->getModelViewport(), 4, ", "));
         m_brain = vpContent->getBrain();
         CaretAssert(m_brain);
         this->drawModelInternal(MODE_DRAWING,

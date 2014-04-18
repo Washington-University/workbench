@@ -515,11 +515,11 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
         }
     }
     
-    const AString message = ("After adding, " 
-                             + filename
-                             + " becomes " 
-                             + name);
-    CaretLogFine(message);
+//    const AString message = ("After adding, " 
+//                             + filename
+//                             + " becomes " 
+//                             + name);
+//    CaretLogFine(message);
     
 //    if (this->getFileName().isEmpty() == false) {
 //        name = SystemUtilities::relativePath(name, FileInformation(this->getFileName()).getPathName());

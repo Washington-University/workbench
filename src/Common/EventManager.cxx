@@ -358,8 +358,9 @@ EventManager::sendEvent(Event* event)
         
         const AString eventNumberString = AString::number(m_eventIssuedCounter);
         
-        AString msg = (eventMessagePrefix + " SENT.");
-        CaretLogFiner(msg);
+        // Too many prints (JWH)
+        //AString msg = (eventMessagePrefix + " SENT.");
+        //CaretLogFiner(msg);
         //std::cout << msg << std::endl;
         
         /*
@@ -414,7 +415,7 @@ EventManager::sendEvent(Event* event)
             }
         }
         else {
-            CaretLogFine("Event " + eventNumberString + " not processed: " + event->toString());
+            // Too many prints (JWH) CaretLogFine("Event " + eventNumberString + " not processed: " + event->toString());
         }
     }    
     

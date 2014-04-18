@@ -125,11 +125,11 @@ ScenePathName::setValueToAbsolutePath(const AString& sceneFileName,
             }
         }
         
-        const AString message = ("After converting TO absolute path, " 
-                                 + value
-                                 + " becomes " 
-                                 + name);
-        CaretLogFine(message);
+//        const AString message = ("After converting TO absolute path, " 
+//                                 + value
+//                                 + " becomes " 
+//                                 + name);
+//        CaretLogFine(message);
     }
     
     m_value = name;
@@ -165,11 +165,11 @@ ScenePathName::getRelativePathToSceneFile(const AString& sceneFileName) const
             }
         }
         
-        const AString message = ("After converting FROM absolute path, " 
-                                 + m_value
-                                 + " becomes " 
-                                 + name);
-        CaretLogFine(message);
+//        const AString message = ("After converting FROM absolute path, " 
+//                                 + m_value
+//                                 + " becomes " 
+//                                 + name);
+//        CaretLogFine(message);
     }
     
     return name;

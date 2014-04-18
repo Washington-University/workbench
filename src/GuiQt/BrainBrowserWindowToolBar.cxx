@@ -4376,10 +4376,10 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
     }
     
-    CaretLogFinest("Toolbar width/height: "
-                   + AString::number(width())
-                   + "/"
-                   + AString::number(height()));
+//    CaretLogFinest("Toolbar width/height: "
+//                   + AString::number(width())
+//                   + "/"
+//                   + AString::number(height()));
 }
 
 /**

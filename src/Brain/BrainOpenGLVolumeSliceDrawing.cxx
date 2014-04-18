@@ -750,8 +750,8 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const VolumeSliceViewPl
             m_orthographicBounds[5]);
     glMatrixMode(GL_MODELVIEW);
     
-    CaretLogFine("Orthographic Bounds: "
-                   + AString::fromNumbers(m_orthographicBounds, 6, ","));
+//    CaretLogFine("Orthographic Bounds: "
+//                   + AString::fromNumbers(m_orthographicBounds, 6, ","));
 }
 
 /**
@@ -840,16 +840,16 @@ BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceViewPla
                 selectedSliceCoordinate);
     planeOut = plane;
     
-    CaretLogFine("Setting plane "
-                   + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
-                   + "\n   Selected Coordinate:"
-                   + AString::number(selectedSliceCoordinate[0])
-                   + ", "
-                   + AString::number(selectedSliceCoordinate[1])
-                   + ", "
-                   + AString::number(selectedSliceCoordinate[2])
-                   + "\n   Slice Plane: "
-                   + plane.toString());
+//    CaretLogFine("Setting plane "
+//                   + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
+//                   + "\n   Selected Coordinate:"
+//                   + AString::number(selectedSliceCoordinate[0])
+//                   + ", "
+//                   + AString::number(selectedSliceCoordinate[1])
+//                   + ", "
+//                   + AString::number(selectedSliceCoordinate[2])
+//                   + "\n   Slice Plane: "
+//                   + plane.toString());
     
     m_lookAtCenter[0] = selectedSliceCoordinate[0];
     m_lookAtCenter[1] = selectedSliceCoordinate[1];
@@ -1037,8 +1037,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
         return;
     }
     
-    CaretLogFine("\nSurface Outline Plane: "
-                 + plane.toString());
+//    CaretLogFine("\nSurface Outline Plane: "
+//                 + plane.toString());
     
     float intersectionPoint1[3];
     float intersectionPoint2[3];
@@ -1438,23 +1438,23 @@ BrainOpenGLVolumeSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOu
     int64_t numVoxelsY = std::ceil(((maxVoxelY - minVoxelY) / voxelStepY) + 1);
     int64_t numVoxelsZ = std::ceil(((maxVoxelZ - minVoxelZ) / voxelStepZ) + 1);
     
-    const AString voxelInfo = ("Volume Coord Min/Max: X("
-                               + AString::number(minVoxelX) + ", "
-                               + AString::number(maxVoxelX) + ")  Y("
-                               + AString::number(minVoxelY) + ", "
-                               + AString::number(maxVoxelY) + ") Z("
-                               + AString::number(minVoxelZ) + ", "
-                               + AString::number(maxVoxelZ) + ") "
-                               + " Min Voxel Sizes: ("
-                               + AString::number(voxelStepX) + ", "
-                               + AString::number(voxelStepY) + ", "
-                               + AString::number(voxelStepZ) + ") "
-                               + " Number of Voxels: ("
-                               + AString::number(numVoxelsX) + ", "
-                               + AString::number(numVoxelsY) + ", "
-                               + AString::number(numVoxelsZ) + ") Slice Coordinate ("
-                               + AString::number(sliceCoordinate) + ")");
-    CaretLogFine(voxelInfo);
+//    const AString voxelInfo = ("Volume Coord Min/Max: X("
+//                               + AString::number(minVoxelX) + ", "
+//                               + AString::number(maxVoxelX) + ")  Y("
+//                               + AString::number(minVoxelY) + ", "
+//                               + AString::number(maxVoxelY) + ") Z("
+//                               + AString::number(minVoxelZ) + ", "
+//                               + AString::number(maxVoxelZ) + ") "
+//                               + " Min Voxel Sizes: ("
+//                               + AString::number(voxelStepX) + ", "
+//                               + AString::number(voxelStepY) + ", "
+//                               + AString::number(voxelStepZ) + ") "
+//                               + " Number of Voxels: ("
+//                               + AString::number(numVoxelsX) + ", "
+//                               + AString::number(numVoxelsY) + ", "
+//                               + AString::number(numVoxelsZ) + ") Slice Coordinate ("
+//                               + AString::number(sliceCoordinate) + ")");
+//    CaretLogFine(voxelInfo);
     
     boundsOut[0] = minVoxelX;
     boundsOut[1] = maxVoxelX;
@@ -2464,9 +2464,9 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     glGetFloatv(GL_MODELVIEW_MATRIX, m);
     Matrix4x4 tm;
     tm.setMatrixFromOpenGL(m);
-    CaretLogFine("Oblique drawing matrix for slice: "
-                            + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
-                            + tm.toFormattedString("  "));
+//    CaretLogFine("Oblique drawing matrix for slice: "
+//                            + VolumeSliceViewPlaneEnum::toGuiName(sliceViewPlane)
+//                            + tm.toFormattedString("  "));
     
     const int32_t numVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
     
@@ -2638,14 +2638,14 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     
     
     if (alignVoxelsFlag == 2) {
-        CaretLogFine("Oblique Screen X: ("
-                       + AString::number(minScreenX)
-                     + ","
-                       + AString::number(maxScreenX)
-                     + ") Y: ("
-                       + AString::number(minScreenY) + ","
-                       + AString::number(maxScreenY)
-                     + ")");
+//        CaretLogFine("Oblique Screen X: ("
+//                       + AString::number(minScreenX)
+//                     + ","
+//                       + AString::number(maxScreenX)
+//                     + ") Y: ("
+//                       + AString::number(minScreenY) + ","
+//                       + AString::number(maxScreenY)
+//                     + ")");
         
         const float quarterVoxelSize = voxelSize / 4.0;
         float newMinScreenX = (static_cast<int64_t>(minScreenX / voxelSize) * voxelSize) + quarterVoxelSize;
@@ -2653,11 +2653,11 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         float newMinScreenY = (static_cast<int64_t>(minScreenY / voxelSize) * voxelSize) + quarterVoxelSize;
         float newMaxScreenY = (static_cast<int64_t>(maxScreenY / voxelSize) * voxelSize) - quarterVoxelSize;
         
-        CaretLogFine("NEW Oblique Screen MinX: "
-                       + AString::number(newMinScreenX) + " MaxX: "
-                       + AString::number(newMaxScreenX) + " MinY: "
-                       + AString::number(newMinScreenY) + " MaxY: "
-                       + AString::number(newMaxScreenY));
+//        CaretLogFine("NEW Oblique Screen MinX: "
+//                       + AString::number(newMinScreenX) + " MaxX: "
+//                       + AString::number(newMaxScreenX) + " MinY: "
+//                       + AString::number(newMinScreenY) + " MaxY: "
+//                       + AString::number(newMaxScreenY));
         
         minScreenX = newMinScreenX;
         maxScreenX = newMaxScreenX;
@@ -2745,10 +2745,10 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         std::cout << qPrintable(msg) << std::endl;
     }
     
-    CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
-                   + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
-                   + " TR: " + AString::fromNumbers(topRight, 3, ",")
-                   + " TL: " + AString::fromNumbers(topLeft, 3, ","));
+//    CaretLogFine("Oblique BL: " + AString::fromNumbers(bottomLeft, 3, ",")
+//                   + " BR: " + AString::fromNumbers(bottomRight, 3, ",")
+//                   + " TR: " + AString::fromNumbers(topRight, 3, ",")
+//                   + " TL: " + AString::fromNumbers(topLeft, 3, ","));
     if (debugFlag) {
         m_fixedPipelineDrawing->setLineWidth(3.0);
         glColor3f(1.0, 0.0, 0.0);
