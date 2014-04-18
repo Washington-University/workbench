@@ -41,6 +41,7 @@ class ZFileImpl : public CaretBinaryFile::ImplInterface
 {
     gzFile m_zfile;
 public:
+    ZFileImpl() { m_zfile = NULL; }
     void open(const QString& filename, const CaretBinaryFile::OpenMode& opmode);
     void close();
     void seek(const int64_t& position);
