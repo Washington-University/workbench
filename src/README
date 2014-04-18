@@ -17,7 +17,7 @@ For other OSes, see http://www.cmake.org/cmake/help/runningcmake.html
 
 You may want to set CMAKE_BUILD_TYPE to Release or Debug before building, as the default build behavior may be non-optimized and without debug symbols.
 
-This produces 3 executables, 2 of which are useful to the end user (Desktop/workbench, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).
+This produces 3 executables, 2 of which are useful to the end user (Desktop/wb_view, CommandLine/wb_command), and one for running internal tests (Tests/test_driver).
 
 To run the (few) tests available:
 
@@ -25,7 +25,7 @@ ctest
 #OR
 make test
 
-To install workbench and wb_command with the prefix configured in CMAKE_INSTALL_PREFIX:
+To install wb_view and wb_command with the prefix configured in CMAKE_INSTALL_PREFIX:
 
 make install
 
