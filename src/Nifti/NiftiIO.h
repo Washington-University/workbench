@@ -56,7 +56,7 @@ namespace caret
         const NiftiHeader& getHeader() const { return m_header; }
         const std::vector<int64_t>& getDimensions() const { return m_dims; }
         int getNumComponents() const;
-        //to read/write 1 frame of a standard volume file, call with fullDims = 3, indexSelect containing indexes for dims 4-7
+        //to read/write 1 frame of a standard volume file, call with fullDims = 3, indexSelect containing indexes for any of dims 4-7 that exist
         //NOTE: you need to provide storage for all components within the range, if getNumComponents() == 3 and fullDims == 0, you need 3 elements allocated
         template<typename T>
         void readData(T* dataOut, const int& fullDims, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead = false);

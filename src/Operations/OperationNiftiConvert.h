@@ -1,5 +1,5 @@
-#ifndef __COMMAND_NIFTI_CONVERT__H__
-#define __COMMAND_NIFTI_CONVERT__H__
+#ifndef __OPERATION_NIFTI_CONVERT_H__
+#define __OPERATION_NIFTI_CONVERT_H__
 
 /*LICENSE_START*/
 /*
@@ -21,33 +21,21 @@
  */
 /*LICENSE_END*/
 
-
-#include "CommandOperation.h"
+#include "AbstractOperation.h"
 
 namespace caret {
+    
+    class OperationNiftiConvert : public AbstractOperation
+    {
+    public:
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
+        static AString getCommandSwitch();
+        static AString getShortDescription();
+    };
 
-/// Command that converts NIFTI files to different encodings
-class CommandNiftiConvert : public CommandOperation {
+    typedef TemplateAutoOperation<OperationNiftiConvert> AutoOperationNiftiConvert;
 
-public:
-    CommandNiftiConvert();
+}
 
-    virtual ~CommandNiftiConvert();
-
-    virtual void executeOperation(ProgramParameters& parameters)
-    throw (CommandException,
-           ProgramParametersException);
-
-    AString getHelpInformation(const AString& /*programName*/);
-
-private:
-
-    CommandNiftiConvert(const CommandNiftiConvert&);
-
-    CommandNiftiConvert& operator=(const CommandNiftiConvert&);
-
-};
-
-} // namespace
-
-#endif // __COMMAND_NIFTI_CONVERT__H__
+#endif //__OPERATION_NIFTI_CONVERT_H__

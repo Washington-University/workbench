@@ -148,6 +148,7 @@
 #include "OperationMetricMerge.h"
 #include "OperationMetricPalette.h"
 #include "OperationMetricVertexSum.h"
+#include "OperationNiftiConvert.h"
 #include "OperationNiftiInformation.h"
 #include "OperationProbtrackXDotConvert.h"
 #include "OperationSetMapName.h"
@@ -187,7 +188,6 @@
 #include "CommandClassCreateOperation.h"
 #include "CommandC11xTesting.h"
 #include "CommandGiftiConvert.h"
-#include "CommandNiftiConvert.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
 
@@ -355,6 +355,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationNiftiInformation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationProbtrackXDotConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
@@ -394,7 +395,6 @@ CommandOperationManager::CommandOperationManager()
 #endif // WORKBENCH_HAVE_C11X
     this->commandOperations.push_back(new CommandGiftiConvert());
     this->commandOperations.push_back(new CommandUnitTest());
-    this->commandOperations.push_back(new CommandNiftiConvert());
 }
 
 /**
