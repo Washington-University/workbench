@@ -51,7 +51,7 @@ namespace caret {
         static bool takesParameters() { return true; }
     };
 
-    ///interface class for use by operation parsers
+    ///interface class for use by operation parsers - used because the above interface has only static methods, so to avoid neededing to instantiate the operation or template the parser code
     struct AutoOperationInterface
     {
         virtual OperationParameters* getParameters() = 0;
@@ -63,6 +63,7 @@ namespace caret {
     };
 
     ///templated interface class to pass through to something that inherits from AbstractOperation (or implements equivalent functions)
+    ///this makes it easier to create a bridge between the static methods of the operation and an interface pointer that a parser can store
     template<typename T>
     struct TemplateAutoOperation : public AutoOperationInterface
     {
@@ -77,7 +78,7 @@ namespace caret {
     ///interface class for parsers to inherit from
     class OperationParserInterface
     {
-        OperationParserInterface();//must take an interface object, for its vtable to the real algorithm, so deny default construction
+        OperationParserInterface();//must take an interface object, for its vtable to the real operation, so deny default construction
     protected:
         AutoOperationInterface* m_autoOper;
     public:
