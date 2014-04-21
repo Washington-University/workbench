@@ -211,6 +211,8 @@ namespace caret {
         
         void enableLoadOrSaveButton();
         
+        void copyFilePathToClipboard(const CaretDataFile* caretDataFile);
+        
         // ADD_NEW_MEMBERS_HERE
         
         const Mode m_dialogMode;
