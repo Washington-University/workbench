@@ -27,7 +27,7 @@
 #include <QApplication>
 #include <QBrush>
 #include <QCheckBox>
-#include <QClipBoard>
+#include <QClipboard>
 #include <QDialogButtonBox>
 #include <QFontDatabase>
 #include <QGridLayout>
