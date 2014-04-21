@@ -775,6 +775,21 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                         cerr << "Missing Y position for window" << endl;
                         hasFatalError = true;
                     }
+                } else if (thisParam.startsWith("-psn")) {
+                    /*
+                     * 21 April 2014 (Did not have this problem before this date)
+                     *
+                     * IGNORE this parameter.  For some reason, when a Mac
+                     * version is started from Finder, a "-psn" parameter
+                     * is being added to the parameters.  If this parameter
+                     * is not ignored, Workbench starts, the icon bounces 
+                     * a few times, and then Workbench quits (due to
+                     * "unrecognized option", below), and the user is 
+                     * not given any error message.
+                     *
+                     * http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder
+                     * http://trac.wxwidgets.org/ticket/15432
+                     */
                 } else {
                     cerr << "unrecognized option \"" << thisParam << "\"" << endl;
                     printHelp(progName);

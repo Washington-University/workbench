@@ -190,11 +190,11 @@ IF (APPLE)
 ENDIF (APPLE)
 
 IF (APPLE)
-    SET (MACOSX_BUNDLE_INFO_STRING Workbench Copyright 2014 )
+    SET (MACOSX_BUNDLE_INFO_STRING wb_view Copyright 2014 )
     SET (MACOSX_BUNDLE_ICON_FILE workbench.icns )
-    SET (MACOSX_BUNDLE_GUI_IDENTIFIER Workbench )
-    SET (MACOSX_BUNDLE_LONG_VERSION_STRING Workbench)
-    SET (MACOSX_BUNDLE_BUNDLE_NAME Workbench)
+    SET (MACOSX_BUNDLE_GUI_IDENTIFIER wb_view )
+    SET (MACOSX_BUNDLE_LONG_VERSION_STRING wb_view)
+    SET (MACOSX_BUNDLE_BUNDLE_NAME wb_view)
     SET (MACOSX_BUNDLE_SHORT_VERSION_STRING 0.85)
     SET (MACOSX_BUNDLE_BUNDLE_VERSION 0.85)
     SET (MACOSX_BUNDLE_COPYRIGHT  2014 )
@@ -202,6 +202,7 @@ IF (APPLE)
     ADD_CUSTOM_COMMAND(
         TARGET ${EXE_NAME}
         POST_BUILD
+        COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/wb_view.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/workbench.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/spec_file.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/data_file.icns
