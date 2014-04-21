@@ -223,7 +223,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     QIcon toolBarIcon;
     const bool toolBarIconValid =
-    WuQtUtilities::loadIcon(":/toolbar.png", 
+    WuQtUtilities::loadIcon(":/ToolBar/toolbar.png", 
                             toolBarIcon);
     
     this->toolBarToolButtonAction =
@@ -1487,16 +1487,16 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
 QWidget* 
 BrainBrowserWindowToolBar::createOrientationWidget()
 {
-    this->viewOrientationLeftIcon = WuQtUtilities::loadIcon(":/view-left.png");
-    this->viewOrientationRightIcon = WuQtUtilities::loadIcon(":/view-right.png");
-    this->viewOrientationAnteriorIcon = WuQtUtilities::loadIcon(":/view-anterior.png");
-    this->viewOrientationPosteriorIcon = WuQtUtilities::loadIcon(":/view-posterior.png");
-    this->viewOrientationDorsalIcon = WuQtUtilities::loadIcon(":/view-dorsal.png");
-    this->viewOrientationVentralIcon = WuQtUtilities::loadIcon(":/view-ventral.png");
-    this->viewOrientationLeftLateralIcon = WuQtUtilities::loadIcon(":/view-left-lateral.png");
-    this->viewOrientationLeftMedialIcon = WuQtUtilities::loadIcon(":/view-left-medial.png");
-    this->viewOrientationRightLateralIcon = WuQtUtilities::loadIcon(":/view-right-lateral.png");
-    this->viewOrientationRightMedialIcon = WuQtUtilities::loadIcon(":/view-right-medial.png");
+    this->viewOrientationLeftIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left.png");
+    this->viewOrientationRightIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right.png");
+    this->viewOrientationAnteriorIcon = WuQtUtilities::loadIcon(":/ToolBar/view-anterior.png");
+    this->viewOrientationPosteriorIcon = WuQtUtilities::loadIcon(":/ToolBar/view-posterior.png");
+    this->viewOrientationDorsalIcon = WuQtUtilities::loadIcon(":/ToolBar/view-dorsal.png");
+    this->viewOrientationVentralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-ventral.png");
+    this->viewOrientationLeftLateralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left-lateral.png");
+    this->viewOrientationLeftMedialIcon = WuQtUtilities::loadIcon(":/ToolBar/view-left-medial.png");
+    this->viewOrientationRightLateralIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right-lateral.png");
+    this->viewOrientationRightMedialIcon = WuQtUtilities::loadIcon(":/ToolBar/view-right-medial.png");
     
     this->orientationLeftOrLateralToolButtonAction = WuQtUtilities::createAction("L", 
                                                                         "View from a LEFT perspective", 
@@ -2961,17 +2961,17 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
 {
     QIcon parasagittalIcon;
     const bool parasagittalIconValid =
-    WuQtUtilities::loadIcon(":/view-plane-parasagittal.png", 
+    WuQtUtilities::loadIcon(":/ToolBar/view-plane-parasagittal.png", 
                             parasagittalIcon);
 
     QIcon coronalIcon;
     const bool coronalIconValid =
-    WuQtUtilities::loadIcon(":/view-plane-coronal.png", 
+    WuQtUtilities::loadIcon(":/ToolBar/view-plane-coronal.png", 
                             coronalIcon);
 
     QIcon axialIcon;
     const bool axialIconValid =
-    WuQtUtilities::loadIcon(":/view-plane-axial.png", 
+    WuQtUtilities::loadIcon(":/ToolBar/view-plane-axial.png", 
                             axialIcon);
     
     this->volumePlaneParasagittalToolButtonAction = 

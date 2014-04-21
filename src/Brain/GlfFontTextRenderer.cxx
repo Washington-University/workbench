@@ -89,12 +89,8 @@ GlfFontTextRenderer::GlfFontTextRenderer()
     m_fontFileValid = false;
     glfInit();
     
-//    const AString arialFontFileName("/Users/john/caret7_development/caret7_source/src/GlfFont/arial1.glf");
-    const AString arialFontFileName(":/FontAreal1.glf");
+    const AString arialFontFileName(":/GlfFonts/FontAreal1.glf");
     m_arialFont = glfLoadFont((char*)arialFontFileName.toLatin1().constData()); // BEST MATCH
-//    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/chicago1.glf");  // BAD
-//    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/courier1.glf");  // OK
-//    m_CourierFont = glfLoadFont("/Users/john/caret7_development/caret7_source/src/GlfFont/times_new1.glf");  // OK
     
     if (m_arialFont == GLF_ERROR) {
         CaretLogSevere("Unable to load font file " + arialFontFileName);

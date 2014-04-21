@@ -49,7 +49,7 @@ CursorManager::CursorManager()
     this->defaultCursor = QCursor();
     this->arrowCursor = QCursor(Qt::ArrowCursor);
     this->crossCursor = QCursor(Qt::CrossCursor);
-    this->penCursor     = this->loadCursor(":/cursor_pen_eraser_32x32.png", 
+    this->penCursor     = this->loadCursor(":Cursor/pen_eraser.png", 
                                            6, 
                                            32 - 7, 
                                            Qt::UpArrowCursor);

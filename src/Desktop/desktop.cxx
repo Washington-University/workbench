@@ -376,7 +376,7 @@ main(int argc, char* argv[])
         QPixmap splashPixmap;
         QSplashScreen splashScreen;
         if (showImageSplashScreen) {
-            if (WuQtUtilities::loadPixmap(":/splash_hcp.png", splashPixmap)) {
+            if (WuQtUtilities::loadPixmap(":/Splash/hcp.png", splashPixmap)) {
                 splashScreen.setPixmap(splashPixmap);
                 splashScreen.showMessage("Starting Workbench...");
                 splashScreen.show();

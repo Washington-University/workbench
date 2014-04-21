@@ -72,8 +72,7 @@ SplashScreen::SplashScreen(QWidget* parent)
 
     QLabel* imageLabel = NULL;
     QPixmap pixmap;
-    if (WuQtUtilities::loadPixmap(":/splash_startup_image.png", pixmap)) {
-//    if (WuQtUtilities::loadPixmap(":/splash_startup_turkey.png", pixmap)) {
+    if (WuQtUtilities::loadPixmap(":/Splash/startup_image.png", pixmap)) {
         imageLabel = new QLabel();
         imageLabel->setPixmap(pixmap);
         imageLabel->setAlignment(Qt::AlignCenter);
@@ -107,7 +106,7 @@ SplashScreen::SplashScreen(QWidget* parent)
 
     QToolButton* twitterToolButton = NULL;
     QIcon twitterIcon;
-    if (WuQtUtilities::loadIcon(":/twitter_icon.png", twitterIcon)) {
+    if (WuQtUtilities::loadIcon(":/Splash/twitter.png", twitterIcon)) {
         QAction* twitterAction = WuQtUtilities::createAction("Twitter",
                                                              "Follow HCP on Twitter",
                                                              this,

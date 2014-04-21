@@ -135,7 +135,7 @@ GuiManager::GuiManager(QObject* parent)
      */
     QIcon infoDisplayIcon;
     const bool infoDisplayIconValid =
-    WuQtUtilities::loadIcon(":/toolbar_info_icon.png", 
+    WuQtUtilities::loadIcon(":/ToolBar/info.png", 
                             infoDisplayIcon);
     
 
@@ -170,7 +170,7 @@ GuiManager::GuiManager(QObject* parent)
                                                              this,
                                                              SLOT(sceneDialogDisplayActionToggled(bool)));
     QIcon clapBoardIcon;
-    const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/toolbar_clapboard_icon.png",
+    const bool clapBoardIconValid = WuQtUtilities::loadIcon(":/ToolBar/clapboard.png",
                                                             clapBoardIcon);
     if (clapBoardIconValid) {
         m_sceneDialogDisplayAction->setIcon(clapBoardIcon);

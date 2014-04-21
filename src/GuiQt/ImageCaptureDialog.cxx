@@ -834,7 +834,6 @@ ImageCaptureDialog::applyButtonPressed()
         QWidget* parent = getDialogButtonBox()->button(QDialogButtonBox::Apply);
         CaretAssert(parent);
         
-        //WuQtUtilities::playSound("sound_camera_shutter.wav");
         WuQTimedMessageDisplay::show(parent,
                                      2.0,
                                      "Image captured");

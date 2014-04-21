@@ -345,11 +345,11 @@ void
 BrainBrowserWindow::createActionsUsedByToolBar()
 {
     QIcon featuresToolBoxIcon;
-    const bool featuresToolBoxIconValid = WuQtUtilities::loadIcon(":/toolbox.png", 
+    const bool featuresToolBoxIconValid = WuQtUtilities::loadIcon(":/ToolBar/features_toolbox.png", 
                                                          featuresToolBoxIcon);
     
     QIcon overlayToolBoxIcon;
-    const bool overlayToolBoxIconValid = WuQtUtilities::loadIcon(":/layers_toolbox_icon.png",
+    const bool overlayToolBoxIconValid = WuQtUtilities::loadIcon(":/ToolBar/overlay_toolbox.png",
                                                                   overlayToolBoxIcon);
     
     /*

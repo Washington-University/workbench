@@ -143,7 +143,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * ColorBar Tool Button
      */
     QIcon colorBarIcon;
-    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/overlay_colorbar.png",
+    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/LayersPanel/colorbar.png",
                                                            colorBarIcon);
     this->colorBarAction = WuQtUtilities::createAction("CB", 
                                                        "Display color bar for this overlay", 
@@ -161,7 +161,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Settings Tool Button
      */
     QIcon settingsIcon;
-    const bool settingsIconValid = WuQtUtilities::loadIcon(":/overlay_wrench.png",
+    const bool settingsIconValid = WuQtUtilities::loadIcon(":/LayersPanel/wrench.png",
                                                            settingsIcon);
 
     this->settingsAction = WuQtUtilities::createAction("S",
@@ -179,7 +179,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
      * Construction Tool Button
      */
     QIcon constructionIcon;
-    const bool constructionIconValid = WuQtUtilities::loadIcon(":/overlay_construction.png",
+    const bool constructionIconValid = WuQtUtilities::loadIcon(":/LayersPanel/construction.png",
                                                            constructionIcon);
     this->constructionAction = WuQtUtilities::createAction("M", 
                                                            "Add/Move/Remove Overlays", 

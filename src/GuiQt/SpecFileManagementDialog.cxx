@@ -206,10 +206,10 @@ m_specFile(specFile)
     /*
      * Load icons.
      */
-    m_iconOpenFile   = WuQtUtilities::loadIcon(":/spec_file_dialog_load_icon.png");
-    m_iconOptions    = WuQtUtilities::loadIcon(":/spec_file_dialog_options_icon.png");
-    m_iconReloadFile = WuQtUtilities::loadIcon(":/spec_file_dialog_reload_icon.png");
-    m_iconRemoveFile = WuQtUtilities::loadIcon(":/spec_file_dialog_delete_icon.png");
+    m_iconOpenFile   = WuQtUtilities::loadIcon(":/SpecFileDialog/load_icon.png");
+    m_iconOptions    = WuQtUtilities::loadIcon(":/SpecFileDialog/options_icon.png");
+    m_iconReloadFile = WuQtUtilities::loadIcon(":/SpecFileDialog/reload_icon.png");
+    m_iconRemoveFile = WuQtUtilities::loadIcon(":/SpecFileDialog/delete_icon.png");
     
     /*
      * Open Spec File or Manage Files?
