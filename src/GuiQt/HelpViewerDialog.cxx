@@ -176,8 +176,8 @@ HelpViewerDialog::loadHelpTopics()
     createHelpPageFileItem("File Menu", ":/HelpFiles/File_Menu_new.htm", menuItem);
     createHelpPageFileItem("Data Menu", ":/HelpFiles/Data_Menu.htm", menuItem);
     
-    createHelpPageFileItem("Preferences", ":/HelpFiles/Preferences.htm", workbenchItem);
-    createHelpPageFileItem("Splash Screen", ":/HelpFiles/Splash_Screen.htm", workbenchItem);
+    createHelpPageFileItem("Preferences", ":/HelpFiles/Preferences_filt.htm", workbenchItem);
+    createHelpPageFileItem("Splash Screen", ":/HelpFiles/Splash_Screen_filt.htm", workbenchItem);
     
 //    QDir resourceDir(":/");
 //    if (resourceDir.exists()) {
