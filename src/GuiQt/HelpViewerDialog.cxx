@@ -24,12 +24,14 @@
 #undef __HELP_DIALOG_DECLARE__
 
 #include <QDir>
+#include <QFile>
 #include <QLabel>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QSplitter>
 #include <QTabWidget>
 #include <QTextBrowser>
+#include <QTextStream>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
@@ -131,6 +133,31 @@ HelpViewerDialog::~HelpViewerDialog()
 }
 
 /**
+ * Create a help page item for HTML loaded from a file.
+ *
+ * @param topicName
+ *    Name displayed in topics list.
+ * @param filePath
+ *    Path to the file.
+ * @param parent
+ *    Parent of item that is created.
+ * @return
+ *    Item that was created.
+ */
+QTreeWidgetItem*
+HelpViewerDialog::createHelpPageFileItem(const AString& topicName,
+                                     const AString& filePath,
+                                     QTreeWidgetItem* parent) const
+{
+    QTreeWidgetItem* item = new QTreeWidgetItem(parent,
+                                                TREE_ITEM_HELP_PAGE);
+    item->setText(0, topicName);
+    item->setData(0, Qt::UserRole, filePath);
+    
+    return item;
+}
+
+/**
  * Load the help topics into the list widget.
  */
 void
@@ -143,46 +170,57 @@ HelpViewerDialog::loadHelpTopics()
                                                          TREE_ITEM_NONE);
     workbenchItem->setText(0, "Workbench");
     
-    QDir resourceDir(":/");
-    if (resourceDir.exists()) {
-        QDir helpFilesDir = resourceDir;
-        helpFilesDir.cd("HelpFiles");
-        if (helpFilesDir.exists()) {
-            QStringList htmlFileFilter;
-            htmlFileFilter << "*.htm" << "*.html";
-            QFileInfoList fileList = helpFilesDir.entryInfoList(htmlFileFilter,
-                                                               QDir::Files,
-                                                               QDir::Name);
-            if (fileList.size() > 0) {
-                for (int i = 0; i < fileList.size(); i++) {
-                    const QString pathName = fileList.at(i).absoluteFilePath();
-                    const QString indexName = fileList.at(i).baseName().replace('_', ' ');
-                    
-                    const QString resourcePathName = "qrc" + pathName;
-                    QTreeWidgetItem* twi = new QTreeWidgetItem(workbenchItem,
-                                                               TREE_ITEM_HELP_PAGE);
-                    twi->setText(0, indexName);
-                    twi->setData(0, Qt::UserRole, resourcePathName);
-                }
-            }
-            else {
-                CaretLogSevere("No HTML (*.html, *.htm) Help Files Found in Resource directory "
-                               + helpFilesDir.absolutePath()
-                               + " not found.");
-            }
-        }
-        else {
-            CaretLogSevere("Help Files Resource directory "
-                           + helpFilesDir.absolutePath()
-                           + " not found.");
-        }
-    }
-    else {
-        CaretLogSevere("Resource directory "
-                       + resourceDir.absolutePath()
-                       + " not found.");
-    }
+    QTreeWidgetItem* menuItem = new QTreeWidgetItem(workbenchItem,
+                                                    TREE_ITEM_NONE);
+    menuItem->setText(0, "Menus");    
+    createHelpPageFileItem("File Menu", ":/HelpFiles/File_Menu_new.htm", menuItem);
+    createHelpPageFileItem("Data Menu", ":/HelpFiles/Data_Menu.htm", menuItem);
     
+    createHelpPageFileItem("Preferences", ":/HelpFiles/Preferences.htm", workbenchItem);
+    createHelpPageFileItem("Splash Screen", ":/HelpFiles/Splash_Screen.htm", workbenchItem);
+    
+//    QDir resourceDir(":/");
+//    if (resourceDir.exists()) {
+//        QDir helpFilesDir = resourceDir;
+//        helpFilesDir.cd("HelpFiles");
+//        if (helpFilesDir.exists()) {
+//            QStringList htmlFileFilter;
+//            htmlFileFilter << "*.htm" << "*.html";
+//            QFileInfoList fileList = helpFilesDir.entryInfoList(htmlFileFilter,
+//                                                               QDir::Files,
+//                                                               QDir::Name);
+//            if (fileList.size() > 0) {
+//                for (int i = 0; i < fileList.size(); i++) {
+//                    const QString pathName = fileList.at(i).absoluteFilePath();
+//                    const QString indexName = fileList.at(i).baseName().replace('_', ' ');
+//                    
+//                    const QString resourcePathName = "qrc" + pathName;
+//                    QTreeWidgetItem* twi = new QTreeWidgetItem(workbenchItem,
+//                                                               TREE_ITEM_HELP_PAGE);
+//                    twi->setText(0, indexName);
+//                    twi->setData(0, Qt::UserRole, resourcePathName);
+//                }
+//            }
+//            else {
+//                CaretLogSevere("No HTML (*.html, *.htm) Help Files Found in Resource directory "
+//                               + helpFilesDir.absolutePath()
+//                               + " not found.");
+//            }
+//        }
+//        else {
+//            CaretLogSevere("Help Files Resource directory "
+//                           + helpFilesDir.absolutePath()
+//                           + " not found.");
+//        }
+//    }
+//    else {
+//        CaretLogSevere("Resource directory "
+//                       + resourceDir.absolutePath()
+//                       + " not found.");
+//    }
+    
+    m_topicTreeWidget->setItemExpanded(menuItem,
+                              true);
     m_topicTreeWidget->setItemExpanded(workbenchItem,
                                        true);
 
@@ -260,11 +298,43 @@ HelpViewerDialog::topicTreeItemSelected(QTreeWidgetItem* item,int column)
             case TREE_ITEM_HELP_PAGE:
             {
                 QVariant itemData = item->data(column, Qt::UserRole);
-                QString urlText = itemData.toString();
-                if (! urlText.isEmpty()) {
-                    QUrl url(urlText);
-                    m_helpBrowserWidget->setSource(url);
+                
+                const QString resourceFileName = itemData.toString();
+                
+                if (resourceFileName.startsWith("qrc:")) {
+                    QString urlText = itemData.toString();
+                    if (! urlText.isEmpty()) {
+                         QUrl url(urlText);
+                         m_helpBrowserWidget->setSource(url);
+                    }
                 }
+                else {
+                    QFile file(resourceFileName);
+                    if (file.exists()) {
+                        QUrl url = QUrl::fromLocalFile(resourceFileName);
+                        m_helpBrowserWidget->setSource(url);
+                    }
+                    else {
+                        const QString msg("Help page \""
+                                          + resourceFileName
+                                          + "\": not found");
+                        CaretLogSevere(msg);
+                    }
+                    
+                    
+//                    if (file.open(QFile::ReadOnly)) {
+//                        QTextStream stream(&file);
+//                        m_helpBrowserWidget->setHtml(stream.readAll());
+//                    }
+//                    else {
+//                        const QString msg("Unable to open help page from \""
+//                                          + resourceFileName
+//                                          + "\": "
+//                                          + file.errorString());
+//                        CaretLogSevere(msg);
+//                    }
+                }
+                
             }
                 break;
             case TREE_ITEM_WB_COMMAND:

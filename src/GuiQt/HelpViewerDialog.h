@@ -65,6 +65,10 @@ namespace caret {
 
         void loadHelpTopics();
         
+        QTreeWidgetItem* createHelpPageFileItem(const AString& topicName,
+                                                const AString& filePath,
+                                                QTreeWidgetItem* parent) const;
+        
         QTreeWidget* m_topicTreeWidget;
 
         QSplitter* m_splitter;
