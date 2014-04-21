@@ -22,8 +22,7 @@
 #define NIFTITEST_H
 
 #include "TestInterface.h"
-#include "NiftiHeaderIO.h"
-#include "NiftiFile.h"
+#include "NiftiHeader.h"
 
 namespace caret {
 
@@ -32,8 +31,7 @@ class NiftiFileTest : public TestInterface
 public:
     NiftiFileTest(const AString& identifier);
     virtual void execute();
-    void testObjectCreateDestroy();
-    void testNifti1ReadWrite();
+    void testNiftiReadWrite();
 };
 
 class NiftiHeaderTest : public TestInterface
@@ -41,10 +39,9 @@ class NiftiHeaderTest : public TestInterface
 public:
     NiftiHeaderTest(const AString& identifier);
     virtual void execute();
-    void readNifti1Header(AString filename, Nifti1Header &header);
-    void readNifti2Header(AString filename, Nifti2Header &header);
-    void writeNifti1Header(AString filename, Nifti1Header &header);
-    void writeNifti2Header(AString filename, Nifti2Header &header);
+    void readNiftiHeader(AString filename, NiftiHeader &header);
+    void writeNifti1Header(AString filename, NiftiHeader &header);
+    void writeNifti2Header(AString filename, NiftiHeader &header);
 };
 
 

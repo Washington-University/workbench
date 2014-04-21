@@ -50,9 +50,11 @@ namespace caret
         template<typename TO, typename FROM>
         void convertWrite(TO* out, const FROM* in, const int64_t& count);//for writing to file
     public:
-        NiftiIO() { m_writingVoxOffset = 0; }
+        NiftiIO() { m_writingVoxOffset = 0; m_writingSwapped = false; }
         void openRead(const QString& filename);
         void writeNew(const QString& filename, const NiftiHeader& header, const int& version = 1, const bool& withRead = false, const bool& swapEndian = false);
+        void overrideDimensions(const std::vector<int64_t>& newDims) { m_dims = newDims; }//HACK: deal with reading/writing CIFTI-1's broken headers
+        void close();
         const NiftiHeader& getHeader() const { return m_header; }
         const std::vector<int64_t>& getDimensions() const { return m_dims; }
         int getNumComponents() const;

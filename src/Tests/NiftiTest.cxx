@@ -19,6 +19,13 @@
 /*LICENSE_END*/
 
 #include "NiftiTest.h"
+
+#include "MultiDimIterator.h"
+#include "NiftiIO.h"
+
+#include <vector>
+
+using namespace std;
 using namespace caret;
 
 NiftiFileTest::NiftiFileTest(const AString &identifier) : TestInterface(identifier)
@@ -28,69 +35,52 @@ NiftiFileTest::NiftiFileTest(const AString &identifier) : TestInterface(identifi
 
 void NiftiFileTest::execute()
 {
-    testObjectCreateDestroy();
     if(this->failed()) return;
-    testNifti1ReadWrite();
+    testNiftiReadWrite();
     if(this->failed()) return;
 }
 
-void NiftiFileTest::testObjectCreateDestroy()
-{
-    NiftiFile *niftiFile = new NiftiFile();
-    if(niftiFile) std::cout << "Object created successfully." << std::endl;
-    else {
-        setFailed("Error creating object.");
-        return;
-    }
-
-    delete niftiFile;
-}
-
-void NiftiFileTest::testNifti1ReadWrite()
+void NiftiFileTest::testNiftiReadWrite()
 {
     std::cout << "Testing Nifti1 reader/writer." << std::endl;
-    NiftiFile reader(this->m_default_path + "/nifti/fcMRI1_nonlin_Subcortical_Smoothed_s6.nii");
-    Nifti1Header header;
-    if(reader.getNiftiVersion()==1)
-    {
-        reader.getHeader(header);
-    }
-    else
-    {
-        setFailed("This test is for nifti1 files currently.");
-        return;
-    }
+    NiftiIO reader;
+    AString inputFile = this->m_default_path + "/nifti/fcMRI1_nonlin_Subcortical_Smoothed_s6.nii";
+    reader.openRead(inputFile);
+    const NiftiHeader& header = reader.getHeader();
     //hack TODO, this gives it a name to write to, change to write and cleanup temp
     //files if necessary
     AString outFile = this->m_default_path + "/nifti/Nifti1TestOut.nii";
-    if(QFile::exists(outFile)) QFile::remove(outFile);
-    NiftiFile writer;
-    writer.setHeader(header);
-    LayoutType layout;
-    reader.getLayout(layout);
-    int64_t timeSlices = 1;
-    if(layout.dimensions.size()>3) timeSlices=layout.dimensions[3];
-    int64_t frameLength = reader.matrix.getFrameLength();
-    float * frame = new float[frameLength];
-    for(int64_t t = 0;t<timeSlices;t++)
+    NiftiIO writer;
+    writer.writeNew(outFile, header);
+    const vector<int64_t>& dims = reader.getDimensions();
+    if (dims.size() < 3)
     {
-        reader.matrix.getFrame(frame,t,0);
-        writer.matrix.setFrame(frame,frameLength,t,0);        
+        setFailed("this test requires nifti files with 3 or more dimensions");
+        return;
     }
-
-    writer.writeFile(outFile);
+    int64_t frameLength = dims[0] * dims[1] * dims[2] * reader.getNumComponents();
+    vector<float> frame(frameLength);
+    vector<int64_t> extraDims(dims.begin() + 3, dims.end());
+    for(MultiDimIterator<int64_t> iter(extraDims); !iter.atEnd(); ++iter)
+    {
+        reader.readData(frame.data(), 3, *iter);
+        writer.writeData(frame.data(), 3, *iter);
+    }
+    writer.close();
+    reader.close();
+    reader.openRead(inputFile);//so that it can work on .gz files, which you can't seek backwards in
 
     //reopen output file, and check that frames agree
-    NiftiFile test(outFile);
-    float * frameTest = new float[frameLength];
-    for(int64_t t = 0;t<timeSlices;t++)
+    NiftiIO test;
+    
+    vector<float> frameTest(frameLength);
+    for(MultiDimIterator<int64_t> iter(extraDims); !iter.atEnd(); ++iter)
     {
-        reader.matrix.getFrame(frame,t,0);
-        test.matrix.getFrame(frameTest,t,0);
-        //if(!memcmp((void *)frame,(void *)frameTest,reader.matrix.getFrameSize()))
+        reader.readData(frame.data(), 3, *iter);
+        test.readData(frameTest.data(), 3, *iter);
         for(int i=0;i<frameLength;i++)
         {
-            if(frame[i]>frameTest[i]+0.0001 || frame[i]<frameTest[i]-0.0001)
+            if(frame[i]>frameTest[i]+0.0001 || frame[i]<frameTest[i]-0.0001)//because if NaNs, or if original datatype was different and/or scaling was done, slightly different results are possible
             {
                 this->setFailed("Input and output nifti file frames are not the same.");
                 return;
@@ -98,8 +88,6 @@ void NiftiFileTest::testNifti1ReadWrite()
         }
     }
     std::cout << "Reading and writing of Nifti was successful for all frames." << std::endl;
-    delete [] frame;
-    delete [] frameTest;
 }
 
 //Tests for reading and writing Nifti Headers
@@ -110,22 +98,18 @@ NiftiHeaderTest::NiftiHeaderTest(const AString &identifier) : TestInterface(iden
 
 void NiftiHeaderTest::execute()
 {
-    Nifti1Header n1header;
-    Nifti2Header n2header;
-    readNifti1Header("../../../wb_files/nifti/fcMRI1_nonlin_Subcortical_Smoothed_s6.nii", n1header);
-    readNifti2Header("../../../wb_files/nifti/test.cii", n2header);
+    NiftiHeader n1header;
+    NiftiHeader n2header;
+    readNiftiHeader("../../../wb_files/nifti/fcMRI1_nonlin_Subcortical_Smoothed_s6.nii", n1header);
+    readNiftiHeader("../../../wb_files/nifti/test.cii", n2header);
     writeNifti1Header("../../../wb_files/nifti/n1.nii",n1header);
     writeNifti2Header("../../../wb_files/nifti/n2.cii",n2header);
-    Nifti1Header n1headercomp;
-    Nifti2Header n2headercomp;
-    readNifti1Header("../../../wb_files/nifti/n1.nii", n1headercomp);
-    readNifti2Header("../../../wb_files/nifti/n2.cii", n2headercomp);
+    NiftiHeader n1headercomp;
+    NiftiHeader n2headercomp;
+    readNiftiHeader("../../../wb_files/nifti/n1.nii", n1headercomp);
+    readNiftiHeader("../../../wb_files/nifti/n2.cii", n2headercomp);
 
-    nifti_1_header n1struct;
-    nifti_1_header n1struct2;
-    n1header.getHeaderStruct(n1struct);
-    n1headercomp.getHeaderStruct(n1struct2);
-    if(memcmp(&n1struct,&n1struct2,sizeof(n1struct)))
+    if(n1header != n1headercomp)
     {
         //report error
         AString message;
@@ -137,11 +121,7 @@ void NiftiHeaderTest::execute()
         std::cout << "Nifti1 Header Reader/Writer passes basic tests" << std::endl;
     }
 
-    nifti_2_header n2struct;
-    nifti_2_header n2struct2;
-    n2header.getHeaderStruct(n2struct);
-    n2header.getHeaderStruct(n2struct2);
-    if(memcmp(&n2struct,&n2struct2,sizeof(n2struct)))
+    if(n2header != n2headercomp)
     {
         //report error
         AString message;
@@ -158,76 +138,24 @@ void NiftiHeaderTest::execute()
 
 
 
-void NiftiHeaderTest::readNifti1Header(AString filename, Nifti1Header &header)
+void NiftiHeaderTest::readNiftiHeader(AString filename, NiftiHeader &header)
 {
-    NiftiHeaderIO *headerIO = new NiftiHeaderIO(filename);
-    //test version check
-    if(headerIO->getNiftiVersion() == 1)
-    {
-        headerIO->getHeader(header);
-    }
-    else
-    {
-        //report error
-        AString message;
-        message = AString("Incorrect Nifti version detected, expected version 1, got ") + AString::number(headerIO->getNiftiVersion()) + AString(".\n");
-        setFailed(message);
-    }
+    CaretBinaryFile myFile;
+    myFile.open(filename);
+    header.read(myFile);
 }
 
-void NiftiHeaderTest::readNifti2Header(AString filename, Nifti2Header &header)
+void NiftiHeaderTest::writeNifti1Header(AString filename, NiftiHeader &header)
 {
-    NiftiHeaderIO *headerIO = new NiftiHeaderIO(filename);
-    if(headerIO->getNiftiVersion() == 2)
-    {
-        headerIO->getHeader(header);
-    }
-    else
-    {
-        //report error
-        AString message;
-        message = AString("Incorrect Nifti version detected, expected version 2, got ") + AString::number(headerIO->getNiftiVersion()) + AString(".\n");
-        setFailed(message);
-    }
-}
-
-void NiftiHeaderTest::writeNifti1Header(AString filename, Nifti1Header &header)
-{
-    NiftiHeaderIO headerIO;
-    headerIO.setHeader(header);
-
-    //test version check
-    if(headerIO.getNiftiVersion() == 1)
-    {
-        headerIO.writeFile(filename);
-    }
-    else
-    {
-        //report error
-        AString message;
-        message = AString("Incorrect Nifti version detected, expected version 1, got ") + AString::number(headerIO.getNiftiVersion()) + AString(".\n");
-        setFailed(message);
-    }
+    CaretBinaryFile myFile;
+    myFile.open(filename, CaretBinaryFile::WRITE_TRUNCATE);
+    header.write(myFile, 1);
 }
 
 
-void NiftiHeaderTest::writeNifti2Header(AString filename, Nifti2Header &header)
+void NiftiHeaderTest::writeNifti2Header(AString filename, NiftiHeader &header)
 {
-
-    NiftiHeaderIO headerIO;
-    headerIO.setHeader(header);
-    if(headerIO.getNiftiVersion() == 2)
-    {
-        headerIO.writeFile(filename);
-    }
-    else
-    {
-        //report error
-        AString message;
-        message = AString("Incorrect Nifti version detected, expected version 2, got ") + AString::number(headerIO.getNiftiVersion()) + AString(".\n");
-        setFailed(message);
-    }
+    CaretBinaryFile myFile;
+    myFile.open(filename, CaretBinaryFile::WRITE_TRUNCATE);
+    header.write(myFile, 2);
 }
-
-
-

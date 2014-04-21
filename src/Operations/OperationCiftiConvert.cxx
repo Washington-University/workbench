@@ -27,7 +27,6 @@
 #include "CiftiXML.h"
 #include "FloatMatrix.h"
 #include "GiftiFile.h"
-#include "NiftiFile.h"
 #include "VolumeFile.h"
 
 #include <limits>

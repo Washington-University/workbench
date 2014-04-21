@@ -25,7 +25,6 @@ HeapTest.h
 LookupTest.h
 MathExpressionTest.h
 NiftiTest.h
-NiftiMatrixTest.h
 PointerTest.h
 ProgressTest.h
 QuatTest.h
@@ -43,7 +42,6 @@ HeapTest.cxx
 LookupTest.cxx
 MathExpressionTest.cxx
 NiftiTest.cxx
-NiftiMatrixTest.cxx
 PointerTest.cxx
 ProgressTest.cxx
 QuatTest.cxx

@@ -23,7 +23,6 @@
 #include "CaretLogger.h"
 #include "FloatMatrix.h"
 #include "MetricFile.h"
-#include "NiftiFile.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
 
@@ -50,7 +49,7 @@ OperationParameters* OperationMetricConvert::getParameters()
     toNifti->addVolumeOutputParameter(2, "nifti-out", "the output nifti file");//we can use VolumeFile because it is 4D, though some spatial dimensions may be singular
     
     OptionalParameter* fromNifti = ret->createOptionalParameter(2, "-from-nifti", "convert nifti to metric");
-    fromNifti->addStringParameter(1, "nifti-in", "the nifti file to convert");
+    fromNifti->addVolumeParameter(1, "nifti-in", "the nifti file to convert");
     fromNifti->addSurfaceParameter(2, "surface-in", "surface file to use number of nodes and structure from");
     fromNifti->addMetricOutputParameter(3, "metric-out", "the output metric file");
     
@@ -116,19 +115,10 @@ void OperationMetricConvert::useParameters(OperationParameters* myParams, Progre
     }
     if (fromNifti->m_present)
     {
-        AString myNiftiName = fromNifti->getString(1);
+        VolumeFile* myNifti = fromNifti->getVolume(1);
         SurfaceFile* mySurf = fromNifti->getSurface(2);
         MetricFile* outMetric = fromNifti->getOutputMetric(3);
-        vector<int64_t> myDims;
-        NiftiFile myNifti(myNiftiName);
-        Nifti2Header myHeader;
-        myNifti.getHeader(myHeader);
-        myHeader.getDimensions(myDims);
-        if (myDims.size() == 0) throw OperationException("nifti file has no dimensions");
-        while (myDims.size() < 4)
-        {
-            myDims.push_back(1);
-        }
+        vector<int64_t> myDims = myNifti->getDimensions();
         int numNodes = mySurf->getNumberOfNodes();
         int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
         if (frameSize < numNodes)
@@ -138,12 +128,9 @@ void OperationMetricConvert::useParameters(OperationParameters* myParams, Progre
         int numCols = (int)myDims[3];//if someone manages over 2 billion timepoints, reward them with truncation
         outMetric->setNumberOfNodesAndColumns(numNodes, numCols);
         outMetric->setStructure(mySurf->getStructure());
-        int64_t matrixSize = myNifti.getMatrixLength();
-        vector<float> matrix(matrixSize);
-        myNifti.getMatrix(matrix.data());
         for (int i = 0; i < numCols; ++i)
         {
-            outMetric->setValuesForColumn(i, matrix.data() + i * frameSize);
+            outMetric->setValuesForColumn(i, myNifti->getFrame(i));
         }
     }
 }

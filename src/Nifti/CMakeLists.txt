@@ -18,27 +18,23 @@ INCLUDE (${QT_USE_FILE})
 # Create the NIFTI library
 #
 ADD_LIBRARY(Nifti
-Layout.h
 Matrix4x4.h
+NiftiHeader.h
+NiftiIO.h
+
 NiftiAbstractHeader.h
 NiftiAbstractVolumeExtension.h
-NiftiFile.h
-NiftiHeader.h
 NiftiHeaderIO.h
-NiftiIO.h
 Nifti1Header.h
 Nifti2Header.h
-NiftiMatrix.h
 
-Layout.cxx
 Matrix4x4.cxx
-NiftiFile.cxx
 NiftiHeader.cxx
-NiftiHeaderIO.cxx
 NiftiIO.cxx
+
+NiftiHeaderIO.cxx
 Nifti1Header.cxx
 Nifti2Header.cxx
-NiftiMatrix.cxx
 )
 
 #

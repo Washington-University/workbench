@@ -22,8 +22,7 @@
 #include "CaretAssert.h"
 #include "FileInformation.h"
 #include "FloatMatrix.h"
-#include "NiftiHeaderIO.h"
-#include "Nifti1Header.h"
+#include "NiftiIO.h"
 
 using namespace caret;
 using namespace std;
@@ -36,7 +35,7 @@ void WarpfieldFile::readWorld(const AString& warpname)
     newFile->getDimensions(dims);
     if (dims[3] != 3)
     {
-        throw DataFileException("volume file '" + warpname + "' has the wrong number of dimensions for a warpfield");
+        throw DataFileException("volume file '" + warpname + "' has the wrong number of subvolumes for a warpfield");
     }
     if (dims[4] != 1)
     {
@@ -51,20 +50,20 @@ void WarpfieldFile::readWorld(const AString& warpname)
 void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName)
 {
     FloatMatrix sourceSform, sourceFSL, refSform, refFSL;
-    NiftiHeaderIO myIO;
-    myIO.readFile(warpName);
-    refSform = FloatMatrix(myIO.getSForm());
-    refFSL = FloatMatrix(myIO.getFSLSpace());
-    myIO.readFile(sourceName);
-    sourceSform = FloatMatrix(myIO.getSForm());
-    sourceFSL = FloatMatrix(myIO.getFSLSpace());
+    NiftiIO myIO;
+    myIO.openRead(warpName);
+    refSform = FloatMatrix(myIO.getHeader().getSForm());
+    refFSL = FloatMatrix(myIO.getHeader().getFSLSpace());
+    myIO.openRead(sourceName);
+    sourceSform = FloatMatrix(myIO.getHeader().getSForm());
+    sourceFSL = FloatMatrix(myIO.getHeader().getFSLSpace());
     CaretPointer<VolumeFile> newFile(new VolumeFile());
     newFile->readFile(warpName);
     vector<int64_t> dims;
     newFile->getDimensions(dims);
     if (dims[3] != 3)
     {
-        throw DataFileException("volume file '" + warpName + "' has the wrong number of dimensions for a warpfield");
+        throw DataFileException("volume file '" + warpName + "' has the wrong number of subvolumes for a warpfield");
     }
     if (dims[4] != 1)
     {
@@ -112,16 +111,15 @@ void WarpfieldFile::writeFnirt(const AString& warpname, const AString& sourceNam
 {
     if (m_warpfield == NULL) throw DataFileException("writeFnirt called on uninitialized warpfield");
     FloatMatrix sourceSform, sourceFSL, refSform, refFSL;
-    Nifti1Header myHeader;
+    NiftiHeader myHeader;
     myHeader.setSForm(m_warpfield->getSform());
     myHeader.setDimensions(m_warpfield->getOriginalDimensions());
-    NiftiHeaderIO myIO;
-    myIO.setHeader(myHeader);
-    refSform = FloatMatrix(myIO.getSForm());
-    refFSL = FloatMatrix(myIO.getFSLSpace());
-    myIO.readFile(sourceName);
-    sourceSform = FloatMatrix(myIO.getSForm());
-    sourceFSL = FloatMatrix(myIO.getFSLSpace());
+    refSform = FloatMatrix(myHeader.getSForm());
+    refFSL = FloatMatrix(myHeader.getFSLSpace());
+    NiftiIO sourceIO;
+    sourceIO.openRead(sourceName);
+    sourceSform = FloatMatrix(sourceIO.getHeader().getSForm());
+    sourceFSL = FloatMatrix(sourceIO.getHeader().getFSLSpace());
     VolumeFile outFile;
     vector<int64_t> dims;
     m_warpfield->getDimensions(dims);

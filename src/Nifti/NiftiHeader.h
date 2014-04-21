@@ -67,6 +67,9 @@ namespace caret
         void setDataScaling(const double& mult, const double& offset);
         ///get the FSL "scale" space
         std::vector<std::vector<float> > getFSLSpace() const;
+        
+        bool operator==(const NiftiHeader& rhs) const;//for testing purposes
+        bool operator!=(const NiftiHeader& rhs) const { return !((*this) == rhs); }
     private:
         nifti_2_header m_header;//storage for header values regardless of version
         int m_readVersion;

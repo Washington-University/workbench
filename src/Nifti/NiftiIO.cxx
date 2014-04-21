@@ -54,6 +54,12 @@ void NiftiIO::writeNew(const QString& filename, const NiftiHeader& header, const
     m_dims = m_header.getDimensions();
 }
 
+void NiftiIO::close()
+{
+    m_file.close();
+    m_dims.clear();
+}
+
 int NiftiIO::getNumComponents() const
 {
     switch (m_header.getDataType())

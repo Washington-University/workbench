@@ -22,7 +22,7 @@
 #include "CaretAssert.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
-#include "NiftiHeaderIO.h"
+#include "NiftiIO.h"
 
 #include <fstream>
 #include <string>
@@ -116,8 +116,8 @@ void AffineFile::writeFlirt(const AString& filename, const AString& sourceName, 
 
 void AffineFile::getFSLQuirks(const AString& niftiName, FloatMatrix& outSform, FloatMatrix& outScale)
 {
-    NiftiHeaderIO myIO;
-    myIO.readFile(niftiName);
-    outSform = FloatMatrix(myIO.getSForm());//NOTE: this is expected to return a 4x4 matrix with the 0 0 0 1 row intact
-    outScale = FloatMatrix(myIO.getFSLSpace());
+    NiftiIO myIO;
+    myIO.openRead(niftiName);
+    outSform = FloatMatrix(myIO.getHeader().getSForm());//NOTE: this is expected to return a 4x4 matrix with the 0 0 0 1 row intact
+    outScale = FloatMatrix(myIO.getHeader().getFSLSpace());
 }

@@ -482,7 +482,7 @@ void VolumeFile::parseExtensions()
         {
             case 100://caret extension
                 {
-                    QByteArray myByteArray(m_extensions[whichExt]->m_bytes, m_extensions[whichExt]->m_bytes.size());
+                    QByteArray myByteArray(m_extensions[whichExt]->m_bytes.data(), m_extensions[whichExt]->m_bytes.size());
                     myByteArray.append('\0');//give it a null byte to ensure it stops
                     AString myString(myByteArray);
                     m_caretVolExt.readFromXmlString(myString);
@@ -525,7 +525,7 @@ void VolumeFile::updateCaretExtension()
     newExt->m_ecode = NIFTI_ECODE_CARET;
     string myStr = mystream.str();
     int length = myStr.length();
-    newExt->m_bytes = CaretArray<char>(length + 1);//add a null byte for safety
+    newExt->m_bytes.resize(length + 1);//add a null byte for safety
     for (int i = 0; i < length; ++i)
     {
         newExt->m_bytes[i] = myStr[i];

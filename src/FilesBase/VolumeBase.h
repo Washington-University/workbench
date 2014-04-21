@@ -39,7 +39,7 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
-        CaretArray<char> m_bytes;
+        std::vector<char> m_bytes;
         virtual ExtensionType getType() const = 0;
         virtual ~AbstractVolumeExtension();
     };

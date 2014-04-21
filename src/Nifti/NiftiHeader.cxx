@@ -170,6 +170,13 @@ vector<std::vector<float> > NiftiHeader::getFSLSpace() const
     return ret.getMatrix();
 }
 
+bool NiftiHeader::operator==(const NiftiHeader& rhs) const
+{
+    if (m_readVersion != rhs.m_readVersion) return false;//this is to test for consistency, not to test if two headers mean the same thing
+    if (m_readSwapped != rhs.m_readSwapped) return false;
+    return memcmp(&m_header, &(rhs.m_header), sizeof(m_header)) == 0;
+}
+
 vector<vector<float> > NiftiHeader::getSForm() const
 {
     FloatMatrix ret = FloatMatrix::zeros(4, 4);
@@ -489,8 +496,8 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
             CaretPointer<NiftiExtension> tempExtension(new NiftiExtension());
             if ((size_t)esize > 2 * sizeof(int32_t))//don't try to read 0 bytes
             {
-                tempExtension->m_bytes = CaretArray<char>(esize - 2 * sizeof(int32_t));
-                inFile.read(tempExtension->m_bytes, esize - 2 * sizeof(int32_t));
+                tempExtension->m_bytes.resize(esize - 2 * sizeof(int32_t));
+                inFile.read(tempExtension->m_bytes.data(), esize - 2 * sizeof(int32_t));
             }
             tempExtension->m_ecode = ecode;
             m_extensions.push_back(tempExtension);
@@ -732,7 +739,7 @@ int64_t NiftiHeader::write(CaretBinaryFile& outFile, const int& version, const b
         }
         outFile.write(&outSize, sizeof(int32_t));
         outFile.write(&outEcode, sizeof(int32_t));
-        outFile.write(m_extensions[i]->m_bytes, m_extensions[i]->m_bytes.size());
+        outFile.write(m_extensions[i]->m_bytes.data(), m_extensions[i]->m_bytes.size());
         if (paddingBytes != 0) outFile.write(padding, paddingBytes);
     }
     CaretAssert(outFile.pos() == voxOffset);
