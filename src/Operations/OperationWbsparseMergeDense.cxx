@@ -101,7 +101,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
             {
                 VolumeSpace otherSpace;
                 otherXML.getVolumeSpace(otherSpace);
-                if (!baseSpace.matchesVolumeSpace(otherSpace)) throw OperationException("input cifti files have non-matching volume spaces");
+                if (!baseSpace.matches(otherSpace)) throw OperationException("input cifti files have non-matching volume spaces");
             } else {
                 haveVolSpace = true;
                 otherXML.getVolumeSpace(baseSpace);

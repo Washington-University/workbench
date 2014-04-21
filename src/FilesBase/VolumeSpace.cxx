@@ -118,7 +118,7 @@ void VolumeSpace::enclosingVoxel(const float& coordIn1, const float& coordIn2, c
     indexOut3 = (int64_t)floor(0.5f + tempInd3);
 }
 
-bool VolumeSpace::matchesVolumeSpace(const VolumeSpace& right) const
+bool VolumeSpace::matches(const VolumeSpace& right) const
 {
     for (int i = 0; i < 3; ++i)
     {

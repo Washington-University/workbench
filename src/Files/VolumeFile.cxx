@@ -433,17 +433,17 @@ void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t compone
 
 bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
 {
-    return m_volSpace.matchesVolumeSpace(right->m_volSpace);
+    return m_volSpace.matches(right->m_volSpace);
 }
 
 bool VolumeFile::matchesVolumeSpace(const VolumeSpace& otherSpace) const
 {
-    return m_volSpace.matchesVolumeSpace(otherSpace);
+    return m_volSpace.matches(otherSpace);
 }
 
 bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<float> >& sform) const
 {
-    return m_volSpace.matchesVolumeSpace(VolumeSpace(dims, sform));
+    return m_volSpace.matches(VolumeSpace(dims, sform));
 }
 
 void VolumeFile::parseExtensions()

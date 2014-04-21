@@ -113,7 +113,7 @@ AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, co
             {
                 VolumeSpace otherSpace;
                 otherXML.getVolumeSpace(otherSpace);
-                if (!baseSpace.matchesVolumeSpace(otherSpace)) throw AlgorithmException("input cifti files have non-matching volume spaces");
+                if (!baseSpace.matches(otherSpace)) throw AlgorithmException("input cifti files have non-matching volume spaces");
             } else {
                 haveVolSpace = true;
                 otherXML.getVolumeSpace(baseSpace);

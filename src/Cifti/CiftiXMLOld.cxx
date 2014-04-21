@@ -1004,7 +1004,7 @@ void CiftiXMLOld::setVolumeDimsAndSForm(const int64_t dims[3], const vector<vect
         VolumeSpace tempSpace;
         if (getVolumeSpace(tempSpace))//if it fails to get a volume space when it has volume data...allow it to set it, I guess
         {
-            if (!tempSpace.matchesVolumeSpace(VolumeSpace(dims, sform)))
+            if (!tempSpace.matches(VolumeSpace(dims, sform)))
             {
                 throw CiftiFileException("cannot change the volume space of cifti xml that already has volume mapping(s)");
             }

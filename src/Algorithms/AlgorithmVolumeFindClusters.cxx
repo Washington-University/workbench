@@ -111,7 +111,7 @@ AlgorithmVolumeFindClusters::AlgorithmVolumeFindClusters(ProgressObject* myProgO
     const float* roiFrame = NULL;
     if (myRoi != NULL)
     {
-        if (!mySpace.matchesVolumeSpace(myRoi->getVolumeSpace())) throw AlgorithmException("roi volume space does not match input");
+        if (!mySpace.matches(myRoi->getVolumeSpace())) throw AlgorithmException("roi volume space does not match input");
         roiFrame = myRoi->getFrame();
     }
     Vector3D ivec, jvec, kvec, origin;

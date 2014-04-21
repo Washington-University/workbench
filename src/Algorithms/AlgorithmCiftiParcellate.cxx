@@ -106,7 +106,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     const CiftiBrainModelsMap& labelDense = myLabelXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     if (inputDense.hasVolumeData())
     {//don't check volume space if direction doesn't have volume data
-        if (labelDense.hasVolumeData() && !inputDense.getVolumeSpace().matchesVolumeSpace(labelDense.getVolumeSpace()))
+        if (labelDense.hasVolumeData() && !inputDense.getVolumeSpace().matches(labelDense.getVolumeSpace()))
         {
             throw AlgorithmException("input cifti files must have the same volume space");
         }
@@ -212,7 +212,7 @@ CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiInterface
     CiftiParcelsMap ret;
     if (toParcellate.hasVolumeData() && myDenseMap.hasVolumeData())
     {
-        if(!toParcellate.getVolumeSpace().matchesVolumeSpace(myDenseMap.getVolumeSpace()))
+        if(!toParcellate.getVolumeSpace().matches(myDenseMap.getVolumeSpace()))
         {
             throw AlgorithmException("AlgorithmCiftiParcellate::parcellateMapping requires matching volume space between dlabel and dense mapping to parcellate");
         }
