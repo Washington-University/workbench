@@ -135,7 +135,7 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
              iter != allocatedObjects.end();
              iter++) {
             const unsigned long objectAddress = (long long)iter->first;
-            const CaretObject* caretObject = iter->first;
+            //const CaretObject* caretObject = iter->first;
             const CaretObjectInfo& caretObjectInfo = iter->second;
             // below will crash if item has been deleted
             //std::cout << caretObject->toString().toStdString() << std::endl;

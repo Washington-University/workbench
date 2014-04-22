@@ -1407,7 +1407,7 @@ BrainOpenGLVolumeSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOu
     float voxelStepX = std::numeric_limits<float>::max();
     float voxelStepY = std::numeric_limits<float>::max();
     float voxelStepZ = std::numeric_limits<float>::max();
-    float sliceCoordinate = 0.0;
+//    float sliceCoordinate = 0.0;
     for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
         const VolumeMappableInterface* volumeFile = m_volumeDrawInfo[i].volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
@@ -1434,9 +1434,9 @@ BrainOpenGLVolumeSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOu
         maxVoxelZ = std::max(maxVoxelZ, std::max(originZ, lastZ));
         
     }
-    int64_t numVoxelsX = std::ceil(((maxVoxelX - minVoxelX) / voxelStepX) + 1);
-    int64_t numVoxelsY = std::ceil(((maxVoxelY - minVoxelY) / voxelStepY) + 1);
-    int64_t numVoxelsZ = std::ceil(((maxVoxelZ - minVoxelZ) / voxelStepZ) + 1);
+//    int64_t numVoxelsX = std::ceil(((maxVoxelX - minVoxelX) / voxelStepX) + 1);
+//    int64_t numVoxelsY = std::ceil(((maxVoxelY - minVoxelY) / voxelStepY) + 1);
+//    int64_t numVoxelsZ = std::ceil(((maxVoxelZ - minVoxelZ) / voxelStepZ) + 1);
     
 //    const AString voxelInfo = ("Volume Coord Min/Max: X("
 //                               + AString::number(minVoxelX) + ", "

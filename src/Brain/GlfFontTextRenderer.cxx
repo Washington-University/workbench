@@ -419,9 +419,9 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
  */
 void
 GlfFontTextRenderer::getTextBoundsInPixels(const QString& text,
-                                   const TextStyle textStyle,
+                                   const TextStyle /*textStyle*/,
                                    const int fontHeight,
-                                           const AString& fontName,
+                                           const AString& /*fontName*/,
                                            int32_t& widthOut,
                                            int32_t& heightOut)
 {
