@@ -72,7 +72,6 @@ IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
-InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
 MapSettingsEditorDialog.h
@@ -201,7 +200,6 @@ IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
-InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
 MapSettingsEditorDialog.h
@@ -329,7 +327,6 @@ IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
 InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
-InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx
 MapSettingsEditorDialog.cxx

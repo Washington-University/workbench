@@ -19,14 +19,33 @@
  */
 /*LICENSE_END*/
 
+#include <QAction>
+#include <QBoxLayout>
+#include <QSpinBox>
+#include <QToolBar>
+
 #define __INFORMATION_DISPLAY_DIALOG_DECLARE__
 #include "InformationDisplayDialog.h"
 #undef __INFORMATION_DISPLAY_DIALOG_DECLARE__
 
+#include "Brain.h"
 #include "BrainBrowserWindow.h"
-#include "InformationDisplayWidget.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
+#include "EventUpdateInformationWindows.h"
+#include "EventManager.h"
+#include "GuiManager.h"
+#include "HyperLinkTextBrowser.h"
+#include "IdentificationManager.h"
+#include "IdentifyBrainordinateDialog.h"
+#include "InformationDisplayPropertiesDialog.h"
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
+#include "SelectionItemSurfaceNode.h"
+#include "SelectionManager.h"
+#include "StructureEnumComboBox.h"
+#include "Surface.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -53,9 +72,107 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
      */
     this->setApplyButtonText("");
     
-    m_informationWidget = new InformationDisplayWidget(this);
-    this->setCentralWidget(m_informationWidget,
+    m_propertiesDialog = NULL;
+    
+    m_informationTextBrowser = new HyperLinkTextBrowser();
+    m_informationTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
+    m_informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
+    QAction* clearAction = WuQtUtilities::createAction("Clear",
+                                                       "Clear contents of information display",
+                                                       this,
+                                                       this,
+                                                       SLOT(clearInformationText()));
+    
+    m_contralateralIdentificationAction = WuQtUtilities::createAction("Contra ID",
+                                                                      "Enable contralateral identification",
+                                                                      this,
+                                                                      this,
+                                                                      SLOT(contralateralIdentificationToggled(bool)));
+    m_contralateralIdentificationAction->setCheckable(true);
+    
+    QAction* copyAction = WuQtUtilities::createAction("Copy",
+                                                      "Copy selection from information display",
+                                                      this,
+                                                      m_informationTextBrowser,
+                                                      SLOT(copy()));
+    
+    QAction* removeIdSymbolAction = WuQtUtilities::createAction("RID",
+                                                                "Remove ID symbols from ALL surfaces",
+                                                                this,
+                                                                this,
+                                                                SLOT(removeIdSymbols()));
+    
+    QAction* settingsAction = WuQtUtilities::createAction("Properties",
+                                                          "Displays dialog for changing ID symbol colors and size",
+                                                          this,
+                                                          this,
+                                                          SLOT(showPropertiesDialog()));
+    
+    m_volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID",
+                                                                    "Enable volume slice movement to selected brainordinate.",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(volumeSliceIdentificationToggled(bool)));
+    m_volumeSliceIdentificationAction->setCheckable(true);
+    
+    QAction* identifySurfaceAction = WuQtUtilities::createAction("Select\nBrainordinate",
+                                                                 "Enter a brainordinate for identification",
+                                                                 this,
+                                                                 this,
+                                                                 SLOT(identifyBrainordinateTriggered()));
+    
+    QObject::connect(m_informationTextBrowser, SIGNAL(copyAvailable(bool)),
+                     copyAction, SLOT(setEnabled(bool)));
+    copyAction->setEnabled(false);
+    
+    QToolBar* idToolBarLeft = new QToolBar();
+    idToolBarLeft->setOrientation(Qt::Vertical);
+    idToolBarLeft->setFloatable(false);
+    idToolBarLeft->setMovable(false);
+    idToolBarLeft->addAction(clearAction);
+    idToolBarLeft->addSeparator();
+    idToolBarLeft->addAction(copyAction);
+    idToolBarLeft->addSeparator();
+    
+    QToolBar* idToolBarRight = new QToolBar();
+    idToolBarRight->setOrientation(Qt::Vertical);
+    idToolBarRight->setFloatable(false);
+    idToolBarRight->setMovable(false);
+    idToolBarRight->addAction(removeIdSymbolAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(m_contralateralIdentificationAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(m_volumeSliceIdentificationAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(settingsAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(identifySurfaceAction);
+    
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+    layout->addWidget(idToolBarLeft);
+    layout->addWidget(m_informationTextBrowser);
+    layout->addWidget(idToolBarRight);
+    layout->setStretchFactor(idToolBarLeft, 0);
+    layout->setStretchFactor(m_informationTextBrowser, 100);
+    layout->setStretchFactor(idToolBarRight, 0);
+    
+    /*
+     * Use processed event listener since the text event
+     * is first processed by GuiManager which will create
+     * this dialog, if needed, and then display it.
+     */
+    EventManager::get()->addProcessedEventListener(this,
+                                                   EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
+    this->setCentralWidget(widget,
                            WuQDialog::SCROLL_AREA_NEVER);
+    
+    /*
+     * There may already be identification text, so try to display it.
+     */
+    updateDialog();
+    
 }
 
 /**
@@ -63,7 +180,7 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
  */
 InformationDisplayDialog::~InformationDisplayDialog()
 {
-    
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -72,7 +189,17 @@ InformationDisplayDialog::~InformationDisplayDialog()
 void 
 InformationDisplayDialog::updateDialog()
 {
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    const AString text = idManager->getIdentificationText();
+    m_informationTextBrowser->setContentToHtml(text);
     
+    m_contralateralIdentificationAction->blockSignals(true);
+    m_contralateralIdentificationAction->setChecked(idManager->isContralateralIdentificationEnabled());
+    m_contralateralIdentificationAction->blockSignals(false);
+    m_volumeSliceIdentificationAction->blockSignals(true);
+    m_volumeSliceIdentificationAction->setChecked(idManager->isVolumeIdentificationEnabled());
+    m_volumeSliceIdentificationAction->blockSignals(false);
 }
 
 /**
@@ -94,9 +221,6 @@ InformationDisplayDialog::saveToScene(const SceneAttributes* sceneAttributes,
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "InformationDisplayDialog",
                                             1);
-    sceneClass->addClass(m_informationWidget->saveToScene(sceneAttributes,
-                                                          "m_informationWidget"));
-    
     /*
      * Position and size
      */
@@ -124,18 +248,117 @@ InformationDisplayDialog::restoreFromScene(const SceneAttributes* sceneAttribute
                                            const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
-        m_informationWidget->restoreFromScene(sceneAttributes,
-                                              NULL);
         return;
     }
-    
-    m_informationWidget->restoreFromScene(sceneAttributes,
-                                          sceneClass->getClass("m_informationWidget"));
 
     /*
      * Position and size
      */
     SceneWindowGeometry swg(this);
     swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));    
+}
+
+/**
+ * Called when contralateral toolbutton is toggled.
+ */
+void
+InformationDisplayDialog::contralateralIdentificationToggled(bool)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->setContralateralIdentificationEnabled(m_contralateralIdentificationAction->isChecked());
+}
+
+/**
+ * Called when volume identification toolbutton is toggled.
+ */
+void
+InformationDisplayDialog::volumeSliceIdentificationToggled(bool)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
+}
+
+/**
+ * Clear the information text.
+ */
+void
+InformationDisplayDialog::clearInformationText()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->removeIdentificationText();
+}
+
+
+/**
+ * Remove ID symbols from all surfaces.
+ */
+void
+InformationDisplayDialog::removeIdSymbols()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    IdentificationManager* idManager = brain->getIdentificationManager();
+    idManager->removeAllIdentifiedNodes();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Receive events from the event manager.
+ *
+ * @param event
+ *   Event sent by event manager.
+ */
+void
+InformationDisplayDialog::receiveEvent(Event* event)
+{
+    bool doUpdate = false;
+    
+    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS) {
+        EventUpdateInformationWindows* textEvent =
+        dynamic_cast<EventUpdateInformationWindows*>(event);
+        CaretAssert(textEvent);
+        textEvent->setEventProcessed();
+        
+        doUpdate = true;
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiUpdateEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiUpdateEvent);
+        uiUpdateEvent->setEventProcessed();
+        
+        doUpdate = true;
+    }
+    
+    if (doUpdate) {
+        updateDialog();
+    }
+}
+
+/**
+ * Show the symbol properties dialog
+ */
+void
+InformationDisplayDialog::showPropertiesDialog()
+{
+    if (m_propertiesDialog == NULL) {
+        m_propertiesDialog = new InformationDisplayPropertiesDialog(this);
+    }
+    //m_propertiesDialog->setVisible(true);
+    m_propertiesDialog->show();
+    //m_propertiesDialog->activateWindow();
+}
+
+/**
+ * Allow user to identify a brainordinate by structure/node index.
+ */
+void
+InformationDisplayDialog::identifyBrainordinateTriggered()
+{
+    IdentifyBrainordinateDialog idd(this);
+    idd.setSaveWindowPositionForNextTime();
+    idd.exec();
 }
 

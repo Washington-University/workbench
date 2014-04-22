@@ -21,22 +21,25 @@
  */
 /*LICENSE_END*/
 
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
-
 #include "WuQDialogNonModal.h"
 
 namespace caret {
 
     class BrainBrowserWindow;
-    class InformationDisplayWidget;
+    class HyperLinkTextBrowser;
+    class InformationDisplayPropertiesDialog;
     
-    class InformationDisplayDialog : public WuQDialogNonModal, public SceneableInterface {
+    class InformationDisplayDialog : public WuQDialogNonModal, public EventListenerInterface, public SceneableInterface {
         Q_OBJECT
         
     public:
         InformationDisplayDialog(BrainBrowserWindow* parent);
         
         virtual ~InformationDisplayDialog();
+        
+        void receiveEvent(Event* event);
         
         virtual void updateDialog();
         
@@ -45,12 +48,34 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+    private slots:
+        
+        void clearInformationText();
+        
+        void removeIdSymbols();
+        
+        void contralateralIdentificationToggled(bool);
+        
+        void volumeSliceIdentificationToggled(bool);
+        
+        void showPropertiesDialog();
+        
+        void identifyBrainordinateTriggered();
+        
     private:
         InformationDisplayDialog(const InformationDisplayDialog&);
 
         InformationDisplayDialog& operator=(const InformationDisplayDialog&);
 
-        InformationDisplayWidget* m_informationWidget;
+        HyperLinkTextBrowser* m_informationTextBrowser;
+        
+        QAction* m_contralateralIdentificationAction;
+        
+        QAction* m_volumeSliceIdentificationAction;
+        
+        QString m_informationText;
+        
+        InformationDisplayPropertiesDialog* m_propertiesDialog;
     };
     
 #ifdef __INFORMATION_DISPLAY_DIALOG_DECLARE__
