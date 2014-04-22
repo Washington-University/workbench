@@ -123,6 +123,8 @@ namespace caret {
         
         bool isChartDisplayed() const;
         
+        bool isFlatSurfaceDisplayed() const;
+        
         bool isVolumeSlicesDisplayed() const;
         
         bool isWholeBrainDisplayed() const;
@@ -352,6 +354,10 @@ namespace caret {
                                                                   const int32_t mousePressY,
                                                                               int sliceViewportOut[4]) const;
         
+        ViewingTransformations* getViewingTransformation();
+        
+        const ViewingTransformations* getViewingTransformation() const;
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         
@@ -411,6 +417,9 @@ namespace caret {
         
         /** Transformation for surface/all viewing */
         ViewingTransformations* m_viewingTransformation;
+        
+        /** Transformation for surface/all viewing */
+        ViewingTransformations* m_flatSurfaceViewingTransformation;
         
         /** Transformation for volume slices viewing */
         ViewingTransformationsVolume* m_volumeSliceViewingTransformation;
