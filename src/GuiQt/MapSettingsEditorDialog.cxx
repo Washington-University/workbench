@@ -313,11 +313,11 @@ MapSettingsEditorDialog::updateDialogContent(Overlay* overlay)
      * is the priority of the tabs.
      */
     std::vector<int32_t> priorityTabIndices;
-    priorityTabIndices.push_back(m_layersWidgetTabIndex);
     priorityTabIndices.push_back(m_paletteWidgetTabIndex);
-    priorityTabIndices.push_back(m_parcelsWidgetTabIndex);
     priorityTabIndices.push_back(m_labelsWidgetTabIndex);
+    priorityTabIndices.push_back(m_parcelsWidgetTabIndex);
     priorityTabIndices.push_back(m_trajectoryWidgetTabIndex);
+    priorityTabIndices.push_back(m_layersWidgetTabIndex);
     priorityTabIndices.push_back(m_metadataWidgetTabIndex);
     CaretAssertMessage((static_cast<int>(priorityTabIndices.size()) == m_tabWidget->count()),
                        "Number of elements in priorityTabIndices is different "
