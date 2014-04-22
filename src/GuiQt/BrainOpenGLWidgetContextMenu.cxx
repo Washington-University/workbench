@@ -112,9 +112,12 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* sel
     addFociActions();
     
     /*
-     * Add the label region of interest operations
+     * Show Label ROI operations only for surfaces
      */
-    addLabelRegionOfInterestActions();
+    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
+    if (surfaceID->isValid()) {
+        addLabelRegionOfInterestActions();
+    }
     
 //    /*
 //     * Identify Node
@@ -966,7 +969,7 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                     }
                     
                     if (haveChartableFiles) {
-                        const AString tsActionName("Show Data Series Graph For Parcel "
+                        const AString tsActionName("Show Data/Time Series Graph For Parcel "
                                                    + labelName
                                                    + " in map "
                                                    + mapName);
