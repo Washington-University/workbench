@@ -71,6 +71,7 @@ HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
+InformationDisplayPropertiesDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
@@ -199,6 +200,7 @@ HyperLinkTextBrowser.h
 IdentifyBrainordinateDialog.h
 ImageCaptureDialog.h
 InformationDisplayDialog.h
+InformationDisplayPropertiesDialog.h
 InformationDisplayWidget.h
 LabelSelectionViewController.h
 MacApplication.h
@@ -326,6 +328,7 @@ HyperLinkTextBrowser.cxx
 IdentifyBrainordinateDialog.cxx
 ImageCaptureDialog.cxx
 InformationDisplayDialog.cxx
+InformationDisplayPropertiesDialog.cxx
 InformationDisplayWidget.cxx
 LabelSelectionViewController.cxx
 MacApplication.cxx

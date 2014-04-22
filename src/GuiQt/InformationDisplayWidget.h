@@ -26,16 +26,14 @@
 #include <QWidget>
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
-#include "StructureEnum.h"
 
 class QAction;
-class QDoubleSpinBox;
 
 namespace caret {
 
-    class CaretColorEnumComboBox;
     class EventInformationTextDisplay;
     class HyperLinkTextBrowser;
+    class InformationDisplayPropertiesDialog;
     
     class InformationDisplayWidget : public QWidget, public EventListenerInterface, public SceneableInterface {
         
@@ -67,8 +65,6 @@ namespace caret {
         
         void showPropertiesDialog();
         
-        void controlInPropertiesDialogChanged();
-        
         void identifyBrainordinateTriggered();
         
     private:
@@ -88,19 +84,7 @@ namespace caret {
         
         QString m_informationText;
 
-        CaretColorEnumComboBox* m_propertiesDialogIdColorComboBox;
-        
-        CaretColorEnumComboBox* m_propertiesDialogIdContraColorComboBox;
-        
-        QDoubleSpinBox* m_propertiesDialogSizeSpinBox;
-        
-        QDoubleSpinBox* m_propertiesDialogMostRecentSizeSpinBox;
-        
-        StructureEnum::Enum m_brainordinateEntryStructure;
-        
-        int32_t m_brainordinateEntryNodeIndex;
-        
-        int m_brainordinateEntryDialogPosition[2];
+        InformationDisplayPropertiesDialog* m_propertiesDialog;
     };
     
 #ifdef __INFORMATION_DISPLAY_WIDGET_DECLARE__

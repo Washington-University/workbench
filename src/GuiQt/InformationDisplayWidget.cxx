@@ -27,14 +27,12 @@
 
 #include <QAction>
 #include <QBoxLayout>
-#include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QToolBar>
 
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
-#include "CaretColorEnumComboBox.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventUpdateInformationWindows.h"
@@ -43,6 +41,7 @@
 #include "HyperLinkTextBrowser.h"
 #include "IdentificationManager.h"
 #include "IdentifyBrainordinateDialog.h"
+#include "InformationDisplayPropertiesDialog.h"
 #include "SceneClass.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionManager.h"
@@ -67,10 +66,7 @@ using namespace caret;
 InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
 : QWidget(parent)
 {
-    m_propertiesDialogIdColorComboBox = NULL;
-    m_propertiesDialogIdContraColorComboBox = NULL;
-    m_propertiesDialogSizeSpinBox = NULL;
-    m_propertiesDialogMostRecentSizeSpinBox = NULL;
+    m_propertiesDialog = NULL;
     
     m_informationTextBrowser = new HyperLinkTextBrowser();
     m_informationTextBrowser->setLineWrapMode(QTextEdit::NoWrap);
@@ -161,14 +157,6 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
      * There may already be identification text, so try to display it.
      */
     updateInformationDisplayWidget();
-    
-    /*
-     * Initialize for brainordinate entry
-     */
-    m_brainordinateEntryStructure = StructureEnum::INVALID;
-    m_brainordinateEntryNodeIndex = 0;
-    m_brainordinateEntryDialogPosition[0] = -1;
-    m_brainordinateEntryDialogPosition[1] = -1;
     
     /*
      * Use processed event listener since the text event
@@ -307,65 +295,12 @@ InformationDisplayWidget::receiveEvent(Event* event)
 void 
 InformationDisplayWidget::showPropertiesDialog()
 {
-    Brain* brain = GuiManager::get()->getBrain();
-    IdentificationManager* info = brain->getIdentificationManager();
-    
-    WuQDataEntryDialog ded("Symbol Properties",
-                           this);
-    m_propertiesDialogIdColorComboBox = ded.addCaretColorEnumComboBox("ID Symbol Color:",
-                                                                             info->getIdentificationSymbolColor());
-    QObject::connect(m_propertiesDialogIdColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
-                     this, SLOT(controlInPropertiesDialogChanged()));
-    
-    m_propertiesDialogIdContraColorComboBox = ded.addCaretColorEnumComboBox("ID Contralateral Symbol Color:",
-                           info->getIdentificationContralateralSymbolColor());
-    QObject::connect(m_propertiesDialogIdContraColorComboBox, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
-                     this, SLOT(controlInPropertiesDialogChanged()));
-    
-    m_propertiesDialogSizeSpinBox = ded.addDoubleSpinBox("Symbol Diameter:", 
-                                                        info->getIdentificationSymbolSize(),
-                                                       0.1,
-                                                       100000.0,
-                                                       0.1);
-    m_propertiesDialogSizeSpinBox->setDecimals(1);
-    m_propertiesDialogSizeSpinBox->setSuffix("mm");
-    QObject::connect(m_propertiesDialogSizeSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(controlInPropertiesDialogChanged()));
-    
-    m_propertiesDialogMostRecentSizeSpinBox = ded.addDoubleSpinBox("Most Recent ID Symbol Diameter:",
-                                                                   info->getMostRecentIdentificationSymbolSize(),
-                                                                   0.1,
-                                                                   100000.0,
-                                                                   0.1);
-    m_propertiesDialogMostRecentSizeSpinBox->setDecimals(1);
-    m_propertiesDialogMostRecentSizeSpinBox->setSuffix("mm");
-    QObject::connect(m_propertiesDialogMostRecentSizeSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(controlInPropertiesDialogChanged()));
-    
-
-    ded.setOkButtonText("Close");
-    ded.setCancelButtonText("");
-    ded.exec();
-    
-    m_propertiesDialogIdColorComboBox = NULL;
-    m_propertiesDialogIdContraColorComboBox = NULL;
-    m_propertiesDialogSizeSpinBox = NULL;
-}
-
-/**
- * Gets called when a control in the Properties Dialog is changed.
- * Updates properties and graphics.
- */
-void
-InformationDisplayWidget::controlInPropertiesDialogChanged()
-{
-    Brain* brain = GuiManager::get()->getBrain();
-    IdentificationManager* info = brain->getIdentificationManager();
-    info->setIdentificationSymbolColor(m_propertiesDialogIdColorComboBox->getSelectedColor());
-    info->setIdentificationContralateralSymbolColor(m_propertiesDialogIdContraColorComboBox->getSelectedColor());
-    info->setIdentificationSymbolSize(m_propertiesDialogSizeSpinBox->value());
-    info->setMostRecentIdentificationSymbolSize(m_propertiesDialogMostRecentSizeSpinBox->value());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    if (m_propertiesDialog == NULL) {
+        m_propertiesDialog = new InformationDisplayPropertiesDialog(this);
+    }
+    //m_propertiesDialog->setVisible(true);
+    m_propertiesDialog->show();
+    //m_propertiesDialog->activateWindow();
 }
 
 /**
@@ -377,49 +312,6 @@ InformationDisplayWidget::identifyBrainordinateTriggered()
     IdentifyBrainordinateDialog idd(this);
     idd.setSaveWindowPositionForNextTime();
     idd.exec();
-    
-//    WuQDataEntryDialog ded("Select Brainordinate",
-//                           this);
-//    
-//    StructureEnumComboBox* structureComboBox = ded.addStructureEnumComboBox("Structure");
-//    structureComboBox->listOnlyValidStructures();
-//    structureComboBox->setSelectedStructure(m_brainordinateEntryStructure);
-//    
-//    QSpinBox* nodeIndexSpinBox = ded.addSpinBox("Node Index",
-//                                                m_brainordinateEntryNodeIndex,
-//                                                0,
-//                                                std::numeric_limits<int32_t>::max());
-//    ded.setDisplayedXY(m_brainordinateEntryDialogPosition);
-//    
-//    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-//        m_brainordinateEntryStructure = structureComboBox->getSelectedStructure();
-//        m_brainordinateEntryNodeIndex = nodeIndexSpinBox->value();
-//        
-//        Brain* brain = GuiManager::get()->getBrain();
-//        BrainStructure* bs = brain->getBrainStructure(m_brainordinateEntryStructure,
-//                                                      false);
-//        if (bs != NULL) {
-//            if (m_brainordinateEntryNodeIndex < bs->getNumberOfNodes()) {
-//                Surface* surface = bs->getVolumeInteractionSurface();
-//                if (surface != NULL) {
-//                    SelectionManager* selectionManager = brain->getSelectionManager();
-//                    selectionManager->reset();
-//                    SelectionItemSurfaceNode* nodeID = selectionManager->getSurfaceNodeIdentification();
-//                    nodeID->setBrain(brain);
-//                    nodeID->setNodeNumber(m_brainordinateEntryNodeIndex);
-//                    nodeID->setSurface(surface);
-//                    const float* fxyz = surface->getCoordinate(m_brainordinateEntryNodeIndex);
-//                    const double xyz[3] = { fxyz[0], fxyz[1], fxyz[2] };
-//                    nodeID->setModelXYZ(xyz);
-//                    GuiManager::get()->processIdentification(selectionManager,
-//                                                             &ded);
-//                    
-//                    m_brainordinateEntryDialogPosition[0] = ded.x();
-//                    m_brainordinateEntryDialogPosition[1] = ded.y();
-//                }
-//            }
-//        }
-//    }
 }
 
 /**
