@@ -143,17 +143,18 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         myInFile.readFile(myGiftiName);
         if (myInFile.getNumberOfDataArrays() != 1)
         {
-            throw OperationException("input gifti has the wrong number of arrays");
+            throw OperationException("gifti file was not created by -cifti-convert, please use a -cifti-create-* command");
         }
         GiftiDataArray* dataArrayRef = myInFile.getDataArray(0);
-        if (dataArrayRef->getDataType() != NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32)
+        if (!dataArrayRef->getMetaData()->exists("CiftiXML")) throw OperationException("gifti file was not created by -cifti-convert, please use a -cifti-create-* command");
+        if (dataArrayRef->getDataType() != NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32)//this may not be needed
         {
             throw OperationException("input gifti has the wrong data type");
         }
         CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
         CiftiXML myXML;
         myXML.readXML(dataArrayRef->getMetaData()->get("CiftiXML"));
-        if (myXML.getNumberOfDimensions() != 2) throw CiftiFileException("conversion only supported for 2D cifti");
+        if (myXML.getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
         int64_t numCols = dataArrayRef->getNumberOfComponents();
         int64_t numRows = dataArrayRef->getNumberOfRows();
         OptionalParameter* fgresetTimeOpt = fromGiftiExt->getOptionalParameter(3);
