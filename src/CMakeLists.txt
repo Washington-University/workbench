@@ -113,6 +113,12 @@ ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*icpc$")
 #
 IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang\\+\\+.*")
     ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
+    #
+    # The clang compiler does not support OpenMP so it produces many warnings
+    # with "Unknown pragma ignored".  So, tell clang to ignore unknown pragmas
+    # so the message is not printed.
+    #
+    ADD_DEFINITIONS("-Wno-unknown-pragmas")
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS}")
     ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter")
     ##SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CLANG_11X_FLAGS} -W -Wall -Werror=return-type -Werror=switch -Wunused-parameter" CACHE STRING "C++ compiler options" FORCE)
