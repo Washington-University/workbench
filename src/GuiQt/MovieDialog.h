@@ -63,8 +63,6 @@ public:
     
     void on_recordButton_toggled(bool checked);
 
-    void on_cropImageCheckBox_toggled(bool checked);
-
     void on_workbenchWindowSpinBox_valueChanged(int arg1);
 
 
