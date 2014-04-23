@@ -2789,6 +2789,8 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
     
     sceneClass->addBoolean("isFullScreen",
                            isFullScreen());
+    sceneClass->addBoolean("isMaximized",
+                           isMaximized());
     sceneClass->addBoolean("m_viewTileTabsAction",
                            m_viewTileTabsSelected);
     return sceneClass;
@@ -2968,6 +2970,13 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
             break;
         case SceneTypeEnum::SCENE_TYPE_GENERIC:
             break;
+    }
+    
+    const bool maximizedWindow = sceneClass->getBooleanValue("isMaximized",
+                                                       false);
+    if (maximizedWindow) {
+        std::cout << "Showing maximized" << std::endl;
+        showMaximized();
     }
 }
 
