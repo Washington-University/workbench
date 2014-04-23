@@ -80,6 +80,10 @@ MovieDialog::MovieDialog(QWidget *parent) :
 	m_CEnd = 0;
 	m_AEnd = 0;
     m_interpolationIndex = 0;
+    
+    m_surface  = NULL;
+    m_surface1 = NULL;
+    m_surface2 = NULL;
 }
 
 MovieDialog::~MovieDialog()
@@ -96,6 +100,59 @@ void MovieDialog::on_closeButton_clicked()
     this->close();
 }
 
+
+void MovieDialog::on_interpolateSurfaceCheckbox_toggled(bool checked)
+{
+    if ( ! checked) {
+        return;
+    }
+    
+    BrainBrowserWindow *bw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    if(!bw)
+    {
+        WuQMessageBox::errorOk(this,
+                               "Invalid browser window index, " + AString::number(m_browserWindowIndex));
+        return;
+    }
+    
+    BrowserTabContent *btc1 = bw->getBrowserTabContent(0);
+    BrowserTabContent *btc2 = bw->getBrowserTabContent(1);
+    if(!btc1 || !btc2) {
+        this->ui->interpolateSurfaceCheckbox->blockSignals(true);
+        this->ui->interpolateSurfaceCheckbox->setChecked(false);
+        this->ui->interpolateSurfaceCheckbox->blockSignals(false);
+        WuQMessageBox::errorOk(this,
+                               "There must be two browser tabs.");
+        return;
+    }
+    
+    //    int32_t tabIndex1 = btc1->getTabNumber();
+    if ((btc1->getSelectedModelType() != ModelTypeEnum::MODEL_TYPE_SURFACE)
+        || (btc2->getSelectedModelType() != ModelTypeEnum::MODEL_TYPE_SURFACE)) {
+        this->ui->interpolateSurfaceCheckbox->blockSignals(true);
+        this->ui->interpolateSurfaceCheckbox->setChecked(false);
+        this->ui->interpolateSurfaceCheckbox->blockSignals(false);
+        WuQMessageBox::errorOk(this,
+                               "Both Tab 1 and Tab 2 must contain surface models.");
+        return;
+    }
+    
+    ModelSurface *ms1 = btc1->getDisplayedSurfaceModel();
+    
+    //    int32_t tabIndex2 = btc2->getTabNumber();
+    ModelSurface *ms2 = btc2->getDisplayedSurfaceModel();
+    
+    if(!(ms1&&ms2)) return;
+    
+    if (ms1->getSurface()->getStructure() != ms2->getSurface()->getStructure()) {
+        this->ui->interpolateSurfaceCheckbox->blockSignals(true);
+        this->ui->interpolateSurfaceCheckbox->setChecked(false);
+        this->ui->interpolateSurfaceCheckbox->blockSignals(false);
+        WuQMessageBox::errorOk(this,
+                               "Surfaces in Tab 1 and Tab 2 must be the same structure.");
+        return;
+    }
+}
 
 
 
@@ -694,7 +751,7 @@ void MovieDialog::on_workbenchWindowSpinBox_valueChanged(int arg1)
 void MovieDialog::processUpdateSurfaceInterpolation()
 {
 
-    if(!m_interpolationEnabled||!m_isInterpolating) 
+    if(!m_interpolationEnabled||!m_isInterpolating)
         return;
 
     BrainBrowserWindow *bw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
@@ -705,19 +762,29 @@ void MovieDialog::processUpdateSurfaceInterpolation()
         return;
     }
 
-    BrowserTabContent *btc1 = bw->getBrowserTabContent(0);    
+    BrowserTabContent *btc1 = bw->getBrowserTabContent(0);
+    BrowserTabContent *btc2 = bw->getBrowserTabContent(1);
     if(!btc1) return;
-//    int32_t tabIndex1 = btc1->getTabNumber();
+    if(!btc2) return;
+
+    //    int32_t tabIndex1 = btc1->getTabNumber();
+    if ((btc1->getSelectedModelType() != ModelTypeEnum::MODEL_TYPE_SURFACE)
+        || (btc2->getSelectedModelType() != ModelTypeEnum::MODEL_TYPE_SURFACE)) {
+        CaretLogInfo("Both Tab 1 and Tab 2 must contain surface models.");
+        return;
+    }
+    
     ModelSurface *ms1 = btc1->getDisplayedSurfaceModel();
 
-    BrowserTabContent *btc2 = bw->getBrowserTabContent(1);
-    if(!btc2) return;
 //    int32_t tabIndex2 = btc2->getTabNumber();
     ModelSurface *ms2 = btc2->getDisplayedSurfaceModel();
     
     if(!(ms1&&ms2)) return;
 
-    
+    if (ms1->getSurface()->getStructure() != ms2->getSurface()->getStructure()) {
+        CaretLogInfo("Surfaces in Tab 1 and Tab 2 must be the same structure.");
+        return;
+    }
 
     if(m_interpolationIndex == 0)
     {
@@ -792,6 +859,10 @@ void MovieDialog::CleanupInterpolation()
 {
 	if(!m_interpolationEnabled||!m_isInterpolating) 
 		return;
+    if (m_surface2 == NULL) {
+        return;
+    }
+    
 	for(int64_t i = 0;i<coordsCount*3;i++)
 	{
 		coords[i] = m_surfaceCoords2Back[i];
@@ -807,5 +878,8 @@ void MovieDialog::CleanupInterpolation()
 		coords = NULL;
 		coordsCount = 0;
 	}
+    
+    m_surface1 = NULL;
+    m_surface2 = NULL;
 }
 

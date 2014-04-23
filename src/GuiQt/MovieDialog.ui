@@ -289,14 +289,7 @@
            <bool>true</bool>
           </property>
           <property name="text">
-           <string>Interpolate Surface To:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="comboBox">
-          <property name="enabled">
-           <bool>false</bool>
+           <string>Interpolate Surface in Tab 1 to Surface in Tab 2</string>
           </property>
          </widget>
         </item>

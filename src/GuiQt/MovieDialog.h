@@ -59,6 +59,8 @@ public:
 
     void on_animateButton_toggled(bool checked);
 
+    void on_interpolateSurfaceCheckbox_toggled(bool checked);
+    
     void on_recordButton_toggled(bool checked);
 
     void on_cropImageCheckBox_toggled(bool checked);
