@@ -1,44 +1,42 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: Connectome Workbench
 Source: http://www.humanconnectome.org/software/get-connectome-workbench.html
-Copyright: Copyright 2014 Washington University School of Medicine
-License: GPL-2+
 
 Files: *
-Copyright: Copyright 2014 Washington University School of Medicine
+Copyright: 2014 Washington University School of Medicine
 License: GPL-2+
 
-Files: Quazip/*
-Copyright: Copyright 2005-2012 Sergey A. Tachenov
-           Copyright 1998-2010 Gilles Vollant
-           Copyright 2009-2010 Mathias Svensson
-           Copyright 2007-2008 Even Rouault
-           Copyright 1990-2000 Info-ZIP
+Files: src/Quazip/*
+Copyright: 2005-2012 Sergey A. Tachenov
+           1998-2010 Gilles Vollant
+           2009-2010 Mathias Svensson
+           2007-2008 Even Rouault
+           1990-2000 Info-ZIP
 License: LGPL-2.0+ and Zlib
 
-Files: Qwt/*
-Copyright: Copyright 1997 Josef Wilgen
-           Copyright 2002 Uwe Rathmann
+Files: src/Qwt/*
+Copyright: 1997 Josef Wilgen
+           2002 Uwe Rathmann
 License: Qwt-1.0
 
-Files: GlfFont/glf.* src/Resources/*.glf
-Copyright: Copyright 2000 Romka Graphics
-           Copyright 2014 Washington University School of Medicine
+Files: src/GlfFont/glf.* src/Resources/*.glf
+Copyright: 2000 Romka Graphics
+           2014 Washington University School of Medicine
 License: GPL-2+
 
-Files: Common/Base64.* Common/DataCompressZLib.* Common/MathFunctions.* Nifti/Matrix4x4.cxx
-Copyright: Copyright 1993-2008 Ken Martin, Will Schroeder, Bill Lorensen
-           Copyright 2014 Washington University School of Medicine
+Files: src/Common/Base64.* src/Common/DataCompressZLib.* src/Common/MathFunctions.* src/Nifti/Matrix4x4.cxx
+Copyright: 1993-2008 Ken Martin, Will Schroeder, Bill Lorensen
+           2014 Washington University School of Medicine
 License: VTK-BSD-3-Clause and GPL-2+
 
-Files: GuiQt/WuQDialog.cxx Brain/GlfFontTextRenderer.cxx
-Copyright: Copyright 2014 Washington University School of Medicine
-           Copyright 2012 Digia Plc and/or its subsidiary(-ies).
+Files: src/GuiQt/WuQDialog.cxx src/Brain/GlfFontTextRenderer.cxx
+Copyright: 2014 Washington University School of Medicine
+           2012 Digia Plc and/or its subsidiary(-ies).
 License: GPL-2+
 
-Files: Files/SignedDistanceHelper.cxx src/Algorithms/AlgorithmVolumeToSurfaceMapping.cxx
-Copyright: Copyright 2014 Washington University School of Medicine
-           Copyright 1970-2003, Wm. Randolph Franklin
+Files: src/Files/SignedDistanceHelper.cxx src/Algorithms/AlgorithmVolumeToSurfaceMapping.cxx
+Copyright: 2014 Washington University School of Medicine
+           1970-2003, Wm. Randolph Franklin
 License: GPL-2+ and PNPOLY-BSD-3-Clause
 
 License: GPL-2+
@@ -76,7 +74,7 @@ License: LGPL-2.0+
  .
  You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software Foundation,
- Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
  .
  On Debian systems, the full text of the GNU Lesser General Public
  License version 2 can be found in the file
