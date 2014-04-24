@@ -61,6 +61,21 @@ namespace caret {
                                      const int32_t tabIndex);
         
     private:
+        class Margins {
+        public:
+            Margins(const int32_t defaultSize) {
+                m_bottom = defaultSize;
+                m_left   = defaultSize;
+                m_right  = defaultSize;
+                m_top    = defaultSize;
+            }
+            
+            int32_t m_bottom;
+            int32_t m_left;
+            int32_t m_right;
+            int32_t m_top;
+        };
+        
         BrainOpenGLChartDrawingFixedPipeline(const BrainOpenGLChartDrawingFixedPipeline&);
 
         BrainOpenGLChartDrawingFixedPipeline& operator=(const BrainOpenGLChartDrawingFixedPipeline&);
@@ -72,7 +87,7 @@ namespace caret {
                                      BrainOpenGLTextRenderInterface* textRenderer,
                                      ChartableMatrixInterface* chartMatrixInterface);
 
-        void drawChartAxesGrid(const float vpX,
+        void drawChartGraphicsBoxAndSetViewport(const float vpX,
                                const float vpY,
                                const float vpWidth,
                                const float vpHeight,
@@ -83,7 +98,7 @@ namespace caret {
                            const float vpY,
                            const float vpWidth,
                            const float vpHeight,
-                           const float marginSize,
+                           Margins& margins,
                            BrainOpenGLTextRenderInterface* textRenderer,
                            ChartAxis* axis);
         
@@ -91,7 +106,7 @@ namespace caret {
                                     const float vpY,
                                     const float vpWidth,
                                     const float vpHeight,
-                                    const float marginSize,
+                                    Margins& margins,
                                     BrainOpenGLTextRenderInterface* textRenderer,
                                     ChartAxisCartesian* axis);
         

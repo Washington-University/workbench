@@ -172,6 +172,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
      * the axes legends, values, and ticks are drawn.
      */
     const int32_t marginSize = 30;
+    Margins margins(marginSize);
     
     /*
      * Ensure that there is sufficient space for the axes data display.
@@ -184,7 +185,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
                       vpY,
                       vpWidth,
                       vpHeight,
-                      marginSize,
+                      margins,
                       textRenderer,
                       cartesianChart->getLeftAxis());
         
@@ -192,7 +193,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
                       vpY,
                       vpWidth,
                       vpHeight,
-                      marginSize,
+                      margins,
                       textRenderer,
                       cartesianChart->getRightAxis());
         
@@ -200,7 +201,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
                       vpY,
                       vpWidth,
                       vpHeight,
-                      marginSize,
+                      margins,
                       textRenderer,
                       cartesianChart->getBottomAxis());
         
@@ -208,12 +209,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
                       vpY,
                       vpWidth,
                       vpHeight,
-                      marginSize,
+                      margins,
                       textRenderer,
                       cartesianChart->getTopAxis());
         
         
-        drawChartAxesGrid(vpX,
+        drawChartGraphicsBoxAndSetViewport(vpX,
                           vpY,
                           vpWidth,
                           vpHeight,
@@ -368,8 +369,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
  *     Viewport width for all chart content
  * @param vpHeight
  *     Viewport height for all chart content
- * @param marginSize
- *     Margin around grid/box
+ * @param margins
+ *     Margin around graphics region.  The margin corresponding to the
+ *     axis may be changed so that all text in the axis is visible
+ *     (and not cut off).
  * @param textRenderer
  *     Text rendering.
  * @param axis
@@ -380,7 +383,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
                                                     const float vpY,
                                                     const float vpWidth,
                                                     const float vpHeight,
-                                                    const float marginSize,
+                                                    Margins& margins,
                                                     BrainOpenGLTextRenderInterface* textRenderer,
                                                     ChartAxis* axis)
 {
@@ -398,7 +401,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
                                    vpY,
                                    vpWidth,
                                    vpHeight,
-                                   marginSize,
+                                   margins,
                                    textRenderer,
                                    dynamic_cast<ChartAxisCartesian*>(axis));
             break;
@@ -418,8 +421,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxis(const float vpX,
  *     Viewport width for all chart content
  * @param vpHeight
  *     Viewport height for all chart content
- * @param marginSize
- *     Margin around grid/box
+ * @param margins
+ *     Margin around graphics region.  The margin corresponding to the
+ *     axis may be changed so that all text in the axis is visible
+ *     (and not cut off).
  * @param textRenderer
  *     Text rendering.
  * @param chartModelCartesian
@@ -432,7 +437,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                                                     const float vpY,
                                                     const float vpWidth,
                                                     const float vpHeight,
-                                                    const float marginSize,
+                                                    Margins& margins,
                                                     BrainOpenGLTextRenderInterface* textRenderer,
                                                     ChartAxisCartesian* axis)
 {
@@ -444,11 +449,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
     switch (axis->getAxisLocation()) {
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
-            axisLength = vpWidth - marginSize * 2.0;
+            axisLength = vpWidth - (margins.m_left + margins.m_right);
             break;
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
         case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-            axisLength = vpHeight - marginSize * 2.0;
+            axisLength = vpHeight - (margins.m_top + margins.m_bottom);
             break;
     }
     
@@ -483,9 +488,9 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 axisVpX = vpX;
                 axisVpY = vpY;
                 axisVpWidth = vpWidth;
-                axisVpHeight = marginSize;
-                labelX = marginSize;
-                labelY = marginSize;
+                axisVpHeight = margins.m_bottom;
+                labelX = margins.m_left;
+                labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 1.0;
                 labelOffsetMultiplierY = 0.0;
                 labelAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
@@ -495,11 +500,11 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                 axisVpX = vpX;
-                axisVpY = vpY;
-                axisVpWidth = marginSize;
-                axisVpHeight = vpHeight;
-                labelX = marginSize;
-                labelY = vpY - marginSize;
+                axisVpY = vpY + vpHeight - margins.m_top;
+                axisVpWidth = vpWidth;
+                axisVpHeight = margins.m_top;
+                labelX = margins.m_left;
+                labelY = 0.0;
                 labelOffsetMultiplierX = 1.0;
                 labelOffsetMultiplierY = 0.0;
                 labelAlignmentX = BrainOpenGLTextRenderInterface::X_CENTER;
@@ -510,10 +515,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
                 axisVpX = vpX;
                 axisVpY = vpY;
-                axisVpWidth = marginSize;
+                axisVpWidth = margins.m_left;
                 axisVpHeight = vpHeight;
-                labelX = marginSize;
-                labelY = marginSize;
+                labelX = margins.m_left;
+                labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 0.0;
                 labelOffsetMultiplierY = 1.0;
                 labelAlignmentX = BrainOpenGLTextRenderInterface::X_RIGHT;
@@ -522,12 +527,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
                 tickDeltaXY[1] = 0.0;
                 break;
             case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                axisVpX = vpX;
-                axisVpY = vpY + vpHeight - marginSize;
-                axisVpWidth = vpWidth;
-                axisVpHeight = marginSize;
-                labelX = vpX - marginSize;
-                labelY = marginSize;
+                axisVpX = vpX + vpWidth - margins.m_right;
+                axisVpY = vpY;
+                axisVpWidth = margins.m_right;
+                axisVpHeight = vpHeight;
+                labelX = 0.0;
+                labelY = margins.m_bottom;
                 labelOffsetMultiplierX = 0.0;
                 labelOffsetMultiplierY = 1.0;
                 labelAlignmentX = BrainOpenGLTextRenderInterface::X_LEFT;
@@ -540,10 +545,16 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         /*
          * Viewport for axis text and numeric values
          */
-        glViewport(axisVpX,
-                   axisVpY,
-                   axisVpWidth,
-                   axisVpHeight);
+        const int viewport[4] = {
+            axisVpX,
+            axisVpY,
+            axisVpWidth,
+            axisVpHeight
+        };
+        glViewport(viewport[0],
+                   viewport[1],
+                   viewport[2],
+                   viewport[3]);
         
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -554,15 +565,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         
         glColor3fv(m_foregroundColor);
         
-        /*
-         * Viewport in array for text rendering
-         */
-        const int viewport[4] = {
-            axisVpX,
-            axisVpY,
-            axisVpWidth,
-            axisVpHeight
-        };
         
 //        const float lastIndex = numLabelsToDraw - 1;
         for (int32_t i = 0; i < numLabelsToDraw; i++) {
@@ -600,23 +602,26 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             switch (axis->getAxisLocation()) {
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                     axisTextCenterX = (vpWidth / 2.0);
-                    axisTextCenterY = (marginSize / 2.0);
+                    axisTextCenterY = (margins.m_bottom / 2.0);
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                     axisTextCenterX = (vpWidth / 2.0);
-                    axisTextCenterY = (marginSize / 2.0);
+                    axisTextCenterY = (margins.m_top / 2.0);
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    axisTextCenterX = (marginSize / 2.0);
+                    axisTextCenterX = (margins.m_left / 2.0);
                     axisTextCenterY = (vpHeight / 2.0);
                     drawAxisTextVerticalFlag = true;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    axisTextCenterX = (marginSize / 2.0);
+                    axisTextCenterX = (margins.m_right / 2.0);
                     axisTextCenterY = (vpHeight / 2.0);
                     drawAxisTextVerticalFlag = true;
                     break;
             }
+            
+            axisTextCenterX = axisVpWidth / 2.0;
+            axisTextCenterY = axisVpHeight / 2.0;
             if (drawAxisTextVerticalFlag) {
                 textRenderer->drawVerticalTextAtWindowCoords(viewport,
                                                              axisTextCenterX,
@@ -638,8 +643,8 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
 }
 
 /**
- * Draw the chart axes grid/box
- *
+ * Draw the chart graphics surrounding box and set the graphics viewport.
+ *  drawChartGraphicsBoxAndSetViewport
  * @param vpX
  *     Viewport X
  * @param vpY
@@ -652,10 +657,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
  *     Margin around grid/box
  * @param chartGraphicsDrawingViewportOut
  *     Output containing viewport for drawing chart graphics within
- *     the box/grid
+ *     the box/grid that is adjusted for the box's line thickness.
  */
 void
-BrainOpenGLChartDrawingFixedPipeline::drawChartAxesGrid(const float vpX,
+BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(const float vpX,
                        const float vpY,
                        const float vpWidth,
                        const float vpHeight,

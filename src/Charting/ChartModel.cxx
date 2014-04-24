@@ -757,7 +757,7 @@ ChartModel::saveToScene(const SceneAttributes* sceneAttributes,
     
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "ChartModel",
-                                            1);
+                                            2);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -826,6 +826,8 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    const int32_t versionNumber = sceneClass->getVersionNumber();
+    
     removeChartData();
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
@@ -859,30 +861,32 @@ ChartModel::restoreFromScene(const SceneAttributes* sceneAttributes,
         setLeftAxis(axis);
     }
     
-    /*
-     * Restore right axis
-     */
-    const ChartAxisTypeEnum::Enum rightAxisType =
-    sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("rightAxisType",
-                                                                                   ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
-    if (rightAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
-        ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(rightAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
-        axis->restoreFromScene(sceneAttributes,
-                               sceneClass->getClass("m_rightAxis"));
-        setRightAxis(axis);
-    }
-    
-    /*
-     * Restore top axis
-     */
-    const ChartAxisTypeEnum::Enum topAxisType =
-    sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("topAxisType",
-                                                                                   ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
-    if (topAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
-        ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(topAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP);
-        axis->restoreFromScene(sceneAttributes,
-                               sceneClass->getClass("m_topAxis"));
-        setTopAxis(axis);
+    if (versionNumber >= 2) {
+        /*
+         * Restore right axis
+         */
+        const ChartAxisTypeEnum::Enum rightAxisType =
+        sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("rightAxisType",
+                                                                                       ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
+        if (rightAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
+            ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(rightAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT);
+            axis->restoreFromScene(sceneAttributes,
+                                   sceneClass->getClass("m_rightAxis"));
+            setRightAxis(axis);
+        }
+        
+        /*
+         * Restore top axis
+         */
+        const ChartAxisTypeEnum::Enum topAxisType =
+        sceneClass->getEnumeratedTypeValue<ChartAxisTypeEnum, ChartAxisTypeEnum::Enum>("topAxisType",
+                                                                                       ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE);
+        if (topAxisType != ChartAxisTypeEnum::CHART_AXIS_TYPE_NONE) {
+            ChartAxis* axis = ChartAxis::newChartAxisForTypeAndLocation(topAxisType, ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP);
+            axis->restoreFromScene(sceneAttributes,
+                                   sceneClass->getClass("m_topAxis"));
+            setTopAxis(axis);
+        }
     }
     
     /*

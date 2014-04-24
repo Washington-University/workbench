@@ -104,7 +104,7 @@ ChartAxis::initializeMembersChartAxis()
     m_autoRangeScaleEnabled = true;
     m_axisUnits      = ChartAxisUnitsEnum::CHART_AXIS_UNITS_NONE;
     m_labelFontSize  = 12;
-    m_visible        = true;
+    m_visible        = false;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<ChartAxisLocationEnum, ChartAxisLocationEnum::Enum>("m_axisLocation",

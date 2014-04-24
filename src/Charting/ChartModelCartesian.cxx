@@ -67,11 +67,13 @@ ChartModelCartesian::ChartModelCartesian(const ChartDataTypeEnum::Enum chartData
     setLeftAxis(ChartAxis::newChartAxisForTypeAndLocation(ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN,
                                                           ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT));
     getLeftAxis()->setAxisUnits(dataAxisUnitsY);
+    getLeftAxis()->setVisible(true);
     
     setBottomAxis(ChartAxis::newChartAxisForTypeAndLocation(ChartAxisTypeEnum::CHART_AXIS_TYPE_CARTESIAN,
                                                             ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM));
     getBottomAxis()->setAxisUnits(dataAxisUnitsX);
-
+    getBottomAxis()->setVisible(true);
+    
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_lineWidth", &m_lineWidth);
 }
