@@ -108,14 +108,18 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_GET, 
                                      "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
                                      "Get all Caret Mappable data files"));
+
+    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
+                                     "EVENT_DATA_FILE_ADD",
+                                     "Add a data file to the Brain"));
     
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ,
                                     "EVENT_DATA_FILE_READ", 
-                                    "Read a data file"));
+                                    "Read a data file into the Brain"));
     
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_RELOAD,
                                      "EVENT_DATA_FILE_RELOAD",
-                                     "Reopen a data file (replace it with saved version)"));
+                                     "Reopen a data file (replace it with saved version) in the Brain"));
     
     enumData.push_back(EventTypeEnum(EVENT_GET_DISPLAYED_DATA_FILES,
                                      "EVENT_GET_DISPLAYED_DATA_FILES",

@@ -739,7 +739,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
  * Called when the apply button is pressed.
  */
 void
-ImageCaptureDialog::applyButtonPressed()
+ImageCaptureDialog::applyButtonClicked()
 {
     const int browserWindowIndex = m_windowSelectionSpinBox->value() - 1;
     

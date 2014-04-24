@@ -53,6 +53,7 @@
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventDataFileAdd.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -139,6 +140,8 @@ Brain::Brain()
     m_displayPropertiesVolume = new DisplayPropertiesVolume();
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_DATA_FILE_ADD);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addEventListener(this,
@@ -1622,57 +1625,6 @@ Brain::addReadOrReloadConnectivityMatrixDenseParcelFile(const FileModeAddReadRel
     }
     
     return file;
-}
-
-/**
- * Convert the loaded row in a Cifti Connectivity Matrix File into a single
- * map in a Cifti Scalar File.  The file create is added to the "in-memory"
- * files.
- *
- * @param ciftiMatrixFile
- *     Cifti Matrix File whose loaded row is convert to a Cifti Scalar File.
- * @throw
- *     DataFileException if there is an error during conversion.
- */
-void
-Brain::convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile) throw (DataFileException)
-{
-    AString errorMessage;
-    
-    CiftiBrainordinateScalarFile* scalarFile =
-    CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(ciftiMatrixFile,
-                                                                                  errorMessage);
-    
-    if (scalarFile == NULL) {
-        throw DataFileException(errorMessage);
-    }
-
-    m_connectivityDenseScalarFiles.push_back(scalarFile);
-    m_specFile->addCaretDataFile(scalarFile);
-}
-
-/**
- * Create a new fiber trajectory from the data currently loaded in the given
- * fiber trajectory file.
- *
- * @param ciftiFiberTrajectoryFile
- *    File that is the source of data for the new file.
- * @param errorMessage
- *    DataFileException if there is an error during conversion.
- */
-void
-Brain::createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTrajectoryFile* ciftiFiberTrajectoryFile) throw (DataFileException)
-{
-    AString errorMessage;
-    
-    CiftiFiberTrajectoryFile* trajFile = ciftiFiberTrajectoryFile->newFiberTrajectoryFileFromLoadedRowData(errorMessage);
-    
-    if (trajFile == NULL) {
-        throw DataFileException(errorMessage);
-    }
-    
-    m_connectivityFiberTrajectoryFiles.push_back(trajFile);
-    m_specFile->addCaretDataFile(trajFile);
 }
 
 /**
@@ -3397,17 +3349,6 @@ Brain::getNumberOfBorderFiles() const
 }
 
 /**
- * @return Return a new BorderFile that has been added to the brain.
- */
-BorderFile* 
-Brain::addBorderFile()
-{
-    BorderFile* bf = new BorderFile();
-    addDataFile(bf);
-    return bf;
-}
-
-/**
  * @return The border file.
  * @param indx Index of the border file.
  */
@@ -3671,17 +3612,6 @@ Brain::getNumberOfFociFiles() const
 }
 
 /**
- * @return Return a new FociFile that has been added to the brain.
- */
-FociFile* 
-Brain::addFociFile()
-{
-    FociFile* ff = new FociFile();
-    addDataFile(ff);
-    return ff;
-}
-
-/**
  * @return The foci file.
  * @param indx Index of the foci file.
  */
@@ -3701,17 +3631,6 @@ Brain::getFociFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_fociFiles, indx);
     return m_fociFiles[indx];
-}
-
-/**
- * @return A new scene file that has been added to the brain.
- */
-SceneFile* 
-Brain::addSceneFile()
-{
-    SceneFile* sf = new SceneFile();
-    addDataFile(sf);
-    return sf;
 }
 
 /**
@@ -4908,7 +4827,15 @@ Brain::updateFileNameForWriting(const AString& filename) throw (DataFileExceptio
 void 
 Brain::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ) {
+    if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_ADD) {
+        EventDataFileAdd* addDataFileEvent =
+            dynamic_cast<EventDataFileAdd*>(event);
+        CaretAssert(addDataFileEvent);
+        
+        addDataFile(addDataFileEvent->getCaretDataFile());
+        addDataFileEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ) {
         EventDataFileRead* readDataFileEvent =
              dynamic_cast<EventDataFileRead*>(event);
         CaretAssert(readDataFileEvent);

@@ -61,7 +61,7 @@ namespace caret {
     protected:
         void focusGained();
         
-        virtual NonModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
         
     private:
         void updateGraphicsWindow();

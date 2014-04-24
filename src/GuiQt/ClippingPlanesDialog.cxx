@@ -323,7 +323,7 @@ ClippingPlanesDialog::~ClippingPlanesDialog()
  * @param userPushButton
  *     Button that was clicked.
  */
-WuQDialogNonModal::NonModalDialogUserButtonResult
+WuQDialogNonModal::DialogUserButtonResult
 ClippingPlanesDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_resetPushButton) {

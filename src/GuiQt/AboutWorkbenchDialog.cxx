@@ -86,7 +86,7 @@ AboutWorkbenchDialog::~AboutWorkbenchDialog()
     
 }
 
-AboutWorkbenchDialog::ModalDialogUserButtonResult
+AboutWorkbenchDialog::DialogUserButtonResult
 AboutWorkbenchDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_openGLPushButton) {

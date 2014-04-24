@@ -54,7 +54,7 @@ namespace caret {
         void receiveEvent(Event* event);
         
     protected:
-        virtual void applyButtonPressed();
+        virtual void applyButtonClicked();
         
     private slots:
         void selectImagePushButtonPressed();

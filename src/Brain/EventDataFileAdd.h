@@ -1,9 +1,9 @@
-#ifndef __ABOUT_WORKBENCH_DIALOG__H_
-#define __ABOUT_WORKBENCH_DIALOG__H_
+#ifndef __EVENT_DATA_FILE_ADD_H__
+#define __EVENT_DATA_FILE_ADD_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2014 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,40 +22,39 @@
 /*LICENSE_END*/
 
 
-#include "WuQDialogModal.h"
+#include "Event.h"
 
-class QPushButton;
+
 
 namespace caret {
 
-    class BrainOpenGLWidget;
+    class CaretDataFile;
     
-    class AboutWorkbenchDialog : public WuQDialogModal {
-        Q_OBJECT
+    class EventDataFileAdd : public Event {
         
     public:
-        AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget);
+        EventDataFileAdd(CaretDataFile* caretDataFile);
         
-        virtual ~AboutWorkbenchDialog();
+        virtual ~EventDataFileAdd();
         
-    protected:
-        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        CaretDataFile* getCaretDataFile();
         
-    private:
-        AboutWorkbenchDialog(const AboutWorkbenchDialog&);
+        // ADD_NEW_METHODS_HERE
 
-        AboutWorkbenchDialog& operator=(const AboutWorkbenchDialog&);
+    private:
+        EventDataFileAdd(const EventDataFileAdd&);
+
+        EventDataFileAdd& operator=(const EventDataFileAdd&);
         
-        void displayOpenGLInformation();
+        CaretDataFile* m_caretDataFile;
         
-        QPushButton* m_openGLPushButton;
-        
-        BrainOpenGLWidget* m_openGLParentWidget;
+        // ADD_NEW_MEMBERS_HERE
+
     };
     
-#ifdef __ABOUT_WORKBENCH_DIALOG_DECLARE__
+#ifdef __EVENT_DATA_FILE_ADD_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ABOUT_WORKBENCH_DIALOG_DECLARE__
+#endif // __EVENT_DATA_FILE_ADD_DECLARE__
 
 } // namespace
-#endif  //__ABOUT_WORKBENCH_DIALOG__H_
+#endif  //__EVENT_DATA_FILE_ADD_H__

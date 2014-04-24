@@ -85,6 +85,7 @@ EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabNew.h
 EventCaretMappableDataFilesGet.h
+EventDataFileAdd.h
 EventDataFileRead.h
 EventDataFileReload.h
 EventIdentificationHighlightLocation.h
@@ -196,6 +197,7 @@ EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabNew.cxx
 EventCaretMappableDataFilesGet.cxx
+EventDataFileAdd.cxx
 EventDataFileRead.cxx
 EventDataFileReload.cxx
 EventIdentificationHighlightLocation.cxx

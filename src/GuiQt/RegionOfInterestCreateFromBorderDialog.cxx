@@ -51,6 +51,7 @@ using namespace caret;
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CursorDisplayScoped.h"
+#include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -490,7 +491,7 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
     }
     
     if (debugBorderFile != NULL) {
-        GuiManager::get()->getBrain()->addDataFile(debugBorderFile);
+        EventManager::get()->sendEvent(EventDataFileAdd(debugBorderFile).getPointer());
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

@@ -886,12 +886,16 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         try {
             specFile.readFile(specFileName);
             
-            Brain* brain = GuiManager::get()->getBrain();
-            if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
-                                                                &specFile,
-                                                                this)) {
+            if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
+                                              this)) {
                 m_toolbar->addDefaultTabsAfterLoadingSpecFile();
-            }            
+            }
+//            Brain* brain = GuiManager::get()->getBrain();
+//            if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
+//                                                                &specFile,
+//                                                                this)) {
+//                m_toolbar->addDefaultTabsAfterLoadingSpecFile();
+//            }            
         }
         catch (const DataFileException& e) {
             //errorMessages += e.whatString();
@@ -1938,10 +1942,12 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
             case LOAD_SPEC_FILE_WITH_DIALOG:
             case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
             {
-                Brain* brain = GuiManager::get()->getBrain();
-                if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
-                                                                    &specFile,
-                                                                    this)) {
+                if (GuiManager::get()->processShowOpenSpecFileDialog(&specFile,
+                                                                     this)) {
+//                    Brain* brain = GuiManager::get()->getBrain();
+//                if (SpecFileManagementDialog::runOpenSpecFileDialog(brain,
+//                                                                    &specFile,
+//                                                                    this)) {
                     m_toolbar->addDefaultTabsAfterLoadingSpecFile();
                     specFileWasLoaded = true;
                     createDefaultTabsFlag = true;
@@ -2098,9 +2104,10 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
 void 
 BrainBrowserWindow::processManageSaveLoadedFiles()
 {
-    Brain* brain = GuiManager::get()->getBrain();
-    SpecFileManagementDialog::runManageFilesDialog(brain,
-                                                   this);
+    GuiManager::get()->processShowSaveManageFilesDialog(this);
+//    Brain* brain = GuiManager::get()->getBrain();
+//    SpecFileManagementDialog::runManageFilesDialog(brain,
+//                                                   this);
 }
 
 /**

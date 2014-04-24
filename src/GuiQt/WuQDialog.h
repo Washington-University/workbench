@@ -68,8 +68,8 @@ namespace caret  {
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);
         
-        virtual QPushButton* addUserPushButton(const AString& text,
-                                               const QDialogButtonBox::ButtonRole buttonRole) = 0;
+        QPushButton* addUserPushButton(const AString& text,
+                                       const QDialogButtonBox::ButtonRole buttonRole);
         
         void setDeleteWhenClosed(bool deleteFlag);
         
@@ -103,7 +103,31 @@ namespace caret  {
     protected:
         QDialogButtonBox* getDialogButtonBox();
         
+        /**
+         * Result of user button pressed.
+         */
+        enum DialogUserButtonResult {
+            /** MODAL accept which means OK pressed and dialog closes */
+            RESULT_MODAL_ACCEPT,
+            /** MODAL reject which means Cancel pressed and dialog closes */
+            RESULT_MODAL_REJECT,
+            /** NON-MODAL close dialog. */
+            RESULT_NON_MODAL_CLOSE,
+            /** none which means no action is taken and dialog remains open */
+            RESULT_NONE
+        };
+        
+        virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        
         void addImageCaptureToMenu(QMenu* menu);
+        
+        virtual void okButtonClicked();
+        
+        virtual void cancelButtonClicked();
+        
+        virtual void applyButtonClicked();
+        
+        virtual void closeButtonClicked();
         
         virtual void keyPressEvent(QKeyEvent* e);
         
@@ -119,6 +143,9 @@ namespace caret  {
         
         void setDialogSizeHint(const int32_t width,
                                const int32_t height);
+        
+    private slots:
+            void clicked(QAbstractButton* button);
         
     private:
         void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,

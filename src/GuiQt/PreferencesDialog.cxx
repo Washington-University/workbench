@@ -223,7 +223,7 @@ PreferencesDialog::backgroundColorPushButtonPressed()
         backgroundColor[2] = newColor.blue();
         prefs->setColorBackground(backgroundColor);
         this->updateDialog();
-        this->applyButtonPressed();
+        this->applyButtonClicked();
     }
     
 }
@@ -250,7 +250,7 @@ PreferencesDialog::foregroundColorPushButtonPressed()
         foregroundColor[2] = newColor.blue();
         prefs->setColorForeground(foregroundColor);
         this->updateDialog();
-        this->applyButtonPressed();
+        this->applyButtonClicked();
     }
 }
 
@@ -270,7 +270,7 @@ PreferencesDialog::loggingLevelComboBoxChanged(int indx)
 /**
  * Called when the apply button is pressed.
  */
-void PreferencesDialog::applyButtonPressed()
+void PreferencesDialog::applyButtonClicked()
 {
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

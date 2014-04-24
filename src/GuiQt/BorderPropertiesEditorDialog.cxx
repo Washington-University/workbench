@@ -38,6 +38,8 @@
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "EventDataFileAdd.h"
+#include "EventManager.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -350,14 +352,9 @@ void
 BorderPropertiesEditorDialog::newBorderFileButtonClicked()
 {
     /*
-     * Create a new border file that will have proper path
-     */
-    Brain* brain = GuiManager::get()->getBrain();
-    BorderFile* newBorderFile = brain->addBorderFile();
-    
-    /*
      * Let user choose a different path/name
      */
+    BorderFile* newBorderFile = new BorderFile();
     AString newBorderFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::BORDER,
                                                                       this,
                                                                       "Choose Border File Name",
@@ -366,7 +363,7 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
      * If user cancels, delete the new border file and return
      */
     if (newBorderFileName.isEmpty()) {
-        brain->removeAndDeleteDataFile(newBorderFile);
+        delete newBorderFile;
         return;
     }
     
@@ -374,41 +371,10 @@ BorderPropertiesEditorDialog::newBorderFileButtonClicked()
      * Set name of new scene file
      */
     newBorderFile->setFileName(newBorderFileName);
+    EventManager::get()->sendEvent(EventDataFileAdd(newBorderFile).getPointer());
     s_previousBorderFile = newBorderFile;
     loadBorderFileComboBox();
     borderFileSelected();
-    
-    
-//    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::BORDER);
-//    QString newFileName = ("NewFile." 
-//                           + fileExtension);
-//    
-//    WuQDataEntryDialog newFileDialog("New Border File",
-//                                        this);
-//    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Border File Name", 
-//                                                                        newFileName);
-//    
-//    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
-//        QString borderFileName   = newFileNameLineEdit->text();
-//        
-//        try {
-//            if (borderFileName.endsWith(fileExtension) == false) {
-//                borderFileName += ("."
-//                                + fileExtension);
-//            }
-//            
-//            BorderFile* borderFile = GuiManager::get()->getBrain()->addBorderFile();
-//            borderFile->setFileName(borderFileName);
-//            
-//            s_previousBorderFile = borderFile;
-//            loadBorderFileComboBox();
-//            m_borderFileSelected();
-//        }
-//        catch (const DataFileException& dfe) {
-//            WuQMessageBox::errorOk(this, 
-//                                   dfe.whatString());
-//        }
-//    }
 }
 
 

@@ -45,36 +45,11 @@ namespace caret {
         
         void setCancelButtonText(const AString& text);
 
-        QPushButton* addUserPushButton(const AString& text,
-                                       const QDialogButtonBox::ButtonRole buttonRole);
-        
         void setSaveWindowPositionForNextTime(const AString& savePositionName = "");
     
-    protected:
-        virtual void okButtonClicked();
-        
-        virtual void cancelButtonClicked();
-        
-        /**
-         * Result of user button pressed.
-         */
-        enum ModalDialogUserButtonResult {
-            /** accept which means OK pressed and dialog closes */
-            RESULT_ACCEPT,
-            /** reject which means Cancel pressed and dialog closes */
-            RESULT_REJECT,
-            /** none which means no action is taken and dialog remains open */
-            RESULT_NONE
-        };
-        
-        virtual ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
-   
     public slots:
         virtual void setVisible(bool);
 
-    private slots:
-        void clicked(QAbstractButton* button);
-        
     private:
         WuQDialogModal(const WuQDialogModal&);
 

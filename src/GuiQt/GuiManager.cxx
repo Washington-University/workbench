@@ -124,6 +124,7 @@ GuiManager::GuiManager(QObject* parent)
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
     m_helpViewerDialog = NULL;
+    m_saveManageFilesDialog = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
@@ -554,6 +555,8 @@ GuiManager::exitProgram(QWidget* parent)
         switch (buttonPressed) {
             case QMessageBox::Save:
             {
+                closeSaveManageFilesDialog();
+                
                 if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
                                                                                        parent)) {
                     okToExit = true;
@@ -602,6 +605,59 @@ GuiManager::exitProgram(QWidget* parent)
     }    
     
     return okToExit;
+}
+
+/**
+ * Show the Open Spec File Dialog with the given spec file.
+ *
+ * @param specFile
+ *    SpecFile displayed in the dialog.
+ * @param browserWindow
+ *    Window on which dialog is displayed.
+ * @return
+ *    True if user opened spec file, else false.
+ */
+bool
+GuiManager::processShowOpenSpecFileDialog(SpecFile* specFile,
+                                          BrainBrowserWindow* browserWindow)
+{
+    closeSaveManageFilesDialog();
+    
+    return SpecFileManagementDialog::runOpenSpecFileDialog(getBrain(),
+                                                           specFile,
+                                                           browserWindow);
+}
+
+/**
+ * Show the Save/Manage Files Dialog.
+ *
+ * @param browserWindow
+ *    Window on which dialog is displayed.
+ */
+void
+GuiManager::processShowSaveManageFilesDialog(BrainBrowserWindow* browserWindow)
+{
+    if (m_saveManageFilesDialog == NULL) {
+        m_saveManageFilesDialog = SpecFileManagementDialog::createRunSaveAndManageFilesDialog(getBrain(),
+                                                                                              browserWindow);
+        
+    }
+    
+    m_saveManageFilesDialog->show();
+    m_saveManageFilesDialog->activateWindow();
+}
+
+/**
+ * Close the save/manage files dialog.
+ */
+void
+GuiManager::closeSaveManageFilesDialog()
+{
+    if (m_saveManageFilesDialog != NULL) {
+        m_saveManageFilesDialog->close();
+        delete m_saveManageFilesDialog;
+        m_saveManageFilesDialog = NULL;
+    }
 }
 
 /**
@@ -674,13 +730,21 @@ GuiManager::processBringAllWindowsToFront()
         }
     }
     
-    for (int32_t i = 0; i < static_cast<int32_t>(nonModalDialogs.size()); i++) {
-        if (nonModalDialogs[i] != NULL) {
-            if (nonModalDialogs[i]->isVisible()) {
-                nonModalDialogs[i]->raise();
-            }
+    for (std::set<QWidget*>::iterator iter = this->nonModalDialogs.begin();
+         iter != this->nonModalDialogs.end();
+         iter++) {
+        QWidget* w = *iter;
+        if (w->isVisible()) {
+            w->raise();
         }
     }
+//    for (int32_t i = 0; i < static_cast<int32_t>(nonModalDialogs.size()); i++) {
+//        if (nonModalDialogs[i] != NULL) {
+//            if (nonModalDialogs[i]->isVisible()) {
+//                nonModalDialogs[i]->raise();
+//            }
+//        }
+//    }
 }
 
 /**
@@ -864,7 +928,7 @@ GuiManager::receiveEvent(Event* event)
         if (mapEditor == NULL) {
             mapEditor = new MapSettingsEditorDialog(browserWindow);
             m_mappingSettingsEditors.insert(mapEditor);
-            this->nonModalDialogs.push_back(mapEditor);
+            this->addNonModalDialog(mapEditor);
             placeInDefaultLocation = true;
         }
         else {
@@ -1018,9 +1082,12 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
     }
     
     if (firstBrainBrowserWindow != NULL) {
-        const int32_t numNonModalDialogs = static_cast<int32_t>(this->nonModalDialogs.size());
-        for (int32_t i = 0; i < numNonModalDialogs; i++) {
-            QWidget* d = this->nonModalDialogs[i];
+        //const int32_t numNonModalDialogs = static_cast<int32_t>(this->nonModalDialogs.size());
+        //for (int32_t i = 0; i < numNonModalDialogs; i++) {
+        for (std::set<QWidget*>::iterator iter = this->nonModalDialogs.begin();
+                 iter != this->nonModalDialogs.end();
+                 iter++) {
+            QWidget* d = *iter;
             if (d->parent() == closingBrainBrowserWindow) {
                 const bool wasVisible = d->isVisible();
                 const QPoint globalPos = d->pos();
@@ -1041,6 +1108,10 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
             if (wuqNonModalDialog != NULL) {
                 wuqNonModalDialog->updateDialog();
             }
+            
+            if (m_saveManageFilesDialog != NULL) {
+                m_saveManageFilesDialog->updateDialog();
+            }
         }
     }
 }
@@ -1057,7 +1128,7 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
     
     if (this->m_surfacePropertiesEditorDialog == NULL) {
         m_surfacePropertiesEditorDialog = new SurfacePropertiesEditorDialog(browserWindow);
-        this->nonModalDialogs.push_back(m_surfacePropertiesEditorDialog);
+        this->addNonModalDialog(m_surfacePropertiesEditorDialog);
         m_surfacePropertiesEditorDialog->setSaveWindowPositionForNextTime(true);
         wasCreatedFlag = true;
     }
@@ -1133,7 +1204,7 @@ GuiManager::showHideSceneDialog(const bool status,
             
             this->sceneDialog = new SceneDialog(sceneDialogParent);
             this->sceneDialog->setSaveWindowPositionForNextTime(true);
-            this->nonModalDialogs.push_back(this->sceneDialog);
+            this->addNonModalDialog(this->sceneDialog);
             QObject::connect(this->sceneDialog, SIGNAL(dialogWasClosed()),
                              this, SLOT(sceneDialogWasClosed()));
             
@@ -1228,7 +1299,7 @@ GuiManager::processShowBugReportDialog(BrainBrowserWindow* browserWindow,
     if (m_bugReportDialog == NULL) {
         m_bugReportDialog = new BugReportDialog(browserWindow,
                                                 openGLInformation);
-        this->nonModalDialogs.push_back(m_bugReportDialog);
+        this->addNonModalDialog(m_bugReportDialog);
     }
     
     m_bugReportDialog->setVisible(true);
@@ -1256,7 +1327,7 @@ GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
             bbw = getActiveBrowserWindow();
         }
         m_helpViewerDialog = new HelpViewerDialog(bbw);
-        this->nonModalDialogs.push_back(m_helpViewerDialog);
+        this->addNonModalDialog(m_helpViewerDialog);
     }
     
     m_helpViewerDialog->updateDialog();
@@ -1321,7 +1392,7 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
         if (bbws.empty() == false) {
             BrainBrowserWindow* parentWindow = bbws[0];
             m_informationDisplayDialog = new InformationDisplayDialog(parentWindow);
-            this->nonModalDialogs.push_back(m_informationDisplayDialog);
+            this->addNonModalDialog(m_informationDisplayDialog);
             
             m_informationDisplayDialog->resize(600, 200);
             m_informationDisplayDialog->setSaveWindowPositionForNextTime(true);
@@ -1341,15 +1412,26 @@ GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 }
 
 /**
+ * Add a non-modal dialog.
+ */
+void
+GuiManager::addNonModalDialog(QWidget* dialog)
+{
+    CaretAssert(dialog);
+    this->nonModalDialogs.insert(dialog);
+}
+
+/**
  * Removes the dialog from the non-modal dialogs BUT DOES NOT delete
  * the dialog.
  */
 void
 GuiManager::removeNonModalDialog(QWidget* dialog)
 {
-    std::vector<QWidget*>::iterator iter = std::find(nonModalDialogs.begin(),
-                                           nonModalDialogs.end(),
-                                           dialog);
+    CaretAssert(dialog);
+    std::set<QWidget*>::iterator iter = std::find(nonModalDialogs.begin(),
+                                                  nonModalDialogs.end(),
+                                                  dialog);
     if (iter != nonModalDialogs.end()) {
         nonModalDialogs.erase(iter);
     }
@@ -1365,7 +1447,7 @@ GuiManager::processShowClippingPlanesDialog(BrainBrowserWindow* browserWindow)
 {
     if (m_clippingPlanesDialog == NULL) {
         m_clippingPlanesDialog = new ClippingPlanesDialog(browserWindow);
-        this->nonModalDialogs.push_back(m_clippingPlanesDialog);
+        this->addNonModalDialog(m_clippingPlanesDialog);
     }
     
     const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
@@ -1386,7 +1468,7 @@ GuiManager::processShowCustomViewDialog(BrainBrowserWindow* browserWindow)
 {
     if (m_customViewDialog == NULL) {
         m_customViewDialog = new CustomViewDialog(browserWindow);
-        this->nonModalDialogs.push_back(m_customViewDialog);
+        this->addNonModalDialog(m_customViewDialog);
     }
     
     const int32_t browserWindowIndex = browserWindow->getBrowserWindowIndex();
@@ -1407,7 +1489,7 @@ GuiManager::processShowTileTabsConfigurationDialog(caret::BrainBrowserWindow *br
 {
     if (m_tileTabsConfigurationDialog == NULL) {
         m_tileTabsConfigurationDialog = new TileTabsConfigurationDialog(browserWindow);
-        this->nonModalDialogs.push_back(m_tileTabsConfigurationDialog);
+        this->addNonModalDialog(m_tileTabsConfigurationDialog);
     }
     
     m_tileTabsConfigurationDialog->updateDialogWithSelectedTileTabsFromWindow(browserWindow);
@@ -1426,7 +1508,7 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
 {
     if (this->imageCaptureDialog == NULL) {
         this->imageCaptureDialog = new ImageCaptureDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->imageCaptureDialog);
+        this->addNonModalDialog(this->imageCaptureDialog);
     }
     this->imageCaptureDialog->updateDialog();
     this->imageCaptureDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
@@ -1445,7 +1527,7 @@ GuiManager::processShowMovieDialog(BrainBrowserWindow* browserWindow)
 {
     if (this->movieDialog == NULL) {
         this->movieDialog = new MovieDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->movieDialog);
+        this->addNonModalDialog(this->movieDialog);
     }
     //this->movieDialog->updateDialog();
     //this->movieDialog->setBrowserWindowIndex(browserWindow->getBrowserWindowIndex());
@@ -1466,7 +1548,7 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
 {
     if (this->preferencesDialog == NULL) {
         this->preferencesDialog = new PreferencesDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->preferencesDialog);
+        this->addNonModalDialog(this->preferencesDialog);
     }
     this->preferencesDialog->updateDialog();
     this->preferencesDialog->setVisible(true);
@@ -1497,7 +1579,7 @@ GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWi
     if (this->connectomeDatabaseWebView == NULL) {
         this->connectomeDatabaseWebView = new WuQWebView();
         this->connectomeDatabaseWebView->load(QUrl("https://db.humanconnectome.org/"));
-        this->nonModalDialogs.push_back(this->connectomeDatabaseWebView);
+        this->addNonModalDialog(this->connectomeDatabaseWebView);
     }
     this->connectomeDatabaseWebView->show();
 //    this->connectomeDatabaseWebView->activateWindow();

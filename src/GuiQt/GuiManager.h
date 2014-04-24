@@ -57,6 +57,8 @@ namespace caret {
     class SceneDialog;
     class SceneFile;
     class SelectionManager;
+    class SpecFile;
+    class SpecFileManagementDialog;
     class SurfacePropertiesEditorDialog;
     class TileTabsConfigurationDialog;
     
@@ -90,6 +92,11 @@ namespace caret {
                                             const int32_t numberOfOpenTabs);
         
         bool exitProgram(QWidget* parent);
+        
+        bool processShowOpenSpecFileDialog(SpecFile* specFile,
+                                           BrainBrowserWindow* browserWindow);
+        
+        void processShowSaveManageFilesDialog(BrainBrowserWindow* browserWindow);
         
         QString applicationName() const;
         
@@ -168,6 +175,8 @@ namespace caret {
         GuiManager(const GuiManager&);
         GuiManager& operator=(const GuiManager&);
         
+        void closeSaveManageFilesDialog();
+        
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
                                                   BrowserTabContent* browserTabContent,
                                                   const bool createDefaultTabs);
@@ -179,6 +188,8 @@ namespace caret {
         
         void processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
                                          const AString& helpPageName);
+        
+        void addNonModalDialog(QWidget* dialog);
         
         void removeNonModalDialog(QWidget* dialog);
         
@@ -224,6 +235,8 @@ namespace caret {
         
         SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
         
+        SpecFileManagementDialog* m_saveManageFilesDialog;
+        
         WuQWebView* connectomeDatabaseWebView;
         
         CursorManager* cursorManager;
@@ -240,7 +253,7 @@ namespace caret {
          * BrainBrowserWindow is closed in which case the dialog
          * is reparented to a different BrainBrowserWindow.
          */
-        std::vector<QWidget*> nonModalDialogs;
+        std::set<QWidget*> nonModalDialogs;
         
         /**
          * If Workbench is started by double-clicking a data file in

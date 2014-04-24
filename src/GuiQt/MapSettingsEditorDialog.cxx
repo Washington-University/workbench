@@ -378,7 +378,7 @@ MapSettingsEditorDialog::closeButtonPressed()
      */
     m_doNotReplaceCheckBox->setCheckState(Qt::Unchecked);
     
-    WuQDialogNonModal::closeButtonPressed();
+    WuQDialogNonModal::closeButtonClicked();
 }
 
 /**

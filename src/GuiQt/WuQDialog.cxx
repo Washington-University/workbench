@@ -77,6 +77,7 @@
 #include <QTimer>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #define __WU_QDIALOG_DECLARE__
 #include "WuQDialog.h"
 #undef __WU_QDIALOG_DECLARE__
@@ -133,6 +134,8 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
     
     this->buttonBox = new QDialogButtonBox(Qt::Horizontal,
                                            this);
+    QObject::connect(this->buttonBox, SIGNAL(clicked(QAbstractButton*)),
+                     this, SLOT(clicked(QAbstractButton*)));
     
     QHBoxLayout* bottomLayout = new QHBoxLayout();
     bottomLayout->addLayout(m_layoutLeftOfButtonBox,
@@ -146,6 +149,8 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
                                     0);
     dialogLayout->addLayout(this->userWidgetLayout);
     dialogLayout->addLayout(bottomLayout);
+    
+    
 }
               
 /**
@@ -698,4 +703,156 @@ WuQDialog::adjustSizeOfDialogWithScrollArea(QDialog* dialog,
         }
     }
 }
+
+/**
+ * Adds a button to the dialog.  When the button is
+ * pressed, userButtonPressed(QPushButton*) will be
+ * called with the button that was created and returned
+ * by this method.  The subclass of the dialog MUST
+ * override userButtonPressed(QPushButton*).
+ *
+ * @param text
+ *     Text for the pushbutton.
+ * @param buttonRole
+ *     Role of button.  NOTE: This is used for placement of buttons in
+ *     the appropriate location for the operating system.  Any action,
+ *     such as closing the dialog will not occur because of this button
+ *     push.
+ * @return
+ *     QPushButton that was created.
+ */
+QPushButton*
+WuQDialog::addUserPushButton(const AString& text,
+                             const QDialogButtonBox::ButtonRole buttonRole)
+{
+    QPushButton* pushButton = getDialogButtonBox()->addButton(text,
+                                                              buttonRole);
+    return pushButton;
+}
+
+/**
+ * Called when a push button was added using addUserPushButton().
+ * Subclasses MUST override this if user push buttons were
+ * added using addUserPushButton().
+ *
+ * @param userPushButton
+ *    User push button that was pressed.
+ * @return
+ *    The result that indicates action that should be taken
+ *    as a result of the button being pressed.
+ */
+WuQDialog::DialogUserButtonResult
+WuQDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    const AString msg = ("Subclass of WuQDialog added a user pushbutton but failed to override userButtonPressed for button labeled \""
+                         + userPushButton->text()
+                         + "\"");
+    CaretAssertMessage(0, msg);
+    CaretLogSevere(msg);
+    
+    return RESULT_NONE;
+}
+
+/**
+ * Called when the OK button is clicked.
+ * If needed should override this to process
+ * data when the OK button is clicked and then
+ * call this to issue the accept signal.
+ */
+void
+WuQDialog::okButtonClicked()
+{
+    if (! isModal()) {
+        CaretAssertMessage(0, "WuQDialog::okButtonClicked() should never be called for a NON-modal dialog.");
+    }
+    
+    accept();
+}
+
+/**
+ * Called when the Cancel button is clicked.
+ * If needed should override this to process
+ * data when the Cancel button is clicked.
+ * Call this to issue the reject signal.
+ */
+void
+WuQDialog::cancelButtonClicked()
+{
+    if (! isModal()) {
+        CaretAssertMessage(0, "WuQDialog::cancelButtonClicked() should never be called for a NON-modal dialog.");
+    }
+    
+    reject();
+}
+
+/**
+ * Called when the Apply button is pressed.
+ * If needed should override this to process
+ * data when the Apply button is pressed.
+ */
+void
+WuQDialog::applyButtonClicked()
+{
+    if (isModal()) {
+        CaretAssertMessage(0, "WuQDialog::applyButtonClicked() should never be called for a MODAL dialog.");
+    }
+}
+
+/**
+ * Called when the Close button is pressed.
+ * If needed should override this to process
+ * data when the Close button is pressed.
+ */
+void
+WuQDialog::closeButtonClicked()
+{
+    if (isModal()) {
+        CaretAssertMessage(0, "WuQDialog::closeButtonClicked() should never be called for a MODAL dialog.");
+    }
+    
+    close();
+}
+
+/**
+ * Called when a button is pressed.
+ */
+void
+WuQDialog::clicked(QAbstractButton* button)
+{
+    QDialogButtonBox::StandardButton standardButton = this->getDialogButtonBox()->standardButton(button);
+    if (standardButton == QDialogButtonBox::Ok) {
+        okButtonClicked();
+    }
+    else if (standardButton == QDialogButtonBox::Cancel) {
+        cancelButtonClicked();
+    }
+    else if (standardButton == QDialogButtonBox::Apply) {
+        applyButtonClicked();
+    }
+    else if (standardButton == QDialogButtonBox::Close) {
+        closeButtonClicked();
+    }
+    else if (standardButton == QDialogButtonBox::Help) {
+        this->helpButtonClicked();
+    }
+    else {
+        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
+        CaretAssert(pushButton);
+        const DialogUserButtonResult result = this->userButtonPressed(pushButton);
+        switch (result) {
+            case RESULT_MODAL_ACCEPT:
+                accept();
+                break;
+            case RESULT_MODAL_REJECT:
+                reject();
+                break;
+            case RESULT_NON_MODAL_CLOSE:
+                close();
+                break;
+            case RESULT_NONE:
+                break;
+        };
+    }
+}
+
 

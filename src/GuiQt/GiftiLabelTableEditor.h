@@ -111,7 +111,7 @@ namespace caret {
     protected:
         virtual void okButtonClicked();
 
-        ModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
         
     private:
         

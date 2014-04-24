@@ -44,9 +44,6 @@ namespace caret {
         
         void setSaveWindowPositionForNextTime(const bool saveIt);
         
-        QPushButton* addUserPushButton(const AString& text,
-                                       const QDialogButtonBox::ButtonRole buttonRole);
-        
     signals:
         /**
          * This signal is emitted when the dialog is closed (hidden).
@@ -57,28 +54,9 @@ namespace caret {
         void apply();
         
     protected:
-        virtual void applyButtonPressed();
-        
-        virtual void closeButtonPressed();
-
         virtual void closeEvent(QCloseEvent* event);
         
         virtual void showEvent(QShowEvent* event);
-        
-        /**
-         * Result of user button pressed.
-         */
-        enum NonModalDialogUserButtonResult {
-            /** Closes the dialog */
-            RESULT_CLOSE,
-            /** none which means no action is taken and dialog remains open */
-            RESULT_NONE
-        };
-        
-        virtual NonModalDialogUserButtonResult userButtonPressed(QPushButton* userPushButton);        
-        
-    private slots:
-        void clicked(QAbstractButton* button);
         
     private:
         WuQDialogNonModal(const WuQDialogNonModal&);

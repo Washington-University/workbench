@@ -110,15 +110,11 @@ namespace caret {
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
 
-        void addDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
-        
         int32_t getNumberOfBorderFiles() const;
         
         BorderFile* getBorderFile(const int32_t indx);
         
         const BorderFile* getBorderFile(const int32_t indx) const;
-        
-        BorderFile* addBorderFile();
         
         enum NearestBorderTestMode {
             NEAREST_BORDER_TEST_MODE_ALL_POINTS,
@@ -157,14 +153,10 @@ namespace caret {
         
         const FociFile* getFociFile(const int32_t indx) const;
         
-        FociFile* addFociFile();
-        
         PaletteFile* getPaletteFile();
         
         const PaletteFile* getPaletteFile() const;
 
-        SceneFile* addSceneFile();
-        
         int32_t getNumberOfSceneFiles() const;
         
         SceneFile* getSceneFile(const int32_t indx);
@@ -206,8 +198,6 @@ namespace caret {
         ChartingDataManager* getChartingDataManager();
         
         const ChartingDataManager* getChartingDataManager() const;
-        
-        void convertCiftiMatrixFileToCiftiScalarFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile) throw (DataFileException);
         
         void getAllCiftiMappableDataFiles(std::vector<CiftiMappableDataFile*>& allCiftiMappableDataFilesOut) const;
         
@@ -280,8 +270,6 @@ namespace caret {
         const CiftiFiberTrajectoryFile* getConnectivityFiberTrajectoryFile(int32_t indx) const;
         
         void getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& ciftiFiberTrajectoryFilesOut) const;
-        
-        void createNewConnectivityFiberTrajectoryFileFromLoadedData(const CiftiFiberTrajectoryFile* ciftiFiberTrajectoryFile) throw (DataFileException);
         
         int32_t getNumberOfConnectivityMatrixParcelFiles() const;
         
@@ -421,6 +409,8 @@ namespace caret {
             /** Reload the file */
             FILE_MODE_RELOAD
         };
+        
+        void addDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
         
         void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
         

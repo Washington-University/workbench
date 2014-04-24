@@ -42,6 +42,7 @@
 #include "CaretFileDialog.h"
 #include "DisplayPropertiesFoci.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
@@ -428,15 +429,11 @@ FociPropertiesEditorDialog::loadFociFileComboBox(const FociFile* selectedFociFil
 void 
 FociPropertiesEditorDialog::newFociFileButtonClicked()
 {
-    /*
-     * Create a new focus file that will have proper path
-     */
-    Brain* brain = GuiManager::get()->getBrain();
-    FociFile* newFociFile = brain->addFociFile();
     
     /*
      * Let user choose a different path/name
      */
+    FociFile* newFociFile = new FociFile();
     AString newFociFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::FOCI,
                                                                       this,
                                                                       "Choose Foci File Name",
@@ -445,7 +442,7 @@ FociPropertiesEditorDialog::newFociFileButtonClicked()
      * If user cancels, delete the new focus file and return
      */
     if (newFociFileName.isEmpty()) {
-        brain->removeAndDeleteDataFile(newFociFile);
+        delete newFociFile;
         return;
     }
     
@@ -453,6 +450,7 @@ FociPropertiesEditorDialog::newFociFileButtonClicked()
      * Set name of new scene file
      */
     newFociFile->setFileName(newFociFileName);
+    EventManager::get()->sendEvent(EventDataFileAdd(newFociFile).getPointer());
     loadFociFileComboBox(newFociFile);
     fociFileSelected();
 }

@@ -52,6 +52,7 @@
 #include "CaretPreferences.h"
 #include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventDataFileAdd.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -391,14 +392,9 @@ void
 SceneDialog::newSceneFileButtonClicked()
 {
     /*
-     * Create a new scene file that will have proper path
-     */
-    Brain* brain = GuiManager::get()->getBrain();
-    SceneFile* newSceneFile = brain->addSceneFile();
-    
-    /*
      * Let user choose a different path/name
      */
+    SceneFile* newSceneFile = new SceneFile();
     AString newSceneFileName = CaretFileDialog::getSaveFileNameDialog(DataFileTypeEnum::SCENE,
                                                                       this,
                                                                       "Choose Scene File Name",
@@ -407,14 +403,15 @@ SceneDialog::newSceneFileButtonClicked()
      * If user cancels, delete the new scene file and return
      */
     if (newSceneFileName.isEmpty()) {
-        brain->removeAndDeleteDataFile(newSceneFile);
+        delete newSceneFile;
         return;
     }
     
     /*
-     * Set name of new scene file
+     * Set name of new scene file and add to brain
      */
     newSceneFile->setFileName(newSceneFileName);
+    EventManager::get()->sendEvent(EventDataFileAdd(newSceneFile).getPointer());
     this->loadSceneFileComboBox(newSceneFile);
     this->sceneFileSelected();    
 }

@@ -35,10 +35,12 @@
 #include <QSignalMapper>
 
 #include "Brain.h"
+#include "CiftiBrainordinateScalarFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CursorDisplayScoped.h"
+#include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -440,26 +442,40 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
                    trajFile);
     
     
-    try {
-        Brain* brain = GuiManager::get()->getBrain();
-        
-        if (matrixFile != NULL) {
-            brain->convertCiftiMatrixFileToCiftiScalarFile(matrixFile);
-        }
-        else if (trajFile != NULL) {
-            brain->createNewConnectivityFiberTrajectoryFileFromLoadedData(trajFile);
+    bool errorFlag = false;
+    AString errorMessage;
+    
+    if (matrixFile != NULL) {
+        CiftiBrainordinateScalarFile* scalarFile =
+        CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(matrixFile,
+                                                                                      errorMessage);
+        if (scalarFile != NULL) {
+            EventManager::get()->sendEvent(EventDataFileAdd(scalarFile).getPointer());
         }
         else {
-            CaretAssertMessage(0,
-                               "Has a new file type been added?");
+            errorFlag = true;
         }
-        
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
-    catch (const DataFileException& dfe) {
-        cursor.restoreCursor();
+    else if (trajFile != NULL) {
+        CiftiFiberTrajectoryFile* newTrajFile = trajFile->newFiberTrajectoryFileFromLoadedRowData(errorMessage);
+        if (newTrajFile != NULL) {
+            EventManager::get()->sendEvent(EventDataFileAdd(newTrajFile).getPointer());
+        }
+        else {
+            errorFlag = true;
+        }
+    }
+    else {
+        CaretAssertMessage(0,
+                           "Has a new file type been added?");
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    cursor.restoreCursor();
+    
+    if (errorFlag) {
         WuQMessageBox::errorOk(m_fileCopyToolButtons[indx],
-                               dfe.whatString());
+                               errorMessage);
     }
 }
 

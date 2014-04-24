@@ -61,8 +61,8 @@ WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
     this->getDialogButtonBox()->addButton(QDialogButtonBox::Ok);
     this->getDialogButtonBox()->addButton(QDialogButtonBox::Cancel);
     
-    QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
-                     this, SLOT(clicked(QAbstractButton*)));
+//    QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
+//                     this, SLOT(clicked(QAbstractButton*)));
     
     this->getDialogButtonBox()->button(QDialogButtonBox::Ok)->setDefault(true);
     //this->getDialogButtonBox()->button(QDialogButtonBox::Ok)->setAutoDefault(true);
@@ -108,101 +108,6 @@ WuQDialogModal::~WuQDialogModal()
 }
 
 /**
- * Called when a button is pressed.
- */
-void 
-WuQDialogModal::clicked(QAbstractButton* button)
-{
-    QDialogButtonBox::StandardButton standardButton = this->getDialogButtonBox()->standardButton(button);
-    if (standardButton == QDialogButtonBox::Ok) {
-        this->okButtonClicked();
-    }
-    else if (standardButton == QDialogButtonBox::Cancel) {
-        this->cancelButtonClicked();
-    }
-    else if (standardButton == QDialogButtonBox::Help) {
-        this->helpButtonClicked();
-    }
-    else {
-        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
-        CaretAssert(pushButton);
-        const ModalDialogUserButtonResult result = this->userButtonPressed(pushButton);        
-        switch (result) {
-            case RESULT_ACCEPT:
-                accept();
-                break;
-            case RESULT_REJECT:
-                reject();
-                break;
-            case RESULT_NONE:
-                break;
-        };
-    }
-    
-    
-//    QDialogButtonBox::ButtonRole buttonRole = this->getDialogButtonBox()->buttonRole(button);
-//    
-//    if (buttonRole == QDialogButtonBox::AcceptRole) {
-//        this->okButtonClicked();
-//    }
-//    else if (buttonRole == QDialogButtonBox::RejectRole) {
-//        this->cancelButtonClicked();
-//    }
-//    else {
-//        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
-//        CaretAssert(pushButton);
-//        this->userButtonPressed(pushButton);
-//    }
-}
-
-/**
- * Called when a push button was added using addUserPushButton().
- * Subclasses MUST override this if user push buttons were 
- * added using addUserPushButton().
- *
- * @param userPushButton
- *    User push button that was pressed.
- * @return 
- *    The result that indicates action that should be taken
- *    as a result of the button being pressed.
- */
-WuQDialogModal::ModalDialogUserButtonResult
-WuQDialogModal::userButtonPressed(QPushButton* userPushButton)
-{
-    const AString msg = ("Subclass of WuQDialogModal added a user pushbutton but failed to override userButtonPressed for button labeled \""
-                         + userPushButton->text()
-                         + "\"");
-    CaretAssertMessage(0, msg);
-    CaretLogSevere(msg);
-
-    return RESULT_NONE;    
-}
-
-/**
- * Called when the OK button is clicked.
- * If needed should override this to process
- * data when the OK button is clicked and then
- * call this to issue the accept signal.
- */
-void 
-WuQDialogModal::okButtonClicked()
-{
-    this->accept();
-}
-
-/**
- * Called when the Cancel button is clicked.
- * If needed should override this to process
- * data when the Cancel button is clicked.
- * Call this to issue the reject signal.
- */
-void 
-WuQDialogModal::cancelButtonClicked()
-{
-    this->reject();
-}
-
-/**
  * Set the OK button to the given text.  If the text
  * is zero length, the OK button is removed.
  *
@@ -236,32 +141,6 @@ void
 WuQDialogModal::setCancelButtonText(const AString& text)
 {
     this->setStandardButtonText(QDialogButtonBox::Cancel, text);
-}
-
-/**
- * Adds a button to the dialog.  When the button is
- * pressed, userButtonPressed(QPushButton*) will be
- * called with the button that was created and returned
- * by this method.  The subclass of the dialog MUST
- * override userButtonPressed(QPushButton*).
- *
- * @param text
- *     Text for the pushbutton.
- * @param buttonRole
- *     Role of button.  NOTE: This is used for placement of buttons in
- *     the appropriate location for the operating system.  Any action,
- *     such as closing the dialog will not occur because of this button
- *     push.
- * @return
- *     QPushButton that was created.
- */
-QPushButton* 
-WuQDialogModal::addUserPushButton(const AString& text,
-                             const QDialogButtonBox::ButtonRole buttonRole)
-{
-    QPushButton* pushButton = getDialogButtonBox()->addButton(text, 
-                                                              buttonRole);
-    return pushButton;
 }
 
 /**

@@ -256,7 +256,7 @@ SplashScreen::specFileTreeWidgetItemDoubleClicked(QTreeWidgetItem* item)
  * @param userPushButton
  *    User push button that was pressed.
  */
-WuQDialogModal::ModalDialogUserButtonResult 
+WuQDialogModal::DialogUserButtonResult 
 SplashScreen::userButtonPressed(QPushButton* userPushButton)
 {
     if (userPushButton == m_openOtherSpecFilePushButton) {

@@ -674,10 +674,10 @@ GiftiLabelTableEditor::deleteButtonClicked()
  * @param userPushButton
  *    Button that was clicked.
  */
-WuQDialogModal::ModalDialogUserButtonResult
+WuQDialogModal::DialogUserButtonResult
 GiftiLabelTableEditor::userButtonPressed(QPushButton* userPushButton)
 {
-    ModalDialogUserButtonResult result = RESULT_NONE;
+    DialogUserButtonResult result = RESULT_NONE;
     
     if (userPushButton == m_applyPushButton) {
         processApplyButton();

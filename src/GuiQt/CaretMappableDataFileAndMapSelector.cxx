@@ -45,6 +45,8 @@
 #include "CaretAssert.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
+#include "EventDataFileAdd.h"
+#include "EventManager.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTableEditor.h"
 #include "GiftiLabelTable.h"
@@ -487,8 +489,6 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                                                                         newMapName);
     
     if (newFileMapDialog.exec() == WuQDataEntryDialog::Accepted) {
-        Brain* brain = GuiManager::get()->getBrain();
-        
         QString mapFileName   = mapFileNameLineEdit->text();
         const QString mapName = mapNameLineEdit->text();
         
@@ -530,7 +530,7 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                         ciftiMappableDataFile->setMapName(0,
                                                           mapName);
                         ciftiMappableDataFile->setFileName(mapFileName);
-                        brain->addDataFile(ciftiMappableDataFile);
+                        EventManager::get()->sendEvent(EventDataFileAdd(ciftiMappableDataFile).getPointer());
                     }
                     else {
                         throw DataFileException(errorMessage);
@@ -555,7 +555,7 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                         ciftiMappableDataFile->setMapName(0,
                                                     mapName);
                         ciftiMappableDataFile->setFileName(mapFileName);
-                        brain->addDataFile(ciftiMappableDataFile);
+                        EventManager::get()->sendEvent(EventDataFileAdd(ciftiMappableDataFile).getPointer());
                     }
                     else {
                         throw DataFileException(errorMessage);
@@ -569,7 +569,7 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                         labelFile->setMapName(0, mapName);
                         labelFile->setStructure(structure);
                         labelFile->setFileName(mapFileName);
-                        brain->addDataFile(labelFile);
+                    EventManager::get()->sendEvent(EventDataFileAdd(labelFile).getPointer());
                 }
                     break;
                 case DataFileTypeEnum::METRIC:
@@ -579,7 +579,7 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                         metricFile->setMapName(0, mapName);
                         metricFile->setStructure((structure));
                         metricFile->setFileName(mapFileName);
-                        brain->addDataFile(metricFile);
+                    EventManager::get()->sendEvent(EventDataFileAdd(metricFile).getPointer());
                 }
                     break;
                 default:

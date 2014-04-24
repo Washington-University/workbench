@@ -48,7 +48,7 @@ namespace caret {
         void updateDialog();
         
     protected:
-        virtual void applyButtonPressed();
+        virtual void applyButtonClicked();
 
     private slots:
         void backgroundColorPushButtonPressed();

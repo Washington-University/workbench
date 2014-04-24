@@ -60,9 +60,11 @@ public:
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
-        /** Read a data file */
+        /** Add a data file into the Brain*/
+        EVENT_DATA_FILE_ADD,
+        /** Read a data file into the Brain */
         EVENT_DATA_FILE_READ,
-        /** Reload (replace) a data file with its saved version */
+        /** Reload (replace) a data file with its saved version in the brain*/
         EVENT_DATA_FILE_RELOAD,
         /** Get data files that are display in windows/tabs */
         EVENT_GET_DISPLAYED_DATA_FILES,
