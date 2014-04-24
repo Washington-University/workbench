@@ -128,12 +128,12 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
                                                       const AString& fontName)
 {
     int32_t width, height;
-    getTextBoundsInPixels(text,
+    getTextBoundsInPixels(width,
+                          height,
+                          text,
                           textStyle,
                           fontHeight,
-                          fontName,
-                          width,
-                          height);
+                          fontName);
     
     /*
      * Find font
@@ -230,6 +230,10 @@ BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
  * Get the bounds of the text (in pixels) using the given text
  * attributes.
  *
+ * @param widthOut
+ *   Output containing width of text characters.
+ * @param heightOut
+ *   Output containing height of text characters.
  * @param text
  *   Text that is to be drawn.
  * @param textStyle
@@ -238,18 +242,14 @@ BrainOpenGLWidgetTextRenderer::drawTextAtModelCoords(const double modelX,
  *   Height of the text.
  * @param fontName
  *   Name of the font.
- * @param widthOut
- *   Output containing width of text characters.
- * @param heightOut
- *   Output containing height of text characters.
  */
 void
-BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(const QString& text,
+BrainOpenGLWidgetTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
+                                                     int32_t& heightOut,
+                                                     const QString& text,
                                                      const TextStyle textStyle,
                                                      const int fontHeight,
-                                                     const AString& fontName,
-                                                     int32_t& widthOut,
-                                                     int32_t& heightOut)
+                                                     const AString& fontName)
 {
     QFont* font = findFont(fontName,
                            fontHeight,

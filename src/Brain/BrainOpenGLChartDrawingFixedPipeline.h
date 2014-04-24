@@ -91,7 +91,7 @@ namespace caret {
                                const float vpY,
                                const float vpWidth,
                                const float vpHeight,
-                               const float marginSize,
+                               const Margins& margins,
                                int32_t chartGraphicsDrawingViewportOut[4]);
         
         void drawChartAxis(const float vpX,
@@ -114,6 +114,11 @@ namespace caret {
                                     const ChartDataCartesian* chartDataCartesian,
                                     const float lineWidth,
                                     const float rgb[3]);
+        
+        void estimateCartesianChartAxisLegendsWidthHeight(BrainOpenGLTextRenderInterface* textRenderer,
+                                              ChartAxis* axis,
+                                              int32_t& widthOut,
+                                              int32_t& heightOut);
         
         void restoreStateOfOpenGL();
         

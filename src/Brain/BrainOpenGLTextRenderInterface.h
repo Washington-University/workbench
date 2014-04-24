@@ -187,6 +187,10 @@ namespace caret {
          * Get the bounds of the text (in pixels) using the given text
          * attributes.
          *
+         * @param widthOut
+         *   Output containing width of text characters.
+         * @param heightOut
+         *   Output containing height of text characters.
          * @param text
          *   Text that is to be drawn.
          * @param textStyle
@@ -195,17 +199,13 @@ namespace caret {
          *   Height of the text.
          * @param fontName
          *   Name of the font.
-         * @param widthOut
-         *   Output containing width of text characters.
-         * @param heightOut
-         *   Output containing height of text characters.
          */
-        virtual void getTextBoundsInPixels(const QString& text,
-                                           const TextStyle textStyle,
-                                           const int fontHeight,
-                                           const AString& fontName,
-                                           int32_t& widthOut,
-                                           int32_t& heightOut) = 0;
+        virtual void getTextBoundsInPixels(int32_t& widthOut,
+                                           int32_t& heightOut,
+                                           const QString& text,
+                                           const TextStyle textStyl = NORMAL,
+                                           const int fontHeight = 14,
+                                           const AString& fontName = "") = 0;
         
         /**
          * @return The font system is valid.

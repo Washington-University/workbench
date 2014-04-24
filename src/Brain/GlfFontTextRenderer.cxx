@@ -418,12 +418,12 @@ GlfFontTextRenderer::drawTextAtWindowCoords(const int viewport[4],
  *   Output containing height of text characters.
  */
 void
-GlfFontTextRenderer::getTextBoundsInPixels(const QString& text,
-                                   const TextStyle /*textStyle*/,
-                                   const int fontHeight,
-                                           const AString& /*fontName*/,
-                                           int32_t& widthOut,
-                                           int32_t& heightOut)
+GlfFontTextRenderer::getTextBoundsInPixels(int32_t& widthOut,
+                                           int32_t& heightOut,
+                                           const QString& text,
+                                           const TextStyle /*textStyle*/,
+                                           const int fontHeight,
+                                           const AString& /*fontName*/)
 {
     const float width = fontHeight * 0.80;
     const float numberOfCharacters = text.length();

@@ -174,6 +174,19 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
     const int32_t marginSize = 30;
     Margins margins(marginSize);
     
+    int32_t width, height;
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, cartesianChart->getLeftAxis(), width, height);
+    margins.m_left = std::max(margins.m_left, width);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, cartesianChart->getRightAxis(), width, height);
+    margins.m_right = std::max(margins.m_right, width);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, cartesianChart->getTopAxis(), width, height);
+    margins.m_top = std::max(margins.m_top, height);
+    estimateCartesianChartAxisLegendsWidthHeight(textRenderer, cartesianChart->getBottomAxis(), width, height);
+    margins.m_bottom = std::max(margins.m_bottom, height);
+    
+    if (margins.m_left > marginSize) margins.m_left += 10;
+    if (margins.m_right > marginSize) margins.m_right += 10;
+    
     /*
      * Ensure that there is sufficient space for the axes data display.
      */
@@ -218,7 +231,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
                           vpY,
                           vpWidth,
                           vpHeight,
-                          marginSize,
+                          margins,
                           chartGraphicsDrawingViewport);
     }
     
@@ -643,6 +656,61 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
 }
 
 /**
+ * Estimate the size of the axis' text.
+ *
+ * @param textRenderer
+ *     Text rendering.
+ * @param axis
+ *    The axis.
+ * @param widthOut
+ *    Width of text out.
+ * @param heightOut
+ *    Heigh of text out.
+ */
+void
+BrainOpenGLChartDrawingFixedPipeline::estimateCartesianChartAxisLegendsWidthHeight(BrainOpenGLTextRenderInterface* textRenderer,
+                                                                                   ChartAxis* axis,
+                                                                                   int32_t& widthOut,
+                                                                                   int32_t& heightOut)
+{
+    widthOut  = 0;
+    heightOut = 0;
+    
+    if (axis == NULL) {
+        return;
+    }
+    
+    ChartAxisCartesian* cartesianAxis = dynamic_cast<ChartAxisCartesian*>(axis);
+    
+    if ( ! cartesianAxis->isVisible()) {
+        return;
+    }
+    
+    const float fontSizeInPixels = 14;
+    const float axisLength = 1000.0;
+    std::vector<float> labelOffsetInPixels;
+    std::vector<AString> labelTexts;
+    cartesianAxis->getLabelsAndPositions(axisLength,
+                                fontSizeInPixels,
+                                labelOffsetInPixels,
+                                labelTexts);
+    for (std::vector<AString>::iterator iter = labelTexts.begin();
+         iter != labelTexts.end();
+         iter++) {
+        const AString text = *iter;
+        if ( ! text.isEmpty()) {
+            int32_t textWidth  = 0;
+            int32_t textHeight = 0;
+            textRenderer->getTextBoundsInPixels(textWidth,
+                                                textHeight,
+                                                text);
+            widthOut  = std::max(widthOut,  textWidth);
+            heightOut = std::max(heightOut, textHeight);
+        }
+    }
+}
+
+/**
  * Draw the chart graphics surrounding box and set the graphics viewport.
  *  drawChartGraphicsBoxAndSetViewport
  * @param vpX
@@ -664,17 +732,17 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(const f
                        const float vpY,
                        const float vpWidth,
                        const float vpHeight,
-                       const float marginSize,
+                       const Margins& margins,
                        int32_t chartGraphicsDrawingViewportOut[4])
 {
     
     const float gridLineWidth = 2;
     const float halfGridLineWidth = gridLineWidth / 2.0;
     
-    const float gridLeft   = vpX + marginSize;
-    const float gridRight  = vpX + vpWidth - marginSize;
-    const float gridBottom = vpY + marginSize;
-    const float gridTop    = vpY + vpHeight - marginSize;
+    const float gridLeft   = vpX + margins.m_left;
+    const float gridRight  = vpX + vpWidth - margins.m_right;
+    const float gridBottom = vpY + margins.m_bottom;
+    const float gridTop    = vpY + vpHeight - margins.m_top;
     
     glViewport(vpX,
                vpY,
