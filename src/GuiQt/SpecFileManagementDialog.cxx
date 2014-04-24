@@ -260,7 +260,7 @@ m_specFile(specFile)
     switch (m_dialogMode) {
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
             setStandardButtonText(QDialogButtonBox::Apply, "Save Checked Files");
-            setStandardButtonText(QDialogButtonBox::Cancel, "Close");
+            setStandardButtonText(QDialogButtonBox::Close, "Close");
 //            setOkButtonText("Save Checked Files");
 //            setCancelButtonText("Close");
             testForDisplayedDataFiles = true;
