@@ -476,6 +476,10 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         clear();
         throw e;
     }
+    catch (CaretException& e) {
+        clear();
+        throw DataFileException(e.whatString());
+    }
 }
 /**
  * Initialize from a CIFTI Interface after either reading a CIFTI file
