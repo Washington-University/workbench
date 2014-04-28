@@ -62,6 +62,8 @@ public:
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
+        /** Delete a data file from the brain */
+        EVENT_DATA_FILE_DELETE,
         /** Read a data file into the Brain */
         EVENT_DATA_FILE_READ,
         /** Reload (replace) a data file with its saved version in the brain*/

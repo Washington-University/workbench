@@ -54,6 +54,7 @@
 #include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileAdd.h"
+#include "EventDataFileDelete.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -142,6 +143,8 @@ Brain::Brain()
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_ADD);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_DATA_FILE_DELETE);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addEventListener(this,
@@ -4834,6 +4837,15 @@ Brain::receiveEvent(Event* event)
         
         addDataFile(addDataFileEvent->getCaretDataFile());
         addDataFileEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
+        EventDataFileDelete* deleteDataFileEvent =
+        dynamic_cast<EventDataFileDelete*>(event);
+        CaretAssert(deleteDataFileEvent);
+        
+        removeAndDeleteDataFile(deleteDataFileEvent->getCaretDataFile());
+
+        deleteDataFileEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ) {
         EventDataFileRead* readDataFileEvent =

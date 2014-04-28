@@ -34,6 +34,7 @@
 #include "CaretMappableDataFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
+#include "EventDataFileDelete.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
@@ -66,7 +67,8 @@ using namespace caret;
  */
 MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
 : WuQDialogNonModal("Overlay and Map Settings",
-                    parent)
+                    parent),
+  EventListenerInterface()
 {
     /*
      * No context menu, it screws things up
@@ -132,6 +134,8 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
     this->addWidgetToLeftOfButtons(windowOptionsWidget);
     
     disableAutoDefaultForAllPushButtons();
+
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_DELETE);
 }
 
 /**
@@ -139,8 +143,31 @@ MapSettingsEditorDialog::MapSettingsEditorDialog(QWidget* parent)
  */
 MapSettingsEditorDialog::~MapSettingsEditorDialog()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+MapSettingsEditorDialog::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
+        EventDataFileDelete* deleteFileEvent =
+        dynamic_cast<EventDataFileDelete*>(event);
+        CaretAssert(deleteFileEvent);
+        
+        updateDialog();
+    }
+}
+
+/**
+ * @return Create and return map file and name section of the dialog.
+ *
+ */
 QWidget*
 MapSettingsEditorDialog::createMapFileAndNameSection()
 {

@@ -332,12 +332,6 @@ namespace caret {
         
         void writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
         
-        bool removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile);
-        
-        bool removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile);
-        
-        bool removeAndDeleteDataFile(CaretDataFile* caretDataFile);
-        
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
         const DisplayPropertiesBorders* getDisplayPropertiesBorders() const;
@@ -414,6 +408,12 @@ namespace caret {
         };
         
         void addDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
+        
+        bool removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile);
+        
+        bool removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile);
+        
+        bool removeAndDeleteDataFile(CaretDataFile* caretDataFile);
         
         void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
         

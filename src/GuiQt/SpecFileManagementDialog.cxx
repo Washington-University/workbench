@@ -49,6 +49,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
+#include "EventDataFileDelete.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -1785,7 +1786,8 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
                 return;
             }
         }
-        GuiManager::get()->getBrain()->removeAndDeleteDataFile(caretDataFile);
+        EventDataFileDelete deleteFileEvent(caretDataFile);
+        EventManager::get()->sendEvent(deleteFileEvent.getPointer());
         loadSpecFileContentIntoDialog();
         updateGraphicWindowsAndUserInterface();
     }

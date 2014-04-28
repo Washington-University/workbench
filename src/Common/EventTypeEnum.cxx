@@ -112,6 +112,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",
                                      "Add a data file to the Brain"));
+
+    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_DELETE,
+                                     "EVENT_DATA_FILE_DELETE",
+                                     "Delete a data file from the Brain"));
     
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ,
                                     "EVENT_DATA_FILE_READ", 

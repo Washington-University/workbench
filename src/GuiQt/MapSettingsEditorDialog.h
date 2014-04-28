@@ -21,7 +21,7 @@
  */
 /*LICENSE_END*/
 
-
+#include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
@@ -40,7 +40,7 @@ namespace caret {
     class MapSettingsParcelsWidget;
     class Overlay;
     
-    class MapSettingsEditorDialog : public WuQDialogNonModal {
+    class MapSettingsEditorDialog : public WuQDialogNonModal, public EventListenerInterface {
         Q_OBJECT
         
     public:
@@ -53,6 +53,8 @@ namespace caret {
         virtual ~MapSettingsEditorDialog();
 
         bool isDoNotReplaceSelected() const;
+        
+        virtual void receiveEvent(Event* event);
         
     protected:
         virtual void closeButtonPressed();
