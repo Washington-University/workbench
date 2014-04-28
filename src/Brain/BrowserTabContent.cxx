@@ -31,10 +31,10 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "ChartData.h"
 #include "ChartMatrixDisplayProperties.h"
-#include "ChartableMatrixFileSelectionModel.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
 #include "ClippingPlaneGroup.h"
@@ -1964,9 +1964,9 @@ BrowserTabContent::applyMouseScaling(const int32_t /*mouseDX*/,
         CaretAssert(modelChart);
         
         if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
-            ChartableMatrixFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
+            CaretDataFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
             if (matrixSelectionModel != NULL) {
-                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFile();
+                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
                 if (chartableInterface != NULL) {
                     ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
                     bool allowAdjustmentFlag = false;
@@ -2104,9 +2104,9 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         CaretAssert(modelChart);
         
         if (modelChart->getSelectedChartDataType(m_tabNumber) == ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX) {
-            ChartableMatrixFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
+            CaretDataFileSelectionModel* matrixSelectionModel = modelChart->getChartableMatrixFileSelectionModel(m_tabNumber);
             if (matrixSelectionModel != NULL) {
-                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFile();
+                ChartableMatrixInterface* chartableInterface = matrixSelectionModel->getSelectedFileOfType<ChartableMatrixInterface>();
                 if (chartableInterface != NULL) {
                     ChartMatrixDisplayProperties* matrixProperties = chartableInterface->getChartMatrixDisplayProperties(m_tabNumber);
                     

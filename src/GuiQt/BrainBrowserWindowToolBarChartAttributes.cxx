@@ -32,12 +32,13 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretDataFile.h"
+#include "CaretDataFileSelectionModel.h"
 #include "EnumComboBoxTemplate.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "ChartMatrixScaleModeEnum.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelTimeSeries.h"
-#include "ChartableMatrixFileSelectionModel.h"
 #include "ChartableMatrixInterface.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -171,7 +172,7 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
                 {
-                    ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixFileSelectionModel(tabIndex)->getSelectedFile();
+                    ChartableMatrixInterface* matrixInterface = modelChart->getChartableMatrixFileSelectionModel(tabIndex)->getSelectedFileOfType<ChartableMatrixInterface>();
                     if (matrixInterface != NULL) {
                         matrixDisplayProperties = matrixInterface->getChartMatrixDisplayProperties(tabIndex);
                     }

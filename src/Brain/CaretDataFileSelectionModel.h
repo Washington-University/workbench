@@ -1,9 +1,9 @@
-#ifndef __CHARTABLE_MATRIX_FILE_SELECTION_MODEL_H__
-#define __CHARTABLE_MATRIX_FILE_SELECTION_MODEL_H__
+#ifndef __CARET_DATA_FILE_SELECTION_MODEL_H__
+#define __CARET_DATA_FILE_SELECTION_MODEL_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2014 Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,29 +23,51 @@
 
 
 #include "CaretObject.h"
-
+#include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
     class Brain;
-    class ChartableMatrixInterface;
+    class CaretDataFile;
     class SceneClassAssistant;
 
-    class ChartableMatrixFileSelectionModel : public CaretObject, public SceneableInterface {
+    class CaretDataFileSelectionModel : public CaretObject, public SceneableInterface {
         
     public:
-        ChartableMatrixFileSelectionModel(Brain* brain);
+        static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(Brain* brain,
+                                                                            const DataFileTypeEnum::Enum dataFileType);
         
-        virtual ~ChartableMatrixFileSelectionModel();
+        static CaretDataFileSelectionModel* newInstanceForChartableMatrixInterface(Brain* brain);
         
-        ChartableMatrixInterface* getSelectedFile();
+        virtual ~CaretDataFileSelectionModel();
         
-        const ChartableMatrixInterface* getSelectedFile() const;
+        CaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj);
+
+        CaretDataFileSelectionModel& operator=(const CaretDataFileSelectionModel& obj);
         
-        std::vector<ChartableMatrixInterface*> getAvailableFiles() const;
+        CaretDataFile* getSelectedFile();
         
-        void setSelectedFile(ChartableMatrixInterface* selectedFile);
+        const CaretDataFile* getSelectedFile() const;
+        
+        std::vector<CaretDataFile*> getAvailableFiles() const;
+        
+        /**
+         * @return Selected file dynamically cast to the templated
+         * data file type.
+         */
+        template <typename T>
+        inline T* getSelectedFileOfType() {
+            CaretDataFile* cdf = getSelectedFile();
+            if (cdf != NULL) {
+                return dynamic_cast<T*>(getSelectedFile());
+            }
+            
+            return NULL;
+        }
+        
+        void setSelectedFile(CaretDataFile* selectedFile);
+        
 
         // ADD_NEW_METHODS_HERE
 
@@ -73,15 +95,25 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        ChartableMatrixFileSelectionModel(const ChartableMatrixFileSelectionModel&);
-
-        ChartableMatrixFileSelectionModel& operator=(const ChartableMatrixFileSelectionModel&);
+        enum FileMode {
+            FILE_MODE_CHARTABLE_MATRIX_INTERFACE,
+            FILE_MODE_DATA_FILE_TYPE_ENUM
+        };
         
+        CaretDataFileSelectionModel(Brain* brain,
+                                    const FileMode fileMode);
+        
+        void copyHelperCaretDataFileSelectionModel(const CaretDataFileSelectionModel& obj);
+
         void updateSelection() const;
         
-        mutable ChartableMatrixInterface* m_selectedFile;
+        const FileMode m_fileMode;
         
         Brain* m_brain;
+        
+        DataFileTypeEnum::Enum m_dataFileType;
+        
+        mutable CaretDataFile* m_selectedFile;
         
         SceneClassAssistant* m_sceneAssistant;
 
@@ -89,9 +121,9 @@ namespace caret {
 
     };
     
-#ifdef __CHARTABLE_MATRIX_FILE_SELECTION_MODEL_DECLARE__
+#ifdef __CARET_DATA_FILE_SELECTION_MODEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CHARTABLE_MATRIX_FILE_SELECTION_MODEL_DECLARE__
+#endif // __CARET_DATA_FILE_SELECTION_MODEL_DECLARE__
 
 } // namespace
-#endif  //__CHARTABLE_MATRIX_FILE_SELECTION_MODEL_H__
+#endif  //__CARET_DATA_FILE_SELECTION_MODEL_H__

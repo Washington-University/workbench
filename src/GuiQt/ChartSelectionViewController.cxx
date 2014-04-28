@@ -28,15 +28,16 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QRadioButton>
 #include <QSignalMapper>
+#include <QStackedWidget>
 
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionComboBox.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
 #include "ChartableMatrixInterface.h"
-#include "ChartableMatrixFileSelectionModel.h"
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
 #include "EventManager.h"
@@ -49,7 +50,6 @@
 using namespace caret;
 
 static const char* BRAINORDINATE_FILE_POINTER_PROPERTY_NAME = "brainordinateFilePointer";
-static const char* MATRIX_FILE_POINTER_PROPERTY_NAME        = "matrixFilePointer";
 
 /**
  * \class caret::ChartSelectionViewController 
@@ -68,37 +68,16 @@ m_browserWindowIndex(browserWindowIndex)
 {
     m_mode = MODE_INVALID;
     
-    m_selectionRadioButtonGroup = new QButtonGroup(this);
-    QObject::connect(m_selectionRadioButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(selectionRadioButtonClicked(int)));
+    m_brainordinateChartWidget = createBrainordinateChartWidget();
     
-    /*
-     * In the grid layout, there are columns for the checkboxes (used
-     * for brainordinate charts) and radio buttons (used for matrix 
-     * charts).   Display of checkboxes and radiobuttons is mutually
-     * exclusive.  The "Select" column title is over both the checkbox
-     * and radio button columns.
-     */
-    m_gridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(m_gridLayout, 4, 2);
-    m_gridLayout->setColumnStretch(COLUMN_CHECKBOX, 0);
-    m_gridLayout->setColumnStretch(COLUMN_RADIOBUTTON, 0);
-    m_gridLayout->setColumnStretch(COLUMN_LINE_EDIT, 100);
-    const int titleRow = m_gridLayout->rowCount();
-    m_gridLayout->addWidget(new QLabel("Select"),
-                            titleRow, COLUMN_CHECKBOX,
-                            1, 2, /* 1 row, 2 columns (checkbox and radio button) */
-                            Qt::AlignHCenter);
-    m_gridLayout->addWidget(new QLabel("Charting File"),
-                            titleRow, COLUMN_LINE_EDIT,
-                            Qt::AlignHCenter);
+    m_matrixChartWidget = createMatrixChartWidget();
     
-    m_signalMapperFileEnableCheckBox = new QSignalMapper(this);
-    QObject::connect(m_signalMapperFileEnableCheckBox, SIGNAL(mapped(int)),
-                     this, SLOT(selectionCheckBoxClicked(int)));
-    
+    m_stackedWidget = new QStackedWidget();
+    m_stackedWidget->addWidget(m_brainordinateChartWidget);
+    m_stackedWidget->addWidget(m_matrixChartWidget);
+
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addLayout(m_gridLayout);
+    layout->addWidget(m_stackedWidget);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -152,157 +131,25 @@ ChartSelectionViewController::updateSelectionViewController()
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
             m_mode = MODE_BRAINORDINATE;
+            
             break;
     }
     
-    std::vector<ChartableBrainordinateInterface*> chartableBrainordinateFilesVector;
-    
-    std::vector<ChartableMatrixInterface*> chartableMatrixFilesVector;
-    
-    ChartableMatrixFileSelectionModel* chartableMatrixFileSelectionModel = NULL;
-    ChartableMatrixInterface* selectedChartMatrixFile = NULL;
-    
-    int32_t numChartableFiles = 0;
     switch (m_mode) {
         case MODE_INVALID:
             break;
         case MODE_BRAINORDINATE:
-            brain->getAllChartableBrainordinateDataFilesForChartDataType(chartDataType,
-                                                                         chartableBrainordinateFilesVector);
-            numChartableFiles = static_cast<int32_t>(chartableBrainordinateFilesVector.size());
+            m_stackedWidget->setCurrentWidget(m_brainordinateChartWidget);
+            updateBrainordinateChartWidget(brain,
+                                           modelChart,
+                                           browserTabIndex);
             break;
         case MODE_MATRIX:
-            if (modelChart != NULL) {
-                chartableMatrixFileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
-                chartableMatrixFilesVector = chartableMatrixFileSelectionModel->getAvailableFiles();
-                numChartableFiles = static_cast<int32_t>(chartableMatrixFilesVector.size());
-                selectedChartMatrixFile = chartableMatrixFileSelectionModel->getSelectedFile();
-            }
+            m_stackedWidget->setCurrentWidget(m_matrixChartWidget);
+            updateMatrixChartWidget(brain,
+                                    modelChart,
+                                    browserTabIndex);
             break;
-    }
-    
-    for (int32_t i = 0; i < numChartableFiles; i++) {
-        QCheckBox* checkBox = NULL;
-        QLineEdit* lineEdit = NULL;
-        QRadioButton* radioButton = NULL;
-        
-        if (i < static_cast<int32_t>(m_fileEnableCheckBoxes.size())) {
-            radioButton = m_fileSelectionRadioButtons[i];
-            checkBox    = m_fileEnableCheckBoxes[i];
-            lineEdit    = m_fileNameLineEdits[i];
-        }
-        else {
-            checkBox = new QCheckBox("");
-            m_fileEnableCheckBoxes.push_back(checkBox);
-            
-            radioButton = new QRadioButton("");
-            m_fileSelectionRadioButtons.push_back(radioButton);
-            m_selectionRadioButtonGroup->addButton(radioButton, i);
-            
-            lineEdit = new QLineEdit();
-            lineEdit->setReadOnly(true);
-            m_fileNameLineEdits.push_back(lineEdit);
-            
-            QObject::connect(checkBox, SIGNAL(clicked(bool)),
-                             m_signalMapperFileEnableCheckBox, SLOT(map()));
-            m_signalMapperFileEnableCheckBox->setMapping(checkBox, i);
-            
-            const int row = m_gridLayout->rowCount();
-            m_gridLayout->addWidget(checkBox,
-                                    row, COLUMN_CHECKBOX,
-                                    Qt::AlignRight);
-            m_gridLayout->addWidget(radioButton,
-                                    row, COLUMN_RADIOBUTTON,
-                                    Qt::AlignLeft);
-            m_gridLayout->addWidget(lineEdit,
-                                    row, COLUMN_LINE_EDIT);
-        }
-        
-        QVariant brainordinateFilePointerVariant;
-        QVariant matrixFilePointerVariant;
-        CaretMappableDataFile* caretMappableDataFile = NULL;
-        bool checkBoxStatus = false;
-        bool radioButtonStatus = false;
-        
-        switch (m_mode) {
-            case MODE_INVALID:
-                break;
-            case MODE_BRAINORDINATE:
-            {
-                CaretAssertVectorIndex(chartableBrainordinateFilesVector, i);
-                ChartableBrainordinateInterface* chartBrainFile = chartableBrainordinateFilesVector[i];
-                CaretAssert(chartBrainFile);
-                checkBoxStatus = chartBrainFile->isChartingEnabled(browserTabIndex);
-
-                brainordinateFilePointerVariant = qVariantFromValue((void*)chartBrainFile);
-                
-                caretMappableDataFile = chartBrainFile->getCaretMappableDataFile();
-            }
-                break;
-            case MODE_MATRIX:
-            {
-                CaretAssertVectorIndex(chartableMatrixFilesVector, i);
-                ChartableMatrixInterface* chartMatrixFile = chartableMatrixFilesVector[i];
-                CaretAssert(chartMatrixFile);
-                
-                if (chartMatrixFile == selectedChartMatrixFile) {
-                    radioButtonStatus = true;
-                }
-
-                matrixFilePointerVariant = qVariantFromValue((void*)chartMatrixFile);
-                
-                caretMappableDataFile = chartMatrixFile->getCaretMappableDataFile();
-            }
-                break;
-        }
-        
-        checkBox->blockSignals(true);
-        checkBox->setChecked(checkBoxStatus);
-        checkBox->blockSignals(false);
-        
-        checkBox->setProperty(BRAINORDINATE_FILE_POINTER_PROPERTY_NAME,
-                              brainordinateFilePointerVariant);
-        
-        /*
-         * Only "set" radio button.
-         * button group will ensure mutual exclusion.
-         */
-        if (radioButtonStatus) {
-            radioButton->blockSignals(true);
-            radioButton->setChecked(radioButtonStatus);
-            radioButton->blockSignals(false);
-        }
-        radioButton->setProperty(MATRIX_FILE_POINTER_PROPERTY_NAME,
-                              matrixFilePointerVariant);
-        
-        CaretAssert(caretMappableDataFile);
-        lineEdit->setText(caretMappableDataFile->getFileName());
-    }
-    
-    
-    const int32_t numItems = static_cast<int32_t>(m_fileEnableCheckBoxes.size());
-    for (int32_t i = 0; i < numItems; i++) {
-        bool showCheckBox    = false;
-        bool showLineEdit    = false;
-        bool showRadioButton = false;
-        
-        if (i < numChartableFiles) {
-            showLineEdit = true;
-            switch (m_mode) {
-                case MODE_INVALID:
-                    break;
-                case MODE_BRAINORDINATE:
-                    showCheckBox = true;
-                    break;
-                case MODE_MATRIX:
-                    showRadioButton = true;
-                    break;
-            }
-        }
-        
-        m_fileEnableCheckBoxes[i]->setVisible(showCheckBox);
-        m_fileNameLineEdits[i]->setVisible(showLineEdit);
-        m_fileSelectionRadioButtons[i]->setVisible(showRadioButton);
     }
 }
 
@@ -313,7 +160,7 @@ ChartSelectionViewController::updateSelectionViewController()
  *    Index of checkbox that was clicked.
  */
 void
-ChartSelectionViewController::selectionCheckBoxClicked(int indx)
+ChartSelectionViewController::brainordinateSelectionCheckBoxClicked(int indx)
 {
     switch (m_mode) {
         case MODE_INVALID:
@@ -335,8 +182,8 @@ ChartSelectionViewController::selectionCheckBoxClicked(int indx)
     }
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
-    CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
-    const bool newStatus = m_fileEnableCheckBoxes[indx]->isChecked();
+    CaretAssertVectorIndex(m_brainordinateFileEnableCheckBoxes, indx);
+    const bool newStatus = m_brainordinateFileEnableCheckBoxes[indx]->isChecked();
     
     ChartableBrainordinateInterface* chartFile = getBrainordinateFileAtIndex(indx);
     CaretAssert(chartFile);
@@ -347,48 +194,48 @@ ChartSelectionViewController::selectionCheckBoxClicked(int indx)
     }
 }
 
-/**
- * Called when a selection radio button is clicked.
- *
- * @param indx
- *    Index of radio that was clicked.
- */
-void
-ChartSelectionViewController::selectionRadioButtonClicked(int indx)
-{
-    switch (m_mode) {
-        case MODE_INVALID:
-            CaretAssertMessage(0, "Radiobutton should never be clicked when mode is invalid.");
-            return;
-            break;
-        case MODE_BRAINORDINATE:
-            CaretAssertMessage(0, "Radiobutton should never be clicked when mode is matrix.");
-            return;
-            break;
-        case MODE_MATRIX:
-            break;
-    }
-    
-    ChartableMatrixInterface* chartMatrixFile = getMatrixFileAtIndex(indx);
-    CaretAssert(chartMatrixFile);
-    
-    Brain* brain = GuiManager::get()->getBrain();
-    
-    BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        return;
-    }
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    
-    ModelChart* modelChart = brain->getChartModel();
-    if (modelChart != NULL) {
-        ChartableMatrixFileSelectionModel* fileSelector =
-           modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
-        fileSelector->setSelectedFile(chartMatrixFile);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
-    }
-}
+///**
+// * Called when a selection radio button is clicked.
+// *
+// * @param indx
+// *    Index of radio that was clicked.
+// */
+//void
+//ChartSelectionViewController::brainordinateSelectionRadioButtonClicked(int indx)
+//{
+//    switch (m_mode) {
+//        case MODE_INVALID:
+//            CaretAssertMessage(0, "Radiobutton should never be clicked when mode is invalid.");
+//            return;
+//            break;
+//        case MODE_BRAINORDINATE:
+//            CaretAssertMessage(0, "Radiobutton should never be clicked when mode is matrix.");
+//            return;
+//            break;
+//        case MODE_MATRIX:
+//            break;
+//    }
+//    
+//    ChartableMatrixInterface* chartMatrixFile = getMatrixFileAtIndex(indx);
+//    CaretAssert(chartMatrixFile);
+//    
+//    Brain* brain = GuiManager::get()->getBrain();
+//    
+//    BrowserTabContent* browserTabContent =
+//    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+//    if (browserTabContent == NULL) {
+//        return;
+//    }
+//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+//    
+//    ModelChart* modelChart = brain->getChartModel();
+//    if (modelChart != NULL) {
+//        CaretDataFileSelectionModel* fileSelector =
+//           modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
+//        fileSelector->setSelectedFile(chartMatrixFile->getCaretMappableDataFile());
+//        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+//    }
+//}
 
 /**
  * Get the brainordinate file associated with the given index.
@@ -404,8 +251,8 @@ ChartSelectionViewController::getBrainordinateFileAtIndex(const int32_t indx)
 {
     ChartableBrainordinateInterface* filePointer = NULL;
     
-    CaretAssertVectorIndex(m_fileEnableCheckBoxes, indx);
-    const QVariant filePointerVariant = m_fileEnableCheckBoxes[indx]->property(BRAINORDINATE_FILE_POINTER_PROPERTY_NAME);
+    CaretAssertVectorIndex(m_brainordinateFileEnableCheckBoxes, indx);
+    const QVariant filePointerVariant = m_brainordinateFileEnableCheckBoxes[indx]->property(BRAINORDINATE_FILE_POINTER_PROPERTY_NAME);
     if (filePointerVariant.isValid()) {
         void* ptr = filePointerVariant.value<void*>();
         filePointer = (ChartableBrainordinateInterface*)ptr;
@@ -414,30 +261,30 @@ ChartSelectionViewController::getBrainordinateFileAtIndex(const int32_t indx)
     return filePointer;
 }
 
-/**
- * Get the brainordinate file associated with the given index.
- *
- * @param indx
- *    The index.
- * @return
- *    Brainordinate chartable file associated with the given index or NULL
- *    if not valid
- */
-ChartableMatrixInterface*
-ChartSelectionViewController::getMatrixFileAtIndex(const int32_t indx)
-{
-    ChartableMatrixInterface* filePointer = NULL;
-    
-    CaretAssertVectorIndex(m_fileSelectionRadioButtons, indx);
-    const QVariant filePointerVariant = m_fileSelectionRadioButtons[indx]->property(MATRIX_FILE_POINTER_PROPERTY_NAME);
-    if (filePointerVariant.isValid()) {
-        void* ptr = filePointerVariant.value<void*>();
-        filePointer = (ChartableMatrixInterface*)ptr;
-    }
-    
-    return filePointer;
-}
-
+///**
+// * Get the brainordinate file associated with the given index.
+// *
+// * @param indx
+// *    The index.
+// * @return
+// *    Brainordinate chartable file associated with the given index or NULL
+// *    if not valid
+// */
+//ChartableMatrixInterface*
+//ChartSelectionViewController::getMatrixFileAtIndex(const int32_t indx)
+//{
+//    ChartableMatrixInterface* filePointer = NULL;
+//    
+//    CaretAssertVectorIndex(m_fileSelectionRadioButtons, indx);
+//    const QVariant filePointerVariant = m_fileSelectionRadioButtons[indx]->property(MATRIX_FILE_POINTER_PROPERTY_NAME);
+//    if (filePointerVariant.isValid()) {
+//        void* ptr = filePointerVariant.value<void*>();
+//        filePointer = (ChartableMatrixInterface*)ptr;
+//    }
+//    
+//    return filePointer;
+//}
+//
 
 /**
  * Receive an event.
@@ -459,6 +306,183 @@ ChartSelectionViewController::receiveEvent(Event* event)
             uiEvent->setEventProcessed();
         }
     }
+}
+
+/**
+ * @return The Brainordinate chart widget.
+ */
+QWidget*
+ChartSelectionViewController::createBrainordinateChartWidget()
+{
+    
+    /*
+     * In the grid layout, there are columns for the checkboxes (used
+     * for brainordinate charts) and radio buttons (used for matrix
+     * charts).   Display of checkboxes and radiobuttons is mutually
+     * exclusive.  The "Select" column title is over both the checkbox
+     * and radio button columns.
+     */
+    QWidget* widget = new QWidget();
+    m_brainordinateGridLayout = new QGridLayout(widget);
+    WuQtUtilities::setLayoutSpacingAndMargins(m_brainordinateGridLayout, 4, 2);
+    m_brainordinateGridLayout->setColumnStretch(COLUMN_CHECKBOX, 0);
+    m_brainordinateGridLayout->setColumnStretch(COLUMN_LINE_EDIT, 100);
+    const int titleRow = m_brainordinateGridLayout->rowCount();
+    m_brainordinateGridLayout->addWidget(new QLabel("Select"),
+                            titleRow, COLUMN_CHECKBOX,
+                            Qt::AlignHCenter);
+    m_brainordinateGridLayout->addWidget(new QLabel("Charting File"),
+                            titleRow, COLUMN_LINE_EDIT,
+                            Qt::AlignHCenter);
+    
+    m_signalMapperBrainordinateFileEnableCheckBox = new QSignalMapper(this);
+    QObject::connect(m_signalMapperBrainordinateFileEnableCheckBox, SIGNAL(mapped(int)),
+                     this, SLOT(brainordinateSelectionCheckBoxClicked(int)));
+    
+    return widget;
+}
+
+/**
+ * Update the brainordiante chart widget.
+ *
+ * @param brain
+ *     The Brain.
+ * @param modelChart
+ *     The Model for charts.
+ * @param browserTabIndex
+ *     Index of the browser tab.
+ */
+void
+ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
+                                                             ModelChart* modelChart,
+                                                             const int32_t browserTabIndex)
+{
+    std::vector<ChartableBrainordinateInterface*> chartableBrainordinateFilesVector;
+    
+    const ChartDataTypeEnum::Enum chartDataType = modelChart->getSelectedChartDataType(browserTabIndex);
+
+    brain->getAllChartableBrainordinateDataFilesForChartDataType(chartDataType,
+                                                                 chartableBrainordinateFilesVector);
+    const int32_t numChartableFiles = static_cast<int32_t>(chartableBrainordinateFilesVector.size());
+    
+    for (int32_t i = 0; i < numChartableFiles; i++) {
+        QCheckBox* checkBox = NULL;
+        QLineEdit* lineEdit = NULL;
+        
+        if (i < static_cast<int32_t>(m_brainordinateFileEnableCheckBoxes.size())) {
+            checkBox    = m_brainordinateFileEnableCheckBoxes[i];
+            lineEdit    = m_brainordinateFileNameLineEdits[i];
+        }
+        else {
+            checkBox = new QCheckBox("");
+            m_brainordinateFileEnableCheckBoxes.push_back(checkBox);
+            
+            lineEdit = new QLineEdit();
+            lineEdit->setReadOnly(true);
+            m_brainordinateFileNameLineEdits.push_back(lineEdit);
+            
+            QObject::connect(checkBox, SIGNAL(clicked(bool)),
+                             m_signalMapperBrainordinateFileEnableCheckBox, SLOT(map()));
+            m_signalMapperBrainordinateFileEnableCheckBox->setMapping(checkBox, i);
+            
+            const int row = m_brainordinateGridLayout->rowCount();
+            m_brainordinateGridLayout->addWidget(checkBox,
+                                    row, COLUMN_CHECKBOX,
+                                    Qt::AlignHCenter);
+            m_brainordinateGridLayout->addWidget(lineEdit,
+                                    row, COLUMN_LINE_EDIT);
+        }
+        
+        CaretAssertVectorIndex(chartableBrainordinateFilesVector, i);
+        ChartableBrainordinateInterface* chartBrainFile = chartableBrainordinateFilesVector[i];
+        CaretAssert(chartBrainFile);
+        const bool checkBoxStatus = chartBrainFile->isChartingEnabled(browserTabIndex);
+        
+        QVariant brainordinateFilePointerVariant = qVariantFromValue((void*)chartBrainFile);
+        
+        CaretMappableDataFile* caretMappableDataFile = chartBrainFile->getCaretMappableDataFile();
+        
+        checkBox->blockSignals(true);
+        checkBox->setChecked(checkBoxStatus);
+        checkBox->blockSignals(false);
+        
+        checkBox->setProperty(BRAINORDINATE_FILE_POINTER_PROPERTY_NAME,
+                              brainordinateFilePointerVariant);
+        
+        CaretAssert(caretMappableDataFile);
+        lineEdit->setText(caretMappableDataFile->getFileName());
+    }
+    
+    
+    const int32_t numItems = static_cast<int32_t>(m_brainordinateFileEnableCheckBoxes.size());
+    for (int32_t i = 0; i < numItems; i++) {
+        bool showCheckBox    = false;
+        bool showLineEdit    = false;
+        
+        if (i < numChartableFiles) {
+            showLineEdit = true;
+            showCheckBox = true;
+        }
+        
+        m_brainordinateFileEnableCheckBoxes[i]->setVisible(showCheckBox);
+        m_brainordinateFileNameLineEdits[i]->setVisible(showLineEdit);
+    }
+}
+
+/**
+ * Called when a matrix file is selected.
+ *
+ * @param caretDataFile
+ *    Caret data file that was selected.
+ */
+void
+ChartSelectionViewController::matrixFileSelected(CaretDataFile* /*caretDataFile*/)
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+}
+
+
+/**
+ * @return The matrix chart widget.
+ */
+QWidget*
+ChartSelectionViewController::createMatrixChartWidget()
+{
+    QLabel* fileLabel = new QLabel("File ");
+    
+    m_matrixFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    QObject::connect(m_matrixFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
+                     this, SLOT(matrixFileSelected(CaretDataFile*)));
+    m_matrixFileSelectionComboBox->getWidget()->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                                              m_matrixFileSelectionComboBox->getWidget()->sizePolicy().verticalPolicy());
+    QWidget* widget = new QWidget();
+    
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnStretch(0, 0);
+    layout->addWidget(fileLabel,
+                      0, 0);
+    layout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
+                      0, 1);
+    
+    return widget;
+}
+/**
+ * Update the matrix chart widget.
+ *
+ * @param brain
+ *     The Brain.
+ * @param modelChart
+ *     The Model for charts.
+ * @param browserTabIndex
+ *     Index of the browser tab.
+ */
+void
+ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
+                                                      ModelChart* modelChart,
+                                                      const int32_t browserTabIndex)
+{
+    CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
+    m_matrixFileSelectionComboBox->updateComboBox(fileSelectionModel);
 }
 
 ///**

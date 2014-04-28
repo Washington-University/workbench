@@ -28,7 +28,7 @@
 #include "CaretMappableDataFile.h"
 #include "ChartAxis.h"
 #include "ChartableBrainordinateInterface.h"
-#include "ChartableMatrixFileSelectionModel.h"
+#include "CaretDataFileSelectionModel.h"
 #include "ChartableMatrixInterface.h"
 #include "ChartData.h"
 #include "ChartDataCartesian.h"
@@ -64,7 +64,7 @@ ModelChart::ModelChart(Brain* brain)
                                             "Chart View");
 
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartableMatrixFileSelectionModel[i] = new ChartableMatrixFileSelectionModel(m_brain);
+        m_chartableMatrixFileSelectionModel[i] = CaretDataFileSelectionModel::newInstanceForChartableMatrixInterface(m_brain);
     }
     initializeCharts();
     
@@ -1033,7 +1033,7 @@ ModelChart::getSelectedTimeSeriesChartModelHelper(const int32_t tabIndex) const
  * @return 
  *     Chartable file selection model for the tab.
  */
-ChartableMatrixFileSelectionModel*
+CaretDataFileSelectionModel*
 ModelChart::getChartableMatrixFileSelectionModel(const int32_t tabIndex)
 {
     CaretAssertArrayIndex(m_chartableMatrixFileSelectionModel,

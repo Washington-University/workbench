@@ -43,6 +43,7 @@ BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
+CaretDataFileSelectionComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
@@ -50,7 +51,6 @@ CaretMappableDataFileAndMapSelector.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
-ChartableMatrixFileSelectionViewController.h
 CiftiConnectivityMatrixViewController.h
 ClippingPlanesDialog.h
 ColorEditorWidget.h
@@ -152,6 +152,7 @@ BrainOpenGLWidgetContextMenu.h
 BrainOpenGLWidgetTextRenderer.h
 BugReportDialog.h
 CaretColorEnumComboBox.h
+CaretDataFileSelectionComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
@@ -159,7 +160,6 @@ CaretMappableDataFileAndMapSelector.h
 ChartHistoryViewController.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
-ChartableMatrixFileSelectionViewController.h
 CiftiConnectivityMatrixViewController.h
 ClippingPlanesDialog.h
 ColorEditorWidget.h
@@ -280,6 +280,7 @@ BrainOpenGLWidgetContextMenu.cxx
 BrainOpenGLWidgetTextRenderer.cxx
 BugReportDialog.cxx
 CaretColorEnumComboBox.cxx
+CaretDataFileSelectionComboBox.cxx
 CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
@@ -287,7 +288,6 @@ CaretMappableDataFileAndMapSelector.cxx
 ChartHistoryViewController.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
-ChartableMatrixFileSelectionViewController.cxx
 CiftiConnectivityMatrixViewController.cxx
 ClippingPlanesDialog.cxx
 ColorEditorWidget.cxx

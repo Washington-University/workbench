@@ -49,10 +49,11 @@
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "ChartableMatrixFileSelectionModel.h"
+#include "ChartableMatrixInterface.h"
 #include "ChartModelDataSeries.h"
 #include "ChartModelTimeSeries.h"
 #include "CiftiBrainordinateLabelFile.h"
@@ -5308,8 +5309,8 @@ BrainOpenGLFixedPipeline::drawChartData(BrowserTabContent* browserTabContent,
             break;
         case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
         {
-            ChartableMatrixFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixFileSelectionModel(tabIndex);
-            matrixChartFile = matrixFileSelector->getSelectedFile();
+            CaretDataFileSelectionModel* matrixFileSelector = chartModel->getChartableMatrixFileSelectionModel(tabIndex);
+            matrixChartFile = matrixFileSelector->getSelectedFileOfType<ChartableMatrixInterface>();
             selectionItemDataType = SelectionItemDataTypeEnum::CHART_MATRIX;
         }
             break;

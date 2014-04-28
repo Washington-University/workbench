@@ -318,6 +318,9 @@ namespace caret {
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                              const bool includeSpecFile = false) const;
         
+        void getAllDataFilesWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
+                                             std::vector<CaretDataFile*>& caretDataFilesOut) const;
+        
         void getAllMappableDataFiles(std::vector<CaretMappableDataFile*>& allCaretMappableDataFilesOut) const;
         
         void getAllMappableDataFileWithDataFileType(const DataFileTypeEnum::Enum dataFileType,
