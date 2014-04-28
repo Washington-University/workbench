@@ -79,7 +79,7 @@ CaretDataFileSelectionComboBox::slotFileIndexSelected(int indx)
 {
     CaretDataFile* caretDataFile = NULL;
     
-    if ((index >= 0)
+    if ((indx >= 0)
         && (indx < m_comboBox->count())) {
         void* filePointer = m_comboBox->itemData(indx).value<void*>();
         caretDataFile = (CaretDataFile*)filePointer;

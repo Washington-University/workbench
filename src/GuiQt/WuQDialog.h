@@ -47,12 +47,26 @@ namespace caret  {
         
     public:
         /**
-         *
+         * Status of scroll area displayed
          */
         enum ScrollAreaStatus {
             SCROLL_AREA_ALWAYS,
             SCROLL_AREA_AS_NEEDED,
             SCROLL_AREA_NEVER
+        };
+
+        /**
+         * Result of user button pressed.
+         */
+        enum DialogUserButtonResult {
+            /** MODAL accept which means OK pressed and dialog closes */
+            RESULT_MODAL_ACCEPT,
+            /** MODAL reject which means Cancel pressed and dialog closes */
+            RESULT_MODAL_REJECT,
+            /** NON-MODAL close dialog. */
+            RESULT_NON_MODAL_CLOSE,
+            /** none which means no action is taken and dialog remains open */
+            RESULT_NONE
         };
         
         virtual ~WuQDialog();
@@ -102,20 +116,6 @@ namespace caret  {
         
     protected:
         QDialogButtonBox* getDialogButtonBox();
-        
-        /**
-         * Result of user button pressed.
-         */
-        enum DialogUserButtonResult {
-            /** MODAL accept which means OK pressed and dialog closes */
-            RESULT_MODAL_ACCEPT,
-            /** MODAL reject which means Cancel pressed and dialog closes */
-            RESULT_MODAL_REJECT,
-            /** NON-MODAL close dialog. */
-            RESULT_NON_MODAL_CLOSE,
-            /** none which means no action is taken and dialog remains open */
-            RESULT_NONE
-        };
         
         virtual DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
         

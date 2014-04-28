@@ -156,10 +156,6 @@ void
 MapSettingsEditorDialog::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
-        EventDataFileDelete* deleteFileEvent =
-        dynamic_cast<EventDataFileDelete*>(event);
-        CaretAssert(deleteFileEvent);
-        
         updateDialog();
     }
 }
