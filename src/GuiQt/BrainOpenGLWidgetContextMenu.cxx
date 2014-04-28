@@ -36,6 +36,7 @@
 #include "ChartingDataManager.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
+#include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CursorDisplayScoped.h"
@@ -114,10 +115,10 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(SelectionManager* sel
     /*
      * Show Label ROI operations only for surfaces
      */
-    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
-    if (surfaceID->isValid()) {
+//    SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
+//    if (surfaceID->isValid()) {
         addLabelRegionOfInterestActions();
-    }
+//    }
     
 //    /*
 //     * Identify Node
@@ -932,7 +933,9 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                 }
                 
                 if (parcelType != ParcelConnectivity::PARCEL_TYPE_INVALID) {
-                    const AString mapName = mappableLabelFile->getMapName(mapIndex);
+                    const AString mapName = (AString::number(mapIndex + 1)
+                                             + ": "
+                                             + mappableLabelFile->getMapName(mapIndex));
                     
                     ParcelConnectivity* parcelConnectivity = new ParcelConnectivity(brain,
                                                                                     parcelType,
@@ -949,13 +952,33 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                         this->parcelConnectivities.push_back(parcelConnectivity);
 
                     if (hasCiftiConnectivity) {
-                        const AString actionName("Show Cifti Connectivity For Parcel "
-                                                 + labelName
-                                                 + " in map "
-                                                 + mapName);
-                        QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
-                        action->setData(qVariantFromValue((void*)parcelConnectivity));
-                        ciftiConnectivityActions.push_back(action);
+                        bool matchFlag = false;
+                        if (parcelType == ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES) {
+                            matchFlag = true;
+                        }
+                        else if (parcelType == ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS) {
+                            for (std::vector<CiftiMappableConnectivityMatrixDataFile*>::iterator iter = ciftiMatrixFiles.begin();
+                                 iter != ciftiMatrixFiles.end();
+                                 iter++) {
+                                const CiftiMappableConnectivityMatrixDataFile* ciftiFile = *iter;
+                                if (ciftiFile->matchesDimensions(volumeDimensions[0],
+                                                                 volumeDimensions[1],
+                                                                 volumeDimensions[2])) {
+                                    matchFlag = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (matchFlag) {
+                            const AString actionName("Show Cifti Connectivity For Parcel "
+                                                     + labelName
+                                                     + " in map "
+                                                     + mapName);
+                            QAction* action = ciftiConnectivityActionGroup->addAction(actionName);
+                            action->setData(qVariantFromValue((void*)parcelConnectivity));
+                            ciftiConnectivityActions.push_back(action);
+                        }
                     }
                     
                     if (haveCiftiFiberTrajectoryFiles) {
@@ -969,13 +992,40 @@ BrainOpenGLWidgetContextMenu::addLabelRegionOfInterestActions()
                     }
                     
                     if (haveChartableFiles) {
-                        const AString tsActionName("Show Data/Time Series Graph For Parcel "
-                                                   + labelName
-                                                   + " in map "
-                                                   + mapName);
-                        QAction* tsAction = chartableDataActionGroup->addAction(tsActionName);
-                        tsAction->setData(qVariantFromValue((void*)parcelConnectivity));
-                        chartableDataActions.push_back(tsAction);
+                        bool matchFlag = false;
+                        if (parcelType == ParcelConnectivity::PARCEL_TYPE_SURFACE_NODES) {
+                            matchFlag = true;
+                        }
+                        else if (parcelType == ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS) {
+                            for (std::vector<ChartableBrainordinateInterface*>::iterator iter = chartableFiles.begin();
+                                 iter != chartableFiles.end();
+                                 iter++) {
+                                const ChartableBrainordinateInterface* chartFile = *iter;
+                                const CaretMappableDataFile* mapDataFile = chartFile->getCaretMappableDataFile();
+                                if (mapDataFile != NULL){
+                                    if (mapDataFile->isVolumeMappable()) {
+                                        const VolumeMappableInterface* volMap = dynamic_cast<const VolumeMappableInterface*>(mapDataFile);
+                                        if (volMap->matchesDimensions(volumeDimensions[0],
+                                                                      volumeDimensions[1],
+                                                                      volumeDimensions[2])) {
+                                            matchFlag = true;
+                                            break;
+                                        }
+                                        
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (matchFlag) {
+                            const AString tsActionName("Show Data/Time Series Graph For Parcel "
+                                                       + labelName
+                                                       + " in map "
+                                                       + mapName);
+                            QAction* tsAction = chartableDataActionGroup->addAction(tsActionName);
+                            tsAction->setData(qVariantFromValue((void*)parcelConnectivity));
+                            chartableDataActions.push_back(tsAction);
+                        }
                     }
                 }
             }
@@ -1339,7 +1389,8 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
     std::vector<int32_t> nodeIndices;
-    
+    std::vector<VoxelIJK> voxelIndices;
+
     switch (pc->parcelType) {
         case ParcelConnectivity::PARCEL_TYPE_INVALID:
             break;
@@ -1358,6 +1409,17 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
             }
             break;
         case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+            pc->getVoxelIndices(voxelIndices);
+            if (voxelIndices.empty()) {
+                WuQMessageBox::errorOk(this,
+                                       "No voxels match label " + pc->labelName);
+                return;
+            }
+            if (pc->chartingDataManager->hasNetworkFiles()) {
+                if (warnIfNetworkBrainordinateCountIsLarge(voxelIndices.size()) == false) {
+                    return;
+                }
+            }
             break;
     }
     
@@ -1379,6 +1441,9 @@ BrainOpenGLWidgetContextMenu::parcelChartableDataActionSelected(QAction* action)
                                                                          nodeIndices);
                 break;
             case ParcelConnectivity::PARCEL_TYPE_VOLUME_VOXELS:
+                cursor.restoreCursor();
+                WuQMessageBox::errorOk(this,
+                                       "Charting of voxel average has not been implemented.");
                 break;
         }
     }

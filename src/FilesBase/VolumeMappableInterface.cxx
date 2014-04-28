@@ -52,3 +52,34 @@ VolumeMappableInterface::getVoxelSpacing(float& spacingOut1,
     spacingOut3 = z1 - originZ;
 }
 
+/**
+ * Does this volume have these spatial dimensions?
+ *
+ * @param dim1
+ *     First dimension.
+ * @param dim2
+ *     Second dimension.
+ * @param dim3
+ *     Third dimension.
+ * @return
+ *     True if this volume's spatial dimensions match the
+ *     given dimensions, else false.
+ */
+bool
+VolumeMappableInterface::matchesDimensions(const int64_t dim1,
+                                           const int64_t dim2,
+                                           const int64_t dim3) const
+{
+    std::vector<int64_t> dims;
+    getDimensions(dims);
+    
+    if (dims.size() >= 3){
+        if ((dims[0] == dim1)
+            && (dims[1] == dim2)
+            && (dims[2] == dim3)) {
+            return true;
+        }
+    }
+    
+    return false;
+}
