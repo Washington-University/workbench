@@ -68,9 +68,9 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
     ret->createOptionalParameter(11, "-fix-zeros-surface", "treat values of zero on the surface as missing data");
     
     ret->setHelpText(
-        AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and ") +
-        "either for .dconn.  The fix zeros options will treat values of zero as lack of data, " +
-        "and not use that value when generating the smoothed values, but will fill zeros with extrapolated values.  " +
+        AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and either for .dconn.  ") +
+        "Data in different structures is smoothed independently, so volume structures that touch do not smooth across this boundary.  " +
+        "The fix zeros options will treat values of zero as lack of data, and not use that value when generating the smoothed values, but will fill zeros with extrapolated values.  " +
         "The ROI should have a brain models mapping along columns, exactly matching the mapping of the chosen direction in the input file.  " +
         "Data outside the ROI is ignored."
     );

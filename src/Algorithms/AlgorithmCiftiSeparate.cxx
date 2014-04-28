@@ -79,7 +79,7 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     
     AString helpText = AString("You must specify -metric, -volume-all, -volume, or -label for this command to do anything.  ") +
         "Output volumes will spatially line up with their original positions, whether or not they are cropped.  " +
-        "For dtseries, use COLUMN, and if your matrix is fully symmetric, COLUMN is more efficient.  " +
+        "For dtseries, dscalar, and dlabel, use COLUMN, and if your matrix is fully symmetric, COLUMN is more efficient.  " +
         "The structure argument must be one of the following:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
