@@ -209,20 +209,23 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         myIO.openRead(fileToRead);
         const NiftiHeader& inHeader = myIO.getHeader();
         int numComponents = myIO.getNumComponents();
-        reinitialize(myIO.getDimensions(), inHeader.getSForm(), numComponents);
         vector<int64_t> myDims = myIO.getDimensions();
+        int fullDims = 3;//deal with nifti with less than 3 dimensions
+        if (myDims.size() < 3) fullDims = (int)myDims.size();
         vector<int64_t> extraDims;//non-spatial dims
         if (myDims.size() > 3)
         {
             extraDims = vector<int64_t>(myDims.begin() + 3, myDims.end());
         }
+        while (myDims.size() < 3) myDims.push_back(1);//pretend we have 3 dimensions in header, always, things that use getOriginalDimensions assume this (because "VolumeFile")
+        reinitialize(myDims, inHeader.getSForm(), numComponents);
         int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
         if (numComponents != 1)
         {
             vector<float> tempFrame(frameSize), readBuffer(frameSize * numComponents);
             for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
             {
-                myIO.readData(readBuffer.data(), 3, *myiter);
+                myIO.readData(readBuffer.data(), fullDims, *myiter);
                 for (int c = 0; c < numComponents; ++c)
                 {
                     for (int64_t i = 0; i < frameSize; ++i)
@@ -236,7 +239,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
             vector<float> tempFrame(frameSize);
             for (MultiDimIterator<int64_t> myiter(extraDims); !myiter.atEnd(); ++myiter)
             {
-                myIO.readData(tempFrame.data(), 3, *myiter);
+                myIO.readData(tempFrame.data(), fullDims, *myiter);
                 setFrame(tempFrame.data(), getBrickIndexFromNonSpatialIndexes(*myiter));
             }
         }

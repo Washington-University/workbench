@@ -58,9 +58,9 @@ void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     freeMemory();
-    if (dimensionsIn.size() < 1)
+    if (dimensionsIn.size() < 3)
     {
-        throw DataFileException("volume files must have 1 or more dimensions");
+        throw DataFileException("volume files must have 3 or more dimensions");
     }
     m_origDims = dimensionsIn;//save the original dimensions
     int numDims = (int)dimensionsIn.size();
