@@ -106,6 +106,7 @@ TileTabsConfiguration.h
 TracksModificationInterface.h
 Vector3D.h
 VoxelIJK.h
+YokingGroupEnum.h
 
 ${MOC_SOURCE_FILES}
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
@@ -173,6 +174,7 @@ StructureEnum.cxx
 SystemUtilities.cxx
 TileTabsConfiguration.cxx
 Vector3D.cxx
+YokingGroupEnum.cxx
 )
 
 #

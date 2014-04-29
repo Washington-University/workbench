@@ -161,7 +161,6 @@ VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineSetModel.h
 WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
-YokingGroupEnum.h
 
 BorderDrawingTypeEnum.cxx
 Brain.cxx
@@ -273,7 +272,6 @@ VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineSetModel.cxx
 WholeBrainSurfaceSettings.cxx
 WholeBrainVoxelDrawingMode.cxx
-YokingGroupEnum.cxx
 ) 
 
 #

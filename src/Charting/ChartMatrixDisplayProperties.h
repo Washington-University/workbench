@@ -24,8 +24,10 @@
 
 #include "CaretObject.h"
 
+#include "ChartMatrixLoadingTypeEnum.h"
 #include "ChartMatrixScaleModeEnum.h"
 #include "SceneableInterface.h"
+#include "YokingGroupEnum.h"
 
 
 namespace caret {
@@ -41,6 +43,14 @@ namespace caret {
         ChartMatrixDisplayProperties(const ChartMatrixDisplayProperties& obj);
 
         ChartMatrixDisplayProperties& operator=(const ChartMatrixDisplayProperties& obj);
+        
+        ChartMatrixLoadingTypeEnum::Enum getMatrixLoadingType() const;
+        
+        YokingGroupEnum::Enum getYokingGroup() const;
+        
+        void setYokingGroup(const YokingGroupEnum::Enum yokingType);
+        
+        void setMatrixLoadingType(const ChartMatrixLoadingTypeEnum::Enum matrixLoadingType);
         
         float getCellWidth() const;
         
@@ -108,6 +118,12 @@ namespace caret {
         
         /** scale mode for view of matrix*/
         ChartMatrixScaleModeEnum::Enum m_scaleMode;
+        
+        /** Yoking group */
+        YokingGroupEnum::Enum m_yokingGroup;
+        
+        /** Matrix loading type */
+        ChartMatrixLoadingTypeEnum::Enum m_matrixLoadingType;
         
         // ADD_NEW_MEMBERS_HERE
 

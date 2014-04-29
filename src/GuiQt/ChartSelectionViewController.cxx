@@ -24,10 +24,13 @@
 #undef __CHART_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 #include <QButtonGroup>
+#include <QBoxLayout>
 #include <QCheckBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
+#include <QRadioButton>
 #include <QSignalMapper>
 #include <QStackedWidget>
 
@@ -38,9 +41,13 @@
 #include "CaretDataFileSelectionModel.h"
 #include "CaretMappableDataFile.h"
 #include "ChartableMatrixInterface.h"
+#include "ChartMatrixDisplayProperties.h"
+#include "ChartMatrixLoadingTypeEnum.h"
 #include "ChartModel.h"
 #include "ChartableBrainordinateInterface.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -441,6 +448,41 @@ ChartSelectionViewController::matrixFileSelected(CaretDataFile* /*caretDataFile*
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
 }
 
+/**
+ * Gets called when matrix loading button is clicked.
+ */
+void
+ChartSelectionViewController::matrixFileLoadingButtonClicked()
+{
+    ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
+    if (displayProperties != NULL) {
+        if (m_matrixLoadByColumnRadioButton->isChecked()) {
+            displayProperties->setMatrixLoadingType(ChartMatrixLoadingTypeEnum:: CHART_MATRIX_LOAD_BY_COLUMN);
+        }
+        else if (m_matrixLoadByRowRadioButton->isChecked()) {
+            displayProperties->setMatrixLoadingType(ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW);
+        }
+        else {
+            CaretAssert(0);
+        }
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+
+/**
+ * Gets called when yoking gruup is changed.
+ */
+void
+ChartSelectionViewController::matrixYokingGroupEnumComboBoxActivated()
+{
+    ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
+    if (displayProperties != NULL) {
+        displayProperties->setYokingGroup(m_matrixYokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
 
 /**
  * @return The matrix chart widget.
@@ -449,23 +491,90 @@ QWidget*
 ChartSelectionViewController::createMatrixChartWidget()
 {
     QLabel* fileLabel = new QLabel("File ");
-    
     m_matrixFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     QObject::connect(m_matrixFileSelectionComboBox, SIGNAL(fileSelected(CaretDataFile*)),
                      this, SLOT(matrixFileSelected(CaretDataFile*)));
     m_matrixFileSelectionComboBox->getWidget()->setSizePolicy(QSizePolicy::MinimumExpanding,
                                                               m_matrixFileSelectionComboBox->getWidget()->sizePolicy().verticalPolicy());
-    QWidget* widget = new QWidget();
     
-    QGridLayout* layout = new QGridLayout(widget);
-    layout->setColumnStretch(0, 0);
-    layout->addWidget(fileLabel,
+    m_matrixLoadByColumnRadioButton = new QRadioButton("Column");
+    m_matrixLoadByRowRadioButton    = new QRadioButton("Row");
+    
+    QButtonGroup* matrixLoadButtonGroup = new QButtonGroup(this);
+    matrixLoadButtonGroup->addButton(m_matrixLoadByColumnRadioButton);
+    matrixLoadButtonGroup->addButton(m_matrixLoadByRowRadioButton);
+    matrixLoadButtonGroup->setExclusive(true);
+    QObject::connect(matrixLoadButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
+                     this, SLOT(matrixFileLoadingButtonClicked()));
+    
+    QGroupBox* matrixLoadGroupBox = new QGroupBox("Load by");
+    QVBoxLayout* matrixLoadLayout = new QVBoxLayout(matrixLoadGroupBox);
+    matrixLoadLayout->addWidget(m_matrixLoadByColumnRadioButton);
+    matrixLoadLayout->addWidget(m_matrixLoadByRowRadioButton);
+    matrixLoadGroupBox->setSizePolicy(QSizePolicy::Fixed,
+                                      QSizePolicy::Fixed);
+    
+    QLabel* yokeLabel = new QLabel("Yoke ");
+    m_matrixYokingGroupComboBox = new EnumComboBoxTemplate(this);
+    m_matrixYokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
+    QObject::connect(m_matrixYokingGroupComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(matrixYokingGroupEnumComboBoxActivated()));
+    
+    QGridLayout* fileYokeLayout = new QGridLayout();
+    fileYokeLayout->setColumnStretch(0, 0);
+    fileYokeLayout->setColumnStretch(1, 0);
+    fileYokeLayout->setColumnStretch(2, 100);
+    fileYokeLayout->addWidget(fileLabel,
                       0, 0);
-    layout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
-                      0, 1);
+    fileYokeLayout->addWidget(m_matrixFileSelectionComboBox->getWidget(),
+                      0, 1,
+                      1, 2);
+    fileYokeLayout->addWidget(yokeLabel,
+                      1, 0);
+    fileYokeLayout->addWidget(m_matrixYokingGroupComboBox->getWidget(),
+                      1, 1);
     
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    layout->addWidget(matrixLoadGroupBox, 0);
+    layout->addLayout(fileYokeLayout, 100);
     return widget;
 }
+
+/**
+ * @return Chart matrix display properties for the selected matrix file.
+ *         Value may be NULL!
+ */
+ChartMatrixDisplayProperties*
+ChartSelectionViewController::getChartMatrixDisplayProperties()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return NULL;
+    }
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    
+    ModelChart* modelChart = brain->getChartModel();
+    if (modelChart != NULL) {
+        CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
+        m_matrixFileSelectionComboBox->updateComboBox(fileSelectionModel);
+        
+        CaretDataFile* caretFile = fileSelectionModel->getSelectedFile();
+        if (caretFile != NULL) {
+            ChartableMatrixInterface* matrixFile = dynamic_cast<ChartableMatrixInterface*>(caretFile);
+            if (matrixFile != NULL) {
+                ChartMatrixDisplayProperties* displayProperties = matrixFile->getChartMatrixDisplayProperties(browserTabIndex);
+                return displayProperties;
+            }
+        }
+    }
+    
+    return NULL;
+}
+
 /**
  * Update the matrix chart widget.
  *
@@ -483,6 +592,23 @@ ChartSelectionViewController::updateMatrixChartWidget(Brain* /* brain */,
 {
     CaretDataFileSelectionModel* fileSelectionModel = modelChart->getChartableMatrixFileSelectionModel(browserTabIndex);
     m_matrixFileSelectionComboBox->updateComboBox(fileSelectionModel);
+    
+    const ChartMatrixDisplayProperties* displayProperties = getChartMatrixDisplayProperties();
+    if (displayProperties != NULL) {
+        const ChartMatrixLoadingTypeEnum::Enum loadType = displayProperties->getMatrixLoadingType();
+        
+        switch (loadType) {
+            case ChartMatrixLoadingTypeEnum:: CHART_MATRIX_LOAD_BY_COLUMN:
+                m_matrixLoadByColumnRadioButton->setChecked(true);
+                break;
+            case ChartMatrixLoadingTypeEnum::CHART_MATRIX_LOAD_BY_ROW:
+                m_matrixLoadByRowRadioButton->setChecked(true);
+                break;
+        }
+        
+        const YokingGroupEnum::Enum yokingGroup = displayProperties->getYokingGroup();
+        m_matrixYokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(yokingGroup);
+    }
 }
 
 ///**

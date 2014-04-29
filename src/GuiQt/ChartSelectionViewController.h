@@ -32,6 +32,7 @@ class QCheckBox;
 class QGridLayout;
 class QLabel;
 class QLineEdit;
+class QRadioButton;
 class QSignalMapper;
 class QStackedWidget;
 
@@ -41,8 +42,10 @@ namespace caret {
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
     class ChartableBrainordinateInterface;
+    class ChartMatrixDisplayProperties;
     class ChartableMatrixInterface;
     class ChartModel;
+    class EnumComboBoxTemplate;
     class ModelChart;
     
     class ChartSelectionViewController : public QWidget, public EventListenerInterface {
@@ -60,6 +63,10 @@ namespace caret {
         void brainordinateSelectionCheckBoxClicked(int);
         
         void matrixFileSelected(CaretDataFile* caretDataFile);
+        
+        void matrixFileLoadingButtonClicked();
+
+        void matrixYokingGroupEnumComboBoxActivated();
         
     private:
         ChartSelectionViewController(const ChartSelectionViewController&);
@@ -101,6 +108,8 @@ namespace caret {
         
 //        ChartModel* getSelectedChartModel();
         
+        ChartMatrixDisplayProperties* getChartMatrixDisplayProperties();
+        
         QStackedWidget* m_stackedWidget;
         
         QWidget* m_brainordinateChartWidget;
@@ -121,6 +130,12 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_matrixFileSelectionComboBox;
         
+        QRadioButton* m_matrixLoadByColumnRadioButton;
+        
+        QRadioButton* m_matrixLoadByRowRadioButton;
+                
+        EnumComboBoxTemplate* m_matrixYokingGroupComboBox;
+
         static const int COLUMN_CHECKBOX;
         static const int COLUMN_LINE_EDIT;
         
