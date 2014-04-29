@@ -217,7 +217,8 @@ ChartAxisCartesian::updateForAutoRangeScale()
                                            digitsRightOfDecimal);
     m_axisLabelsMinimumValue = scaleMin;
     m_axisLabelsMaximumValue = scaleMax;
-    m_digitsRightOfDecimal = digitsRightOfDecimal;
+    m_axisLabelsStepValue    = scaleStep;
+    m_digitsRightOfDecimal   = digitsRightOfDecimal;
 
     /**
      * Use auto-scaled range for left and right axis
@@ -260,14 +261,12 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
 {
     labelOffsetInPixelsOut.clear();
     labelTextOut.clear();
- 
+    
     if (axisLengthInPixels < 25.0) {
         return;
     }
     
     updateForAutoRangeScale();
-    
-    const float numberOfTicks = 5;
     
     float dataStart = m_minimumValue;
     float dataEnd   = m_maximumValue;
@@ -277,23 +276,27 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
     }
     
     float labelsStart = m_axisLabelsMinimumValue;
+    float labelsEnd   = m_axisLabelsMaximumValue;
     float labelsRange = (m_axisLabelsMaximumValue - m_axisLabelsMinimumValue);
     if (labelsRange <= 0.0) {
         return;
     }
-    const float tickLabelsStep = labelsRange / numberOfTicks;
+    const float tickLabelsStep = m_axisLabelsStepValue;
     if (tickLabelsStep <= 0.0) {
         return;
     }
     
     float labelValue  = labelsStart;
-    for (int32_t i = 0; i <= numberOfTicks; i++) {
+    while (labelValue <= labelsEnd) {
         float labelParametricValue = (labelValue - dataStart) / dataRange;
         
         float labelValueForText = labelValue;
         
         if (dataRange >= 10.0) {
-            if (i == 0) {
+            /*
+             * Is this the first label?
+             */
+            if (labelValue <= labelsStart) {
                 /*
                  * Handles case when the minimum DATA value is just a little
                  * bit greater than the minimum value for axis labels such
@@ -316,7 +319,10 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
                 }
             }
             
-            if (i == numberOfTicks) {
+            /*
+             * Is this the last label?
+             */
+            if (labelValue >= labelsEnd) {
                 /*
                  * Like above, ensures a value is displayed at the right
                  * edge of the axis.
@@ -346,12 +352,127 @@ ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
             labelTextOut.push_back(labelText);
         }
         else {
-//            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
+            //            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
         }
         
         labelValue  += tickLabelsStep;
     }
 }
+
+
+// 29 April 2014
+///**
+// * Get the axis labels and their positions for drawing the scale.
+// *
+// * @param axisLengthInPixels
+// *   Length of axis in pixels.
+// * @param fontSizeInPixels
+// *   Size of the font in pixels.
+// * @param labelOffsetInPixelsOut
+// *   Output containing offset in pixels for the scale labels.
+// * @param labelTextOut
+// *   Output containing text for scale labels.
+// */
+//void
+//ChartAxisCartesian::getLabelsAndPositions(const float axisLengthInPixels,
+//                                          const float /*fontSizeInPixels*/,
+//                                          std::vector<float>& labelOffsetInPixelsOut,
+//                                          std::vector<AString>& labelTextOut)
+//{
+//    labelOffsetInPixelsOut.clear();
+//    labelTextOut.clear();
+// 
+//    if (axisLengthInPixels < 25.0) {
+//        return;
+//    }
+//    
+//    updateForAutoRangeScale();
+//    
+//    const float numberOfTicks = 5;
+//    
+//    float dataStart = m_minimumValue;
+//    float dataEnd   = m_maximumValue;
+//    float dataRange = (m_maximumValue - m_minimumValue);
+//    if (dataRange <= 0.0) {
+//        return;
+//    }
+//    
+//    float labelsStart = m_axisLabelsMinimumValue;
+//    float labelsRange = (m_axisLabelsMaximumValue - m_axisLabelsMinimumValue);
+//    if (labelsRange <= 0.0) {
+//        return;
+//    }
+//    const float tickLabelsStep = labelsRange / numberOfTicks;
+//    if (tickLabelsStep <= 0.0) {
+//        return;
+//    }
+//    
+//    float labelValue  = labelsStart;
+//    for (int32_t i = 0; i <= numberOfTicks; i++) {
+//        float labelParametricValue = (labelValue - dataStart) / dataRange;
+//        
+//        float labelValueForText = labelValue;
+//        
+//        if (dataRange >= 10.0) {
+//            if (i == 0) {
+//                /*
+//                 * Handles case when the minimum DATA value is just a little
+//                 * bit greater than the minimum value for axis labels such
+//                 * as in Data-Series data when the minimum data value is "1"
+//                 * and the minimum axis label value is "0".  Without this
+//                 * code no value is displayed at the left edge of the axis.
+//                 */
+//                if (labelParametricValue < 0.0) {
+//                    const float nextParametricValue = ((labelValue + tickLabelsStep) - dataStart) / dataRange;
+//                    if (nextParametricValue > 0.05) {
+//                        labelParametricValue = 0.0;
+//                        labelValueForText = dataStart;
+//                    }
+//                }
+//            }
+//            
+//            if (labelParametricValue < 0.0) {
+//                if (labelParametricValue >= -0.01) {
+//                    labelParametricValue = 0.0;
+//                }
+//            }
+//            
+//            if (i == numberOfTicks) {
+//                /*
+//                 * Like above, ensures a value is displayed at the right
+//                 * edge of the axis.
+//                 */
+//                if (labelParametricValue > 1.0) {
+//                    const float prevParametricValue = ((labelValue - tickLabelsStep) - dataStart) / dataRange;
+//                    if (prevParametricValue < 0.95) {
+//                        labelParametricValue = 1.0;
+//                        labelValueForText = dataEnd;
+//                    }
+//                }
+//            }
+//            
+//            if (labelParametricValue > 1.0) {
+//                if (labelParametricValue < 1.01) {
+//                    labelParametricValue = 1.0;
+//                }
+//            }
+//        }
+//        
+//        if ((labelParametricValue >= 0.0)
+//            && (labelParametricValue <= 1.0)) {
+//            const float labelPixelsPosition = axisLengthInPixels * labelParametricValue;
+//            const AString labelText = AString::number(labelValueForText, 'f', m_digitsRightOfDecimal);
+//            
+//            labelOffsetInPixelsOut.push_back(labelPixelsPosition);
+//            labelTextOut.push_back(labelText);
+//        }
+//        else {
+////            std::cout << "Label value=" << labelValue << " parametric=" << labelParametricValue << " failed." << std::endl;
+//        }
+//        
+//        labelValue  += tickLabelsStep;
+//    }
+//}
 
 /**
  * At times a copy of chart data will be needed BUT it must be

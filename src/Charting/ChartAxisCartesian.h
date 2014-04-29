@@ -83,6 +83,8 @@ namespace caret {
         
         mutable float m_axisLabelsMaximumValue;
         
+        mutable float m_axisLabelsStepValue;
+        
         // ADD_NEW_MEMBERS_HERE
         
     friend class ChartAxis;
