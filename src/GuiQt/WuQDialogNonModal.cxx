@@ -118,14 +118,14 @@ WuQDialogNonModal::showEvent(QShowEvent* event)
              * the size hint for the size.
              */
             this->move(m_positionWhenClosed);
-            const int32_t w = m_sizeWhenClosed.width();
-            const int32_t h = m_sizeWhenClosed.height();
-            if ((w > 0)
-                && (h > 0)) {
-                this->setDialogSizeHint(w,
-                                        h);
-                adjustSize();
-            }
+//            const int32_t w = m_sizeWhenClosed.width();
+//            const int32_t h = m_sizeWhenClosed.height();
+//            if ((w > 0)
+//                && (h > 0)) {
+//                this->setDialogSizeHint(w,
+//                                        h);
+//                adjustSize();
+//            }
         }
     }
     
