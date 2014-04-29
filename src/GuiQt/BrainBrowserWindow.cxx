@@ -2982,7 +2982,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     const bool maximizedWindow = sceneClass->getBooleanValue("isMaximized",
                                                        false);
     if (maximizedWindow) {
-        std::cout << "Showing maximized" << std::endl;
         showMaximized();
     }
 }
