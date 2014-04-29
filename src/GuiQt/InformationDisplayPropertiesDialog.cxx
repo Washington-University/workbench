@@ -142,7 +142,7 @@ InformationDisplayPropertiesDialog::updateDialog()
     m_idColorComboBox->setSelectedColor(info->getIdentificationSymbolColor());
     m_idContralateralColorComboBox->setSelectedColor(info->getIdentificationContralateralSymbolColor());
     m_symbolSizeSpinBox->blockSignals(true);
-    m_symbolSizeSpinBox->setValue(info->getIdentificationSymbolColor());
+    m_symbolSizeSpinBox->setValue(info->getIdentificationSymbolSize());
     m_symbolSizeSpinBox->blockSignals(false);
     m_mostRecentSymbolSizeSpinBox->blockSignals(true);
     m_mostRecentSymbolSizeSpinBox->setValue(info->getMostRecentIdentificationSymbolSize());
