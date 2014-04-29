@@ -46,7 +46,7 @@ ChartMatrixDisplayProperties::ChartMatrixDisplayProperties()
     m_scaleMode  = ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO;
     m_cellWidth  = 10.0;
     m_cellHeight = 10.0;
-    resetManualModeProperties();
+    resetPropertiesToDefault();
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_cellWidth", &m_cellWidth);
@@ -93,16 +93,17 @@ ChartMatrixDisplayProperties::operator=(const ChartMatrixDisplayProperties& obj)
 }
 
 /**
- * Reset the manual mode properties.
+ * Reset to the default.
  */
 void
-ChartMatrixDisplayProperties::resetManualModeProperties()
+ChartMatrixDisplayProperties::resetPropertiesToDefault()
 {
     m_viewPanning[0] = 0.0;
     m_viewPanning[1] = 0.0;
     m_viewZooming    = 1.0;
 //    m_cellWidth      = 10.0;
 //    m_cellHeight     = 10.0;
+    setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_AUTO);
 }
 
 /**
@@ -189,6 +190,7 @@ void
 ChartMatrixDisplayProperties::setViewZooming(const float viewZooming)
 {
     m_viewZooming = viewZooming;
+    setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL);
 }
 
 /**
@@ -211,6 +213,7 @@ ChartMatrixDisplayProperties::setViewPanning(const float viewPanning[2])
 {
     m_viewPanning[0] = viewPanning[0];
     m_viewPanning[1] = viewPanning[1];
+    setScaleMode(ChartMatrixScaleModeEnum::CHART_MATRIX_SCALE_MANUAL);
 }
 
 /**

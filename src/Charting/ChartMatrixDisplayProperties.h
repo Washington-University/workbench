@@ -62,7 +62,7 @@ namespace caret {
         
         void setScaleMode(const ChartMatrixScaleModeEnum::Enum scaleMode);
         
-        void resetManualModeProperties();
+        void resetPropertiesToDefault();
         
         // ADD_NEW_METHODS_HERE
 

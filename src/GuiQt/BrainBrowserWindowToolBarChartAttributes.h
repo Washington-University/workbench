@@ -113,8 +113,6 @@ namespace caret {
         virtual void updateContent();
         
     private slots:
-        void chartMatrixScaleModeEnumComboBoxItemActivated();
-        
         void cellWidthSpinBoxValueChanged(double value);
         
         void cellHeightSpinBoxValueChanged(double value);
@@ -123,8 +121,6 @@ namespace caret {
         
     private:
         BrainBrowserWindowToolBarChartAttributes* m_brainBrowserWindowToolBarChartAttributes;
-        
-        EnumComboBoxTemplate* m_chartMatrixScaleModeEnumComboBox;
         
         QDoubleSpinBox* m_cellWidthSpinBox;
         
