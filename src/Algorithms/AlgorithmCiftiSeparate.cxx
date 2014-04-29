@@ -41,7 +41,7 @@ AString AlgorithmCiftiSeparate::getCommandSwitch()
 
 AString AlgorithmCiftiSeparate::getShortDescription()
 {
-    return "SEPARATE A CIFTI MODEL INTO METRIC OR VOLUME";
+    return "WRITE A CIFTI MODEL AS METRIC, LABEL OR VOLUME";
 }
 
 OperationParameters* AlgorithmCiftiSeparate::getParameters()
