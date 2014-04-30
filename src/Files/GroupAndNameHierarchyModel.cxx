@@ -288,6 +288,12 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
     setName(labelFile->getFileNameNoPath());
 
     /*
+     * Names for missing group names or foci names.
+     */
+    const AString missingGroupName = "NoGroup";
+    const AString missingName = "NoName";
+    
+    /*
      * The label table
      */
     GiftiLabelTable* labelTable = labelFile->getLabelTable();
@@ -305,7 +311,11 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
         }
         else {
             for (int32_t i = 0; i < numGroups; i++) {
-                if (groups[i]->getName() != labelFile->getMapName(i)) {
+                AString mapName = labelFile->getMapName(i);
+                if (mapName.isEmpty()) {
+                    mapName = missingGroupName;
+                }
+                if (groups[i]->getName() != mapName) {
                     needToGenerateKeys = true;
                     break;
                 }
@@ -362,12 +372,6 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
          * Clear everything
          */
         this->clear();
-
-        /*
-         * Names for missing group names or foci names.
-         */
-        const AString missingGroupName = "NoGroup";
-        const AString missingName = "NoName";
 
         /*
          * Update with labels from maps
@@ -464,6 +468,12 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
         return;
     }
     
+    /*
+     * Names for missing group names or foci names.
+     */
+    const AString missingGroupName = "NoGroup";
+    const AString missingName = "NoName";
+    
     bool needToGenerateKeys = forceUpdate;
     
     setName(ciftiMappableDataFile->getFileNameNoPath());
@@ -484,7 +494,11 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
         }
         else {
             for (int32_t i = 0; i < numGroups; i++) {
-                if (groups[i]->getName() != ciftiMappableDataFile->getMapName(i)) {
+                AString mapName = ciftiMappableDataFile->getMapName(i);
+                if (mapName.isEmpty()) {
+                    mapName = missingGroupName;
+                }
+                if (groups[i]->getName() != mapName) {
                     needToGenerateKeys = true;
                     break;
                 }
@@ -557,12 +571,6 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
          * Clear everything
          */
         this->clear();
-        
-        /*
-         * Names for missing group names or foci names.
-         */
-        const AString missingGroupName = "NoGroup";
-        const AString missingName = "NoName";
         
         /*
          * Update with labels from maps
@@ -663,6 +671,12 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
         return;
     }
     
+    /*
+     * Names for missing group names or foci names.
+     */
+    const AString missingGroupName = "NoGroup";
+    const AString missingName = "NoName";
+    
     bool needToGenerateKeys = forceUpdate;
     
     setName(volumeFile->getFileNameNoPath());
@@ -683,7 +697,11 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
         }
         else {
             for (int32_t i = 0; i < numGroups; i++) {
-                if (groups[i]->getName() != volumeFile->getMapName(i)) {
+                AString mapName = volumeFile->getMapName(i);
+                if (mapName.isEmpty()) {
+                    mapName = missingGroupName;
+                }
+                if (groups[i]->getName() != mapName) {
                     needToGenerateKeys = true;
                     break;
                 }
@@ -756,13 +774,7 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
          * Clear everything
          */
         this->clear();
-        
-        /*
-         * Names for missing group names or foci names.
-         */
-        const AString missingGroupName = "NoGroup";
-        const AString missingName = "NoName";
-        
+                
         /*
          * Update with labels from maps
          */
