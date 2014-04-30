@@ -288,7 +288,7 @@ FiberOrientationSamplesLoader::loadSphericalOrientationVolumes(Brain* brain,
                                                  + fileSuffix);
                     FileInformation magFileInfo(directoryName,
                                                 magFileName);
-                    const AString magFilePath = magFileInfo.getFilePath();
+                    const AString magFilePath = magFileInfo.getAbsoluteFilePath();
                     m_sampleMagnitudeVolumes[i]->readFile(magFilePath);
                     allVolumes.push_back(m_sampleMagnitudeVolumes[i]);
                 }
@@ -306,7 +306,7 @@ FiberOrientationSamplesLoader::loadSphericalOrientationVolumes(Brain* brain,
                                                  + fileSuffix);
                     FileInformation phiFileInfo(directoryName,
                                                 phiFileName);
-                    const AString phiFilePath = phiFileInfo.getFilePath();
+                    const AString phiFilePath = phiFileInfo.getAbsoluteFilePath();
                     m_samplePhiVolumes[i]->readFile(phiFilePath);
                     allVolumes.push_back(m_samplePhiVolumes[i]);
                 }
@@ -324,7 +324,7 @@ FiberOrientationSamplesLoader::loadSphericalOrientationVolumes(Brain* brain,
                                                    + fileSuffix);
                     FileInformation thetaFileInfo(directoryName,
                                                   thetaFileName);
-                    const AString thetaFilePath = thetaFileInfo.getFilePath();
+                    const AString thetaFilePath = thetaFileInfo.getAbsoluteFilePath();
                     m_sampleThetaVolumes[i]->readFile(thetaFilePath);
                     allVolumes.push_back(m_sampleThetaVolumes[i]);
                 }

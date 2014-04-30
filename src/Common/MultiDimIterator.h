@@ -35,7 +35,7 @@ namespace caret
         void gotoBegin();
         void gotoLast();
     public:
-        MultiDimIterator(const std::vector<T>& dimensions);
+        explicit MultiDimIterator(const std::vector<T>& dimensions);
         void operator++();
         void operator++(int);
         void operator--();

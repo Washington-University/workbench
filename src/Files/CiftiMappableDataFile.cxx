@@ -216,9 +216,6 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
         
         return ciftiMappableFile;
     }
-    catch (const CiftiFileException& ce) {
-        errorMessageOut = ce.whatString();
-    }
     catch (const DataFileException& de) {
         errorMessageOut = de.whatString();
     }
@@ -273,8 +270,7 @@ CiftiMappableDataFile::clearPrivate()
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
 
-    m_niftiHeaderDimensions.clear();
-    m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
+    m_ciftiDimensions.clear();
 }
 
 /**
@@ -415,8 +411,8 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                 tempFile.readFile(filename);
                 
                 CiftiFile* ciftiFile = new CiftiFile();
-                ciftiFile->openFile(tempFile.getFileName(),
-                                    IN_MEMORY);
+                ciftiFile->openFile(tempFile.getFileName());
+                ciftiFile->convertToInMemory();
                 ciftiInterface = ciftiFile;
             }
             else {
@@ -452,12 +448,11 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
             CiftiFile* ciftiFile = new CiftiFile();
             switch (m_fileReading) {
                 case FILE_READ_DATA_ALL:
-                    ciftiFile->openFile(filename,
-                                        IN_MEMORY);
+                    ciftiFile->openFile(filename);
+                    ciftiFile->convertToInMemory();
                     break;
                 case FILE_READ_DATA_AS_NEEDED:
-                    ciftiFile->openFile(filename,
-                                        ON_DISK);
+                    ciftiFile->openFile(filename);
                     break;
             }
             ciftiInterface = ciftiFile;
@@ -467,10 +462,6 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
             initializeFromCiftiInterface(ciftiInterface,
                                          filename);
         }
-    }
-    catch (CiftiFileException& e) {
-        clear();
-        throw DataFileException(e.whatString());
     }
     catch (DataFileException& e) {
         clear();
@@ -703,27 +694,14 @@ CiftiMappableDataFile::initializeFromCiftiInterface(CiftiInterface* ciftiInterfa
         
         CaretLogFine(msg);
         
-        m_niftiHeaderDimensions.clear();
-        m_niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_INVALID;
+        m_ciftiDimensions.clear();
         
         CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(ciftiInterface);
         if (ciftiFile != NULL) {
-            CiftiHeader ciftiHeader;
-            ciftiFile->getHeader(ciftiHeader);
-            
-            nifti_2_header nifti2Struct;
-            ciftiHeader.getHeaderStruct(nifti2Struct);
-            for (int32_t i = 0; i < 8; i++) {
-                m_niftiHeaderDimensions.push_back(nifti2Struct.dim[i]);
-            }
-            ciftiHeader.getNiftiDataTypeEnum(m_niftiDataType);
+            m_ciftiDimensions = ciftiFile->getDimensions();
         }
         
         clearModified();
-    }
-    catch (CiftiFileException& e) {
-        clear();
-        throw DataFileException(e.whatString());
     }
     catch (DataFileException& e) {
         clear();
@@ -767,50 +745,45 @@ CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
 void
 CiftiMappableDataFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    try {
-        if (m_ciftiInterface == NULL) {
-            throw DataFileException(filename
-                                    + " cannot be written because no file is loaded");
-        }
-        CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(m_ciftiInterface.getPointer());
-        if (ciftiFile == NULL) {
-            throw DataFileException(filename
-                                    + " cannot be written because it was not read from a disk file and was"
-                                    + " likely read via the network.");
-        }
-        
-        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
-            throw DataFileException(filename
-                                    + " dense connectivity files cannot be written to files due to their large sizes.");
-        }
-        
+    if (m_ciftiInterface == NULL) {
+        throw DataFileException(filename
+                                + " cannot be written because no file is loaded");
+    }
+    CiftiFile* ciftiFile = dynamic_cast<CiftiFile*>(m_ciftiInterface.getPointer());
+    if (ciftiFile == NULL) {
+        throw DataFileException(filename
+                                + " cannot be written because it was not read from a disk file and was"
+                                + " likely read via the network.");
+    }
+    
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
+        throw DataFileException(filename
+                                + " dense connectivity files cannot be written to files due to their large sizes.");
+    }
+    
+    /*
+        * Update the file's metadata.
+        */
+    m_ciftiFacade->setFileMetadata(m_metadata);
+    
+    /*
+        * Update all data in the file.
+        */
+    const int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; i++) {
         /*
-         * Update the file's metadata.
-         */
-        m_ciftiFacade->setFileMetadata(m_metadata);
-        
-        /*
-         * Update all data in the file.
-         */
-        const int32_t numMaps = getNumberOfMaps();
-        for (int32_t i = 0; i < numMaps; i++) {
+            * Does file have map attributes
+            */
+        if (hasMapAttributes()) {
             /*
-             * Does file have map attributes
-             */
-            if (hasMapAttributes()) {
-                /*
-                 * Replace the map's metadata.
-                 */
-                m_ciftiFacade->setMetadataForMapOrSeriesIndex(i, getMapMetaData(i));
-            }
-            
+                * Replace the map's metadata.
+                */
+            m_ciftiFacade->setMetadataForMapOrSeriesIndex(i, getMapMetaData(i));
         }
         
-        ciftiFile->writeFile(filename);
     }
-    catch (const CiftiFileException& cfe) {
-        throw DataFileException(cfe);
-    }
+    
+    ciftiFile->writeFile(filename);
 }
 
 /**
@@ -3443,18 +3416,15 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     dataFileInformation.addNameAndValue("Volume Dim[1]", dimJ);
     dataFileInformation.addNameAndValue("Volume Dim[2]", dimK);
     
-    if ( ! m_niftiHeaderDimensions.empty()) {
-        const int32_t numDims = static_cast<int32_t>(m_niftiHeaderDimensions.size());
+    if ( ! m_ciftiDimensions.empty()) {
+        const int32_t numDims = static_cast<int32_t>(m_ciftiDimensions.size());
         for (int32_t i = 0; i < numDims; i++) {
-            dataFileInformation.addNameAndValue(("NIFTI Dim["
+            dataFileInformation.addNameAndValue(("CIFTI Dim["
                                                  + AString::number(i)
                                                  + "]"),
-                                                m_niftiHeaderDimensions[i]);
+                                                m_ciftiDimensions[i]);
         }
     }
-    
-    dataFileInformation.addNameAndValue("NIFTI Data Type",
-                                        NiftiDataTypeEnum::toName(m_niftiDataType));
     
     std::vector<StructureEnum::Enum> allStructures;
     StructureEnum::getAllEnums(allStructures);

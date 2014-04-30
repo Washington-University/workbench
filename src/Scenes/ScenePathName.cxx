@@ -120,7 +120,7 @@ ScenePathName::setValueToAbsolutePath(const AString& sceneFileName,
                 if (fileInfo.isRelative()) {
                     FileInformation fileInfo(sceneFileInfo.getPathName(),
                                              name);
-                    name = fileInfo.getFilePath();
+                    name = fileInfo.getAbsoluteFilePath();
                 }
             }
         }

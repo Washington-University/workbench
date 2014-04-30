@@ -707,7 +707,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
     if (fileInfo.isRelative()) {
         FileInformation absFileInfo(GuiManager::get()->getBrain()->getCurrentDirectory(),
                                     m_imageFileNameLineEdit->text().trimmed());
-        defaultFileName = absFileInfo.getFilePath();
+        defaultFileName = absFileInfo.getAbsoluteFilePath();
     }
     
     std::vector<AString> imageFileFilters;

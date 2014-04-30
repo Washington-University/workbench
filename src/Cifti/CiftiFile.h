@@ -1,3 +1,6 @@
+#ifndef __CIFTI_FILE_H__
+#define __CIFTI_FILE_H__
+
 /*LICENSE_START*/
 /*
  *  Copyright (C) 2014  Washington University School of Medicine
@@ -18,114 +21,71 @@
  */
 /*LICENSE_END*/
 
-#ifndef __CIFTI_FILE
-#define __CIFTI_FILE
-#include <QtCore>
-#include "iostream"
-#include "CiftiFileException.h"
-#include "CiftiHeaderIO.h"
+#include "CaretPointer.h"
 #include "CiftiInterface.h"
 #include "CiftiXML.h"
-#include "CiftiMatrix.h"
+#include "CiftiXMLOld.h"
 
-/// Class for opening, reading, and writing generic Cifti Data
+#include <QString>
 
-namespace caret {
+#include <vector>
 
-class CiftiFile : public CiftiInterface {
-public:
-    /// Constructor
-    CiftiFile();
-    /// Constructor
-    CiftiFile(const CacheEnum &caching, const AString &cacheFile = NULL);
-    /// Constructor
-    CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY, const AString &cacheFile = NULL);
-    /// Open the Cifti File
-    virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY);
-    /// Set Cifti Cache File, must be called BEFORE open file, or set in the constructor
-    virtual void setCiftiCacheFile(const AString &cacheFile);
-    /// Write the Cifti File
-    virtual void writeFile(const AString &fileName);
+namespace caret
+{
     
-    //check if it is in memory or not
-    bool isInMemory() const;
-    ///convert to in-memory file
-    void convertToInMemory();
-
-    //get/set Nifti2/CiftiHeader
-    /// set CiftiHeader
-    //virtual void setHeader(const CiftiHeader &header) throw (CiftiFileException);
-    /// get CiftiHeader
-    virtual void getHeader(CiftiHeader &header);
-
-    //TODO, put some thought into whether we want to hand back an xml tree vs handing back a class that manages
-    //the tree in an intelligent way.
-    /// set CiftiXML
-    virtual void setCiftiXML(const CiftiXML &xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());
-    /// set CiftiXML with old structure
-    virtual void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());
-
-    // Matrix IO, simply passes through to underlying Cifti Matrix
-    /// get Row
-    void getRow(float * rowOut,const int64_t &rowIndex, const bool& tolerateShortRead) const
-    { m_matrix.getRow(rowOut, rowIndex, tolerateShortRead); }
-    /// get Row
-    void getRow(float * rowOut,const int64_t &rowIndex) const
-    { m_matrix.getRow(rowOut, rowIndex); }
-    /// set Row
-    void setRow(float * rowIn, const int64_t &rowIndex)
+    class CiftiFile : public CiftiInterface
     {
-        invalidateDataRange();
-        m_matrix.setRow(rowIn, rowIndex);
-    }
-    /// get Column
-    void getColumn(float * columnOut, const int64_t &columnIndex) const
-    { m_matrix.getColumn(columnOut, columnIndex); }
-    /// set Column
-    void setColumn(float * columnIn, const int64_t &columnIndex)
-    {
-        invalidateDataRange();
-        m_matrix.setColumn(columnIn, columnIndex);
-    }
-    /// get Matrix
-    void getMatrix(float *matrixOut)
-    { m_matrix.getMatrix(matrixOut); }
-    /// set Matrix
-    void setMatrix(float *matrixIn)
-    {
-        invalidateDataRange();
-        m_matrix.setMatrix(matrixIn);
-    }
-    // setup Matrix
-    //void setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn = 0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
-    /// set timestep
-    bool setRowTimestep(const float& seconds);
-    bool setColumnTimestep(const float& seconds);
+    public:
+        class ReadImplInterface
+        {
+        public:
+            virtual void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead) const = 0;
+            virtual void getColumn(float* dataOut, const int64_t& index) const = 0;
+            virtual bool isInMemory() const { return false; }
+            virtual ~ReadImplInterface();
+        };
+        //assume if you can write to it, you can also read from it
+        class WriteImplInterface : public ReadImplInterface
+        {
+        public:
+            virtual void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect) = 0;
+            virtual void setColumn(const float* dataIn, const int64_t& index) = 0;
+            virtual ~WriteImplInterface();
+        };
+        CiftiFile() { }
+        explicit CiftiFile(const AString &fileName);//calls openFile
+        void openFile(const QString& fileName);//starts on-disk reading
+        void setWritingFile(const QString& fileName);//starts on-disk writing
+        void writeFile(const QString& fileName, const CiftiVersion& writingVersion);//leaves current state as-is, rewrites if already writing to that filename and version mismatch
+        void writeFile(const QString& fileName);//leaves current state as-is, does nothing if already writing to that filename
+        void convertToInMemory();
+        
+        bool isInMemory() const;
+        void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead = false) const;//tolerateShortRead is useful for on-disk writing when it is easiest to do RMW multiple times on a new file
+        const std::vector<int64_t>& getDimensions() const { return m_dims; }
+        void getColumn(float* dataOut, const int64_t& index) const;//for 2D only, will be slow if on disk!
+        
+        void setCiftiXML(const CiftiXML& xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());
+        void setCiftiXML(const CiftiXMLOld &xml, const bool useOldMetadata = true, const CiftiVersion& writingVersion = CiftiVersion());//set xml from old implementation
+        void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect);
+        void setColumn(const float* dataIn, const int64_t& index);//for 2D only, will be slow if on disk!
+        
+        void getRow(float* dataOut, const int64_t& index, const bool& tolerateShortRead) const;//backwards compatibility for old CiftiFile/CiftiInterface
+        void getRow(float* dataOut, const int64_t& index) const;
+        int64_t getNumberOfRows() const;
+        int64_t getNumberOfColumns() const;
+        
+        void setRow(const float* dataIn, const int64_t& index);//backwards compatibility for old CiftiFile
+    private:
+        std::vector<int64_t> m_dims;
+        CaretPointer<WriteImplInterface> m_writingImpl;//this will be equal to m_readingImpl when non-null
+        CaretPointer<ReadImplInterface> m_readingImpl;
+        QString m_writingFile;
+        //CiftiXML m_xml;//uncomment when we drop CiftiInterface
+        CiftiVersion m_writingVersion;
+        void verifyWriteImpl();
+    };
     
-    ///get row size
-    int64_t getNumberOfColumns() const;
-    
-    ///get column size
-    int64_t getNumberOfRows() const;
-
-    /// Destructor
-    virtual ~CiftiFile();
-protected:
-    /// setup Matrix
-    void setupMatrix();
-    
-    virtual void init();
-    
-    CiftiVersion m_writingVersion;
-    QByteArray m_xmlBytes;
-    
-    AString m_fileName;
-    AString m_cacheFileName;
-    CiftiHeaderIO m_headerIO;
-    CiftiMatrix m_matrix;
-    bool m_swapNeeded;
-    CacheEnum m_caching;
-};
 }
 
-#endif //__CIFTI_FILE
+#endif //__CIFTI_FILE_H__

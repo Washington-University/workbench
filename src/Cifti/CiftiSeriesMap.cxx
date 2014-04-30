@@ -20,7 +20,6 @@
 
 #include "CiftiSeriesMap.h"
 
-#include "CaretAssert.h"
 #include "CaretException.h"
 
 #include <cmath>

@@ -363,7 +363,9 @@ void NiftiHeader::setDimensions(const vector<int64_t>& dimsIn)
 void NiftiHeader::setIntent(const int32_t& code, const char name[16])
 {
     m_header.intent_code = code;
-    strncpy(m_header.intent_name, name, 16);
+    int i;//custom strncpy-like code to fill nulls to the end
+    for (i = 0; i < 16 && name[i] != '\0'; ++i) m_header.intent_name[i] = name[i];
+    for (; i < 16; ++i) m_header.intent_name[i] = '\0';
 }
 
 void NiftiHeader::setSForm(const vector<vector<float> >& sForm)

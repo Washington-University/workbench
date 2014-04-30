@@ -68,7 +68,7 @@ namespace caret {
         
         AString getPathName() const;
         
-        AString getFilePath() const;
+        AString getAbsoluteFilePath() const;
         
         AString getCanonicalFilePath() const;
         

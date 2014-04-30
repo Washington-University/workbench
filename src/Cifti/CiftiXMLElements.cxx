@@ -18,7 +18,8 @@
  */
 /*LICENSE_END*/
 #include "CiftiXMLElements.h"
-#include "CiftiFileException.h"
+
+#include "DataFileException.h"
 #include "GiftiLabelTable.h"
 #include "PaletteColorMapping.h"
 #include "VoxelIJK.h"
@@ -37,7 +38,7 @@ void CiftiBrainModelElement::setupLookup(CiftiMatrixIndicesMapElement& myMap)
         {
             if (m_indexCount != m_surfaceNumberOfNodes)
             {
-                throw CiftiFileException("empty index list found with nonzero indexCount, but indexCount and surfaceNumberOfNodes don't match");
+                throw DataFileException("empty index list found with nonzero indexCount, but indexCount and surfaceNumberOfNodes don't match");
             }
             m_nodeToIndexLookup.resize(m_surfaceNumberOfNodes);
             for (int i = 0; i < (int)m_surfaceNumberOfNodes; ++i)
@@ -47,7 +48,7 @@ void CiftiBrainModelElement::setupLookup(CiftiMatrixIndicesMapElement& myMap)
         } else {
             if (m_indexCount != (int64_t)m_nodeIndices.size())
             {
-                throw CiftiFileException("indexCount and size of nodeIndices don't match");
+                throw DataFileException("indexCount and size of nodeIndices don't match");
             }
             m_nodeToIndexLookup.resize(m_surfaceNumberOfNodes);
             for (int i = 0; i < (int)m_surfaceNumberOfNodes; ++i)
@@ -81,27 +82,27 @@ void CiftiMatrixIndicesMapElement::setupLookup()
         {
             if (i > 0 && m_brainModels[i - 1].m_indexOffset + m_brainModels[i - 1].m_indexCount > m_brainModels[i].m_indexOffset)
             {
-                throw CiftiFileException("overlapping index ranges found in a brain models dimension");
+                throw DataFileException("overlapping index ranges found in a brain models dimension");
             }
             switch (m_brainModels[i].m_modelType)
             {
                 case CIFTI_MODEL_TYPE_SURFACE:
                     if (usedSurf.find(m_brainModels[i].m_brainStructure) != usedSurf.end())
                     {
-                        throw CiftiFileException("structure " + StructureEnum::toName(m_brainModels[i].m_brainStructure) + " used multiple times in surface models");
+                        throw DataFileException("structure " + StructureEnum::toName(m_brainModels[i].m_brainStructure) + " used multiple times in surface models");
                     }
                     usedSurf.insert(m_brainModels[i].m_brainStructure);
                     break;
                 case CIFTI_MODEL_TYPE_VOXELS:
                     if (usedVol.find(m_brainModels[i].m_brainStructure) != usedVol.end())
                     {
-                        throw CiftiFileException("structure " + StructureEnum::toName(m_brainModels[i].m_brainStructure) + " used multiple times in volume models");
+                        throw DataFileException("structure " + StructureEnum::toName(m_brainModels[i].m_brainStructure) + " used multiple times in volume models");
                     }
                     usedVol.insert(m_brainModels[i].m_brainStructure);
                     break;
                 case CIFTI_MODEL_TYPE_INVALID:
                     CaretAssert(false);
-                    throw CiftiFileException("found 'invalid' brain model type, tell the developers");
+                    throw DataFileException("found 'invalid' brain model type, tell the developers");
                     break;
             }
             m_brainModels[i].setupLookup(*this);
@@ -120,7 +121,7 @@ void CiftiMatrixIndicesMapElement::setupLookup()
         {
             if (m_parcelSurfaces[i].m_structure == m_parcelSurfaces[j].m_structure)
             {
-                throw CiftiFileException("multiple surfaces with same structure found in a parcel map");
+                throw DataFileException("multiple surfaces with same structure found in a parcel map");
             }
         }
     }
@@ -141,11 +142,11 @@ void CiftiMatrixIndicesMapElement::setupLookup()
             }
             if (whichSurf >= numSurfs)
             {
-                throw CiftiFileException("parcel '" + myParcel.m_parcelName + "' specifies a structure that doesn't match a specified surface");
+                throw DataFileException("parcel '" + myParcel.m_parcelName + "' specifies a structure that doesn't match a specified surface");
             }
             if (surfUsed[whichSurf])
             {
-                throw CiftiFileException("parcel '" + myParcel.m_parcelName + "' specified a surface structure more than once");
+                throw DataFileException("parcel '" + myParcel.m_parcelName + "' specified a surface structure more than once");
             }
             CiftiParcelSurfaceElement& mySurf = m_parcelSurfaces[whichSurf];
             surfUsed[whichSurf] = true;
@@ -155,11 +156,11 @@ void CiftiMatrixIndicesMapElement::setupLookup()
                 int64_t node = myNodeElement.m_nodes[k];
                 if (node < 0 || node >= mySurf.m_numNodes)
                 {
-                    throw CiftiFileException("node number " + AString::number(node) + " is invalid for surface " + StructureEnum::toName(myStruct));
+                    throw DataFileException("node number " + AString::number(node) + " is invalid for surface " + StructureEnum::toName(myStruct));
                 }
                 if (mySurf.m_lookup[node] != -1)
                 {
-                    throw CiftiFileException("surface node " + AString::number(node) + " in surface " + StructureEnum::toName(myStruct) + " specified more than once");
+                    throw DataFileException("surface node " + AString::number(node) + " in surface " + StructureEnum::toName(myStruct) + " specified more than once");
                 }
                 mySurf.m_lookup[node] = i;
             }
@@ -170,7 +171,7 @@ void CiftiMatrixIndicesMapElement::setupLookup()
             int64_t* test = m_voxelToIndexLookup.find(myParcel.m_voxelIndicesIJK[j], myParcel.m_voxelIndicesIJK[j + 1], myParcel.m_voxelIndicesIJK[j + 2]);
             if (test != NULL && *test != i)
             {
-                throw CiftiFileException("voxel " + AString::number(myParcel.m_voxelIndicesIJK[j]) + ", " +
+                throw DataFileException("voxel " + AString::number(myParcel.m_voxelIndicesIJK[j]) + ", " +
                                                     AString::number(myParcel.m_voxelIndicesIJK[j + 1]) + ", " +
                                                     AString::number(myParcel.m_voxelIndicesIJK[j + 2]) + " used by more than one parcel");
             }
@@ -336,7 +337,7 @@ bool CiftiBrainModelElement::operator==(const CiftiBrainModelElement& rhs) const
             break;
         case CIFTI_MODEL_TYPE_INVALID:
             CaretAssert(false);
-            throw CiftiFileException("found 'invalid' brain model type, tell the developers");
+            throw DataFileException("found 'invalid' brain model type, tell the developers");
             break;
     }
     return true;

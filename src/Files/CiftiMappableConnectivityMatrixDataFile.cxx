@@ -464,31 +464,26 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForRowIndex(const int64_t rowIn
 {
     setLoadedRowDataToAllZeros();
     
-    try {
-        const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
-        if (dataCount > 0) {
-            m_rowLoadedTextForMapName = ("Row: "
-                                         + AString::number(rowIndex));
-            
-            m_rowLoadedText = ("Row_"
-                               + AString::number(rowIndex));
-            CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
-            m_loadedRowData.resize(dataCount);
-            
-            m_ciftiInterface->getRow(&m_loadedRowData[0],
-                                     rowIndex);
-            
-            CaretLogFine("Read row " + AString::number(rowIndex));
-            m_connectivityDataLoaded->setRowLoading(rowIndex);
-        }
-        else {
-            throw DataFileException("Row "
-                                    + AString::number(rowIndex)
-                                    + " is invalid or contains no data.");
-        }
+    const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+    if (dataCount > 0) {
+        m_rowLoadedTextForMapName = ("Row: "
+                                        + AString::number(rowIndex));
+        
+        m_rowLoadedText = ("Row_"
+                            + AString::number(rowIndex));
+        CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+        m_loadedRowData.resize(dataCount);
+        
+        m_ciftiInterface->getRow(&m_loadedRowData[0],
+                                    rowIndex);
+        
+        CaretLogFine("Read row " + AString::number(rowIndex));
+        m_connectivityDataLoaded->setRowLoading(rowIndex);
     }
-    catch (CiftiFileException& e) {
-        throw DataFileException(e.whatString());
+    else {
+        throw DataFileException("Row "
+                                + AString::number(rowIndex)
+                                + " is invalid or contains no data.");
     }
     
     
@@ -578,9 +573,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
             m_connectivityDataLoaded->reset();
         }
     }
-    catch (CiftiFileException& e) {
-        throw DataFileException(e.whatString());
+    catch (DataFileException& e) {
         m_connectivityDataLoaded->reset();
+        throw e;
     }
     
     CaretAssertVectorIndex(m_mapContent, 0);
@@ -622,36 +617,31 @@ CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionInde
     
     
     
-    try {
-        bool dataWasLoaded = false;
-        
-        if (selectionIndex >= 0) {
-            const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
-            if (dataCount > 0) {
-                m_rowLoadedTextForMapName = ("Row: "
-                                         + AString::number(selectionIndex+1)                                         
-                                         );
+    bool dataWasLoaded = false;
+    
+    if (selectionIndex >= 0) {
+        const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+        if (dataCount > 0) {
+            m_rowLoadedTextForMapName = ("Row: "
+                                        + AString::number(selectionIndex+1)                                         
+                                        );
 
-                m_rowLoadedText = ("Row_"
-                                   + AString::number(selectionIndex+1)
-                                   );
-                CaretAssert((selectionIndex >= 0) && (selectionIndex < m_ciftiInterface->getNumberOfRows()));
-                m_loadedRowData.resize(dataCount);
-                m_ciftiInterface->getRow(&m_loadedRowData[0],
-                                         selectionIndex);
-                
-                CaretLogFine("Read row " + AString::number(selectionIndex+1));
-                
-                dataWasLoaded = true;
-            }
-        }
-        
-        if (dataWasLoaded == false) {
-            CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
+            m_rowLoadedText = ("Row_"
+                                + AString::number(selectionIndex+1)
+                                );
+            CaretAssert((selectionIndex >= 0) && (selectionIndex < m_ciftiInterface->getNumberOfRows()));
+            m_loadedRowData.resize(dataCount);
+            m_ciftiInterface->getRow(&m_loadedRowData[0],
+                                        selectionIndex);
+            
+            CaretLogFine("Read row " + AString::number(selectionIndex+1));
+            
+            dataWasLoaded = true;
         }
     }
-    catch (CiftiFileException& e) {
-        throw DataFileException(e.whatString());
+    
+    if (dataWasLoaded == false) {
+        CaretLogFine("FAILED to read row " + AString::number(selectionIndex+1));
     }
     
     CaretAssertVectorIndex(m_mapContent, 0);
@@ -704,117 +694,112 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
     const bool isDenseMatrix = (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE);
     const int32_t progressUpdateInterval = 1;
     
-    try {
-        bool dataWasLoaded = false;
+    bool dataWasLoaded = false;
+    
+    const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+    if (dataCount > 0) {
+        /*
+            * Contains the average row
+            */
+        std::vector<float> dataAverageVector(dataCount, 0.0);
+        float* dataAverage = &dataAverageVector[0];
         
-        const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
-        if (dataCount > 0) {
-            /*
-             * Contains the average row
-             */
-            std::vector<float> dataAverageVector(dataCount, 0.0);
-            float* dataAverage = &dataAverageVector[0];
+        /*
+            * Contains row for a node
+            */
+        std::vector<float> dataRowVector(dataCount, 0.0);
+        float* dataRow = &dataRowVector[0];
+        
+        int64_t rowSuccessCount = 0;
+        
+        bool userCancelled = false;
+        EventProgressUpdate progressEvent(0,
+                                            numberOfNodeIndices,
+                                            0,
+                                            ("Loading data for "
+                                            + QString::number(numberOfNodeIndices)
+                                            + " vertices in file ")
+                                            + getFileNameNoPath());
+        EventManager::get()->sendEvent(progressEvent.getPointer());
+        
+        /*
+            * Read rows for each node
+            */
+        for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+            const int32_t nodeIndex = nodeIndices[i];
             
-            /*
-             * Contains row for a node
-             */
-            std::vector<float> dataRowVector(dataCount, 0.0);
-            float* dataRow = &dataRowVector[0];
-            
-            int64_t rowSuccessCount = 0;
-            
-            bool userCancelled = false;
-            EventProgressUpdate progressEvent(0,
-                                              numberOfNodeIndices,
-                                              0,
-                                              ("Loading data for "
-                                               + QString::number(numberOfNodeIndices)
-                                               + " vertices in file ")
-                                              + getFileNameNoPath());
-            EventManager::get()->sendEvent(progressEvent.getPointer());
-            
-            /*
-             * Read rows for each node
-             */
-            for (int32_t i = 0; i < numberOfNodeIndices; i++) {
-                const int32_t nodeIndex = nodeIndices[i];
-                
-                if (isDenseMatrix) {
-                    if ((i % progressUpdateInterval) == 0) {
-                        progressEvent.setProgress(i,
-                                                  "");
-                        EventManager::get()->sendEvent(progressEvent.getPointer());
-                        if (progressEvent.isCancelled()) {
-                            userCancelled = true;
-                            break;
-                        }
+            if (isDenseMatrix) {
+                if ((i % progressUpdateInterval) == 0) {
+                    progressEvent.setProgress(i,
+                                                "");
+                    EventManager::get()->sendEvent(progressEvent.getPointer());
+                    if (progressEvent.isCancelled()) {
+                        userCancelled = true;
+                        break;
                     }
-                }
-                
-                const int64_t rowIndex = getRowIndexForNodeWhenLoading(structure,
-                                                                       surfaceNumberOfNodes,
-                                                                       nodeIndex);
-                
-                if (rowIndex >= 0) {
-                    CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
-                    m_ciftiInterface->getRow(dataRow, rowIndex);
-                    
-                    for (int64_t j = 0; j < dataCount; j++) {
-                        dataAverage[j] += dataRow[j];
-                    }
-                    rowSuccessCount++;
-                    
-                    CaretLogFine("Read row for node " + AString::fromNumbers(nodeIndices, ","));
-                }
-                else {
-                    CaretLogFine("Failed reading row for node " + AString::number(nodeIndex));
                 }
             }
             
-            if (userCancelled) {
-                m_loadedRowData.clear();
-                m_loadedRowData.resize(dataCount, 0.0);
-            }
-            else if (rowSuccessCount > 0) {
-                /*
-                 * Average the data
-                 */
-                for (int64_t i = 0; i < dataCount; i++) {
-                    dataAverage[i] /= rowSuccessCount;
+            const int64_t rowIndex = getRowIndexForNodeWhenLoading(structure,
+                                                                    surfaceNumberOfNodes,
+                                                                    nodeIndex);
+            
+            if (rowIndex >= 0) {
+                CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+                m_ciftiInterface->getRow(dataRow, rowIndex);
+                
+                for (int64_t j = 0; j < dataCount; j++) {
+                    dataAverage[j] += dataRow[j];
                 }
+                rowSuccessCount++;
                 
-                m_rowLoadedTextForMapName = ("Structure: "
-                                         + StructureEnum::toName(structure)
-                                         + ", Averaged Node Count: "
-                                         + AString::number(numberOfNodeIndices));
-                m_rowLoadedText =  ("Structure_"
-                                    + StructureEnum::toGuiName(structure)
-                                    + "_Averaged_Node_Count_"
-                                    + AString::number(numberOfNodeIndices));
-                /*
-                 * Update the viewed data
-                 */
-                m_loadedRowData = dataAverageVector;
-                
-                dataWasLoaded = true;
+                CaretLogFine("Read row for node " + AString::fromNumbers(nodeIndices, ","));
+            }
+            else {
+                CaretLogFine("Failed reading row for node " + AString::number(nodeIndex));
             }
         }
         
-        if (dataWasLoaded == false) {
-            CaretLogFine("FAILED to read rows for node average" + AString::fromNumbers(nodeIndices, ","));
+        if (userCancelled) {
+            m_loadedRowData.clear();
+            m_loadedRowData.resize(dataCount, 0.0);
         }
-
-        CaretAssertVectorIndex(m_mapContent, 0);
-        m_mapContent[0]->invalidateColoring();
-
-        if (dataWasLoaded) {
-            m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
-                                                                   surfaceNumberOfNodes,
-                                                                   nodeIndices);
+        else if (rowSuccessCount > 0) {
+            /*
+                * Average the data
+                */
+            for (int64_t i = 0; i < dataCount; i++) {
+                dataAverage[i] /= rowSuccessCount;
+            }
+            
+            m_rowLoadedTextForMapName = ("Structure: "
+                                        + StructureEnum::toName(structure)
+                                        + ", Averaged Node Count: "
+                                        + AString::number(numberOfNodeIndices));
+            m_rowLoadedText =  ("Structure_"
+                                + StructureEnum::toGuiName(structure)
+                                + "_Averaged_Node_Count_"
+                                + AString::number(numberOfNodeIndices));
+            /*
+                * Update the viewed data
+                */
+            m_loadedRowData = dataAverageVector;
+            
+            dataWasLoaded = true;
         }
     }
-    catch (CiftiFileException& e) {
-        throw DataFileException(e.whatString());
+    
+    if (dataWasLoaded == false) {
+        CaretLogFine("FAILED to read rows for node average" + AString::fromNumbers(nodeIndices, ","));
+    }
+
+    CaretAssertVectorIndex(m_mapContent, 0);
+    m_mapContent[0]->invalidateColoring();
+
+    if (dataWasLoaded) {
+        m_connectivityDataLoaded->setSurfaceAverageNodeLoading(structure,
+                                                                surfaceNumberOfNodes,
+                                                                nodeIndices);
     }
 }
 
@@ -866,48 +851,43 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     
     int64_t rowIndex = -1;
     
-    try {
-        bool dataWasLoaded = false;
-        
-        rowIndex = getRowIndexForVoxelAtCoordinateWhenLoading(xyz);
-        
-        if (rowIndex >= 0) {
-            const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
-            if (dataCount > 0) {
-                m_loadedRowData.resize(dataCount);
-                CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
-                m_ciftiInterface->getRow(&m_loadedRowData[0], rowIndex);
-                
-                m_rowLoadedTextForMapName = ("Row: "
-                                         + AString::number(rowIndex)
-                                         + ", Voxel XYZ: ("
-                                         + AString::fromNumbers(xyz, 3, ",")
-                                         + ")");
-                
-                m_rowLoadedText = ("Row_"
-                                   + AString::number(rowIndex)
-                                   + "_Voxel_XYZ_"
-                                   + AString::fromNumbers(xyz, 3, "_").replace('-', 'm'));
-                
-                CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
-                
-                dataWasLoaded = true;
-            }
+    bool dataWasLoaded = false;
+    
+    rowIndex = getRowIndexForVoxelAtCoordinateWhenLoading(xyz);
+    
+    if (rowIndex >= 0) {
+        const int64_t dataCount = m_ciftiInterface->getNumberOfColumns();
+        if (dataCount > 0) {
+            m_loadedRowData.resize(dataCount);
+            CaretAssert((rowIndex >= 0) && (rowIndex < m_ciftiInterface->getNumberOfRows()));
+            m_ciftiInterface->getRow(&m_loadedRowData[0], rowIndex);
+            
+            m_rowLoadedTextForMapName = ("Row: "
+                                        + AString::number(rowIndex)
+                                        + ", Voxel XYZ: ("
+                                        + AString::fromNumbers(xyz, 3, ",")
+                                        + ")");
+            
+            m_rowLoadedText = ("Row_"
+                                + AString::number(rowIndex)
+                                + "_Voxel_XYZ_"
+                                + AString::fromNumbers(xyz, 3, "_").replace('-', 'm'));
+            
+            CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+            
+            dataWasLoaded = true;
         }
-        
-        if (dataWasLoaded == false) {
-            CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
-        }
+    }
+    
+    if (dataWasLoaded == false) {
+        CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+    }
 
-        CaretAssertVectorIndex(m_mapContent, mapIndex);
-        m_mapContent[mapIndex]->invalidateColoring();
-        
-        m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
-                                                      rowIndex);
-    }
-    catch (CiftiFileException& e) {
-        throw DataFileException(e.whatString());
-    }
+    CaretAssertVectorIndex(m_mapContent, mapIndex);
+    m_mapContent[mapIndex]->invalidateColoring();
+    
+    m_connectivityDataLoaded->setVolumeXYZLoading(xyz,
+                                                    rowIndex);
     
     return rowIndex;
 }

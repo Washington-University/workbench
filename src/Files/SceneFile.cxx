@@ -317,7 +317,7 @@ SceneFile::readFile(const AString& filenameIn) throw (DataFileException)
     AString filename = filenameIn;
     if (DataFile::isFileOnNetwork(filename) == false) {
         FileInformation specInfo(filename);
-        filename = specInfo.getFilePath();
+        filename = specInfo.getAbsoluteFilePath();
     }
     checkFileReadability(filename);
     

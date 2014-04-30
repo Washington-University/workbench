@@ -48,7 +48,7 @@ namespace caret {
         CaretBinaryFile(const QString& filename, const OpenMode& fileMode = READ);
         void open(const QString& filename, const OpenMode& opmode = READ);
         void close();
-        QString getFilename() const;
+        QString getFilename() const;//not a reference because when no file is open, m_impl is NULL
         bool getOpenForRead();
         bool getOpenForWrite();
         void seek(const int64_t& position);
@@ -58,11 +58,11 @@ namespace caret {
         class ImplInterface
         {
         protected:
-            QString m_fileName;
+            QString m_fileName;//filename is tracked here so error messages can be implementation-specific
         public:
             virtual void open(const QString& filename, const OpenMode& opmode) = 0;
             virtual void close() = 0;
-            QString getFilename() const { return m_fileName; }
+            const QString& getFilename() const { return m_fileName; }
             virtual void seek(const int64_t& position) = 0;
             virtual int64_t pos() = 0;
             virtual void read(void* dataOut, const int64_t& count, int64_t* numRead) = 0;

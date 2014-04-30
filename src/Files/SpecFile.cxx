@@ -510,7 +510,7 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
             if (fileInfo.isRelative()) {
                 FileInformation fileInfo(specFileInfo.getPathName(),
                                          name);
-                name = fileInfo.getFilePath();
+                name = fileInfo.getAbsoluteFilePath();
             }
         }
     }
@@ -872,7 +872,7 @@ SpecFile::readFile(const AString& filenameIn) throw (DataFileException)
     AString filename = filenameIn;
     if (DataFile::isFileOnNetwork(filename) == false) {
         FileInformation specInfo(filename);
-        filename = specInfo.getFilePath();
+        filename = specInfo.getAbsoluteFilePath();
     }
     this->setFileName(filename);
     
@@ -973,7 +973,7 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
     checkFileWritability(filename);
     
     FileInformation specInfo(filename);
-    AString absFileName = specInfo.getFilePath();
+    AString absFileName = specInfo.getAbsoluteFilePath();
     this->setFileName(absFileName);
 
     try {

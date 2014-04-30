@@ -377,7 +377,7 @@ SplashScreen::addRecentSpecFiles()
             FileInformation fileInfo(specFileName);
                 path = fileInfo.getPathName().trimmed();
                 name = fileInfo.getFileName().trimmed();
-                fullPath = fileInfo.getFilePath();
+                fullPath = fileInfo.getAbsoluteFilePath();
         }
             
         if (name.isEmpty() == false) {
@@ -434,7 +434,7 @@ SplashScreen::addDirectorySpecFiles()
         
         FileInformation fileInfo(specFileList.at(i));
         const QString name = fileInfo.getFileName().trimmed();
-        const QString fullPath = fileInfo.getFilePath();
+        const QString fullPath = fileInfo.getAbsoluteFilePath();
         
         QStringList treeText;
         treeText.append("    " + name);

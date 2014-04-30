@@ -53,6 +53,7 @@ namespace caret
         NiftiIO() { m_writingVoxOffset = 0; m_writingSwapped = false; }
         void openRead(const QString& filename);
         void writeNew(const QString& filename, const NiftiHeader& header, const int& version = 1, const bool& withRead = false, const bool& swapEndian = false);
+        QString getFilename() const { return m_file.getFilename(); }
         void overrideDimensions(const std::vector<int64_t>& newDims) { m_dims = newDims; }//HACK: deal with reading/writing CIFTI-1's broken headers
         void close();
         const NiftiHeader& getHeader() const { return m_header; }

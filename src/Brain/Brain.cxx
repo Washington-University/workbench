@@ -4786,7 +4786,7 @@ Brain::updateFileNameForReading(const AString& filename)
     }
     
     FileInformation pathFileInfo(m_currentDirectory, filename);
-    AString fullPathName = pathFileInfo.getFilePath();
+    AString fullPathName = pathFileInfo.getAbsoluteFilePath();
     
     return fullPathName;
 }
@@ -4821,7 +4821,7 @@ Brain::updateFileNameForWriting(const AString& filename) throw (DataFileExceptio
     }
     
     FileInformation pathFileInfo(m_currentDirectory, filename);
-    AString fullPathName = pathFileInfo.getFilePath();
+    AString fullPathName = pathFileInfo.getAbsoluteFilePath();
     
     return fullPathName;
 }

@@ -22,6 +22,7 @@
 #include "OperationException.h"
 #include "CiftiFile.h"
 #include "CaretLogger.h"
+#include "MultiDimIterator.h"
 
 using namespace caret;
 using namespace std;
@@ -64,12 +65,15 @@ void OperationCiftiChangeTimestep::useParameters(OperationParameters* myParams, 
     }
     CiftiFile myCifti;
     myCifti.openFile(ciftiName);
+    CiftiXML tempXML = myCifti.getCiftiXML();
     bool modified = false;
     if (rowTimestep->m_present)
     {
         float step = (float)rowTimestep->getDouble(1);
-        if (myCifti.setRowTimestep(step))
+        if (tempXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES)
         {
+            CiftiSeriesMap& myMap = tempXML.getSeriesMap(CiftiXML::ALONG_ROW);
+            myMap.setStep(step);//TSC: leave units as-is, I guess
             modified = true;
         } else {
             CaretLogWarning("could not set row timestep");
@@ -78,15 +82,29 @@ void OperationCiftiChangeTimestep::useParameters(OperationParameters* myParams, 
     if (columnTimestep->m_present)
     {
         float step = (float)columnTimestep->getDouble(1);
-        if (myCifti.setColumnTimestep(step))
+        if (tempXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES)
         {
+            CiftiSeriesMap& myMap = tempXML.getSeriesMap(CiftiXML::ALONG_COLUMN);
+            myMap.setStep(step);//TSC: leave units as-is, I guess
             modified = true;
         } else {
-            CaretLogWarning("could not set column timestep");
+            CaretLogWarning("could not set row timestep");
         }
     }
     if (modified)
     {
-        myCifti.writeFile(ciftiName);
+        myCifti.convertToInMemory();
+        CiftiFile outCifti;
+        outCifti.setWritingFile(ciftiName);//starts on-disk writing
+        outCifti.setCiftiXML(tempXML);
+        const vector<int64_t>& dims = myCifti.getDimensions();
+        vector<int64_t> extraDims(dims.begin() + 1, dims.end());
+        vector<float> scratchrow(dims[0]);
+        for (MultiDimIterator<int64_t> iter(extraDims); !iter.atEnd(); ++iter)
+        {
+            myCifti.getRow(scratchrow.data(), *iter);
+            outCifti.setRow(scratchrow.data(), *iter);
+        }
+        outCifti.writeFile(ciftiName);//superfluous, unless we aren't writing on-disk
     }
 }

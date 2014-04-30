@@ -69,9 +69,9 @@ OperationParameters* OperationZipSpecFile::getParameters()
 void OperationZipSpecFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString specFileName = FileInformation(myParams->getString(1)).getFilePath();
+    AString specFileName = FileInformation(myParams->getString(1)).getAbsoluteFilePath();
     AString outputSubDirectory = myParams->getString(2);
-    AString zipFileName = FileInformation(myParams->getString(3)).getFilePath();
+    AString zipFileName = FileInformation(myParams->getString(3)).getAbsoluteFilePath();
     OptionalParameter* baseOpt = myParams->getOptionalParameter(4);
     AString myBaseDir;
     if (baseOpt->m_present)
@@ -137,7 +137,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
             dataFileName = specPath + dataFileName;
         }
         FileInformation dataFileInfo(dataFileName);
-        AString absName = QDir::cleanPath(dataFileInfo.getFilePath());
+        AString absName = QDir::cleanPath(dataFileInfo.getAbsoluteFilePath());
         if (!absName.startsWith(myBaseDir))
         {
             outsideBaseDirFiles += absName + "\n";

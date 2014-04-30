@@ -23,7 +23,6 @@
 
 #include "CiftiXML.h"
 #include "CiftiXMLOld.h"
-#include "CiftiFileException.h"
 
 namespace caret
 {

@@ -135,15 +135,14 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
         {
             CiftiFile myCifti;
             FileInformation myInfo1(inFileName), myInfo2(outFileName);
+            myCifti.openFile(inFileName);
             if (myInfo1.getCanonicalFilePath() == myInfo2.getCanonicalFilePath())
             {
-                myCifti.openFile(inFileName, IN_MEMORY);
-            } else {
-                myCifti.openFile(inFileName, ON_DISK);
+                myCifti.convertToInMemory();
             }
             CiftiXMLOld myXML = myCifti.getCiftiXMLOld();
-            CiftiFile myOutCifti(ON_DISK);
-            myOutCifti.setCiftiCacheFile(outFileName);
+            CiftiFile myOutCifti;
+            myOutCifti.setWritingFile(outFileName);
             int numRows = myXML.getNumberOfRows(), rowSize = myXML.getNumberOfColumns();
             replaceInMetaData(myXML.getFileMetaData(), findString, replString, myCS);
             if (myXML.getMappingType(CiftiXMLOld::ALONG_ROW) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXMLOld::ALONG_ROW) == CIFTI_INDEX_TYPE_LABELS)

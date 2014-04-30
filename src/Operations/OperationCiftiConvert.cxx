@@ -117,12 +117,11 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     {
         CiftiFile* myInFile = toGiftiExt->getCifti(1);
         AString myGiftiName = toGiftiExt->getString(2);
-        CiftiHeader myHeader;
         vector<int64_t> myDims;
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
         const CiftiXML& myXML = myInFile->getCiftiXML();//soft of hack - metric files use "normal" when they really mean none, using the same thing as metric files means it should just work
-        if (myXML.getNumberOfDimensions() != 2) throw CiftiFileException("conversion only supported for 2D cifti");
+        if (myXML.getNumberOfDimensions() != 2) throw OperationException("conversion only supported for 2D cifti");
         GiftiDataArray* myArray = new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         float* myOutData = myArray->getDataPointerFloat();
         for (int i = 0; i < myInFile->getNumberOfRows(); ++i)

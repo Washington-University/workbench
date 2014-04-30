@@ -422,8 +422,8 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
     
     try {
         CiftiFile ciftiFile;
-        ciftiFile.openFile(filename,
-                           IN_MEMORY);
+        ciftiFile.openFile(filename);
+        ciftiFile.convertToInMemory();
         
         const int64_t numRows = ciftiFile.getNumberOfRows();
         if (numRows <= 0) {

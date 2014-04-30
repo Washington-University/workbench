@@ -34,37 +34,41 @@
 using namespace caret;
 using namespace std;
 
+//private implementation classes
+namespace caret
+{
+#ifdef ZLIB_VERSION
+    class ZFileImpl : public CaretBinaryFile::ImplInterface
+    {
+        gzFile m_zfile;
+    public:
+        ZFileImpl() { m_zfile = NULL; }
+        void open(const QString& filename, const CaretBinaryFile::OpenMode& opmode);
+        void close();
+        void seek(const int64_t& position);
+        int64_t pos();
+        void read(void* dataOut, const int64_t& count, int64_t* numRead);
+        void write(const void* dataIn, const int64_t& count);
+        ~ZFileImpl();
+    };
+#endif //ZLIB_VERSION
+
+    class QFileImpl : public CaretBinaryFile::ImplInterface
+    {
+        QFile m_file;
+    public:
+        void open(const QString& filename, const CaretBinaryFile::OpenMode& opmode);
+        void close();
+        void seek(const int64_t& position);
+        int64_t pos();
+        void read(void* dataOut, const int64_t& count, int64_t* numRead);
+        void write(const void* dataIn, const int64_t& count);
+    };
+}
+
 CaretBinaryFile::ImplInterface::~ImplInterface()
 {
 }
-
-#ifdef ZLIB_VERSION
-class ZFileImpl : public CaretBinaryFile::ImplInterface
-{
-    gzFile m_zfile;
-public:
-    ZFileImpl() { m_zfile = NULL; }
-    void open(const QString& filename, const CaretBinaryFile::OpenMode& opmode);
-    void close();
-    void seek(const int64_t& position);
-    int64_t pos();
-    void read(void* dataOut, const int64_t& count, int64_t* numRead);
-    void write(const void* dataIn, const int64_t& count);
-    ~ZFileImpl();
-};
-#endif //ZLIB_VERSION
-
-class QFileImpl : public CaretBinaryFile::ImplInterface
-{
-    QFile m_file;
-public:
-    void open(const QString& filename, const CaretBinaryFile::OpenMode& opmode);
-    void close();
-    void seek(const int64_t& position);
-    int64_t pos();
-    void read(void* dataOut, const int64_t& count, int64_t* numRead);
-    void write(const void* dataIn, const int64_t& count);
-};
 
 CaretBinaryFile::CaretBinaryFile(const QString& filename, const OpenMode& fileMode)
 {

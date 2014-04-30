@@ -156,12 +156,6 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         
         return scalarFile;
     }
-    catch (const CiftiFileException& ce) {
-        if (scalarFile != NULL) {
-            delete scalarFile;
-        }
-        errorMessageOut = ce.whatString();
-    }
     catch (const DataFileException& de) {
         if (scalarFile != NULL) {
             delete scalarFile;

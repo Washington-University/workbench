@@ -63,6 +63,22 @@ void CiftiXML::copyHelper(const CiftiXML& rhs)
     }
 }
 
+bool CiftiXML::operator==(const CiftiXML& rhs) const
+{
+    int numDims = getNumberOfDimensions();
+    if (rhs.getNumberOfDimensions() != numDims) return false;
+    if (m_fileMetaData != rhs.m_fileMetaData) return false;
+    if ((*getFilePalette()) != (*rhs.getFilePalette())) return false;
+    for (int i = 0; i < numDims; ++i)
+    {
+        const CiftiMappingType* left = getMap(i), *right = rhs.getMap(i);
+        if (left == NULL && right == NULL) continue;
+        if (left == NULL || right == NULL) return false;//only one NULL, due to above test
+        if ((*left) != (*right)) return false;//finally can dereference them
+    }
+    return true;
+}
+
 const CiftiMappingType* CiftiXML::getMap(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
@@ -176,6 +192,16 @@ int64_t CiftiXML::getDimensionLength(const int& direction) const
     return tempMap->getLength();
 }
 
+vector<int64_t> CiftiXML::getDimensions() const
+{
+    vector<int64_t> ret(getNumberOfDimensions());
+    for (int i = 0; i < (int)ret.size(); ++i)
+    {
+        ret[i] = getDimensionLength(i);
+    }
+    return ret;
+}
+
 CiftiMappingType::MappingType CiftiXML::getMappingType(const int& direction) const
 {
     CaretAssertVectorIndex(m_indexMaps, direction);
@@ -206,7 +232,7 @@ void CiftiXML::readXML(const QByteArray& data)
     readXML(text);//then put it through the string reader, just to simplify code paths
 }
 
-int32_t CiftiXML::getIntentInfo(const CiftiVersion& writingVersion, char intentNameOut[16])
+int32_t CiftiXML::getIntentInfo(const CiftiVersion& writingVersion, char intentNameOut[16]) const
 {
     int32_t ret;
     const char* name = NULL;

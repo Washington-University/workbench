@@ -113,7 +113,7 @@ void AlgorithmNodesInsideBorder::useParameters(OperationParameters* myParams, Pr
         AlgorithmNodesInsideBorder(myProgObj, mySurf, myBorderFile->getBorder(borderIndx), inverse, 0, 1.0f, myMetricOut);
     } else {
         int numBorders = myBorderFile->getNumberOfBorders();
-        vector<int> borderSelect;
+        std::vector<int> borderSelect;
         for (int i = 0; i < numBorders; ++i)
         {
             const Border* thisBorder = myBorderFile->getBorder(i);

@@ -70,6 +70,7 @@ namespace caret
         const CiftiSeriesMap& getSeriesMap(const int& direction) const;
         CiftiSeriesMap& getSeriesMap(const int& direction);
         int64_t getDimensionLength(const int& direction) const;
+        std::vector<int64_t> getDimensions() const;
         
         void setNumberOfDimensions(const int& num);
         void setMap(const int& direction, const CiftiMappingType& mapIn);
@@ -83,11 +84,13 @@ namespace caret
         void writeXML(QXmlStreamWriter& xml, const CiftiVersion& writingVersion = CiftiVersion()) const;
         
         ///uses the mapping types to figure out what the intent info should be
-        int32_t getIntentInfo(const CiftiVersion& writingVersion, char intentNameOut[16]);
+        int32_t getIntentInfo(const CiftiVersion& writingVersion, char intentNameOut[16]) const;
         
         CiftiXML() { }
         CiftiXML(const CiftiXML& rhs);
         CiftiXML& operator=(const CiftiXML& rhs);
+        bool operator==(const CiftiXML& rhs) const;
+        bool operator!=(const CiftiXML& rhs) const { return !((*this) == rhs); }
     private:
         std::vector<CaretPointer<CiftiMappingType> > m_indexMaps;
         CiftiVersion m_parsedVersion;

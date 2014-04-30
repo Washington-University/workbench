@@ -49,9 +49,9 @@ OperationParameters* OperationSpecFileMerge::getParameters()
 void OperationSpecFileMerge::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString spec1Name = FileInformation(myParams->getString(1)).getFilePath();//since opening a spec file may change the current directory, we must convert all paths to absolute first
-    AString spec2Name = FileInformation(myParams->getString(2)).getFilePath();
-    AString outSpecName = FileInformation(myParams->getString(3)).getFilePath();
+    AString spec1Name = FileInformation(myParams->getString(1)).getAbsoluteFilePath();//since opening a spec file may change the current directory, we must convert all paths to absolute first
+    AString spec2Name = FileInformation(myParams->getString(2)).getAbsoluteFilePath();
+    AString outSpecName = FileInformation(myParams->getString(3)).getAbsoluteFilePath();
     SpecFile spec1, spec2;
     spec1.readFile(spec1Name);
     spec2.readFile(spec2Name);

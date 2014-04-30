@@ -21,7 +21,7 @@
 #include <cmath>
 #include "CaretAssert.h"
 #include "CiftiXMLOld.h"
-#include "CiftiFileException.h"
+#include "DataFileException.h"
 #include "FloatMatrix.h"
 #include "GiftiLabelTable.h"
 #include "Palette.h"
@@ -489,7 +489,7 @@ void CiftiXMLOld::rootChanged()
         int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
         for (int j = 0; j < numDimensions; ++j)
         {
-            if (myMap.m_appliesToMatrixDimension[j] < 0) throw CiftiFileException("negative value in m_appliesToMatrixDimension");
+            if (myMap.m_appliesToMatrixDimension[j] < 0) throw DataFileException("negative value in m_appliesToMatrixDimension");
             while (m_dimToMapLookup.size() <= (size_t)myMap.m_appliesToMatrixDimension[j])
             {
                 m_dimToMapLookup.push_back(-1);
@@ -1006,7 +1006,7 @@ void CiftiXMLOld::setVolumeDimsAndSForm(const int64_t dims[3], const vector<vect
         {
             if (!tempSpace.matches(VolumeSpace(dims, sform)))
             {
-                throw CiftiFileException("cannot change the volume space of cifti xml that already has volume mapping(s)");
+                throw DataFileException("cannot change the volume space of cifti xml that already has volume mapping(s)");
             }
             return;
         }
@@ -1839,12 +1839,12 @@ int64_t CiftiXMLOld::getDimensionLength(const int& direction) const
 {
     if (direction < 0 || direction >= (int)m_dimToMapLookup.size())
     {
-        throw CiftiFileException("getDimensionLength called on nonexistant dimension");
+        throw DataFileException("getDimensionLength called on nonexistant dimension");
     }
     int myMapIndex = m_dimToMapLookup[direction];
     if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
     {
-        throw CiftiFileException("getDimensionLength called on nonexistant dimension");
+        throw DataFileException("getDimensionLength called on nonexistant dimension");
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
     const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
@@ -1858,7 +1858,7 @@ int64_t CiftiXMLOld::getDimensionLength(const int& direction) const
     } else if (myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_PARCELS) {
         return myMap->m_parcels.size();
     } else {
-        throw CiftiFileException("unknown cifti mapping type");
+        throw DataFileException("unknown cifti mapping type");
     }
 }
 
@@ -1981,7 +1981,7 @@ void CiftiXMLOld::copyMapping(const int& direction, const CiftiXMLOld& other, co
     CaretAssert(direction > -1 && otherDirection > -1);
     if ((int)other.m_dimToMapLookup.size() <= otherDirection || other.m_dimToMapLookup[otherDirection] == -1)
     {
-        throw CiftiFileException("copyMapping called with nonexistant mapping to copy");
+        throw DataFileException("copyMapping called with nonexistant mapping to copy");
     }
     bool copyVolSpace = false, haveVoxels = false;
     for (int i = 0; i < (int)m_dimToMapLookup.size(); ++i)
@@ -1995,7 +1995,7 @@ void CiftiXMLOld::copyMapping(const int& direction, const CiftiXMLOld& other, co
     {
         if (haveVoxels)
         {
-            if (!matchesVolumeSpace(other)) throw CiftiFileException("cannot copy mapping from other cifti due to volume space mismatch");
+            if (!matchesVolumeSpace(other)) throw DataFileException("cannot copy mapping from other cifti due to volume space mismatch");
         } else {
             copyVolSpace = true;
         }
@@ -2121,7 +2121,7 @@ bool CiftiXMLOld::matchesVolumeSpace(const CiftiXMLOld& rhs) const
     if (!getVolumeDimsAndSForm(dims, sform) || !rhs.getVolumeDimsAndSForm(rdims, rsform))
     {//should NEVER happen
         CaretAssertMessage(false, "has*VolumeData() and getVolumeDimsAndSForm() disagree");
-        throw CiftiFileException("has*VolumeData() and getVolumeDimsAndSForm() disagree");
+        throw DataFileException("has*VolumeData() and getVolumeDimsAndSForm() disagree");
     }
     const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
     for (int i = 0; i < 3; ++i)
@@ -2144,13 +2144,13 @@ void CiftiXMLOld::swapMappings(const int& direction1, const int& direction2)
     if (direction1 < 0 || direction1 >= (int)m_dimToMapLookup.size() ||
         direction2 < 0 || direction2 >= (int)m_dimToMapLookup.size())
     {
-        throw CiftiFileException("invalid direction specified to swapMappings, notify the developers");
+        throw DataFileException("invalid direction specified to swapMappings, notify the developers");
     }
     int mapIndex1 = m_dimToMapLookup[direction1];
     int mapIndex2 = m_dimToMapLookup[direction2];
     if (mapIndex1 == -1 || mapIndex2 == -1 || m_root.m_matrices.size() == 0)
     {
-        throw CiftiFileException("invalid direction specified to swapMappings, notify the developers");
+        throw DataFileException("invalid direction specified to swapMappings, notify the developers");
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, mapIndex1);
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, mapIndex2);

@@ -77,14 +77,14 @@ void OperationNiftiInformation::useParameters(OperationParameters* myParams, Pro
     }
     if(printXml)
     {
-        CiftiFile cf(fileName, ON_DISK);
+        CiftiFile cf(fileName);
         const CiftiXML& xml = cf.getCiftiXML();
         AString xmlString = xml.writeXMLToString(xml.getParsedVersion());//rewrite with the same version that it was read with
         cout << xmlString << endl;
     }
     if(printMatrix)
     {
-        CiftiFile cf(fileName, ON_DISK);
+        CiftiFile cf(fileName);
         int64_t dim0 = cf.getNumberOfRows();
         int64_t dim1 = cf.getNumberOfColumns();
         vector<float> row(dim1);

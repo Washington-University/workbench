@@ -111,7 +111,7 @@ FileInformation::FileInformation(const AString& path,
          * Note that canonicalFilePath() will return an empty string
          * if the path does not point to a valid file.
          */
-        if (getFilePath().contains("..")) {
+        if (getAbsoluteFilePath().contains("..")) {
             const AString cleanedPath = m_fileInfo.canonicalFilePath();
             if (cleanedPath.isEmpty() == false) {
                 m_fileInfo.setFile(cleanedPath);
@@ -149,14 +149,14 @@ FileInformation::isRemoteFile() const
 }
 
 /**
- * @return Path including the name of the file.
+ * @return Absolute path including the name of the file.
  *
  * some logic that seems to be missing from QFileInfo: if absolute, 
  * return path() + file() rather than using system call.
  *
  * Note: A remote file returns the original, full URL.
  */
-AString FileInformation::getFilePath() const
+AString FileInformation::getAbsoluteFilePath() const
 {
     if (m_isRemoteFile) {
         return m_urlInfo.toString();
@@ -507,7 +507,7 @@ FileInformation::getRemoteUrlUsernameAndPassword(AString& urlOut,
         return;
     }
     
-    urlOut = getFilePath();
+    urlOut = getAbsoluteFilePath();
 }
 
 

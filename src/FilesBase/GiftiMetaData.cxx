@@ -532,6 +532,7 @@ GiftiMetaData::writeAsXML(XmlWriter& xmlWriter)
 
 void GiftiMetaData::writeCiftiXML1(QXmlStreamWriter& xmlWriter) const
 {
+    if (metadata.empty()) return;//don't write an empty tag if we have no metadata
     xmlWriter.writeStartElement(GiftiXmlElements::TAG_METADATA);
     for (MetaDataConstIterator iter = metadata.begin(); iter != metadata.end(); ++iter)
     {

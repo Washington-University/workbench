@@ -19,19 +19,14 @@ INCLUDE (${QT_USE_FILE})
 # Create GIFTI Library
 #
 ADD_LIBRARY(Cifti
-CiftiFileException.h
-CiftiFile.h
-CiftiHeader.h
-CiftiHeaderIO.h
 CiftiInterface.h
-CiftiMatrix.h
-CiftiVersion.h
 CiftiXMLOld.h
 CiftiXMLElements.h
 CiftiXMLReader.h
 CiftiXMLWriter.h
 CiftiXnat.h
 
+CiftiFile.h
 CiftiXML.h
 CiftiMappingType.h
 CiftiBrainModelsMap.h
@@ -39,20 +34,16 @@ CiftiLabelsMap.h
 CiftiParcelsMap.h
 CiftiScalarsMap.h
 CiftiSeriesMap.h
+CiftiVersion.h
 
-CiftiFile.cxx
-CiftiFileException.cxx
-CiftiHeader.cxx
-CiftiHeaderIO.cxx
 CiftiInterface.cxx
-CiftiMatrix.cxx
-CiftiVersion.cxx
 CiftiXMLOld.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
 CiftiXMLWriter.cxx
 CiftiXnat.cxx
 
+CiftiFile.cxx
 CiftiXML.cxx
 CiftiMappingType.cxx
 CiftiBrainModelsMap.cxx
@@ -60,6 +51,7 @@ CiftiLabelsMap.cxx
 CiftiParcelsMap.cxx
 CiftiScalarsMap.cxx
 CiftiSeriesMap.cxx
+CiftiVersion.cxx
 )
 
 #

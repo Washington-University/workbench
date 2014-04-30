@@ -25,6 +25,7 @@
 #include "ByteSwapping.h"
 #include "CaretLogger.h"
 #include "CiftiXML.h"
+#include "DataFileException.h"
 
 #include <iostream>
 
@@ -51,7 +52,7 @@ void CiftiXnat::openURL(const AString& url)
     {
         if (start == -1)
         {
-            throw CiftiFileException("Error: searchID not found in URL string");
+            throw DataFileException("Error: searchID not found in URL string");
         }
         if (url.mid(start + 1, 9) == "searchID=")
         {
@@ -77,7 +78,7 @@ void CiftiXnat::openURL(const AString& url)
     CaretHttpManager::httpRequest(metadata, myResponse);
     if (!myResponse.m_ok)
     {
-        throw CiftiFileException("Error opening URL, response code: " + AString::number(myResponse.m_responseCode));
+        throw DataFileException("Error opening URL, response code: " + AString::number(myResponse.m_responseCode));
     }
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
@@ -145,11 +146,11 @@ void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRe
     CaretHttpManager::httpRequest(request, myResponse);
     if (!myResponse.m_ok)
     {
-        throw CiftiFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
+        throw DataFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
     }
     if (myResponse.m_body.size() % 4 != 0)//expect a multiple of 4 bytes
     {
-        throw CiftiFileException("Bad reply, number of bytes is not a multiple of 4");
+        throw DataFileException("Bad reply, number of bytes is not a multiple of 4");
     }
     int32_t numItems = *((int32_t*)myResponse.m_body.data());
     if (ByteOrderEnum::isSystemBigEndian())
@@ -158,11 +159,11 @@ void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRe
     }
     if (numItems * 4 + 4 != (int64_t)myResponse.m_body.size())
     {
-        throw CiftiFileException("Bad reply, number of items does not match length of reply");
+        throw DataFileException("Bad reply, number of items does not match length of reply");
     }
     if (dataSize != numItems)
     {
-        throw CiftiFileException("Bad reply, number of items does not match header");
+        throw DataFileException("Bad reply, number of items does not match header");
     }
     float* myPointer = (float*)(myResponse.m_body.data() + 4);//skip the first element (which is an int32)
     for (int i = 0; i < numItems; ++i)
@@ -186,11 +187,11 @@ int64_t CiftiXnat::getSizeFromReq(CaretHttpRequest& request)
     CaretHttpManager::httpRequest(request, myResponse);
     if (!myResponse.m_ok)
     {
-        throw CiftiFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
+        throw DataFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
     }
     if (myResponse.m_body.size() % 4 != 0)//expect a multiple of 4 bytes
     {
-        throw CiftiFileException("Bad reply, number of bytes is not a multiple of 4");
+        throw DataFileException("Bad reply, number of bytes is not a multiple of 4");
     }
     int32_t numItems = *((int32_t*)myResponse.m_body.data());
     if (ByteOrderEnum::isSystemBigEndian())
@@ -199,7 +200,7 @@ int64_t CiftiXnat::getSizeFromReq(CaretHttpRequest& request)
     }
     if (numItems * 4 + 4 != (int64_t)myResponse.m_body.size())
     {
-        throw CiftiFileException("Bad reply, number of items does not match length of reply");
+        throw DataFileException("Bad reply, number of items does not match length of reply");
     }
     return numItems;
 }

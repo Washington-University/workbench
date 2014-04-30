@@ -86,7 +86,7 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
 void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams, ProgressObject* /*myProgObj*/)
 {
     AString ciftiName = myParams->getString(1);
-    CiftiFile myCifti(ciftiName, IN_MEMORY);
+    CiftiFile myCifti(ciftiName);
     AString dirName = myParams->getString(2);
     int myDir;
     if (dirName == "ROW")

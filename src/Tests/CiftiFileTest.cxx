@@ -61,8 +61,6 @@ void CiftiFileTest::testCiftiRead()
         return;
     }
     CiftiFile reader(this->m_default_path + "/cifti/DenseConnectome.dconn.nii");
-    CiftiHeader header;
-    reader.getHeader(header);
 
     std::vector <int64_t> dim;
     int64_t columnSize = reader.getNumberOfRows();
@@ -104,8 +102,6 @@ void CiftiFileTest::testCiftiReadWriteInMemory()
 
     // read header
     CiftiFile reader(this->m_default_path + "/cifti/DenseTimeSeries.dtseries.nii");
-    CiftiHeader header;
-    reader.getHeader(header);
 
 
     // read XML
@@ -118,10 +114,10 @@ void CiftiFileTest::testCiftiReadWriteInMemory()
     CiftiFile writer;
     writer.setCiftiXML(root);
 
-    std::vector <int64_t> dim;
-    header.getDimensions(dim);
-    int64_t rowSize = dim[dim.size()-1];
-    int64_t columnSize = dim[dim.size()-2];
+    std::vector <int64_t> dim = reader.getDimensions();
+    if (dim.size() != 2) setFailed("input file must have 2 dimensions");
+    int64_t rowSize = dim[0];
+    int64_t columnSize = dim[1];
     float *row = new float [rowSize];
 
     
@@ -157,9 +153,7 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
     std::cout << "Testing Cifti reader/writer." << std::endl;
 
     // read header
-    CiftiFile reader(this->m_default_path + "/cifti/DenseTimeSeries.dtseries.nii", ON_DISK);
-    CiftiHeader header;
-    reader.getHeader(header);
+    CiftiFile reader(this->m_default_path + "/cifti/DenseTimeSeries.dtseries.nii");
 
 
     // read XML
@@ -167,13 +161,14 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
 
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
-    CiftiFile writer(ON_DISK);
+    CiftiFile writer;
+    writer.setWritingFile(outFile);
     writer.setCiftiXML(root);
 
-    std::vector <int64_t> dim;
-    header.getDimensions(dim);
-    int64_t rowSize = dim[dim.size()-1];
-    int64_t columnSize = dim[dim.size()-2];
+    std::vector <int64_t> dim = reader.getDimensions();
+    if (dim.size() != 2) setFailed("input file must have 2 dimensions");
+    int64_t rowSize = dim[0];
+    int64_t columnSize = dim[1];
     float *row = new float [rowSize];
 
     
@@ -186,7 +181,7 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
     writer.writeFile(outFile);
 
     //reopen output file, and check that frames agree
-    CiftiFile test(outFile, ON_DISK);
+    CiftiFile test(outFile);
 
     float *testRow = new float [rowSize];
     for(int64_t i = 0;i<columnSize;i++)

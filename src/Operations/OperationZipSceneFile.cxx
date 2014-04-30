@@ -88,7 +88,7 @@ void OperationZipSceneFile::useParameters(OperationParameters* myParams, Progres
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
         myBaseDir += "/";//so, add the trailing slash to the path
     }
-    AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
+    AString sceneFilePath = QDir::cleanPath(sceneFileInfo.getAbsoluteFilePath());//resolve filenames to open from the spec file's location, NOT from current directory
     if (!sceneFilePath.startsWith(myBaseDir))
     {
         throw OperationException("scene file lies outside the base directory");

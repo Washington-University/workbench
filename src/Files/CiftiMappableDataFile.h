@@ -459,9 +459,7 @@ namespace caret {
         /** force an update of the class and name hierarchy */
         mutable bool m_forceUpdateOfGroupAndNameHierarchy;
 
-        std::vector<int64_t> m_niftiHeaderDimensions;
-        
-        NiftiDataTypeEnum::Enum m_niftiDataType;
+        std::vector<int64_t> m_ciftiDimensions;
         
         // ADD_NEW_MEMBERS_HERE
         

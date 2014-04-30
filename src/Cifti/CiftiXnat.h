@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 #include "CaretHttpManager.h"
-#include "CiftiFileException.h"
 #include "CiftiInterface.h"
 
 namespace caret

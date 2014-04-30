@@ -84,6 +84,7 @@ MathFunctionEnum.h
 MathFunctions.h
 MatrixFunctions.h
 ModelTransform.h
+MultiDimArray.h
 MultiDimIterator.h
 NameIndexSort.h
 NetworkException.h

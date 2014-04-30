@@ -844,7 +844,7 @@ BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
                 name += (" (" + path + ")");
             }
             actionName = name;
-            actionFullPath = fileInfo.getFilePath();
+            actionFullPath = fileInfo.getAbsoluteFilePath();
         }
         
         QAction* action = new QAction(actionName,

@@ -20,6 +20,8 @@
 
 #include "CiftiInterface.h"
 
+#include "DataFileException.h"
+
 #include <limits>
 #include <vector>
 
@@ -69,7 +71,7 @@ bool CiftiInterface::getDataRangeFromAllMaps(float& minOut, float& maxOut) const
 CiftiXMLOld CiftiInterface::getCiftiXMLOld() const
 {
     CiftiXMLOld ret;
-    if (m_xml.getNumberOfDimensions() != 2) throw CiftiFileException("can't convert to old XML because number of dimensions isn't 2");
+    if (m_xml.getNumberOfDimensions() != 2) throw DataFileException("can't convert to old XML because number of dimensions isn't 2");
     ret.readXML(m_xml.writeXMLToString(CiftiVersion(1, 0)));
     if (ret.getDimensionLength(CiftiXMLOld::ALONG_ROW) < 1)
     {

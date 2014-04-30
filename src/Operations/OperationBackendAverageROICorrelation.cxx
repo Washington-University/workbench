@@ -22,6 +22,7 @@
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "CaretOMP.h"
+#include "CaretPointer.h"
 #include "CiftiFile.h"
 #include "FileInformation.h"
 #include "OperationBackendAverageROICorrelation.h"
@@ -81,90 +82,65 @@ void OperationBackendAverageROICorrelation::useParameters(OperationParameters* m
             throw OperationException("negative integers are not valid cifti indexes");
         }
     }
-    vector<const CiftiInterface*> ciftiList;
-    try
+    vector<CaretPointer<const CiftiInterface> > ciftiList;
+    string myLine;
+    while (cin.good())
     {
-        string myLine;
-        while (cin.good())
+        if (!getline(cin, myLine))
         {
-            if (!getline(cin, myLine))
-            {
-                break;
-            }
-            if (myLine == "")
-            {
-                continue;//skip blank lines
-            }
-            FileInformation ciftiFileInfo(myLine.c_str());
-            if (!ciftiFileInfo.exists())
-            {
-                throw OperationException(AString("file does not exist: ") + myLine.c_str());//throw inside try block so that the error handling path is the same
-            }
-            CiftiFile* tempCifti = new CiftiFile(myLine.c_str(), ON_DISK);//TODO: skip CiftiFile to avoid XML parsing overhead
-            ciftiList.push_back(tempCifti);
+            break;
         }
-        int numCifti = (int)ciftiList.size();
-        if (numCifti > 0)
+        if (myLine == "")
         {
-            baseXML = ciftiList[0]->getCiftiXMLOld();
-            int rowSize = baseXML.getNumberOfColumns();
-            vector<double> accum(rowSize, 0.0);
-            vector<float> rowScratch(rowSize);
-            for (int i = 0; i < numCifti; ++i)
+            continue;//skip blank lines
+        }
+        FileInformation ciftiFileInfo(myLine.c_str());
+        if (!ciftiFileInfo.exists())
+        {
+            throw OperationException(AString("file does not exist: ") + myLine.c_str());
+        }
+        CaretPointer<CiftiFile> tempCifti(new CiftiFile(myLine.c_str()));//can't skip parsing XML, as different arguments could be different cifti versions, which results in different dimension order
+        ciftiList.push_back(tempCifti);
+    }
+    int numCifti = (int)ciftiList.size();
+    if (numCifti > 0)
+    {
+        baseXML = ciftiList[0]->getCiftiXMLOld();
+        int rowSize = baseXML.getNumberOfColumns();
+        vector<double> accum(rowSize, 0.0);
+        vector<float> rowScratch(rowSize);
+        for (int i = 0; i < numCifti; ++i)
+        {
+            if (baseXML != ciftiList[i]->getCiftiXMLOld())//equality testing is smart, compares mapping equivalence, despite multiple ways to specify some mappings
             {
-                if (baseXML != ciftiList[i]->getCiftiXMLOld())//equality testing is smart, compares mapping equivalence, despite multiple ways to specify some mappings
-                {
-                    throw OperationException("error, cifti header of file #" + AString::number(i + 1) + " doesn't match");
-                }
-                processCifti(ciftiList[i], indexList, rowScratch);
-                for (int k = 0; k < rowSize; ++k)
-                {
-                    accum[k] += rowScratch[k];
-                }
+                throw OperationException("error, cifti header of file #" + AString::number(i + 1) + " doesn't match");
             }
+            processCifti(ciftiList[i], indexList, rowScratch);
             for (int k = 0; k < rowSize; ++k)
             {
-                rowScratch[k] = accum[k] / numCifti / numStrings;
+                accum[k] += rowScratch[k];
             }
-            int32_t outSize = rowSize;
-            if (ByteOrderEnum::isSystemBigEndian())
-            {
-                ByteSwapping::swapBytes(rowScratch.data(), rowSize);//beware, we are doing the byteswapping in place
-                ByteSwapping::swapBytes(&outSize, 1);
-            }
-            ofstream outfile(outfileName.toLocal8Bit().constData(), ios_base::out | ios_base::binary | ios_base::trunc);
-            if (!outfile.write((char*)&outSize, 4))
-            {
-                throw OperationException("error writing output");
-            }
-            if (!outfile.write((char*)rowScratch.data(), rowSize * sizeof(float)))
-            {
-                throw OperationException("error writing output");
-            }
-            outfile.close();
         }
-    } catch (CaretException& e) {//catch exceptions to prevent memory leaks
-        for (size_t i = 0; i < ciftiList.size(); ++i)
+        for (int k = 0; k < rowSize; ++k)
         {
-            delete ciftiList[i];
+            rowScratch[k] = accum[k] / numCifti / numStrings;
         }
-        throw e;
-    } catch (std::exception& e) {
-        for (size_t i = 0; i < ciftiList.size(); ++i)
+        int32_t outSize = rowSize;
+        if (ByteOrderEnum::isSystemBigEndian())
         {
-            delete ciftiList[i];
+            ByteSwapping::swapBytes(rowScratch.data(), rowSize);//beware, we are doing the byteswapping in place
+            ByteSwapping::swapBytes(&outSize, 1);
         }
-        throw OperationException(e.what());
-    } catch (...) {
-        for (size_t i = 0; i < ciftiList.size(); ++i)
+        ofstream outfile(outfileName.toLocal8Bit().constData(), ios_base::out | ios_base::binary | ios_base::trunc);
+        if (!outfile.write((char*)&outSize, 4))
         {
-            delete ciftiList[i];
+            throw OperationException("error writing output");
         }
-        throw;
-    }
-    for (size_t i = 0; i < ciftiList.size(); ++i)
-    {
-        delete ciftiList[i];
+        if (!outfile.write((char*)rowScratch.data(), rowSize * sizeof(float)))
+        {
+            throw OperationException("error writing output");
+        }
+        outfile.close();
     }
 }
 

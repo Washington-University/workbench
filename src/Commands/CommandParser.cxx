@@ -171,7 +171,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 FileInformation myInfo(nextArg);
                 CaretPointer<CiftiFile> myFile(new CiftiFile());
-                myFile->openFile(nextArg, ON_DISK);
+                myFile->openFile(nextArg);
                 m_inputCiftiNames.insert(myInfo.getCanonicalFilePath());//track only names of input cifti, because inputs are always on-disk
                 if (m_doProvenance)//just an optimization, if we aren't going to write provenance, don't generate it, either
                 {
@@ -660,10 +660,10 @@ void CommandParser::makeOnDiskOutputs(const vector<OutputAssoc>& outAssociation)
                 if (iter != m_inputCiftiNames.end())
                 {
                     CaretLogInfo("Computing output file '" + outAssociation[i].m_fileName + "' in memory due to collision with input file");
-                    myCiftiParam->m_parameter.grabNew(new CiftiFile(IN_MEMORY));
+                    myCiftiParam->m_parameter.grabNew(new CiftiFile());
                } else {
-                    myCiftiParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
-                    myCiftiParam->m_parameter->setCiftiCacheFile(outAssociation[i].m_fileName);
+                    myCiftiParam->m_parameter.grabNew(new CiftiFile());
+                    myCiftiParam->m_parameter->setWritingFile(outAssociation[i].m_fileName);
                 }
                 break;
             }

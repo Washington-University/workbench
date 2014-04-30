@@ -386,7 +386,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
         AString path = xmlInfo.getPathName();
         if (path.isEmpty() == false) {
             FileInformation fi(path, this->externalFileNameForReadingData);
-            AString newName = fi.getFilePath();
+            AString newName = fi.getAbsoluteFilePath();
             if (newName.isEmpty() == false) {
                 this->externalFileNameForReadingData = newName;
             }
