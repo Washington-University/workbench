@@ -50,6 +50,7 @@
 #include "SceneClass.h"
 #include "SceneWindowGeometry.h"
 #include "SessionManager.h"
+#include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
 #include "WuQtUtilities.h"
 
@@ -556,7 +557,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::UNKNOWN:
                     break;
                 case DataFileTypeEnum::VOLUME:
+                {
                     haveVolumes = true;
+                    
+                    const VolumeFile* vf = dynamic_cast<const VolumeFile*>(caretDataFile);
+                    CaretAssert(vf);
+                    if (vf->isMappedWithLabelTable()) {
+                        haveLabels = true;
+                    }
+                }
                     break;
             }
         }
