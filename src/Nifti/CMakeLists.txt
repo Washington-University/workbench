@@ -22,19 +22,9 @@ Matrix4x4.h
 NiftiHeader.h
 NiftiIO.h
 
-NiftiAbstractHeader.h
-NiftiAbstractVolumeExtension.h
-NiftiHeaderIO.h
-Nifti1Header.h
-Nifti2Header.h
-
 Matrix4x4.cxx
 NiftiHeader.cxx
 NiftiIO.cxx
-
-NiftiHeaderIO.cxx
-Nifti1Header.cxx
-Nifti2Header.cxx
 )
 
 #

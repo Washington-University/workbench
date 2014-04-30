@@ -28,7 +28,6 @@ GiftiXmlElements.h
 nifti1.h
 nifti2.h
 NiftiEnums.h
-NiftiException.h
 VolumeBase.h
 VolumeMappableInterface.h
 VolumeSliceViewPlaneEnum.h
@@ -41,7 +40,6 @@ GiftiLabelTable.cxx
 GiftiMetaData.cxx
 GiftiXmlElements.cxx
 NiftiEnums.cxx
-NiftiException.cxx
 VolumeBase.cxx
 VolumeMappableInterface.cxx
 VolumeSliceViewPlaneEnum.cxx

@@ -35,9 +35,7 @@ namespace caret {
     {
         enum ExtensionType
         {
-            NIFTI,
-            NIFTI1,
-            NIFTI2
+            NIFTI
         };
         std::vector<char> m_bytes;
         virtual ExtensionType getType() const = 0;
@@ -48,9 +46,7 @@ namespace caret {
     {
         enum HeaderType
         {
-            NIFTI,
-            NIFTI1,
-            NIFTI2
+            NIFTI
         };
         virtual HeaderType getType() const = 0;
         virtual ~AbstractHeader();

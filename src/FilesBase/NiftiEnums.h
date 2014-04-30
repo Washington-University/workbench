@@ -21,9 +21,6 @@
  */
 /*LICENSE_END*/
 
-
-#include "NiftiException.h"
-
 #include <stdint.h>
 
 #include <vector>
