@@ -70,7 +70,7 @@ CiftiFile::WriteImplInterface::~WriteImplInterface()
 {
 }
 
-CiftiFile::CiftiFile(const AString& fileName)
+CiftiFile::CiftiFile(const QString& fileName)
 {
     openFile(fileName);
 }

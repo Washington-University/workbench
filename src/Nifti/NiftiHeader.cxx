@@ -30,7 +30,6 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
-#include <zconf.h>
 
 using namespace std;
 using namespace caret;
@@ -260,67 +259,67 @@ vector<vector<float> > NiftiHeader::getSForm() const
     return ret.getMatrix();
 }
 
-AString NiftiHeader::toString() const
+QString NiftiHeader::toString() const
 {
-    AString ret;
+    QString ret;
     if (wasSwapped())
     {
         ret += "native endian: false\n";
     } else {
         ret += "native endian: true\n";
     }
-    ret += "sizeof_hdr: " + AString::number(m_header.sizeof_hdr) + "\n";//skip the fields that aren't important, like intent_p1, cal_max, etc
+    ret += "sizeof_hdr: " + QString::number(m_header.sizeof_hdr) + "\n";//skip the fields that aren't important, like intent_p1, cal_max, etc
     ret += "magic: " + QByteArray(m_header.magic, 8);//quirk: QByteArray supports embedded nulls, so adding "\n" here doesn't result in a newline in the string
-    ret += "\ndatatype: " + AString::number(m_header.datatype) + "\n";
-    ret += "bitpix: " + AString::number(m_header.bitpix) + "\n";
+    ret += "\ndatatype: " + QString::number(m_header.datatype) + "\n";
+    ret += "bitpix: " + QString::number(m_header.bitpix) + "\n";
     CaretAssert(m_header.dim[0] < 8);
     for (int i = 0; i <= m_header.dim[0]; ++i)
     {
-        ret += "dim[" + AString::number(i) + "]: " + AString::number(m_header.dim[i]) + "\n";
+        ret += "dim[" + QString::number(i) + "]: " + QString::number(m_header.dim[i]) + "\n";
     }
     for (int i = 0; i <= m_header.dim[0]; ++i)
     {
-        ret += "pixdim[" + AString::number(i) + "]: " + AString::number(m_header.pixdim[i]) + "\n";
+        ret += "pixdim[" + QString::number(i) + "]: " + QString::number(m_header.pixdim[i]) + "\n";
     }
-    ret += "vox_offset: " + AString::number(m_header.vox_offset) + "\n";
-    ret += "scl_slope: " + AString::number(m_header.scl_slope) + "\n";
-    ret += "scl_inter: " + AString::number(m_header.scl_inter) + "\n";
-    ret += "sform_code: " + AString::number(m_header.sform_code) + "\n";
+    ret += "vox_offset: " + QString::number(m_header.vox_offset) + "\n";
+    ret += "scl_slope: " + QString::number(m_header.scl_slope) + "\n";
+    ret += "scl_inter: " + QString::number(m_header.scl_inter) + "\n";
+    ret += "sform_code: " + QString::number(m_header.sform_code) + "\n";
     if (m_header.sform_code != NIFTI_XFORM_UNKNOWN)
     {
         ret += "srow_x:";
         for (int i = 0; i < 4; ++i)
         {
-            ret += " " + AString::number(m_header.srow_x[i]);
+            ret += " " + QString::number(m_header.srow_x[i]);
         }
         ret += "\nsrow_y:";
         for (int i = 0; i < 4; ++i)
         {
-            ret += " " + AString::number(m_header.srow_y[i]);
+            ret += " " + QString::number(m_header.srow_y[i]);
         }
         ret += "\nsrow_z:";
         for (int i = 0; i < 4; ++i)
         {
-            ret += " " + AString::number(m_header.srow_z[i]);
+            ret += " " + QString::number(m_header.srow_z[i]);
         }
         ret += "\n";
     }
-    ret += "qform_code: " + AString::number(m_header.qform_code) + "\n";
+    ret += "qform_code: " + QString::number(m_header.qform_code) + "\n";
     if (m_header.qform_code != NIFTI_XFORM_UNKNOWN)
     {
-        ret += "quatern_b: " + AString::number(m_header.quatern_b) + "\n";
-        ret += "quatern_c: " + AString::number(m_header.quatern_c) + "\n";
-        ret += "quatern_d: " + AString::number(m_header.quatern_d) + "\n";
-        ret += "qoffset_x: " + AString::number(m_header.qoffset_x) + "\n";
-        ret += "qoffset_y: " + AString::number(m_header.qoffset_y) + "\n";
-        ret += "qoffset_z: " + AString::number(m_header.qoffset_z) + "\n";
+        ret += "quatern_b: " + QString::number(m_header.quatern_b) + "\n";
+        ret += "quatern_c: " + QString::number(m_header.quatern_c) + "\n";
+        ret += "quatern_d: " + QString::number(m_header.quatern_d) + "\n";
+        ret += "qoffset_x: " + QString::number(m_header.qoffset_x) + "\n";
+        ret += "qoffset_y: " + QString::number(m_header.qoffset_y) + "\n";
+        ret += "qoffset_z: " + QString::number(m_header.qoffset_z) + "\n";
     }
-    ret += "xyzt_units: " + AString::number(m_header.xyzt_units) + "\n";
-    ret += "intent_code: " + AString::number(m_header.intent_code) + "\n";
+    ret += "xyzt_units: " + QString::number(m_header.xyzt_units) + "\n";
+    ret += "intent_code: " + QString::number(m_header.intent_code) + "\n";
     ret += "intent_name: " + QByteArray(m_header.intent_name, 16);//same quirk
     ret += "\n";
     int numExts = (int)m_extensions.size();
-    ret += AString::number(numExts) + " extension";
+    ret += QString::number(numExts) + " extension";
     if (numExts != 1) ret += "s";
     if (numExts == 0)
     {
@@ -331,8 +330,8 @@ AString NiftiHeader::toString() const
         {
             CaretAssert(m_extensions[i] != NULL);
             ret += "\n";
-            ret += "code: " + AString::number(m_extensions[i]->m_ecode) + "\n";
-            ret += "length: " + AString::number(m_extensions[i]->m_bytes.size()) + "\n";
+            ret += "code: " + QString::number(m_extensions[i]->m_ecode) + "\n";
+            ret += "length: " + QString::number(m_extensions[i]->m_bytes.size()) + "\n";
         }
     }
     return ret;
@@ -491,9 +490,9 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
         {
             int32_t esize, ecode;
             inFile.read(&esize, sizeof(int32_t));
-            if (swapped) ByteSwapping::swapBytes(&esize, 1);
+            if (swapped) ByteSwapping::swap(esize);
             inFile.read(&ecode, sizeof(int32_t));
-            if (swapped) ByteSwapping::swapBytes(&ecode, 1);
+            if (swapped) ByteSwapping::swap(ecode);
             if (esize < 8 || esize + extStart > m_header.vox_offset) break;
             CaretPointer<NiftiExtension> tempExtension(new NiftiExtension());
             if ((size_t)esize > 2 * sizeof(int32_t))//don't try to read 0 bytes
@@ -518,7 +517,7 @@ void NiftiHeader::setupFrom(const nifti_1_header& header)
     if (header.dim[0] < 1 || header.dim[0] > 7) throw DataFileException("incorrect dim[0]");
     for (int i = 0; i < header.dim[0]; ++i)
     {
-        if (header.dim[i + 1] < 1) throw DataFileException("dim[" + AString::number(i + 1) + "] < 1");
+        if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
     }
     if (header.vox_offset < 352) throw DataFileException("incorrect vox_offset");
     int numBits = typeToNumBits(header.datatype);
@@ -578,7 +577,7 @@ void NiftiHeader::setupFrom(const nifti_2_header& header)
     if (header.dim[0] < 1 || header.dim[0] > 7) throw DataFileException("incorrect dim[0]");
     for (int i = 0; i < header.dim[0]; ++i)
     {
-        if (header.dim[i + 1] < 1) throw DataFileException("dim[" + AString::number(i + 1) + "] < 1");
+        if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
     }
     if (header.vox_offset < 352) throw DataFileException("incorrect vox_offset");
     if (header.bitpix != typeToNumBits(header.datatype)) throw DataFileException("datatype disagrees with bitpix");
@@ -696,7 +695,7 @@ void NiftiHeader::swapHeaderBytes(nifti_2_header& header)
 
 int64_t NiftiHeader::write(CaretBinaryFile& outFile, const int& version, const bool& swapEndian) const
 {//always write in native byte order, until there is a real reason to do otherwise
-    if (!canWriteVersion(version)) throw DataFileException("unable to write NIfTI version " + AString::number(version) + " for file " + outFile.getFilename());
+    if (!canWriteVersion(version)) throw DataFileException("unable to write NIfTI version " + QString::number(version) + " for file " + outFile.getFilename());
     const char padding[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     int64_t voxOffset;
     if (version == 2)

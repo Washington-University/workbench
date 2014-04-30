@@ -53,7 +53,7 @@ namespace caret
             virtual ~WriteImplInterface();
         };
         CiftiFile() { }
-        explicit CiftiFile(const AString &fileName);//calls openFile
+        explicit CiftiFile(const QString &fileName);//calls openFile
         void openFile(const QString& fileName);//starts on-disk reading
         void setWritingFile(const QString& fileName);//starts on-disk writing
         void writeFile(const QString& fileName, const CiftiVersion& writingVersion);//leaves current state as-is, rewrites if already writing to that filename and version mismatch

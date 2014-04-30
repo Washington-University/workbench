@@ -1,4 +1,3 @@
-
 #ifndef __BYTE_SWAPPING_H__
 #define __BYTE_SWAPPING_H__
 
