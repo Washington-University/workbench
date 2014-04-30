@@ -145,9 +145,9 @@ OperationShowScene::useParameters(OperationParameters* myParams,
                                           ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString sceneFileName = FileInformation(myParams->getString(1)).getFilePath();
+    AString sceneFileName = FileInformation(myParams->getString(1)).getAbsoluteFilePath();
     AString sceneNameOrNumber = myParams->getString(2);
-    AString imageFileName = FileInformation(myParams->getString(3)).getFilePath();
+    AString imageFileName = FileInformation(myParams->getString(3)).getAbsoluteFilePath();
     const int32_t imageWidth  = myParams->getInteger(4);
     if (imageWidth < 0) {
         throw OperationException("image width is invalid");
