@@ -538,6 +538,19 @@ ChartSelectionViewController::createMatrixChartWidget()
     QHBoxLayout* layout = new QHBoxLayout(widget);
     layout->addWidget(matrixLoadGroupBox, 0);
     layout->addLayout(fileYokeLayout, 100);
+    
+    
+    /*
+     * HIDE LOAD BY AND YOKE CONTROLS UNTIL IMPLEMENTATION OF 
+     * THEIR FUNCTIONALITY TAKES PLACE
+     */
+    matrixLoadGroupBox->setHidden(true);
+    yokeLabel->setHidden(true);
+    m_matrixYokingGroupComboBox->getWidget()->setHidden(true);
+    
+    
+    
+    
     return widget;
 }
 
