@@ -48,6 +48,7 @@
 #include "CursorDisplayScoped.h"
 #include "CursorManager.h"
 #include "CustomViewDialog.h"
+#include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -58,6 +59,7 @@
 #include "EventMapSettingsEditorDialogRequest.h"
 #include "EventModelGetAll.h"
 #include "EventOperatingSystemRequestOpenDataFile.h"
+#include "EventProgressUpdate.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -1688,6 +1690,11 @@ void
 GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                              const SceneClass* sceneClass)
 {
+    const int64_t eventCountAtStart = EventManager::get()->getEventIssuedCounter();
+    
+    ElapsedTimer sceneRestoreTimer;
+    sceneRestoreTimer.start();
+    
     if (sceneClass == NULL) {
         return;
     }
@@ -1734,9 +1741,15 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
     
     /*
-     * Block graphics update events
+     * Blocking user-interface and graphics event will speed up
+     * restoration of the user interface.
      */
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
+    bool blockUserInteraceUpdateEvents = true;
+    if (blockUserInteraceUpdateEvents) {
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE,
+                                        true);
+    }
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
                                     true);
     EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
                                     true);
@@ -1747,6 +1760,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     SessionManager::get()->restoreFromScene(sceneAttributes, 
                                             sceneClass->getClass("m_sessionManager"));
 
+    EventProgressUpdate progressEvent("");
+    
     /*
      * See if models available (user may have cancelled scene loading.
      */
@@ -1754,6 +1769,9 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
     const bool haveModels = (getAllModelsEvent.getModels().empty() == false);
 
+    ElapsedTimer timer;
+    timer.start();
+    
     if (haveModels) {
         /*
          * Get open windows
@@ -1769,6 +1787,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         /*
          * Restore windows
          */
+        progressEvent.setProgressMessage("Restoring browser windows");
+        EventManager::get()->sendEvent(progressEvent.getPointer());
         const SceneClassArray* browserWindowArray = sceneClass->getClassArray("m_brainBrowserWindows");
         if (browserWindowArray != NULL) {
             const int32_t numBrowserClasses = browserWindowArray->getNumberOfArrayElements();
@@ -1791,6 +1811,11 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             }
         }
         
+        CaretLogInfo("Time to restore browser windows was "
+                     + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                     + " seconds");
+        timer.reset();
+        
         /*
          * Close windows not needed
          */
@@ -1804,6 +1829,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         /*
          * Restore information window
          */
+        progressEvent.setProgressMessage("Restoring Information Window");
+        EventManager::get()->sendEvent(progressEvent.getPointer());
         const SceneClass* infoWindowClass = sceneClass->getClass("m_informationDisplayDialog");
         if (infoWindowClass != NULL) {
             if (m_informationDisplayDialog == NULL) {
@@ -1828,6 +1855,8 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         /*
          * Restore surface properties
          */
+        progressEvent.setProgressMessage("Restoring Surface Properties Window");
+        EventManager::get()->sendEvent(progressEvent.getPointer());
         const SceneClass* surfPropClass = sceneClass->getClass("m_surfacePropertiesEditorDialog");
         if (surfPropClass != NULL) {
             if (m_surfacePropertiesEditorDialog == NULL) {
@@ -1839,9 +1868,21 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             m_surfacePropertiesEditorDialog->restoreFromScene(sceneAttributes,
                                                               surfPropClass);
         }
+        
+        CaretLogInfo("Time to restore information/property windows was "
+                     + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                     + " seconds");
+        timer.reset();
     }
     
+    progressEvent.setProgressMessage("Invalidating coloring and updating user interface");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+
+    if (blockUserInteraceUpdateEvents) {
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE,
+                                    false);
+    }
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     /*
@@ -1852,7 +1893,22 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
                                     false);
 
+    progressEvent.setProgressMessage("Updating graphics in all windows");
+    EventManager::get()->sendEvent(progressEvent.getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
+    CaretLogInfo("Time to update graphics in all windows was "
+                 + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds");
+    timer.reset();
+
+    const int64_t totalNumberOfEvents = (EventManager::get()->getEventIssuedCounter()
+                                         - eventCountAtStart);
+    CaretLogInfo("Time to restore scene was "
+                 + QString::number(sceneRestoreTimer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds with "
+                 + AString::number(totalNumberOfEvents)
+                 + " events");
 }
 
 /**

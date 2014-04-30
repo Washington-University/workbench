@@ -89,6 +89,9 @@ namespace caret {
         
         void blockEvent(const EventTypeEnum::Enum eventToBlock,
                         const bool blockStatus);
+        
+        int64_t getEventIssuedCounter() const;
+        
     private:
         EventManager();
         

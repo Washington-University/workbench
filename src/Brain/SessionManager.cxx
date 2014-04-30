@@ -28,9 +28,11 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
+#include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
@@ -485,6 +487,9 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     const int32_t PROGRESS_RESTORING_GUI = progressCounter++;
     const int32_t PROGRESS_RESTORING_TOTAL = progressCounter++;
     
+    ElapsedTimer timer;
+    timer.start();
+    
     EventProgressUpdate progressEvent(0,
                                       PROGRESS_RESTORING_TOTAL,
                                       PROGRESS_RESTORING_BRAIN,
@@ -550,6 +555,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
     
+    CaretLogInfo("Time to restore brain was "
+                 + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds");
+    timer.reset();
+    
     progressEvent.setProgress(PROGRESS_RESTORING_TABS,
                               "Restoring Content of Browser Tabs");
     EventManager::get()->sendEvent(progressEvent.getPointer());
@@ -586,6 +596,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         CaretAssert(tabIndex >= 0);
         m_browserTabs[tabIndex] = tab;
     }
+    
+    CaretLogInfo("Time to restore browser tab content was "
+                 + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds");
+    timer.reset();
     
     progressEvent.setProgress(PROGRESS_RESTORING_GUI,
                               "Restoring Graphical User Interface");

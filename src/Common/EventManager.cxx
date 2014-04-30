@@ -417,9 +417,9 @@ EventManager::sendEvent(Event* event)
         else {
             // Too many prints (JWH) CaretLogFine("Event " + eventNumberString + " not processed: " + event->toString());
         }
-    }    
-    
-    m_eventIssuedCounter++;
+
+        m_eventIssuedCounter++;
+    }
 }
 
 /**
@@ -471,4 +471,14 @@ EventManager::blockEvent(const EventTypeEnum::Enum eventType,
         }
     }
 }
+
+/**
+ * @return The cumulative number of events that have been sent.
+ */
+int64_t
+EventManager::getEventIssuedCounter() const
+{
+    return m_eventIssuedCounter;
+}
+
 
