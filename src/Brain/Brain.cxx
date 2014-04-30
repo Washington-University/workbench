@@ -1217,7 +1217,12 @@ Brain::addReadOrReloadVolumeFile(const FileModeAddReadReload fileMode,
     
     vf->clearModified();
     
+    ElapsedTimer timer;
+    timer.start();
     vf->updateScalarColoringForAllMaps(m_paletteFile);
+    CaretLogInfo("Time to color volume data is "
+                 + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds.");
     
     if (addFlag) {
         m_volumeFiles.push_back(vf);

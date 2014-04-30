@@ -30,6 +30,7 @@
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
 #include "DataFileContentInformation.h"
+#include "ElapsedTimer.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
@@ -192,6 +193,9 @@ VolumeFile::clear()
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    ElapsedTimer timer;
+    timer.start();
+    
     clear();
     AString fileToRead;
     try {
@@ -243,6 +247,10 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
                 setFrame(tempFrame.data(), getBrickIndexFromNonSpatialIndexes(*myiter));
             }
         }
+        
+        CaretLogInfo("Time to read volume data is "
+                     + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                     + " seconds.");
         m_header.grabNew(new NiftiHeader(inHeader));
         for (int64_t i = 0; i < (int64_t)inHeader.m_extensions.size(); ++i)
         {
@@ -265,6 +273,10 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         m_forceUpdateOfGroupAndNameHierarchy = true;
         getGroupAndNameHierarchyModel();
     }
+    
+    CaretLogInfo("Total Time to read and process volume is "
+                 + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds.");
 }
 
 /**
