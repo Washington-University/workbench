@@ -1813,7 +1813,14 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const Plane& slicePlane,
                 }
             }
             if (drawFociFlag) {
+                glDisable(GL_DEPTH_TEST);
                 drawVolumeSliceFoci(slicePlane);
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
+                }
+                else {
+                    glDisable(GL_DEPTH_TEST);
+                }
             }
             
             glDisable(GL_POLYGON_OFFSET_FILL);
