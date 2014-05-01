@@ -342,7 +342,7 @@ void CiftiMemoryImpl::getColumn(float* dataOut, const int64_t& index) const
     }
 }
 
-void CiftiMemoryImpl::setRow(const float* dataIn, const vector< int64_t >& indexSelect)
+void CiftiMemoryImpl::setRow(const float* dataIn, const vector<int64_t>& indexSelect)
 {
     float* ref = m_array.get(1, indexSelect);
     int64_t rowSize = m_array.getDimensions()[0];//we don't accept 0-D CiftiXML, so this will always work
