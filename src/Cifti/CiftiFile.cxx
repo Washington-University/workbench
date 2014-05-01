@@ -289,9 +289,13 @@ void CiftiFile::verifyWriteImpl()
         if (m_readingImpl != NULL)
         {
             CiftiOnDiskImpl* testImpl = dynamic_cast<CiftiOnDiskImpl*>(m_readingImpl.getPointer());
-            if (testImpl != NULL && testImpl->getFilename() == m_writingFile)//these have already been canonicalized, see setWritingFile(), openFile()
+            if (testImpl != NULL)
             {
-                convertToInMemory();//save existing data in memory before we clobber file
+                QString canonicalCurrent = FileInformation(testImpl->getFilename()).getCanonicalFilePath();//returns "" if nonexistant, if unlinked while open
+                if (canonicalCurrent != "" && canonicalCurrent == FileInformation(m_writingFile).getCanonicalFilePath())//these were already absolute
+                {
+                    convertToInMemory();//save existing data in memory before we clobber file
+                }
             }
         }
         m_writingImpl.grabNew(new CiftiOnDiskImpl(m_writingFile, m_xml, m_writingVersion));//this constructor makes new file for writing
