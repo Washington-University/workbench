@@ -49,8 +49,7 @@ void NiftiIO::writeNew(const QString& filename, const NiftiHeader& header, const
         m_file.open(filename, CaretBinaryFile::WRITE_TRUNCATE);
     }
     m_header = header;
-    m_writingSwapped = swapEndian;
-    m_writingVoxOffset = m_header.write(m_file, version, m_writingSwapped);//the header's getDataOffset() is not what gets written, as it doesn't reflect changes in the extensions
+    m_header.write(m_file, version, swapEndian);
     m_dims = m_header.getDimensions();
 }
 

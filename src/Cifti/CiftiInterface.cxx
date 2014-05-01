@@ -79,7 +79,7 @@ CiftiXMLOld CiftiInterface::getCiftiXMLOld() const
     }
     if (ret.getDimensionLength(CiftiXMLOld::ALONG_COLUMN) < 1)
     {
-        ret.setRowNumberOfTimepoints(m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN));
+        ret.setColumnNumberOfTimepoints(m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN));
     }
     return ret;
 }

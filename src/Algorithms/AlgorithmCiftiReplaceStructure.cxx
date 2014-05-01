@@ -203,7 +203,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             {
                 rowScratch[myMap[j].m_ciftiIndex] = metricIn->getValue(myMap[j].m_surfaceNode, i);
             }
-            ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+            ciftiInOut->setRow(rowScratch, i);
         }
     }
 }
@@ -347,7 +347,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                 used.insert(tempKey);
             }
             myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
-            ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+            ciftiInOut->setRow(rowScratch, i);
         }
     }
 }
@@ -514,7 +514,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                     used.insert(tempKey);
                 }
                 myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
-                ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+                ciftiInOut->setRow(rowScratch, i);
             }
         } else {
             for (int64_t i = 0; i < colSize; ++i)
@@ -693,7 +693,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
                     used.insert(tempKey);
                 }
                 myLabelsMap.getMapLabelTable(i)->deleteUnusedLabels(used);
-                ciftiInOut->setRow(rowScratch, myMap[i].m_ciftiIndex);
+                ciftiInOut->setRow(rowScratch, i);
             }
         } else {
             for (int64_t i = 0; i < colSize; ++i)

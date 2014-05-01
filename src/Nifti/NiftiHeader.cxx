@@ -47,8 +47,8 @@ NiftiHeader::NiftiHeader()
     m_header.scl_inter = 0.0;
     m_header.datatype = NIFTI_TYPE_FLOAT32;
     m_header.bitpix = typeToNumBits(m_header.datatype);
-    m_readVersion = 0;
-    m_readSwapped = false;
+    m_version = 0;
+    m_isSwapped = false;
 }
 
 bool NiftiHeader::canWriteVersion(const int& version) const
@@ -171,8 +171,8 @@ vector<std::vector<float> > NiftiHeader::getFSLSpace() const
 
 bool NiftiHeader::operator==(const NiftiHeader& rhs) const
 {
-    if (m_readVersion != rhs.m_readVersion) return false;//this is to test for consistency, not to test if two headers mean the same thing
-    if (m_readSwapped != rhs.m_readSwapped) return false;
+    if (m_version != rhs.m_version) return false;//this is to test for consistency, not to test if two headers mean the same thing
+    if (m_isSwapped != rhs.m_isSwapped) return false;
     return memcmp(&m_header, &(rhs.m_header), sizeof(m_header)) == 0;
 }
 
@@ -262,7 +262,7 @@ vector<vector<float> > NiftiHeader::getSForm() const
 QString NiftiHeader::toString() const
 {
     QString ret;
-    if (wasSwapped())
+    if (isSwapped())
     {
         ret += "native endian: false\n";
     } else {
@@ -505,8 +505,8 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
             extStart += esize;//esize includes the two int32_ts
         }
     }
-    m_readSwapped = swapped;//now that we know there were no errors (because they throw), complete the internal state
-    m_readVersion = version;
+    m_isSwapped = swapped;//now that we know there were no errors (because they throw), complete the internal state
+    m_version = version;
 }
 
 void NiftiHeader::setupFrom(const nifti_1_header& header)
@@ -693,7 +693,7 @@ void NiftiHeader::swapHeaderBytes(nifti_2_header& header)
     ByteSwapping::swap(header.intent_code);
 }
 
-int64_t NiftiHeader::write(CaretBinaryFile& outFile, const int& version, const bool& swapEndian) const
+void NiftiHeader::write(CaretBinaryFile& outFile, const int& version, const bool& swapEndian)
 {//always write in native byte order, until there is a real reason to do otherwise
     if (!canWriteVersion(version)) throw DataFileException("unable to write NIfTI version " + QString::number(version) + " for file " + outFile.getFilename());
     const char padding[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -744,7 +744,9 @@ int64_t NiftiHeader::write(CaretBinaryFile& outFile, const int& version, const b
         if (paddingBytes != 0) outFile.write(padding, paddingBytes);
     }
     CaretAssert(outFile.pos() == voxOffset);
-    return voxOffset;
+    m_header.vox_offset = voxOffset;//update internal state to reflect the state that was written to the file
+    m_version = version;
+    m_isSwapped = swapEndian;
 }
 
 void NiftiHeader::prepareHeader(nifti_1_header& header) const

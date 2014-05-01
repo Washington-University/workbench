@@ -1574,7 +1574,7 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
     if (m_header != NULL && m_header->getType() == AbstractHeader::NIFTI) {
         const NiftiHeader& myHeader = *((NiftiHeader*)m_header.getPointer());
         dataFileInformation.addNameAndValue("NIFTI Version",
-                                            myHeader.versionRead());
+                                            myHeader.version());
         bool ok = false;
         dataFileInformation.addNameAndValue("NIFTI Data Type",
                                             NiftiDataTypeEnum::toName(NiftiDataTypeEnum::fromIntegerCode(myHeader.getDataType(), &ok)));//fromIntegerCode basically just ignores invalid values

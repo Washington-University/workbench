@@ -42,15 +42,12 @@ namespace caret
         NiftiHeader m_header;
         std::vector<int64_t> m_dims;
         std::vector<char> m_scratch;//scratch memory for byteswapping, type conversion, etc
-        int64_t m_writingVoxOffset;//storage for things not stored inside the header while writing
-        bool m_writingSwapped;
         int numBytesPerElem();//for resizing scratch
         template<typename TO, typename FROM>
         void convertRead(TO* out, FROM* in, const int64_t& count);//for reading from file
         template<typename TO, typename FROM>
         void convertWrite(TO* out, const FROM* in, const int64_t& count);//for writing to file
     public:
-        NiftiIO() { m_writingVoxOffset = 0; m_writingSwapped = false; }
         void openRead(const QString& filename);
         void writeNew(const QString& filename, const NiftiHeader& header, const int& version = 1, const bool& withRead = false, const bool& swapEndian = false);
         QString getFilename() const { return m_file.getFilename(); }
@@ -158,7 +155,7 @@ namespace caret
             numDimSkip *= m_dims[curDim];
         }
         m_scratch.resize(numElems * numBytesPerElem());
-        m_file.seek(numSkip * numBytesPerElem() + m_writingVoxOffset);
+        m_file.seek(numSkip * numBytesPerElem() + m_header.getDataOffset());
         switch (m_header.getDataType())
         {
             case NIFTI_TYPE_UINT8:
@@ -209,7 +206,7 @@ namespace caret
     template<typename TO, typename FROM>
     void NiftiIO::convertRead(TO* out, FROM* in, const int64_t& count)
     {
-        if (m_header.wasSwapped())
+        if (m_header.isSwapped())
         {
             ByteSwapping::swapArray(in, count);
         }
@@ -278,7 +275,7 @@ namespace caret
                 }
             }
         }
-        if (m_writingSwapped) ByteSwapping::swapArray(out, count);
+        if (m_header.isSwapped()) ByteSwapping::swapArray(out, count);
     }
     
 }
