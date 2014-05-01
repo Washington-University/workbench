@@ -161,6 +161,7 @@ vector<std::vector<float> > NiftiHeader::getFSLSpace() const
             ret *= 0.001f;
             ret[3][3] = 1.0f;
             break;
+        case 0://will already have warned in getSForm()
         case NIFTI_UNITS_MM:
             break;
         default:
