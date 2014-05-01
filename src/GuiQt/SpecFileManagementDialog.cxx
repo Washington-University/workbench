@@ -49,7 +49,6 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
-#include "EventDataFileDelete.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -123,22 +122,20 @@ SpecFileManagementDialog::runOpenSpecFileDialog(Brain* brain,
  *    Brain for which files are managed.
  * @param parent
  *    Parent of dialog.
- * @return
- *    Pointer to dialog created for save/manage files.
  */
-SpecFileManagementDialog*
-SpecFileManagementDialog::createRunSaveAndManageFilesDialog(Brain* brain,
-                                                            QWidget* parent)
+void
+SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
+                                               QWidget* parent)
 {
     CaretAssert(brain);
     const AString title = ("Manage Data Files");
     
-    SpecFileManagementDialog* dialog = new SpecFileManagementDialog(MODE_MANAGE_FILES,
-                                                                    brain,
-                                                                    brain->getSpecFile(),
-                                                                    title,
-                                                                    parent);
-    return dialog;
+    SpecFileManagementDialog dialog(MODE_MANAGE_FILES,
+                                    brain,
+                                    brain->getSpecFile(),
+                                    title,
+                                    parent);
+    dialog.exec();
 }
 
 /**
@@ -192,7 +189,7 @@ SpecFileManagementDialog::SpecFileManagementDialog(const Mode dialogMode,
                                                    SpecFile* specFile,
                                                    const AString& dialogTitle,
                                                    QWidget* parent)
-: WuQDialog(dialogTitle,
+: WuQDialogModal(dialogTitle,
                  parent),
 m_dialogMode(dialogMode),
 m_brain(brain),
@@ -260,25 +257,19 @@ m_specFile(specFile)
     m_loadScenesPushButton = NULL;
     switch (m_dialogMode) {
         case SpecFileManagementDialog::MODE_MANAGE_FILES:
-            setStandardButtonText(QDialogButtonBox::Apply, "Save Checked Files");
-            setStandardButtonText(QDialogButtonBox::Close, "Close");
-//            setOkButtonText("Save Checked Files");
-//            setCancelButtonText("Close");
+            setOkButtonText("Save Checked Files");
+            setCancelButtonText("Close");
             testForDisplayedDataFiles = true;
             break;
         case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
-            setStandardButtonText(QDialogButtonBox::Ok, "Load");
-            setStandardButtonText(QDialogButtonBox::Cancel, "Cancel");
-//            setOkButtonText("Load");
-//            setCancelButtonText("Cancel");
+            setOkButtonText("Load");
+            setCancelButtonText("Cancel");
             m_loadScenesPushButton = addUserPushButton("Load Scenes",
                                                        QDialogButtonBox::AcceptRole);
             break;
         case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
-            setStandardButtonText(QDialogButtonBox::Ok, "Save Selected Files and Exit");
-            setStandardButtonText(QDialogButtonBox::Cancel, "Cancel");
-//            setOkButtonText("Save Selected Files and Exit");
-//            setCancelButtonText("Cancel");
+            setOkButtonText("Save Selected Files and Exit");
+            setCancelButtonText("Cancel");
             testForDisplayedDataFiles = true;
             break;
     }
@@ -440,21 +431,6 @@ m_specFile(specFile)
     WuQtUtilities::resizeWindow(this,
                                 dialogWidth,
                                 dialogHeight);
-
-    switch (m_dialogMode) {
-        case SpecFileManagementDialog::MODE_MANAGE_FILES:
-            EventManager::get()->addProcessedEventListener(this,
-                                                           EventTypeEnum::EVENT_DATA_FILE_ADD);
-            EventManager::get()->addProcessedEventListener(this,
-                                                           EventTypeEnum::EVENT_DATA_FILE_READ);
-            EventManager::get()->addProcessedEventListener(this,
-                                                           EventTypeEnum::EVENT_DATA_FILE_RELOAD);
-            break;
-        case SpecFileManagementDialog::MODE_SAVE_FILES_WHILE_QUITTING:
-            break;
-        case SpecFileManagementDialog::MODE_OPEN_SPEC_FILE:
-            break;
-    }
 }
 
 /**
@@ -462,8 +438,6 @@ m_specFile(specFile)
  */
 SpecFileManagementDialog::~SpecFileManagementDialog()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
-    
     clearSpecFileManagementDialogRowContent();
     
     if (m_iconOpenFile != NULL) {
@@ -479,34 +453,6 @@ SpecFileManagementDialog::~SpecFileManagementDialog()
         delete m_iconRemoveFile;
     }
 }
-
-/**
- * Receive an event.
- *
- * @param event
- *    Event.
- */
-void
-SpecFileManagementDialog::receiveEvent(Event* event)
-{
-    if ((event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_ADD)
-        || (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ)
-        || (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_RELOAD)) {
-        updateDialog();
-    }
-}
-
-/**
- * Update the contenet in the dialog.
- */
-void
-SpecFileManagementDialog::updateDialog()
-{
-    getDataFileContentFromSpecFile();
-    updateTableDimensionsToFitFiles();
-    loadSpecFileContentIntoDialog();
-}
-
 
 /**
  * Clear content of all of the table row.
@@ -637,14 +583,8 @@ SpecFileManagementDialog::enableLoadOrSaveButton()
     }
     
     QAbstractButton* okButton = getDialogButtonBox()->button(QDialogButtonBox::Ok);
-    QAbstractButton* applyButton = getDialogButtonBox()->button(QDialogButtonBox::Apply);
-    CaretAssert((okButton != NULL) || (applyButton != NULL));
-    if (okButton != NULL) {
-        okButton->setEnabled(isAnyFileSelected);
-    }
-    else if (applyButton != NULL) {
-        applyButton->setEnabled(isAnyFileSelected);
-    }
+    CaretAssert(okButton);
+    okButton->setEnabled(isAnyFileSelected);
 }
 
 
@@ -1521,6 +1461,7 @@ SpecFileManagementDialog::createCheckableItem()
     return item;
 }
 
+#include "EventDataFileDelete.h"
 
 /**
  * Called when a push button was added using addUserPushButton().
@@ -1556,25 +1497,6 @@ SpecFileManagementDialog::userButtonPressed(QPushButton* userPushButton)
 }
 
 /**
- * Gets called when the Apply button is pressed.
- */
-void
-SpecFileManagementDialog::applyButtonClicked()
-{
-    switch (m_dialogMode) {
-        case MODE_MANAGE_FILES:
-            saveButtonClickedManageAndSaveFiles();
-            break;
-        case MODE_OPEN_SPEC_FILE:
-            CaretAssert(0);
-            break;
-        case MODE_SAVE_FILES_WHILE_QUITTING:
-            CaretAssert(0);
-            break;
-    }
-}
-
-/**
  * Gets called when the OK button is pressed.
  */
 void
@@ -1584,19 +1506,19 @@ SpecFileManagementDialog::okButtonClicked ()
     
     switch (m_dialogMode) {
         case MODE_MANAGE_FILES:
-            CaretAssert(0);
+            allowDialogToClose = okButtonClickedManageAndSaveFiles();
             break;
         case MODE_OPEN_SPEC_FILE:
             okButtonClickedOpenSpecFile();
             allowDialogToClose = true;
             break;
         case MODE_SAVE_FILES_WHILE_QUITTING:
-            allowDialogToClose = saveButtonClickedManageAndSaveFiles();
+            allowDialogToClose = okButtonClickedManageAndSaveFiles();
             break;
     }
     
     if (allowDialogToClose) {
-        WuQDialog::okButtonClicked();
+        WuQDialogModal::okButtonClicked();
     }
 }
 
@@ -1656,7 +1578,7 @@ SpecFileManagementDialog::okButtonClickedOpenSpecFile()
  * or Save Files mode.
  */
 bool
-SpecFileManagementDialog::saveButtonClickedManageAndSaveFiles()
+SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
 {
     /*
      * Wait cursor
@@ -1710,7 +1632,9 @@ SpecFileManagementDialog::saveButtonClickedManageAndSaveFiles()
     /*
      * Spec file may have changed by SpecFile::removeAnyFileInformationIfNotInSpecAndNoCaretDataFile().
      */
-    updateDialog();
+    getDataFileContentFromSpecFile();
+    updateTableDimensionsToFitFiles();
+    loadSpecFileContentIntoDialog();
     
     cursor.restoreCursor();
     
@@ -1762,6 +1686,7 @@ SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
     
     return errorMessage;
 }
+
 /**
  * Called when a file remove button is clicked.
  *
@@ -1786,8 +1711,7 @@ SpecFileManagementDialog::fileRemoveActionSelected(int rowIndex)
                 return;
             }
         }
-        EventDataFileDelete deleteFileEvent(caretDataFile);
-        EventManager::get()->sendEvent(deleteFileEvent.getPointer());
+        EventManager::get()->sendEvent(EventDataFileDelete(caretDataFile).getPointer());
         loadSpecFileContentIntoDialog();
         updateGraphicWindowsAndUserInterface();
     }
@@ -2154,18 +2078,17 @@ SpecFileManagementDialog::changeFileName(QWidget* parent,
                 /*
                  * Spec file has changed
                  */
-                updateDialog();
-//                getDataFileContentFromSpecFile();
-//                
-//                /*
-//                 * Table may need to add/remove rows
-//                 */
-//                updateTableDimensionsToFitFiles();
-//                
-//                /*
-//                 * Update the table rows with data
-//                 */
-//                loadSpecFileContentIntoDialog();
+                getDataFileContentFromSpecFile();
+                
+                /*
+                 * Table may need to add/remove rows
+                 */
+                updateTableDimensionsToFitFiles();
+                
+                /*
+                 * Update the table rows with data
+                 */
+                loadSpecFileContentIntoDialog();
             
                 /*
                  * Files have changed

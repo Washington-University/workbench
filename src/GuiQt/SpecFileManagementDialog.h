@@ -27,9 +27,8 @@
 
 #include "CaretObject.h"
 #include "DataFileTypeEnum.h"
-#include "EventListenerInterface.h"
 #include "StructureEnum.h"
-#include "WuQDialog.h"
+#include "WuQDialogModal.h"
 
 class QActionGroup;
 class QIcon;
@@ -79,10 +78,9 @@ namespace caret {
         
         static bool lessThanForSorting(const SpecFileManagementDialogRowContent* item1,
                                        const SpecFileManagementDialogRowContent* item2);
-        
     };
     
-    class SpecFileManagementDialog : public WuQDialog, public EventListenerInterface {
+    class SpecFileManagementDialog : public WuQDialogModal {
         
         Q_OBJECT
 
@@ -91,20 +89,16 @@ namespace caret {
                                           SpecFile* specFile,
                                           QWidget* parent);
         
-        static SpecFileManagementDialog* createRunSaveAndManageFilesDialog(Brain* brain,
-                                                                           QWidget* parent);
+        static void runManageFilesDialog(Brain* brain,
+                                         QWidget* parent);
         
         static bool runSaveFilesDialogWhileQuittingWorkbench(Brain* brain,
                                          QWidget* parent);
         
         virtual ~SpecFileManagementDialog();
         
-        void updateDialog();
-        
-        void receiveEvent(Event* event);
-        
     protected:
-        WuQDialog::DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
+        WuQDialogModal::DialogUserButtonResult userButtonPressed(QPushButton* userPushButton);
         
     private slots:
         void toolBarFileTypeActionTriggered(QAction* action);
@@ -184,11 +178,9 @@ namespace caret {
         
         virtual void okButtonClicked();
         
-        virtual void applyButtonClicked();
-        
         void okButtonClickedOpenSpecFile();
         
-        bool saveButtonClickedManageAndSaveFiles();
+        bool okButtonClickedManageAndSaveFiles();
         
         void changeFileName(QWidget* parent,
                             SpecFileDataFile* specFileDataFile,

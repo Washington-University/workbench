@@ -58,7 +58,6 @@ namespace caret {
     class SceneFile;
     class SelectionManager;
     class SpecFile;
-    class SpecFileManagementDialog;
     class SurfacePropertiesEditorDialog;
     class TileTabsConfigurationDialog;
     
@@ -175,8 +174,6 @@ namespace caret {
         GuiManager(const GuiManager&);
         GuiManager& operator=(const GuiManager&);
         
-        void closeSaveManageFilesDialog();
-        
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
                                                   BrowserTabContent* browserTabContent,
                                                   const bool createDefaultTabs);
@@ -234,8 +231,6 @@ namespace caret {
         QAction* m_sceneDialogDisplayAction;
         
         SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
-        
-        SpecFileManagementDialog* m_saveManageFilesDialog;
         
         WuQWebView* connectomeDatabaseWebView;
         

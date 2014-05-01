@@ -126,7 +126,6 @@ GuiManager::GuiManager(QObject* parent)
     this->preferencesDialog = NULL;  
     this->connectomeDatabaseWebView = NULL;
     m_helpViewerDialog = NULL;
-    m_saveManageFilesDialog = NULL;
     this->sceneDialog = NULL;
     m_surfacePropertiesEditorDialog = NULL;
     m_tileTabsConfigurationDialog = NULL;
@@ -557,8 +556,6 @@ GuiManager::exitProgram(QWidget* parent)
         switch (buttonPressed) {
             case QMessageBox::Save:
             {
-                closeSaveManageFilesDialog();
-                
                 if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
                                                                                        parent)) {
                     okToExit = true;
@@ -623,8 +620,6 @@ bool
 GuiManager::processShowOpenSpecFileDialog(SpecFile* specFile,
                                           BrainBrowserWindow* browserWindow)
 {
-    closeSaveManageFilesDialog();
-    
     return SpecFileManagementDialog::runOpenSpecFileDialog(getBrain(),
                                                            specFile,
                                                            browserWindow);
@@ -639,27 +634,8 @@ GuiManager::processShowOpenSpecFileDialog(SpecFile* specFile,
 void
 GuiManager::processShowSaveManageFilesDialog(BrainBrowserWindow* browserWindow)
 {
-    if (m_saveManageFilesDialog == NULL) {
-        m_saveManageFilesDialog = SpecFileManagementDialog::createRunSaveAndManageFilesDialog(getBrain(),
-                                                                                              browserWindow);
-        
-    }
-    
-    m_saveManageFilesDialog->show();
-    m_saveManageFilesDialog->activateWindow();
-}
-
-/**
- * Close the save/manage files dialog.
- */
-void
-GuiManager::closeSaveManageFilesDialog()
-{
-    if (m_saveManageFilesDialog != NULL) {
-        m_saveManageFilesDialog->close();
-        delete m_saveManageFilesDialog;
-        m_saveManageFilesDialog = NULL;
-    }
+    SpecFileManagementDialog::runManageFilesDialog(getBrain(),
+                                                   browserWindow);
 }
 
 /**
@@ -1109,10 +1085,6 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
             WuQDialogNonModal* wuqNonModalDialog = dynamic_cast<WuQDialogNonModal*>(d);
             if (wuqNonModalDialog != NULL) {
                 wuqNonModalDialog->updateDialog();
-            }
-            
-            if (m_saveManageFilesDialog != NULL) {
-                m_saveManageFilesDialog->updateDialog();
             }
         }
     }
