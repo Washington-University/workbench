@@ -652,7 +652,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     ModelSurface* cerebellumSurfaceVeryInflated = NULL;
     int32_t cerebellumSurfaceTypeCode = 1000000;
     
-    ModelChart* chartData = NULL;
+    ModelChart* chartModel = NULL;
     ModelSurfaceMontage* surfaceMontageModel = NULL;
     ModelVolume* volumeModel = NULL;
     ModelWholeBrain* wholeBrainModel = NULL;
@@ -719,7 +719,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
             wholeBrainModel = dynamic_cast<ModelWholeBrain*>(*iter);
         }
         else if (dynamic_cast<ModelChart*>(*iter)) {
-            chartData = dynamic_cast<ModelChart*>(*iter);
+            chartModel = dynamic_cast<ModelChart*>(*iter);
         }
         else {
             CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
@@ -755,6 +755,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     if (wholeBrainModel != NULL) {
         numberOfTabsNeeded++;
     }
+    if (chartModel != NULL) {
+        numberOfTabsNeeded++;
+    }
     if (leftSurfaceModel != NULL) {
         numberOfTabsNeeded++;
     }
@@ -778,6 +781,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                            volumeModel);
     tabIndex = loadIntoTab(tabIndex,
                            wholeBrainModel);
+    tabIndex = loadIntoTab(tabIndex,
+                           chartModel);
     tabIndex = loadIntoTab(tabIndex,
                            leftSurfaceModel);
     tabIndex = loadIntoTab(tabIndex,

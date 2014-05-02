@@ -127,19 +127,47 @@ BrainBrowserWindowToolBarChartType::updateContent(BrowserTabContent* browserTabC
 {
     m_chartTypeButtonGroup->blockSignals(true);
     
+    
     const ModelChart* chartModel = browserTabContent->getDisplayedChartModel();
     if (chartModel != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
         const ChartDataTypeEnum::Enum chartType = chartModel->getSelectedChartDataType(tabIndex);
         
+        bool dataSeriesValidFlag = false;
+        bool matrixValidFlag     = false;
+        bool timeSeriesValidFlag = false;
+        std::vector<ChartDataTypeEnum::Enum> validChartDataTypes;
+        chartModel->getValidChartDataTypes(validChartDataTypes);
+        for (std::vector<ChartDataTypeEnum::Enum>::iterator iter = validChartDataTypes.begin();
+             iter != validChartDataTypes.end();
+             iter++) {
+            switch (*iter) {
+                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                    dataSeriesValidFlag = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    matrixValidFlag = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                    timeSeriesValidFlag = true;
+                    break;
+            }
+        }
+        
+        m_chartDataSeriesTypeRadioButton->setEnabled(dataSeriesValidFlag);
+        m_chartMatrixTypeRadioButton->setEnabled(matrixValidFlag);
+        m_chartTimeSeriesTypeRadioButton->setEnabled(timeSeriesValidFlag);
+        
         switch (chartType) {
             case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                 break;
-            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                m_chartMatrixTypeRadioButton->setChecked(true);
-                break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
                 m_chartDataSeriesTypeRadioButton->setChecked(true);
+                break;
+            case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                m_chartMatrixTypeRadioButton->setChecked(true);
                 break;
             case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                 m_chartTimeSeriesTypeRadioButton->setChecked(true);

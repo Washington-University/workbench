@@ -913,6 +913,64 @@ ModelChart::setSelectedChartDataType(const int32_t tabIndex,
 }
 
 /**
+ * Get the valid chart data types based upon the currently loaded files.
+ * 
+ * @param validChartDataTypesOut
+ *    Output containing valid chart data types.
+ */
+void
+ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validChartDataTypesOut) const
+{
+    validChartDataTypesOut.clear();
+    
+    bool haveDataSeries = false;
+    bool haveMatrix     = false;
+    bool haveTimeSeries = false;
+    
+    std::vector<ChartableInterface*> allChartableFiles;
+    m_brain->getAllChartableFiles(allChartableFiles);
+
+    for (std::vector<ChartableInterface*>::iterator fileIter = allChartableFiles.begin();
+         fileIter != allChartableFiles.end();
+         fileIter++) {
+        ChartableInterface* chartFile = *fileIter;
+        
+        std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
+        chartFile->getSupportedChartDataTypes(chartDataTypes);
+        
+        for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
+             typeIter != chartDataTypes.end();
+             typeIter++) {
+            const ChartDataTypeEnum::Enum cdt = *typeIter;
+            switch (cdt) {
+                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                    haveDataSeries = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    haveMatrix = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                    haveTimeSeries = true;
+                    break;
+            }
+        }
+    }
+    
+    if (haveDataSeries) {
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES);
+    }
+    if (haveMatrix) {
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX);
+    }
+    if (haveTimeSeries) {
+        validChartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES);
+    }
+}
+
+
+/**
  * Get the type of chart selected in the given tab.
  *
  * @param tabIndex
@@ -926,7 +984,32 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
     CaretAssertArrayIndex(m_selectedChartDataType,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           tabIndex);
-    return m_selectedChartDataType[tabIndex];
+    ChartDataTypeEnum::Enum chartDataType = m_selectedChartDataType[tabIndex];
+    
+    /*
+     * Verify that the selected chart data type is valid.
+     */
+    std::vector<ChartDataTypeEnum::Enum> validChartDataTypes;
+    getValidChartDataTypes(validChartDataTypes);
+    
+    if (std::find(validChartDataTypes.begin(),
+                  validChartDataTypes.end(),
+                  chartDataType) == validChartDataTypes.end()) {
+        chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+    }
+    
+    if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+        if ( ! validChartDataTypes.empty()) {
+            chartDataType = validChartDataTypes[0];
+        }
+    }
+    
+    /*
+     * Selected type may have changed due to loaded files changing
+     */
+    m_selectedChartDataType[tabIndex] = chartDataType;
+    
+    return chartDataType;
 }
 
 /**

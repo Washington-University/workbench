@@ -2702,6 +2702,32 @@ Brain::getAllChartableMatrixDataFilesForChartDataType(const ChartDataTypeEnum::E
 }
 
 /**
+ * Get all chartable files.
+ *
+ * @param chartableDataFilesOut
+ *     Output containing all chartable data files.
+ */
+void
+Brain::getAllChartableFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const
+{
+    chartableDataFilesOut.clear();
+    
+    std::vector<CaretDataFile*> allFiles;
+    getAllDataFiles(allFiles);
+    
+    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
+         iter != allFiles.end();
+         iter++) {
+        ChartableInterface* chartFile = dynamic_cast<ChartableInterface*>(*iter);
+        if (chartFile != NULL) {
+            if (chartFile->isChartingSupported()) {
+                chartableDataFilesOut.push_back(chartFile);
+            }
+        }
+    }
+}
+
+/**
  * @return Number of cifti dense parcel files.
  */
 int32_t

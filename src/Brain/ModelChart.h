@@ -78,6 +78,8 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
+        void getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validChartDataTypesOut) const;
+        
         ChartDataTypeEnum::Enum getSelectedChartDataType(const int32_t tabIndex) const;
         
         void setSelectedChartDataType(const int32_t tabIndex,
