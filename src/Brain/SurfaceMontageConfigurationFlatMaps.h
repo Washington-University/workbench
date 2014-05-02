@@ -78,6 +78,8 @@ namespace caret {
         
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
+        virtual void getDisplayedSurfaces(std::vector<Surface*>& surfacesOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

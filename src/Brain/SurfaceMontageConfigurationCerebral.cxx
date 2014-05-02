@@ -720,6 +720,55 @@ SurfaceMontageConfigurationCerebral::getDescriptionOfContent(PlainTextStringBuil
 }
 
 /**
+ * Get all surfaces displayed in this configuration.
+ *
+ * @param surfaceOut
+ *    Will contain all displayed surfaces upon exit.
+ */
+void
+SurfaceMontageConfigurationCerebral::getDisplayedSurfaces(std::vector<Surface*>& surfacesOut) const
+{
+    surfacesOut.clear();
+    
+    if (isLeftEnabled()) {
+        Surface* firstLeftSurface = NULL;;
+        if (isFirstSurfaceEnabled()) {
+            firstLeftSurface = const_cast<Surface*>(getLeftFirstSurfaceSelectionModel()->getSurface());
+            if (firstLeftSurface != NULL) {
+                surfacesOut.push_back(const_cast<Surface*>(firstLeftSurface));
+            }
+        }
+        
+        if (isSecondSurfaceEnabled()) {
+            const Surface* secondLeftSurface = getLeftSecondSurfaceSelectionModel()->getSurface();
+            if (secondLeftSurface != NULL) {
+                if (secondLeftSurface != firstLeftSurface) {
+                    surfacesOut.push_back(const_cast<Surface*>(secondLeftSurface));
+                }
+            }
+        }
+    }
+    
+    if (isRightEnabled()) {
+        Surface* firstRightSurface = NULL;
+        if (isFirstSurfaceEnabled()) {
+            firstRightSurface = const_cast<Surface*>(getRightFirstSurfaceSelectionModel()->getSurface());
+            if (firstRightSurface != NULL) {
+                surfacesOut.push_back(const_cast<Surface*>(firstRightSurface));
+            }
+        }
+        if (isSecondSurfaceEnabled()) {
+            const Surface* secondRightSurface = getRightSecondSurfaceSelectionModel()->getSurface();
+            if (secondRightSurface != NULL) {
+                if (secondRightSurface != firstRightSurface) {
+                    surfacesOut.push_back(const_cast<Surface*>(secondRightSurface));
+                }
+            }
+        }
+    }
+}
+
+/**
  * Copy the given configuration to this configurtion.
  *
  * @param configuration.

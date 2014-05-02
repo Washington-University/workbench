@@ -629,6 +629,33 @@ SurfaceMontageConfigurationCerebellar::getDescriptionOfContent(PlainTextStringBu
 }
 
 /**
+ * Get all surfaces displayed in this configuration.
+ *
+ * @param surfaceOut
+ *    Will contain all displayed surfaces upon exit.
+ */
+void
+SurfaceMontageConfigurationCerebellar::getDisplayedSurfaces(std::vector<Surface*>& surfacesOut) const
+{
+    surfacesOut.clear();
+    
+    const Surface* firstSurface = getFirstSurfaceSelectionModel()->getSurface();
+    if (firstSurface != NULL) {
+        if (isFirstSurfaceEnabled()) {
+            surfacesOut.push_back(const_cast<Surface*>(firstSurface));
+        }
+    }
+    
+    const Surface* secondSurface = getSecondSurfaceSelectionModel()->getSurface();
+    if (secondSurface != NULL) {
+        if (isSecondSurfaceEnabled()) {
+            if (secondSurface != firstSurface) {
+                surfacesOut.push_back(const_cast<Surface*>(secondSurface));
+            }
+        }
+    }
+}
+/**
  * Copy the given configuration to this configurtion.
  *
  * @param configuration.

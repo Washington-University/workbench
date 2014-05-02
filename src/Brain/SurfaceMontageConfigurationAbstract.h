@@ -108,6 +108,8 @@ namespace caret {
         
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const = 0;
         
+        virtual void getDisplayedSurfaces(std::vector<Surface*>& surfacesOut) const = 0;
+        
     private:
         SceneClassAssistant* m_sceneAssistant;
 

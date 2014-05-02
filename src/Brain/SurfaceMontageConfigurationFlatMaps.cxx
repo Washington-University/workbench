@@ -376,6 +376,40 @@ SurfaceMontageConfigurationFlatMaps::getDescriptionOfContent(PlainTextStringBuil
 }
 
 /**
+ * Get all surfaces displayed in this configuration.
+ *
+ * @param surfaceOut
+ *    Will contain all displayed surfaces upon exit.
+ */
+void
+SurfaceMontageConfigurationFlatMaps::getDisplayedSurfaces(std::vector<Surface*>& surfacesOut) const
+{
+    surfacesOut.clear();
+    
+    if (isLeftEnabled()) {
+        const Surface* firstLeftSurface = getLeftSurfaceSelectionModel()->getSurface();
+        if (firstLeftSurface != NULL) {
+            surfacesOut.push_back(const_cast<Surface*>(firstLeftSurface));
+        }
+    }
+    
+    if (isRightEnabled()) {
+        const Surface* firstRightSurface = getRightSurfaceSelectionModel()->getSurface();
+        if (firstRightSurface != NULL) {
+            surfacesOut.push_back(const_cast<Surface*>(firstRightSurface));
+        }
+    }
+    
+    if (isCerebellumEnabled()) {
+        const Surface* cerebellumSurface = getCerebellumSurfaceSelectionModel()->getSurface();
+        if (cerebellumSurface != NULL) {
+            surfacesOut.push_back(const_cast<Surface*>(cerebellumSurface));
+        }
+    }
+}
+
+
+/**
  * Copy the given configuration to this configurtion.
  *
  * @param configuration.

@@ -66,6 +66,7 @@
 #include "FociProjectionDialog.h"
 #include "GuiManager.h"
 #include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
 #include "PlainTextStringBuilder.h"
 #include "ProgressReportingDialog.h"
@@ -81,6 +82,7 @@
 #include "SpecFileManagementDialog.h"
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
+#include "SurfaceMontageConfigurationAbstract.h"
 #include "SurfaceSelectionViewController.h"
 #include "TileTabsConfiguration.h"
 #include "WuQDataEntryDialog.h"
@@ -1275,7 +1277,22 @@ BrainBrowserWindow::processSurfaceMenuInformation()
                 const Surface* surface = mdcwb->getSelectedSurface(*iter, btc->getTabNumber());
                 if (surface != NULL) {
                     txt += surface->getInformation();
+                    txt += "\n";
                 }
+            }
+        }
+        
+        ModelSurfaceMontage* msm = dynamic_cast<ModelSurfaceMontage*>(mdc);
+        if (msm != NULL) {
+            std::vector<Surface*> surfaces;
+            msm->getSelectedConfiguration(btc->getTabNumber())->getDisplayedSurfaces(surfaces);
+            
+            for (std::vector<Surface*>::iterator iter = surfaces.begin();
+                 iter != surfaces.end();
+                 iter++) {
+                const Surface* s = *iter;
+                txt += s->getInformation();
+                txt += "\n";
             }
         }
         
