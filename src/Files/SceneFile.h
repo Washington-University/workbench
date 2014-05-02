@@ -54,6 +54,9 @@ namespace caret {
 
         void addScene(Scene* scene);
         
+        void insertScene(Scene* newScene,
+                         const Scene* insertAboveThisScene);
+        
         void replaceScene(Scene* newScene,
                           Scene* sceneThatIsReplacedAndDeleted);
         

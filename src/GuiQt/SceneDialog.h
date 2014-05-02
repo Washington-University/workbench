@@ -69,6 +69,8 @@ namespace caret {
                 
         void deleteSceneButtonClicked();
         
+        void insertSceneButtonClicked();
+        
         void replaceSceneButtonClicked();
         
         void showSceneButtonClicked();
@@ -115,6 +117,8 @@ namespace caret {
         QComboBox* m_sceneFileSelectionComboBox;
         
         QPushButton* m_addNewScenePushButton;
+        
+        QPushButton* m_insertNewScenePushButton;
         
         QPushButton* m_deleteScenePushButton;
         

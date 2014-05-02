@@ -328,6 +328,7 @@ SceneDialog::loadScenesIntoDialog(Scene* selectedSceneIn)
     }
     m_addNewScenePushButton->setEnabled(validFile);
     m_deleteScenePushButton->setEnabled(validScene);
+    m_insertNewScenePushButton->setEnabled(validScene);
     m_replaceScenePushButton->setEnabled(validScene);
     m_showScenePushButton->setEnabled(validScene);
     m_showSceneImagePreviewPushButton->setEnabled(validScene);
@@ -443,6 +444,29 @@ SceneDialog::addNewSceneButtonClicked()
         loadScenesIntoDialog(newScene);
     }
 }
+
+/**
+ * Called when insert new scene button clicked.
+ */
+void
+SceneDialog::insertSceneButtonClicked()
+{
+    if (checkForModifiedFiles() == false) {
+        return;
+    }
+    
+    SceneFile* sceneFile = getSelectedSceneFile();
+    if (sceneFile != NULL) {
+        Scene* scene = getSelectedScene();
+        if (scene != NULL) {
+            Scene* newScene = SceneCreateReplaceDialog::createNewSceneInsertBeforeScene(m_insertNewScenePushButton,
+                                                                                       sceneFile,
+                                                                                       scene);
+            loadScenesIntoDialog(newScene);
+        }
+    }
+}
+
 
 /**
  * Called when replace scene button clicked.
@@ -675,6 +699,7 @@ SceneDialog::createMainPage()
      * Add new scene button
      */
     m_addNewScenePushButton = new QPushButton("Add...");
+    m_addNewScenePushButton->setToolTip("Add a new scene to the END of the list");
     QObject::connect(m_addNewScenePushButton, SIGNAL(clicked()),
                      this, SLOT(addNewSceneButtonClicked()));
     
@@ -682,13 +707,23 @@ SceneDialog::createMainPage()
      * Delete new scene button
      */
     m_deleteScenePushButton = new QPushButton("Delete...");
+    m_deleteScenePushButton->setToolTip("Delete the selected scene");
     QObject::connect(m_deleteScenePushButton, SIGNAL(clicked()),
                      this, SLOT(deleteSceneButtonClicked()));
+    
+    /*
+     * Insert scene button
+     */
+    m_insertNewScenePushButton = new QPushButton("Insert...");
+    m_insertNewScenePushButton->setToolTip("Insert a new scene ABOVE the selected scene in the list");
+    QObject::connect(m_insertNewScenePushButton, SIGNAL(clicked()),
+                     this, SLOT(insertSceneButtonClicked()));
     
     /*
      * Replace scene button
      */
     m_replaceScenePushButton = new QPushButton("Replace...");
+    m_replaceScenePushButton->setToolTip("Replace the selected scene");
     QObject::connect(m_replaceScenePushButton, SIGNAL(clicked()),
                      this, SLOT(replaceSceneButtonClicked()));
     
@@ -696,6 +731,7 @@ SceneDialog::createMainPage()
      * Show new scene button
      */
     m_showScenePushButton = new QPushButton("Show");
+    m_showScenePushButton->setToolTip("Show the selected scene");
     QObject::connect(m_showScenePushButton, SIGNAL(clicked()),
                      this, SLOT(showSceneButtonClicked()));
     
@@ -703,6 +739,8 @@ SceneDialog::createMainPage()
      * Show scene image button
      */
     m_showSceneImagePreviewPushButton = new QPushButton("Preview...");
+    m_showSceneImagePreviewPushButton->setToolTip("Show larger image and full description\n"
+                                                  "for the selected scene");
     QObject::connect(m_showSceneImagePreviewPushButton, SIGNAL(clicked()),
                      this, SLOT(showImagePreviewButtonClicked()));
     
@@ -715,6 +753,7 @@ SceneDialog::createMainPage()
     sceneButtonLayout->addSpacing(20);
     sceneButtonLayout->addStretch();
     sceneButtonLayout->addWidget(m_addNewScenePushButton);
+    sceneButtonLayout->addWidget(m_insertNewScenePushButton);
     sceneButtonLayout->addWidget(m_replaceScenePushButton);
     sceneButtonLayout->addWidget(m_deleteScenePushButton);
 

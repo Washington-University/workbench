@@ -117,7 +117,46 @@ SceneFile::addScene(Scene* scene)
     setModified();
 }
 
-/** 
+/**
+ * Insert a scene above the given scene.  The file then
+ * takes ownership of the scene.
+ *
+ * @param newScene
+ *     New scene that is inserted.
+ * @param insertAboveThisScene
+ *     The new scene is inserted above (before) this scene.
+ */
+void
+SceneFile::insertScene(Scene* newScene,
+                 const Scene* insertAboveThisScene)
+{
+    CaretAssert(newScene);
+    CaretAssert(insertAboveThisScene);
+    
+    std::vector<Scene*> tempSceneVector;
+    bool newSceneInsertedFlag = false;
+    
+    for (std::vector<Scene*>::iterator iter = m_scenes.begin();
+         iter != m_scenes.end();
+         iter++) {
+        Scene* scene = *iter;
+        if (scene == insertAboveThisScene) {
+            newSceneInsertedFlag = true;
+            tempSceneVector.push_back(newScene);
+        }
+        tempSceneVector.push_back(scene);
+    }
+    
+    if ( ! newSceneInsertedFlag) {
+        m_scenes.push_back(newScene);
+        CaretLogSevere("Scene insertion did not find \"insert above scene\"");
+    }
+    
+    m_scenes = tempSceneVector;
+}
+
+
+/**
  * Replace a scene.
  * @param newScene
  *    New scene

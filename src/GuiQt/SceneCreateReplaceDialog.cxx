@@ -31,7 +31,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
-#include <QScopedPointer>
 #include <QVBoxLayout>
 
 #include "Brain.h"
@@ -73,17 +72,30 @@ using namespace caret;
  *     Parent on which dialog is displayed.
  * @param sceneFile
  *     Scene file to which scene is added or replaced.
+ * @param mode
+ *     Scene add/insert/replace mode
  * @param sceneToReplace
  *     If non-NULL, this scene will be replaced.
  */
 SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
                                                    QWidget* parent,
                                                    SceneFile* sceneFile,
-                                                   Scene* sceneToReplace)
+                                                   const Mode mode,
+                                                   Scene* sceneToInsertOrReplace)
 : WuQDialogModal(dialogTitle,
                  parent)
 {
     CaretAssert(sceneFile);
+    switch (m_mode) {
+        case MODE_ADD_NEW_SCENE:
+            break;
+        case MODE_INSERT_NEW_SCENE:
+            CaretAssert(sceneToInsertOrReplace);
+            break;
+        case MODE_REPLACE_SCENE:
+            CaretAssert(sceneToInsertOrReplace);
+            break;
+    }
     
     if ( ! s_previousSelectionsValid) {
         s_previousSelectionsValid = true;
@@ -95,7 +107,8 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
     }
     
     m_sceneFile = sceneFile;
-    m_sceneToReplace = sceneToReplace;
+    m_mode      = mode;
+    m_sceneToInsertOrReplace = sceneToInsertOrReplace;
     m_sceneThatWasCreated = NULL;
     
     /*
@@ -172,12 +185,17 @@ SceneCreateReplaceDialog::SceneCreateReplaceDialog(const AString& dialogTitle,
         description.addLine("");
     }
     
-    if (sceneToReplace != NULL) {
-        m_nameLineEdit->setText(sceneToReplace->getName());
-        m_descriptionTextEdit->setPlainText(sceneToReplace->getDescription());
-    }
-    else {
-        m_descriptionTextEdit->setPlainText(description.getText());
+    switch (m_mode) {
+        case MODE_ADD_NEW_SCENE:
+            m_descriptionTextEdit->setPlainText(description.getText());
+            break;
+        case MODE_INSERT_NEW_SCENE:
+            m_descriptionTextEdit->setPlainText(description.getText());
+            break;
+        case MODE_REPLACE_SCENE:
+            m_nameLineEdit->setText(sceneToInsertOrReplace->getName());
+            m_descriptionTextEdit->setPlainText(sceneToInsertOrReplace->getDescription());
+            break;
     }
     
     setMinimumWidth(600);
@@ -209,14 +227,46 @@ Scene*
 SceneCreateReplaceDialog::createNewScene(QWidget* parent,
                                          SceneFile* sceneFile)
 {
-    QScopedPointer<SceneCreateReplaceDialog> dialog(new SceneCreateReplaceDialog("Create New Scene",
-                                                                                 parent,
-                                                                                 sceneFile,
-                                                                                 NULL));
-    dialog->exec();
+    SceneCreateReplaceDialog dialog("Create New Scene",
+                                    parent,
+                                    sceneFile,
+                                    MODE_ADD_NEW_SCENE,
+                                    NULL);
+    dialog.exec();
     
-    return dialog->m_sceneThatWasCreated;
+    Scene* scene = dialog.m_sceneThatWasCreated;
+    return scene;
 }
+
+/**
+ * Static method that creates a dialog for creating a new scene and
+ * returns the scene that was created or NULL if scene was not created.
+ *
+ * @param parent
+ *     Parent widget on which dialog is displayed.
+ * @param sceneFile
+ *     Scene file to which new scene is added.
+ * @param insertBeforeScene
+ *     Insert the newly created scene BEFORE this scene.
+ * @return
+ *     Scene that was created or NULL if user cancelled or there was an error.
+ */
+Scene*
+SceneCreateReplaceDialog::createNewSceneInsertBeforeScene(QWidget* parent,
+                                             SceneFile* sceneFile,
+                                             const Scene* insertBeforeScene)
+{
+    SceneCreateReplaceDialog dialog("Insert New Scene",
+                                    parent,
+                                    sceneFile,
+                                    MODE_INSERT_NEW_SCENE,
+                                    const_cast<Scene*>(insertBeforeScene));
+    dialog.exec();
+    
+    Scene* scene = dialog.m_sceneThatWasCreated;
+    return scene;
+}
+
 
 /**
  * Static method that creates a dialog for replacing and existing scene and
@@ -241,10 +291,11 @@ SceneCreateReplaceDialog::replaceExistingScene(QWidget* parent,
     const AString title = ("Replace Scene: "
                            + sceneToReplace->getName());
     
-    QScopedPointer<SceneCreateReplaceDialog> dialog(new SceneCreateReplaceDialog(title,
-                                                                                 parent,
-                                                                                 sceneFile,
-                                                                                 sceneToReplace));
+    SceneCreateReplaceDialog dialog(title,
+                                    parent,
+                                    sceneFile,
+                                    MODE_REPLACE_SCENE,
+                                    sceneToReplace);
     
     /*
      * Error checking will not allow two scenes with the same name
@@ -254,11 +305,12 @@ SceneCreateReplaceDialog::replaceExistingScene(QWidget* parent,
     const AString savedSceneName = sceneToReplace->getName();
     sceneToReplace->setName("slkkjdlkfjaslfjdljfdkljdfjsdfj");
     
-    if (dialog->exec() == SceneCreateReplaceDialog::Rejected) {
+    if (dialog.exec() == SceneCreateReplaceDialog::Rejected) {
         sceneToReplace->setName(savedSceneName);
     }
     
-    return dialog->m_sceneThatWasCreated;
+    Scene* scene = dialog.m_sceneThatWasCreated;
+    return scene;
 }
 
 /**
@@ -469,12 +521,18 @@ SceneCreateReplaceDialog::okButtonClicked()
     
     addImageToScene(newScene);
     
-    if (m_sceneToReplace != NULL) {
-        m_sceneFile->replaceScene(newScene,
-                                  m_sceneToReplace);
-    }
-    else {
-        m_sceneFile->addScene(newScene);
+    switch (m_mode) {
+        case MODE_ADD_NEW_SCENE:
+            m_sceneFile->addScene(newScene);
+            break;
+        case MODE_INSERT_NEW_SCENE:
+            m_sceneFile->insertScene(newScene,
+                                     m_sceneToInsertOrReplace);
+            break;
+        case MODE_REPLACE_SCENE:
+            m_sceneFile->replaceScene(newScene,
+                                      m_sceneToInsertOrReplace);
+            break;
     }
     
     m_sceneThatWasCreated = newScene;

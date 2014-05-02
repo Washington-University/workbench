@@ -42,6 +42,10 @@ namespace caret {
         static Scene* createNewScene(QWidget* parent,
                                      SceneFile* sceneFile);
         
+        static Scene* createNewSceneInsertBeforeScene(QWidget* parent,
+                                                     SceneFile* sceneFile,
+                                                     const Scene* insertBeforeScene);
+        
         static Scene* replaceExistingScene(QWidget* parent,
                                     SceneFile* sceneFile,
                                     Scene* sceneToReplace);
@@ -49,10 +53,17 @@ namespace caret {
         virtual ~SceneCreateReplaceDialog();
         
     private:
+        enum Mode {
+            MODE_ADD_NEW_SCENE,
+            MODE_INSERT_NEW_SCENE,
+            MODE_REPLACE_SCENE
+        };
+        
         SceneCreateReplaceDialog(const AString& dialogTitle,
                                  QWidget* parent,
                                  SceneFile* sceneFile,
-                                 Scene* sceneToReplace);
+                                 const Mode mode,
+                                 Scene* sceneToInsertOrReplace);
         
         SceneCreateReplaceDialog(const SceneCreateReplaceDialog&);
 
@@ -72,8 +83,11 @@ namespace caret {
         
         SceneFile* m_sceneFile;
         
-        Scene* m_sceneToReplace;
+        Mode m_mode;
         
+        Scene* m_sceneToInsertOrReplace;
+        
+        /** Scene that was created DO NOT DESTROY SINCE RETURNED TO CALLER */
         Scene* m_sceneThatWasCreated;
         
         QWidget* createSceneOptionsWidget();
