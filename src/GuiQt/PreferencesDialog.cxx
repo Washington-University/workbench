@@ -29,6 +29,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QSignalMapper>
 #include <QTabWidget>
 
 #define __PREFERENCES_DIALOG__H__DECLARE__
@@ -36,6 +37,7 @@
 #undef __PREFERENCES_DIALOG__H__DECLARE__
 
 #include "Brain.h"
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
@@ -74,30 +76,34 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
 : WuQDialogNonModal("Preferences",
                     parent)
 {
-    this->setDeleteWhenClosed(false);
+    setDeleteWhenClosed(false);
 
     /*
      * No apply button
      */
-    this->setApplyButtonText("");    
+    setApplyButtonText("");    
     
     /*
      * Used to block signals in all widgets
      */
-    this->allWidgets = new WuQWidgetObjectGroup(this);
+    m_allWidgets = new WuQWidgetObjectGroup(this);
     
-    QWidget* widget = new QWidget();
-    this->gridLayout = new QGridLayout(widget);
-    
-    this->addColorItems();
-    this->addLoggingItems();
-    this->addOpenGLItems();
-    this->addSplashItems();
-    this->addVolumeItems();
-    this->addDevelopItems();
-    
-    this->setCentralWidget(widget,
+    /*
+     * Create the tab widget and all tab content
+     */
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(createColorsWidget(),
+                      "Colors");
+    tabWidget->addTab(createMiscellaneousWidget(),
+                      "Misc");
+    tabWidget->addTab(createOpenGLWidget(),
+                      "OpenGL");
+    tabWidget->addTab(createVolumeWidget(),
+                      "Volume");
+    setCentralWidget(tabWidget,
                            WuQDialog::SCROLL_AREA_NEVER);
+    
+    disableAutoDefaultForAllPushButtons();
 }
 
 /**
@@ -109,7 +115,464 @@ PreferencesDialog::~PreferencesDialog()
 }
 
 /**
+ * Add a color button and swatch.
+ *
+ * @param gridLayout
+ *     Grid layout for widgets.
+ * @param prefColor
+ *     Enumerated value for color.
+ * @param colorSignalMapper
+ *     Signal mapper for buttons.
+ */
+void
+PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
+                                           const PREF_COLOR prefColor,
+                                           QSignalMapper* colorSignalMapper)
+{
+    QString buttonText;
+    QWidget* colorSwatchWidget = new QWidget();
+    
+    switch (prefColor) {
+        case PREF_COLOR_BACKGROUND:
+            buttonText = "Background";
+            m_backgroundColorWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_BACKGROUND_ALL:
+            buttonText = "All Background";
+            m_backgroundColorAllWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_BACKGROUND_CHART:
+            buttonText = "Chart Background";
+            m_backgroundColorChartWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_BACKGROUND_SURFACE:
+            buttonText = "Surface Background";
+            m_backgroundColorSurfaceWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_BACKGROUND_VOLUME:
+            buttonText = "Volume Background";
+            m_backgroundColorVolumeWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND:
+            buttonText = "Foreground";
+            m_foregroundColorWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_ALL:
+            buttonText = "All Foreground";
+            m_foregroundColorAllWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_CHART:
+            buttonText = "Chart Foreground";
+            m_foregroundColorChartWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_SURFACE:
+            buttonText = "Surface Foreground";
+            m_foregroundColorSurfaceWidget = colorSwatchWidget;
+            break;
+        case PREF_COLOR_FOREGROUND_VOLUME:
+            buttonText = "Volume Foreground";
+            m_foregroundColorVolumeWidget = colorSwatchWidget;
+            break;
+        case NUMBER_OF_PREF_COLORS:
+            CaretAssert(0);
+            break;
+    }
+    
+    buttonText.append("...");
+    
+    CaretAssert( ! buttonText.isEmpty());
+    
+    QPushButton* colorPushButton = new QPushButton(buttonText);
+    QObject::connect(colorPushButton, SIGNAL(clicked()),
+                     colorSignalMapper, SLOT(map()));
+    colorSignalMapper->setMapping(colorPushButton,
+                                  (int)prefColor);
+    
+    addWidgetsToLayout(gridLayout,
+                       colorPushButton,
+                       colorSwatchWidget);
+}
+
+
+/**
+ * @return The colors widget.
+ */
+QWidget*
+PreferencesDialog::createColorsWidget()
+{
+    QSignalMapper* colorSignalMapper = new QSignalMapper(this);
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND,
+                            colorSignalMapper);
+    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_ALL,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_ALL,
+                            colorSignalMapper);
+    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_CHART,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_CHART,
+                            colorSignalMapper);
+    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_SURFACE,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_SURFACE,
+                            colorSignalMapper);
+    
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_FOREGROUND_VOLUME,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_BACKGROUND_VOLUME,
+                            colorSignalMapper);
+    
+    
+    
+    QObject::connect(colorSignalMapper, SIGNAL(mapped(int)),
+                     this, SLOT(colorPushButtonClicked(int)));
+    m_allWidgets->add(colorSignalMapper);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+    return widget;
+}
+
+/**
+ * Update the color widget's items.
+ *
+ * @param prefs
+ *     The Caret preferences.
+ */
+void
+PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
+{
+    for (int32_t i = 0; i < NUMBER_OF_PREF_COLORS; i++) {
+        const PREF_COLOR prefColor = (PREF_COLOR)i;
+        
+        uint8_t rgb[3] = { 0, 0, 0 };
+        QWidget* colorSwatchWidget = NULL;
+        
+        switch (prefColor) {
+            case PREF_COLOR_BACKGROUND:
+                prefs->getColorBackground(rgb);
+                colorSwatchWidget = m_backgroundColorWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_ALL:
+                prefs->getColorBackgroundAllView(rgb);
+                colorSwatchWidget = m_backgroundColorAllWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_CHART:
+                prefs->getColorBackgroundChartView(rgb);
+                colorSwatchWidget = m_backgroundColorChartWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_SURFACE:
+                prefs->getColorBackgroundSurfaceView(rgb);
+                colorSwatchWidget = m_backgroundColorSurfaceWidget;
+                break;
+            case PREF_COLOR_BACKGROUND_VOLUME:
+                prefs->getColorBackgroundVolumeView(rgb);
+                colorSwatchWidget = m_backgroundColorVolumeWidget;
+                break;
+            case PREF_COLOR_FOREGROUND:
+                prefs->getColorForeground(rgb);
+                colorSwatchWidget = m_foregroundColorWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_ALL:
+                prefs->getColorForegroundAllView(rgb);
+                colorSwatchWidget = m_foregroundColorAllWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_CHART:
+                prefs->getColorForegroundChartView(rgb);
+                colorSwatchWidget = m_foregroundColorChartWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_SURFACE:
+                prefs->getColorForegroundSurfaceView(rgb);
+                colorSwatchWidget = m_foregroundColorSurfaceWidget;
+                break;
+            case PREF_COLOR_FOREGROUND_VOLUME:
+                prefs->getColorForegroundVolumeView(rgb);
+                colorSwatchWidget = m_foregroundColorVolumeWidget;
+                break;
+            case NUMBER_OF_PREF_COLORS:
+                CaretAssert(0);
+                break;
+        }
+
+        CaretAssert(colorSwatchWidget);
+        
+        colorSwatchWidget->setStyleSheet("background-color: rgb("
+                                         + AString::number(rgb[0])
+                                         + ", " + AString::number(rgb[1])
+                                         + ", " + AString::number(rgb[2])
+                                         + ");");
+    }
+}
+
+/**
+ * @return The miscellaneous widget.
+ */
+QWidget*
+PreferencesDialog::createMiscellaneousWidget()
+{
+    /*
+     * Logging Level
+     */
+    m_miscLoggingLevelComboBox = new QComboBox();
+    std::vector<LogLevelEnum::Enum> loggingLevels;
+    LogLevelEnum::getAllEnums(loggingLevels);
+    const int32_t numLogLevels = static_cast<int32_t>(loggingLevels.size());
+    for (int32_t i = 0; i < numLogLevels; i++) {
+        const LogLevelEnum::Enum logLevel = loggingLevels[i];
+        m_miscLoggingLevelComboBox->addItem(LogLevelEnum::toGuiName(logLevel));
+        m_miscLoggingLevelComboBox->setItemData(i, LogLevelEnum::toIntegerCode(logLevel));
+    }
+    QObject::connect(m_miscLoggingLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(miscLoggingLevelComboBoxChanged(int)));
+    
+    m_allWidgets->add(m_miscLoggingLevelComboBox);
+    
+    /*
+     * Splash Screen
+     */
+    m_miscSplashScreenShowAtStartupComboBox = new WuQTrueFalseComboBox("On",
+                                                                       "Off",
+                                                                       this);
+    QObject::connect(m_miscSplashScreenShowAtStartupComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(miscSplashScreenShowAtStartupComboBoxChanged(bool)));
+    m_allWidgets->add(m_miscSplashScreenShowAtStartupComboBox);
+    
+    /*
+     * Developer Menu
+     */
+    m_miscDevelopMenuEnabledComboBox = new WuQTrueFalseComboBox("On",
+                                                                "Off",
+                                                                this);
+    QObject::connect(m_miscDevelopMenuEnabledComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(miscDevelopMenuEnabledComboBoxChanged(bool)));
+    m_allWidgets->add(m_miscDevelopMenuEnabledComboBox);
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    addWidgetToLayout(gridLayout,
+                      "Logging Level: ", m_miscLoggingLevelComboBox);
+    addWidgetToLayout(gridLayout,
+                      "Show Develop Menu in Menu Bar: ",
+                      m_miscDevelopMenuEnabledComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Show Splash Screen at Startup: ",
+                      m_miscSplashScreenShowAtStartupComboBox->getWidget());
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+    return widget;
+}
+
+/**
+ * Update the miscellaneous widget's items.
+ *
+ * @param prefs
+ *     The Caret preferences.
+ */
+void
+PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
+{
+    const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
+    int indx = m_miscLoggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
+    if (indx >= 0) {
+        m_miscLoggingLevelComboBox->setCurrentIndex(indx);
+    }
+    
+    m_miscDevelopMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
+    
+    m_miscSplashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
+}
+
+/**
+ * @return The OpenGL widget.
+ */
+QWidget*
+PreferencesDialog::createOpenGLWidget()
+{
+    /*
+     * Image Capture Method
+     */
+    m_openGLImageCaptureMethodEnumComboBox = new EnumComboBoxTemplate(this);
+    m_openGLImageCaptureMethodEnumComboBox->setup<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
+    QObject::connect(m_openGLImageCaptureMethodEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(openGLImageCaptureMethodEnumComboBoxItemActivated()));
+    const AString captureMethodToolTip = ("Sometimes, the default image capture method fails to "
+                                          "function correctly and the captured image does not match "
+                                          "the content of the graphics window.  If this occurs, "
+                                          "try changing the Capture Method to Grab Frame Buffer.");
+    WuQtUtilities::setWordWrappedToolTip(m_openGLImageCaptureMethodEnumComboBox->getComboBox(),
+                                         captureMethodToolTip);
+    m_allWidgets->add(m_openGLImageCaptureMethodEnumComboBox->getWidget());
+    
+    /*
+     * OpenGL Drawing Method
+     */
+    m_openGLDrawingMethodEnumComboBox = new EnumComboBoxTemplate(this);
+    m_openGLDrawingMethodEnumComboBox->setup<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>();
+    QObject::connect(m_openGLDrawingMethodEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(openGLDrawingMethodEnumComboBoxItemActivated()));
+    m_allWidgets->add(m_openGLDrawingMethodEnumComboBox->getWidget());
+    
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    addWidgetToLayout(gridLayout,
+                      "Image Capture Method: ",
+                      m_openGLImageCaptureMethodEnumComboBox->getWidget());
+    QLabel* vertexBuffersLabel = addWidgetToLayout(gridLayout,
+                                                         "OpenGL Vertex Buffers: ",
+                                                         m_openGLDrawingMethodEnumComboBox->getWidget());
+    
+    /*
+     * HIDE THE VERTEX BUFFERS OPTION
+     */
+//    vertexBuffersLabel->setHidden(true);
+//    m_openGLDrawingMethodEnumComboBox->getWidget()->setHidden(true);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+    return widget;
+}
+
+/**
+ * Update the OpenGL widget's items.
+ *
+ * @param prefs
+ *     The Caret preferences.
+ */
+void
+PreferencesDialog::updateOpenGLWidget(CaretPreferences* prefs)
+{
+    const ImageCaptureMethodEnum::Enum captureMethod = prefs->getImageCaptureMethod();
+    m_openGLImageCaptureMethodEnumComboBox->setSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>(captureMethod);
+    
+    const OpenGLDrawingMethodEnum::Enum drawingMethod = prefs->getOpenDrawingMethod();
+    m_openGLDrawingMethodEnumComboBox->setSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>(drawingMethod);
+}
+
+/**
+ * @return The volume widget.
+ */
+QWidget*
+PreferencesDialog::createVolumeWidget()
+{
+    /*
+     * Crosshairs On/Off
+     */
+    m_volumeAxesCrosshairsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_volumeAxesCrosshairsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesCrosshairsComboBoxToggled(bool)));
+    m_allWidgets->add(m_volumeAxesCrosshairsComboBox);
+    
+    /*
+     * Axes Labels On/Off
+     */
+    m_volumeAxesLabelsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_volumeAxesLabelsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesLabelsComboBoxToggled(bool)));
+    m_allWidgets->add(m_volumeAxesLabelsComboBox);
+    
+    /*
+     * Montage Coordinates On/Off
+     */
+    m_volumeAxesMontageCoordinatesComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_volumeAxesMontageCoordinatesComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesMontageCoordinatesComboBoxToggled(bool)));
+    m_allWidgets->add(m_volumeAxesMontageCoordinatesComboBox);
+    
+    /*
+     * Montage Slice Gap
+     */
+    m_volumeMontageGapSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
+                                                                                  100000,
+                                                                                  1,
+                                                                                  this,
+                                                                                  SLOT(volumeMontageGapValueChanged(int)));
+    m_allWidgets->add(m_volumeMontageGapSpinBox);
+    
+    /*
+     * Montage Slice Coordinate Precision
+     */
+    m_volumeMontageCoordinatePrecisionSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
+                                                                                                  5,
+                                                                                                  1,
+                                                                                                  this,
+                                                                                                  SLOT(volumeMontageCoordinatePrecisionChanged(int)));
+    m_allWidgets->add(m_volumeMontageCoordinatePrecisionSpinBox);
+    
+    m_allWidgets->add(m_volumeAxesCrosshairsComboBox);
+    m_allWidgets->add(m_volumeAxesLabelsComboBox);
+    m_allWidgets->add(m_volumeAxesMontageCoordinatesComboBox);
+    m_allWidgets->add(m_volumeMontageGapSpinBox);
+    m_allWidgets->add(m_volumeMontageCoordinatePrecisionSpinBox);
+    
+    QGridLayout* gridLayout = new QGridLayout();
+    
+    addWidgetToLayout(gridLayout,
+                      "Volume Axes Crosshairs: ",
+                      m_volumeAxesCrosshairsComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Volume Axes Labels: ",
+                      m_volumeAxesLabelsComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Volume Montage Slice Coord: ",
+                      m_volumeAxesMontageCoordinatesComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Volume Montage Gap: ",
+                      m_volumeMontageGapSpinBox);
+    addWidgetToLayout(gridLayout,
+                      "Volume Montage Precision: ",
+                      m_volumeMontageCoordinatePrecisionSpinBox);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+    return widget;
+}
+
+/**
+ * Update the Volume widget's items.
+ *
+ * @param prefs
+ *     The Caret preferences.
+ */
+void
+PreferencesDialog::updateVolumeWidget(CaretPreferences* prefs)
+{
+    m_volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
+    m_volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
+    m_volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
+    m_volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
+    m_volumeMontageCoordinatePrecisionSpinBox->setValue(prefs->getVolumeMontageCoordinatePrecision());
+}
+
+/**
  * Add a label in the left column and the widget in the right column.
+ *
+ * @param gridLayout
+ *    The grid layout to which the widgets are added.
  * @param labelText
  *    Text for label.
  * @param widget
@@ -118,12 +581,14 @@ PreferencesDialog::~PreferencesDialog()
  *    The label that corresponds to the widget.
  */
 QLabel*
-PreferencesDialog::addWidgetToLayout(const QString& labelText,
+PreferencesDialog::addWidgetToLayout(QGridLayout* gridLayout,
+                                     const QString& labelText,
                                      QWidget* widget)
 {
     QLabel* label = new QLabel(labelText);
     label->setAlignment(Qt::AlignRight);
-    this->addWidgetsToLayout(label, 
+    addWidgetsToLayout(gridLayout,
+                             label,
                              widget);
     
     return label;
@@ -139,16 +604,17 @@ PreferencesDialog::addWidgetToLayout(const QString& labelText,
  *    Widget for right column.
  */
 void 
-PreferencesDialog::addWidgetsToLayout(QWidget* leftWidget,
-                                   QWidget* rightWidget)
+PreferencesDialog::addWidgetsToLayout(QGridLayout* gridLayout,
+                                      QWidget* leftWidget,
+                                      QWidget* rightWidget)
 {
-    int row = this->gridLayout->rowCount();
+    int row = gridLayout->rowCount();
     if (rightWidget != NULL) {
-        this->gridLayout->addWidget(leftWidget, row, 0);
-        this->gridLayout->addWidget(rightWidget, row, 1);
+        gridLayout->addWidget(leftWidget, row, 0);
+        gridLayout->addWidget(rightWidget, row, 1);
     }
     else {
-        this->gridLayout->addWidget(leftWidget, row, 0, 1, 2, Qt::AlignLeft);
+        gridLayout->addWidget(leftWidget, row, 0, 1, 2, Qt::AlignLeft);
     }
 }
 
@@ -158,100 +624,138 @@ PreferencesDialog::addWidgetsToLayout(QWidget* leftWidget,
 void 
 PreferencesDialog::updateDialog()
 {
-    this->allWidgets->blockAllSignals(true);
+    m_allWidgets->blockAllSignals(true);
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    updateColorWidget(prefs);
+    updateMiscellaneousWidget(prefs);
+    updateOpenGLWidget(prefs);
+    updateVolumeWidget(prefs);
     
-    uint8_t backgroundColor[3];
-    prefs->getColorBackground(backgroundColor);
-    this->backgroundColorWidget->setStyleSheet("background-color: rgb("
-                                               + AString::number(backgroundColor[0])
-                                               + ", " + AString::number(backgroundColor[1])
-                                               + ", " + AString::number(backgroundColor[2])
-                                               + ");");
+    m_allWidgets->blockAllSignals(false);
+}
 
-    uint8_t foregroundColor[3];
-    prefs->getColorForeground(foregroundColor);
-    this->foregroundColorWidget->setStyleSheet("background-color: rgb("
-                                               + AString::number(foregroundColor[0])
-                                               + ", " + AString::number(foregroundColor[1])
-                                               + ", " + AString::number(foregroundColor[2])
-                                               + ");");
+void
+PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
-    const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
-    int indx = this->loggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
-    if (indx >= 0) {
-        this->loggingLevelComboBox->setCurrentIndex(indx);
+    uint8_t rgb[3];
+    AString prefColorName;
+    switch (prefColor) {
+        case PREF_COLOR_BACKGROUND:
+            prefs->getColorBackground(rgb);
+            prefColorName = "Background";
+            break;
+        case PREF_COLOR_BACKGROUND_ALL:
+            prefs->getColorBackgroundAllView(rgb);
+            prefColorName = "Background - All";
+            break;
+        case PREF_COLOR_BACKGROUND_CHART:
+            prefs->getColorBackgroundChartView(rgb);
+            prefColorName = "Background - Chart";
+            break;
+        case PREF_COLOR_BACKGROUND_SURFACE:
+            prefs->getColorBackgroundSurfaceView(rgb);
+            prefColorName = "Background - Surface";
+            break;
+        case PREF_COLOR_BACKGROUND_VOLUME:
+            prefs->getColorBackgroundVolumeView(rgb);
+            prefColorName = "Background - Volume";
+            break;
+        case PREF_COLOR_FOREGROUND:
+            prefs->getColorForeground(rgb);
+            prefColorName = "Foreground";
+            break;
+        case PREF_COLOR_FOREGROUND_ALL:
+            prefs->getColorForegroundAllView(rgb);
+            prefColorName = "Foreground - All";
+            break;
+        case PREF_COLOR_FOREGROUND_CHART:
+            prefs->getColorForegroundChartView(rgb);
+            prefColorName = "Foreground - Chart";
+            break;
+        case PREF_COLOR_FOREGROUND_SURFACE:
+            prefs->getColorForegroundSurfaceView(rgb);
+            prefColorName = "Foreground - Surface";
+            break;
+        case PREF_COLOR_FOREGROUND_VOLUME:
+            prefs->getColorForegroundVolumeView(rgb);
+            prefColorName = "Foreground - Volume";
+            break;
+        case NUMBER_OF_PREF_COLORS:
+            CaretAssert(0);
+            break;
     }
-
-    const ImageCaptureMethodEnum::Enum captureMethod = prefs->getImageCaptureMethod();
-    m_imageCaptureMethodEnumComboBox->setSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>(captureMethod);
     
-    const OpenGLDrawingMethodEnum::Enum drawingMethod = prefs->getOpenDrawingMethod();
-    m_openGLDrawingMethodEnumComboBox->setSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>(drawingMethod);
-
-    this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
-    this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
-    this->volumeAxesMontageCoordinatesComboBox->setStatus(prefs->isVolumeMontageAxesCoordinatesDisplayed());
-    this->volumeMontageGapSpinBox->setValue(prefs->getVolumeMontageGap());
-    this->volumeMontageCoordinatePrecisionSpinBox->setValue(prefs->getVolumeMontageCoordinatePrecision());
-    this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
-    this->developMenuEnabledComboBox->setStatus(prefs->isDevelopMenuEnabled());
+    const QColor initialColor(rgb[0],
+                              rgb[1],
+                              rgb[2]);
     
-    this->allWidgets->blockAllSignals(false);
+    QColorDialog colorDialog(this);
+    colorDialog.setCurrentColor(initialColor);
+    colorDialog.setOption(QColorDialog::DontUseNativeDialog);
+    colorDialog.setWindowTitle(prefColorName);
+    
+    if (colorDialog.exec() == QColorDialog::Accepted) {
+        const QColor newColor = colorDialog.currentColor();
+        rgb[0] = newColor.red();
+        rgb[1] = newColor.green();
+        rgb[2] = newColor.blue();
+        
+        switch (prefColor) {
+            case PREF_COLOR_BACKGROUND:
+                prefs->setColorBackground(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_ALL:
+                prefs->setColorBackgroundAllView(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_CHART:
+                prefs->setColorBackgroundChartView(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_SURFACE:
+                prefs->setColorBackgroundSurfaceView(rgb);
+                break;
+            case PREF_COLOR_BACKGROUND_VOLUME:
+                prefs->setColorBackgroundVolumeView(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND:
+                prefs->setColorForeground(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_ALL:
+                prefs->setColorForegroundAllView(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_CHART:
+                prefs->setColorForegroundChartView(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_SURFACE:
+                prefs->setColorForegroundSurfaceView(rgb);
+                break;
+            case PREF_COLOR_FOREGROUND_VOLUME:
+                prefs->setColorForegroundVolumeView(rgb);
+                break;
+            case NUMBER_OF_PREF_COLORS:
+                CaretAssert(0);
+                break;
+        }
+        
+        updateColorWidget(prefs);
+        
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
 }
 
 /**
- * Called when the background color push button is pressed. 
+ * Called when a color button is clicked.
+ *
+ * @param enumIndex
+ *     color enum integer value indicating button that was clicked.
  */
-void 
-PreferencesDialog::backgroundColorPushButtonPressed()
+void
+PreferencesDialog::colorPushButtonClicked(int enumIndex)
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t backgroundColor[3];
-    prefs->getColorBackground(backgroundColor);
-    const QColor initialColor(backgroundColor[0],
-                              backgroundColor[1],
-                              backgroundColor[2]);
-    QColor newColor = QColorDialog::getColor(initialColor,
-                                             this,
-                                             "Background",
-                                             QColorDialog::DontUseNativeDialog);
-    if (newColor.isValid()) {
-        backgroundColor[0] = newColor.red();
-        backgroundColor[1] = newColor.green();
-        backgroundColor[2] = newColor.blue();
-        prefs->setColorBackground(backgroundColor);
-        this->updateDialog();
-        this->applyButtonClicked();
-    }
-    
-}
-
-/**
- * Called when the foreground color push button is pressed. 
- */
-void 
-PreferencesDialog::foregroundColorPushButtonPressed()
-{
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t foregroundColor[3];
-    prefs->getColorForeground(foregroundColor);
-    const QColor initialColor(foregroundColor[0],
-                              foregroundColor[1],
-                              foregroundColor[2]);
-    QColor newColor = QColorDialog::getColor(initialColor,
-                                             this,
-                                             "Foreground",
-                                             QColorDialog::DontUseNativeDialog);
-    if (newColor.isValid()) {
-        foregroundColor[0] = newColor.red();
-        foregroundColor[1] = newColor.green();
-        foregroundColor[2] = newColor.blue();
-        prefs->setColorForeground(foregroundColor);
-        this->updateDialog();
-        this->applyButtonClicked();
-    }
+    const PREF_COLOR prefColor = (PREF_COLOR)enumIndex;
+    updateColorWithDialog(prefColor);
 }
 
 /**
@@ -260,10 +764,10 @@ PreferencesDialog::foregroundColorPushButtonPressed()
  *   New index of logging level combo box.
  */
 void 
-PreferencesDialog::loggingLevelComboBoxChanged(int indx)
+PreferencesDialog::miscLoggingLevelComboBoxChanged(int indx)
 {    
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const int32_t logLevelIntegerCode = this->loggingLevelComboBox->itemData(indx).toInt();
+    const int32_t logLevelIntegerCode = m_miscLoggingLevelComboBox->itemData(indx).toInt();
     prefs->setLoggingLevel(LogLevelEnum::fromIntegerCode(logLevelIntegerCode, NULL));
 }
 
@@ -273,28 +777,6 @@ PreferencesDialog::loggingLevelComboBoxChanged(int indx)
 void PreferencesDialog::applyButtonClicked()
 {
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Creates colors widget.
- */
-void
-PreferencesDialog::addColorItems()
-{
-    QPushButton* foregroundPushButton = new QPushButton("Foreground Color...");
-    QObject::connect(foregroundPushButton, SIGNAL(clicked()),
-                     this, SLOT(foregroundColorPushButtonPressed()));
-    this->foregroundColorWidget = new QWidget();
-    
-    QPushButton* backgroundPushButton = new QPushButton("Background Color...");
-    QObject::connect(backgroundPushButton, SIGNAL(clicked()),
-                     this, SLOT(backgroundColorPushButtonPressed()));
-    this->backgroundColorWidget = new QWidget();
-    
-    this->addWidgetsToLayout(backgroundPushButton, 
-                             this->backgroundColorWidget);
-    this->addWidgetsToLayout(foregroundPushButton, 
-                             this->foregroundColorWidget);
 }
 
 /**
@@ -313,116 +795,11 @@ PreferencesDialog::openGLDrawingMethodEnumComboBoxItemActivated()
  * Called when the image capture method is changed.
  */
 void
-PreferencesDialog::imageCaptureMethodEnumComboBoxItemActivated()
+PreferencesDialog::openGLImageCaptureMethodEnumComboBoxItemActivated()
 {
-    const ImageCaptureMethodEnum::Enum imageCaptureMethod = m_imageCaptureMethodEnumComboBox->getSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
+    const ImageCaptureMethodEnum::Enum imageCaptureMethod = m_openGLImageCaptureMethodEnumComboBox->getSelectedItem<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setImageCaptureMethod(imageCaptureMethod);
-}
-
-/**
- * Creates OpenGL Items.
- */
-void
-PreferencesDialog::addOpenGLItems()
-{
-    m_imageCaptureMethodEnumComboBox = new EnumComboBoxTemplate(this);
-    m_imageCaptureMethodEnumComboBox->setup<ImageCaptureMethodEnum,ImageCaptureMethodEnum::Enum>();
-    QObject::connect(m_imageCaptureMethodEnumComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(imageCaptureMethodEnumComboBoxItemActivated()));
-    const AString captureMethodToolTip = ("Sometimes, the default image capture method fails to "
-                                          "function correctly and the captured image does not match "
-                                          "the content of the graphics window.  If this occurs, "
-                                          "try changing the Capture Method to Grab Frame Buffer.");
-    WuQtUtilities::setWordWrappedToolTip(m_imageCaptureMethodEnumComboBox->getComboBox(),
-                                         captureMethodToolTip);
-    
-    m_openGLDrawingMethodEnumComboBox = new EnumComboBoxTemplate(this);
-    m_openGLDrawingMethodEnumComboBox->setup<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>();
-    QObject::connect(m_openGLDrawingMethodEnumComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(openGLDrawingMethodEnumComboBoxItemActivated()));
-    
-    this->addWidgetToLayout("Image Capture Method",
-                            m_imageCaptureMethodEnumComboBox->getWidget());
-    QLabel* vertexBuffersLabel = this->addWidgetToLayout("OpenGL Vertex Buffers",
-                                 m_openGLDrawingMethodEnumComboBox->getWidget());
-
-    /*
-     * HIDE THE VERTEX BUFFERS OPTION
-     */
-    vertexBuffersLabel->setHidden(true);
-    m_openGLDrawingMethodEnumComboBox->getWidget()->setHidden(true);
-}
-
-/**
- * Creates logging widget.
- */
-void
-PreferencesDialog::addLoggingItems()
-{
-    this->loggingLevelComboBox = new QComboBox();
-    
-    std::vector<LogLevelEnum::Enum> loggingLevels;
-    LogLevelEnum::getAllEnums(loggingLevels);
-    const int32_t numLogLevels = static_cast<int32_t>(loggingLevels.size());
-    for (int32_t i = 0; i < numLogLevels; i++) {
-        const LogLevelEnum::Enum logLevel = loggingLevels[i];
-        this->loggingLevelComboBox->addItem(LogLevelEnum::toGuiName(logLevel));
-        this->loggingLevelComboBox->setItemData(i, LogLevelEnum::toIntegerCode(logLevel));
-    }
-    QObject::connect(this->loggingLevelComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(loggingLevelComboBoxChanged(int)));
-    
-    this->allWidgets->add(this->loggingLevelComboBox);
-    
-    this->addWidgetToLayout("Logging Level: ", this->loggingLevelComboBox);
-}
-
-/**
- * Creates volume widget.
- */
-void
-PreferencesDialog::addVolumeItems()
-{
-    this->volumeAxesCrosshairsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
-    QObject::connect(this->volumeAxesCrosshairsComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(volumeAxesCrosshairsComboBoxToggled(bool)));
-    this->volumeAxesLabelsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
-    QObject::connect(this->volumeAxesLabelsComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(volumeAxesLabelsComboBoxToggled(bool)));
-    
-    this->volumeAxesMontageCoordinatesComboBox = new WuQTrueFalseComboBox("On", "Off", this);
-    QObject::connect(this->volumeAxesMontageCoordinatesComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(volumeAxesMontageCoordinatesComboBoxToggled(bool)));
-    
-    this->volumeMontageGapSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
-                                                                                  100000,
-                                                                                  1,
-                                                                                  this,
-                                                                                  SLOT(volumeMontageGapValueChanged(int)));
-
-    this->volumeMontageCoordinatePrecisionSpinBox = WuQFactory::newSpinBoxWithMinMaxStepSignalInt(0,
-                                                                                  5,
-                                                                                  1,
-                                                                                  this,
-                                                                                  SLOT(volumeMontageCoordinatePrecisionChanged(int)));
-    
-    this->allWidgets->add(this->volumeAxesCrosshairsComboBox);
-    this->allWidgets->add(this->volumeAxesLabelsComboBox);
-    this->allWidgets->add(this->volumeAxesMontageCoordinatesComboBox);
-    this->allWidgets->add(this->volumeMontageGapSpinBox);
-    this->allWidgets->add(this->volumeMontageCoordinatePrecisionSpinBox);
-    
-    this->addWidgetToLayout("Volume Axes Crosshairs: ", 
-                            this->volumeAxesCrosshairsComboBox->getWidget());
-    this->addWidgetToLayout("Volume Axes Labels: ",
-                            this->volumeAxesLabelsComboBox->getWidget());
-    this->addWidgetToLayout("Volume Montage Slice Coord: ",
-                            this->volumeAxesMontageCoordinatesComboBox->getWidget());
-    this->addWidgetToLayout("Volume Montage Gap: ",
-                             this->volumeMontageGapSpinBox);
-    this->addWidgetToLayout("Volume Montage Precision: ",
-                            this->volumeMontageCoordinatePrecisionSpinBox);
 }
 
 /**
@@ -487,43 +864,14 @@ PreferencesDialog::volumeMontageCoordinatePrecisionChanged(int value)
 }
 
 /**
- * Add splash screen items.
- */
-void PreferencesDialog::addSplashItems()
-{
-    this->splashScreenShowAtStartupComboBox = new WuQTrueFalseComboBox("On",
-                                                                       "Off",
-                                                                       this);
-    QObject::connect(this->splashScreenShowAtStartupComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(splashScreenShowAtStartupComboBoxChanged(bool)));
-    this->addWidgetToLayout("Show Splash Screen at Startup: ", 
-                            this->splashScreenShowAtStartupComboBox->getWidget());
-}
-
-/**
  * Called when show splash screen option changed.
  * @param value
  *   New value.
  */
-void PreferencesDialog::splashScreenShowAtStartupComboBoxChanged(bool value)
+void PreferencesDialog::miscSplashScreenShowAtStartupComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setSplashScreenEnabled(value);
-}
-
-/**
- * Add develop items.
- */
-void
-PreferencesDialog::addDevelopItems()
-{
-    this->developMenuEnabledComboBox = new WuQTrueFalseComboBox("On",
-                                                                "Off",
-                                                                this);
-    QObject::connect(this->developMenuEnabledComboBox, SIGNAL(statusChanged(bool)),
-                     this, SLOT(developMenuEnabledComboBoxChanged(bool)));
-    this->addWidgetToLayout("Show Develop Menu in Menu Bar: ",
-                            this->developMenuEnabledComboBox->getWidget());
 }
 
 /**
@@ -532,7 +880,7 @@ PreferencesDialog::addDevelopItems()
  *   New value.
  */
 void
-PreferencesDialog::developMenuEnabledComboBoxChanged(bool value)
+PreferencesDialog::miscDevelopMenuEnabledComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setDevelopMenuEnabled(value);
@@ -540,7 +888,7 @@ PreferencesDialog::developMenuEnabledComboBoxChanged(bool value)
     const AString msg = ("The Develop menu will "
                          + QString((value ? "appear" : " not appear"))
                          + " in newly opened windows.");
-    WuQMessageBox::informationOk(this->developMenuEnabledComboBox->getWidget(),
+    WuQMessageBox::informationOk(m_miscDevelopMenuEnabledComboBox->getWidget(),
                                  msg);
 }
 

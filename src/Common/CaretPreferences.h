@@ -43,6 +43,45 @@ namespace caret {
         
         virtual ~CaretPreferences();
         
+        void getColorForegroundAllView(uint8_t colorForeground[3]) const;
+        
+        void setColorForegroundAllView(const uint8_t colorForeground[3]);
+        
+        void getColorBackgroundAllView(uint8_t colorForeground[3]) const;
+        
+        void setColorBackgroundAllView(const uint8_t colorForeground[3]);
+        
+        
+        void getColorForegroundChartView(uint8_t colorForeground[3]) const;
+        
+        void setColorForegroundChartView(const uint8_t colorForeground[3]);
+        
+        void getColorBackgroundChartView(uint8_t colorForeground[3]) const;
+        
+        void setColorBackgroundChartView(const uint8_t colorForeground[3]);
+        
+        
+        void getColorForegroundSurfaceView(uint8_t colorForeground[3]) const;
+        
+        void setColorForegroundSurfaceView(const uint8_t colorForeground[3]);
+        
+        void getColorBackgroundSurfaceView(uint8_t colorForeground[3]) const;
+        
+        void setColorBackgroundSurfaceView(const uint8_t colorForeground[3]);
+        
+        
+        void getColorForegroundVolumeView(uint8_t colorForeground[3]) const;
+        
+        void setColorForegroundVolumeView(const uint8_t colorForeground[3]);
+        
+        void getColorBackgroundVolumeView(uint8_t colorForeground[3]) const;
+        
+        void setColorBackgroundVolumeView(const uint8_t colorForeground[3]);
+        
+        
+        
+        
+        
         void getColorForeground(uint8_t colorForeground[3]) const;
 
         void getColorForeground(float colorForeground[3]) const;
@@ -207,6 +246,14 @@ namespace caret {
         void addToPrevious(std::vector<AString>& previousVector,
                            const AString& newName);
         
+        void readUnsignedByteArray(const AString& name,
+                                   uint8_t array[],
+                                   const int32_t numberOfElements);
+        
+        void writeUnsignedByteArray(const AString& name,
+                                    const uint8_t array[],
+                                    const int32_t numberOfElements);
+        
         void readPreferences();
         
         void removeAllTileTabsConfigurations();
@@ -220,6 +267,22 @@ namespace caret {
         uint8_t colorForeground[3];
         
         uint8_t colorBackground[3];
+        
+        uint8_t colorForegroundAll[3];
+        
+        uint8_t colorBackgroundAll[3];
+        
+        uint8_t colorForegroundChart[3];
+        
+        uint8_t colorBackgroundChart[3];
+        
+        uint8_t colorForegroundSurface[3];
+        
+        uint8_t colorBackgroundSurface[3];
+        
+        uint8_t colorForegroundVolume[3];
+        
+        uint8_t colorBackgroundVolume[3];
         
         std::vector<AString> previousSpecFiles;
         
@@ -267,6 +330,14 @@ namespace caret {
         static const AString NAME_VOLUME_MONTAGE_COORDINATE_PRECISION;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
+        static const AString NAME_COLOR_BACKGROUND_ALL;
+        static const AString NAME_COLOR_FOREGROUND_ALL;
+        static const AString NAME_COLOR_BACKGROUND_CHART;
+        static const AString NAME_COLOR_FOREGROUND_CHART;
+        static const AString NAME_COLOR_BACKGROUND_SURFACE;
+        static const AString NAME_COLOR_FOREGROUND_SURFACE;
+        static const AString NAME_COLOR_BACKGROUND_VOLUME;
+        static const AString NAME_COLOR_FOREGROUND_VOLUME;
         static const AString NAME_DEVELOP_MENU;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
 //        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
@@ -293,6 +364,14 @@ namespace caret {
     const AString CaretPreferences::NAME_VOLUME_MONTAGE_COORDINATE_PRECISION     = "volumeMontageCoordinatePrecision";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_ALL     = "colorBackgroundAll";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_ALL     = "colorForegroundAll";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_CHART     = "colorBackgroundChart";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_CHART     = "colorForegroundChart";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_SURFACE     = "colorBackgroundSurface";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_SURFACE     = "colorForegroundSurface";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND_VOLUME     = "colorBackgroundVolume";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND_VOLUME     = "colorForegroundVolume";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";

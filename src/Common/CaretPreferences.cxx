@@ -756,6 +756,273 @@ CaretPreferences::removeTileTabsConfigurationByUniqueIdentifier(const AString& t
     this->writeTileTabsConfigurations();
 }
 
+
+
+
+
+/**
+ * Get the foreground color for viewing the ALL model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorForegroundAllView(uint8_t colorForeground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorForeground[i] = this->colorForegroundAll[i];
+    }
+}
+
+/**
+ * Set the foreground color for viewing the ALL model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorForegroundAllView(const uint8_t colorForeground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorForegroundAll[i] = colorForeground[i];
+    }
+    
+    writeUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
+                           colorForegroundAll,
+                           3);
+}
+
+/**
+ * Get the background color for viewing the ALL model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorBackgroundAllView(uint8_t colorBackground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorBackground[i] = this->colorBackgroundAll[i];
+    }
+}
+
+/**
+ * Set the background color for viewing the ALL model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorBackgroundAllView(const uint8_t colorBackground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorBackgroundAll[i] = colorBackground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_ALL,
+                           colorBackgroundAll,
+                           3);
+}
+
+
+/**
+ * Get the foreground color for viewing the CHART model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorForegroundChartView(uint8_t colorForeground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorForeground[i] = this->colorForegroundChart[i];
+    }
+}
+
+/**
+ * Set the foreground color for viewing the CHART model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorForegroundChartView(const uint8_t colorForeground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorForegroundChart[i] = colorForeground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_FOREGROUND_CHART,
+                           colorForegroundChart,
+                           3);
+}
+
+/**
+ * Get the background color for viewing the CHART model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorBackgroundChartView(uint8_t colorBackground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorBackground[i] = this->colorBackgroundChart[i];
+    }
+}
+
+/**
+ * Set the background color for viewing the CHART model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorBackgroundChartView(const uint8_t colorBackground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorBackgroundChart[i] = colorBackground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_CHART,
+                           colorBackgroundChart,
+                           3);
+}
+
+
+/**
+ * Get the foreground color for viewing the SURFACE model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorForegroundSurfaceView(uint8_t colorForeground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorForeground[i] = this->colorForegroundSurface[i];
+    }
+}
+
+/**
+ * Set the foreground color for viewing the SURFACE model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorForegroundSurfaceView(const uint8_t colorForeground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorForegroundSurface[i] = colorForeground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_FOREGROUND_SURFACE,
+                           colorForegroundSurface,
+                           3);
+}
+
+/**
+ * Get the background color for viewing the SURFACE model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorBackgroundSurfaceView(uint8_t colorBackground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorBackground[i] = this->colorBackgroundSurface[i];
+    }
+}
+
+/**
+ * Get the background color for viewing the SURFACE model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorBackgroundSurfaceView(const uint8_t colorBackground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorBackgroundSurface[i] = colorBackground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_SURFACE,
+                           colorBackgroundSurface,
+                           3);
+}
+
+/**
+ * Get the foreground color for viewing the VOLUME model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorForegroundVolumeView(uint8_t colorForeground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorForeground[i] = this->colorForegroundVolume[i];
+    }
+}
+
+/**
+ * Set the foreground color for viewing the VOLUME model.
+ *
+ * @param colorForeground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorForegroundVolumeView(const uint8_t colorForeground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorForegroundVolume[i] = colorForeground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_FOREGROUND_VOLUME,
+                           colorForegroundVolume,
+                           3);
+}
+
+/**
+ * Get the background color for viewing the VOLUME model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::getColorBackgroundVolumeView(uint8_t colorBackground[3]) const
+{
+    for (int32_t i = 0; i < 3; i++) {
+        colorBackground[i] = this->colorBackgroundVolume[i];
+    }
+}
+
+/**
+ * Set the background color for viewing the VOLUME model.
+ *
+ * @param colorBackground
+ *    RGB color components ranging [0, 255].
+ */
+void
+CaretPreferences::setColorBackgroundVolumeView(const uint8_t colorBackground[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorBackgroundVolume[i] = colorBackground[i];
+    }
+    writeUnsignedByteArray(NAME_COLOR_BACKGROUND_VOLUME,
+                           colorBackgroundVolume,
+                           3);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Get the foreground color as integer rgb components ranging in value
  * from 0 to 255.
@@ -763,7 +1030,7 @@ CaretPreferences::removeTileTabsConfigurationByUniqueIdentifier(const AString& t
  * @param colorForeground
  *   The output into which rgb color components are loaded.
  */
-void 
+void
 CaretPreferences::getColorForeground(uint8_t colorForeground[3]) const
 {
     colorForeground[0] = this->colorForeground[0];
@@ -1353,6 +1620,55 @@ CaretPreferences::setDevelopMenuEnabled(const bool enabled)
     this->qSettings->sync();
 }
 
+/**
+ * Read an unsigned byte array to the preferences.
+ *
+ * @param name
+ *     Name for preferences
+ * @param array
+ *     The array that is read.
+ * @param numberOfElements
+ *     Number of elements in the array.
+ */
+void
+CaretPreferences::readUnsignedByteArray(const AString& name,
+                                        uint8_t array[],
+                                        const int32_t numberOfElements)
+{
+    const int numAvailable = this->qSettings->beginReadArray(name);
+    const int numToRead = std::min(numAvailable,
+                                   numberOfElements);
+    for (int i = 0; i < numToRead; i++) {
+        this->qSettings->setArrayIndex(i);
+        array[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
+    }
+    this->qSettings->endArray();
+}
+
+/**
+ * Write an unsigned byte array to the preferences.
+ *
+ * @param name
+ *     Name for preferences
+ * @param array
+ *     The array that is written.
+ * @param numberOfElements
+ *     Number of elements in the array.
+ */
+void
+CaretPreferences::writeUnsignedByteArray(const AString& name,
+                                         const uint8_t array[],
+                                         const int32_t numberOfElements)
+{
+    this->qSettings->beginWriteArray(name);
+    for (int i = 0; i < numberOfElements; i++) {
+        this->qSettings->setArrayIndex(i);
+        this->qSettings->setValue(AString::number(i),
+                                  array[i]);
+    }
+    this->qSettings->endArray();
+    this->qSettings->sync();
+}
 
 /**
  * Initialize/Read the preferences
@@ -1363,22 +1679,58 @@ CaretPreferences::readPreferences()
     this->colorForeground[0] = 255;
     this->colorForeground[1] = 255;
     this->colorForeground[2] = 255;
-    const int numFG = this->qSettings->beginReadArray(NAME_COLOR_FOREGROUND);
-    for (int i = 0; i < numFG; i++) {
-        this->qSettings->setArrayIndex(i);
-        colorForeground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
-    }
-    this->qSettings->endArray();
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND,
+                          this->colorForeground,
+                          3);
     
     this->colorBackground[0] = 0;
     this->colorBackground[1] = 0;
     this->colorBackground[2] = 0;
-    const int numBG = this->qSettings->beginReadArray(NAME_COLOR_BACKGROUND);
-    for (int i = 0; i < numBG; i++) {
-        this->qSettings->setArrayIndex(i);
-        colorBackground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND,
+                          this->colorBackground,
+                          3);
+    
+    /*
+     * At one time, there was one foreground and background color that applied
+     * to all model views.  Use it to initialize the newer background and
+     * foreground colors for each model type.
+     */
+    for (int32_t i = 0; i < 3; i++) {
+        this->colorBackgroundAll[i] = this->colorBackground[i];
+        this->colorBackgroundChart[i] = this->colorBackground[i];
+        this->colorBackgroundSurface[i] = this->colorBackground[i];
+        this->colorBackgroundVolume[i] = this->colorBackground[i];
+        
+        this->colorForegroundAll[i] = this->colorForeground[i];
+        this->colorForegroundChart[i] = this->colorForeground[i];
+        this->colorForegroundSurface[i] = this->colorForeground[i];
+        this->colorForegroundVolume[i] = this->colorForeground[i];
     }
-    this->qSettings->endArray();
+    
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
+                          this->colorForegroundAll,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_ALL,
+                          this->colorBackgroundAll,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_CHART,
+                          this->colorForegroundChart,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_CHART,
+                          this->colorBackgroundChart,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_SURFACE,
+                          this->colorForegroundSurface,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_SURFACE,
+                          this->colorBackgroundSurface,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_FOREGROUND_VOLUME,
+                          this->colorForegroundVolume,
+                          3);
+    readUnsignedByteArray(NAME_COLOR_BACKGROUND_VOLUME,
+                          this->colorBackgroundVolume,
+                          3);
     
     this->previousSpecFiles.clear();    
     const int numPrevSpec = this->qSettings->beginReadArray(NAME_PREVIOUS_SPEC_FILES);
