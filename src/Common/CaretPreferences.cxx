@@ -1385,9 +1385,9 @@ CaretPreferences::readPreferences()
                           this->colorBackgroundVolume,
                           3);
 
-    this->colorChartMatrixGridLines[0] = 255;
-    this->colorChartMatrixGridLines[1] = 255;
-    this->colorChartMatrixGridLines[2] = 255;
+    this->colorChartMatrixGridLines[0] = 0;
+    this->colorChartMatrixGridLines[1] = 0;
+    this->colorChartMatrixGridLines[2] = 0;
     readUnsignedByteArray(NAME_COLOR_CHART_MATRIX_GRID_LINES,
                           this->colorChartMatrixGridLines,
                           3);
