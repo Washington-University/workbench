@@ -165,6 +165,10 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
             buttonText = "Volume Foreground";
             m_foregroundColorVolumeWidget = colorSwatchWidget;
             break;
+        case PREF_COLOR_CHART_MATRIX_GRID_LINES:
+            buttonText = "Chart Grid Lines";
+            m_chartMatrixGridLinesColorWidget = colorSwatchWidget;
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -208,6 +212,9 @@ PreferencesDialog::createColorsWidget()
                             colorSignalMapper);
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_BACKGROUND_CHART,
+                            colorSignalMapper);
+    addColorButtonAndSwatch(gridLayout,
+                            PREF_COLOR_CHART_MATRIX_GRID_LINES,
                             colorSignalMapper);
     
     addColorButtonAndSwatch(gridLayout,
@@ -284,6 +291,10 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
             case PREF_COLOR_FOREGROUND_VOLUME:
                 prefs->getColorForegroundVolumeView(rgb);
                 colorSwatchWidget = m_foregroundColorVolumeWidget;
+                break;
+            case PREF_COLOR_CHART_MATRIX_GRID_LINES:
+                prefs->getColorChartMatrixGridLines(rgb);
+                colorSwatchWidget = m_chartMatrixGridLinesColorWidget;
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);
@@ -652,6 +663,10 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
             prefs->getColorForegroundVolumeView(rgb);
             prefColorName = "Foreground - Volume";
             break;
+        case PREF_COLOR_CHART_MATRIX_GRID_LINES:
+            prefs->getColorChartMatrixGridLines(rgb);
+            prefColorName = "Chart Matrix Grid Lines";
+            break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
             break;
@@ -696,6 +711,9 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                 break;
             case PREF_COLOR_FOREGROUND_VOLUME:
                 prefs->setColorForegroundVolumeView(rgb);
+                break;
+            case PREF_COLOR_CHART_MATRIX_GRID_LINES:
+                prefs->setColorChartMatrixGridLines(rgb);
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);

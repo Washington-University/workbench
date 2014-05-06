@@ -739,7 +739,6 @@ void MovieDialog::captureFrame(AString filename)
     try {
         const int marginSize = this->ui->marginSpinBox->value();
         if (marginSize > 0) {
-            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             imageFile.addMargin(marginSize,
                                 backgroundColor);
         }

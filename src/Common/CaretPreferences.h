@@ -78,21 +78,9 @@ namespace caret {
         
         void setColorBackgroundVolumeView(const uint8_t colorForeground[3]);
         
+        void getColorChartMatrixGridLines(uint8_t colorChartMatrixGridLines[3]) const;
         
-        
-        
-        
-//        void getColorForeground(uint8_t colorForeground[3]) const;
-//
-//        void getColorForeground(float colorForeground[3]) const;
-//        
-//        void setColorForeground(const uint8_t colorForeground[3]);
-//        
-//        void getColorBackground(uint8_t colorBackground[3]) const;
-//        
-//        void getColorBackground(float colorBackground[3]) const;
-//        
-//        void setColorBackground(const uint8_t colorBackground[3]);
+        void setColorChartMatrixGridLines(const uint8_t colorChartMatrixGridLines[3]);
         
         void getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const;
         
@@ -244,10 +232,6 @@ namespace caret {
         
         mutable QSettings* qSettings;
         
-//        uint8_t colorForeground[3];
-//        
-//        uint8_t colorBackground[3];
-        
         uint8_t colorForegroundAll[3];
         
         uint8_t colorBackgroundAll[3];
@@ -263,6 +247,8 @@ namespace caret {
         uint8_t colorForegroundVolume[3];
         
         uint8_t colorBackgroundVolume[3];
+        
+        uint8_t colorChartMatrixGridLines[3];
         
         std::vector<AString> previousSpecFiles;
         
@@ -316,6 +302,7 @@ namespace caret {
         static const AString NAME_COLOR_FOREGROUND_SURFACE;
         static const AString NAME_COLOR_BACKGROUND_VOLUME;
         static const AString NAME_COLOR_FOREGROUND_VOLUME;
+        static const AString NAME_COLOR_CHART_MATRIX_GRID_LINES;
         static const AString NAME_DEVELOP_MENU;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
         static const AString NAME_LOGGING_LEVEL;
@@ -349,6 +336,7 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_SURFACE     = "colorForegroundSurface";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND_VOLUME     = "colorBackgroundVolume";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_VOLUME     = "colorForegroundVolume";
+    const AString CaretPreferences::NAME_COLOR_CHART_MATRIX_GRID_LINES = "colorChartMatrixGridLines";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";

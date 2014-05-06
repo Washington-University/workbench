@@ -72,15 +72,16 @@ namespace caret {
         
     private:
         enum PREF_COLOR {
-            PREF_COLOR_BACKGROUND_ALL     = 0,
-            PREF_COLOR_BACKGROUND_CHART   = 1,
-            PREF_COLOR_BACKGROUND_SURFACE = 2,
-            PREF_COLOR_BACKGROUND_VOLUME  = 3,
-            PREF_COLOR_FOREGROUND_ALL     = 4,
-            PREF_COLOR_FOREGROUND_CHART   = 5,
-            PREF_COLOR_FOREGROUND_SURFACE = 6,
-            PREF_COLOR_FOREGROUND_VOLUME  = 7,
-            NUMBER_OF_PREF_COLORS         = 8
+            PREF_COLOR_BACKGROUND_ALL          = 0,
+            PREF_COLOR_BACKGROUND_CHART        = 1,
+            PREF_COLOR_BACKGROUND_SURFACE      = 2,
+            PREF_COLOR_BACKGROUND_VOLUME       = 3,
+            PREF_COLOR_FOREGROUND_ALL          = 4,
+            PREF_COLOR_FOREGROUND_CHART        = 5,
+            PREF_COLOR_FOREGROUND_SURFACE      = 6,
+            PREF_COLOR_FOREGROUND_VOLUME       = 7,
+            PREF_COLOR_CHART_MATRIX_GRID_LINES = 8,
+            NUMBER_OF_PREF_COLORS              = 9
         };
         
         QWidget* createColorsWidget();
@@ -119,6 +120,7 @@ namespace caret {
         QWidget* m_backgroundColorChartWidget;
         QWidget* m_backgroundColorSurfaceWidget;
         QWidget* m_backgroundColorVolumeWidget;
+        QWidget* m_chartMatrixGridLinesColorWidget;
 
         WuQTrueFalseComboBox* m_miscDevelopMenuEnabledComboBox;
         QComboBox* m_miscLoggingLevelComboBox;

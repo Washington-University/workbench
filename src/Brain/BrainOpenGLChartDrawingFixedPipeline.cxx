@@ -577,8 +577,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         
         glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
         
-        
-//        const float lastIndex = numLabelsToDraw - 1;
         for (int32_t i = 0; i < numLabelsToDraw; i++) {
             const float tickStartX = labelX + labelOffsetInPixels[i] * labelOffsetMultiplierX;
             const float tickStartY = labelY + labelOffsetInPixels[i] * labelOffsetMultiplierY;
@@ -586,15 +584,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
             const float tickEndX = tickStartX + tickDeltaXY[0];
             const float tickEndY = tickStartY + tickDeltaXY[1];
 
-//            if ((i > 0)
-//                && (i < lastIndex)) {
-                glBegin(GL_LINES);
-                glVertex2f(tickStartX,
-                           tickStartY);
-                glVertex2f(tickEndX,
-                           tickEndY);
-                glEnd();
-//            }
+            glBegin(GL_LINES);
+            glVertex2f(tickStartX,
+                       tickStartY);
+            glVertex2f(tickEndX,
+                       tickEndY);
+            glEnd();
             
             const float textX = tickEndX;
             const float textY = tickEndY;
@@ -1204,16 +1199,22 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             glEnd();
             
             /*
-             * Drawn an outline around the matrix elements using
-             * the foreground color.
+             * Drawn an outline around the matrix elements.
              */
+            uint8_t gridLineColorBytes[3];
+            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+            prefs->getColorChartMatrixGridLines(gridLineColorBytes);
+            float gridLineColorFloats[4];
+            CaretPreferences::byteRgbToFloatRgb(gridLineColorBytes,
+                                                gridLineColorFloats);
+            gridLineColorFloats[3] = 1.0;
             std::vector<float> outlineRGBA;
             outlineRGBA.reserve(numberQuadVertices * 4);
             for (int32_t i = 0; i < numberQuadVertices; i++) {
-                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[0]);
-                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[1]);
-                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[2]);
-                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[3]);
+                outlineRGBA.push_back(gridLineColorFloats[0]);
+                outlineRGBA.push_back(gridLineColorFloats[1]);
+                outlineRGBA.push_back(gridLineColorFloats[2]);
+                outlineRGBA.push_back(gridLineColorFloats[3]);
             }
             glPolygonMode(GL_FRONT, GL_LINE);
             
