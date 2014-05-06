@@ -1023,118 +1023,118 @@ CaretPreferences::setColorBackgroundVolumeView(const uint8_t colorBackground[3])
 
 
 
-/**
- * Get the foreground color as integer rgb components ranging in value
- * from 0 to 255.
- *
- * @param colorForeground
- *   The output into which rgb color components are loaded.
- */
-void
-CaretPreferences::getColorForeground(uint8_t colorForeground[3]) const
-{
-    colorForeground[0] = this->colorForeground[0];
-    colorForeground[1] = this->colorForeground[1];
-    colorForeground[2] = this->colorForeground[2];
-}
-
-/**
- * Get the foreground color as float rgb components ranging in value
- * from 0 to 1
- *
- * @param colorForeground
- *   The output into which rgb color components are loaded.
- */
-void 
-CaretPreferences::getColorForeground(float colorForeground[3]) const
-{
-    uint8_t byteForeground[3];
-    this->getColorForeground(byteForeground);
-    
-    colorForeground[0] = std::min((byteForeground[0] / 255.0), 255.0);
-    colorForeground[1] = std::min((byteForeground[1] / 255.0), 255.0);
-    colorForeground[2] = std::min((byteForeground[2] / 255.0), 255.0);
-}
-
-/**
- * Set the foreground color as integer rgb components ranging in value
- * from 0 to 255.
- *
- * @param colorForeground
- *   New values for the foreground rgb color components.
- */
-void 
-CaretPreferences::setColorForeground(const uint8_t colorForeground[3])
-{
-    this->colorForeground[0] = colorForeground[0];
-    this->colorForeground[1] = colorForeground[1];
-    this->colorForeground[2] = colorForeground[2];
-    
-    this->qSettings->beginWriteArray(NAME_COLOR_FOREGROUND);
-    for (int i = 0; i < 3; i++) {
-        this->qSettings->setArrayIndex(i);
-        this->qSettings->setValue(AString::number(i),
-                                  colorForeground[i]);
-    }
-    this->qSettings->endArray();
-    this->qSettings->sync();
-}
-
-/**
- * Get the background color as integer rgb components ranging in value
- * from 0 to 255.
- *
- * @param colorBackground
- *   The output into which rgb color components are loaded.
- */
-void 
-CaretPreferences::getColorBackground(uint8_t colorBackground[3]) const
-{
-    colorBackground[0] = this->colorBackground[0];
-    colorBackground[1] = this->colorBackground[1];
-    colorBackground[2] = this->colorBackground[2];
-}
-
-/**
- * Get the background color as float rgb components ranging in value
- * from 0 to 1
- *
- * @param colorBackground
- *   The output into which rgb color components are loaded.
- */
-void 
-CaretPreferences::getColorBackground(float colorBackground[3]) const
-{
-    uint8_t byteBackground[3];
-    this->getColorBackground(byteBackground);
-    
-    colorBackground[0] = std::min((byteBackground[0] / 255.0), 255.0);
-    colorBackground[1] = std::min((byteBackground[1] / 255.0), 255.0);
-    colorBackground[2] = std::min((byteBackground[2] / 255.0), 255.0);
-}
-
-/**
- * Set the background color as integer rgb components ranging in value
- * from 0 to 255.
- *
- * @param colorBackground
- *   New values for the background rgb color components.
- */
-void 
-CaretPreferences::setColorBackground(const uint8_t colorBackground[3])
-{
-    this->colorBackground[0] = colorBackground[0];
-    this->colorBackground[1] = colorBackground[1];
-    this->colorBackground[2] = colorBackground[2];
-    this->qSettings->beginWriteArray(NAME_COLOR_BACKGROUND);
-    for (int i = 0; i < 3; i++) {
-        this->qSettings->setArrayIndex(i);
-        this->qSettings->setValue(AString::number(i),
-                                  colorBackground[i]);
-    }
-    this->qSettings->endArray();
-    this->qSettings->sync();
-}
+///**
+// * Get the foreground color as integer rgb components ranging in value
+// * from 0 to 255.
+// *
+// * @param colorForeground
+// *   The output into which rgb color components are loaded.
+// */
+//void
+//CaretPreferences::getColorForeground(uint8_t colorForeground[3]) const
+//{
+//    colorForeground[0] = this->colorForeground[0];
+//    colorForeground[1] = this->colorForeground[1];
+//    colorForeground[2] = this->colorForeground[2];
+//}
+//
+///**
+// * Get the foreground color as float rgb components ranging in value
+// * from 0 to 1
+// *
+// * @param colorForeground
+// *   The output into which rgb color components are loaded.
+// */
+//void 
+//CaretPreferences::getColorForeground(float colorForeground[3]) const
+//{
+//    uint8_t byteForeground[3];
+//    this->getColorForeground(byteForeground);
+//    
+//    colorForeground[0] = std::min((byteForeground[0] / 255.0), 255.0);
+//    colorForeground[1] = std::min((byteForeground[1] / 255.0), 255.0);
+//    colorForeground[2] = std::min((byteForeground[2] / 255.0), 255.0);
+//}
+//
+///**
+// * Set the foreground color as integer rgb components ranging in value
+// * from 0 to 255.
+// *
+// * @param colorForeground
+// *   New values for the foreground rgb color components.
+// */
+//void 
+//CaretPreferences::setColorForeground(const uint8_t colorForeground[3])
+//{
+//    this->colorForeground[0] = colorForeground[0];
+//    this->colorForeground[1] = colorForeground[1];
+//    this->colorForeground[2] = colorForeground[2];
+//    
+//    this->qSettings->beginWriteArray(NAME_COLOR_FOREGROUND);
+//    for (int i = 0; i < 3; i++) {
+//        this->qSettings->setArrayIndex(i);
+//        this->qSettings->setValue(AString::number(i),
+//                                  colorForeground[i]);
+//    }
+//    this->qSettings->endArray();
+//    this->qSettings->sync();
+//}
+//
+///**
+// * Get the background color as integer rgb components ranging in value
+// * from 0 to 255.
+// *
+// * @param colorBackground
+// *   The output into which rgb color components are loaded.
+// */
+//void 
+//CaretPreferences::getColorBackground(uint8_t colorBackground[3]) const
+//{
+//    colorBackground[0] = this->colorBackground[0];
+//    colorBackground[1] = this->colorBackground[1];
+//    colorBackground[2] = this->colorBackground[2];
+//}
+//
+///**
+// * Get the background color as float rgb components ranging in value
+// * from 0 to 1
+// *
+// * @param colorBackground
+// *   The output into which rgb color components are loaded.
+// */
+//void 
+//CaretPreferences::getColorBackground(float colorBackground[3]) const
+//{
+//    uint8_t byteBackground[3];
+//    this->getColorBackground(byteBackground);
+//    
+//    colorBackground[0] = std::min((byteBackground[0] / 255.0), 255.0);
+//    colorBackground[1] = std::min((byteBackground[1] / 255.0), 255.0);
+//    colorBackground[2] = std::min((byteBackground[2] / 255.0), 255.0);
+//}
+//
+///**
+// * Set the background color as integer rgb components ranging in value
+// * from 0 to 255.
+// *
+// * @param colorBackground
+// *   New values for the background rgb color components.
+// */
+//void 
+//CaretPreferences::setColorBackground(const uint8_t colorBackground[3])
+//{
+//    this->colorBackground[0] = colorBackground[0];
+//    this->colorBackground[1] = colorBackground[1];
+//    this->colorBackground[2] = colorBackground[2];
+//    this->qSettings->beginWriteArray(NAME_COLOR_BACKGROUND);
+//    for (int i = 0; i < 3; i++) {
+//        this->qSettings->setArrayIndex(i);
+//        this->qSettings->setValue(AString::number(i),
+//                                  colorBackground[i]);
+//    }
+//    this->qSettings->endArray();
+//    this->qSettings->sync();
+//}
 
 /**
  * Get the previous spec files.
@@ -1676,18 +1676,16 @@ CaretPreferences::writeUnsignedByteArray(const AString& name,
 void 
 CaretPreferences::readPreferences()
 {
-    this->colorForeground[0] = 255;
-    this->colorForeground[1] = 255;
-    this->colorForeground[2] = 255;
+    uint8_t colorForeground[3] = { 255, 255, 255 };
+//    this->colorForeground[1] = 255;
+//    this->colorForeground[2] = 255;
     readUnsignedByteArray(NAME_COLOR_FOREGROUND,
-                          this->colorForeground,
+                          colorForeground,
                           3);
     
-    this->colorBackground[0] = 0;
-    this->colorBackground[1] = 0;
-    this->colorBackground[2] = 0;
+    uint8_t colorBackground[3] = { 0, 0, 0 };
     readUnsignedByteArray(NAME_COLOR_BACKGROUND,
-                          this->colorBackground,
+                          colorBackground,
                           3);
     
     /*
@@ -1696,15 +1694,15 @@ CaretPreferences::readPreferences()
      * foreground colors for each model type.
      */
     for (int32_t i = 0; i < 3; i++) {
-        this->colorBackgroundAll[i] = this->colorBackground[i];
-        this->colorBackgroundChart[i] = this->colorBackground[i];
-        this->colorBackgroundSurface[i] = this->colorBackground[i];
-        this->colorBackgroundVolume[i] = this->colorBackground[i];
+        this->colorBackgroundAll[i]     = colorBackground[i];
+        this->colorBackgroundChart[i]   = colorBackground[i];
+        this->colorBackgroundSurface[i] = colorBackground[i];
+        this->colorBackgroundVolume[i]  = colorBackground[i];
         
-        this->colorForegroundAll[i] = this->colorForeground[i];
-        this->colorForegroundChart[i] = this->colorForeground[i];
-        this->colorForegroundSurface[i] = this->colorForeground[i];
-        this->colorForegroundVolume[i] = this->colorForeground[i];
+        this->colorForegroundAll[i]     = colorForeground[i];
+        this->colorForegroundChart[i]   = colorForeground[i];
+        this->colorForegroundSurface[i] = colorForeground[i];
+        this->colorForegroundVolume[i]  = colorForeground[i];
     }
     
     readUnsignedByteArray(NAME_COLOR_FOREGROUND_ALL,
@@ -1883,3 +1881,22 @@ CaretPreferences::toString() const
 {
     return "CaretPreferences";
 }
+
+/**
+ * Convert RGB bytes to Floats.
+ *
+ * @param bytesRGB
+ *     Byte RGB color [0, 255] INPUT
+ * @param floatRGB
+ *     Float RGB color [0.0, 1.0]  OUTPUT
+ */
+void
+CaretPreferences::byteRgbToFloatRgb(const uint8_t byteRGB[3],
+                                    float floatRGB[3])
+{
+    for (int32_t i = 0; i < 3; i++) {
+        floatRGB[i] = static_cast<float>(byteRGB[i]) / 255.0;
+    }
+}
+
+

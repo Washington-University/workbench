@@ -285,6 +285,65 @@ BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportCon
 }
 
 /**
+ * Update the foreground and background colors using the model in 
+ * the given viewport content.
+ */
+void
+BrainOpenGLFixedPipeline::updateForegroundAndBackgroundColors(BrainOpenGLViewportContent* vpContent)
+{
+    /*
+     * Default to colors for surface
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getColorForegroundSurfaceView(m_foregroundColorByte);
+    m_foregroundColorByte[3] = 255;
+    prefs->getColorBackgroundSurfaceView(m_backgroundColorByte);
+    m_backgroundColorByte[3] = 255;
+    
+    if (vpContent != NULL) {
+        const BrowserTabContent* btc = vpContent->getBrowserTabContent();
+        if (btc != NULL) {
+            const Model* model = btc->getModelForDisplay();
+            if (model != NULL) {
+                switch (model->getModelType()) {
+                    case ModelTypeEnum::MODEL_TYPE_CHART:
+                        prefs->getColorForegroundChartView(m_foregroundColorByte);
+                        prefs->getColorBackgroundChartView(m_backgroundColorByte);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                        prefs->getColorForegroundSurfaceView(m_foregroundColorByte);
+                        prefs->getColorBackgroundSurfaceView(m_backgroundColorByte);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        prefs->getColorForegroundSurfaceView(m_foregroundColorByte);
+                        prefs->getColorBackgroundSurfaceView(m_backgroundColorByte);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                        prefs->getColorForegroundVolumeView(m_foregroundColorByte);
+                        prefs->getColorBackgroundVolumeView(m_backgroundColorByte);
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                        prefs->getColorForegroundAllView(m_foregroundColorByte);
+                        prefs->getColorBackgroundAllView(m_backgroundColorByte);
+                        break;
+                }
+            }
+        }
+        m_foregroundColorByte[3] = 255;
+        m_backgroundColorByte[3] = 255;
+    }
+    
+    CaretPreferences::byteRgbToFloatRgb(m_backgroundColorByte,
+                                        m_backgroundColorFloat);
+    m_backgroundColorFloat[3] = 1.0;
+    CaretPreferences::byteRgbToFloatRgb(m_foregroundColorByte,
+                                        m_foregroundColorFloat);
+    m_foregroundColorFloat[3] = 1.0;
+}
+
+/**
  * Draw models in their respective viewports.
  *
  * @param viewportContents
@@ -299,14 +358,35 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
     
     this->checkForOpenGLError(NULL, "At beginning of drawModels()");
     
-    float backgroundColor[3];
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->getColorBackground(backgroundColor);
-    glClearColor(backgroundColor[0],
-                 backgroundColor[1],
-                 backgroundColor[2],
+    /*
+     * Default the background colors to first model
+     * NOTE: If there are no models, the surface background color is used
+     */
+    if (viewportContents.empty()) {
+        updateForegroundAndBackgroundColors(NULL);
+    }
+    else {
+        updateForegroundAndBackgroundColors(viewportContents[0]);
+    }
+    
+    /*
+     * Use the background color as the clear color.
+     */
+    uint8_t clearColorByte[3] = {
+        m_backgroundColorByte[0],
+        m_backgroundColorByte[1],
+        m_backgroundColorByte[2],
+    };
+    float clearColorFloat[3];
+    CaretPreferences::byteRgbToFloatRgb(clearColorByte,
+                                        clearColorFloat);
+    
+    glClearColor(clearColorFloat[0],
+                 clearColorFloat[1],
+                 clearColorFloat[2],
                  1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     this->checkForOpenGLError(NULL, "At middle of drawModels()");
     
@@ -317,6 +397,36 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
         BrainOpenGLViewportContent* vpContent = viewportContents[i];
         const int* windowVP = vpContent->getWindowViewport();
         glViewport(windowVP[0], windowVP[1], windowVP[2], windowVP[3]);
+        
+        /*
+         * Update foreground and background colors for model
+         */
+        updateForegroundAndBackgroundColors(vpContent);
+        
+        /*
+         * If this is NOT the first viewport content,
+         * AND the background color for this viewport content is 
+         * different that the clear color, THEN
+         * draw a rectangle with the background color.
+         */
+        if (i > 0) {
+            if ((m_backgroundColorByte[0] != clearColorByte[0])
+                || (m_backgroundColorByte[1] != clearColorByte[1])
+                || (m_backgroundColorByte[2] != clearColorByte[2])) {
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+                glMatrixMode(GL_MODELVIEW);
+                glLoadIdentity();
+                glColor3ubv(m_backgroundColorByte);
+                glBegin(GL_POLYGON);
+                glVertex2f(0.0, 0.0);
+                glVertex2f(1.0, 0.0);
+                glVertex2f(1.0, 1.0);
+                glVertex2f(0.0, 1.0);
+                glEnd();
+            }
+        }
         
 //        CaretLogFinest("Drawing Model "
 //                       + AString::number(i)
@@ -343,10 +453,7 @@ BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& v
             glPushMatrix();
             glLoadIdentity();
             
-            const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            float foregroundColor[4];
-            prefs->getColorForeground(foregroundColor);
-            glColor3fv(foregroundColor);
+            glColor3fv(m_foregroundColorFloat);
             
             const float thickness = 10;
             
@@ -643,21 +750,6 @@ BrainOpenGLFixedPipeline::applyClippingPlanes(const ClippingDataType clippingDat
     GLfloat rotMatrix[16];
     m_clippingPlaneGroup->getRotationMatrixForStructure(structure).getMatrixForOpenGL(rotMatrix);
 
-//    const Matrix4x4 rotMat = clippingPlaneGroup->getRotationMatrix();
-//
-//    float minValues[3] = { minX, minY, minZ };
-//    rotMat.multiplyPoint3(minValues);
-//    minX = minValues[0];
-//    minY = minValues[1];
-//    minZ = minValues[2];
-//    
-//    float maxValues[3] = { maxX, maxY, maxZ };
-//    rotMat.multiplyPoint3(maxValues);
-//    maxX = maxValues[0];
-//    maxY = maxValues[1];
-//    maxZ = maxValues[2];
-    
-    
     if (m_clippingPlaneGroup->isDisplayClippingBoxSelected()) {
         glColor3f(1.0, 0.0, 0.0);
         glLineWidth(2.0);
@@ -665,10 +757,6 @@ BrainOpenGLFixedPipeline::applyClippingPlanes(const ClippingDataType clippingDat
         glTranslatef(panning[0], panning[1], panning[2]);
         
         glMultMatrixf(rotMatrix);
-//        glRotatef(rotationAngles[2], 0.0, 0.0, 1.0);
-//        glRotatef(rotationAngles[1], 0.0, 1.0, 0.0);
-//        glRotatef(rotationAngles[0], 0.0, 0.0, 1.0);
-        
         
         glBegin(GL_LINE_LOOP);
         glVertex3f(minX, minY, minZ);
@@ -797,11 +885,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
     bool useGluLookAt = false;
     
     switch (projectionViewType) {
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
-//            eyeY = 5.0;
-//            upZ  = 1.0;
-//            useGluLookAt = true;
-//            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
@@ -810,16 +893,6 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const float objectCenterXY
             upY  = 1.0;
             useGluLookAt = true;
             break;
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-//            eyeY = -5.0;
-//            upZ  =  1.0;
-//            useGluLookAt = true;
-//            break;
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-//            eyeZ = -5.0;
-//            upY  = -1.0;
-//            useGluLookAt = true;
-//            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
             eyeZ = 5.0;
             upY  = 1.0;
@@ -959,10 +1032,6 @@ BrainOpenGLFixedPipeline::getVolumeFitToWindowScalingAndTranslation(const Volume
             const float yExtent = (boundingBox.getMaxY() - boundingBox.getMinY()) / 2;
             const float zExtent = (boundingBox.getMaxZ() - boundingBox.getMinZ()) / 2;
             
-//            const float orthoExtentX = std::min(std::fabs(this->orthographicRight),
-//                                                std::fabs(this->orthographicLeft));
-//            const float orthoExtentY = std::min(std::fabs(this->orthographicTop),
-//                                                std::fabs(this->orthographicBottom));
             const float orthoExtentX = std::min(std::fabs(orthographicExtent[0]),
                                                 std::fabs(orthographicExtent[1]));
             const float orthoExtentY = std::min(std::fabs(orthographicExtent[2]),
@@ -1798,10 +1867,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
                        reinterpret_cast<const GLvoid*>(nodeColoringRGBA));
     }
     else {
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        float rgba[4];
-        prefs->getColorBackground(rgba);
-        glColor3f(rgba[0], rgba[1], rgba[2]);
+        glColor3fv(m_backgroundColorFloat);
     }
     glNormalPointer(GL_FLOAT,
                     0, 
@@ -2991,747 +3057,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                         viewport);
 }
 
-///**
-// * Draw the volume axes crosshairs.
-// * @param brain
-// *   Brain that owns the volumes.
-// * @param slicePlane
-// *   Plane being viewed.
-// * @param voxelXYZ
-// *   Stereotaxic coordinate of current slice indices.
-// */
-//void 
-//BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
-//                                               const VolumeSliceViewPlaneEnum::Enum slicePlane,
-//                                               const float voxelXYZ[3])
-//{
-//    if (SessionManager::get()->getCaretPreferences()->isVolumeAxesCrosshairsDisplayed()) {
-//        unsigned char red[3]   = { 255, 0, 0 };
-//        unsigned char green[3] = { 0, 255, 0 };
-//        unsigned char blue[3]  = { 0, 0, 255 };
-//        
-//        const bool drawIt = (slicePlane != VolumeSliceViewPlaneEnum::ALL);
-//        
-//        float voxelXYZmod[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
-//        
-//        switch (slicePlane)//prevent disappearing crosshairs when zoomed in by zeroing the into/out of plane coords
-//        {
-//            case VolumeSliceViewPlaneEnum::ALL:
-//                break;
-//            case VolumeSliceViewPlaneEnum::AXIAL:
-//                voxelXYZmod[2] = 0.0f;
-//                break;
-//            case VolumeSliceViewPlaneEnum::CORONAL:
-//                voxelXYZmod[1] = 0.0f;
-//                break;
-//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                voxelXYZmod[0] = 0.0f;
-//                break;
-//        }
-//        
-//        if (drawIt) {
-//            const float bigNumber = 10000;
-//            this->setLineWidth(1.0);
-//            glColor3ubv(green);
-//            glBegin(GL_LINES);
-//            glVertex3f(voxelXYZmod[0], -bigNumber, voxelXYZmod[2]);
-//            glVertex3f(voxelXYZmod[0],  bigNumber, voxelXYZmod[2]);
-//            glColor3ubv(red);
-//            glVertex3f(-bigNumber, voxelXYZmod[1], voxelXYZmod[2]);
-//            glVertex3f( bigNumber, voxelXYZmod[1], voxelXYZmod[2]);
-//            glColor3ubv(blue);
-//            glVertex3f(voxelXYZmod[0], voxelXYZmod[1], -bigNumber);
-//            glVertex3f(voxelXYZmod[0], voxelXYZmod[1],  bigNumber);
-//            glEnd();
-//        }
-//    }    
-//}
-
-///**
-// * Draw the volume axes labels.
-// * @param brain
-// *   Brain that owns the volumes.
-// * @param slicePlane
-// *   Plane being viewed.
-// * @param viewport
-// *   Viewport of drawing region.
-// */
-//void 
-//BrainOpenGLFixedPipeline::drawVolumeAxesLabels(
-//                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
-//                          const int32_t viewport[4])
-//{
-//    if (SessionManager::get()->getCaretPreferences()->isVolumeAxesLabelsDisplayed()) {
-//        glMatrixMode(GL_PROJECTION);
-//        glPushMatrix();
-//        glOrtho(0, viewport[2], 0, viewport[3], -1.0, 1.0);
-//        
-//        glMatrixMode(GL_MODELVIEW);
-//        glPushMatrix();
-//        glLoadIdentity();
-//        
-//        QString orientLeftSideLabel;
-//        QString orientRightSideLabel;
-//        QString orientBottomSideLabel;
-//        QString orientTopSideLabel;
-//        
-//        switch(slicePlane) {
-//            case VolumeSliceViewPlaneEnum::AXIAL:
-//                orientLeftSideLabel   = "L";
-//                orientRightSideLabel  = "R";
-//                orientBottomSideLabel = "P";
-//                orientTopSideLabel    = "A";
-//                break;
-//            case VolumeSliceViewPlaneEnum::CORONAL:
-//                orientLeftSideLabel   = "L";
-//                orientRightSideLabel  = "R";
-//                orientBottomSideLabel = "V";
-//                orientTopSideLabel    = "D";
-//                break;
-//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                orientLeftSideLabel   = "A";
-//                orientRightSideLabel  = "P";
-//                orientBottomSideLabel = "V";
-//                orientTopSideLabel    = "D";
-//                break;
-//            default:
-//                break;
-//        }
-//        
-//        /*
-//         * Switch to the foreground color.
-//         */
-//        uint8_t foregroundRGB[3];
-//        SessionManager::get()->getCaretPreferences()->getColorForeground(foregroundRGB);
-//        glColor3ubv(foregroundRGB);
-//        
-//        const int fontHeight = 18;
-//        this->drawBoldTextWindowCoords(5,
-//                                   (viewport[3] / 2), 
-//                                   orientLeftSideLabel, 
-//                                   BrainOpenGLTextRenderInterface::X_LEFT,
-//                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-//                                   fontHeight);
-//
-//        this->drawBoldTextWindowCoords((viewport[2] - 5), 
-//                                   (viewport[3] / 2), 
-//                                   orientRightSideLabel, 
-//                                   BrainOpenGLTextRenderInterface::X_RIGHT,
-//                                   BrainOpenGLTextRenderInterface::Y_CENTER,
-//                                   fontHeight);
-//        
-//        this->drawBoldTextWindowCoords((viewport[2] / 2), 
-//                                   5, 
-//                                   orientBottomSideLabel, 
-//                                   BrainOpenGLTextRenderInterface::X_CENTER,
-//                                   BrainOpenGLTextRenderInterface::Y_BOTTOM,
-//                                   fontHeight);
-//        
-//        this->drawBoldTextWindowCoords((viewport[2] / 2), 
-//                                   (viewport[3] - 5), 
-//                                   orientTopSideLabel, 
-//                                   BrainOpenGLTextRenderInterface::X_CENTER,
-//                                   BrainOpenGLTextRenderInterface::Y_TOP,
-//                                   fontHeight);
-//        
-//        glPopMatrix();
-//        
-//        glMatrixMode(GL_PROJECTION);
-//        glPopMatrix();
-//        
-//        glMatrixMode(GL_MODELVIEW);
-//    }
-//}
-
-//void
-//BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSliceViewPlaneEnum::Enum slicePlane,
-//                                                                const int64_t sliceIndex,
-//                                                                std::vector<VolumeDrawInfo>& volumeDrawInfo)
-//{
-//    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
-//    
-//    SelectionItemVoxel* voxelID =
-//    m_brain->getSelectionManager()->getVoxelIdentification();
-//    
-//    /*
-//     * Check for a 'selection' type mode
-//     */
-//    bool isSelect = false;
-//    switch (this->mode) {
-//        case MODE_DRAWING:
-//            break;
-//        case MODE_IDENTIFICATION:
-//            if (voxelID->isEnabledForSelection()) {
-//                isSelect = true;
-//                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            }
-//            else {
-//                return;
-//            }
-//            break;
-//        case MODE_PROJECTION:
-//            return;
-//            break;
-//    }
-//    
-//    /*
-//     * For slices disable culling since want to see both side
-//     * and set shading to flat so there is no interpolation of
-//     * colors within a voxel drawn as a quad.  This allows
-//     * drawing of voxels using quad strips.
-//     */
-//    this->disableLighting();
-//    glDisable(GL_CULL_FACE);
-//    glShadeModel(GL_FLAT);
-//    
-//    /*
-//     * Enable alpha blending so voxels that are not drawn from higher layers
-//     * allow voxels from lower layers to be seen.
-//     */
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    
-//    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-//    const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
-//    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-//    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-//                                                                                                browserTabIndex);
-//    bool isOutlineMode = false;
-//    switch (labelDrawingType) {
-//        case LabelDrawingTypeEnum::DRAW_FILLED:
-//            break;
-//        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-//            isOutlineMode = true;
-//            break;
-//    }
-//    
-//    /**
-//     * Holds colors for voxels in the slice
-//     * Outside of loop to minimize allocations
-//     * It is faster to make one call to
-//     * NodeAndVoxelColoring::colorScalarsWithPalette() with
-//     * all voxels in the slice than it is to call it
-//     * separately for each voxel.
-//     */
-//    std::vector<uint8_t> sliceVoxelsRgbaVector;
-//    
-//    /*
-//     * Draw each of the volumes separately so that each
-//     * is drawn with the correct voxel slices.
-//     */
-//    float sliceCoordinate = 0.0;
-//    for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
-//        const VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
-//        const VolumeMappableInterface* volumeFile = volInfo.volumeFile;
-//        int64_t dimI, dimJ, dimK, numMaps, numComponents;
-//        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-//        const int64_t mapIndex = volInfo.mapIndex;
-//        
-//        float originX, originY, originZ;
-//        float x1, y1, z1;
-//        float lastX, lastY, lastZ;
-//        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
-//        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-//        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
-//        const float voxelStepX = x1 - originX;
-//        const float voxelStepY = y1 - originY;
-//        const float voxelStepZ = z1 - originZ;
-//        
-//        /*
-//         * Slice coordinate is from first volume
-//         */
-//        int drawingSliceIndex = -1;
-//        
-//        if (iVol == 0) {
-//            switch (slicePlane) {
-//                case VolumeSliceViewPlaneEnum::ALL:
-//                    CaretAssert(0);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::AXIAL:
-//                    sliceCoordinate = originZ + voxelStepZ * sliceIndex;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::CORONAL:
-//                    sliceCoordinate = originY + voxelStepY * sliceIndex;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    sliceCoordinate = originX + voxelStepX * sliceIndex;
-//                    break;
-//            }
-//            drawingSliceIndex = sliceIndex;
-//        }
-//        else {
-//            /*
-//             * Find a voxel in the middle of the volume
-//             * and then get the index of the slice
-//             * at the sliceCoordinate.
-//             */
-//            const float minX = std::min(originX, lastX);
-//            const float maxX = std::max(originX, lastX);
-//            const float minY = std::min(originY, lastY);
-//            const float maxY = std::max(originY, lastY);
-//            const float minZ = std::min(originZ, lastZ);
-//            const float maxZ = std::max(originZ, lastZ);
-//            
-//            float midPoint[3] = {
-//                (minX + maxX) / 2.0,
-//                (minY + maxY) / 2.0,
-//                (minZ + maxZ) / 2.0
-//            };
-//            
-//            switch (slicePlane) {
-//                case VolumeSliceViewPlaneEnum::ALL:
-//                    CaretAssert(0);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::AXIAL:
-//                    midPoint[2] = sliceCoordinate;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::CORONAL:
-//                    midPoint[1] = sliceCoordinate;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    midPoint[0] = sliceCoordinate;
-//                    break;
-//            }
-//            
-//            int64_t voxelI, voxelJ, voxelK;
-//            volumeFile->enclosingVoxel(midPoint[0], midPoint[1], midPoint[2], voxelI, voxelJ, voxelK);
-//            if (volumeFile->indexValid(voxelI, voxelJ, voxelK)) {
-//                switch (slicePlane) {
-//                    case VolumeSliceViewPlaneEnum::ALL:
-//                        CaretAssert(0);
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::AXIAL:
-//                        drawingSliceIndex = voxelK;
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::CORONAL:
-//                        drawingSliceIndex = voxelJ;
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                        drawingSliceIndex = voxelI;
-//                        break;
-//                }
-//            }
-//        }
-//        
-//        if (drawingSliceIndex >= 0) {
-//            int64_t iStart = 0;
-//            int64_t iEnd   = dimI - 1;
-//            int64_t jStart = 0;
-//            int64_t jEnd   = dimJ - 1;
-//            int64_t kStart = 0;
-//            int64_t kEnd   = dimK - 1;
-//            switch (slicePlane) {
-//                case VolumeSliceViewPlaneEnum::ALL:
-//                    CaretAssert(0);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::AXIAL:
-//                    kStart = drawingSliceIndex;
-//                    kEnd   = drawingSliceIndex;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::CORONAL:
-//                    jStart = drawingSliceIndex;
-//                    jEnd   = drawingSliceIndex;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    iStart = drawingSliceIndex;
-//                    iEnd   = drawingSliceIndex;
-//                    break;
-//            }
-//            const int64_t numSliceVoxelsI = iEnd - iStart + 1;
-//            const int64_t numSliceVoxelsJ = jEnd - jStart + 1;
-//            const int64_t numSliceVoxelsK = kEnd - kStart + 1;
-//            
-//            /*
-//             * Stores value for each voxel.
-//             * Use a vector for voxels so no worries about memory being freed.
-//             */
-//            const int64_t numVoxelsInSlice = (numSliceVoxelsI * numSliceVoxelsJ * numSliceVoxelsK);
-//            
-//            /*
-//             * Stores RGBA values for each voxel.
-//             * Use a vector for voxel colors so no worries about memory being freed.
-//             */
-//            const int64_t numVoxelsInSliceRGBA = numVoxelsInSlice * 4;
-//            if (numVoxelsInSliceRGBA > static_cast<int64_t>(sliceVoxelsRgbaVector.size())) {
-//                sliceVoxelsRgbaVector.resize(numVoxelsInSliceRGBA);
-//            }
-//            uint8_t* sliceVoxelsRGBA = &sliceVoxelsRgbaVector[0];
-//            
-//            /*
-//             * Get colors for all voxels in the slice.
-//             */
-//            volumeFile->getVoxelColorsForSliceInMap(m_brain->getPaletteFile(),
-//                                                    mapIndex,
-//                                                    slicePlane,
-//                                                    drawingSliceIndex,
-//                                                    displayGroup,
-//                                                    browserTabIndex,
-//                                                    sliceVoxelsRGBA);
-//            
-//            /*
-//             * Is label outline mode?
-//             */
-//            if (volumeDrawInfo[iVol].mapFile->isMappedWithLabelTable()) {
-//                if (isOutlineMode) {
-//                    int64_t xdim = 0;
-//                    int64_t ydim = 0;
-//                    switch (slicePlane) {
-//                        case VolumeSliceViewPlaneEnum::ALL:
-//                            CaretAssert(0);
-//                            break;
-//                        case VolumeSliceViewPlaneEnum::AXIAL:
-//                            xdim = dimI;
-//                            ydim = dimJ;
-//                            break;
-//                        case VolumeSliceViewPlaneEnum::CORONAL:
-//                            xdim = dimI;
-//                            ydim = dimK;
-//                            break;
-//                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                            xdim = dimJ;
-//                            ydim = dimK;
-//                            break;
-//                    }
-//                    
-//                    NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
-//                                                                            xdim,
-//                                                                            ydim);
-//                }
-//            }
-//            
-//            /*
-//             * Voxels not colored will have negative alpha so fix it.
-//             */
-//            for (int64_t iVoxel = 0; iVoxel < numVoxelsInSlice; iVoxel++) {
-//                const int64_t alphaIndex = iVoxel * 4 + 3;
-//                if (sliceVoxelsRGBA[alphaIndex] <= 0) {
-//                    if (iVol == 0) {
-//                        /*
-//                         * For first drawn volume, use black for voxel that would not be displayed.
-//                         */
-//                        sliceVoxelsRGBA[alphaIndex - 3] = 0;
-//                        sliceVoxelsRGBA[alphaIndex - 2] = 0;
-//                        sliceVoxelsRGBA[alphaIndex - 1] = 0;
-//                        sliceVoxelsRGBA[alphaIndex] = 255.0;
-//                    }
-//                    else {
-//                        /*
-//                         * Do not show voxel
-//                         */
-//                        sliceVoxelsRGBA[alphaIndex] = 0;
-//                    }
-//                }
-//                else {
-//                    /*
-//                     * Use overlay's opacity
-//                     */
-//                    sliceVoxelsRGBA[alphaIndex] = static_cast<int8_t>(volInfo.opacity * 255.0);
-//                }
-//            }
-//            
-//            /*
-//             * The voxel coordinates are at the center of the voxel.
-//             * Shift the minimum voxel coordinates by one-half the
-//             * size of a voxel so that the rectangles depicting the
-//             * voxels are drawn with the center of the voxel at the
-//             * center of the rectangle.
-//             */
-//            const float halfVoxelStepX = voxelStepX * 0.5;
-//            const float halfVoxelStepY = voxelStepY * 0.5;
-//            const float halfVoxelStepZ = voxelStepZ * 0.5;
-//            const float minVoxelX = originX - halfVoxelStepX;
-//            const float minVoxelY = originY - halfVoxelStepY;
-//            const float minVoxelZ = originZ - halfVoxelStepZ;
-//            
-//            bool useQuadStrips = true;
-//            if (isSelect) {
-//                useQuadStrips = false;
-//            }
-//            if (useQuadStrips) {
-//                /*
-//                 * Note on quad strips:
-//                 *
-//                 * Each quad receives the color specified at the vertex
-//                 * 2i +2 (for i = 1..N).
-//                 *
-//                 * So, the color used to draw a quad is the color that
-//                 * is specified at vertex indices 2, 4, 6,.. with the first
-//                 * vertex index being 0.
-//                 */
-//                
-//                switch (slicePlane) {
-//                    case VolumeSliceViewPlaneEnum::ALL:
-//                        CaretAssert(0);
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::AXIAL:
-//                    {
-//                        const float z = 0.0f;//sliceCoordinate;
-//                        float x = minVoxelX;
-//                        for (int64_t i = 0; i < dimI; i++) {
-//                            glBegin(GL_QUAD_STRIP);
-//                            {
-//                                const float x2 = x + voxelStepX;
-//                                float y = minVoxelY;
-//                                
-//                                /*
-//                                 * Vertices 0 and 1.
-//                                 */
-//                                glVertex3f(x, y, z);
-//                                glVertex3f(x2, y, z);
-//                                
-//                                for (int64_t j = 0; j < dimJ; j++) {
-//                                    const int32_t sliceRgbaOffset = (i + (j * dimI)) * 4;
-//                                    CaretAssertVectorIndex(sliceVoxelsRgbaVector, sliceRgbaOffset+3);
-//                                    glColor4ubv(&sliceVoxelsRGBA[sliceRgbaOffset]);
-//                                    
-//                                    y += voxelStepY;
-//                                    glVertex3f(x, y, z);
-//                                    glVertex3f(x2, y, z);
-//                                }
-//                                
-//                                x += voxelStepX;
-//                            }
-//                            glEnd();
-//                        }
-//                    }
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::CORONAL:
-//                    {
-//                        const float y = 0.0f;//sliceCoordinate;
-//                        float x = minVoxelX;
-//                        for (int64_t i = 0; i < dimI; i++) {
-//                            glBegin(GL_QUAD_STRIP);
-//                            {
-//                                const float x2 = x + voxelStepX;
-//                                float z = minVoxelZ;
-//                                
-//                                glVertex3f(x, y, z);
-//                                glVertex3f(x2, y, z);
-//                                
-//                                for (int64_t k = 0; k < dimK; k++) {
-//                                    const int32_t sliceRgbaOffset = (i + (k * dimI)) * 4;
-//                                    CaretAssertVectorIndex(sliceVoxelsRgbaVector, sliceRgbaOffset+3);
-//                                    glColor4ubv(&sliceVoxelsRGBA[sliceRgbaOffset]);
-//                                    
-//                                    z += voxelStepZ;
-//                                    glVertex3f(x, y, z);
-//                                    glVertex3f(x2, y, z);
-//                                }
-//                                
-//                                x += voxelStepX;
-//                            }
-//                            glEnd();
-//                        }
-//                    }
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    {
-//                        const float x = 0.0f;//sliceCoordinate;
-//                        float y = minVoxelY;
-//                        for (int64_t j = 0; j < dimJ; j++) {
-//                            glBegin(GL_QUAD_STRIP);
-//                            {
-//                                const float y2 = y + voxelStepY;
-//                                float z = minVoxelZ;
-//                                
-//                                glVertex3f(x, y, z);
-//                                glVertex3f(x, y2, z);
-//                                
-//                                for (int64_t k = 0; k < dimK; k++) {
-//                                    const int32_t sliceRgbaOffset = (j + (k * dimJ)) * 4;
-//                                    CaretAssertVectorIndex(sliceVoxelsRgbaVector, sliceRgbaOffset+3);
-//                                    glColor4ubv(&sliceVoxelsRGBA[sliceRgbaOffset]);
-//                                    
-//                                    z += voxelStepZ;
-//                                    glVertex3f(x, y, z);
-//                                    glVertex3f(x, y2, z);
-//                                }
-//                                
-//                                y += voxelStepY;
-//                            }
-//                            glEnd();
-//                        }
-//                    }
-//                        break;
-//                }
-//            }
-//            else {
-//                uint8_t rgba[4];
-//                std::vector<float> idVoxelCoordinates;
-//                int64_t idVoxelCounter = 0;
-//                if (isSelect) {
-//                    const int64_t bigDim = std::max(dimI, std::max(dimJ, dimK));
-//                    idVoxelCoordinates.reserve(bigDim * 3);
-//                }
-//                
-//                glBegin(GL_QUADS);
-//                switch (slicePlane) {
-//                    case VolumeSliceViewPlaneEnum::ALL:
-//                        CaretAssert(0);
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::AXIAL:
-//                    {
-//                        const float z1 = 0.0f;//sliceCoordinate;
-//                        for (int64_t i = 0; i < dimI; i++) {
-//                            const float x1 = minVoxelX + (voxelStepX * i);
-//                            const float x2 = x1 + voxelStepX;
-//                            for (int64_t j = 0; j < dimJ; j++) {
-//                                const float y1 = minVoxelY + (voxelStepY * j);
-//                                const float y2 = y1 + voxelStepY;
-//                                if (isSelect) {
-//                                    this->colorIdentification->addItem(rgba,
-//                                                                       SelectionItemDataTypeEnum::VOXEL,
-//                                                                       idVoxelCounter);
-//                                    glColor3ubv(rgba);
-//                                    
-//                                    idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
-//                                    idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
-//                                    idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
-//                                    idVoxelCounter++;
-//                                }
-//                                else {
-//                                    const int32_t sliceRgbaOffset = (i + (j * dimI)) * 4;
-//                                    CaretAssertVectorIndex(sliceVoxelsRgbaVector, sliceRgbaOffset+3);
-//                                    glColor4ubv(&sliceVoxelsRGBA[sliceRgbaOffset]);
-//                                }
-//                                glVertex3f(x1, y1, z1);
-//                                glVertex3f(x2, y1, z1);
-//                                glVertex3f(x2, y2, z1);
-//                                glVertex3f(x1, y2, z1);
-//                            }
-//                        }
-//                    }
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::CORONAL:
-//                    {
-//                        const float y1 = 0.0f;//sliceCoordinate;
-//                        for (int64_t i = 0; i < dimI; i++) {
-//                            const float x1 = minVoxelX + (voxelStepX * i);
-//                            const float x2 = x1 + voxelStepX;
-//                            for (int64_t k = 0; k < dimK; k++) {
-//                                const float z1 = minVoxelZ + (voxelStepZ * k);
-//                                const float z2 = z1 + voxelStepZ;
-//                                if (isSelect) {
-//                                    this->colorIdentification->addItem(rgba,
-//                                                                       SelectionItemDataTypeEnum::VOXEL,
-//                                                                       idVoxelCounter);
-//                                    glColor3ubv(rgba);
-//                                    
-//                                    idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
-//                                    idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
-//                                    idVoxelCoordinates.push_back(z1 + halfVoxelStepZ);
-//                                    idVoxelCounter++;
-//                                }
-//                                else {
-//                                    const int32_t sliceRgbaOffset = (i + (k * dimI)) * 4;
-//                                    CaretAssertVectorIndex(sliceVoxelsRgbaVector, sliceRgbaOffset+3);
-//                                    glColor4ubv(&sliceVoxelsRGBA[sliceRgbaOffset]);
-//                                }
-//                                glVertex3f(x1, y1, z1);
-//                                glVertex3f(x2, y1, z1);
-//                                glVertex3f(x2, y1, z2);
-//                                glVertex3f(x1, y1, z2);
-//                            }
-//                        }
-//                    }
-//                        break;
-//                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    {
-//                        const float x1 = 0.0f;//sliceCoordinate;
-//                        for (int64_t j = 0; j < dimJ; j++) {
-//                            const float y1 = minVoxelY + (voxelStepY * j);
-//                            const float y2 = y1 + voxelStepY;
-//                            for (int64_t k = 0; k < dimK; k++) {
-//                                const float z1 = minVoxelZ + (voxelStepZ * k);
-//                                const float z2 = z1 + voxelStepZ;
-//                                if (isSelect) {
-//                                    this->colorIdentification->addItem(rgba,
-//                                                                       SelectionItemDataTypeEnum::VOXEL,
-//                                                                       idVoxelCounter);
-//                                    glColor3ubv(rgba);
-//                                    
-//                                    idVoxelCoordinates.push_back(sliceCoordinate); // coord of slice is not offset by half voxel
-//                                    idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
-//                                    idVoxelCoordinates.push_back(z1 + halfVoxelStepZ);
-//                                    idVoxelCounter++;
-//                                }
-//                                else {
-//                                    const int32_t sliceRgbaOffset = (j + (k * dimJ)) * 4;
-//                                    CaretAssertVectorIndex(sliceVoxelsRgbaVector, sliceRgbaOffset+3);
-//                                    glColor4ubv(&sliceVoxelsRGBA[sliceRgbaOffset]);
-//                                }
-//                                glVertex3f(x1, y1, z1);
-//                                glVertex3f(x1, y2, z1);
-//                                glVertex3f(x1, y2, z2);
-//                                glVertex3f(x1, y1, z2);
-//                            }
-//                        }
-//                    }
-//                        break;
-//                }
-//                glEnd();
-//                
-//                /*
-//                 * If selection enabled, find voxel that was selected.
-//                 */
-//                if (isSelect) {
-//                    int32_t idIndex;
-//                    float depth = -1.0;
-//                    this->getIndexFromColorSelection(SelectionItemDataTypeEnum::VOXEL,
-//                                                     this->mouseX,
-//                                                     this->mouseY,
-//                                                     idIndex,
-//                                                     depth);
-//                    if (idIndex >= 0) {
-//                        float voxelCoordinates[3] = {
-//                            idVoxelCoordinates[idIndex*3],
-//                            idVoxelCoordinates[idIndex*3+1],
-//                            idVoxelCoordinates[idIndex*3+2]
-//                        };
-//                        
-//                        for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
-//                            VolumeMappableInterface* vf = volumeDrawInfo[iVol].volumeFile;
-//                            CaretMappableDataFile* mapFile = dynamic_cast<CaretMappableDataFile*>(vf);
-//                            CaretAssert(mapFile);
-//                            
-//                            int64_t voxelIndices[3];
-//                            vf->enclosingVoxel(voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2],
-//                                               voxelIndices[0], voxelIndices[1], voxelIndices[2]);
-//                            if (vf->indexValid(voxelIndices[0], voxelIndices[1], voxelIndices[2])) {
-//                                if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-//                                    voxelID->setBrain(volumeDrawInfo[iVol].brain);
-//                                    voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
-//                                    voxelID->setVoxelIJK(voxelIndices);
-//                                    voxelID->setScreenDepth(depth);
-//                                    this->setSelectedItemScreenXYZ(voxelID, voxelCoordinates);
-//                                    float voxelXYZ[3];
-//                                    vf->indexToSpace(voxelIndices,
-//                                                     voxelXYZ);
-//                                    CaretLogFine("Selected Voxel from file name/IJK/coords/ID-coords: "
-//                                                 + mapFile->getFileNameNoPath()
-//                                                 + AString::fromNumbers(voxelIndices, 3, ",")
-//                                                   + "   "
-//                                                   + AString::fromNumbers(voxelXYZ, 3, " ")
-//                                                   + "   "
-//                                                   + AString::fromNumbers(voxelCoordinates, 3, " "));
-//
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    
-//    glEnable(GL_CULL_FACE);
-//    glShadeModel(GL_SMOOTH);
-//    //    glEnable(GL_DEPTH_TEST); olumeFile
-//    
-//    glDisable(GL_BLEND);
-//}
-
 
 /**
  * Draw volumes a voxel cubes for whole brain view.
@@ -4030,42 +3355,6 @@ BrainOpenGLFixedPipeline::drawFiberOrientations(const Plane* plane,
     }
     const FiberOrientationSymbolTypeEnum::Enum symbolType = dpfo->getSymbolType(displayGroup, this->windowTabIndex);
     
-//    /*
-//     * Clipping planes
-//     */
-//    BoundingBox clippingBoundingBox;
-//    clippingBoundingBox.resetWithMaximumExtent();
-//    
-//    if (browserTabContent->isClippingPlaneEnabled(0)) {
-//        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
-//                                 * 0.5);
-//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
-//                                - halfThick);
-//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
-//                                + halfThick);
-//        clippingBoundingBox.setMinX(minValue);
-//        clippingBoundingBox.setMaxX(maxValue);
-//    }
-//    if (browserTabContent->isClippingPlaneEnabled(1)) {
-//        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
-//                                 * 0.5);
-//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
-//                                - halfThick);
-//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
-//                                + halfThick);
-//        clippingBoundingBox.setMinY(minValue);
-//        clippingBoundingBox.setMaxY(maxValue);
-//    }
-//    if (browserTabContent->isClippingPlaneEnabled(2)) {
-//        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
-//                                 * 0.5);
-//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
-//                                - halfThick);
-//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
-//                                + halfThick);
-//        clippingBoundingBox.setMinZ(minValue);
-//        clippingBoundingBox.setMaxZ(maxValue);
-//    }
     
     /*
      * Save status of clipping and disable clipping.
@@ -4542,43 +3831,6 @@ void
 BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane,
                                                 const StructureEnum::Enum structure)
 {
-//    /*
-//     * Clipping planes
-//     */
-//    BoundingBox clippingBoundingBox;
-//    clippingBoundingBox.resetWithMaximumExtent();
-//    
-//    if (browserTabContent->isClippingPlaneEnabled(0)) {
-//        const float halfThick = (browserTabContent->getClippingPlaneThickness(0)
-//                                 * 0.5);
-//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(0)
-//                                - halfThick);
-//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(0)
-//                                + halfThick);
-//        clippingBoundingBox.setMinX(minValue);
-//        clippingBoundingBox.setMaxX(maxValue);
-//    }
-//    if (browserTabContent->isClippingPlaneEnabled(1)) {
-//        const float halfThick = (browserTabContent->getClippingPlaneThickness(1)
-//                                 * 0.5);
-//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(1)
-//                                - halfThick);
-//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(1)
-//                                + halfThick);
-//        clippingBoundingBox.setMinY(minValue);
-//        clippingBoundingBox.setMaxY(maxValue);
-//    }
-//    if (browserTabContent->isClippingPlaneEnabled(2)) {
-//        const float halfThick = (browserTabContent->getClippingPlaneThickness(2)
-//                                 * 0.5);
-//        const float minValue = (browserTabContent->getClippingPlaneCoordinate(2)
-//                                - halfThick);
-//        const float maxValue = (browserTabContent->getClippingPlaneCoordinate(2)
-//                                + halfThick);
-//        clippingBoundingBox.setMinZ(minValue);
-//        clippingBoundingBox.setMaxZ(maxValue);
-//    }
-    
     /*
      * Save status of clipping and disable clipping.
      * For fibers, the entire fiber symbol is displayed if its
@@ -5356,47 +4608,6 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
     setOrthographicProjectionWithHeight(viewport,
                                         projectionType,
                                         getModelViewingHalfWindowHeight());
-    
-//    const BoundingBox* boundingBox = m_brain->getSpatialFilesBoundingBox();
-//    std::cout << ("Spatial: "
-//                  + boundingBox->toString()) << std::endl;
-//    float bounds[6];
-//    boundingBox->getBounds(bounds);
-//    
-//    const float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
-//                                                    boundingBox->getDifferenceY()),
-//                                           boundingBox->getDifferenceZ()) / 2.0;
-//    const float orthoHeight = modelHalfHeight * 1.02;
-//
-//    
-////    double defaultOrthoWindowSize = BrainOpenGLFixedPipeline::getModelViewingHalfWindowHeight();
-//    double defaultOrthoWindowSize = orthoHeight;
-//    double width = viewport[2];
-//    double height = viewport[3];
-//    double aspectRatio = (width / height);
-//    this->orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
-//    this->orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
-//    this->orthographicTop    =    defaultOrthoWindowSize;
-//    this->orthographicBottom =   -defaultOrthoWindowSize;
-//    this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
-//    this->orthographicFar    =  1000.0; //500.0; // 10000.0;
-//    
-//    switch (projectionType) {
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
-//            glOrtho(this->orthographicLeft, this->orthographicRight,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicNear, this->orthographicFar);
-//            break;
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
-//            glOrtho(this->orthographicRight, this->orthographicLeft,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicFar, this->orthographicNear);
-//            break;
-//    }
 }
 
 /**
@@ -5425,30 +4636,6 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
                                         projectionType,
                                         orthoHeight);
 }
-
-///**
-// * Setup the orthographic projection for the given surface file.
-// *
-// * @param viewport
-// *    The viewport (x, y, width, height)
-// * @param projectionType
-// *    Type of view projection.
-// */
-//void
-//BrainOpenGLFixedPipeline::setOrthographicProjectionForSurfaceFile(const int32_t viewport[4],
-//                                             const ProjectionViewTypeEnum::Enum projectionType,
-//                                             const SurfaceFile* surfaceFile)
-//{
-//    const BoundingBox* boundingBox = surfaceFile->getBoundingBox();
-//    const float modelHalfHeight = std::max(std::max(boundingBox->getDifferenceX(),
-//                                                    boundingBox->getDifferenceY()),
-//                                           boundingBox->getDifferenceZ()) / 2.0;
-//    const float orthoHeight = modelHalfHeight * 1.02;
-//    
-//    setOrthographicProjectionWithHeight(viewport,
-//                                        projectionType,
-//                                        orthoHeight);
-//}
 
 /**
  * Setup the orthographic projection with the given window height.
@@ -5484,21 +4671,6 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicNear, this->orthographicFar);
             break;
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
-//            glOrtho(this->orthographicLeft, this->orthographicRight,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicNear, this->orthographicFar);
-//            break;
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
-//            glOrtho(this->orthographicRight, this->orthographicLeft,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicFar, this->orthographicNear);
-//            break;
-//        case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
-//            glOrtho(this->orthographicRight, this->orthographicLeft,
-//                    this->orthographicBottom, this->orthographicTop,
-//                    this->orthographicFar, this->orthographicNear);
-//            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
@@ -6094,12 +5266,6 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
             windowX,
             windowY
         };
-//        const int halfFontSize = fontHeight / 2;
-        
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        uint8_t backgroundRGBA[4];
-        prefs->getColorBackground(backgroundRGBA);
-        backgroundRGBA[3] = 255;
         
         GLint savedViewport[4];
         glGetIntegerv(GL_VIEWPORT, savedViewport);
@@ -6111,10 +5277,6 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         int vpRightX  = savedViewport[0] + textCenter[0] + halfWidth;
         int vpBottomY = savedViewport[1] + textCenter[1] - halfHeight;
         int vpTopY    = savedViewport[1] + textCenter[1] + halfHeight;
-//        int vpLeftX   = savedViewport[0] + textCenter[0] - halfFontSize;
-//        int vpRightX  = savedViewport[0] + textCenter[0] + halfFontSize;
-//        int vpBottomY = savedViewport[1] + textCenter[1] - halfFontSize;
-//        int vpTopY    = savedViewport[1] + textCenter[1] + halfFontSize;
         MathFunctions::limitRange(vpLeftX,
                                   savedViewport[0],
                                   savedViewport[0] + savedViewport[2]);
@@ -6150,10 +5312,10 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         normals.push_back(0.0);
         normals.push_back(0.0);
         normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
+        rgba.push_back(m_backgroundColorByte[0]);
+        rgba.push_back(m_backgroundColorByte[1]);
+        rgba.push_back(m_backgroundColorByte[2]);
+        rgba.push_back(m_backgroundColorByte[3]);
         
         coords.push_back( 1.0);
         coords.push_back(-1.0);
@@ -6161,10 +5323,10 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         normals.push_back(0.0);
         normals.push_back(0.0);
         normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
+        rgba.push_back(m_backgroundColorByte[0]);
+        rgba.push_back(m_backgroundColorByte[1]);
+        rgba.push_back(m_backgroundColorByte[2]);
+        rgba.push_back(m_backgroundColorByte[3]);
         
         coords.push_back( 1.0);
         coords.push_back( 1.0);
@@ -6172,10 +5334,10 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         normals.push_back(0.0);
         normals.push_back(0.0);
         normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
+        rgba.push_back(m_backgroundColorByte[0]);
+        rgba.push_back(m_backgroundColorByte[1]);
+        rgba.push_back(m_backgroundColorByte[2]);
+        rgba.push_back(m_backgroundColorByte[3]);
         
         coords.push_back(-1.0);
         coords.push_back( 1.0);
@@ -6183,10 +5345,10 @@ BrainOpenGLFixedPipeline::drawTextWindowCoordsWithBackground(const int windowX,
         normals.push_back(0.0);
         normals.push_back(0.0);
         normals.push_back(1.0);
-        rgba.push_back(backgroundRGBA[0]);
-        rgba.push_back(backgroundRGBA[1]);
-        rgba.push_back(backgroundRGBA[2]);
-        rgba.push_back(backgroundRGBA[3]);
+        rgba.push_back(m_backgroundColorByte[0]);
+        rgba.push_back(m_backgroundColorByte[1]);
+        rgba.push_back(m_backgroundColorByte[2]);
+        rgba.push_back(m_backgroundColorByte[3]);
         
         
         BrainOpenGLPrimitiveDrawing::drawQuads(coords,
@@ -6445,10 +5607,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
      * Fill the palette viewport with the background color
      * Add a little to left and right so viewport is filled (excess will get clipped)
      */
-    uint8_t backgroundRGB[3];
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->getColorBackground(backgroundRGB);
-    glColor3ubv(backgroundRGB);
+    glColor3fv(m_backgroundColorFloat);
     glRectf(orthoLeftWithExtra, orthoRightWithExtra, -orthoHeight, orthoHeight);
     
     /*
@@ -6602,12 +5761,12 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         
         switch (paletteColorMapping->getThresholdTest()) {
             case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
-                glColor3ubv(backgroundRGB);
+                glColor3fv(m_backgroundColorFloat);
                 glRectf(orthoLeftWithExtra, -orthoHeight, normalizedThresholds[0], orthoHeight);
                 glRectf(normalizedThresholds[1], -orthoHeight, orthoRightWithExtra, orthoHeight);
                 break;
             case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
-                glColor3ubv(backgroundRGB);
+                glColor3fv(m_backgroundColorFloat);
                 glRectf(normalizedThresholds[0], -orthoHeight, normalizedThresholds[1], orthoHeight);
                 break;
         }
@@ -6619,7 +5778,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
      */
     if (isZeroDisplayed == false) {
         this->setLineWidth(1.0);
-        glColor3ubv(backgroundRGB);
+        glColor3fv(m_backgroundColorFloat);
         glBegin(GL_LINES);
         glVertex2f(0.0, -halfHeight);
         glVertex2f(0.0, 0.0);
@@ -6686,9 +5845,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     /*
      * Switch to the foreground color.
      */
-    uint8_t foregroundRGB[3];
-    prefs->getColorForeground(foregroundRGB);
-    glColor3ubv(foregroundRGB);
+    glColor3fv(m_foregroundColorFloat);
     
     /*
      * Account for margin around colorbar when calculating text locations

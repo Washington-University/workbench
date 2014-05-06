@@ -48,6 +48,10 @@ namespace caret {
         
         void setImage(const QImage& image);
         
+        void getBackgroundColor(uint8_t backgroundColor[3]) const;
+        
+        void setBackgroundColor(const uint8_t backgroundColor[3]);
+        
     private:
         EventImageCapture(const EventImageCapture&);
 
@@ -65,6 +69,8 @@ namespace caret {
         const int32_t m_imageSizeX;
         
         const int32_t m_imageSizeY;
+        
+        uint8_t m_backgroundColor[3];
         
         QImage m_image;
     };

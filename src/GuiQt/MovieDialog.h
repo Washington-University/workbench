@@ -52,7 +52,7 @@ public:
     
     int32_t getSliceDelta(const std::vector<int64_t> &dim, const caret::VolumeSliceViewPlaneEnum::Enum &vpe, const int32_t &sliceIndex);
 
-    void getImageCrop(AString fileName, int *cropout);
+    //void getImageCrop(AString fileName, int *cropout);
     
 	private slots:
     void on_closeButton_clicked();

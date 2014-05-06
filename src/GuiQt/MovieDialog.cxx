@@ -265,26 +265,26 @@ void MovieDialog::on_recordButton_toggled(bool checked)
     }
 }
 
-void MovieDialog::getImageCrop(AString fileName, int *cropOut)
-{
-    const int marginSize = this->ui->marginSpinBox->value();
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t backgroundColor[3];
-    prefs->getColorBackground(backgroundColor);
-
-    ImageFile file;
-    file.readFile(fileName);
-
-    int leftTopRightBottom[4];
-    file.findImageObject(backgroundColor,leftTopRightBottom);
-
-    const int width = leftTopRightBottom[2] - leftTopRightBottom[0] + 1;
-    const int height = leftTopRightBottom[3] - leftTopRightBottom[1] + 1;
-    cropOut[0] = width + 2*marginSize;
-    cropOut[1] = height + 2*marginSize;
-    cropOut[2] = leftTopRightBottom[0]+marginSize;
-    cropOut[3] = leftTopRightBottom[1]+marginSize;
-}
+//void MovieDialog::getImageCrop(AString fileName, int *cropOut)
+//{
+//    const int marginSize = this->ui->marginSpinBox->value();
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    uint8_t backgroundColor[3];
+//    prefs->getColorBackground(backgroundColor);
+//
+//    ImageFile file;
+//    file.readFile(fileName);
+//
+//    int leftTopRightBottom[4];
+//    file.findImageObject(backgroundColor,leftTopRightBottom);
+//
+//    const int width = leftTopRightBottom[2] - leftTopRightBottom[0] + 1;
+//    const int height = leftTopRightBottom[3] - leftTopRightBottom[1] + 1;
+//    cropOut[0] = width + 2*marginSize;
+//    cropOut[1] = height + 2*marginSize;
+//    cropOut[2] = leftTopRightBottom[0]+marginSize;
+//    cropOut[3] = leftTopRightBottom[1]+marginSize;
+//}
 
 void MovieDialog::processRotateTransformation(const double dx, const double dy, const double dz)
 {
@@ -733,12 +733,13 @@ void MovieDialog::captureFrame(AString filename)
         }
     }
 
+    uint8_t backgroundColor[3];
+    imageCaptureEvent.getBackgroundColor(backgroundColor);
+    
     try {
         const int marginSize = this->ui->marginSpinBox->value();
         if (marginSize > 0) {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            uint8_t backgroundColor[3];
-            prefs->getColorBackground(backgroundColor);
             imageFile.addMargin(marginSize,
                                 backgroundColor);
         }

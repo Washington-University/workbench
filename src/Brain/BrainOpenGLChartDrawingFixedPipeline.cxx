@@ -150,9 +150,12 @@ BrainOpenGLChartDrawingFixedPipeline::drawCartesianChart(Brain* brain,
     
     resetIdentification();
     
-    const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    preferences->getColorForeground(m_foregroundColor);
-    m_foregroundColor[3] = 1.0;
+//    const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+//    uint8_t foregroundByte[3];
+//    preferences->getColorForegroundChartView(foregroundByte);
+//    CaretPreferences::byteRgbToFloatRgb(foregroundByte,
+//                                        m_foregroundColor);
+//    m_foregroundColor[3] = 1.0;
     
     const int32_t vpX      = viewport[0];
     const int32_t vpY      = viewport[1];
@@ -328,10 +331,6 @@ BrainOpenGLChartDrawingFixedPipeline::drawMatrixChart(Brain* brain,
     
     resetIdentification();
 
-    const CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    preferences->getColorForeground(m_foregroundColor);
-    m_foregroundColor[3] = 1.0;
-    
     const int32_t vpX      = viewport[0];
     const int32_t vpY      = viewport[1];
     const int32_t vpWidth  = viewport[2];
@@ -576,7 +575,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         
-        glColor3fv(m_foregroundColor);
+        glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
         
         
 //        const float lastIndex = numLabelsToDraw - 1;
@@ -760,7 +759,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsBoxAndSetViewport(const f
     
     glLineWidth(gridLineWidth);
     
-    glColor3fv(m_foregroundColor);
+    glColor3fv(m_fixedPipelineDrawing->m_foregroundColorFloat);
     
     glBegin(GL_LINES);
     
@@ -868,7 +867,7 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsLineSeries(BrainOpenGLTex
             drawChartDataCartesian(-1,
                                    chartDataCart,
                                    lineWidth,
-                                   m_foregroundColor);
+                                   m_fixedPipelineDrawing->m_foregroundColorFloat);
         }
     }
     
@@ -1211,10 +1210,10 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
             std::vector<float> outlineRGBA;
             outlineRGBA.reserve(numberQuadVertices * 4);
             for (int32_t i = 0; i < numberQuadVertices; i++) {
-                outlineRGBA.push_back(m_foregroundColor[0]);
-                outlineRGBA.push_back(m_foregroundColor[1]);
-                outlineRGBA.push_back(m_foregroundColor[2]);
-                outlineRGBA.push_back(m_foregroundColor[3]);
+                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[0]);
+                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[1]);
+                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[2]);
+                outlineRGBA.push_back(m_fixedPipelineDrawing->m_foregroundColorByte[3]);
             }
             glPolygonMode(GL_FRONT, GL_LINE);
             

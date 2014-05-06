@@ -771,6 +771,8 @@ ImageCaptureDialog::applyButtonClicked()
     }
     
     if ( ! errorFlag) {
+        uint8_t backgroundColor[3];
+        imageCaptureEvent.getBackgroundColor(backgroundColor);
         ImageFile imageFile;
         imageFile.setFromQImage(imageCaptureEvent.getImage());
         
@@ -782,9 +784,6 @@ ImageCaptureDialog::applyButtonClicked()
         
         if (m_imageAutoCropCheckBox->isChecked()) {
             const int marginSize = m_imageAutoCropMarginSpinBox->value();
-            CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            uint8_t backgroundColor[3];
-            prefs->getColorBackground(backgroundColor);
             imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
         }
         

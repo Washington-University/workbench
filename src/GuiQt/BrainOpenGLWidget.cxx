@@ -1132,6 +1132,10 @@ BrainOpenGLWidget::captureImage(EventImageCapture* imageCaptureEvent)
     
     imageCaptureEvent->setImage(image);
     
+    uint8_t backgroundColor[3];
+    this->openGL->getBackgroundColor(backgroundColor);
+    imageCaptureEvent->setBackgroundColor(backgroundColor);
+    
     BrainOpenGLShape::setImmediateModeOverride(false);
     
     this->resizeGL(oldSizeX, oldSizeY);

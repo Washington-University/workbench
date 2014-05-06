@@ -487,6 +487,8 @@ namespace caret {
                                           const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                           const int64_t sliceIndex) const;
         
+        void updateForegroundAndBackgroundColors(BrainOpenGLViewportContent* vpContent);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

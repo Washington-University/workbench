@@ -386,7 +386,7 @@ BrainOpenGLVolumeSliceDrawing::drawSliceMontage(const int viewport[4])
      */
     const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     uint8_t foregroundRGB[3];
-    prefs->getColorForeground(foregroundRGB);
+    prefs->getColorForegroundVolumeView(foregroundRGB);
     const bool showCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
     
     
@@ -3392,8 +3392,6 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                   &depthEnabled);
     glDisable(GL_DEPTH_TEST);
     
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
     const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
     
     const float centerXYZ[3] = {
@@ -3616,9 +3614,12 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
         };
         const int halfFontSize = fontHeight / 2;
         
-        uint8_t backgroundRGBA[4];
-        prefs->getColorBackground(backgroundRGBA);
-        backgroundRGBA[3] = 255;
+        uint8_t backgroundRGBA[4] = {
+            m_fixedPipelineDrawing->m_backgroundColorByte[0],
+            m_fixedPipelineDrawing->m_backgroundColorByte[1],
+            m_fixedPipelineDrawing->m_backgroundColorByte[2],
+            m_fixedPipelineDrawing->m_backgroundColorByte[3]
+        };
         
         GLint savedViewport[4];
         glGetIntegerv(GL_VIEWPORT, savedViewport);

@@ -503,6 +503,9 @@ SceneDialog::addImageToScene(Scene* scene)
     
     CaretAssert(scene);
     
+    uint8_t backgroundColor[3] = { 0, 0, 0 };
+    bool backgroundColorValid = false;
+    
     /*
      * Capture an image of each window
      */
@@ -523,6 +526,10 @@ SceneDialog::addImageToScene(Scene* scene)
             }
             else {
                 imageFiles.push_back(new ImageFile(imageCaptureEvent.getImage()));
+                if ( ! backgroundColorValid) {
+                    imageCaptureEvent.getBackgroundColor(backgroundColor);
+                    backgroundColorValid = true;
+                }
             }
         }
     }
@@ -537,8 +544,6 @@ SceneDialog::addImageToScene(Scene* scene)
         try {
             const int32_t numImagesPerRow = 1;
             ImageFile compositeImageFile;
-            uint8_t backgroundColor[4] = { 0, 0, 0, 255 };
-            SessionManager::get()->getCaretPreferences()->getColorBackground(backgroundColor);
             compositeImageFile.combinePreservingAspectAndFillIfNeeded(imageFiles,
                                                                       numImagesPerRow,
                                                                       backgroundColor);

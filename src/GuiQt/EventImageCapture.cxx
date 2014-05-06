@@ -69,6 +69,9 @@ m_browserWindowIndex(browserWindowIndex),
 m_imageSizeX(imageSizeX),
 m_imageSizeY(imageSizeY)
 {
+    m_backgroundColor[0] = 0;
+    m_backgroundColor[1] = 0;
+    m_backgroundColor[2] = 0;
 }
 
 
@@ -104,6 +107,34 @@ int32_t
 EventImageCapture::getImageSizeY() const
 {
     return m_imageSizeY;
+}
+
+/**
+ * Get the graphics area's background color.
+ *
+ * @param backgroundColor
+ *    RGB components of background color [0, 255]
+ */
+void
+EventImageCapture::getBackgroundColor(uint8_t backgroundColor[3]) const
+{
+    backgroundColor[0] = m_backgroundColor[0];
+    backgroundColor[1] = m_backgroundColor[1];
+    backgroundColor[2] = m_backgroundColor[2];
+}
+
+/**
+ * Set the graphics area's background color.
+ *
+ * @param backgroundColor
+ *    RGB components of background color [0, 255]
+ */
+void
+EventImageCapture::setBackgroundColor(const uint8_t backgroundColor[3])
+{
+    m_backgroundColor[0] = backgroundColor[0];
+    m_backgroundColor[1] = backgroundColor[1];
+    m_backgroundColor[2] = backgroundColor[2];
 }
 
 /**

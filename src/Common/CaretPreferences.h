@@ -82,17 +82,17 @@ namespace caret {
         
         
         
-        void getColorForeground(uint8_t colorForeground[3]) const;
-
-        void getColorForeground(float colorForeground[3]) const;
-        
-        void setColorForeground(const uint8_t colorForeground[3]);
-        
-        void getColorBackground(uint8_t colorBackground[3]) const;
-        
-        void getColorBackground(float colorBackground[3]) const;
-        
-        void setColorBackground(const uint8_t colorBackground[3]);
+//        void getColorForeground(uint8_t colorForeground[3]) const;
+//
+//        void getColorForeground(float colorForeground[3]) const;
+//        
+//        void setColorForeground(const uint8_t colorForeground[3]);
+//        
+//        void getColorBackground(uint8_t colorBackground[3]) const;
+//        
+//        void getColorBackground(float colorBackground[3]) const;
+//        
+//        void setColorBackground(const uint8_t colorBackground[3]);
         
         void getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const;
         
@@ -142,10 +142,6 @@ namespace caret {
         
         void getAnimationStartTime(double &time);
         
-        //bool isContralateralIdentificationEnabled() const;
-        
-        //void setContralateralIdentificationEnabled(const bool enabled);
-        
         bool isSplashScreenEnabled() const;
         
         void setSplashScreenEnabled(const bool enabled);
@@ -166,18 +162,9 @@ namespace caret {
         
         const TileTabsConfiguration* getTileTabsConfigurationByUniqueIdentifier(const AString& uniqueIdentifier) const;
         
-//        std::vector<AString> getTileTabsConfigurationUniqueIdentifiers() const;
-        
-//        std::vector<AString> getTileTabsConfigurationNames() const;
-        
         TileTabsConfiguration* getTileTabsConfigurationByName(const AString& name) const;
         
-//        bool getTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier,
-//                                            TileTabsConfiguration& tileTabsConfigurationOut) const;
-        
         void addTileTabsConfiguration(TileTabsConfiguration* tileTabsConfiguration);
-        
-//        void addOrReplaceTileTabsConfiguration(const TileTabsConfiguration& tileTabsConfiguration);
         
         void removeTileTabsConfigurationByUniqueIdentifier(const AString& tileTabsUniqueIdentifier);
         
@@ -206,16 +193,9 @@ namespace caret {
         void setRemoteFileUserNameAndPassword(const AString& userName,
                                               const AString& password);
         
-//        std::vector<ModelTransform*> getAllModelTransforms();
-//        
-//        void setAllModelTransforms(std::vector<ModelTransform*>& allModelTransforms);
-//        
-//        const ModelTransform* getModelTransform(const AString& viewName);
-//        
-//        void addModelTransform(const ModelTransform& ModelTransform);
-//        
-//        void removeModelTransform(const AString& viewName);
-        
+        static void byteRgbToFloatRgb(const uint8_t byteRGB[3],
+                                      float floatRGB[3]);
+
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -264,9 +244,9 @@ namespace caret {
         
         mutable QSettings* qSettings;
         
-        uint8_t colorForeground[3];
-        
-        uint8_t colorBackground[3];
+//        uint8_t colorForeground[3];
+//        
+//        uint8_t colorBackground[3];
         
         uint8_t colorForegroundAll[3];
         
@@ -320,8 +300,6 @@ namespace caret {
         AString remoteFilePassword;
         bool remoteFileLoginSaved;
         
-        //bool contralateralIdentificationEnabled;
-        
         static const AString NAME_ANIMATION_START_TIME;
         static const AString NAME_VOLUME_AXES_CROSSHAIRS;
         static const AString NAME_VOLUME_AXES_LABELS;
@@ -340,7 +318,6 @@ namespace caret {
         static const AString NAME_COLOR_FOREGROUND_VOLUME;
         static const AString NAME_DEVELOP_MENU;
         static const AString NAME_IMAGE_CAPTURE_METHOD;
-//        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_OPENGL_DRAWING_METHOD;
         static const AString NAME_PREVIOUS_SPEC_FILES;
@@ -374,7 +351,6 @@ namespace caret {
     const AString CaretPreferences::NAME_COLOR_FOREGROUND_VOLUME     = "colorForegroundVolume";
     const AString CaretPreferences::NAME_DEVELOP_MENU     = "developMenu";
     const AString CaretPreferences::NAME_IMAGE_CAPTURE_METHOD = "imageCaptureMethod";
-    //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_OPENGL_DRAWING_METHOD     = "openGLDrawingMethod";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";

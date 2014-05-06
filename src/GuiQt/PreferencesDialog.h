@@ -72,17 +72,15 @@ namespace caret {
         
     private:
         enum PREF_COLOR {
-            PREF_COLOR_BACKGROUND = 0,
-            PREF_COLOR_BACKGROUND_ALL = 1,
-            PREF_COLOR_BACKGROUND_CHART = 2,
-            PREF_COLOR_BACKGROUND_SURFACE = 3,
-            PREF_COLOR_BACKGROUND_VOLUME = 4,
-            PREF_COLOR_FOREGROUND = 5,
-            PREF_COLOR_FOREGROUND_ALL = 6,
-            PREF_COLOR_FOREGROUND_CHART = 7,
-            PREF_COLOR_FOREGROUND_SURFACE = 8,
-            PREF_COLOR_FOREGROUND_VOLUME = 9,
-            NUMBER_OF_PREF_COLORS = 10
+            PREF_COLOR_BACKGROUND_ALL     = 0,
+            PREF_COLOR_BACKGROUND_CHART   = 1,
+            PREF_COLOR_BACKGROUND_SURFACE = 2,
+            PREF_COLOR_BACKGROUND_VOLUME  = 3,
+            PREF_COLOR_FOREGROUND_ALL     = 4,
+            PREF_COLOR_FOREGROUND_CHART   = 5,
+            PREF_COLOR_FOREGROUND_SURFACE = 6,
+            PREF_COLOR_FOREGROUND_VOLUME  = 7,
+            NUMBER_OF_PREF_COLORS         = 8
         };
         
         QWidget* createColorsWidget();
@@ -113,12 +111,10 @@ namespace caret {
 
         PreferencesDialog& operator=(const PreferencesDialog&);
         
-        QWidget* m_foregroundColorWidget;
         QWidget* m_foregroundColorAllWidget;
         QWidget* m_foregroundColorChartWidget;
         QWidget* m_foregroundColorSurfaceWidget;
         QWidget* m_foregroundColorVolumeWidget;
-        QWidget* m_backgroundColorWidget;
         QWidget* m_backgroundColorAllWidget;
         QWidget* m_backgroundColorChartWidget;
         QWidget* m_backgroundColorSurfaceWidget;

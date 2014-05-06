@@ -133,10 +133,6 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
     QWidget* colorSwatchWidget = new QWidget();
     
     switch (prefColor) {
-        case PREF_COLOR_BACKGROUND:
-            buttonText = "Background";
-            m_backgroundColorWidget = colorSwatchWidget;
-            break;
         case PREF_COLOR_BACKGROUND_ALL:
             buttonText = "All Background";
             m_backgroundColorAllWidget = colorSwatchWidget;
@@ -152,10 +148,6 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
         case PREF_COLOR_BACKGROUND_VOLUME:
             buttonText = "Volume Background";
             m_backgroundColorVolumeWidget = colorSwatchWidget;
-            break;
-        case PREF_COLOR_FOREGROUND:
-            buttonText = "Foreground";
-            m_foregroundColorWidget = colorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_ALL:
             buttonText = "All Foreground";
@@ -203,13 +195,6 @@ PreferencesDialog::createColorsWidget()
     QSignalMapper* colorSignalMapper = new QSignalMapper(this);
     
     QGridLayout* gridLayout = new QGridLayout();
-    
-    addColorButtonAndSwatch(gridLayout,
-                            PREF_COLOR_FOREGROUND,
-                            colorSignalMapper);
-    addColorButtonAndSwatch(gridLayout,
-                            PREF_COLOR_BACKGROUND,
-                            colorSignalMapper);
     
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_ALL,
@@ -268,10 +253,6 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
         QWidget* colorSwatchWidget = NULL;
         
         switch (prefColor) {
-            case PREF_COLOR_BACKGROUND:
-                prefs->getColorBackground(rgb);
-                colorSwatchWidget = m_backgroundColorWidget;
-                break;
             case PREF_COLOR_BACKGROUND_ALL:
                 prefs->getColorBackgroundAllView(rgb);
                 colorSwatchWidget = m_backgroundColorAllWidget;
@@ -287,10 +268,6 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
             case PREF_COLOR_BACKGROUND_VOLUME:
                 prefs->getColorBackgroundVolumeView(rgb);
                 colorSwatchWidget = m_backgroundColorVolumeWidget;
-                break;
-            case PREF_COLOR_FOREGROUND:
-                prefs->getColorForeground(rgb);
-                colorSwatchWidget = m_foregroundColorWidget;
                 break;
             case PREF_COLOR_FOREGROUND_ALL:
                 prefs->getColorForegroundAllView(rgb);
@@ -643,10 +620,6 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
     uint8_t rgb[3];
     AString prefColorName;
     switch (prefColor) {
-        case PREF_COLOR_BACKGROUND:
-            prefs->getColorBackground(rgb);
-            prefColorName = "Background";
-            break;
         case PREF_COLOR_BACKGROUND_ALL:
             prefs->getColorBackgroundAllView(rgb);
             prefColorName = "Background - All";
@@ -662,10 +635,6 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         case PREF_COLOR_BACKGROUND_VOLUME:
             prefs->getColorBackgroundVolumeView(rgb);
             prefColorName = "Background - Volume";
-            break;
-        case PREF_COLOR_FOREGROUND:
-            prefs->getColorForeground(rgb);
-            prefColorName = "Foreground";
             break;
         case PREF_COLOR_FOREGROUND_ALL:
             prefs->getColorForegroundAllView(rgb);
@@ -704,9 +673,6 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         rgb[2] = newColor.blue();
         
         switch (prefColor) {
-            case PREF_COLOR_BACKGROUND:
-                prefs->setColorBackground(rgb);
-                break;
             case PREF_COLOR_BACKGROUND_ALL:
                 prefs->setColorBackgroundAllView(rgb);
                 break;
@@ -718,9 +684,6 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                 break;
             case PREF_COLOR_BACKGROUND_VOLUME:
                 prefs->setColorBackgroundVolumeView(rgb);
-                break;
-            case PREF_COLOR_FOREGROUND:
-                prefs->setColorForeground(rgb);
                 break;
             case PREF_COLOR_FOREGROUND_ALL:
                 prefs->setColorForegroundAllView(rgb);

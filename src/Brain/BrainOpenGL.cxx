@@ -703,3 +703,18 @@ AString BrainOpenGL::getOpenGLLightAsText(const AString& enumName,
     return s;
 }
 
+/**
+ * Get the background color.
+ *
+ * @param backgroundColor
+ *     Output containing RGB components [0, 255].
+ */
+void
+BrainOpenGL::getBackgroundColor(uint8_t backgroundColor[3]) const
+{
+    backgroundColor[0] = m_backgroundColorByte[0];
+    backgroundColor[1] = m_backgroundColorByte[1];
+    backgroundColor[2] = m_backgroundColorByte[2];
+}
+
+

@@ -155,8 +155,6 @@ namespace caret {
         
         SelectionItemDataTypeEnum::Enum m_chartableMatrixSelectionTypeForIdentification;
         
-        float m_foregroundColor[4];
-        
         int32_t m_tabIndex;
 
         std::vector<int32_t> m_identificationIndices;

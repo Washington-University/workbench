@@ -151,6 +151,8 @@ namespace caret {
         
         void setDrawHighlightedEndPoints(const bool drawHighlightedEndPoints);
         
+        void getBackgroundColor(uint8_t backgroundColor[3]) const;
+        
         static void getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut);
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
@@ -212,6 +214,12 @@ namespace caret {
         Border* borderBeingDrawn;
         
         bool m_drawHighlightedEndPoints;
+        
+        uint8_t m_foregroundColorByte[4];
+        float m_foregroundColorFloat[4];
+
+        uint8_t m_backgroundColorByte[4];
+        float m_backgroundColorFloat[4];
         
         /** minimum point size */
         static float s_minPointSize;
