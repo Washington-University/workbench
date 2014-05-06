@@ -20,6 +20,7 @@
 
 #include "AlgorithmSurfaceCortexLayer.h"
 #include "AlgorithmException.h"
+#include "MathFunctions.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
@@ -287,6 +288,10 @@ AlgorithmSurfaceCortexLayer::AlgorithmSurfaceCortexLayer(ProgressObject* myProgO
             if (guess < lowcap) guess = lowcap;
             if (guess > highcap) guess = highcap;
             distFrac = guess;
+        }
+        if (!MathFunctions::isNumeric(distFrac))
+        {
+            distFrac = 0.5f;//non-numeric should only happen when pial and white coords are identical, so average should be fine
         }
         myOutSurf->setCoordinate(i, distFrac * (pialCenter - whiteCenter) + whiteCenter);
         if (myMetricOut != NULL)
