@@ -433,8 +433,8 @@ PreferencesDialog::createOpenGLWidget()
     /*
      * HIDE THE VERTEX BUFFERS OPTION
      */
-//    vertexBuffersLabel->setHidden(true);
-//    m_openGLDrawingMethodEnumComboBox->getWidget()->setHidden(true);
+    vertexBuffersLabel->setHidden(true);
+    m_openGLDrawingMethodEnumComboBox->getWidget()->setHidden(true);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
