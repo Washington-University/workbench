@@ -603,47 +603,76 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartAxisCartesian(const float vpX,
         
         const AString axisText = axis->getText();
         if ( ! axisText.isEmpty()) {
+//            bool drawAxisTextVerticalFlag = false;
+//            float axisTextCenterX = 0.0;
+//            float axisTextCenterY = 0.0;
+//            switch (axis->getAxisLocation()) {
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
+//                    axisTextCenterX = (vpWidth / 2.0);
+//                    axisTextCenterY = (margins.m_bottom / 2.0);
+//                    break;
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
+//                    axisTextCenterX = (vpWidth / 2.0);
+//                    axisTextCenterY = (margins.m_top / 2.0);
+//                    break;
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
+//                    axisTextCenterX = (margins.m_left / 2.0);
+//                    axisTextCenterY = (vpHeight / 2.0);
+//                    drawAxisTextVerticalFlag = true;
+//                    break;
+//                case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
+//                    axisTextCenterX = (margins.m_right / 2.0);
+//                    axisTextCenterY = (vpHeight / 2.0);
+//                    drawAxisTextVerticalFlag = true;
+//                    break;
+//            }
+            
+            BrainOpenGLTextRenderInterface::TextAlignmentX textAlignX = BrainOpenGLTextRenderInterface::X_CENTER;
+            BrainOpenGLTextRenderInterface::TextAlignmentY textAlignY = BrainOpenGLTextRenderInterface::Y_CENTER;
+            
             bool drawAxisTextVerticalFlag = false;
-            float axisTextCenterX = 0.0;
-            float axisTextCenterY = 0.0;
+            float axisTextCenterX = axisVpWidth / 2.0;
+            float axisTextCenterY = axisVpHeight / 2.0;
+            const float textMarginOffset = 5.0;
             switch (axis->getAxisLocation()) {
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_BOTTOM:
                     axisTextCenterX = (vpWidth / 2.0);
-                    axisTextCenterY = (margins.m_bottom / 2.0);
+                    axisTextCenterY = textMarginOffset;
+                    textAlignY = BrainOpenGLTextRenderInterface::Y_BOTTOM;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_TOP:
                     axisTextCenterX = (vpWidth / 2.0);
-                    axisTextCenterY = (margins.m_top / 2.0);
+                    axisTextCenterY = margins.m_top - textMarginOffset;
+                    textAlignY = BrainOpenGLTextRenderInterface::Y_TOP;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_LEFT:
-                    axisTextCenterX = (margins.m_left / 2.0);
+                    axisTextCenterX = textMarginOffset;
                     axisTextCenterY = (vpHeight / 2.0);
+                    textAlignX = BrainOpenGLTextRenderInterface::X_LEFT;
                     drawAxisTextVerticalFlag = true;
                     break;
                 case ChartAxisLocationEnum::CHART_AXIS_LOCATION_RIGHT:
-                    axisTextCenterX = (margins.m_right / 2.0);
+                    axisTextCenterX = margins.m_right - textMarginOffset;
                     axisTextCenterY = (vpHeight / 2.0);
+                    textAlignX = BrainOpenGLTextRenderInterface::X_RIGHT;
                     drawAxisTextVerticalFlag = true;
                     break;
             }
-            
-            axisTextCenterX = axisVpWidth / 2.0;
-            axisTextCenterY = axisVpHeight / 2.0;
             if (drawAxisTextVerticalFlag) {
                 textRenderer->drawVerticalTextAtWindowCoords(viewport,
                                                              axisTextCenterX,
                                                              axisTextCenterY,
                                                              axisText,
-                                                             BrainOpenGLTextRenderInterface::X_CENTER,
-                                                             BrainOpenGLTextRenderInterface::Y_CENTER);
+                                                             textAlignX,
+                                                             textAlignY);
             }
             else {
                 textRenderer->drawTextAtWindowCoords(viewport,
                                                      axisTextCenterX,
                                                      axisTextCenterY,
                                                      axisText,
-                                                     BrainOpenGLTextRenderInterface::X_CENTER,
-                                                     BrainOpenGLTextRenderInterface::Y_CENTER);
+                                                     textAlignX,
+                                                     textAlignY);
             }
         }
     }
