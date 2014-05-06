@@ -93,7 +93,7 @@ void
 ModelChart::initializeCharts()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
+        m_selectedChartDataType[i] = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
         
         m_chartModelDataSeries[i] = new ChartModelDataSeries();
         m_chartModelDataSeries[i]->getLeftAxis()->setText("Value");
@@ -991,16 +991,73 @@ ModelChart::getSelectedChartDataType(const int32_t tabIndex) const
      */
     std::vector<ChartDataTypeEnum::Enum> validChartDataTypes;
     getValidChartDataTypes(validChartDataTypes);
-    
     if (std::find(validChartDataTypes.begin(),
                   validChartDataTypes.end(),
                   chartDataType) == validChartDataTypes.end()) {
         chartDataType = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
     }
     
+    /*
+     * If selected chart data type is invalid, find a valid chart type,
+     * preferably one that contains data.
+     */
     if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
         if ( ! validChartDataTypes.empty()) {
-            chartDataType = validChartDataTypes[0];
+            /*
+             * Will become the the first valid chart data type that contains
+             * data (if there is one)
+             */
+            ChartDataTypeEnum::Enum chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_INVALID;
+            
+            /*
+             * Loop through all chart types (some or all valid charts 
+             * types may not contain data until the user commands loading of data)
+             */
+            std::vector<ChartDataTypeEnum::Enum> allChartDataTypes;
+            ChartDataTypeEnum::getAllEnums(allChartDataTypes);
+            for (std::vector<ChartDataTypeEnum::Enum>::iterator iter = allChartDataTypes.begin();
+                 iter != allChartDataTypes.end();
+                 iter++) {
+                const ChartDataTypeEnum::Enum cdt = *iter;
+                if (std::find(validChartDataTypes.begin(),
+                              validChartDataTypes.end(),
+                              cdt) != validChartDataTypes.end()) {
+                    if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                        chartDataType = cdt;
+                    }
+                    
+                    switch (cdt) {
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                            if (m_chartModelDataSeries[tabIndex]->getNumberOfChartData()) {
+                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES;
+                                }
+                            }
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                            if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX;
+                            }
+                            break;
+                        case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
+                            if (m_chartModelTimeSeries[tabIndex]->getNumberOfChartData()) {
+                                if (chartDataTypeWithValidData == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                                    chartDataTypeWithValidData = ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES;
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+            
+            if (chartDataTypeWithValidData != ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                chartDataType = chartDataTypeWithValidData;
+            }
+            else if (chartDataType == ChartDataTypeEnum::CHART_DATA_TYPE_INVALID) {
+                chartDataType = validChartDataTypes[0];
+            }
         }
     }
     
