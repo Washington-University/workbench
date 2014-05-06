@@ -2328,9 +2328,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const VolumeSliceViewPl
             if (sliceRGBA[alphaOffset] <= 0) {
                 if (volumeIndex == 0) {
                     /*
-                     * For first drawn volume, use black for voxel that would not be displayed.
+                     * For first drawn volume, use an alpha of 255 so
+                     * so that black is drawn
                      */
                     rgba[3] = 255;
+                    
+                    /*
+                     * OVERRIDES BLACK VOXEL ABOVE (255)
+                     * For first drawn volume, use an alpha of zero so
+                     * that the background shows through
+                     */
+                    rgba[3] = 0; //255;
                 }
             }
             else {
