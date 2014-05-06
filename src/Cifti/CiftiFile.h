@@ -84,6 +84,7 @@ namespace caret
         //CiftiXML m_xml;//uncomment when we drop CiftiInterface
         CiftiVersion m_writingVersion;
         void verifyWriteImpl();
+        static void copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const std::vector<int64_t>& dims);
     };
     
 }

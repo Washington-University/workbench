@@ -97,30 +97,27 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
     if (m_readingImpl == NULL || m_dims.empty()) throw DataFileException("writeFile called on uninitialized CiftiFile");
     FileInformation myInfo(fileName);
     QString canonicalFilename = myInfo.getCanonicalFilePath();//NOTE: returns EMPTY STRING for nonexistant file
+    CaretPointer<ReadImplInterface> tempRead = m_readingImpl;
     const CiftiOnDiskImpl* testImpl = dynamic_cast<CiftiOnDiskImpl*>(m_readingImpl.getPointer());
     bool collision = false;
     if (testImpl != NULL && canonicalFilename != "" && FileInformation(testImpl->getFilename()).getCanonicalFilePath() == canonicalFilename)
-    {
-        collision = true;//empty string test is so that we don't say collision if both are nonexistant - could happen if file is removed/unlinked while reading on some filesystems
-    }
-    if (collision)
-    {
+    {//empty string test is so that we don't say collision if both are nonexistant - could happen if file is removed/unlinked while reading on some filesystems
         if (m_writingVersion == writingVersion) return;//don't need to copy to itself
-        convertToInMemory();//otherwise, we need to preserve the contents first - if writing fails, we will end up with it converted to in-memory, but oh well
+        collision = true;//we need to copy to memory temporarily
+        CaretPointer<WriteImplInterface> tempMemory(new CiftiMemoryImpl(m_xml));//because tempRead is a ReadImpl, can't be used to copy to
+        copyImplData(m_readingImpl, tempMemory, m_dims);
+        tempRead = tempMemory;//set it to read from the memory rather than m_readingImpl
     }
-    CaretPointer<WriteImplInterface> tempWrite(new CiftiOnDiskImpl(myInfo.getAbsoluteFilePath(), m_xml, writingVersion));
-    vector<int64_t> iterateDims(m_dims.begin() + 1, m_dims.end());//above constructor creates new file in read/write mode
-    vector<float> scratchRow(m_dims[0]);
-    for (MultiDimIterator<int64_t> iter(iterateDims); !iter.atEnd(); ++iter)
-    {
-        m_readingImpl->getRow(scratchRow.data(), *iter, false);
-        tempWrite->setRow(scratchRow.data(), *iter);
-    }
-    if (collision)//drop the in-memory representation afterwards
+    CaretPointer<WriteImplInterface> tempWrite(new CiftiOnDiskImpl(myInfo.getAbsoluteFilePath(), m_xml, writingVersion));//NOTE: this makes m_readingImpl/m_writingImpl unusable if collision is true!
+    copyImplData(tempRead, tempWrite, m_dims);
+    if (collision)//if we rewrote the file, we need the handle to the new file, the old one has the wrong version and vox_offset in it
     {
         m_writingVersion = writingVersion;//also record the current version number
-        m_writingImpl = tempWrite;
-        m_readingImpl = tempWrite;
+        if (m_writingImpl != NULL)//NULL can happen if setWritingFile is called with a name other than the current file, then writeFile is called with the same name as current file but different version
+        {
+            m_writingImpl = tempWrite;//replace the now-unusable old file implementation
+        }
+        m_readingImpl = tempWrite;//replace the now-unusable old file implementation
     }
 }
 
@@ -132,19 +129,13 @@ void CiftiFile::writeFile(const QString& fileName)
 void CiftiFile::convertToInMemory()
 {
     if (isInMemory()) return;
-    if (m_readingImpl == NULL  || m_dims.empty())//not set up yet
+    if (m_readingImpl == NULL || m_dims.empty())//not set up yet
     {
         m_writingFile = "";//make sure it doesn't do on-disk when set...() is called
         return;
     }
-    CaretPointer<WriteImplInterface> tempWrite(new CiftiMemoryImpl(m_xml));//if we get an error while reading, free the memory immediately
-    vector<int64_t> iterateDims(m_dims.begin() + 1, m_dims.end());
-    vector<float> scratchRow(m_dims[0]);
-    for (MultiDimIterator<int64_t> iter(iterateDims); !iter.atEnd(); ++iter)
-    {
-        m_readingImpl->getRow(scratchRow.data(), *iter, false);
-        tempWrite->setRow(scratchRow.data(), *iter);
-    }
+    CaretPointer<WriteImplInterface> tempWrite(new CiftiMemoryImpl(m_xml));//if we get an error while reading, free the memory immediately, and don't leave m_readingImpl and m_writingImpl pointing to different things
+    copyImplData(m_readingImpl, tempWrite, m_dims);
     m_writingImpl = tempWrite;
     m_readingImpl = tempWrite;
 }
@@ -301,16 +292,21 @@ void CiftiFile::verifyWriteImpl()
         m_writingImpl.grabNew(new CiftiOnDiskImpl(m_writingFile, m_xml, m_writingVersion));//this constructor makes new file for writing
         if (m_readingImpl != NULL)
         {
-            vector<int64_t> iterateDims(m_dims.begin() + 1, m_dims.end());
-            vector<float> scratchRow(m_dims[0]);
-            for (MultiDimIterator<int64_t> iter(iterateDims); !iter.atEnd(); ++iter)
-            {
-                m_readingImpl->getRow(scratchRow.data(), *iter, false);
-                m_writingImpl->setRow(scratchRow.data(), *iter);
-            }
+            copyImplData(m_readingImpl, m_writingImpl, m_dims);
         }
     }
     m_readingImpl = m_writingImpl;//read-only implementations are set up in specialized functions
+}
+
+void CiftiFile::copyImplData(const ReadImplInterface* from, WriteImplInterface* to, const vector<int64_t>& dims)
+{
+    vector<int64_t> iterateDims(dims.begin() + 1, dims.end());
+    vector<float> scratchRow(dims[0]);
+    for (MultiDimIterator<int64_t> iter(iterateDims); !iter.atEnd(); ++iter)
+    {
+        from->getRow(scratchRow.data(), *iter, false);
+        to->setRow(scratchRow.data(), *iter);
+    }
 }
 
 CiftiMemoryImpl::CiftiMemoryImpl(const CiftiXML& xml)
