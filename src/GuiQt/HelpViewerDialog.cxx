@@ -170,11 +170,13 @@ HelpViewerDialog::loadHelpTopics()
                                                          TREE_ITEM_NONE);
     workbenchItem->setText(0, "Workbench");
     
-    QTreeWidgetItem* menuItem = new QTreeWidgetItem(workbenchItem,
-                                                    TREE_ITEM_NONE);
-    menuItem->setText(0, "Menus");    
-    createHelpPageFileItem("File Menu", ":/HelpFiles/File_Menu_new.htm", menuItem);
-    createHelpPageFileItem("Data Menu", ":/HelpFiles/Data_Menu.htm", menuItem);
+//    QTreeWidgetItem* menuItem = new QTreeWidgetItem(workbenchItem,
+//                                                    TREE_ITEM_NONE);
+//    menuItem->setText(0, "Menus");
+    QTreeWidgetItem* menuItem = createHelpPageFileItem("Menus", ":/HelpFiles/Workbench_Menu.htm", workbenchItem);
+    
+    createHelpPageFileItem("File Menu", ":/HelpFiles/File_Menu_filt.htm", menuItem);
+    createHelpPageFileItem("Data Menu", ":/HelpFiles/Data_Menu_filt.htm", menuItem);
     
     createHelpPageFileItem("Preferences", ":/HelpFiles/Preferences_filt.htm", workbenchItem);
     createHelpPageFileItem("Splash Screen", ":/HelpFiles/Splash_Screen_filt.htm", workbenchItem);
