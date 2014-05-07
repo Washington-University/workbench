@@ -109,6 +109,9 @@ namespace caret {
         
         static AString getFileVersionAsString();
         
+        void exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
+                                  const AString& outputCaret5FilesPrefix) throw (DataFileException);
+        
         /** XML Tag for BorderFile element */
         static const AString XML_TAG_BORDER_FILE;
         

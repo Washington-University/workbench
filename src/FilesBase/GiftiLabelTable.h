@@ -205,6 +205,8 @@ public:
     
     int32_t generateUnusedKey() const;
     
+    void exportToCaret5ColorFile(const AString& filename) const throw (GiftiException);
+
 private:
     void issueLabelKeyZeroWarning(const AString& name) const;
     

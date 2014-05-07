@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <QFile>
+
 #include <algorithm>
 #include <sstream>
 
@@ -1610,3 +1612,71 @@ GiftiLabelTable::issueLabelKeyZeroWarning(const AString& name) const
                         + "\".  This label is typically \"???\" or \"unknown\".");
     }
 }
+
+/**
+ * Export the content of the GIFTI Label Table to a Caret5 Color File.
+ */
+void
+GiftiLabelTable::exportToCaret5ColorFile(const AString& filename) const throw (GiftiException)
+{
+    if (filename.isEmpty()) {
+        throw GiftiException("Missing filename for export of label table to caret5 color file format.");
+    }
+    
+    QFile file(filename);
+    if ( ! file.open(QFile::WriteOnly)) {
+        const AString msg = ("Unable to open "
+                             + filename
+                             + " for export of label table to caret5 color file format.\n"
+                             + file.errorString());
+        throw GiftiException(msg);
+    }
+    
+    QXmlStreamWriter xmlWriter(&file);
+    xmlWriter.setAutoFormatting(true);
+    xmlWriter.writeStartDocument("1.0");
+    xmlWriter.writeStartElement("Border_Color_File");
+    
+    xmlWriter.writeStartElement("FileHeader");
+    xmlWriter.writeStartElement("Element");
+    xmlWriter.writeTextElement("comment",
+                               "Exported from Caret7/Workbench");
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndElement();
+    
+    std::set<int32_t> keys = this->getKeys();
+    for (std::set<int32_t>::const_iterator iter = keys.begin();
+         iter != keys.end();
+         iter++) {
+        int key = *iter;
+        const GiftiLabel* label = this->getLabel(key);
+        
+        if (label != NULL) {
+            xmlWriter.writeStartElement("Color");
+            xmlWriter.writeTextElement("name", label->getName());
+
+            const int32_t red   = static_cast<int32_t>(label->getRed() * 255.0);
+            const int32_t green = static_cast<int32_t>(label->getGreen() * 255.0);
+            const int32_t blue  = static_cast<int32_t>(label->getBlue() * 255.0);
+            const int32_t alpha = static_cast<int32_t>(label->getAlpha() * 255.0);
+            
+            xmlWriter.writeTextElement("red", AString::number(red));
+            xmlWriter.writeTextElement("green", AString::number(green));
+            xmlWriter.writeTextElement("blue", AString::number(blue));
+            xmlWriter.writeTextElement("alpha", AString::number(alpha));
+            
+            xmlWriter.writeTextElement("pointSize", "1.5");
+            xmlWriter.writeTextElement("lineSize", "1.0");
+            xmlWriter.writeTextElement("symbol", "POINT");
+            xmlWriter.writeTextElement("sumscolorid", "");
+            xmlWriter.writeEndElement();
+        }
+    }
+    
+    xmlWriter.writeEndElement();
+    xmlWriter.writeEndDocument();
+    
+    file.close();
+}
+
+

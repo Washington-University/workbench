@@ -20,6 +20,7 @@ ADD_LIBRARY(Operations
 OperationAddToSpecFile.h
 OperationBackendAverageDenseROI.h
 OperationBackendAverageROICorrelation.h
+OperationBorderFileExportToCaret5.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
@@ -82,6 +83,7 @@ OperationZipSpecFile.h
 OperationAddToSpecFile.cxx
 OperationBackendAverageDenseROI.cxx
 OperationBackendAverageROICorrelation.cxx
+OperationBorderFileExportToCaret5.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx

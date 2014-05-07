@@ -44,6 +44,8 @@
 #include "GiftiMetaData.h"
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
+#include "TextFile.h"
 #include "XmlAttributes.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
@@ -853,5 +855,288 @@ BorderFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
         dataFileInformation.addText(namesListText);
     }
 }
+
+/**
+ * Export this border file to Caret5 formatted border color and 
+ * border projection files.
+ *
+ * @param surfaceFiles
+ *     Surface files for unprojection of borders.
+ * @param outputCaret5FilesPrefix
+ *     Prefix for Caret5 output files.
+ */
+void
+BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
+                                 const AString& outputCaret5FilesPrefix) throw (DataFileException)
+{
+    AString errorMessage;
+    
+    if (getNumberOfBorders() <= 0) {
+        errorMessage.appendWithNewLine("This border file "
+                                       + getFileNameNoPath()
+                                       + " contains zero borders.");
+    }
+    if (outputCaret5FilesPrefix.isEmpty()) {
+        errorMessage.appendWithNewLine("Caret5 output file prefix is empty.");
+    }
+    
+    if ( ! errorMessage.isEmpty()) {
+        throw DataFileException(errorMessage);
+    }    
+
+    /*
+     * In Caret7, each border contains a Structure attribute and a Caret7
+     * border file may contain borders from more than one structure.  However,
+     * Caret5 borders do not contain a structure attribute and so each 
+     * Caret5 border file contains borders for one structure only.
+     *
+     * So, group borders by structure.
+     *
+     */
+    std::map<StructureEnum::Enum, std::vector<Border*> > bordersPerStructuresMap;
+    for (std::vector<Border*>::iterator borderIter = m_borders.begin();
+         borderIter != m_borders.end();
+         borderIter++) {
+        Border* border = *borderIter;
+        if (border->getNumberOfPoints() > 0) {
+            const StructureEnum::Enum structure = border->getStructure();
+            std::map<StructureEnum::Enum, std::vector<Border*> >::iterator iter = bordersPerStructuresMap.find(structure);
+            if (iter != bordersPerStructuresMap.end()) {
+                iter->second.push_back(border);
+            }
+            else {
+                std::vector<Border*> borderVector;
+                borderVector.push_back(border);
+                bordersPerStructuresMap.insert(std::make_pair<StructureEnum::Enum, std::vector<Border*> >(structure,
+                                                                                                         borderVector));
+            }
+        }
+    }
+    
+    int32_t filesWrittenCount = 0;
+    
+    /*
+     * Surface are needed for unprojecting to create border files.
+     * This will track missing surface structure types.
+     */
+    std::set<StructureEnum::Enum> missingSurfaceStructures;
+    
+    /*
+     * Place borders for each structure in separate files.
+     */
+    for (std::map<StructureEnum::Enum, std::vector<Border*> >::iterator iter = bordersPerStructuresMap.begin();
+         iter != bordersPerStructuresMap.end();
+         iter++) {
+        const StructureEnum::Enum structure = iter->first;
+        const std::vector<Border*>& borderVector = iter->second;
+        const int32_t numberOfBorders = static_cast<int32_t>(borderVector.size());
+        
+        AString structureName = "unknown";
+        if (structure == StructureEnum::CEREBELLUM) {
+            structureName = "cerebellum";
+        }
+        else if (StructureEnum::isLeft(structure)) {
+            structureName = "left";
+        }
+        else if (StructureEnum::isRight(structure)) {
+            structureName = "right";
+        }
+        
+        AString headerText;
+        headerText.appendWithNewLine("BeginHeader");
+        headerText.appendWithNewLine("comment exported from wb_view file " + getFileNameNoPath());
+        headerText.appendWithNewLine("encoding ASCII");
+        headerText.appendWithNewLine("structure "
+                                     + structureName);
+        headerText.appendWithNewLine("EndHeader");
+        
+        if (numberOfBorders > 0) {
+            bool allBorderProjectionsValid = true;
+            AString borderProjFileText;
+            borderProjFileText.appendWithNewLine(headerText);
+            borderProjFileText.appendWithNewLine(AString::number(numberOfBorders));
+            
+            bool allBordersValid = true;
+            AString borderFileText;
+            borderFileText.appendWithNewLine(headerText);
+            borderFileText.appendWithNewLine(AString::number(numberOfBorders));
+            
+            for (int32_t iBorder = 0; iBorder < numberOfBorders; iBorder++) {                
+                const Border* border = borderVector[iBorder];
+                const int32_t numPoints = border->getNumberOfPoints();
+                const AString name = border->getName();
+                
+                /*
+                 * Border Projection
+                 * Write index, number of points, name,
+                 * sampling density/variance/topography/uncertainty
+                 *
+                 * Center (0, 0, 0)
+                 */
+                borderProjFileText.appendWithNewLine(AString::number(iBorder)
+                                                     + " "
+                                                     + AString::number(numPoints)
+                                                     + " "
+                                                     + name
+                                                     + " 20.0 1.0 0.0 1.0");
+                borderProjFileText.appendWithNewLine("0.0 0.0 0.0");
+                
+                /*
+                 * Border
+                 * Write index, number of points, name,
+                 * sampling density/variance/topography/uncertainty
+                 *
+                 * Center (0, 0, 0)
+                 */
+                borderFileText.appendWithNewLine(AString::number(iBorder)
+                                                 + " "
+                                                 + AString::number(numPoints)
+                                                 + " "
+                                                 + name
+                                                 + " 20.0 1.0 0.0 1.0");
+                borderFileText.appendWithNewLine("0.0 0.0 0.0");
+                
+                
+                for (int32_t jPoint = 0; jPoint < numPoints; jPoint++) {
+                    const SurfaceProjectedItem* spi = border->getPoint(jPoint);
+                    
+                    const SurfaceProjectionBarycentric* baryProj = spi->getBarycentricProjection();
+                    if (baryProj->isValid()) {
+                        const float* triangleAreas = baryProj->getTriangleAreas();
+                        const int32_t* triangleNodes = baryProj->getTriangleNodes();
+                        
+                        /*
+                         * Add points nodes, section, areas, and radius
+                         */
+                        borderProjFileText.appendWithNewLine(AString::number(triangleNodes[0])
+                                                             + " "
+                                                             + AString::number(triangleNodes[1])
+                                                             + " "
+                                                             + AString::number(triangleNodes[2])
+                                                             + " 0 "
+                                                             + AString::number(triangleAreas[0], 'f', 6)
+                                                             + " "
+                                                             + AString::number(triangleAreas[1], 'f', 6)
+                                                             + " "
+                                                             + AString::number(triangleAreas[2], 'f', 6)
+                                                             + " 0.0");
+                    }
+                    else {
+                        allBorderProjectionsValid = false;
+                    }
+                    
+                    if ( ! surfaceFiles.empty()) {
+                        SurfaceFile* surface = NULL;
+                        for (std::vector<SurfaceFile*>::const_iterator surfaceIter = surfaceFiles.begin();
+                             surfaceIter != surfaceFiles.end();
+                             surfaceIter++) {
+                            SurfaceFile* sf = *surfaceIter;
+                            if (sf->getStructure() == structure) {
+                                surface = sf;
+                                break;
+                            }
+                        }
+                        
+                        if (surface != NULL) {
+                            float xyz[3];
+                            if (spi->getProjectedPosition(*surface, xyz, false)) {
+                                /*
+                                 * Add point index, section, xyz, and radius
+                                 */
+                                borderFileText.appendWithNewLine(AString::number(jPoint)
+                                                                 + " 0 "
+                                                                 + AString::number(xyz[0], 'f', 3)
+                                                                 + " "
+                                                                 + AString::number(xyz[1], 'f', 3)
+                                                                 + " "
+                                                                 + AString::number(xyz[2], 'f', 3)
+                                                                 + " 0.0");
+                            }
+                            else {
+                                allBordersValid = false;
+                            }
+                        }
+                        else {
+                            missingSurfaceStructures.insert(structure);
+                            allBordersValid = false;
+                        }
+                    }
+                    else {
+                        missingSurfaceStructures.insert(structure);
+                        allBordersValid = false;
+                    }
+                }
+            }
+            
+            if (allBorderProjectionsValid) {
+                try {
+                    const AString filename = (outputCaret5FilesPrefix
+                                        + "_"
+                                        + StructureEnum::toName(structure)
+                                        + ".borderproj");
+                    TextFile borderProjectionFile;
+                    borderProjectionFile.addText(borderProjFileText);
+                    borderProjectionFile.writeFile(filename);
+                    
+                    filesWrittenCount++;
+                }
+                catch (const DataFileException& dfe) {
+                    errorMessage.appendWithNewLine(dfe.whatString());
+                }
+            }
+            else {
+                errorMessage.appendWithNewLine("There were failures creating at least one border projection for structure: "
+                                               + StructureEnum::toName(structure));
+            }
+            
+            if (allBordersValid) {
+                try {
+                    const AString filename = (outputCaret5FilesPrefix
+                                        + "_"
+                                        + StructureEnum::toName(structure)
+                                        + ".border");
+                    TextFile borderFile;
+                    borderFile.addText(borderFileText);
+                    borderFile.writeFile(filename);
+                    
+                    filesWrittenCount++;
+                }
+                catch (const DataFileException& dfe) {
+                    errorMessage.appendWithNewLine(dfe.whatString());
+                }
+            }
+            else {
+                errorMessage.appendWithNewLine("There were failures creating at least one border for structure: "
+                                               + StructureEnum::toName(structure));
+            }
+        }
+    }
+
+    for (std::set<StructureEnum::Enum>::iterator missingStructureIter = missingSurfaceStructures.begin();
+         missingStructureIter != missingSurfaceStructures.end();
+         missingStructureIter++) {
+        errorMessage.appendWithNewLine("No surface was available for structure: "
+                                       + StructureEnum::toName(*missingStructureIter));
+    }
+    
+    if (filesWrittenCount > 0) {
+        try {
+            const AString filename = (outputCaret5FilesPrefix
+                                      + ".bordercolor");
+            
+            GiftiLabelTable* colorTable = getNameColorTable();
+            colorTable->exportToCaret5ColorFile(filename);
+        }
+        catch (const GiftiException& ge) {
+            errorMessage.appendWithNewLine(ge.whatString());
+        }
+    }
+    
+    if ( ! errorMessage.isEmpty()) {
+        throw DataFileException(errorMessage);
+    }
+    
+}
+
 
 
