@@ -88,6 +88,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                      this, SLOT(topicTreeItemSelected(QTreeWidgetItem*,int)));
     
     m_helpBrowserWidget = new QTextBrowser();
+    m_helpBrowserWidget->setOpenExternalLinks(true);
     
     QWidget* leftColumnWidget = new QWidget();
     QVBoxLayout* leftColumnLayout = new QVBoxLayout(leftColumnWidget);

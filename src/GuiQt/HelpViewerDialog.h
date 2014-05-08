@@ -30,6 +30,7 @@ class QSplitter;
 class QTreeWidget;
 class QTreeWidgetItem;
 class QTextBrowser;
+class QUrl;
 
 namespace caret {
 
