@@ -66,12 +66,12 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(8, "-volume-presmooth", "smooth on the surface before computing the gradient");
     presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
     
-    ret->createOptionalParameter(9, "-average-output", "output the average of the gradient magnitudes instead of each gradient separately");
+    ret->createOptionalParameter(9, "-average-output", "output the average of the gradient magnitude maps instead of each gradient map separately");
     
     ret->setHelpText(
         AString("Performs gradient calculation on each component of the cifti file, and optionally averages the resulting gradients.  ") +
         "You must specify a surface for each surface structure in the cifti file.  The COLUMN direction should be faster, and is the " +
-        "direction that works on dtseries.  For dconn, you probably want ROW."
+        "direction that works on dtseries.  For dconn, you probably want ROW, unless you are using -average-output."
     );
     return ret;
 }
