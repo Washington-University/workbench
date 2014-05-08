@@ -175,7 +175,7 @@ HelpViewerDialog::loadHelpTopics()
                                                     TREE_ITEM_NONE);
     menuItem->setText(0, "Menus");
     
-    createHelpPageFileItem("wb_view Menu (Mac Only)", ":/HelpFiles/Workbench_Menu.htm", menuItem);
+    createHelpPageFileItem("wb_view Menu (Mac Only)", ":/HelpFiles/wb_view_Menu.htm", menuItem);
     createHelpPageFileItem("File Menu", ":/HelpFiles/File_Menu_filt.htm", menuItem);
     createHelpPageFileItem("Data Menu", ":/HelpFiles/Data_Menu_filt.htm", menuItem);
     
