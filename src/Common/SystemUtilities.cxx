@@ -36,6 +36,7 @@
 #include "Windows.h"
 #endif
 
+#include "CaretCommandLine.h"
 #include "CaretLogger.h"
 #include "SystemUtilities.h"
 
@@ -502,10 +503,11 @@ SystemUtilities::relativePath(
  */
 static void unexpectedHandler()
 {
-    std::cerr << "WARNING: unhandled exception." << std::endl;
-    std::cerr << "command line: " << commandLine << std::endl;
+    std::cerr << "While running '" << caret_global_commandLine << "':" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "ERROR: unhandled exception." << std::endl;
     //if (theMainWindow != NULL) {
-        const AString msg("Caret will be terminating due to an unexpected exception.\n"
+        const AString msg("Workbench will be terminating due to an unexpected exception.\n"
                           "abort() will be called and a core file may be created.");
     std::cerr << msg << std::endl;
         //QMessageBox::critical(theMainWindow, "ERROR", msg);
@@ -521,11 +523,12 @@ static void unexpectedHandler()
  */
 static void newHandler()
 {
+    std::cerr << "While running '" << caret_global_commandLine << "':" << std::endl;
     std::ostringstream str;
     str << "\n"
     << "OUT OF MEMORY\n"
     << "\n"
-    << "This means that Caret is unable to get memory that it needs.\n"
+    << "This means that Workbench is unable to get memory that it needs.\n"
     << "Possible causes:\n"
     << "   (1) Your computer lacks sufficient RAM.\n"
     << "   (2) Swap space is too small (you might increase it).\n"
@@ -550,17 +553,8 @@ static void newHandler()
  * out of memory errors.
  */
 void 
-SystemUtilities::setHandlersForUnexpected(int argc, char** argv)
+SystemUtilities::setHandlersForUnexpected()
 {
-    commandLine = "";
-    if (argc > 0)
-    {
-        commandLine = argv[0];
-        for (int i = 1; i < argc; ++i)
-        {
-            commandLine += AString(" ") + AString(argv[i]);
-        }
-    }
     std::set_unexpected(unexpectedHandler);
     std::set_new_handler(newHandler);
 

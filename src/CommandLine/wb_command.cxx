@@ -33,7 +33,7 @@
 #include "VolumeFile.h"
 
 using namespace caret;
-
+using namespace std;
 
 static int runCommand(int argc, char* argv[]) {
     
@@ -51,10 +51,28 @@ static int runCommand(int argc, char* argv[]) {
         
         commandManager->runCommand(parameters);
         
-    }
-    catch (CommandException& e) {
-        std::cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.whatString().toStdString() << std::endl;
+    } catch (CommandException& e) {
+        cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.whatString().toStdString() << endl;
         ret = -1;
+    } catch (bad_alloc& e) {//in case we stop using a handler for new
+        cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.what() << endl;
+        cerr << endl
+        << "OUT OF MEMORY" << endl
+        << endl
+        << "This means that Workbench is unable to get memory that it needs." << endl
+        << "Possible causes:" << endl
+        << "   (1) Your computer lacks sufficient RAM." << endl
+        << "   (2) Swap space is too small (you might increase it)." << endl
+        << "   (3) Your computer may be using an non-English character" << endl//is this relevant?
+        << "       set.  Try switching to the English character set." << endl
+        << endl;
+        ret = -1;
+    } catch (exception& e) {
+        cerr << "While running '" << caret_global_commandLine << "':\nERROR: " << e.what() << endl;
+        ret = -1;
+    } catch (...) {
+        cerr << "While running '" << caret_global_commandLine << "':\nERROR: caught unknown exception type" << endl;
+        throw;//rethrow, the runtime might print the type
     }
     
     if (commandManager != NULL) {
@@ -69,7 +87,7 @@ int main(int argc, char* argv[]) {
         /*
          * Handle uncaught exceptions
          */
-        SystemUtilities::setHandlersForUnexpected(argc, argv);
+        SystemUtilities::setHandlersForUnexpected();
         
         /*
          * Create the session manager.

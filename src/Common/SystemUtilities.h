@@ -91,7 +91,7 @@ public:
                     const AString& otherPathIn,
                     const AString& myPathIn);
 
-    static void setHandlersForUnexpected(int argc = 0, char** argv = NULL);
+    static void setHandlersForUnexpected();
     
     static AString systemCurrentDirectory();
     

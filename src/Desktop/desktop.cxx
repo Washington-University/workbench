@@ -248,7 +248,7 @@ main(int argc, char* argv[])
         /*
         * Handle uncaught exceptions
         */
-        SystemUtilities::setHandlersForUnexpected(argc, argv);
+        SystemUtilities::setHandlersForUnexpected();
         
         /*
         * Create the session manager.

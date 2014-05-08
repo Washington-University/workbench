@@ -110,7 +110,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
     for (i = 0; i < myComponent->m_paramList.size(); ++i)
     {
         AString nextArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
-        if (nextArg[0] == '-')
+        if (!nextArg.isEmpty() && nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
@@ -356,7 +356,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
     for (i = 0; i < myComponent->m_outputList.size(); ++i)
     {//parse the output options of this component
         AString nextArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
-        if (nextArg[0] == '-')
+        if (!nextArg.isEmpty() && nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
@@ -478,7 +478,7 @@ void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
     while (parameters.hasNext())
     {
         AString nextArg = parameters.nextString("option");
-        if (nextArg[0] == '-')
+        if (!nextArg.isEmpty() && nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
