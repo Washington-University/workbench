@@ -54,6 +54,8 @@ namespace caret {
         
         virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
+        virtual void setPreferOnDiskReading(const bool&) { }
+        
         /**
          * Read the data file.
          *

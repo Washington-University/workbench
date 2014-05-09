@@ -362,6 +362,16 @@ CiftiMappableDataFile:: getFileMetaData() const
     return m_metadata;
 }
 
+void CiftiMappableDataFile::setPreferOnDiskReading(const bool& prefer)
+{
+    if (prefer)
+    {
+        m_fileReading = FILE_READ_DATA_AS_NEEDED;
+    } else {
+        m_fileReading = FILE_READ_DATA_ALL;
+    }
+}
+
 /**
  * Read the file.
  *

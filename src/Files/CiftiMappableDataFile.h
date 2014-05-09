@@ -98,6 +98,8 @@ namespace caret {
         
         virtual const GiftiMetaData* getFileMetaData() const;
         
+        virtual void setPreferOnDiskReading(const bool& prefer);
+        
         virtual void readFile(const AString& filename) throw (DataFileException);
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
@@ -418,7 +420,7 @@ namespace caret {
                                               const SceneClass* sceneClass);
         
         /** How to read data from file */
-        const FileReading m_fileReading;
+        FileReading m_fileReading;
         
         /** Required type of data along the row (dimension 0) */
         const IndicesMapToDataType m_requiredRowIndexType;

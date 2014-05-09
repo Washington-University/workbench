@@ -84,7 +84,7 @@ CaretDataFileHelper::~CaretDataFileHelper()
  *    DataFileException if unable to read the file for any reason.
  */
 CaretDataFile*
-CaretDataFileHelper::readAnyCaretDataFile(const AString& filename) throw (DataFileException)
+CaretDataFileHelper::readAnyCaretDataFile(const AString& filename, const bool& preferOnDisk) throw (DataFileException)
 {
     bool isValid = false;
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(filename,
@@ -169,6 +169,7 @@ CaretDataFileHelper::readAnyCaretDataFile(const AString& filename) throw (DataFi
     CaretAssert(caretDataFile);
     
     try {
+        if (preferOnDisk) caretDataFile->setPreferOnDiskReading(true);//NOTE: because Dense Connectivity also pays attention to this, never change default behaviors away from on disk
         caretDataFile->readFile(filename);
     }
     catch (const DataFileException& dfe) {

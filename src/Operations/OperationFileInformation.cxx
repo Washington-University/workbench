@@ -98,8 +98,10 @@ OperationFileInformation::useParameters(OperationParameters* myParams,
     bool onlyNumMaps = myParams->getOptionalParameter(4)->m_present;
     
     if (onlyTimestep && onlyNumMaps) throw OperationException("only one -only option may be specified");
+    
+    bool preferOnDisk = (!showMapInformationFlag || onlyNumMaps || onlyTimestep);
 
-    CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(dataFileName));
+    CaretPointer<CaretDataFile> caretDataFile(CaretDataFileHelper::readAnyCaretDataFile(dataFileName, preferOnDisk));
     
     if (onlyTimestep)
     {
