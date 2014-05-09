@@ -1,5 +1,5 @@
-#ifndef __HELP_DIALOG_H__
-#define __HELP_DIALOG_H__
+#ifndef __HELP_VIEWER_DIALOG_H__
+#define __HELP_VIEWER_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -21,26 +21,30 @@
  */
 /*LICENSE_END*/
 
+#include <QTreeWidgetItem>
 
 #include "WuQDialogNonModal.h"
 
-class QListWidget;
-class QListWidgetItem;
+class QLineEdit;
 class QSplitter;
-class QTreeWidget;
-class QTreeWidgetItem;
 class QTextBrowser;
+class QToolButton;
+class QTreeWidget;
 class QUrl;
+
 
 namespace caret {
 
+    class CommandOperation;
+    class HelpTreeWidgetItem;
+    
     class HelpViewerDialog : public WuQDialogNonModal {
         
         Q_OBJECT
 
     public:
         HelpViewerDialog(QWidget* parent,
-                   Qt::WindowFlags f = 0);
+                         Qt::WindowFlags f = 0);
         
         virtual ~HelpViewerDialog();
         
@@ -48,10 +52,23 @@ namespace caret {
         
         void showHelpPageWithName(const AString& helpPageName);
         
+
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void topicTreeItemSelected(QTreeWidgetItem*,int);
+        void helpPageAnchorClicked(const QUrl&);
+        
+        void indexTreeItemSelected(QTreeWidgetItem* item, int column);
+        
+        void searchTreeItemSelected(QTreeWidgetItem* item, int column);
+        
+        void slotPrint();
+        
+        void slotFindInBrowser();
+        
+        void slotFindNextInBrowser();
+        
+        void slotSearchLineEdit();
         
     private:
         enum TreeItemType {
@@ -63,28 +80,72 @@ namespace caret {
         HelpViewerDialog(const HelpViewerDialog&);
 
         HelpViewerDialog& operator=(const HelpViewerDialog&);
-
-        void loadHelpTopics();
+        
+        void loadIndexTree();
         
         QTreeWidgetItem* createHelpPageFileItem(const AString& topicName,
                                                 const AString& filePath,
                                                 QTreeWidgetItem* parent) const;
         
-        QTreeWidget* m_topicTreeWidget;
-
+        void getAllWebPages(QVector<QPair<QString,QString> >& pagesOut) const;
+        
+        void loadPageAtURL(const AString& pageUrlText);
+        
+        /// the help browser
+        QTextBrowser* m_helpBrowser;
+        
+        /// the splitter
         QSplitter* m_splitter;
         
-        QTextBrowser* m_helpBrowserWidget;
+        /// the index tree widget
+        QTreeWidget* m_indexTreeWidget;
         
-        bool m_helpDataHasBeenLoadedFlag;
+        /// the search tree widget
+        QTreeWidget* m_searchTreeWidget;
         
+        /// text when searching browser
+        QString m_findInBrowserText;
+        
+        /// find next toolbutton
+        QToolButton* m_findNextPushButton;
+        
+        /// line edit for searching web pages
+        QLineEdit* m_searchLineEdit;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __HELP_DIALOG_DECLARE__
+    
+    class HelpTreeWidgetItem : public QTreeWidgetItem {
+        
+    public:
+        enum TreeItemType {
+            TREE_ITEM_NONE,
+            TREE_ITEM_HELP_PAGE_URL,
+            TREE_ITEM_HELP_TEXT
+        };
+        
+        HelpTreeWidgetItem(QTreeWidgetItem* parent,
+                           CommandOperation* commandOperation);
+        
+        HelpTreeWidgetItem(QTreeWidgetItem* parent,
+                           const AString& itemText,
+                           const AString& helpPageURL);
+        
+        virtual ~HelpTreeWidgetItem();
+        
+        const TreeItemType m_treeItemType;
+        
+        AString m_helpPageURL;
+        
+        AString m_helpText;
+        
+        
+    };
+    
+#ifdef __HELP_VIEWER_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __HELP_DIALOG_DECLARE__
+#endif // __HELP_VIEWER_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__HELP_DIALOG_H__
+#endif  //__HELP_VIEWER_DIALOG_H__
