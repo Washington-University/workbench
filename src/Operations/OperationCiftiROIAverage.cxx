@@ -18,9 +18,11 @@
  */
 /*LICENSE_END*/
 
+#include "OperationCiftiROIAverage.h"
+
+#include "AlgorithmCiftiSeparate.h"
 #include "CiftiFile.h"
 #include "MetricFile.h"
-#include "OperationCiftiROIAverage.h"
 #include "OperationException.h"
 #include "VolumeFile.h"
 
@@ -42,23 +44,27 @@ AString OperationCiftiROIAverage::getShortDescription()
 OperationParameters* OperationCiftiROIAverage::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addCiftiParameter(1, "cifti-in", "the cifti file to average in");
+    ret->addCiftiParameter(1, "cifti-in", "the cifti file to average rows from");
     ret->addStringParameter(2, "text-out", "output text file of the average values");
     
-    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(3, "-left-roi", "vertices to use from left hempsphere");
+    OptionalParameter* ciftiRoiOpt = ret->createOptionalParameter(3, "-cifti-roi", "cifti file containing combined rois");
+    ciftiRoiOpt->addCiftiParameter(1, "roi-cifti", "the rois as a cifti file");
+    
+    OptionalParameter* leftRoiOpt = ret->createOptionalParameter(4, "-left-roi", "vertices to use from left hemisphere");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the left roi as a metric file");
     
-    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(4, "-right-roi", "vertices to use from right hempsphere");
+    OptionalParameter* rightRoiOpt = ret->createOptionalParameter(5, "-right-roi", "vertices to use from right hemisphere");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the right roi as a metric file");
     
-    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(5, "-cerebellum-roi", "vertices to use from cerebellum");
+    OptionalParameter* cerebRoiOpt = ret->createOptionalParameter(6, "-cerebellum-roi", "vertices to use from cerebellum");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the cerebellum roi as a metric file");
     
-    OptionalParameter* volRoiOpt = ret->createOptionalParameter(6, "-vol-roi", "voxels to use");
+    OptionalParameter* volRoiOpt = ret->createOptionalParameter(7, "-vol-roi", "voxels to use");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
     ret->setHelpText(
-        AString("Average the rows that are within the specified ROIs, and write the resulting average row to a text file, seperated by newlines.")
+        AString("Average the rows that are within the specified ROIs, and write the resulting average row to a text file, seperated by newlines.  ") +
+        "If -cifti-roi is specified, -left-roi, -right-roi, -cerebellum-roi, and -vol-roi must not be specified."
     );
     return ret;
 }
@@ -67,6 +73,10 @@ void OperationCiftiROIAverage::useParameters(OperationParameters* myParams, Prog
 {
     LevelProgress myProgress(myProgObj);
     CiftiFile* myCifti = myParams->getCifti(1);
+    if (myCifti->getCiftiXML().getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS)
+    {
+        throw OperationException("input cifti file does not have a brain models mapping along column");
+    }
     AString textFileName = myParams->getString(2);
     fstream textFile(textFileName.toLocal8Bit().constData(), fstream::out | fstream::trunc);
     if (!textFile.good())
@@ -76,33 +86,67 @@ void OperationCiftiROIAverage::useParameters(OperationParameters* myParams, Prog
     int numCols = myCifti->getNumberOfColumns();
     vector<double> accum(numCols, 0.0);
     int accumCount = 0;
-    OptionalParameter* leftRoiOpt = myParams->getOptionalParameter(3);
+    CiftiFile* ciftiROI = NULL;
+    OptionalParameter* ciftiRoiOpt = myParams->getOptionalParameter(3);
+    if (ciftiRoiOpt->m_present)
+    {
+        ciftiROI = ciftiRoiOpt->getCifti(1);
+    }
+    OptionalParameter* leftRoiOpt = myParams->getOptionalParameter(4);
     if (leftRoiOpt->m_present)
     {
+        if (ciftiROI != NULL) throw OperationException("-cifti-roi cannot be used with any other ROI option");
         MetricFile* tempMetric = leftRoiOpt->getMetric(1);
         processSurfaceComponent(myCifti, StructureEnum::CORTEX_LEFT, tempMetric, accum, accumCount);
     }
-    OptionalParameter* rightRoiOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* rightRoiOpt = myParams->getOptionalParameter(5);
     if (rightRoiOpt->m_present)
     {
+        if (ciftiROI != NULL) throw OperationException("-cifti-roi cannot be used with any other ROI option");
         MetricFile* tempMetric = rightRoiOpt->getMetric(1);
         processSurfaceComponent(myCifti, StructureEnum::CORTEX_RIGHT, tempMetric, accum, accumCount);
     }
-    OptionalParameter* cerebRoiOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* cerebRoiOpt = myParams->getOptionalParameter(6);
     if (cerebRoiOpt->m_present)
     {
+        if (ciftiROI != NULL) throw OperationException("-cifti-roi cannot be used with any other ROI option");
         MetricFile* tempMetric = cerebRoiOpt->getMetric(1);
         processSurfaceComponent(myCifti, StructureEnum::CEREBELLUM, tempMetric, accum, accumCount);
     }
-    OptionalParameter* volRoiOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* volRoiOpt = myParams->getOptionalParameter(7);
     if (volRoiOpt->m_present)
     {
+        if (ciftiROI != NULL) throw OperationException("-cifti-roi cannot be used with any other ROI option");
         VolumeFile* tempVol = volRoiOpt->getVolume(1);
         processVolume(myCifti, tempVol, accum, accumCount);
     }
+    if (ciftiROI != NULL)
+    {
+        const CiftiXML& roiXML = ciftiROI->getCiftiXML();
+        const CiftiXML& inputXML = myCifti->getCiftiXML();
+        if (!(roiXML.getMap(CiftiXML::ALONG_COLUMN)->approximateMatch(*inputXML.getMap(CiftiXML::ALONG_COLUMN))))
+        {
+            throw OperationException("dense mappings of input and roi cifti files don't match");
+        }
+        const CiftiBrainModelsMap& roiDense = roiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+        if (roiDense.hasVolumeData())
+        {
+            VolumeFile roiVol;
+            int64_t offset[3];
+            AlgorithmCiftiSeparate(NULL, ciftiROI, CiftiXML::ALONG_COLUMN, &roiVol, offset, NULL, false);//don't crop because there should be only one map, and processVolume doesn't currently accept cropped
+            processVolume(myCifti, &roiVol, accum, accumCount);
+        }
+        vector<StructureEnum::Enum> surfStructs = roiDense.getSurfaceStructureList();
+        for (int i = 0; i < (int)surfStructs.size(); ++i)
+        {
+            MetricFile roiMetric;
+            AlgorithmCiftiSeparate(NULL, ciftiROI, CiftiXML::ALONG_COLUMN, surfStructs[i], &roiMetric);
+            processSurfaceComponent(myCifti, surfStructs[i], &roiMetric, accum, accumCount);
+        }
+    }
     if (accumCount == 0)
     {
-        throw OperationException("ROIs don't match any data");
+        throw OperationException("ROI(s) don't match any data");
     }
     for (int i = 0; i < numCols; ++i)
     {
