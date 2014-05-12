@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "XnatTest.h"
-#include "CiftiXnat.h"
+#include "CiftiFile.h"
 
 using namespace caret;
 using namespace std;
@@ -36,13 +36,12 @@ void XnatTest::execute()
     AString myUrl("");//test url goes here
     AString user("");//test auth goes here
     AString pass("");
-    CiftiXnat myXnat;
-    myXnat.setAuthentication(myUrl, user, pass);
-    myXnat.openURL(myUrl);
+    CiftiFile myXnat;
+    myXnat.openURL(myUrl, user, pass);
     vector<float> myData;
     myData.resize(myXnat.getNumberOfColumns());
     myXnat.getRow(myData.data(), 0);
-    bool success = myXnat.getRowFromNode(myData.data(), 528, StructureEnum::CORTEX_RIGHT);
+    bool success = myXnat.getRowFromNode(myData.data(), 547, StructureEnum::CORTEX_RIGHT);
     if (!success)
     {
         setFailed("error getting row by node");

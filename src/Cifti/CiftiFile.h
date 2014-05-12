@@ -55,6 +55,8 @@ namespace caret
         CiftiFile() { }
         explicit CiftiFile(const QString &fileName);//calls openFile
         void openFile(const QString& fileName);//starts on-disk reading
+        void openURL(const QString& url, const QString& user, const QString& pass);//open from XNAT
+        void openURL(const QString& url);//same, without user/pass (or curently, reusing existing auth if the server matches
         void setWritingFile(const QString& fileName);//starts on-disk writing
         void writeFile(const QString& fileName, const CiftiVersion& writingVersion);//leaves current state as-is, rewrites if already writing to that filename and version mismatch
         void writeFile(const QString& fileName);//leaves current state as-is, does nothing if already writing to that filename

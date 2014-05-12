@@ -20,7 +20,9 @@
 
 #include "CiftiFile.h"
 
+#include "ByteOrderEnum.h"
 #include "CaretAssert.h"
+#include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
@@ -60,6 +62,21 @@ namespace caret
         void setRow(const float* dataIn, const std::vector<int64_t>& indexSelect);
         void setColumn(const float* dataIn, const int64_t& index);
     };
+    
+    class CiftiXnatImpl : public CiftiFile::ReadImplInterface
+    {
+        CiftiXML m_xml;//because we need to parse it to check the dimensions anyway
+        CaretHttpRequest m_baseRequest;
+        void init(const QString& url);
+        void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const;
+        int64_t getSizeFromReq(CaretHttpRequest& request);
+    public:
+        CiftiXnatImpl(const QString& url, const QString& user, const QString& pass);
+        CiftiXnatImpl(const QString& url);//reuse existing user/pass, or access non-protected url - in the future, maybe only the second use (private http manager)
+        void getRow(float* dataOut, const std::vector<int64_t>& indexSelect, const bool& tolerateShortRead) const;
+        void getColumn(float* dataOut, const int64_t& index) const;
+        const CiftiXML& getCiftiXML() const { return m_xml; }
+    };
 }
 
 CiftiFile::ReadImplInterface::~ReadImplInterface()
@@ -82,6 +99,28 @@ void CiftiFile::openFile(const QString& fileName)
     m_dims.clear();
     CaretPointer<CiftiOnDiskImpl> newRead(new CiftiOnDiskImpl(FileInformation(fileName).getAbsoluteFilePath()));//this constructor opens existing file read-only
     m_readingImpl = newRead;//it should be noted that if the constructor throws (if the file isn't readable), new guarantees the memory allocated for the object will be freed
+    m_xml = newRead->getCiftiXML();
+    m_dims = m_xml.getDimensions();
+}
+
+void CiftiFile::openURL(const QString& url, const QString& user, const QString& pass)
+{
+    m_writingImpl.grabNew(NULL);
+    m_readingImpl.grabNew(NULL);//to make sure it closes everything first, even if the open throws
+    m_dims.clear();
+    CaretPointer<CiftiXnatImpl> newRead(new CiftiXnatImpl(url, user, pass));
+    m_readingImpl = newRead;
+    m_xml = newRead->getCiftiXML();
+    m_dims = m_xml.getDimensions();
+}
+
+void CiftiFile::openURL(const QString& url)
+{
+    m_writingImpl.grabNew(NULL);
+    m_readingImpl.grabNew(NULL);//to make sure it closes everything first, even if the open throws
+    m_dims.clear();
+    CaretPointer<CiftiXnatImpl> newRead(new CiftiXnatImpl(url));
+    m_readingImpl = newRead;
     m_xml = newRead->getCiftiXML();
     m_dims = m_xml.getDimensions();
 }
@@ -480,4 +519,152 @@ void CiftiOnDiskImpl::setColumn(const float* dataIn, const int64_t& index)
         indexSelect[1] = i;
         m_nifti.writeData(dataIn + i, 4, indexSelect);//4 means just the 4 reserved dimensions, so 1 element of the matrix
     }
+}
+
+CiftiXnatImpl::CiftiXnatImpl(const QString& url, const QString& user, const QString& pass)
+{
+    CaretHttpManager::setAuthentication(url, user, pass);
+    init(url);
+}
+
+CiftiXnatImpl::CiftiXnatImpl(const QString& url)
+{
+    init(url);
+}
+
+void CiftiXnatImpl::init(const QString& url)
+{
+    m_baseRequest.m_url = url;
+    m_baseRequest.m_method = CaretHttpManager::POST;
+    int32_t start = url.indexOf('?');
+    bool foundSearchID = false;
+    bool foundResource = false;
+    while ((!foundSearchID) && (!foundResource))
+    {
+        if (start == -1)
+        {
+            throw DataFileException("Error: searchID not found in URL string");
+        }
+        if (url.mid(start + 1, 9) == "searchID=")
+        {
+            foundSearchID = true;
+        } else if (url.mid(start + 1, 9) == "resource=") {
+            foundResource = true;
+        }
+        start = url.indexOf('&', start + 1);
+    }
+    m_baseRequest.m_queries.push_back(make_pair(AString("type"), AString("dconn")));
+    CaretHttpRequest metadata = m_baseRequest;
+    if (foundResource)
+    {
+        metadata.m_queries.push_back(make_pair(AString("metadata"), AString("true")));
+    } else {
+        metadata.m_queries.push_back(make_pair(AString("metadata"), AString("")));
+    }
+    CaretHttpResponse myResponse;
+    CaretHttpManager::httpRequest(metadata, myResponse);
+    if (!myResponse.m_ok)
+    {
+        throw DataFileException("Error opening URL, response code: " + AString::number(myResponse.m_responseCode));
+    }
+    myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
+    AString theBody(myResponse.m_body.data());
+    m_xml.readXML(theBody);
+    if (m_xml.getNumberOfDimensions() != 2)
+    {
+        throw DataFileException("only 2D cifti are supported via URL at this time");
+    }
+    if (m_xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SERIES && m_xml.getDimensionLength(CiftiXML::ALONG_ROW) < 1)
+    {
+        CaretHttpRequest rowRequest = m_baseRequest;
+        rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
+        m_xml.getSeriesMap(CiftiXML::ALONG_COLUMN).setLength(getSizeFromReq(rowRequest));//number of timepoints along a row is the number of columns
+    }
+    if (m_xml.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES && m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) < 1)
+    {
+        CaretHttpRequest columnRequest = m_baseRequest;
+        columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
+        m_xml.getSeriesMap(CiftiXML::ALONG_ROW).setLength(getSizeFromReq(columnRequest));//see above
+    }
+    CaretLogFine("Connected URL: "
+                   + url
+                   + "\nRow/Column length:"
+                   + QString::number(m_xml.getDimensionLength(CiftiXML::ALONG_ROW))
+                   + "/"
+                   + QString::number(m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN)));
+}
+
+void CiftiXnatImpl::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const
+{
+    CaretHttpResponse myResponse;
+    CaretHttpManager::httpRequest(request, myResponse);
+    if (!myResponse.m_ok)
+    {
+        throw DataFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
+    }
+    if (myResponse.m_body.size() % 4 != 0)//expect a multiple of 4 bytes
+    {
+        throw DataFileException("Bad reply, number of bytes is not a multiple of 4");
+    }
+    int32_t numItems = *((int32_t*)myResponse.m_body.data());
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swap(numItems);
+    }
+    if (numItems * 4 + 4 != (int64_t)myResponse.m_body.size())
+    {
+        throw DataFileException("Bad reply, number of items does not match length of reply");
+    }
+    if (dataSize != numItems)
+    {
+        throw DataFileException("Bad reply, number of items does not match header");
+    }
+    float* myPointer = (float*)(myResponse.m_body.data() + 4);//skip the first element (which is an int32)
+    for (int i = 0; i < numItems; ++i)
+    {
+        data[i] = myPointer[i];
+    }
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swapArray(data, numItems);
+    }
+}
+
+int64_t CiftiXnatImpl::getSizeFromReq(CaretHttpRequest& request)
+{
+    CaretHttpResponse myResponse;
+    CaretHttpManager::httpRequest(request, myResponse);
+    if (!myResponse.m_ok)
+    {
+        throw DataFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
+    }
+    if (myResponse.m_body.size() % 4 != 0)//expect a multiple of 4 bytes
+    {
+        throw DataFileException("Bad reply, number of bytes is not a multiple of 4");
+    }
+    int32_t numItems = *((int32_t*)myResponse.m_body.data());
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swap(numItems);
+    }
+    if (numItems * 4 + 4 != (int64_t)myResponse.m_body.size())
+    {
+        throw DataFileException("Bad reply, number of items does not match length of reply");
+    }
+    return numItems;
+}
+
+void CiftiXnatImpl::getRow(float* dataOut, const vector<int64_t>& indexSelect, const bool&) const
+{
+    CaretAssert(indexSelect.size() == 1);
+    CaretHttpRequest rowRequest = m_baseRequest;
+    rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString::number(indexSelect[0])));
+    getReqAsFloats(dataOut, m_xml.getDimensionLength(CiftiXML::ALONG_ROW), rowRequest);
+}
+
+void CiftiXnatImpl::getColumn(float* dataOut, const int64_t& index) const
+{
+    CaretHttpRequest columnRequest = m_baseRequest;
+    columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString::number(index)));
+    getReqAsFloats(dataOut, m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN), columnRequest);
 }
