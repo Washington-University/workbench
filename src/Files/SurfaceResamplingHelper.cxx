@@ -36,26 +36,18 @@ using namespace std;
 using namespace caret;
 
 SurfaceResamplingHelper::SurfaceResamplingHelper(const SurfaceResamplingMethodEnum::Enum& myMethod, const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                                 const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi)
+                                                 const float* currentAreas, const float* newAreas, const float* currentRoi)
 {
     if (!checkSphere(currentSphere) || !checkSphere(newSphere)) throw CaretException("input surfaces to SurfaceResamplingHelper must be spheres");
     SurfaceFile currentSphereMod, newSphereMod;
     changeRadius(100.0f, currentSphere, &currentSphereMod);
     changeRadius(100.0f, newSphere, &newSphereMod);
-    if (currentAreaSurf != NULL && currentAreaSurf->getNumberOfNodes() != currentSphere->getNumberOfNodes())
-    {
-        throw CaretException("area surfaces must have the same number of nodes as the spheres");
-    }
-    if (newAreaSurf != NULL && newAreaSurf->getNumberOfNodes() != newSphere->getNumberOfNodes())
-    {
-        throw CaretException("area surfaces must have the same number of nodes as the spheres");
-    }
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
-            CaretAssert(currentAreaSurf != NULL && newAreaSurf != NULL);
-            if (currentAreaSurf == NULL || newAreaSurf == NULL) throw CaretException("ADAP_BARY_AREA method requires area surfaces");
-            computeWeightsAdapBaryArea(&currentSphereMod, &newSphereMod, currentAreaSurf, newAreaSurf, currentRoi);
+            CaretAssert(currentAreas != NULL && newAreas != NULL);
+            if (currentAreas == NULL || newAreas == NULL) throw CaretException("ADAP_BARY_AREA method requires area surfaces");
+            computeWeightsAdapBaryArea(&currentSphereMod, &newSphereMod, currentAreas, newAreas, currentRoi);
             break;
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
             computeWeightsBarycentric(&currentSphereMod, &newSphereMod, currentRoi);
@@ -402,7 +394,7 @@ void SurfaceResamplingHelper::resampleCutSurface(const SurfaceFile* cutSurfaceIn
 }
 
 void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                                         const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi)
+                                                         const float* currentAreas, const float* newAreas, const float* currentRoi)
 {
     vector<map<int, float> > forward, reverse, reverse_gather;
     makeBarycentricWeights(currentSphere, newSphere, forward, NULL);//don't use an roi until after we have done area correction, because area correction MUST ignore ROI
@@ -417,9 +409,6 @@ void SurfaceResamplingHelper::computeWeightsAdapBaryArea(const SurfaceFile* curr
         }
     }
     vector<map<int, float> > adap_gather(numNewNodes);
-    vector<float> currentAreas, newAreas;
-    currentAreaSurf->computeNodeAreas(currentAreas);
-    newAreaSurf->computeNodeAreas(newAreas);
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int newNode = 0; newNode < numNewNodes; ++newNode)
     {

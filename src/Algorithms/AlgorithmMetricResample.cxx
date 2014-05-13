@@ -130,20 +130,23 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
 }
 
 AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, const MetricFile* metricIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curArea, const SurfaceFile* newArea,
+                                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curAreaSurf, const SurfaceFile* newAreaSurf,
                                                  const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (metricIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input metric has different number of nodes than input sphere");
     if (currentRoi != NULL && currentRoi->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("roi metric has different number of nodes than input sphere");
+    vector<float> curAreas, newAreas;
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
             break;
         default:
-            if (curArea == NULL || newArea == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
-            if (curSphere->getNumberOfNodes() != curArea->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
-            if (newSphere->getNumberOfNodes() != newArea->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
+            if (curAreaSurf == NULL || newAreaSurf == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
+            if (curSphere->getNumberOfNodes() != curAreaSurf->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
+            if (newSphere->getNumberOfNodes() != newAreaSurf->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
+            curAreaSurf->computeNodeAreas(curAreas);
+            newAreaSurf->computeNodeAreas(newAreas);
     }
     int numColumns = metricIn->getNumberOfColumns(), numNewNodes = newSphere->getNumberOfNodes();
     metricOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
@@ -151,7 +154,7 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     vector<float> colScratch(numNewNodes, 0.0f);
     const float* roiCol = NULL;
     if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea, roiCol);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreas.data(), newAreas.data(), roiCol);
     if (validRoiOut != NULL)
     {
         validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);

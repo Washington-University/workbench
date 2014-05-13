@@ -34,7 +34,7 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmSurfaceResample(ProgressObject* myProgObj, const SurfaceFile* surfaceIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                 const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const SurfaceFile* curArea = NULL, const SurfaceFile* newArea = NULL);
+                                 const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const SurfaceFile* curAreaSurf = NULL, const SurfaceFile* newAreaSurf = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

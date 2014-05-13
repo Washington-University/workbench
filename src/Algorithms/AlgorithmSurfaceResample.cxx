@@ -108,18 +108,21 @@ void AlgorithmSurfaceResample::useParameters(OperationParameters* myParams, Prog
 }
 
 AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, const SurfaceFile* surfaceIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const SurfaceFile* curArea, const SurfaceFile* newArea) : AbstractAlgorithm(myProgObj)
+                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const SurfaceFile* curAreaSurf, const SurfaceFile* newAreaSurf) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (surfaceIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input surface has different number of nodes than input sphere");
+    vector<float> curAreas, newAreas;
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
             break;
         default:
-            if (curArea == NULL || newArea == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
-            if (curSphere->getNumberOfNodes() != curArea->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
-            if (newSphere->getNumberOfNodes() != newArea->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
+            if (curAreaSurf == NULL || newAreaSurf == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
+            if (curSphere->getNumberOfNodes() != curAreaSurf->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
+            if (newSphere->getNumberOfNodes() != newAreaSurf->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
+            curAreaSurf->computeNodeAreas(curAreas);
+            newAreaSurf->computeNodeAreas(newAreas);
     }
     int numNewNodes = newSphere->getNumberOfNodes();
     GiftiMetaData savedMD;
@@ -138,7 +141,7 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
     surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
     surfaceOut->setSurfaceType(surfaceIn->getSurfaceType());
     vector<float> coordScratch(numNewNodes * 3, 0.0f);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curArea, newArea);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreas.data(), newAreas.data());
     myHelp.resample3DCoord(surfaceIn->getCoordinateData(), coordScratch.data());
     surfaceOut->setCoordinates(coordScratch.data());
 }

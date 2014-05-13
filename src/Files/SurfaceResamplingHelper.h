@@ -44,14 +44,14 @@ namespace caret {
         CaretArray<WeightElem*> m_weights;
         static bool checkSphere(const SurfaceFile* surface);
         static void changeRadius(const float& radius, const SurfaceFile* input, SurfaceFile* output);
-        void computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const SurfaceFile* currentAreaSurf, const SurfaceFile* newAreaSurf, const float* currentRoi);
+        void computeWeightsAdapBaryArea(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const float* currentAreas, const float* newAreas, const float* currentRoi);
         void computeWeightsBarycentric(const SurfaceFile* currentSphere, const SurfaceFile* newSphere, const float* currentRoi);
         static void makeBarycentricWeights(const SurfaceFile* from, const SurfaceFile* to, std::vector<std::map<int, float> >& weights, const float* currentRoi);
         void compactWeights(const std::vector<std::map<int, float> >& weights);
     public:
         SurfaceResamplingHelper() { }
         SurfaceResamplingHelper(const SurfaceResamplingMethodEnum::Enum& myMethod, const SurfaceFile* currentSphere, const SurfaceFile* newSphere,
-                                const SurfaceFile* currentAreaSurf = NULL, const SurfaceFile* newAreaSurf = NULL, const float* currentRoi = NULL);
+                                const float* currentAreas = NULL, const float* newAreas = NULL, const float* currentRoi = NULL);
         ///resample real-valued data by means of weights
         void resampleNormal(const float* input, float* output, const float& invalidVal = 0.0f) const;
         ///resample 3D coordinate data by means of weights
