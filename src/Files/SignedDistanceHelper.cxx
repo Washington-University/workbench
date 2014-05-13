@@ -545,7 +545,7 @@ float SignedDistanceHelper::unsignedDistToTri(const float coord[3], int32_t tria
     if (sanity == 0.0f || abs(xhat.dot(yhat)) > 0.01f)//if our triangle is (mostly) degenerate, find the closest point on its edges instead of trying to project to the NaN plane
     {
         bool first = true;
-        float bestLengthSqr = -1.0f;//track best squared length from edge to PROJECTED point, still have to back-figure by including the distance out of the plane (or just subtract coords and take length)
+        float bestLengthSqr = -1.0f;//track best squared length from edge to original point
         for (int j = 2, i = 0; i < 3; ++i)//start with the wraparound case
         {
             float length;
