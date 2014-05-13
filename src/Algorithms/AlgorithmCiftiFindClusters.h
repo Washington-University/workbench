@@ -35,10 +35,12 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiFindClusters(ProgressObject* myProgObj, const CiftiInterface* myCifti,
-                                                       const float& surfThresh, const float& surfSize, const float& volThresh, const float& volSize,
-                                                       const int& myDir, CiftiFile* myCiftiOut, const bool& lessThan = false,
-                                                       const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
-                                                       const CiftiInterface* roiCifti = NULL, const bool& mergedVol = false, const int& startVal = 1, int* endVal = NULL);
+                                   const float& surfThresh, const float& surfSize, const float& volThresh, const float& volSize,
+                                   const int& myDir, CiftiFile* myCiftiOut, const bool& lessThan = false,
+                                   const SurfaceFile* myLeftSurf = NULL, const MetricFile* myLeftAreas = NULL,
+                                   const SurfaceFile* myRightSurf = NULL, const MetricFile* myRightAreas = NULL,
+                                   const SurfaceFile* myCerebSurf = NULL, const MetricFile* myCerebAreas = NULL,
+                                   const CiftiInterface* roiCifti = NULL, const bool& mergedVol = false, const int& startVal = 1, int* endVal = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

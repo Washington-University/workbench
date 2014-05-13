@@ -59,10 +59,13 @@ OperationParameters* AlgorithmMetricFindClusters::getParameters()
     OptionalParameter* roiOption = ret->createOptionalParameter(7, "-roi", "select a region of interest");
     roiOption->addMetricParameter(1, "roi-metric", "the roi, as a metric");
     
-    OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column");
+    OptionalParameter* corrAreasOpt = ret->createOptionalParameter(8, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
+    OptionalParameter* columnSelect = ret->createOptionalParameter(9, "-column", "select a single column");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    OptionalParameter* startOpt = ret->createOptionalParameter(9, "-start", "start labeling clusters from a value other than 1");
+    OptionalParameter* startOpt = ret->createOptionalParameter(10, "-start", "start labeling clusters from a value other than 1");
     startOpt->addIntegerParameter(1, "startval", "the value to give the first cluster found");
     
     ret->setHelpText(
@@ -87,7 +90,13 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
     {
         myRoi = roiOption->getMetric(1);
     }
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(8);
+    MetricFile* myAreas = NULL;
+    OptionalParameter* corrAreasOpt = myParams->getOptionalParameter(8);
+    if (corrAreasOpt->m_present)
+    {
+        myAreas = corrAreasOpt->getMetric(1);
+    }
+    OptionalParameter* columnSelect = myParams->getOptionalParameter(9);
     int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column
@@ -97,17 +106,17 @@ void AlgorithmMetricFindClusters::useParameters(OperationParameters* myParams, P
             throw AlgorithmException("invalid column specified");
         }
     }
-    OptionalParameter* startOpt = myParams->getOptionalParameter(9);
+    OptionalParameter* startOpt = myParams->getOptionalParameter(10);
     int startVal = 1;
     if (startOpt->m_present)
     {
         startVal = (int)startOpt->getInteger(1);
     }
-    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, columnNum, startVal);
+    AlgorithmMetricFindClusters(myProgObj, mySurf, myMetric, threshVal, minArea, myMetricOut, lessThan, myRoi, myAreas, columnNum, startVal);
 }
 
 AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const float& threshVal, const float& minArea,
-                                                         MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const int& columnNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
+                                                         MetricFile* myMetricOut, const bool& lessThan, const MetricFile* myRoi, const MetricFile* myAreas, const int& columnNum, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();
@@ -123,8 +132,15 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
     {
         throw AlgorithmException("invalid column number");
     }
-    vector<float> nodeAreas;
-    mySurf->computeNodeAreas(nodeAreas);
+    vector<float> nodeAreasVec;
+    const float* nodeAreas = NULL;
+    if (myAreas == NULL)
+    {
+        mySurf->computeNodeAreas(nodeAreasVec);
+        nodeAreas = nodeAreasVec.data();
+    } else {
+        nodeAreas = myAreas->getValuePointerForColumn(0);
+    }
     CaretPointer<TopologyHelper> myHelp = mySurf->getTopologyHelper();
     vector<int> toSearch;
     int markVal = startVal;//give each cluster a different value, including across maps

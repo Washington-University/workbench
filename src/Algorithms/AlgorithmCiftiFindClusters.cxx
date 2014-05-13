@@ -58,12 +58,18 @@ OperationParameters* AlgorithmCiftiFindClusters::getParameters()
     
     OptionalParameter* leftSurfOpt = ret->createOptionalParameter(9, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
+    OptionalParameter* leftCorrAreasOpt = leftSurfOpt->createOptionalParameter(2, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    leftCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* rightSurfOpt = ret->createOptionalParameter(10, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
+    OptionalParameter* rightCorrAreasOpt = rightSurfOpt->createOptionalParameter(2, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    rightCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(11, "-cerebellum-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    OptionalParameter* cerebCorrAreasOpt = cerebSurfaceOpt->createOptionalParameter(2, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(12, "-cifti-roi", "search only within regions of interest");
     roiOpt->addCiftiParameter(1, "roi-cifti", "the regions to search within, as a cifti file");
@@ -101,20 +107,36 @@ void AlgorithmCiftiFindClusters::useParameters(OperationParameters* myParams, Pr
     CiftiFile* myCiftiOut = myParams->getOutputCifti(7);
     bool lessThan = myParams->getOptionalParameter(8)->m_present;
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
+    MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(9);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
+        OptionalParameter* leftCorrAreasOpt = leftSurfOpt->getOptionalParameter(2);
+        if (leftCorrAreasOpt->m_present)
+        {
+            myLeftAreas = leftCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(10);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
+        OptionalParameter* rightCorrAreasOpt = rightSurfOpt->getOptionalParameter(2);
+        if (rightCorrAreasOpt->m_present)
+        {
+            myRightAreas = rightCorrAreasOpt->getMetric(1);
+        }
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(11);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
+        OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->getOptionalParameter(2);
+        if (cerebCorrAreasOpt->m_present)
+        {
+            myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
     }
     CiftiFile* roiCifti = NULL;
     OptionalParameter* roiOpt = myParams->getOptionalParameter(12);
@@ -129,13 +151,17 @@ void AlgorithmCiftiFindClusters::useParameters(OperationParameters* myParams, Pr
     {
         startVal = (int)startOpt->getInteger(1);
     }
-    AlgorithmCiftiFindClusters(myProgObj, myCifti, surfThresh, surfSize, volThresh, volSize, myDir, myCiftiOut, lessThan, myLeftSurf, myRightSurf, myCerebSurf, roiCifti, mergedVol, startVal);
+    AlgorithmCiftiFindClusters(myProgObj, myCifti, surfThresh, surfSize, volThresh, volSize, myDir, myCiftiOut, lessThan,
+                               myLeftSurf, myLeftAreas, myRightSurf, myRightAreas, myCerebSurf, myCerebAreas,
+                               roiCifti, mergedVol, startVal);
 }
 
 AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj, const CiftiInterface* myCifti,
                                                        const float& surfThresh, const float& surfSize, const float& volThresh, const float& volSize,
                                                        const int& myDir, CiftiFile* myCiftiOut, const bool& lessThan,
-                                                       const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
+                                                       const SurfaceFile* myLeftSurf, const MetricFile* myLeftAreas,
+                                                       const SurfaceFile* myRightSurf, const MetricFile* myRightAreas,
+                                                       const SurfaceFile* myCerebSurf, const MetricFile* myCerebAreas,
                                                        const CiftiInterface* roiCifti, const bool& mergedVol, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -196,16 +222,20 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
         const SurfaceFile* mySurf = NULL;
+        const MetricFile* myAreas = NULL;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myAreas = myLeftAreas;
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myAreas = myRightAreas;
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myAreas = myCerebAreas;
                 break;
             default:
                 break;
@@ -216,7 +246,7 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
         {//due to above testing, we know the structure mask is the same, so just overwrite the ROI from the mask
             AlgorithmCiftiSeparate(NULL, roiCifti, CiftiXML::ALONG_COLUMN, surfaceList[whichStruct], &myRoi);
         }
-        AlgorithmMetricFindClusters(NULL, mySurf, &myMetric, surfThresh, surfSize, &myMetricOut, lessThan, &myRoi, -1, markVal, &markVal);
+        AlgorithmMetricFindClusters(NULL, mySurf, &myMetric, surfThresh, surfSize, &myMetricOut, lessThan, &myRoi, myAreas, -1, markVal, &markVal);
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
     }
     if (mergedVol)
