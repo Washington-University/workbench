@@ -182,19 +182,23 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
         const SurfaceFile* mySurf = NULL;
+        const MetricFile* myAreas = NULL;
         AString surfType;
         switch (surfaceList[whichStruct])
         {
             case StructureEnum::CORTEX_LEFT:
                 mySurf = myLeftSurf;
+                myAreas = myLeftAreas;
                 surfType = "left";
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 mySurf = myRightSurf;
+                myAreas = myRightAreas;
                 surfType = "right";
                 break;
             case StructureEnum::CEREBELLUM:
                 mySurf = myCerebSurf;
+                myAreas = myCerebAreas;
                 surfType = "cerebellum";
                 break;
             default:
@@ -216,6 +220,10 @@ AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj
             {
                 throw AlgorithmException(surfType + " surface has the wrong number of vertices");
             }
+        }
+        if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+        {
+            throw AlgorithmException(surfType + " corected areas metric has the wrong number of vertices");
         }
     }
     myCiftiOut->setCiftiXML(myXML);

@@ -127,6 +127,10 @@ AlgorithmMetricFindClusters::AlgorithmMetricFindClusters(ProgressObject* myProgO
         if (myRoi->getNumberOfNodes() != numNodes) throw AlgorithmException("roi metric does not match surface in number of vertices");
         roiData = myRoi->getValuePointerForColumn(0);
     }
+    if (myAreas != NULL && myAreas->getNumberOfNodes() != mySurf->getNumberOfNodes())
+    {
+        throw AlgorithmException("corected area metric does not match surface in number of vertices");
+    }
     int numCols = myMetric->getNumberOfColumns();
     if (columnNum < -1 || columnNum >= numCols)
     {
