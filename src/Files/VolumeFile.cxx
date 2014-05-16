@@ -248,7 +248,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
             }
         }
         
-        CaretLogInfo("Time to read volume data is "
+        CaretLogFine("Time to read volume data is "
                      + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                      + " seconds.");
         m_header.grabNew(new NiftiHeader(inHeader));
@@ -274,7 +274,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         getGroupAndNameHierarchyModel();
     }
     
-    CaretLogInfo("Total Time to read and process volume is "
+    CaretLogFine("Total Time to read and process volume is "
                  + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds.");
 }
