@@ -143,13 +143,13 @@ vector<std::vector<float> > NiftiHeader::getFSLSpace() const
     ret = FloatMatrix::identity(4);//generate a 4x4 with 0 0 0 1 last row via FloatMatrix for convenience
     if (determinant > 0.0f)
     {
-        ret[0][0] = -m_header.pixdim[0];//yes, they really use pixdim, despite checking the SForm/QForm for flipping - ask them, not me
-        ret[0][3] = (dimensions[0] - 1) * m_header.pixdim[0];
+        ret[0][0] = -m_header.pixdim[1];//yes, they really use pixdim, despite checking the SForm/QForm for flipping - ask them, not me
+        ret[0][3] = (dimensions[0] - 1) * m_header.pixdim[1];//note - pixdim[1] is for i, pixdim[0] is qfac
     } else {
-        ret[0][0] = m_header.pixdim[0];
+        ret[0][0] = m_header.pixdim[1];
     }
-    ret[1][1] = m_header.pixdim[1];
-    ret[2][2] = m_header.pixdim[2];
+    ret[1][1] = m_header.pixdim[2];
+    ret[2][2] = m_header.pixdim[3];
     int32_t spaceUnit = XYZT_TO_SPACE(m_header.xyzt_units);
     switch (spaceUnit)
     {
