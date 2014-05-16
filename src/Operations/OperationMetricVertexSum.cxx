@@ -49,15 +49,19 @@ OperationParameters* OperationMetricVertexSum::getParameters()
     OptionalParameter* integrateOpt = ret->createOptionalParameter(2, "-integrate", "integrate across a surface, rather than summing");
     integrateOpt->addSurfaceParameter(1, "surface", "the surface to integrate on");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(3, "-roi", "only use data inside an roi");
+    OptionalParameter* integrateMetricOpt = ret->createOptionalParameter(3, "-integrate-metric", "integrate using vertex areas from a metric file");
+    integrateMetricOpt->addMetricParameter(1, "area-metric", "metric file containing vertex areas");
+    
+    OptionalParameter* roiOpt = ret->createOptionalParameter(4, "-roi", "only use data inside an roi");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
     
-    OptionalParameter* columnOpt = ret->createOptionalParameter(4, "-column", "select a single column");
+    OptionalParameter* columnOpt = ret->createOptionalParameter(5, "-column", "select a single column");
     columnOpt->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
         AString("For each column in <metric-in>, sum the values across all vertices, then print the sum on standard output.  ") +
-        "-integrate multiplies each vertex value by the vertex area before doing the sum.  " +
+        "-integrate and -integrate-metric multiply each vertex value by the vertex area before doing the sum.  " +
+        "Only one of -integrate and -integrate-metric may be specified.  " +
         "Use -roi to only sum within a specific area.  " +
         "Use -column to only report for one column.  "
     );
@@ -69,22 +73,33 @@ void OperationMetricVertexSum::useParameters(OperationParameters* myParams, Prog
     LevelProgress myProgress(myProgObj);
     MetricFile* myMetric = myParams->getMetric(1);
     int numNodes = myMetric->getNumberOfNodes();
-    SurfaceFile* integrateSurf = NULL;
+    const float* integrateData = NULL;
+    vector<float> surfNodeAreas;
     OptionalParameter* integrateOpt = myParams->getOptionalParameter(2);
     if (integrateOpt->m_present)
     {
-        integrateSurf = integrateOpt->getSurface(1);
-        if (integrateSurf->getNumberOfNodes() != numNodes) throw OperationException("integration surface has a different number of nodes");
+        SurfaceFile* integrateSurf = integrateOpt->getSurface(1);
+        if (integrateSurf->getNumberOfNodes() != numNodes) throw OperationException("integration surface has the wrong number of vertices");
+        integrateSurf->computeNodeAreas(surfNodeAreas);
+        integrateData = surfNodeAreas.data();
+    }
+    OptionalParameter* integrateMetricOpt = myParams->getOptionalParameter(3);
+    if (integrateMetricOpt->m_present)
+    {
+        if (integrateOpt->m_present) throw OperationException("only one of -integrate and -integrate-metric can be specified");
+        MetricFile* integrateMetric = integrateMetricOpt->getMetric(1);//we don't need to keep a pointer to it
+        if (integrateMetric->getNumberOfNodes() != numNodes) throw OperationException("integration metric has the wrong number of vertices");
+        integrateData = integrateMetric->getValuePointerForColumn(0);//just its data
     }
     MetricFile* myRoi = NULL;
-    OptionalParameter* roiOpt = myParams->getOptionalParameter(3);
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(4);
     if (roiOpt->m_present)
     {
         myRoi = roiOpt->getMetric(1);
-        if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi-metric has a different number of nodes");
+        if (myRoi->getNumberOfNodes() != numNodes) throw OperationException("roi-metric has the wrong number of vertices");
     }
     int myColumn = -1;
-    OptionalParameter* columnOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* columnOpt = myParams->getOptionalParameter(5);
     if (columnOpt->m_present)
     {
         myColumn = myMetric->getMapIndexFromNameOrNumber(columnOpt->getString(1));
@@ -95,10 +110,8 @@ void OperationMetricVertexSum::useParameters(OperationParameters* myParams, Prog
     }
     const float* roiData = NULL;
     if (myRoi != NULL) roiData = myRoi->getValuePointerForColumn(0);
-    if (integrateSurf != NULL)
+    if (integrateData != NULL)
     {
-        vector<float> vertexAreas;
-        integrateSurf->computeNodeAreas(vertexAreas);
         if (myColumn == -1)
         {
             int numCols = myMetric->getNumberOfColumns();
@@ -110,7 +123,7 @@ void OperationMetricVertexSum::useParameters(OperationParameters* myParams, Prog
                 {
                     if (roiData == NULL || roiData[i] > 0.0f)
                     {
-                        accum += data[i] * vertexAreas[i];
+                        accum += data[i] * integrateData[i];
                     }
                 }
                 stringstream s;
@@ -124,7 +137,7 @@ void OperationMetricVertexSum::useParameters(OperationParameters* myParams, Prog
             {
                 if (roiData == NULL || roiData[i] > 0.0f)
                 {
-                    accum += data[i] * vertexAreas[i];
+                    accum += data[i] * integrateData[i];
                 }
             }
             stringstream s;
