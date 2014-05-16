@@ -58,17 +58,21 @@ OperationParameters* AlgorithmLabelResample::getParameters()
     areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant anatomical surface with <current-sphere> mesh");
     areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant anatomical surface with <new-sphere> mesh");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
+    OptionalParameter* areaMetricsOpt = ret->createOptionalParameter(7, "-area-metrics", "specify vertex area metrics to do area correction based on");
+    areaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for <current-sphere> mesh");
+    areaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for <new-sphere> mesh");
+    
+    OptionalParameter* roiOpt = ret->createOptionalParameter(8, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
     
-    OptionalParameter* validRoiOutOpt = ret->createOptionalParameter(8, "-valid-roi-out", "output the ROI of vertices that got data from valid source vertices");
+    OptionalParameter* validRoiOutOpt = ret->createOptionalParameter(9, "-valid-roi-out", "output the ROI of vertices that got data from valid source vertices");
     validRoiOutOpt->addMetricOutputParameter(1, "roi-out", "the output roi as a metric");
     
-    ret->createOptionalParameter(9, "-largest", "use only the label of the vertex with the largest weight");
+    ret->createOptionalParameter(10, "-largest", "use only the label of the vertex with the largest weight");
     
     AString myHelpText =
         AString("Resamples a label file, given two spherical surfaces that are in register.  ") +
-        "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.\n\n" +
+        "If the method does area correction, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
         "The -largest option results in nearest vertex behavior when used with BARYCENTRIC, it uses the value of the source vertex that has the largest weight.  " +
         "When -largest is not specified, the vertex weights are summed according to which label they correspond to, and the label with the largest sum is used.\n\n" +
         "The <method> argument must be one of the following:\n\n";
@@ -97,7 +101,8 @@ void AlgorithmLabelResample::useParameters(OperationParameters* myParams, Progre
         throw AlgorithmException("invalid method name");
     }
     LabelFile* labelOut = myParams->getOutputLabel(5);
-    SurfaceFile* curArea = curSphere, *newArea = newSphere;
+    MetricFile* curAreas = NULL, *newAreas = NULL;
+    MetricFile curAreasTemp, newAreasTemp;
     OptionalParameter* areaSurfsOpt = myParams->getOptionalParameter(6);
     if (areaSurfsOpt->m_present)
     {
@@ -109,42 +114,69 @@ void AlgorithmLabelResample::useParameters(OperationParameters* myParams, Progre
             default:
                 break;
         }
-        curArea = areaSurfsOpt->getSurface(1);
-        newArea = areaSurfsOpt->getSurface(2);
+        vector<float> nodeAreasTemp;
+        SurfaceFile* curAreaSurf = areaSurfsOpt->getSurface(1);
+        SurfaceFile* newAreaSurf = areaSurfsOpt->getSurface(2);
+        curAreaSurf->computeNodeAreas(nodeAreasTemp);
+        curAreasTemp.setNumberOfNodesAndColumns(curAreaSurf->getNumberOfNodes(), 1);
+        curAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+        curAreas = &curAreasTemp;
+        newAreaSurf->computeNodeAreas(nodeAreasTemp);
+        newAreasTemp.setNumberOfNodesAndColumns(newAreaSurf->getNumberOfNodes(), 1);
+        newAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+        newAreas = &newAreasTemp;
     }
-    OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* areaMetricsOpt = myParams->getOptionalParameter(7);
+    if (areaMetricsOpt->m_present)
+    {
+        if (areaSurfsOpt->m_present)
+        {
+            throw AlgorithmException("only one of -area-surfs and -area-metrics can be specified");
+        }
+        switch(myMethod)
+        {
+            case SurfaceResamplingMethodEnum::BARYCENTRIC:
+                CaretLogInfo("This method does not use area correction, -area-metrics is not needed");
+                break;
+            default:
+                break;
+        }
+        curAreas = areaMetricsOpt->getMetric(1);
+        newAreas = areaMetricsOpt->getMetric(2);
+    }
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(8);
     MetricFile* currentRoi = NULL;
     if (roiOpt->m_present)
     {
         currentRoi = roiOpt->getMetric(1);
     }
     MetricFile* validRoiOut = NULL;
-    OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(8);
+    OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(9);
     if (validRoiOutOpt->m_present)
     {
         validRoiOut = validRoiOutOpt->getOutputMetric(1);
     }
-    bool largest = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curArea, newArea, currentRoi, validRoiOut, largest);
+    bool largest = myParams->getOptionalParameter(10)->m_present;
+    AlgorithmLabelResample(myProgObj, labelIn, curSphere, newSphere, myMethod, labelOut, curAreas, newAreas, currentRoi, validRoiOut, largest);
 }
 
 AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const LabelFile* labelIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                               const SurfaceResamplingMethodEnum::Enum& myMethod, LabelFile* labelOut, const SurfaceFile* curAreaSurf,
-                                               const SurfaceFile* newAreaSurf, const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
+                                               const SurfaceResamplingMethodEnum::Enum& myMethod, LabelFile* labelOut, const MetricFile* curAreas,
+                                               const MetricFile* newAreas, const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (labelIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input label file has different number of nodes than input sphere");
-    vector<float> curAreas, newAreas;
+    const float* curAreaData = NULL, *newAreaData = NULL;
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
             break;
         default:
-            if (curAreaSurf == NULL || newAreaSurf == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
-            if (curSphere->getNumberOfNodes() != curAreaSurf->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
-            if (newSphere->getNumberOfNodes() != newAreaSurf->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
-            curAreaSurf->computeNodeAreas(curAreas);
-            newAreaSurf->computeNodeAreas(newAreas);
+            if (curAreas == NULL || newAreas == NULL) throw AlgorithmException("specified method does area correction, but no vertex area data given");
+            if (curSphere->getNumberOfNodes() != curAreas->getNumberOfNodes()) throw AlgorithmException("current vertex area data has different number of nodes than current sphere");
+            if (newSphere->getNumberOfNodes() != newAreas->getNumberOfNodes()) throw AlgorithmException("new vertex area data has different number of nodes than new sphere");
+            curAreaData = curAreas->getValuePointerForColumn(0);
+            newAreaData = newAreas->getValuePointerForColumn(0);
     }
     int numColumns = labelIn->getNumberOfColumns(), numNewNodes = newSphere->getNumberOfNodes();
     labelOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
@@ -154,7 +186,7 @@ AlgorithmLabelResample::AlgorithmLabelResample(ProgressObject* myProgObj, const 
     vector<int32_t> colScratch(numNewNodes, unusedLabel);
     const float* roiCol = NULL;
     if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreas.data(), newAreas.data(), roiCol);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData, roiCol);
     if (validRoiOut != NULL)
     {
         validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);

@@ -34,6 +34,7 @@
 #include "CiftiFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "SurfaceFile.h"
 #include "VolumeFile.h"
 #include "VolumePaddingHelper.h"
 #include "WarpfieldFile.h"
@@ -94,6 +95,9 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     OptionalParameter* leftAreaSurfsOpt = leftSpheresOpt->createOptionalParameter(3, "-left-area-surfs", "specify left surfaces to do vertex area correction based on");
     leftAreaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant left anatomical surface with current mesh");
     leftAreaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant left anatomical surface with new mesh");
+    OptionalParameter* leftAreaMetricsOpt = leftSpheresOpt->createOptionalParameter(4, "-left-area-metrics", "specify left vertex area metrics to do area correction based on");
+    leftAreaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for the current mesh");
+    leftAreaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for the new mesh");
     
     OptionalParameter* rightSpheresOpt = ret->createOptionalParameter(14, "-right-spheres", "specify spheres for right surface resampling");
     rightSpheresOpt->addSurfaceParameter(1, "current-sphere", "a sphere with the same mesh as the current right surface");
@@ -101,6 +105,9 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     OptionalParameter* rightAreaSurfsOpt = rightSpheresOpt->createOptionalParameter(3, "-right-area-surfs", "specify right surfaces to do vertex area correction based on");
     rightAreaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant right anatomical surface with current mesh");
     rightAreaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant right anatomical surface with new mesh");
+    OptionalParameter* rightAreaMetricsOpt = rightSpheresOpt->createOptionalParameter(4, "-right-area-metrics", "specify right vertex area metrics to do area correction based on");
+    rightAreaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for the current mesh");
+    rightAreaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for the new mesh");
     
     OptionalParameter* cerebSpheresOpt = ret->createOptionalParameter(15, "-cerebellum-spheres", "specify spheres for cerebellum surface resampling");
     cerebSpheresOpt->addSurfaceParameter(1, "current-sphere", "a sphere with the same mesh as the current cerebellum surface");
@@ -108,6 +115,9 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     OptionalParameter* cerebAreaSurfsOpt = cerebSpheresOpt->createOptionalParameter(3, "-cerebellum-area-surfs", "specify cerebellum surfaces to do vertex area correction based on");
     cerebAreaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant cerebellum anatomical surface with current mesh");
     cerebAreaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant cerebellum anatomical surface with new mesh");
+    OptionalParameter* cerebAreaMetricsOpt = cerebSpheresOpt->createOptionalParameter(4, "-cerebellum-area-metrics", "specify cerebellum vertex area metrics to do area correction based on");
+    cerebAreaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for the current mesh");
+    cerebAreaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for the new mesh");
     
     AString myHelpText =
         AString("Resample cifti data to a different brainordinate space.  Use COLUMN to resample dscalar, dlabel, or dtseries.  ") +
@@ -215,7 +225,9 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
             myWarpfield.readWorld(warpfieldOpt->getString(1));
         }
     }
-    SurfaceFile* curLeftSphere = NULL, *newLeftSphere = NULL, *curLeftAreaSurf = NULL, *newLeftAreaSurf = NULL;
+    SurfaceFile* curLeftSphere = NULL, *newLeftSphere = NULL;
+    MetricFile* curLeftAreas = NULL, *newLeftAreas = NULL;
+    MetricFile curLeftAreasTemp, newLeftAreasTemp;
     OptionalParameter* leftSpheresOpt = myParams->getOptionalParameter(13);
     if (leftSpheresOpt->m_present)
     {
@@ -224,14 +236,32 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
         OptionalParameter* leftAreaSurfsOpt = leftSpheresOpt->getOptionalParameter(3);
         if (leftAreaSurfsOpt->m_present)
         {
-            curLeftAreaSurf = leftAreaSurfsOpt->getSurface(1);
-            newLeftAreaSurf = leftAreaSurfsOpt->getSurface(2);
-        } else {
-            curLeftAreaSurf = curLeftSphere;
-            newLeftAreaSurf = newLeftSphere;
+            SurfaceFile* curAreaSurf = leftAreaSurfsOpt->getSurface(1);
+            SurfaceFile* newAreaSurf = leftAreaSurfsOpt->getSurface(2);
+            vector<float> nodeAreasTemp;
+            curAreaSurf->computeNodeAreas(nodeAreasTemp);
+            curLeftAreasTemp.setNumberOfNodesAndColumns(curAreaSurf->getNumberOfNodes(), 1);
+            curLeftAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+            curLeftAreas = &curLeftAreasTemp;
+            newAreaSurf->computeNodeAreas(nodeAreasTemp);
+            newLeftAreasTemp.setNumberOfNodesAndColumns(newAreaSurf->getNumberOfNodes(), 1);
+            newLeftAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+            newLeftAreas = &newLeftAreasTemp;
+        }
+        OptionalParameter* leftAreaMetricsOpt = leftSpheresOpt->getOptionalParameter(4);
+        if (leftAreaMetricsOpt->m_present)
+        {
+            if (leftAreaSurfsOpt->m_present)
+            {
+                throw AlgorithmException("only one of -left-area-surfs and -left-area-metrics can be specified");
+            }
+            curLeftAreas = leftAreaMetricsOpt->getMetric(1);
+            newLeftAreas = leftAreaMetricsOpt->getMetric(2);
         }
     }
-    SurfaceFile* curRightSphere = NULL, *newRightSphere = NULL, *curRightAreaSurf = NULL, *newRightAreaSurf = NULL;
+    SurfaceFile* curRightSphere = NULL, *newRightSphere = NULL;
+    MetricFile* curRightAreas = NULL, *newRightAreas = NULL;
+    MetricFile curRightAreasTemp, newRightAreasTemp;
     OptionalParameter* rightSpheresOpt = myParams->getOptionalParameter(14);
     if (rightSpheresOpt->m_present)
     {
@@ -240,14 +270,32 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
         OptionalParameter* rightAreaSurfsOpt = rightSpheresOpt->getOptionalParameter(3);
         if (rightAreaSurfsOpt->m_present)
         {
-            curRightAreaSurf = rightAreaSurfsOpt->getSurface(1);
-            newRightAreaSurf = rightAreaSurfsOpt->getSurface(2);
-        } else {
-            curRightAreaSurf = curRightSphere;
-            newRightAreaSurf = newRightSphere;
+            SurfaceFile* curAreaSurf = rightAreaSurfsOpt->getSurface(1);
+            SurfaceFile* newAreaSurf = rightAreaSurfsOpt->getSurface(2);
+            vector<float> nodeAreasTemp;
+            curAreaSurf->computeNodeAreas(nodeAreasTemp);
+            curRightAreasTemp.setNumberOfNodesAndColumns(curAreaSurf->getNumberOfNodes(), 1);
+            curRightAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+            curRightAreas = &curRightAreasTemp;
+            newAreaSurf->computeNodeAreas(nodeAreasTemp);
+            newRightAreasTemp.setNumberOfNodesAndColumns(newAreaSurf->getNumberOfNodes(), 1);
+            newRightAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+            newRightAreas = &newRightAreasTemp;
+        }
+        OptionalParameter* rightAreaMetricsOpt = rightSpheresOpt->getOptionalParameter(4);
+        if (rightAreaMetricsOpt->m_present)
+        {
+            if (rightAreaSurfsOpt->m_present)
+            {
+                throw AlgorithmException("only one of -right-area-surfs and -right-area-metrics can be specified");
+            }
+            curRightAreas = rightAreaMetricsOpt->getMetric(1);
+            newRightAreas = rightAreaMetricsOpt->getMetric(2);
         }
     }
-    SurfaceFile* curCerebSphere = NULL, *newCerebSphere = NULL, *curCerebAreaSurf = NULL, *newCerebAreaSurf = NULL;
+    SurfaceFile* curCerebSphere = NULL, *newCerebSphere = NULL;
+    MetricFile* curCerebAreas = NULL, *newCerebAreas = NULL;
+    MetricFile curCerebAreasTemp, newCerebAreasTemp;
     OptionalParameter* cerebSpheresOpt = myParams->getOptionalParameter(15);
     if (cerebSpheresOpt->m_present)
     {
@@ -256,24 +304,40 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
         OptionalParameter* cerebAreaSurfsOpt = cerebSpheresOpt->getOptionalParameter(3);
         if (cerebAreaSurfsOpt->m_present)
         {
-            curCerebAreaSurf = cerebAreaSurfsOpt->getSurface(1);
-            newCerebAreaSurf = cerebAreaSurfsOpt->getSurface(2);
-        } else {
-            curCerebAreaSurf = curCerebSphere;
-            newCerebAreaSurf = newCerebSphere;
+            SurfaceFile* curAreaSurf = cerebAreaSurfsOpt->getSurface(1);
+            SurfaceFile* newAreaSurf = cerebAreaSurfsOpt->getSurface(2);
+            vector<float> nodeAreasTemp;
+            curAreaSurf->computeNodeAreas(nodeAreasTemp);
+            curCerebAreasTemp.setNumberOfNodesAndColumns(curAreaSurf->getNumberOfNodes(), 1);
+            curCerebAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+            curCerebAreas = &curCerebAreasTemp;
+            newAreaSurf->computeNodeAreas(nodeAreasTemp);
+            newCerebAreasTemp.setNumberOfNodesAndColumns(newAreaSurf->getNumberOfNodes(), 1);
+            newCerebAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+            newCerebAreas = &newCerebAreasTemp;
+        }
+        OptionalParameter* cerebAreaMetricsOpt = cerebSpheresOpt->getOptionalParameter(4);
+        if (cerebAreaMetricsOpt->m_present)
+        {
+            if (cerebAreaSurfsOpt->m_present)
+            {
+                throw AlgorithmException("only one of -cerebellum-area-surfs and -cerebellum-area-metrics can be specified");
+            }
+            curCerebAreas = cerebAreaMetricsOpt->getMetric(1);
+            newCerebAreas = cerebAreaMetricsOpt->getMetric(2);
         }
     }
     if (warpfieldOpt->m_present)
     {
         AlgorithmCiftiResample(myProgObj, myCiftiIn, direction, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
-                               curLeftSphere, newLeftSphere, curLeftAreaSurf, newLeftAreaSurf,
-                               curRightSphere, newRightSphere, curRightAreaSurf, newRightAreaSurf,
-                               curCerebSphere, newCerebSphere, curCerebAreaSurf, newCerebAreaSurf);
+                               curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                               curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                               curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
     } else {//rely on AffineFile() being the identity transform for if neither option is specified
         AlgorithmCiftiResample(myProgObj, myCiftiIn, direction, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
-                               curLeftSphere, newLeftSphere, curLeftAreaSurf, newLeftAreaSurf,
-                               curRightSphere, newRightSphere, curRightAreaSurf, newRightAreaSurf,
-                               curCerebSphere, newCerebSphere, curCerebAreaSurf, newCerebAreaSurf);
+                               curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                               curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                               curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
     }
 }
 
@@ -281,9 +345,9 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
                                                const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
                                                const VolumeFile* warpfield,
-                                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const SurfaceFile* curLeftAreaSurf, const SurfaceFile* newLeftAreaSurf,
-                                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const SurfaceFile* curRightAreaSurf, const SurfaceFile* newRightAreaSurf,
-                                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const SurfaceFile* curCerebAreaSurf, const SurfaceFile* newCerebAreaSurf) : AbstractAlgorithm(myProgObj)
+                                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (direction > 1) throw AlgorithmException("unsupported mapping direction");
@@ -314,32 +378,33 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     myCiftiOut->setCiftiXML(myOutXML);
     for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
     {
-        const SurfaceFile* curSphere = NULL, *newSphere = NULL, *curArea = NULL, *newArea = NULL;
+        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+        const MetricFile* curAreas = NULL, *newAreas = NULL;
         switch (surfList[i])
         {
             case StructureEnum::CORTEX_LEFT:
                 curSphere = curLeftSphere;
                 newSphere = newLeftSphere;
-                curArea = curLeftAreaSurf;
-                newArea = newLeftAreaSurf;
+                curAreas = curLeftAreas;
+                newAreas = newLeftAreas;
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 curSphere = curRightSphere;
                 newSphere = newRightSphere;
-                curArea = curRightAreaSurf;
-                newArea = newRightAreaSurf;
+                curAreas = curRightAreas;
+                newAreas = newRightAreas;
                 break;
             case StructureEnum::CEREBELLUM:
                 curSphere = curCerebSphere;
                 newSphere = newCerebSphere;
-                curArea = curCerebAreaSurf;
-                newArea = newCerebAreaSurf;
+                curAreas = curCerebAreas;
+                newAreas = newCerebAreas;
                 break;
             default:
                 throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
                 break;
         }
-        processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curArea, newArea);
+        processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curAreas, newAreas);
     }
     for (int i = 0; i < (int)volList.size(); ++i)
     {
@@ -351,9 +416,9 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
                                                const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
                                                const FloatMatrix& affine,
-                                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const SurfaceFile* curLeftAreaSurf, const SurfaceFile* newLeftAreaSurf,
-                                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const SurfaceFile* curRightAreaSurf, const SurfaceFile* newRightAreaSurf,
-                                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const SurfaceFile* curCerebAreaSurf, const SurfaceFile* newCerebAreaSurf) : AbstractAlgorithm(myProgObj)
+                                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (direction > 1) throw AlgorithmException("unsupported mapping direction");
@@ -384,32 +449,33 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     myCiftiOut->setCiftiXML(myOutXML);
     for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
     {
-        const SurfaceFile* curSphere = NULL, *newSphere = NULL, *curArea = NULL, *newArea = NULL;
+        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+        const MetricFile* curAreas = NULL, *newAreas = NULL;
         switch (surfList[i])
         {
             case StructureEnum::CORTEX_LEFT:
                 curSphere = curLeftSphere;
                 newSphere = newLeftSphere;
-                curArea = curLeftAreaSurf;
-                newArea = newLeftAreaSurf;
+                curAreas = curLeftAreas;
+                newAreas = newLeftAreas;
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 curSphere = curRightSphere;
                 newSphere = newRightSphere;
-                curArea = curRightAreaSurf;
-                newArea = newRightAreaSurf;
+                curAreas = curRightAreas;
+                newAreas = newRightAreas;
                 break;
             case StructureEnum::CEREBELLUM:
                 curSphere = curCerebSphere;
                 newSphere = newCerebSphere;
-                curArea = curCerebAreaSurf;
-                newArea = newCerebAreaSurf;
+                curAreas = curCerebAreas;
+                newAreas = newCerebAreas;
                 break;
             default:
                 throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
                 break;
         }
-        processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curArea, newArea);
+        processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curAreas, newAreas);
     }
     for (int i = 0; i < (int)volList.size(); ++i)
     {
@@ -419,7 +485,7 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
 
 void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const SurfaceResamplingMethodEnum::Enum& mySurfMethod,
                                                      CiftiFile* myCiftiOut, const bool& surfLargest, const float& surfdilatemm, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                     const SurfaceFile* curArea, const SurfaceFile* newArea)
+                                                     const MetricFile* curAreas, const MetricFile* newAreas)
 {
     const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
     if (myInputXML.getMappingType(1 - direction) == CIFTI_INDEX_TYPE_LABELS)
@@ -429,7 +495,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origLabel, &origRoi);
         LabelFile newLabel, newDilate, *newUse;
         newUse = &newLabel;
-        AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curArea, newArea, &origRoi, &resampleROI, surfLargest);
+        AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curAreas, newAreas, &origRoi, &resampleROI, surfLargest);
         if (surfdilatemm > 0.0f)
         {
             MetricFile invertResampleROI;
@@ -448,7 +514,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origMetric, &origROI);
         MetricFile newMetric, newDilate, resampleROI, *newUse;
         newUse = &newMetric;
-        AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curArea, newArea, &origROI, &resampleROI, surfLargest);
+        AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curAreas, newAreas, &origROI, &resampleROI, surfLargest);
         if (surfdilatemm > 0.0f)
         {
             MetricFile invertResampleROI;

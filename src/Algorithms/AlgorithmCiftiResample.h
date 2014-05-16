@@ -34,7 +34,7 @@ namespace caret {
         AlgorithmCiftiResample();
         void processSurfaceComponent(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const SurfaceResamplingMethodEnum::Enum& mySurfMethod,
                                      CiftiFile* myCiftiOut, const bool& surfLargest, const float& surfdilatemm, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                     const SurfaceFile* curArea, const SurfaceFile* newArea);
+                                     const MetricFile* curAreas, const MetricFile* newAreas);
         void processVolumeWarpfield(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const VolumeFile::InterpType& myVolMethod,
                                     CiftiFile* myCiftiOut, const float& voldilatemm, const VolumeFile* warpfield);
         void processVolumeAffine(const CiftiFile* myCiftiIn, const int& direction, const StructureEnum::Enum& myStruct, const VolumeFile::InterpType& myVolMethod,
@@ -47,17 +47,17 @@ namespace caret {
                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
                                const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
                                const VolumeFile* warpfield,
-                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const SurfaceFile* curLeftAreaSurf, const SurfaceFile* newLeftAreaSurf,
-                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const SurfaceFile* curRightAreaSurf, const SurfaceFile* newRightAreaSurf,
-                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const SurfaceFile* curCerebAreaSurf, const SurfaceFile* newCerebAreaSurf);
+                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas);
         
         AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
                                const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
                                const FloatMatrix& affine,
-                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const SurfaceFile* curLeftAreaSurf, const SurfaceFile* newLeftAreaSurf,
-                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const SurfaceFile* curRightAreaSurf, const SurfaceFile* newRightAreaSurf,
-                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const SurfaceFile* curCerebAreaSurf, const SurfaceFile* newCerebAreaSurf);
+                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas);
         
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

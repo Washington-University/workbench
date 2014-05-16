@@ -57,17 +57,21 @@ OperationParameters* AlgorithmMetricResample::getParameters()
     areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant anatomical surface with <current-sphere> mesh");
     areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant anatomical surface with <new-sphere> mesh");
     
-    OptionalParameter* roiOpt = ret->createOptionalParameter(7, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
+    OptionalParameter* areaMetricsOpt = ret->createOptionalParameter(7, "-area-metrics", "specify vertex area metrics to do area correction based on");
+    areaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for <current-sphere> mesh");
+    areaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for <new-sphere> mesh");
+    
+    OptionalParameter* roiOpt = ret->createOptionalParameter(8, "-current-roi", "use an input roi on the current mesh to exclude non-data vertices");
     roiOpt->addMetricParameter(1, "roi-metric", "the roi, as a metric file");
     
-    OptionalParameter* validRoiOutOpt = ret->createOptionalParameter(8, "-valid-roi-out", "output the ROI of vertices that got data from valid source vertices");
+    OptionalParameter* validRoiOutOpt = ret->createOptionalParameter(9, "-valid-roi-out", "output the ROI of vertices that got data from valid source vertices");
     validRoiOutOpt->addMetricOutputParameter(1, "roi-out", "the output roi as a metric");
     
-    ret->createOptionalParameter(9, "-largest", "use only the value of the vertex with the largest weight");
+    ret->createOptionalParameter(10, "-largest", "use only the value of the vertex with the largest weight");
     
     AString myHelpText =
         AString("Resamples a metric file, given two spherical surfaces that are in register.  ") +
-        "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.\n\n" +
+        "If the method does area correction, exactly one of -area-surfs or -area-metrics must be specified.\n\n" +
         "The -current-roi option only masks the input, the output may be slightly dilated in comparison, consider using -metric-mask on the output " +
         "when using -current-roi.\n\n" +
         "The -largest option results in nearest vertex behavior when used with BARYCENTRIC, instead of doing a weighted average, it uses the value " +
@@ -98,7 +102,8 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
         throw AlgorithmException("invalid method name");
     }
     MetricFile* metricOut = myParams->getOutputMetric(5);
-    SurfaceFile* curArea = curSphere, *newArea = newSphere;
+    MetricFile* curAreas = NULL, *newAreas = NULL;
+    MetricFile curAreasTemp, newAreasTemp;
     OptionalParameter* areaSurfsOpt = myParams->getOptionalParameter(6);
     if (areaSurfsOpt->m_present)
     {
@@ -110,43 +115,70 @@ void AlgorithmMetricResample::useParameters(OperationParameters* myParams, Progr
             default:
                 break;
         }
-        curArea = areaSurfsOpt->getSurface(1);
-        newArea = areaSurfsOpt->getSurface(2);
+        vector<float> nodeAreasTemp;
+        SurfaceFile* curAreaSurf = areaSurfsOpt->getSurface(1);
+        SurfaceFile* newAreaSurf = areaSurfsOpt->getSurface(2);
+        curAreaSurf->computeNodeAreas(nodeAreasTemp);
+        curAreasTemp.setNumberOfNodesAndColumns(curAreaSurf->getNumberOfNodes(), 1);
+        curAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+        curAreas = &curAreasTemp;
+        newAreaSurf->computeNodeAreas(nodeAreasTemp);
+        newAreasTemp.setNumberOfNodesAndColumns(newAreaSurf->getNumberOfNodes(), 1);
+        newAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+        newAreas = &newAreasTemp;
     }
-    OptionalParameter* roiOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* areaMetricsOpt = myParams->getOptionalParameter(7);
+    if (areaMetricsOpt->m_present)
+    {
+        if (areaSurfsOpt->m_present)
+        {
+            throw AlgorithmException("only one of -area-surfs and -area-metrics can be specified");
+        }
+        switch(myMethod)
+        {
+            case SurfaceResamplingMethodEnum::BARYCENTRIC:
+                CaretLogInfo("This method does not use area correction, -area-metrics is not needed");
+                break;
+            default:
+                break;
+        }
+        curAreas = areaMetricsOpt->getMetric(1);
+        newAreas = areaMetricsOpt->getMetric(2);
+    }
+    OptionalParameter* roiOpt = myParams->getOptionalParameter(8);
     MetricFile* currentRoi = NULL;
     if (roiOpt->m_present)
     {
         currentRoi = roiOpt->getMetric(1);
     }
     MetricFile* validRoiOut = NULL;
-    OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(8);
+    OptionalParameter* validRoiOutOpt = myParams->getOptionalParameter(9);
     if (validRoiOutOpt->m_present)
     {
         validRoiOut = validRoiOutOpt->getOutputMetric(1);
     }
-    bool largest = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curArea, newArea, currentRoi, validRoiOut, largest);
+    bool largest = myParams->getOptionalParameter(10)->m_present;
+    AlgorithmMetricResample(myProgObj, metricIn, curSphere, newSphere, myMethod, metricOut, curAreas, newAreas, currentRoi, validRoiOut, largest);
 }
 
 AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, const MetricFile* metricIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const SurfaceFile* curAreaSurf, const SurfaceFile* newAreaSurf,
+                                                 const SurfaceResamplingMethodEnum::Enum& myMethod, MetricFile* metricOut, const MetricFile* curAreas, const MetricFile* newAreas,
                                                  const MetricFile* currentRoi, MetricFile* validRoiOut, const bool& largest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (metricIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input metric has different number of nodes than input sphere");
     if (currentRoi != NULL && currentRoi->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("roi metric has different number of nodes than input sphere");
-    vector<float> curAreas, newAreas;
+    const float* curAreaData = NULL, *newAreaData = NULL;
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
             break;
         default:
-            if (curAreaSurf == NULL || newAreaSurf == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
-            if (curSphere->getNumberOfNodes() != curAreaSurf->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
-            if (newSphere->getNumberOfNodes() != newAreaSurf->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
-            curAreaSurf->computeNodeAreas(curAreas);
-            newAreaSurf->computeNodeAreas(newAreas);
+            if (curAreas == NULL || newAreas == NULL) throw AlgorithmException("specified method does area correction, but no vertex area data given");
+            if (curSphere->getNumberOfNodes() != curAreas->getNumberOfNodes()) throw AlgorithmException("current vertex area data has different number of nodes than current sphere");
+            if (newSphere->getNumberOfNodes() != newAreas->getNumberOfNodes()) throw AlgorithmException("new vertex area data has different number of nodes than new sphere");
+            curAreaData = curAreas->getValuePointerForColumn(0);
+            newAreaData = newAreas->getValuePointerForColumn(0);
     }
     int numColumns = metricIn->getNumberOfColumns(), numNewNodes = newSphere->getNumberOfNodes();
     metricOut->setNumberOfNodesAndColumns(numNewNodes, numColumns);
@@ -154,7 +186,7 @@ AlgorithmMetricResample::AlgorithmMetricResample(ProgressObject* myProgObj, cons
     vector<float> colScratch(numNewNodes, 0.0f);
     const float* roiCol = NULL;
     if (currentRoi != NULL) roiCol = currentRoi->getValuePointerForColumn(0);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreas.data(), newAreas.data(), roiCol);
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData, roiCol);
     if (validRoiOut != NULL)
     {
         validRoiOut->setNumberOfNodesAndColumns(numNewNodes, 1);

@@ -23,6 +23,7 @@
 
 #include "CaretLogger.h"
 #include "GiftiMetaData.h"
+#include "MetricFile.h"
 #include "SurfaceFile.h"
 #include "SurfaceResamplingHelper.h"
 
@@ -52,14 +53,17 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
     
     ret->addSurfaceOutputParameter(5, "surface-out", "the output surface file");
     
-    //TODO: figure out if this should be here
     OptionalParameter* areaSurfsOpt = ret->createOptionalParameter(6, "-area-surfs", "specify surfaces to do vertex area correction based on");
     areaSurfsOpt->addSurfaceParameter(1, "current-area", "a relevant surface with <current-sphere> mesh");
     areaSurfsOpt->addSurfaceParameter(2, "new-area", "a relevant surface with <new-sphere> mesh");
     
+    OptionalParameter* areaMetricsOpt = ret->createOptionalParameter(7, "-area-metrics", "specify vertex area metrics to do area correction based on");
+    areaMetricsOpt->addMetricParameter(1, "current-area", "a metric file with vertex areas for <current-sphere> mesh");
+    areaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for <new-sphere> mesh");
+    
     AString myHelpText =
         AString("Resamples a surface file, given two spherical surfaces that are in register.  ") +
-        "If -area-surfs are not specified, the sphere surfaces are used for area correction, if the method used does area correction.  " +
+        "If the method does area correction, exactly one of -area-surfs or -area-metrics must be specified.  " +
         "This option is not used in normal circumstances, but is provided for completeness.\n\n" +
         "The <method> argument must be one of the following:\n\n";
     
@@ -72,7 +76,7 @@ OperationParameters* AlgorithmSurfaceResample::getParameters()
     
     myHelpText += AString("\nThe BARYCENTRIC method is recommended for anatomical surfaces, unless they are fairly rough, in order to minimize smoothing.\n\n") +
         "For cut surfaces (including flatmaps), use -surface-cut-resample.\n\n" +
-        "Instead of resampling a spherical surface, the -surface-sphere-project-unproject command is recommended when applicable.";
+        "Instead of resampling a spherical surface, the -surface-sphere-project-unproject command is recommended.";
     ret->setHelpText(myHelpText);
     return ret;
 }
@@ -89,7 +93,8 @@ void AlgorithmSurfaceResample::useParameters(OperationParameters* myParams, Prog
         throw AlgorithmException("invalid method name");
     }
     SurfaceFile* surfaceOut = myParams->getOutputSurface(5);
-    SurfaceFile* curArea = curSphere, *newArea = newSphere;
+    MetricFile* curAreas = NULL, *newAreas = NULL;
+    MetricFile curAreasTemp, newAreasTemp;
     OptionalParameter* areaSurfsOpt = myParams->getOptionalParameter(6);
     if (areaSurfsOpt->m_present)
     {
@@ -101,28 +106,55 @@ void AlgorithmSurfaceResample::useParameters(OperationParameters* myParams, Prog
             default:
                 break;
         }
-        curArea = areaSurfsOpt->getSurface(1);
-        newArea = areaSurfsOpt->getSurface(2);
+        vector<float> nodeAreasTemp;
+        SurfaceFile* curAreaSurf = areaSurfsOpt->getSurface(1);
+        SurfaceFile* newAreaSurf = areaSurfsOpt->getSurface(2);
+        curAreaSurf->computeNodeAreas(nodeAreasTemp);
+        curAreasTemp.setNumberOfNodesAndColumns(curAreaSurf->getNumberOfNodes(), 1);
+        curAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+        curAreas = &curAreasTemp;
+        newAreaSurf->computeNodeAreas(nodeAreasTemp);
+        newAreasTemp.setNumberOfNodesAndColumns(newAreaSurf->getNumberOfNodes(), 1);
+        newAreasTemp.setValuesForColumn(0, nodeAreasTemp.data());
+        newAreas = &newAreasTemp;
     }
-    AlgorithmSurfaceResample(myProgObj, surfaceIn, curSphere, newSphere, myMethod, surfaceOut, curArea, newArea);
+    OptionalParameter* areaMetricsOpt = myParams->getOptionalParameter(7);
+    if (areaMetricsOpt->m_present)
+    {
+        if (areaSurfsOpt->m_present)
+        {
+            throw AlgorithmException("only one of -area-surfs and -area-metrics can be specified");
+        }
+        switch(myMethod)
+        {
+            case SurfaceResamplingMethodEnum::BARYCENTRIC:
+                CaretLogInfo("This method does not use area correction, -area-metrics is not needed");
+                break;
+            default:
+                break;
+        }
+        curAreas = areaMetricsOpt->getMetric(1);
+        newAreas = areaMetricsOpt->getMetric(2);
+    }
+    AlgorithmSurfaceResample(myProgObj, surfaceIn, curSphere, newSphere, myMethod, surfaceOut, curAreas, newAreas);
 }
 
 AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, const SurfaceFile* surfaceIn, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
-                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const SurfaceFile* curAreaSurf, const SurfaceFile* newAreaSurf) : AbstractAlgorithm(myProgObj)
+                                                   const SurfaceResamplingMethodEnum::Enum& myMethod, SurfaceFile* surfaceOut, const MetricFile* curAreas, const MetricFile* newAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (surfaceIn->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException("input surface has different number of nodes than input sphere");
-    vector<float> curAreas, newAreas;
+    const float* curAreaData = NULL, *newAreaData = NULL;
     switch (myMethod)
     {
         case SurfaceResamplingMethodEnum::BARYCENTRIC:
             break;
         default:
-            if (curAreaSurf == NULL || newAreaSurf == NULL) throw AlgorithmException("specified method does area correction, but no area surfaces given");
-            if (curSphere->getNumberOfNodes() != curAreaSurf->getNumberOfNodes()) throw AlgorithmException("current area surface has different number of nodes than current sphere");
-            if (newSphere->getNumberOfNodes() != newAreaSurf->getNumberOfNodes()) throw AlgorithmException("new area surface has different number of nodes than new sphere");
-            curAreaSurf->computeNodeAreas(curAreas);
-            newAreaSurf->computeNodeAreas(newAreas);
+            if (curAreas == NULL || newAreas == NULL) throw AlgorithmException("specified method does area correction, but no vertex area data given");
+            if (curSphere->getNumberOfNodes() != curAreas->getNumberOfNodes()) throw AlgorithmException("current vertex area data has different number of nodes than current sphere");
+            if (newSphere->getNumberOfNodes() != newAreas->getNumberOfNodes()) throw AlgorithmException("new vertex area data has different number of nodes than new sphere");
+            curAreaData = curAreas->getValuePointerForColumn(0);
+            newAreaData = newAreas->getValuePointerForColumn(0);
     }
     int numNewNodes = newSphere->getNumberOfNodes();
     GiftiMetaData savedMD;
@@ -141,7 +173,7 @@ AlgorithmSurfaceResample::AlgorithmSurfaceResample(ProgressObject* myProgObj, co
     surfaceOut->setSecondaryType(surfaceIn->getSecondaryType());
     surfaceOut->setSurfaceType(surfaceIn->getSurfaceType());
     vector<float> coordScratch(numNewNodes * 3, 0.0f);
-    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreas.data(), newAreas.data());
+    SurfaceResamplingHelper myHelp(myMethod, curSphere, newSphere, curAreaData, newAreaData);
     myHelp.resample3DCoord(surfaceIn->getCoordinateData(), coordScratch.data());
     surfaceOut->setCoordinates(coordScratch.data());
 }
