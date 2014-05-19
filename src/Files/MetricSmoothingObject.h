@@ -48,7 +48,7 @@ namespace caret {
             GEO_GAUSS_EQUAL,
             GEO_GAUSS
         };
-        MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi = NULL, Method myMethod = GEO_GAUSS_AREA);
+        MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi = NULL, Method myMethod = GEO_GAUSS_AREA, const float* nodeAreas = NULL);
         void smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* columnOut, const MetricFile* roi = NULL, const bool& fixZeros = false) const;
         void smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi = NULL, const int& whichRoiColumn = 0, const bool& fixZeros = false) const;
         void smoothMetric(const MetricFile* metricIn, MetricFile* metricOut, const MetricFile* roi = NULL, const bool& fixZeros = false) const;
@@ -62,11 +62,11 @@ namespace caret {
         std::vector<WeightList> m_weightLists;
         void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const bool& fixZeros) const;
         void smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const int& whichRoiColumn, const bool& fixZeros) const;
-        void precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod);
+        void precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod, const float* nodeAreas);
         void precomputeWeightsGeoGauss(const SurfaceFile* mySurf, float myKernel);
         void precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);
-        void precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, float myKernel);
-        void precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);
+        void precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const float* nodeAreas);
+        void precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, const float* nodeAreas);
         void precomputeWeightsGeoGaussEqual(const SurfaceFile* mySurf, float myKernel);
         void precomputeWeightsROIGeoGaussEqual(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi);
         MetricSmoothingObject();

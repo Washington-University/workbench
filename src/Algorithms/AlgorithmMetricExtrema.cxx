@@ -177,7 +177,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
     MetricFile tempMetric;
     if (presmooth > 0.0f)
     {
-        AlgorithmMetricSmoothing(NULL, mySurf, myMetric, presmooth, &tempMetric, myRoi, false, columnNum);
+        AlgorithmMetricSmoothing(NULL, mySurf, myMetric, presmooth, &tempMetric, myRoi, false, false, columnNum);
         toProcess = &tempMetric;
         if (columnNum != -1)
         {
@@ -306,7 +306,7 @@ AlgorithmMetricExtrema::AlgorithmMetricExtrema(ProgressObject* myProgObj, const 
     MetricFile tempMetric;
     if (presmooth > 0.0f)
     {
-        AlgorithmMetricSmoothing(NULL, mySurf, myMetric, presmooth, &tempMetric, myRoi, false, columnNum);
+        AlgorithmMetricSmoothing(NULL, mySurf, myMetric, presmooth, &tempMetric, myRoi, false, false, columnNum);
         toProcess = &tempMetric;
         if (columnNum != -1)
         {

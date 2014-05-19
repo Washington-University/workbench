@@ -62,7 +62,10 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
     OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to smooth");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    OptionalParameter* methodSelect = ret->createOptionalParameter(8, "-method", "select smoothing method, default GEO_GAUSS_AREA");
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(8, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
+    OptionalParameter* methodSelect = ret->createOptionalParameter(9, "-method", "select smoothing method, default GEO_GAUSS_AREA");
     methodSelect->addStringParameter(1, "method", "the name of the smoothing method");
     
     ret->setHelpText(
@@ -116,8 +119,14 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
             throw AlgorithmException("invalid column specified");
         }
     }
+    MetricFile* corrAreaMetric = NULL;
+    OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(8);
+    if (corrAreaOpt->m_present)
+    {
+        corrAreaMetric = corrAreaOpt->getMetric(1);
+    }
     MetricSmoothingObject::Method myMethod = MetricSmoothingObject::GEO_GAUSS_AREA;
-    OptionalParameter* methodSelect = myParams->getOptionalParameter(8);
+    OptionalParameter* methodSelect = myParams->getOptionalParameter(9);
     if (methodSelect->m_present)
     {
         AString methodName = methodSelect->getString(1);
@@ -132,12 +141,12 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
             throw AlgorithmException("unknown smoothing method name");
         }
     }
-    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myKernel, myMetricOut, myRoi, fixZeros, columnNum, myMethod, matchRoiColumns);
+    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myKernel, myMetricOut, myRoi, matchRoiColumns, fixZeros, columnNum, corrAreaMetric, myMethod);
 }
 
 AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric,
-                                                   const double myKernel, MetricFile* myMetricOut, const MetricFile* myRoi, const bool fixZeros,
-                                                   const int64_t columnNum, const MetricSmoothingObject::Method myMethod, const bool matchRoiColumns) : AbstractAlgorithm(myProgObj)
+                                                   const double myKernel, MetricFile* myMetricOut, const MetricFile* myRoi, const bool matchRoiColumns,
+                                                   const bool fixZeros, const int64_t columnNum, const MetricFile* corrAreaMetric, const MetricSmoothingObject::Method myMethod) : AbstractAlgorithm(myProgObj)
 {
     float precomputeWeightWork = 5.0f;//TODO: adjust this based on number of columns to smooth, if we ever end up using progress indicators
     LevelProgress myProgress(myProgObj, 1.0f + precomputeWeightWork);
@@ -164,12 +173,21 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
         throw AlgorithmException("match roi columns specified, but roi metric has the wrong number of columns");
     }
     CaretPointer<MetricSmoothingObject> mySmoothObj;
+    const float* areaData = NULL;
+    if (corrAreaMetric != NULL)
+    {
+        if (corrAreaMetric->getNumberOfNodes() != numNodes)
+        {
+            throw AlgorithmException("corrected vertex areas metric does not match surface in number of vertices");
+        }
+        areaData = corrAreaMetric->getValuePointerForColumn(0);
+    }
     myProgress.setTask("Precomputing Smoothing Weights");
     if (matchRoiColumns)
     {
-        mySmoothObj.grabNew(new MetricSmoothingObject(mySurf, myKernel, NULL, myMethod));//don't use an ROI to build weights when the ROI changes each time
+        mySmoothObj.grabNew(new MetricSmoothingObject(mySurf, myKernel, NULL, myMethod, areaData));//don't use an ROI to build weights when the ROI changes each time
     } else {
-        mySmoothObj.grabNew(new MetricSmoothingObject(mySurf, myKernel, myRoi, myMethod));
+        mySmoothObj.grabNew(new MetricSmoothingObject(mySurf, myKernel, myRoi, myMethod, areaData));
     }
     myProgress.reportProgress(precomputeWeightWork);
     if (columnNum == -1)

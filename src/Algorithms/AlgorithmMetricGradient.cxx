@@ -165,7 +165,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     int32_t useColumn = myColumn;
     if (myPresmooth > 0.0f)
     {
-        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, false, myColumn, MetricSmoothingObject::GEO_GAUSS_AREA, matchRoiColumns);
+        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, matchRoiColumns, false, myColumn, NULL, MetricSmoothingObject::GEO_GAUSS_AREA);
         toProcess = &processTemp;
         if (myColumn != -1)
         {

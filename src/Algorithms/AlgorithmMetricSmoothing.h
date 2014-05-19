@@ -38,8 +38,8 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmMetricSmoothing(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, const double myKernel,
-                                 MetricFile* myMetricOut, const MetricFile* myRoi = NULL, const bool fixZeros = false,
-                                 const int64_t columnNum = -1, const MetricSmoothingObject::Method myMethod = MetricSmoothingObject::GEO_GAUSS_AREA, const bool matchRoiColumns = false);
+                                 MetricFile* myMetricOut, const MetricFile* myRoi = NULL, const bool matchRoiColumns = false, const bool fixZeros = false,
+                                 const int64_t columnNum = -1, const MetricFile* corrAreaMetric = NULL, const MetricSmoothingObject::Method myMethod = MetricSmoothingObject::GEO_GAUSS_AREA);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

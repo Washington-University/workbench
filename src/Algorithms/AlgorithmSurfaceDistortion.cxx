@@ -156,7 +156,7 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
             MetricFile tempResult;
             tempResult.setNumberOfNodesAndColumns(numNodes, 1);
             tempResult.setValuesForColumn(0, nodescratch.data());//TSC: not sure what the "best" smoothing method here is, but there isn't a "correct" one because this method has flaws
-            AlgorithmMetricSmoothing(caret5Smooth, referenceSurf, &tempResult, smooth, myMetricOut, NULL, false, -1, MetricSmoothingObject::GEO_GAUSS_AREA);
+            AlgorithmMetricSmoothing(caret5Smooth, referenceSurf, &tempResult, smooth, myMetricOut, NULL, false, false, -1, NULL, MetricSmoothingObject::GEO_GAUSS_AREA);
             myMetricOut->setStructure(referenceSurf->getStructure());//just in case we change where metric smoothing gets structure from
             myMetricOut->setColumnName(0, "area distortion (caret5)");
         } else {
@@ -176,8 +176,8 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
         const float* refData = refAreas.getValuePointerForColumn(0), *distortData = distortAreas.getValuePointerForColumn(0);
         if (smooth > 0.0f)
         {
-            AlgorithmMetricSmoothing(smoothRef, referenceSurf, &refAreas, smooth, &refSmoothed, NULL, false, -1, MetricSmoothingObject::GEO_GAUSS_EQUAL);
-            AlgorithmMetricSmoothing(smoothDistort, distortedSurf, &distortAreas, smooth, &distortSmoothed, NULL, false, -1, MetricSmoothingObject::GEO_GAUSS_EQUAL);
+            AlgorithmMetricSmoothing(smoothRef, referenceSurf, &refAreas, smooth, &refSmoothed, NULL, false, false, -1, NULL, MetricSmoothingObject::GEO_GAUSS_EQUAL);
+            AlgorithmMetricSmoothing(smoothDistort, distortedSurf, &distortAreas, smooth, &distortSmoothed, NULL, false, false, -1, NULL, MetricSmoothingObject::GEO_GAUSS_EQUAL);
             refData = refSmoothed.getValuePointerForColumn(0);
             distortData = distortSmoothed.getValuePointerForColumn(0);
         }

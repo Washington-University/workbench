@@ -32,14 +32,14 @@
 using namespace std;
 using namespace caret;
 
-MetricSmoothingObject::MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi, Method myMethod)
+MetricSmoothingObject::MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi, Method myMethod, const float* nodeAreas)
 {
     CaretAssert(mySurf != NULL);
     if (myRoi != NULL && mySurf->getNumberOfNodes() != myRoi->getNumberOfNodes())
     {
         throw CaretException("roi number of nodes doesn't match the surface");
     }
-    precomputeWeights(mySurf, kernel, myRoi, myMethod);
+    precomputeWeights(mySurf, kernel, myRoi, myMethod, nodeAreas);
 }
 
 void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* columnOut, const MetricFile* roi, const bool& fixZeros) const
@@ -355,15 +355,13 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGauss(const SurfaceFile* mySu
     }
 }
 
-void MetricSmoothingObject::precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, float myKernel)
+void MetricSmoothingObject::precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const float* nodeAreas)
 {//this method is normalized in two ways to provide evenly diffusing smoothing with equivalent sum of areas * values as input
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myGeoDist = myKernel * 3.0f;
     float gaussianDenom = -0.5f / myKernel / myKernel;
-    vector<float> nodeAreas;
     vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
     tempList.resize(numNodes);
-    mySurf->computeNodeAreas(nodeAreas);
 #pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
@@ -419,15 +417,13 @@ void MetricSmoothingObject::precomputeWeightsGeoGaussArea(const SurfaceFile* myS
     }
 }
 
-void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi)
+void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, const float* nodeAreas)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myGeoDist = myKernel * 3.0f;
     float gaussianDenom = -0.5f / myKernel / myKernel;
-    vector<float> nodeAreas;
     vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
     tempList.resize(numNodes);
-    mySurf->computeNodeAreas(nodeAreas);
     const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
 #pragma omp CARET_PAR
     {
@@ -625,14 +621,28 @@ void MetricSmoothingObject::precomputeWeightsROIGeoGaussEqual(const SurfaceFile*
     }
 }
 
-void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod)
+void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod, const float* nodeAreas)
 {
+    const float* passAreas = nodeAreas;
+    vector<float> areasTemp;
+    switch (myMethod)
+    {
+        case GEO_GAUSS_AREA://currently, only this method needs them
+            if (passAreas == NULL)
+            {
+                mySurf->computeNodeAreas(areasTemp);
+                passAreas = areasTemp.data();
+            }
+            break;
+        default:
+            break;
+    }
     if (theRoi != NULL)
     {
         switch (myMethod)
         {
             case GEO_GAUSS_AREA:
-                precomputeWeightsROIGeoGaussArea(mySurf, myKernel, theRoi);
+                precomputeWeightsROIGeoGaussArea(mySurf, myKernel, theRoi, passAreas);
                 break;
             case GEO_GAUSS_EQUAL:
                 precomputeWeightsROIGeoGaussEqual(mySurf, myKernel, theRoi);
@@ -647,7 +657,7 @@ void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float m
         switch (myMethod)
         {
             case GEO_GAUSS_AREA:
-                precomputeWeightsGeoGaussArea(mySurf, myKernel);
+                precomputeWeightsGeoGaussArea(mySurf, myKernel, passAreas);
                 break;
             case GEO_GAUSS_EQUAL:
                 precomputeWeightsGeoGaussEqual(mySurf, myKernel);
