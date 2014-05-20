@@ -218,7 +218,7 @@ DataFileContentInformation::setOptionFlag(const OptionFlag optionFlag,
         iter->second = flagValue;
     }
     else {
-        m_optionFlags.insert(std::make_pair<OptionFlag, bool>(optionFlag,
+        m_optionFlags.insert(std::pair<OptionFlag, bool>(optionFlag,
                                                               flagValue));
     }
 }

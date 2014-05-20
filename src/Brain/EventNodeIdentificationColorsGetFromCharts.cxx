@@ -83,7 +83,7 @@ EventNodeIdentificationColorsGetFromCharts::addNode(const int32_t nodeIndex,
     rgbColor.rgb[0] = rgb[0] * 255.0;
     rgbColor.rgb[1] = rgb[1] * 255.0;
     rgbColor.rgb[2] = rgb[2] * 255.0;
-    m_nodeRgbColor.insert(std::make_pair<int32_t, RgbColor>(nodeIndex,
+    m_nodeRgbColor.insert(std::pair<int32_t, RgbColor>(nodeIndex,
                                                             rgbColor));
 }
 

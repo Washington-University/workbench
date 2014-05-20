@@ -907,7 +907,7 @@ BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
             else {
                 std::vector<Border*> borderVector;
                 borderVector.push_back(border);
-                bordersPerStructuresMap.insert(std::make_pair<StructureEnum::Enum, std::vector<Border*> >(structure,
+                bordersPerStructuresMap.insert(std::pair<StructureEnum::Enum, std::vector<Border*> >(structure,
                                                                                                          borderVector));
             }
         }
