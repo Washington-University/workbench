@@ -82,7 +82,7 @@ void OperationBackendAverageROICorrelation::useParameters(OperationParameters* m
             throw OperationException("negative integers are not valid cifti indexes");
         }
     }
-    vector<CaretPointer<const CiftiInterface> > ciftiList;
+    vector<CaretPointer<const CiftiFile> > ciftiList;
     string myLine;
     while (cin.good())
     {
@@ -144,7 +144,7 @@ void OperationBackendAverageROICorrelation::useParameters(OperationParameters* m
     }
 }
 
-void OperationBackendAverageROICorrelation::processCifti(const CiftiInterface* myCifti, const vector<int>& indexList, vector<float>& output)
+void OperationBackendAverageROICorrelation::processCifti(const CiftiFile* myCifti, const vector<int>& indexList, vector<float>& output)
 {
     int rowSize = myCifti->getNumberOfColumns();
     int colSize = myCifti->getNumberOfRows();

@@ -27,29 +27,25 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    class MetricFile;
-    class VolumeFile;
-    
     class AlgorithmCiftiAverageROICorrelation : public AbstractAlgorithm
     {
         AlgorithmCiftiAverageROICorrelation();
-        void verifySurfaceComponent(const int& index, const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi);
-        void verifyVolumeComponent(const int& index, const CiftiInterface* myCifti, const VolumeFile* volROI);
-        void processCifti(const CiftiInterface* myCifti, std::vector<std::vector<float> >& output, const MetricFile* leftROI, const MetricFile* rightROI, const MetricFile* cerebROI, const VolumeFile* volROI,
+        void verifySurfaceComponent(const int& index, const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi);
+        void verifyVolumeComponent(const int& index, const CiftiFile* myCifti, const VolumeFile* volROI);
+        void processCifti(const CiftiFile* myCifti, std::vector<std::vector<float> >& output, const MetricFile* leftROI, const MetricFile* rightROI, const MetricFile* cerebROI, const VolumeFile* volROI,
                           const int& numMaps, const float* leftAreas, const float* rightAreas, const float* cerebAreas);
-        void processCifti(const CiftiInterface* myCifti, std::vector<std::vector<float> >& output, const CiftiFile* ciftiROI,
+        void processCifti(const CiftiFile* myCifti, std::vector<std::vector<float> >& output, const CiftiFile* ciftiROI,
                           const int& numMaps, const float* leftAreas, const float* rightAreas, const float* cerebAreas);
-        void addSurface(const CiftiInterface* myCifti, StructureEnum::Enum myStruct, std::vector<double>& accum, const MetricFile* myRoi, const int& myMap, const float* myAreas);
-        void addVolume(const CiftiInterface* myCifti, std::vector<double>& accum, const VolumeFile* myRoi, const int& myMap);
+        void addSurface(const CiftiFile* myCifti, StructureEnum::Enum myStruct, std::vector<double>& accum, const MetricFile* myRoi, const int& myMap, const float* myAreas);
+        void addVolume(const CiftiFile* myCifti, std::vector<double>& accum, const VolumeFile* myRoi, const int& myMap);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const std::vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut,
+        AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut,
                                         const MetricFile* leftROI = NULL, const MetricFile* rightROI = NULL, const MetricFile* cerebROI = NULL, const VolumeFile* volROI = NULL,
                                         const SurfaceFile* leftAreaSurf = NULL, const SurfaceFile* rightAreaSurf = NULL, const SurfaceFile* cerebAreaSurf = NULL);
-        AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const std::vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const CiftiFile* ciftiROI,
+        AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const CiftiFile* ciftiROI,
                                             const SurfaceFile* leftAreaSurf = NULL, const SurfaceFile* rightAreaSurf = NULL, const SurfaceFile* cerebAreaSurf = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

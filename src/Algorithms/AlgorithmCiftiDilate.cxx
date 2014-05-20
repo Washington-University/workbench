@@ -127,9 +127,9 @@ void AlgorithmCiftiDilate::useParameters(OperationParameters* myParams, Progress
     AlgorithmCiftiDilate(myProgObj, myCifti, myDir, surfDist, volDist, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, myRoi, nearest, mergedVolume);
 }
 
-AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
+AlgorithmCiftiDilate::AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                                            const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
-                                           const CiftiInterface* myRoi, const bool& nearest, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
+                                           const CiftiFile* myRoi, const bool& nearest, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     CiftiXMLOld myXML = myCifti->getCiftiXMLOld();

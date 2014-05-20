@@ -25,8 +25,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiLabelAdjacency : public AbstractAlgorithm
     {
         AlgorithmCiftiLabelAdjacency();
@@ -34,7 +32,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiLabelAdjacency(ProgressObject* myProgObj, const CiftiInterface* myLabelIn, CiftiFile* myAdjOut,
+        AlgorithmCiftiLabelAdjacency(ProgressObject* myProgObj, const CiftiFile* myLabelIn, CiftiFile* myAdjOut,
                                      const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

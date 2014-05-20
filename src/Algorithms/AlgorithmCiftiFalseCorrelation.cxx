@@ -121,7 +121,7 @@ void AlgorithmCiftiFalseCorrelation::useParameters(OperationParameters* myParams
     AlgorithmCiftiFalseCorrelation(myProgObj, myCiftiIn, max3D, maxgeo, mingeo, myCiftiOut, myLeftSurf, leftDumpName, myRightSurf, rightDumpName, myCerebSurf, cerebDumpName);
 }
 
-AlgorithmCiftiFalseCorrelation::AlgorithmCiftiFalseCorrelation(ProgressObject* myProgObj, const CiftiInterface* myCiftiIn, const float& max3D, const float& maxgeo, const float& mingeo,
+AlgorithmCiftiFalseCorrelation::AlgorithmCiftiFalseCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const float& max3D, const float& maxgeo, const float& mingeo,
                                                                CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const AString& leftDumpName,
                                                                const SurfaceFile* myRightSurf, const AString& rightDumpName, const SurfaceFile* myCerebSurf, const AString& cerebDumpName) : AbstractAlgorithm(myProgObj)
 {

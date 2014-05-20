@@ -27,11 +27,9 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class OperationBackendAverageROICorrelation : public AbstractOperation
     {
-        static void processCifti(const CiftiInterface* myCifti, const std::vector<int>& indexList, std::vector<float>& output);
+        static void processCifti(const CiftiFile* myCifti, const std::vector<int>& indexList, std::vector<float>& output);
     public:
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

@@ -25,8 +25,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiLabelToROI : public AbstractAlgorithm
     {
         AlgorithmCiftiLabelToROI();
@@ -34,8 +32,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
-        AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
+        AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiFile* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
+        AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiFile* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

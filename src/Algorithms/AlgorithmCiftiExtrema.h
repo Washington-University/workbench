@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 #include "AbstractAlgorithm.h"
-#include "CiftiInterface.h"
 
 namespace caret {
     

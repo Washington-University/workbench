@@ -179,7 +179,7 @@ void AlgorithmCiftiSeparate::useParameters(OperationParameters* myParams, Progre
     }
 }
 
-AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiInterface* ciftiIn, const int& myDir,
+AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
                                                const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -258,7 +258,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     }
 }
 
-AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiInterface* ciftiIn, const int& myDir,
+AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
                                                const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -381,7 +381,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     }
 }
 
-AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiInterface* ciftiIn, const int& myDir,
+AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir,
                                                const StructureEnum::Enum& myStruct, VolumeFile* volOut, int64_t offsetOut[3],
                                                VolumeFile* roiOut, const bool& cropVol) : AbstractAlgorithm(myProgObj)
 {
@@ -471,7 +471,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     }
 }
 
-AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiInterface* ciftiIn, const int& myDir, VolumeFile* volOut, int64_t offsetOut[3],
+AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir, VolumeFile* volOut, int64_t offsetOut[3],
                                                VolumeFile* roiOut, const bool& cropVol): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -560,7 +560,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
     }
 }
 
-void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiInterface* ciftiIn, const int& myDir, const StructureEnum::Enum& myStruct, int64_t dimsOut[3],
+void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiFile* ciftiIn, const int& myDir, const StructureEnum::Enum& myStruct, int64_t dimsOut[3],
                                                 vector<vector<float> >& sformOut, int64_t offsetOut[3])
 {
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
@@ -606,7 +606,7 @@ void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiInterface* ciftiIn, c
     }
 }
 
-void AlgorithmCiftiSeparate::getCroppedVolSpaceAll(const CiftiInterface* ciftiIn, const int& myDir, int64_t dimsOut[3], vector<vector<float> >& sformOut, int64_t offsetOut[3])
+void AlgorithmCiftiSeparate::getCroppedVolSpaceAll(const CiftiFile* ciftiIn, const int& myDir, int64_t dimsOut[3], vector<vector<float> >& sformOut, int64_t offsetOut[3])
 {
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("specified direction does not contain brain models");

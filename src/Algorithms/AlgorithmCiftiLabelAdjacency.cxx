@@ -90,7 +90,7 @@ void AlgorithmCiftiLabelAdjacency::useParameters(OperationParameters* myParams, 
     AlgorithmCiftiLabelAdjacency(myProgObj, myLabelIn, myAdjOut, myLeftSurf, myRightSurf, myCerebSurf);
 }
 
-AlgorithmCiftiLabelAdjacency::AlgorithmCiftiLabelAdjacency(ProgressObject* myProgObj, const CiftiInterface* myLabelIn, CiftiFile* myAdjOut,
+AlgorithmCiftiLabelAdjacency::AlgorithmCiftiLabelAdjacency(ProgressObject* myProgObj, const CiftiFile* myLabelIn, CiftiFile* myAdjOut,
                                                            const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);

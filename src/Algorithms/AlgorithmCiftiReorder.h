@@ -27,8 +27,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiReorder : public AbstractAlgorithm
     {
         AlgorithmCiftiReorder();
@@ -36,7 +34,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiReorder(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int& myDir, const std::vector<int64_t>& reorder, CiftiFile* myCiftiOut);
+        AlgorithmCiftiReorder(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const std::vector<int64_t>& reorder, CiftiFile* myCiftiOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

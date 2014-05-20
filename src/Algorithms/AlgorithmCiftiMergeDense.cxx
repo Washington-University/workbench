@@ -71,7 +71,7 @@ void AlgorithmCiftiMergeDense::useParameters(OperationParameters* myParams, Prog
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
-    vector<const CiftiInterface*> ciftiList;
+    vector<const CiftiFile*> ciftiList;
     int numCifti = (int)myInstances.size();
     for (int i = 0; i < numCifti; ++i)
     {
@@ -80,7 +80,7 @@ void AlgorithmCiftiMergeDense::useParameters(OperationParameters* myParams, Prog
     AlgorithmCiftiMergeDense(myProgObj, myDir, ciftiList, myCiftiOut);
 }
 
-AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const vector<const CiftiInterface*>& ciftiList, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiMergeDense::AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const vector<const CiftiFile*>& ciftiList, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (ciftiList.size() == 0) throw AlgorithmException("no files specified");

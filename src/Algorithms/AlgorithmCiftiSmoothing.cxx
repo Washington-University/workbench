@@ -143,11 +143,11 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myLeftAreas, myRightSurf, myRightAreas, myCerebSurf, myCerebAreas, roiCifti, fixZerosVol, fixZerosSurf);
 }
 
-AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiInterface* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
+AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
                                                  const SurfaceFile* myLeftSurf, const MetricFile* myLeftAreas,
                                                  const SurfaceFile* myRightSurf, const MetricFile* myRightAreas,
                                                  const SurfaceFile* myCerebSurf, const MetricFile* myCerebAreas,
-                                                 const CiftiInterface* roiCifti, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
+                                                 const CiftiFile* roiCifti, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();

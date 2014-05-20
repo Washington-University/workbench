@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 #include "AbstractOperation.h"
-#include "CiftiInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {

@@ -28,25 +28,23 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiAverageDenseROI : public AbstractAlgorithm
     {
         AlgorithmCiftiAverageDenseROI();
-        void verifySurfaceComponent(const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi);
-        void processSurfaceComponent(std::vector<std::vector<double> >& accum, std::vector<double>& denom, const CiftiInterface* myCifti,
+        void verifySurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi);
+        void processSurfaceComponent(std::vector<std::vector<double> >& accum, std::vector<double>& denom, const CiftiFile* myCifti,
                                      const StructureEnum::Enum& myStruct, const MetricFile* myRoi, const float* myAreas);
-        void verifyVolumeComponent(const CiftiInterface* myCifti, const VolumeFile* volROI);
-        void processVolumeComponent(std::vector<std::vector<double> >& accum, std::vector<double>& denom, const CiftiInterface* myCifti, const VolumeFile* volROI);
-        void processCifti(std::vector<std::vector<double> >& accum, std::vector<double>& denom, const CiftiInterface* myCifti, const CiftiInterface* ciftiROI,
+        void verifyVolumeComponent(const CiftiFile* myCifti, const VolumeFile* volROI);
+        void processVolumeComponent(std::vector<std::vector<double> >& accum, std::vector<double>& denom, const CiftiFile* myCifti, const VolumeFile* volROI);
+        void processCifti(std::vector<std::vector<double> >& accum, std::vector<double>& denom, const CiftiFile* myCifti, const CiftiFile* ciftiROI,
                                     const float* leftAreas, const float* rightAreas, const float* cerebAreas);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const std::vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const CiftiInterface* ciftiROI,
+        AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const CiftiFile* ciftiROI,
                                       const SurfaceFile* leftAreaSurf = NULL, const SurfaceFile* rightAreaSurf = NULL, const SurfaceFile* cerebAreaSurf = NULL);
-        AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const std::vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut,
+        AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut,
                                       const MetricFile* leftROI = NULL, const MetricFile* rightROI = NULL, const MetricFile* cerebROI = NULL, const VolumeFile* volROI = NULL,
                                       const SurfaceFile* leftAreaSurf = NULL, const SurfaceFile* rightAreaSurf = NULL, const SurfaceFile* cerebAreaSurf = NULL);
         static OperationParameters* getParameters();

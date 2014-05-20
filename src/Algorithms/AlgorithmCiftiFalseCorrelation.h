@@ -25,8 +25,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiFalseCorrelation : public AbstractAlgorithm
     {
         AlgorithmCiftiFalseCorrelation();
@@ -34,7 +32,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiFalseCorrelation(ProgressObject* myProgObj, const CiftiInterface* myCiftiIn, const float& max3D, const float& maxgeo, const float& mingeo,
+        AlgorithmCiftiFalseCorrelation(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const float& max3D, const float& maxgeo, const float& mingeo,
                                        CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const AString& leftDumpName,
                                        const SurfaceFile* myRightSurf, const AString& rightDumpName, const SurfaceFile* myCerebSurf, const AString& cerebDumpName);
         static OperationParameters* getParameters();

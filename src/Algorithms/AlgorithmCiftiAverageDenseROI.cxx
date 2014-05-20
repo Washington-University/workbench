@@ -144,7 +144,7 @@ void AlgorithmCiftiAverageDenseROI::useParameters(OperationParameters* myParams,
     {
         cerebAreaSurf = cerebAreaSurfOpt->getSurface(1);
     }
-    vector<const CiftiInterface*> ciftiList;
+    vector<const CiftiFile*> ciftiList;
     const vector<ParameterComponent*>& ciftiInstances = *(myParams->getRepeatableParameterInstances(10));
     for (int i = 0; i < (int)ciftiInstances.size(); ++i)
     {
@@ -158,7 +158,7 @@ void AlgorithmCiftiAverageDenseROI::useParameters(OperationParameters* myParams,
     }
 }
 
-AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut,
+AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut,
                                                              const MetricFile* leftROI, const MetricFile* rightROI, const MetricFile* cerebROI, const VolumeFile* volROI,
                                                              const SurfaceFile* leftAreaSurf, const SurfaceFile* rightAreaSurf, const SurfaceFile* cerebAreaSurf) : AbstractAlgorithm(myProgObj)
 {
@@ -299,7 +299,7 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     }
 }
 
-AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const CiftiInterface* ciftiROI,
+AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const CiftiFile* ciftiROI,
                                                              const SurfaceFile* leftAreaSurf, const SurfaceFile* rightAreaSurf, const SurfaceFile* cerebAreaSurf): AbstractAlgorithm(myProgObj)
 {
     CaretAssert(ciftiOut != NULL);
@@ -376,7 +376,7 @@ AlgorithmCiftiAverageDenseROI::AlgorithmCiftiAverageDenseROI(ProgressObject* myP
     }
 }
 
-void AlgorithmCiftiAverageDenseROI::verifySurfaceComponent(const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
+void AlgorithmCiftiAverageDenseROI::verifySurfaceComponent(const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     if (!myXml.hasColumnSurfaceData(myStruct))
@@ -390,7 +390,7 @@ void AlgorithmCiftiAverageDenseROI::verifySurfaceComponent(const CiftiInterface*
     }
 }
 
-void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<vector<double> >& accum, vector<double>& denom, const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi, const float* myAreas)
+void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<vector<double> >& accum, vector<double>& denom, const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi, const float* myAreas)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     if (!myXml.hasColumnSurfaceData(myStruct))
@@ -456,7 +456,7 @@ void AlgorithmCiftiAverageDenseROI::processSurfaceComponent(vector<vector<double
     }
 }
 
-void AlgorithmCiftiAverageDenseROI::verifyVolumeComponent(const CiftiInterface* myCifti, const VolumeFile* volROI)
+void AlgorithmCiftiAverageDenseROI::verifyVolumeComponent(const CiftiFile* myCifti, const VolumeFile* volROI)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     int64_t dims[3];
@@ -472,7 +472,7 @@ void AlgorithmCiftiAverageDenseROI::verifyVolumeComponent(const CiftiInterface* 
     }
 }
 
-void AlgorithmCiftiAverageDenseROI::processVolumeComponent(vector<vector<double> >& accum, vector<double>& denom, const CiftiInterface* myCifti, const VolumeFile* volROI)
+void AlgorithmCiftiAverageDenseROI::processVolumeComponent(vector<vector<double> >& accum, vector<double>& denom, const CiftiFile* myCifti, const VolumeFile* volROI)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     int64_t dims[3];
@@ -510,7 +510,7 @@ void AlgorithmCiftiAverageDenseROI::processVolumeComponent(vector<vector<double>
     }
 }
 
-void AlgorithmCiftiAverageDenseROI::processCifti(vector<vector<double> >& accum, vector<double>& denom, const CiftiInterface* myCifti, const CiftiInterface* ciftiROI,
+void AlgorithmCiftiAverageDenseROI::processCifti(vector<vector<double> >& accum, vector<double>& denom, const CiftiFile* myCifti, const CiftiFile* ciftiROI,
                                                  const float* leftAreas, const float* rightAreas, const float* cerebAreas)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();//same along columns for data and roi, we already checked

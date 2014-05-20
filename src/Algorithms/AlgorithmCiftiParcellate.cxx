@@ -79,7 +79,7 @@ void AlgorithmCiftiParcellate::useParameters(OperationParameters* myParams, Prog
     AlgorithmCiftiParcellate(myProgObj, myCiftiIn, myCiftiLabel, direction, myCiftiOut);
 }
 
-AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiInterface* myCiftiIn, const CiftiInterface* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
@@ -198,7 +198,7 @@ AlgorithmCiftiParcellate::AlgorithmCiftiParcellate(ProgressObject* myProgObj, co
     }
 }
 
-CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiInterface* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut)
+CiftiParcelsMap AlgorithmCiftiParcellate::parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, vector<int>& indexToParcelOut)
 {
     const CiftiXML& myLabelXML = myCiftiLabel->getCiftiXML();
     if (myLabelXML.getNumberOfDimensions() != 2 ||

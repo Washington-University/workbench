@@ -69,7 +69,7 @@ OperationParameters* AlgorithmCiftiAverage::getParameters()
 void AlgorithmCiftiAverage::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     CiftiFile* ciftiOut = myParams->getOutputCifti(1);
-    vector<const CiftiInterface*> ciftiList;//this is just so that it can pass them to the algorithm
+    vector<const CiftiFile*> ciftiList;//this is just so that it can pass them to the algorithm
     vector<float> weights;
     const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(3));
     for (int i = 0; i < (int)myInstances.size(); ++i)
@@ -92,7 +92,7 @@ void AlgorithmCiftiAverage::useParameters(OperationParameters* myParams, Progres
     }
 }
 
-AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const vector<float>* weightsPtr) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const vector<float>* weightsPtr) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (ciftiList.size() == 0)
@@ -162,7 +162,7 @@ AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const ve
     }
 }
 
-AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList,
+AlgorithmCiftiAverage::AlgorithmCiftiAverage(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList,
                                              const float& sigmaBelow, const float& sigmaAbove,
                                              CiftiFile* ciftiOut, const std::vector<float>* weightsPtr): AbstractAlgorithm(myProgObj)
 {

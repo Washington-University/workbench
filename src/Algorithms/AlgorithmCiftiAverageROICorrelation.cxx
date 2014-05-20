@@ -145,7 +145,7 @@ void AlgorithmCiftiAverageROICorrelation::useParameters(OperationParameters* myP
     {
         cerebAreaSurf = cerebAreaSurfOpt->getSurface(1);
     }
-    vector<const CiftiInterface*> ciftiList;
+    vector<const CiftiFile*> ciftiList;
     const vector<ParameterComponent*>& ciftiInputs = *(myParams->getRepeatableParameterInstances(10));
     if (ciftiInputs.size() == 0) throw AlgorithmException("at least one -cifti input is required");
     for (int i = 0; i < (int)ciftiInputs.size(); ++i)
@@ -160,7 +160,7 @@ void AlgorithmCiftiAverageROICorrelation::useParameters(OperationParameters* myP
     }
 }
 
-AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut,
+AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut,
                                                              const MetricFile* leftROI, const MetricFile* rightROI, const MetricFile* cerebROI, const VolumeFile* volROI,
                                                              const SurfaceFile* leftAreaSurf, const SurfaceFile* rightAreaSurf, const SurfaceFile* cerebAreaSurf) : AbstractAlgorithm(myProgObj)
 {
@@ -295,7 +295,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     }
 }
 
-AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const CiftiFile* ciftiROI,
+AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const CiftiFile* ciftiROI,
                                                                          const SurfaceFile* leftAreaSurf, const SurfaceFile* rightAreaSurf, const SurfaceFile* cerebAreaSurf): AbstractAlgorithm(myProgObj)
 {
     CaretAssert(ciftiOut != NULL);
@@ -380,7 +380,7 @@ AlgorithmCiftiAverageROICorrelation::AlgorithmCiftiAverageROICorrelation(Progres
     }
 }
 
-void AlgorithmCiftiAverageROICorrelation::verifySurfaceComponent(const int& index, const CiftiInterface* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
+void AlgorithmCiftiAverageROICorrelation::verifySurfaceComponent(const int& index, const CiftiFile* myCifti, const StructureEnum::Enum& myStruct, const MetricFile* myRoi)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     if (!myXml.hasColumnSurfaceData(myStruct))
@@ -391,7 +391,7 @@ void AlgorithmCiftiAverageROICorrelation::verifySurfaceComponent(const int& inde
     if (myRoi->getNumberOfNodes() != myXml.getColumnSurfaceNumberOfNodes(myStruct)) throw AlgorithmException("cifti #" + AString::number(index + 1) + " number of vertices does not match roi");
 }
 
-void AlgorithmCiftiAverageROICorrelation::verifyVolumeComponent(const int& index, const CiftiInterface* myCifti, const VolumeFile* volROI)
+void AlgorithmCiftiAverageROICorrelation::verifyVolumeComponent(const int& index, const CiftiFile* myCifti, const VolumeFile* volROI)
 {
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
     int64_t dims[3];
@@ -407,7 +407,7 @@ void AlgorithmCiftiAverageROICorrelation::verifyVolumeComponent(const int& index
     }
 }
 
-void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myCifti, vector<vector<float> >& output,
+void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiFile* myCifti, vector<vector<float> >& output,
                                                        const MetricFile* leftROI, const MetricFile* rightROI,const MetricFile* cerebROI, const VolumeFile* volROI,
                                                        const int& numMaps, const float* leftAreas, const float* rightAreas, const float* cerebAreas)
 {
@@ -479,7 +479,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
     }
 }
 
-void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myCifti, vector<vector<float> >& output, const CiftiFile* ciftiROI, const int& numMaps,
+void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiFile* myCifti, vector<vector<float> >& output, const CiftiFile* ciftiROI, const int& numMaps,
                                                        const float* leftAreas, const float* rightAreas, const float* cerebAreas)
 {
     int rowSize = myCifti->getNumberOfColumns();
@@ -623,7 +623,7 @@ void AlgorithmCiftiAverageROICorrelation::processCifti(const CiftiInterface* myC
     }
 }
 
-void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiInterface* myCifti, StructureEnum::Enum myStruct, vector<double>& accum, const MetricFile* myRoi, const int& myMap, const float* myAreas)
+void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiFile* myCifti, StructureEnum::Enum myStruct, vector<double>& accum, const MetricFile* myRoi, const int& myMap, const float* myAreas)
 {
     if (myRoi == NULL) return;
     vector<CiftiBrainModelsMap::SurfaceMap> surfaceMap;
@@ -662,7 +662,7 @@ void AlgorithmCiftiAverageROICorrelation::addSurface(const CiftiInterface* myCif
     }
 }
 
-void AlgorithmCiftiAverageROICorrelation::addVolume(const CiftiInterface* myCifti, vector<double>& accum, const VolumeFile* myRoi, const int& myMap)
+void AlgorithmCiftiAverageROICorrelation::addVolume(const CiftiFile* myCifti, vector<double>& accum, const VolumeFile* myRoi, const int& myMap)
 {
     if (myRoi == NULL) return;
     vector<CiftiBrainModelsMap::VolumeMap> volMap;

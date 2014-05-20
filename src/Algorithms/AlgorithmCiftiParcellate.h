@@ -28,8 +28,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiParcellate : public AbstractAlgorithm
     {
         AlgorithmCiftiParcellate();
@@ -37,8 +35,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiInterface* myCiftiIn, const CiftiInterface* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut);
-        static CiftiParcelsMap parcellateMapping(const CiftiInterface* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, std::vector<int>& indexToParcelOut);
+        AlgorithmCiftiParcellate(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const CiftiFile* myCiftiLabel, const int& direction, CiftiFile* myCiftiOut);
+        static CiftiParcelsMap parcellateMapping(const CiftiFile* myCiftiLabel, const CiftiBrainModelsMap& toParcellate, std::vector<int>& indexToParcelOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

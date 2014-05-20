@@ -25,8 +25,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiDilate : public AbstractAlgorithm
     {
         AlgorithmCiftiDilate();
@@ -34,9 +32,9 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
+        AlgorithmCiftiDilate(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const float& surfDist, const float& volDist, CiftiFile* myCiftiOut,
                              const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
-                             const CiftiInterface* myRoi = NULL, const bool& nearest = false, const bool& mergedVolume = false);
+                             const CiftiFile* myRoi = NULL, const bool& nearest = false, const bool& mergedVolume = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

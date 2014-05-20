@@ -28,8 +28,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiMergeDense : public AbstractAlgorithm
     {
         AlgorithmCiftiMergeDense();
@@ -37,7 +35,7 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const std::vector<const CiftiInterface*>& ciftiList, CiftiFile* myCiftiOut);
+        AlgorithmCiftiMergeDense(ProgressObject* myProgObj, const int& myDir, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* myCiftiOut);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

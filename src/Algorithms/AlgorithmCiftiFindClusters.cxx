@@ -156,13 +156,13 @@ void AlgorithmCiftiFindClusters::useParameters(OperationParameters* myParams, Pr
                                roiCifti, mergedVol, startVal);
 }
 
-AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj, const CiftiInterface* myCifti,
+AlgorithmCiftiFindClusters::AlgorithmCiftiFindClusters(ProgressObject* myProgObj, const CiftiFile* myCifti,
                                                        const float& surfThresh, const float& surfSize, const float& volThresh, const float& volSize,
                                                        const int& myDir, CiftiFile* myCiftiOut, const bool& lessThan,
                                                        const SurfaceFile* myLeftSurf, const MetricFile* myLeftAreas,
                                                        const SurfaceFile* myRightSurf, const MetricFile* myRightAreas,
                                                        const SurfaceFile* myCerebSurf, const MetricFile* myCerebAreas,
-                                                       const CiftiInterface* roiCifti, const bool& mergedVol, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
+                                                       const CiftiFile* roiCifti, const bool& mergedVol, const int& startVal, int* endVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = myCifti->getCiftiXML();

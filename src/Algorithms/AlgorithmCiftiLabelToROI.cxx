@@ -105,7 +105,7 @@ void AlgorithmCiftiLabelToROI::useParameters(OperationParameters* myParams, Prog
     }
 }
 
-AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiFile* myCifti, const AString& labelName, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();
@@ -204,7 +204,7 @@ AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, co
     }
 }
 
-AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiLabelToROI::AlgorithmCiftiLabelToROI(ProgressObject* myProgObj, const CiftiFile* myCifti, const int32_t& labelKey, CiftiFile* myCiftiOut, const int64_t& whichMap) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXMLOld& myXml = myCifti->getCiftiXMLOld();

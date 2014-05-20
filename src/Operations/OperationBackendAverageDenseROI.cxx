@@ -81,7 +81,7 @@ void OperationBackendAverageDenseROI::useParameters(OperationParameters* myParam
             throw OperationException("negative integers are not valid cifti indexes");
         }
     }
-    vector<CaretPointer<const CiftiInterface> > ciftiList;
+    vector<CaretPointer<const CiftiFile> > ciftiList;
     string myLine;
     while (cin.good())
     {

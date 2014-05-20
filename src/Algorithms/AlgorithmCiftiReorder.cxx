@@ -97,7 +97,7 @@ void AlgorithmCiftiReorder::useParameters(OperationParameters* myParams, Progres
     AlgorithmCiftiReorder(myProgObj, myCifti, myDir, reorder, myCiftiOut);
 }
 
-AlgorithmCiftiReorder::AlgorithmCiftiReorder(ProgressObject* myProgObj, const CiftiInterface* myCifti, const int& myDir, const vector<int64_t>& reorder, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiReorder::AlgorithmCiftiReorder(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, const vector<int64_t>& reorder, CiftiFile* myCiftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();

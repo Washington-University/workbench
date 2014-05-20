@@ -26,8 +26,6 @@
 
 namespace caret {
     
-    class CiftiInterface;
-    
     class AlgorithmCiftiAverage : public AbstractAlgorithm
     {
         AlgorithmCiftiAverage();
@@ -35,8 +33,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiAverage(ProgressObject* myProgObj, const std::vector<const CiftiInterface*>& ciftiList, CiftiFile* ciftiOut, const std::vector<float>* weightsPtr = NULL);
-        AlgorithmCiftiAverage(ProgressObject* myProgObj, const std::vector<const CiftiInterface*>& ciftiList, const float& sigmaBelow, const float& sigmaAbove, CiftiFile* ciftiOut, const std::vector<float>* weightsPtr = NULL);
+        AlgorithmCiftiAverage(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, CiftiFile* ciftiOut, const std::vector<float>* weightsPtr = NULL);
+        AlgorithmCiftiAverage(ProgressObject* myProgObj, const std::vector<const CiftiFile*>& ciftiList, const float& sigmaBelow, const float& sigmaAbove, CiftiFile* ciftiOut, const std::vector<float>* weightsPtr = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

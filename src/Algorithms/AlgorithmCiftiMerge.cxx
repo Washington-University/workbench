@@ -63,7 +63,7 @@ void AlgorithmCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
 {
     CiftiFile* ciftiOut = myParams->getOutputCifti(1);
     const vector<ParameterComponent*>& myInstances = *(myParams->getRepeatableParameterInstances(2));
-    vector<const CiftiInterface*> ciftiList;
+    vector<const CiftiFile*> ciftiList;
     vector<int64_t> indexList;
     int numCifti = (int)myInstances.size();
     for (int i = 0; i < numCifti; ++i)
@@ -82,7 +82,7 @@ void AlgorithmCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
     AlgorithmCiftiMerge(myProgObj, ciftiList, indexList, ciftiOut);
 }
 
-AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector<const CiftiInterface*>& ciftiList, const vector<int64_t>& indexList, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiMerge::AlgorithmCiftiMerge(ProgressObject* myProgObj, const vector<const CiftiFile*>& ciftiList, const vector<int64_t>& indexList, CiftiFile* ciftiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (ciftiList.size() == 0)
