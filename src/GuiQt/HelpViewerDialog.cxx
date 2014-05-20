@@ -45,6 +45,7 @@
 #include "CommandOperation.h"
 #include "CommandOperationManager.h"
 #include "WuQMessageBox.h"
+#include "XmlUtilities.h"
 
 using namespace caret;
 
@@ -70,6 +71,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                     parent,
                     f)
 {
+    m_topicSearchLineEditFirstMouseClick = true;
     setApplyButtonText("");
 
     /*
@@ -88,33 +90,37 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
      */
     QStringList indexTreeHeaderLabels;
     indexTreeHeaderLabels << "Help Page Index" << "Location";
-    m_indexTreeWidget = new QTreeWidget;
-    m_indexTreeWidget->setColumnCount(2);
-    m_indexTreeWidget->setHeaderLabels(indexTreeHeaderLabels);
-    m_indexTreeWidget->setColumnHidden(0, false);
-    m_indexTreeWidget->setColumnHidden(1, true);
-    QObject::connect(m_indexTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-                     this, SLOT(indexTreeItemSelected(QTreeWidgetItem*,int)));
+    m_topicIndexTreeWidget = new QTreeWidget;
+    m_topicIndexTreeWidget->setColumnCount(2);
+    m_topicIndexTreeWidget->setHeaderLabels(indexTreeHeaderLabels);
+    m_topicIndexTreeWidget->setColumnHidden(0, false);
+    m_topicIndexTreeWidget->setColumnHidden(1, true);
+    QObject::connect(m_topicIndexTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(topicIndexTreeItemSelected(QTreeWidgetItem*,int)));
     /*
      * Search line edit and list widget
      */
-    m_searchLineEdit = new QLineEdit;
-    m_searchLineEdit->setText("Enter search here");
-    QObject::connect(m_searchLineEdit, SIGNAL(returnPressed()),
-                     this, SLOT(slotSearchLineEdit()));
+    m_topicSearchLineEdit = new QLineEdit;
+    m_topicSearchLineEdit->setText("Enter search text here");
+    QObject::connect(m_topicSearchLineEdit, SIGNAL(returnPressed()),
+                     this, SLOT(topicSearchLineEditStartSearch()));
+    QObject::connect(m_topicSearchLineEdit, SIGNAL(textEdited(const QString&)),
+                     this, SLOT(topicSearchLineEditStartSearch()));
+    QObject::connect(m_topicSearchLineEdit, SIGNAL(cursorPositionChanged(int,int)),
+                     this, SLOT(topicSearchLineEditCursorPositionChanged(int,int)));
     QStringList searchTreeHeaderLabels;
     searchTreeHeaderLabels << "Matching Help Pages" << "Location";
-    m_searchTreeWidget = new QTreeWidget;
-    m_searchTreeWidget->setColumnCount(2);
-    m_searchTreeWidget->setHeaderLabels(searchTreeHeaderLabels);
-    m_searchTreeWidget->setColumnHidden(0, false);
-    m_searchTreeWidget->setColumnHidden(1, true);
-    QObject::connect(m_searchTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-                     this, SLOT(searchTreeItemSelected(QTreeWidgetItem*,int)));
+    m_topicSearchTreeWidget = new QTreeWidget;
+    m_topicSearchTreeWidget->setColumnCount(2);
+    m_topicSearchTreeWidget->setHeaderLabels(searchTreeHeaderLabels);
+    m_topicSearchTreeWidget->setColumnHidden(0, false);
+    m_topicSearchTreeWidget->setColumnHidden(1, true);
+    QObject::connect(m_topicSearchTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+                     this, SLOT(topicSearchTreeItemSelected(QTreeWidgetItem*,int)));
     QWidget* searchWidget = new QWidget;
     QVBoxLayout* searchLayout = new QVBoxLayout(searchWidget);
-    searchLayout->addWidget(m_searchLineEdit);
-    searchLayout->addWidget(m_searchTreeWidget);
+    searchLayout->addWidget(m_topicSearchLineEdit);
+    searchLayout->addWidget(m_topicSearchTreeWidget);
     
     /*
      * create the back toolbar button
@@ -154,7 +160,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
      */
     QAction* printAction = new QAction("Print", this);
     connect(printAction, SIGNAL(triggered()),
-            this, SLOT(slotPrint()));
+            this, SLOT(helpTextPrintButtonClicked()));
     QToolButton* printButton = new QToolButton;
     printButton->setDefaultAction(printAction);
     
@@ -164,7 +170,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     QToolButton* findPushButton = new QToolButton;
     findPushButton->setText("Find");
     QObject::connect(findPushButton, SIGNAL(clicked()),
-                     this, SLOT(slotFindInBrowser()));
+                     this, SLOT(helpTextFindButtonClicked()));
     
     /*
      * Next button
@@ -173,7 +179,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_findNextPushButton->setText("Next");
     m_findNextPushButton->setEnabled(false);
     QObject::connect(m_findNextPushButton, SIGNAL(clicked()),
-                     this, SLOT(slotFindNextInBrowser()));
+                     this, SLOT(helpTextFindNextButtonClicked()));
     
     /*
      * Layout for toolbuttons
@@ -199,7 +205,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
      * Tab widget for index and search
      */
     QTabWidget* indexSearchTabWidget = new QTabWidget;
-    indexSearchTabWidget->addTab(m_indexTreeWidget, "Index");
+    indexSearchTabWidget->addTab(m_topicIndexTreeWidget, "Index");
     indexSearchTabWidget->addTab(searchWidget, "Search");
     
     /*
@@ -216,7 +222,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     setCentralWidget(m_splitter,
                      WuQDialog::SCROLL_AREA_NEVER);
     
-    loadIndexTree();
+    loadHelpTopicsIntoIndexTree();
 }
 
 /**
@@ -267,7 +273,7 @@ HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
  * called to find in browser window.
  */
 void
-HelpViewerDialog::slotFindInBrowser()
+HelpViewerDialog::helpTextFindButtonClicked()
 {
     bool ok = false;
     const QString txt = QInputDialog::getText(this,
@@ -292,7 +298,7 @@ HelpViewerDialog::slotFindInBrowser()
  * called to find next in browser window.
  */
 void
-HelpViewerDialog::slotFindNextInBrowser()
+HelpViewerDialog::helpTextFindNextButtonClicked()
 {
     if (m_helpBrowser->find(m_findInBrowserText) == false) {
         m_helpBrowser->moveCursor(QTextCursor::Start);
@@ -304,7 +310,7 @@ HelpViewerDialog::slotFindNextInBrowser()
  * called to print currently displayed page.
  */
 void
-HelpViewerDialog::slotPrint()
+HelpViewerDialog::helpTextPrintButtonClicked()
 {
     QPrinter printer;
     QPrintDialog* printDialog = new QPrintDialog(&printer, this);
@@ -314,15 +320,15 @@ HelpViewerDialog::slotPrint()
 }
 
 /**
- * load the index tree.
+ * load the index tree with the help topics.
  */
 void
-HelpViewerDialog::loadIndexTree()
+HelpViewerDialog::loadHelpTopicsIntoIndexTree()
 {
-    m_indexTreeWidget->blockSignals(true);
+    m_topicIndexTreeWidget->blockSignals(true);
     
     
-    QTreeWidgetItem* workbenchItem = new QTreeWidgetItem(m_indexTreeWidget,
+    QTreeWidgetItem* workbenchItem = new QTreeWidgetItem(m_topicIndexTreeWidget,
                                                          TREE_ITEM_NONE);
     workbenchItem->setText(0, "Workbench");
     
@@ -330,28 +336,36 @@ HelpViewerDialog::loadIndexTree()
                                                     TREE_ITEM_NONE);
     menuItem->setText(0, "Menus");
     
-    new HelpTreeWidgetItem(menuItem,
+    createHelpTreeWidgetItemForHelpPage(menuItem,
                            "wb_view Menu (Mac Only)",
                            ":/HelpFiles/wb_view_Menu.htm");
-    new HelpTreeWidgetItem(menuItem,
+    createHelpTreeWidgetItemForHelpPage(menuItem,
                            "File Menu",
                            ":/HelpFiles/File_Menu_filt.htm");
-    new HelpTreeWidgetItem(menuItem,
+    createHelpTreeWidgetItemForHelpPage(menuItem,
+                           "View Menu",
+                           ":/HelpFiles/View_Menu_filt.htm");
+    createHelpTreeWidgetItemForHelpPage(menuItem,
                            "Data Menu",
                            ":/HelpFiles/Data_Menu_filt.htm");
-    new HelpTreeWidgetItem(menuItem,
+    createHelpTreeWidgetItemForHelpPage(menuItem,
+                           "Surface Menu",
+                           ":/HelpFiles/Surface_Menu_filt.htm");
+    createHelpTreeWidgetItemForHelpPage(menuItem,
+                           "Connect Menu",
+                           ":/HelpFiles/Connect_Menu_filt.htm");
+    createHelpTreeWidgetItemForHelpPage(menuItem,
+                           "Window Menu",
+                           ":/HelpFiles/Window_Menu_filt.htm");
+    createHelpTreeWidgetItemForHelpPage(menuItem,
+                           "Help Menu",
+                           ":/HelpFiles/Help_Menu_filt.htm");
+    createHelpTreeWidgetItemForHelpPage(menuItem,
                            "Preferences",
                            ":/HelpFiles/Preferences_filt.htm");
-    new HelpTreeWidgetItem(menuItem,
+    createHelpTreeWidgetItemForHelpPage(menuItem,
                            "Splash Screen",
                            ":/HelpFiles/Splash_Screen_filt.htm");
-    
-//    createHelpPageFileItem("wb_view Menu (Mac Only)", ":/HelpFiles/wb_view_Menu.htm", menuItem);
-//    createHelpPageFileItem("File Menu", ":/HelpFiles/File_Menu_filt.htm", menuItem);
-//    createHelpPageFileItem("Data Menu", ":/HelpFiles/Data_Menu_filt.htm", menuItem);
-//    
-//    createHelpPageFileItem("Preferences", ":/HelpFiles/Preferences_filt.htm", workbenchItem);
-//    createHelpPageFileItem("Splash Screen", ":/HelpFiles/Splash_Screen_filt.htm", workbenchItem);
     
 //    QDir resourceDir(":/");
 //    if (resourceDir.exists()) {
@@ -393,9 +407,9 @@ HelpViewerDialog::loadIndexTree()
 //                       + " not found.");
 //    }
     
-    m_indexTreeWidget->setItemExpanded(menuItem,
+    m_topicIndexTreeWidget->setItemExpanded(menuItem,
                                        true);
-    m_indexTreeWidget->setItemExpanded(workbenchItem,
+    m_topicIndexTreeWidget->setItemExpanded(workbenchItem,
                                        true);
     
     /*
@@ -405,71 +419,70 @@ HelpViewerDialog::loadIndexTree()
     std::vector<CommandOperation*> commandOperations = commandOperationManager->getCommandOperations();
     
     if ( ! commandOperations.empty()) {
-        QTreeWidgetItem* wbCommandItem = new QTreeWidgetItem(m_indexTreeWidget,
+        /*
+         * Use map to sort commands by short description
+         */
+        std::map<QString, CommandOperation*> sortCommandsMap;
+        for (std::vector<CommandOperation*>::iterator vecIter = commandOperations.begin();
+             vecIter != commandOperations.end();
+             vecIter++) {
+            CommandOperation* op = *vecIter;
+            sortCommandsMap.insert(std::make_pair(op->getOperationShortDescription(),
+                                                  op));
+        }
+        
+        QTreeWidgetItem* wbCommandItem = new QTreeWidgetItem(m_topicIndexTreeWidget,
                                                              TREE_ITEM_NONE);
         wbCommandItem->setText(0, "wb_command");
         
-        const uint64_t numberOfCommands = commandOperations.size();
-        for (uint64_t i = 0; i < numberOfCommands; i++) {
-            CommandOperation* op = commandOperations[i];
+        for (std::map<QString, CommandOperation*>::iterator mapIter = sortCommandsMap.begin();
+             mapIter != sortCommandsMap.end();
+             mapIter++) {
+            CommandOperation* op = mapIter->second;
             
-            /*
-             * Gets added to its parent in constructor
-             */
-            new HelpTreeWidgetItem(wbCommandItem,
-                                   op);
+            HelpTreeWidgetItem* item
+            = HelpTreeWidgetItem::newInstanceForCommandOperation(wbCommandItem,
+                                                                                           op);
+            m_allHelpWidgetItems.push_back(item);
         }
-        
-        
-        
-//        std::map<AString, CommandOperation*> cmdMap;
 //        const uint64_t numberOfCommands = commandOperations.size();
 //        for (uint64_t i = 0; i < numberOfCommands; i++) {
 //            CommandOperation* op = commandOperations[i];
-//            cmdMap[op->getOperationShortDescription()] = op;
-//        }
-//        
-//        QTreeWidgetItem* wbCommandItem = new QTreeWidgetItem(m_indexTreeWidget,
-//                                                             TREE_ITEM_NONE);
-//        wbCommandItem->setText(0, "wb_command");
-//        
-//        for (std::map<AString, CommandOperation*>::iterator iter = cmdMap.begin();
-//             iter != cmdMap.end();
-//             iter++) {
-//            QTreeWidgetItem* twi = new QTreeWidgetItem(wbCommandItem,
-//                                                       TREE_ITEM_WB_COMMAND);
-//            twi->setText(0, iter->second->getOperationShortDescription());
-//            QVariant commandPointer = qVariantFromValue((void*)iter->second);
-//            twi->setData(0, Qt::UserRole, commandPointer);
+//            
+//            /*
+//             * Gets added to its parent in constructor
+//             */
+//            HelpTreeWidgetItem* item = new HelpTreeWidgetItem(wbCommandItem,
+//                                                              op);
+//            m_allHelpWidgetItems.push_back(item);
 //        }
     }
     
-    m_indexTreeWidget->blockSignals(false);
+    m_topicIndexTreeWidget->blockSignals(false);
 }
 
 /**
- * Create a help page item for HTML loaded from a file.
+ * Create a help tree widget item for a help page URL.
  *
- * @param topicName
- *    Name displayed in topics list.
- * @param filePath
- *    Path to the file.
  * @param parent
- *    Parent of item that is created.
- * @return
- *    Item that was created.
+ *    Parent for item in index.
+ * @param itemText
+ *    Text for the item shown in the topic index.
+ * @param helpPageURL
+ *    URL for the help page.
  */
-QTreeWidgetItem*
-HelpViewerDialog::createHelpPageFileItem(const AString& topicName,
-                                         const AString& filePath,
-                                         QTreeWidgetItem* parent) const
+HelpTreeWidgetItem*
+HelpViewerDialog::createHelpTreeWidgetItemForHelpPage(QTreeWidgetItem* parent,
+                                                      const AString& itemText,
+                                                      const AString& helpPageURL)
 {
-    QTreeWidgetItem* item = new QTreeWidgetItem(parent,
-                                                TREE_ITEM_HELP_PAGE);
-    item->setText(0, topicName);
-    item->setData(0, Qt::UserRole, filePath);
+    HelpTreeWidgetItem* helpItem = HelpTreeWidgetItem::newInstanceForHtmlHelpPage(parent,
+                                                                                  itemText,
+                                                                                  helpPageURL);
     
-    return item;
+    m_allHelpWidgetItems.push_back(helpItem);
+    
+    return helpItem;
 }
 
 /**
@@ -481,130 +494,65 @@ HelpViewerDialog::createHelpPageFileItem(const AString& topicName,
  *     Column of item.
  */
 void
-HelpViewerDialog::indexTreeItemSelected(QTreeWidgetItem* item, int column)
+HelpViewerDialog::topicIndexTreeItemSelected(QTreeWidgetItem* item, int /*column*/)
 {
     if (item != NULL) {
-        m_helpBrowser->clear();
-        
+        /*
+         * Note not all items are castable to HelpTreeWidgetItem.
+         * Items not castable are category items that have an arrow to
+         * expand/collapse its children.
+         */
         HelpTreeWidgetItem* helpItem = dynamic_cast<HelpTreeWidgetItem*>(item);
         if (helpItem != NULL) {
-            switch (helpItem->m_treeItemType) {
-                case HelpTreeWidgetItem::TREE_ITEM_NONE:
-                    break;
-                case HelpTreeWidgetItem::TREE_ITEM_HELP_PAGE_URL:
-                {
-                    const AString resourceURL = helpItem->m_helpPageURL;
-                    if (resourceURL.startsWith("qrc:")) {
-                            QUrl url(resourceURL);
-                            m_helpBrowser->setSource(url);
-                    }
-                    else {
-                        QFile file(resourceURL);
-                        if (file.exists()) {
-                            QUrl url = QUrl::fromLocalFile(resourceURL);
-                            m_helpBrowser->setSource(url);
-                        }
-                        else {
-                            const QString msg("Help page \""
-                                              + resourceURL
-                                              + "\": not found");
-                            CaretLogSevere(msg);
-                        }
-                    }
-                }
-                    break;
-                case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
-                    m_helpBrowser->setText(helpItem->m_helpText);
-                    break;
-            }
-        }
-        else {
-            switch (item->type()) {
-                case TREE_ITEM_NONE:
-                    break;
-                case TREE_ITEM_HELP_PAGE:
-                {
-                    QVariant itemData = item->data(column, Qt::UserRole);
-                    
-                    const QString resourceFileName = itemData.toString();
-                    loadPageAtURL(resourceFileName);
-                    
-//                    if (resourceFileName.startsWith("qrc:")) {
-//                        QString urlText = itemData.toString();
-//                        if (! urlText.isEmpty()) {
-//                            QUrl url(urlText);
-//                            m_helpBrowser->setSource(url);
-//                        }
-//                    }
-//                    else {
-//                        QFile file(resourceFileName);
-//                        if (file.exists()) {
-//                            QUrl url = QUrl::fromLocalFile(resourceFileName);
-//                            m_helpBrowser->setSource(url);
-//                        }
-//                        else {
-//                            const QString msg("Help page \""
-//                                              + resourceFileName
-//                                              + "\": not found");
-//                            CaretLogSevere(msg);
-//                        }
-//                        
-//                        
-//                        //                    if (file.open(QFile::ReadOnly)) {
-//                        //                        QTextStream stream(&file);
-//                        //                        m_helpBrowserWidget->setHtml(stream.readAll());
-//                        //                    }
-//                        //                    else {
-//                        //                        const QString msg("Unable to open help page from \""
-//                        //                                          + resourceFileName
-//                        //                                          + "\": "
-//                        //                                          + file.errorString());
-//                        //                        CaretLogSevere(msg);
-//                        //                    }
-//                    }
-                    
-                }
-                    break;
-                case TREE_ITEM_WB_COMMAND:
-                {
-                    QVariant itemData = item->data(column, Qt::UserRole);
-                    void* ptr = itemData.value<void*>();
-                    CommandOperation* command = (CommandOperation*)ptr;
-                    m_helpBrowser->setText(command->getHelpInformation("wb_command"));
-                }
-                    break;
-            }
+            displayHelpTextForHelpTreeWidgetItem(helpItem);
         }
     }
 }
 
+/**
+ * Display the help information for the given help item.
+ *
+ * @param helpItem
+ *    Item for which help text is loaded.
+ */
 void
-HelpViewerDialog::loadPageAtURL(const AString& pageUrlText)
+HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem)
 {
-    m_helpBrowser->clear();
-    
-    if (pageUrlText.startsWith("qrc:")) {
-        QUrl url(pageUrlText);
-        m_helpBrowser->setSource(url);
+    CaretAssert(helpItem);
+    switch (helpItem->m_treeItemType) {
+        case HelpTreeWidgetItem::TREE_ITEM_NONE:
+            break;
+        case HelpTreeWidgetItem::TREE_ITEM_HELP_PAGE_URL:
+            displayHttpInUsersWebBrowser(helpItem->m_helpPageURL);
+            break;
+        case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
+            m_helpBrowser->clear();
+            m_helpBrowser->setText(helpItem->m_helpText);
+            break;
     }
-    else {
-        QFile file(pageUrlText);
-        if (file.exists()) {
-            QUrl url = QUrl::fromLocalFile(pageUrlText);
-            m_helpBrowser->setSource(url);
-        }
-        else {
-            const QString msg("Help page \""
-                              + pageUrlText
-                              + "\": not found");
-            m_helpBrowser->setText(msg);
+}
+
+/**
+ * For an external (http) link, load it into the user's web browser.
+ *
+ * @param urlText
+ *     Text of the URL.
+ */
+void
+HelpViewerDialog::displayHttpInUsersWebBrowser(const AString& urlText)
+{
+    if (WuQMessageBox::warningOkCancel(this, "The link clicked will be displayed in your web browser.")) {
+        if (! QDesktopServices::openUrl(urlText)) {
+            WuQMessageBox::errorOk(this,
+                                   ("Failed to load "
+                                    + urlText));
         }
     }
 }
 
 
 /**
- * Gets called when a help page link is clicked.
+ * Gets called when an HTML link is clicked in the text of a help page.
  *
  * @param url
  *    URL of link that was clicked.
@@ -612,20 +560,51 @@ HelpViewerDialog::loadPageAtURL(const AString& pageUrlText)
 void
 HelpViewerDialog::helpPageAnchorClicked(const QUrl& url)
 {
-    if (url.toString().startsWith("http")) {
-        if (! QDesktopServices::openUrl(url)) {
-            WuQMessageBox::errorOk(this, "Failed to load " + url.toString());
-        }
+    const AString urlText = url.toString();
+    if (urlText.startsWith("http")) {
+        displayHttpInUsersWebBrowser(urlText);
     }
     else {
-        loadPageAtURL(url.toString());
+        const AString path = url.path();
+        if (path.isEmpty()) {
+            CaretLogSevere("No path from URL: "
+                           + url.toString());
+            WuQMessageBox::errorOk(this, "Error: clicked link \""
+                                   + url.toString()
+                                   + "\" appears to be invalid.");
+        }
+        else {
+            AString htmlPageName = path;
+            const int32_t slashPos = htmlPageName.lastIndexOf("/");
+            if (slashPos >= 0) {
+                htmlPageName = htmlPageName.mid(slashPos + 1);
+            }
+            bool foundMatchingPage = false;
+            
+            for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
+                 iter != m_allHelpWidgetItems.end();
+                 iter++) {
+                HelpTreeWidgetItem* item = *iter;
+                CaretAssert(item);
+                if (item->m_helpPageURL.endsWith(htmlPageName)) {
+                    displayHelpTextForHelpTreeWidgetItem(item);
+                    foundMatchingPage = true;
+                    break;
+                }
+            }
+            
+            if ( ! foundMatchingPage) {
+                WuQMessageBox::errorOk(this,
+                                       ("Unable to find matching help page for \""
+                                        + url.toString()
+                                        + "\""));
+            }
+        }
     }
-    std::cout << "\n\nLink clicked: " << qPrintable(url.toString()) << std::endl << std::endl;
 }
 
-
 /**
- * called when a search tree item is clicked.
+ * called when a topic search tree item is clicked.
  *
  * @param item
  *     Tree widget item that was clicked.
@@ -633,132 +612,167 @@ HelpViewerDialog::helpPageAnchorClicked(const QUrl& url)
  *     Column of item.
  */
 void
-HelpViewerDialog::searchTreeItemSelected(QTreeWidgetItem* item, int /*column*/)
+HelpViewerDialog::topicSearchTreeItemSelected(QTreeWidgetItem* item, int /*column*/)
 {
-//    const QString webPage(item->text(1));
-//    
-//    //std::cout << "Item selected is: " << webPage.toAscii().constData() << std::endl;
-//    
-//    if (webPage.isEmpty() == false) {
-//        loadPage(webPage);
-//        slotFindNextInBrowser();
-//    }
+    CaretAssert(item);
+    
+    void* helpItemPointer = item->data(0, Qt::UserRole).value<void*>();
+    HelpTreeWidgetItem* helpItem = (HelpTreeWidgetItem*)helpItemPointer;
+    displayHelpTextForHelpTreeWidgetItem(helpItem);
+    helpTextFindNextButtonClicked();
 }
 
 /**
- * get all web page names and titles.
- *
- * @param pagesOut
- *    All help pages output.
+ * Called when search text is changed or return pressed to start
+ * searching the help topics
  */
 void
-HelpViewerDialog::getAllWebPages(QVector<QPair<QString,QString> >& pagesOut) const
+HelpViewerDialog::topicSearchLineEditStartSearch()
 {
-//    pagesOut.clear();
-//    
-//    //
-//    // Search through the tree widget to find all items with URLs
-//    //
-//    const int numItems = m_indexTreeWidget->topLevelItemCount();
-//    for (int i = 0; i < numItems; i++) {
-//        const QTreeWidgetItem* topItem = m_indexTreeWidget->topLevelItem(i);
-//        if (topItem->text(1).isEmpty() == false) {
-//            const QString pageName = topItem->text(0);
-//            const QString pageURL  = topItem->text(1);
-//            pagesOut.push_back(qMakePair(pageName, pageURL));
-//        }
-//        
-//        //
-//        // Search children of this item
-//        //
-//        const int numSubItems = topItem->childCount();
-//        for (int j = 0; j < numSubItems; j++) {
-//            const QTreeWidgetItem* subItem = topItem->child(j);
-//            if (subItem->text(1).isEmpty() == false) {
-//                const QString pageName = subItem->text(0);
-//                const QString pageURL  = subItem->text(1);
-//                pagesOut.push_back(qMakePair(pageName, pageURL));
-//            }
-//        }
-//    }
+    m_topicSearchTreeWidget->clear();
+    
+    const QString searchText = m_topicSearchLineEdit->text();
+    if ( ! searchText.isEmpty()) {
+        for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
+             iter != m_allHelpWidgetItems.end();
+             iter++) {
+            HelpTreeWidgetItem* helpItem = *iter;
+            if (helpItem->m_helpText.contains(searchText)) {
+                QTreeWidgetItem* searchItem = new QTreeWidgetItem(m_topicSearchTreeWidget);
+                searchItem->setText(0, helpItem->text(0));
+                
+                void* helpItemPointer = (void*)helpItem;
+                searchItem->setData(0, Qt::UserRole,
+                                    qVariantFromValue<void*>(helpItemPointer));
+            }
+        }
+
+        m_findInBrowserText = searchText;
+        m_findNextPushButton->setEnabled(true);
+    }   
 }
 
 /**
- * called to search all help pages.
+ * Called when the cursor position is changed
  */
 void
-HelpViewerDialog::slotSearchLineEdit()
+HelpViewerDialog::topicSearchLineEditCursorPositionChanged(int,int)
 {
-//    searchTreeWidget->clear();
-//    
-//    const QString searchText = searchLineEdit->text();
-//    if (searchText.isEmpty() == false) {
-//        QVector<QPair<QString,QString> > pages;
-//        getAllWebPages(pages);
-//        for (int i = 0; i < pages.count(); i++) {
-//            const QString pageTitle = pages[i].first.toAscii().constData();
-//            const QString pageURL   = pages[i].second.toAscii().constData();
-//            
-//            //std::cout << "Searching: "
-//            //          << pageTitle.toAscii().constData()
-//            //          << std::endl;
-//            if (FileUtilities::findTextInFile(pageURL, searchText, false)) {
-//                //std::cout << "   Page matches "
-//                //          << std::endl;
-//                searchTreeWidget->addTopLevelItem(createTreeItem(pageTitle, pageURL));
-//            }      
-//        }
-//        
-//        findInBrowserText = searchText;
-//        findNextPushButton->setEnabled(true);
-//    }   
+    if (m_topicSearchLineEditFirstMouseClick) {
+        m_topicSearchLineEditFirstMouseClick = false;
+        m_topicSearchLineEdit->clear();
+    }
 }
+
 
 
 // ========================================================================= //
 
-HelpTreeWidgetItem::HelpTreeWidgetItem(QTreeWidgetItem* parent,
-                                       CommandOperation* commandOperation)
-: QTreeWidgetItem(parent),
-m_treeItemType(TREE_ITEM_HELP_TEXT)
+
+/**
+ * Create a new help tree widget item for a wb_command item.
+ *
+ * @param parent
+ *    Parent for item in index.
+ * @param commandOperation
+ *    The command.
+ */
+HelpTreeWidgetItem*
+HelpTreeWidgetItem::newInstanceForCommandOperation(QTreeWidgetItem* parent,
+                                                   CommandOperation* commandOperation)
 {
-    setText(0, commandOperation->getOperationShortDescription());
-    m_helpText = commandOperation->getHelpInformation("wb_command");
+    const AString itemText = commandOperation->getOperationShortDescription();
+    const AString helpInfoCopy = commandOperation->getHelpInformation("wb_command");
+    const AString helpText = helpInfoCopy.convertToHtmlPage();
+    const AString helpPageURL("");
+    
+    HelpTreeWidgetItem* instance = new HelpTreeWidgetItem(parent,
+                                                          TREE_ITEM_HELP_TEXT,
+                                                          itemText,
+                                                          helpPageURL,
+                                                          helpText);
+    return instance;
 }
 
-HelpTreeWidgetItem::HelpTreeWidgetItem(QTreeWidgetItem* parent,
-                                       const AString& itemText,
-                                       const AString& helpPageURL)
-: QTreeWidgetItem(parent),
-m_treeItemType(TREE_ITEM_HELP_PAGE_URL)
+/**
+ * Create a new help tree widget item for a help page URL.
+ *
+ * @param parent
+ *    Parent for item in index.
+ * @param itemText
+ *    Text for the item shown in the topic index.
+ * @param helpPageURL
+ *    URL for the help page.
+ */
+HelpTreeWidgetItem*
+HelpTreeWidgetItem::newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
+                                           const AString& itemText,
+                                           const AString& helpPageURL)
 {
-    setText(0, itemText);
-    m_helpPageURL = helpPageURL;
+    CaretAssertMessage( ( ! itemText.startsWith(":/")),
+                       "All help pages must be resources (page name starts with \":/\")");
+    
+    QString helpText;
     
     QFile file(helpPageURL);
     if (file.exists()) {
         if (file.open(QFile::ReadOnly)) {
             QTextStream stream(&file);
-            m_helpText = stream.readAll();
+            helpText = stream.readAll();
             file.close();
         }
         else {
-            const QString msg("Error reading resource page \""
-                              + helpPageURL
-                              + "\": not found");
-            m_helpText = msg;
+            AString msg = ("Help file exists but unable to open for reading: "
+                           + helpPageURL);
             CaretLogSevere(msg);
+            msg = msg.convertToHtmlPage();
         }
     }
     else {
-        const QString msg("Help resource page \""
-                          + helpPageURL
-                          + "\": not found");
-        m_helpText = msg;
+        AString msg = ("HTML Help file missing: "
+                       + helpPageURL);
         CaretLogSevere(msg);
+        msg = msg.convertToHtmlPage();
     }
+    
+    HelpTreeWidgetItem* instance = new HelpTreeWidgetItem(parent,
+                                                          TREE_ITEM_HELP_TEXT,
+                                                          itemText,
+                                                          helpPageURL,
+                                                          helpText);
+    return instance;
 }
 
+/**
+ * Constructor.
+ *
+ * @param parent
+ *    Parent for item in index.
+ * @param treeItemType
+ *    Type of tree item.
+ * @param itemText
+ *    Text for the item shown in the topic index.
+ * @param helpPageURL
+ *    URL for external help pages
+ * @param helpText
+ *    Text displayed in help browser.
+ */
+HelpTreeWidgetItem::HelpTreeWidgetItem(QTreeWidgetItem* parent,
+                                       const TreeItemType treeItemType,
+                                       const AString& itemText,
+                                       const AString& helpPageURL,
+                                       const AString& helpText)
+: QTreeWidgetItem(parent),
+m_treeItemType(treeItemType),
+m_helpPageURL(helpPageURL),
+m_helpText(helpText)
+{
+    setText(0, itemText);
+}
+
+/**
+ * Destructor.
+ */
 HelpTreeWidgetItem::~HelpTreeWidgetItem()
 {
     

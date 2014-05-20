@@ -1306,7 +1306,9 @@ GuiManager::processShowHelpViewerDialog(BrainBrowserWindow* browserWindow,
     
     m_helpViewerDialog->updateDialog();
 
-    m_helpViewerDialog->showHelpPageWithName(helpPageName);
+    if ( ! helpPageName.isEmpty()) {
+        m_helpViewerDialog->showHelpPageWithName(helpPageName);
+    }
     
     m_helpViewerDialog->setVisible(true);
     m_helpViewerDialog->show();

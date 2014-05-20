@@ -58,17 +58,19 @@ namespace caret {
     private slots:
         void helpPageAnchorClicked(const QUrl&);
         
-        void indexTreeItemSelected(QTreeWidgetItem* item, int column);
+        void topicIndexTreeItemSelected(QTreeWidgetItem* item, int column);
         
-        void searchTreeItemSelected(QTreeWidgetItem* item, int column);
+        void topicSearchTreeItemSelected(QTreeWidgetItem* item, int column);
         
-        void slotPrint();
+        void helpTextPrintButtonClicked();
         
-        void slotFindInBrowser();
+        void helpTextFindButtonClicked();
         
-        void slotFindNextInBrowser();
+        void helpTextFindNextButtonClicked();
         
-        void slotSearchLineEdit();
+        void topicSearchLineEditStartSearch();
+        
+        void topicSearchLineEditCursorPositionChanged(int,int);
         
     private:
         enum TreeItemType {
@@ -81,15 +83,15 @@ namespace caret {
 
         HelpViewerDialog& operator=(const HelpViewerDialog&);
         
-        void loadIndexTree();
+        void loadHelpTopicsIntoIndexTree();
         
-        QTreeWidgetItem* createHelpPageFileItem(const AString& topicName,
-                                                const AString& filePath,
-                                                QTreeWidgetItem* parent) const;
+        HelpTreeWidgetItem* createHelpTreeWidgetItemForHelpPage(QTreeWidgetItem* parent,
+                                                                const AString& itemText,
+                                                                const AString& helpPageURL);
         
-        void getAllWebPages(QVector<QPair<QString,QString> >& pagesOut) const;
+        void displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem);
         
-        void loadPageAtURL(const AString& pageUrlText);
+        void displayHttpInUsersWebBrowser(const AString& urlText);
         
         /// the help browser
         QTextBrowser* m_helpBrowser;
@@ -97,11 +99,17 @@ namespace caret {
         /// the splitter
         QSplitter* m_splitter;
         
-        /// the index tree widget
-        QTreeWidget* m_indexTreeWidget;
+        /// the topic index tree widget
+        QTreeWidget* m_topicIndexTreeWidget;
         
         /// the search tree widget
-        QTreeWidget* m_searchTreeWidget;
+        QTreeWidget* m_topicSearchTreeWidget;
+        
+        /// line edit for searching topics
+        QLineEdit* m_topicSearchLineEdit;
+        
+        /// tracks first mouse click in search topic line edit
+        bool m_topicSearchLineEditFirstMouseClick;
         
         /// text when searching browser
         QString m_findInBrowserText;
@@ -109,8 +117,9 @@ namespace caret {
         /// find next toolbutton
         QToolButton* m_findNextPushButton;
         
-        /// line edit for searching web pages
-        QLineEdit* m_searchLineEdit;
+        /// All help pages
+        std::vector<HelpTreeWidgetItem*> m_allHelpWidgetItems;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -125,20 +134,29 @@ namespace caret {
             TREE_ITEM_HELP_TEXT
         };
         
-        HelpTreeWidgetItem(QTreeWidgetItem* parent,
-                           CommandOperation* commandOperation);
+        static HelpTreeWidgetItem* newInstanceForCommandOperation(QTreeWidgetItem* parent,
+                                                           CommandOperation* commandOperation);
         
+        static HelpTreeWidgetItem* newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
+                                                   const AString& itemText,
+                                                   const AString& helpPageURL);
+        
+    private:
         HelpTreeWidgetItem(QTreeWidgetItem* parent,
+                           const TreeItemType treeItemType,
                            const AString& itemText,
-                           const AString& helpPageURL);
+                           const AString& helpPageURL,
+                           const AString& helpText);
+        
+    public:
         
         virtual ~HelpTreeWidgetItem();
         
         const TreeItemType m_treeItemType;
         
-        AString m_helpPageURL;
+        const AString m_helpPageURL;
         
-        AString m_helpText;
+        const AString m_helpText;
         
         
     };
