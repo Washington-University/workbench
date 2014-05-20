@@ -35,7 +35,9 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiInterface* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
-                                const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
+                                const SurfaceFile* myLeftSurf = NULL, const MetricFile* myLeftAreas = NULL,
+                                const SurfaceFile* myRightSurf = NULL, const MetricFile* myRightAreas = NULL,
+                                const SurfaceFile* myCerebSurf = NULL, const MetricFile* myCerebAreas = NULL,
                                 const CiftiInterface* roiCifti = NULL, bool fixZerosVol = false, bool fixZerosSurf = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
