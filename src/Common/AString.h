@@ -89,6 +89,8 @@ namespace caret {
         
         AString convertURLsToHyperlinks() const;
         
+        AString convertToHtmlPage() const;
+        
         int32_t indexOfAnyChar(const AString& str,
                                const int from) const;
         

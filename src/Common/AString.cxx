@@ -478,7 +478,65 @@ AString::convertURLsToHyperlinks() const
 }
 
 /**
- * Returns the index position of any character in 
+ * Convert the text string to an HTML page by:
+ *    Enclosing between "<html><head></head><body>" and 
+ *    "</body></html>"
+ *
+ *    Replace some characters with their HTML escaped characters 
+ */
+AString
+AString::convertToHtmlPage() const
+{
+    /*
+     * If already HTML (assumes "html" is the first six characters),
+     * no need to convert.
+     */
+    if (this->startsWith("<html>",
+                         Qt::CaseInsensitive)) {
+        return *this;
+    }
+    
+    AString htmlString("<html><head></head><body>");
+    
+    const int64_t length = this->count();
+    for (int64_t i = 0; i < length; i++) {
+        const QChar ch = this->at(i);
+        switch (ch.toAscii()) {
+            case '&':
+                htmlString.append("&amp;");
+                break;
+            case '<':
+                htmlString.append("&lt;");
+                break;
+            case '>':
+                htmlString.append("&gt;");
+                break;
+            case '\'':
+                htmlString.append("&apos;");
+                break;
+            case '\"':
+                htmlString.append("&quot;");
+                break;
+            case ' ':
+                htmlString.append("&nbsp;");
+                break;
+            case '\n':
+                htmlString.append("<br>");
+                break;
+            default:
+                htmlString.append(ch);
+                break;
+        }
+        
+    }
+    
+    htmlString.append("</body></html>");
+    
+    return htmlString;
+}
+
+/**
+ * Returns the index position of any character in
  * 'str' in this string.
  * @param str  Characters that are searched
  *    for in this string.
