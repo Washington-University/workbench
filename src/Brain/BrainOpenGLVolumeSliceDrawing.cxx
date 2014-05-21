@@ -2182,18 +2182,32 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const DRAW_MODE drawMode,
                 break;
         }
         
-        /*
-         * For second and subsequent layers, polygon offset is needed to 
-         * prevent the previous and current layers from having similar 
-         * depth values.  If not, when a slice is rotated (particularly in
-         * in All Structure View, the under layer will sometimes be 
-         * displayed.
-         */
         if (drawMode == DRAW_MODE_ALL_STRUCTURES_VIEW) {
-            if (iVol > 0) {
-                glEnable(GL_POLYGON_OFFSET_FILL);
-                glPolygonOffset(-1.0, -1.0);
-            }
+            /*
+             * After the a slice is drawn in ALL view, some layers
+             * (volume surface outline) may be drawn in lines.  As the
+             * view is rotated, lines will partially appear and disappear
+             * due to the lines having the same (extremely close) depth
+             * values as the voxel polygons.  OpenGL's Polygon Offset
+             * only works with polygons and NOT with lines or points.
+             * So, polygon offset cannot be used to move the depth
+             * values for the lines and points "a little closer" to
+             * the user.  Instead, polygon offset is used to push
+             * the underlaying slices "a little bit away" from the 
+             * user.  
+             * 
+             * Resolves WB-414
+             */
+            const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
+            const float factor = 0.0;
+            const float units  = inverseSliceIndex * 1.0 + 1.0;
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(factor, units);
+            
+//            if (iVol > 0) {
+//                glEnable(GL_POLYGON_OFFSET_FILL);
+//                glPolygonOffset(-1.0, -1.0);
+//            }
         }
         
         /*
