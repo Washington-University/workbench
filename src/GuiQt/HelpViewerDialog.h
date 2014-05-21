@@ -60,13 +60,17 @@ namespace caret {
         
         void topicIndexTreeItemSelected(QTreeWidgetItem* item, int column);
         
-        void topicSearchTreeItemSelected(QTreeWidgetItem* item, int column);
+        void helpPageBackButtonClicked();
         
-        void helpTextPrintButtonClicked();
+        void helpPageForwardButtonClicked();
         
-        void helpTextFindButtonClicked();
+        void helpPagePrintButtonClicked();
+        
+        void helpTextFindPreviousButtonClicked();
         
         void helpTextFindNextButtonClicked();
+        
+        void helpTextSearchLineEditStartSearch();
         
         void topicSearchLineEditStartSearch();
         
@@ -79,19 +83,31 @@ namespace caret {
             TREE_ITEM_WB_COMMAND
         };
         
+        enum FindDirection {
+            FIND_BACKWARDS,
+            FIND_FORWARDS
+        };
+        
         HelpViewerDialog(const HelpViewerDialog&);
 
         HelpViewerDialog& operator=(const HelpViewerDialog&);
         
         void loadHelpTopicsIntoIndexTree();
         
+        void printHistory();
+        
         HelpTreeWidgetItem* createHelpTreeWidgetItemForHelpPage(QTreeWidgetItem* parent,
                                                                 const AString& itemText,
                                                                 const AString& helpPageURL);
         
-        void displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem);
+        void displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem,
+                                                  const bool addToHistoryFlag);
         
         void displayHttpInUsersWebBrowser(const AString& urlText);
+        
+        void addToHelpTopicHistory(HelpTreeWidgetItem* item);
+        
+        void findInHelpText(const FindDirection findDirection);
         
         /// the help browser
         QTextBrowser* m_helpBrowser;
@@ -102,28 +118,31 @@ namespace caret {
         /// the topic index tree widget
         QTreeWidget* m_topicIndexTreeWidget;
         
-        /// the search tree widget
-        QTreeWidget* m_topicSearchTreeWidget;
-        
         /// line edit for searching topics
         QLineEdit* m_topicSearchLineEdit;
         
         /// tracks first mouse click in search topic line edit
         bool m_topicSearchLineEditFirstMouseClick;
         
-        /// text when searching browser
-        QString m_findInBrowserText;
+        /// line edit for searching help text
+        QLineEdit* m_helpTextFindLineEdit;
+        
+        /// find previous toolbutton
+        QToolButton* m_helpTextFindPreviousToolButton;
         
         /// find next toolbutton
-        QToolButton* m_findNextPushButton;
+        QToolButton* m_helpTextFindNextToolButton;
         
         /// All help pages
         std::vector<HelpTreeWidgetItem*> m_allHelpWidgetItems;
         
+        std::vector<HelpTreeWidgetItem*> m_helpTopicHistoryItems;
+        
+        int32_t m_helpTopicHistoryIndex;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
-    
     
     class HelpTreeWidgetItem : public QTreeWidgetItem {
         

@@ -23,11 +23,10 @@
 #include "HelpViewerDialog.h"
 #undef __HELP_VIEWER_DIALOG_DECLARE__
 
-#include <QAction>
 #include <QDesktopServices>
 #include <QFile>
 #include <QHBoxLayout>
-#include <QInputDialog>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPrintDialog>
 #include <QPrinter>
@@ -71,6 +70,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
                     parent,
                     f)
 {
+    m_helpTopicHistoryIndex = -1;
     m_topicSearchLineEditFirstMouseClick = true;
     setApplyButtonText("");
 
@@ -88,110 +88,104 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     /*
      * Create the tree widget for the help topics
      */
-    QStringList indexTreeHeaderLabels;
-    indexTreeHeaderLabels << "Help Page Index" << "Location";
     m_topicIndexTreeWidget = new QTreeWidget;
-    m_topicIndexTreeWidget->setColumnCount(2);
-    m_topicIndexTreeWidget->setHeaderLabels(indexTreeHeaderLabels);
+    m_topicIndexTreeWidget->setColumnCount(1);
     m_topicIndexTreeWidget->setColumnHidden(0, false);
-    m_topicIndexTreeWidget->setColumnHidden(1, true);
+    m_topicIndexTreeWidget->headerItem()->setHidden(true);
     QObject::connect(m_topicIndexTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
                      this, SLOT(topicIndexTreeItemSelected(QTreeWidgetItem*,int)));
+    
     /*
      * Search line edit and list widget
      */
+    const AString searchText = ("All searches are case insensitive.\n"
+                                "\n"
+                                "You may use wildcard characters:\n"
+                                "    * - Matches any characters.\n"
+                                "    ? - Matches a single character.\n");
+    const AString topicSearchToolTipText = ("Enter text to search content of ALL help pages.\n"
+                                            + searchText);
     m_topicSearchLineEdit = new QLineEdit;
-    m_topicSearchLineEdit->setText("Enter search text here");
+    m_topicSearchLineEdit->setToolTip(topicSearchToolTipText.convertToHtmlPage());
+    //m_topicSearchLineEdit->setText("Enter topic search text here");
     QObject::connect(m_topicSearchLineEdit, SIGNAL(returnPressed()),
                      this, SLOT(topicSearchLineEditStartSearch()));
     QObject::connect(m_topicSearchLineEdit, SIGNAL(textEdited(const QString&)),
                      this, SLOT(topicSearchLineEditStartSearch()));
     QObject::connect(m_topicSearchLineEdit, SIGNAL(cursorPositionChanged(int,int)),
                      this, SLOT(topicSearchLineEditCursorPositionChanged(int,int)));
-    QStringList searchTreeHeaderLabels;
-    searchTreeHeaderLabels << "Matching Help Pages" << "Location";
-    m_topicSearchTreeWidget = new QTreeWidget;
-    m_topicSearchTreeWidget->setColumnCount(2);
-    m_topicSearchTreeWidget->setHeaderLabels(searchTreeHeaderLabels);
-    m_topicSearchTreeWidget->setColumnHidden(0, false);
-    m_topicSearchTreeWidget->setColumnHidden(1, true);
-    QObject::connect(m_topicSearchTreeWidget, SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-                     this, SLOT(topicSearchTreeItemSelected(QTreeWidgetItem*,int)));
-    QWidget* searchWidget = new QWidget;
-    QVBoxLayout* searchLayout = new QVBoxLayout(searchWidget);
-    searchLayout->addWidget(m_topicSearchLineEdit);
-    searchLayout->addWidget(m_topicSearchTreeWidget);
     
     /*
      * create the back toolbar button
      */
-    QAction* backwardAction = new QAction("Back", this);
-    connect(m_helpBrowser, SIGNAL(backwardAvailable(bool)),
-            backwardAction, SLOT(setEnabled(bool)));
-    connect(backwardAction, SIGNAL(triggered()),
-            m_helpBrowser, SLOT(backward()));
     QToolButton* backwardButton = new QToolButton;
-    backwardButton->setDefaultAction(backwardAction);
+    backwardButton->setArrowType(Qt::LeftArrow);
+    backwardButton->setToolTip("Show the previous page");
+    connect(backwardButton, SIGNAL(clicked()),
+            this, SLOT(helpPageBackButtonClicked()));
     
     /*
      * Create the forward toolbar button
      */
-    QAction* forewardAction = new QAction("Fwd", this);
-    connect(m_helpBrowser, SIGNAL(forwardAvailable(bool)),
-            forewardAction, SLOT(setEnabled(bool)));
-    connect(forewardAction, SIGNAL(triggered()),
-            m_helpBrowser, SLOT(forward()));
     QToolButton* forwardButton = new QToolButton;
-    connect(m_helpBrowser, SIGNAL(forwardAvailable(bool)),
-            forwardButton, SLOT(setEnabled(bool)));
-    forwardButton->setDefaultAction(forewardAction);
-    
-    /*
-     * Create the home toolbar button
-     */
-    QAction* homeAction = new QAction("Home", this);
-    connect(homeAction, SIGNAL(triggered()),
-            m_helpBrowser, SLOT(home()));
-    QToolButton* homeButton = new QToolButton;
-    homeButton->setDefaultAction(homeAction);
+    forwardButton->setArrowType(Qt::RightArrow);
+    forwardButton->setToolTip("Show the next page");
+    connect(forwardButton, SIGNAL(clicked()),
+            this, SLOT(helpPageForwardButtonClicked()));
     
     /*
      * Create the print toolbar button
      */
-    QAction* printAction = new QAction("Print", this);
-    connect(printAction, SIGNAL(triggered()),
-            this, SLOT(helpTextPrintButtonClicked()));
     QToolButton* printButton = new QToolButton;
-    printButton->setDefaultAction(printAction);
+    connect(printButton, SIGNAL(clicked()),
+            this, SLOT(helpPagePrintButtonClicked()));
+    printButton->setText("Print");
+    printButton->hide();
     
     /*
-     * Find button
+     * Line edit for searching help text
      */
-    QToolButton* findPushButton = new QToolButton;
-    findPushButton->setText("Find");
-    QObject::connect(findPushButton, SIGNAL(clicked()),
-                     this, SLOT(helpTextFindButtonClicked()));
+    const AString helpTextSearchToolTipText = ("Enter text to search displayed help page.\n"
+                                               "Press RETURN key to start the search.");
+    m_helpTextFindLineEdit = new QLineEdit;
+    m_helpTextFindLineEdit->setToolTip(helpTextSearchToolTipText.convertToHtmlPage());
+    QObject::connect(m_helpTextFindLineEdit, SIGNAL(returnPressed()),
+                     this, SLOT(helpTextSearchLineEditStartSearch()));
+    //QObject::connect(m_helpTextFindLineEdit, SIGNAL(textEdited(const QString&)),
+    //                 this, SLOT(helpTextSearchLineEditStartSearch()));
+
+    /*
+     * Find previous button
+     */
+    
+    m_helpTextFindPreviousToolButton = new QToolButton;
+    m_helpTextFindPreviousToolButton->setToolTip("Find previous location of text");
+    m_helpTextFindPreviousToolButton->setArrowType(Qt::UpArrow);
+    QObject::connect(m_helpTextFindPreviousToolButton, SIGNAL(clicked()),
+                     this, SLOT(helpTextFindPreviousButtonClicked()));
     
     /*
-     * Next button
+     * Find next button
      */
-    m_findNextPushButton = new QToolButton;
-    m_findNextPushButton->setText("Next");
-    m_findNextPushButton->setEnabled(false);
-    QObject::connect(m_findNextPushButton, SIGNAL(clicked()),
+    m_helpTextFindNextToolButton = new QToolButton;
+    m_helpTextFindNextToolButton->setToolTip("Find next location of text");
+    m_helpTextFindNextToolButton->setArrowType(Qt::DownArrow);
+    QObject::connect(m_helpTextFindNextToolButton, SIGNAL(clicked()),
                      this, SLOT(helpTextFindNextButtonClicked()));
     
     /*
      * Layout for toolbuttons
      */
     QHBoxLayout* toolButtonLayout = new QHBoxLayout;
-    toolButtonLayout->addWidget(homeButton);
+    toolButtonLayout->addWidget(new QLabel("Navigate:"));
     toolButtonLayout->addWidget(backwardButton);
     toolButtonLayout->addWidget(forwardButton);
     toolButtonLayout->addWidget(printButton);
-    toolButtonLayout->addWidget(findPushButton);
-    toolButtonLayout->addWidget(m_findNextPushButton);
     toolButtonLayout->addStretch();
+    toolButtonLayout->addWidget(new QLabel("Find:"));
+    toolButtonLayout->addWidget(m_helpTextFindLineEdit);
+    toolButtonLayout->addWidget(m_helpTextFindPreviousToolButton);
+    toolButtonLayout->addWidget(m_helpTextFindNextToolButton);
     
     /*
      * Layout for help browser and buttons
@@ -202,18 +196,19 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     helpBrowserLayout->addWidget(m_helpBrowser);
     
     /*
-     * Tab widget for index and search
+     * Layout for search line edit and topics
      */
-    QTabWidget* indexSearchTabWidget = new QTabWidget;
-    indexSearchTabWidget->addTab(m_topicIndexTreeWidget, "Index");
-    indexSearchTabWidget->addTab(searchWidget, "Search");
-    
+    QWidget* topicWidgets = new QWidget();
+    QVBoxLayout* topicLayout = new QVBoxLayout(topicWidgets);
+    topicLayout->addWidget(m_topicSearchLineEdit);
+    topicLayout->addWidget(m_topicIndexTreeWidget);
+
     /*
      * Create the splitter and add the widgets to the splitter
      */
     m_splitter = new QSplitter;
     m_splitter->setOrientation(Qt::Horizontal);
-    m_splitter->addWidget(indexSearchTabWidget);
+    m_splitter->addWidget(topicWidgets);
     m_splitter->addWidget(helpBrowserWidgets);
     QList<int> sizeList;
     sizeList << 175 << 375;
@@ -267,56 +262,6 @@ HelpViewerDialog::showHelpPageWithName(const AString& helpPageName)
     CaretLogSevere("Could not find help page \""
                    + helpPageName
                    + "\" for loading.");
-}
-
-/**
- * called to find in browser window.
- */
-void
-HelpViewerDialog::helpTextFindButtonClicked()
-{
-    bool ok = false;
-    const QString txt = QInputDialog::getText(this,
-                                              "Find",
-                                              "Find Text",
-                                              QLineEdit::Normal,
-                                              m_findInBrowserText,
-                                              &ok);
-    if (ok) {
-        m_findNextPushButton->setEnabled(false);
-        m_findInBrowserText = txt.trimmed();
-        if (m_findInBrowserText.isEmpty() == false) {
-            m_helpBrowser->moveCursor(QTextCursor::Start);
-            if (m_helpBrowser->find(m_findInBrowserText)) {
-                m_findNextPushButton->setEnabled(true);
-            }
-        }
-    }
-}
-
-/**
- * called to find next in browser window.
- */
-void
-HelpViewerDialog::helpTextFindNextButtonClicked()
-{
-    if (m_helpBrowser->find(m_findInBrowserText) == false) {
-        m_helpBrowser->moveCursor(QTextCursor::Start);
-        m_helpBrowser->find(m_findInBrowserText);
-    }
-}
-
-/**
- * called to print currently displayed page.
- */
-void
-HelpViewerDialog::helpTextPrintButtonClicked()
-{
-    QPrinter printer;
-    QPrintDialog* printDialog = new QPrintDialog(&printer, this);
-    if (printDialog->exec() == QPrintDialog::Accepted) {
-        m_helpBrowser->document()->print(&printer);
-    }
 }
 
 /**
@@ -445,17 +390,9 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
                                                                                            op);
             m_allHelpWidgetItems.push_back(item);
         }
-//        const uint64_t numberOfCommands = commandOperations.size();
-//        for (uint64_t i = 0; i < numberOfCommands; i++) {
-//            CommandOperation* op = commandOperations[i];
-//            
-//            /*
-//             * Gets added to its parent in constructor
-//             */
-//            HelpTreeWidgetItem* item = new HelpTreeWidgetItem(wbCommandItem,
-//                                                              op);
-//            m_allHelpWidgetItems.push_back(item);
-//        }
+        
+        m_topicIndexTreeWidget->setItemExpanded(wbCommandItem,
+                                                true);
     }
     
     m_topicIndexTreeWidget->blockSignals(false);
@@ -504,19 +441,93 @@ HelpViewerDialog::topicIndexTreeItemSelected(QTreeWidgetItem* item, int /*column
          */
         HelpTreeWidgetItem* helpItem = dynamic_cast<HelpTreeWidgetItem*>(item);
         if (helpItem != NULL) {
-            displayHelpTextForHelpTreeWidgetItem(helpItem);
+            displayHelpTextForHelpTreeWidgetItem(helpItem,
+                                                 true);
         }
     }
 }
+
+/**
+ * Called when help text back button is clicked.
+ */
+void
+HelpViewerDialog::helpPageBackButtonClicked()
+{
+    if (m_helpTopicHistoryIndex > 0) {
+        m_helpTopicHistoryIndex--;
+        if (m_helpTopicHistoryIndex < static_cast<int32_t>(m_helpTopicHistoryItems.size())) {
+            displayHelpTextForHelpTreeWidgetItem(m_helpTopicHistoryItems[m_helpTopicHistoryIndex],
+                                                 false);
+            printHistory();
+        }
+    }
+}
+
+/**
+ * Called when help text forward button is clicked.
+ */
+void
+HelpViewerDialog::helpPageForwardButtonClicked()
+{
+    if (m_helpTopicHistoryIndex >= 0) {
+        if (m_helpTopicHistoryIndex < (static_cast<int32_t>(m_helpTopicHistoryItems.size() - 1))) {
+            m_helpTopicHistoryIndex++;
+            displayHelpTextForHelpTreeWidgetItem(m_helpTopicHistoryItems[m_helpTopicHistoryIndex],
+                                                 false);
+            printHistory();
+        }
+    }
+}
+
+
+/**
+ * Add to help topic history
+ *
+ * @param item
+ *     new item for history
+ */
+void
+HelpViewerDialog::addToHelpTopicHistory(HelpTreeWidgetItem* item)
+{
+    if (m_helpTopicHistoryIndex >= 0) {
+        if (m_helpTopicHistoryIndex < static_cast<int32_t>(m_helpTopicHistoryItems.size() - 1)) {
+            m_helpTopicHistoryItems.erase(m_helpTopicHistoryItems.begin() + m_helpTopicHistoryIndex + 1,
+                                         m_helpTopicHistoryItems.end());
+        }
+    }
+    
+    m_helpTopicHistoryItems.push_back(item);
+    m_helpTopicHistoryIndex = m_helpTopicHistoryItems.size() - 1;
+    
+    printHistory();
+}
+
+void
+HelpViewerDialog::printHistory()
+{
+    const bool showHistory = false;
+    if (showHistory) {
+        const int32_t numHistory = static_cast<int32_t>(m_helpTopicHistoryItems.size());
+        for (int32_t i = 0; i < numHistory; i++) {
+            std::cout << i << ": " << qPrintable(m_helpTopicHistoryItems[i]->text(0)) << std::endl;
+        }
+        std::cout << "History Index: " << m_helpTopicHistoryIndex << std::endl;
+        std::cout << std::endl;
+    }
+}
+
 
 /**
  * Display the help information for the given help item.
  *
  * @param helpItem
  *    Item for which help text is loaded.
+ * @param addToHistoryFlag
+ *    Add item to the history.
  */
 void
-HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem)
+HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpItem,
+                                                       const bool addToHistoryFlag)
 {
     CaretAssert(helpItem);
     switch (helpItem->m_treeItemType) {
@@ -524,10 +535,14 @@ HelpViewerDialog::displayHelpTextForHelpTreeWidgetItem(HelpTreeWidgetItem* helpI
             break;
         case HelpTreeWidgetItem::TREE_ITEM_HELP_PAGE_URL:
             displayHttpInUsersWebBrowser(helpItem->m_helpPageURL);
+            addToHelpTopicHistory(helpItem);
             break;
         case HelpTreeWidgetItem::TREE_ITEM_HELP_TEXT:
             m_helpBrowser->clear();
             m_helpBrowser->setText(helpItem->m_helpText);
+            if (addToHistoryFlag) {
+                addToHelpTopicHistory(helpItem);
+            }
             break;
     }
 }
@@ -587,7 +602,8 @@ HelpViewerDialog::helpPageAnchorClicked(const QUrl& url)
                 HelpTreeWidgetItem* item = *iter;
                 CaretAssert(item);
                 if (item->m_helpPageURL.endsWith(htmlPageName)) {
-                    displayHelpTextForHelpTreeWidgetItem(item);
+                    displayHelpTextForHelpTreeWidgetItem(item,
+                                                         true);
                     foundMatchingPage = true;
                     break;
                 }
@@ -604,52 +620,121 @@ HelpViewerDialog::helpPageAnchorClicked(const QUrl& url)
 }
 
 /**
- * called when a topic search tree item is clicked.
- *
- * @param item
- *     Tree widget item that was clicked.
- * @param column
- *     Column of item.
- */
-void
-HelpViewerDialog::topicSearchTreeItemSelected(QTreeWidgetItem* item, int /*column*/)
-{
-    CaretAssert(item);
-    
-    void* helpItemPointer = item->data(0, Qt::UserRole).value<void*>();
-    HelpTreeWidgetItem* helpItem = (HelpTreeWidgetItem*)helpItemPointer;
-    displayHelpTextForHelpTreeWidgetItem(helpItem);
-    helpTextFindNextButtonClicked();
-}
-
-/**
  * Called when search text is changed or return pressed to start
  * searching the help topics
  */
 void
 HelpViewerDialog::topicSearchLineEditStartSearch()
 {
-    m_topicSearchTreeWidget->clear();
+    const QString searchText = m_topicSearchLineEdit->text().trimmed();
+    const bool haveSearchTextFlag = ( ! searchText.isEmpty());
     
-    const QString searchText = m_topicSearchLineEdit->text();
-    if ( ! searchText.isEmpty()) {
-        for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
-             iter != m_allHelpWidgetItems.end();
-             iter++) {
-            HelpTreeWidgetItem* helpItem = *iter;
-            if (helpItem->m_helpText.contains(searchText)) {
-                QTreeWidgetItem* searchItem = new QTreeWidgetItem(m_topicSearchTreeWidget);
-                searchItem->setText(0, helpItem->text(0));
-                
-                void* helpItemPointer = (void*)helpItem;
-                searchItem->setData(0, Qt::UserRole,
-                                    qVariantFromValue<void*>(helpItemPointer));
+    QRegExp regEx;
+    bool haveWildcardSearchFlag = false;
+    if (haveSearchTextFlag) {
+        if (searchText.contains('*')
+            || searchText.contains('?')) {
+            haveWildcardSearchFlag = true;
+            regEx.setPatternSyntax(QRegExp::Wildcard);
+            regEx.setPattern(searchText);
+            regEx.setCaseSensitivity(Qt::CaseInsensitive);
+        }
+    }
+    
+    for (std::vector<HelpTreeWidgetItem*>::iterator iter = m_allHelpWidgetItems.begin();
+         iter != m_allHelpWidgetItems.end();
+         iter++) {
+        HelpTreeWidgetItem* helpItem = *iter;
+        
+        bool showItemFlag = true;
+        if (haveSearchTextFlag) {
+            showItemFlag = false;
+            
+            if (haveWildcardSearchFlag) {
+                if (regEx.exactMatch(helpItem->m_helpText)) {
+                    showItemFlag = true;
+                }
+            }
+            else if (helpItem->m_helpText.contains(searchText,
+                                                      Qt::CaseInsensitive)) {
+                showItemFlag = true;
             }
         }
+        helpItem->setHidden( ! showItemFlag);
+    }
+}
 
-        m_findInBrowserText = searchText;
-        m_findNextPushButton->setEnabled(true);
-    }   
+/**
+ * Called to search the text of the displayed help page.
+ */
+void
+HelpViewerDialog::helpTextSearchLineEditStartSearch()
+{
+    findInHelpText(FIND_FORWARDS);
+}
+
+/**
+ * called to find in browser window.
+ */
+void
+HelpViewerDialog::helpTextFindPreviousButtonClicked()
+{
+    findInHelpText(FIND_BACKWARDS);
+}
+
+/**
+ * called to find next in browser window.
+ */
+void
+HelpViewerDialog::helpTextFindNextButtonClicked()
+{
+    findInHelpText(FIND_FORWARDS);
+}
+
+/**
+ * Execute a find operation in the help text.
+ *
+ * @param findDirection
+ *     Direction for the find operation.
+ */
+void
+HelpViewerDialog::findInHelpText(const FindDirection findDirection)
+{
+    const QString searchText = m_helpTextFindLineEdit->text().trimmed();
+    const bool haveSearchTextFlag = ( ! searchText.isEmpty());
+    
+    if (haveSearchTextFlag) {
+        switch (findDirection) {
+            case FIND_BACKWARDS:
+                if (! m_helpBrowser->find(searchText,
+                                          QTextDocument::FindBackward)) {
+                    m_helpBrowser->moveCursor(QTextCursor::End);
+                    m_helpBrowser->find(searchText,
+                                        QTextDocument::FindBackward);
+                }
+                break;
+            case FIND_FORWARDS:
+                if (! m_helpBrowser->find(searchText)) {
+                    m_helpBrowser->moveCursor(QTextCursor::Start);
+                    m_helpBrowser->find(searchText);
+                }
+                break;
+        }
+    }
+}
+
+
+/**
+ * called to print currently displayed page.
+ */
+void
+HelpViewerDialog::helpPagePrintButtonClicked()
+{
+    QPrinter printer;
+    QPrintDialog* printDialog = new QPrintDialog(&printer, this);
+    if (printDialog->exec() == QPrintDialog::Accepted) {
+        m_helpBrowser->document()->print(&printer);
+    }
 }
 
 /**
@@ -661,6 +746,7 @@ HelpViewerDialog::topicSearchLineEditCursorPositionChanged(int,int)
     if (m_topicSearchLineEditFirstMouseClick) {
         m_topicSearchLineEditFirstMouseClick = false;
         m_topicSearchLineEdit->clear();
+        topicSearchLineEditStartSearch();
     }
 }
 
@@ -725,14 +811,14 @@ HelpTreeWidgetItem::newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
             AString msg = ("Help file exists but unable to open for reading: "
                            + helpPageURL);
             CaretLogSevere(msg);
-            msg = msg.convertToHtmlPage();
+            helpText = msg.convertToHtmlPage();
         }
     }
     else {
         AString msg = ("HTML Help file missing: "
                        + helpPageURL);
         CaretLogSevere(msg);
-        msg = msg.convertToHtmlPage();
+        helpText = msg.convertToHtmlPage();
     }
     
     HelpTreeWidgetItem* instance = new HelpTreeWidgetItem(parent,
