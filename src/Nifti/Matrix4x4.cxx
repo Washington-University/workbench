@@ -51,6 +51,7 @@
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
+#include "NiftiEnums.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -122,8 +123,8 @@ void
 Matrix4x4::initializeMembersMatrix4x4()
 {
     this->identity();
-    this->dataSpaceName ="";
-    this->transformedSpaceName ="";
+    this->dataSpaceName = NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH);
+    this->transformedSpaceName = NiftiTransformEnum::toName(NiftiTransformEnum::NIFTI_XFORM_TALAIRACH);
     this->clearModified();
 }
 /**
