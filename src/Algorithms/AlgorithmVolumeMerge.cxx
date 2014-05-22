@@ -53,7 +53,7 @@ OperationParameters* AlgorithmVolumeMerge::getParameters()
         AString("Takes one or more volume files and constructs a new volume file by concatenating subvolumes from them.  ") +
         "The input volume files must have the same volume space.\n\n" +
         "Example: wb_command -volume-merge out.nii -volume first.nii -subvolume 1 -volume second.nii\n\n" +
-        "This example would take the first subvolume from first.nii and all subvolumes from second.nii, " +
+        "This example would take the first subvolume from first.nii, followed by all subvolumes from second.nii, " +
         "and write these to out.nii."
     );
     return ret;

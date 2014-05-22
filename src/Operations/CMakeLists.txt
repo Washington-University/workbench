@@ -21,6 +21,7 @@ OperationAddToSpecFile.h
 OperationBackendAverageDenseROI.h
 OperationBackendAverageROICorrelation.h
 OperationBorderFileExportToCaret5.h
+OperationBorderMerge.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationCiftiConvertToScalar.h
@@ -84,6 +85,7 @@ OperationAddToSpecFile.cxx
 OperationBackendAverageDenseROI.cxx
 OperationBackendAverageROICorrelation.cxx
 OperationBorderFileExportToCaret5.cxx
+OperationBorderMerge.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationCiftiConvertToScalar.cxx

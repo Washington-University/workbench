@@ -119,6 +119,7 @@
 #include "OperationBackendAverageDenseROI.h"
 #include "OperationBackendAverageROICorrelation.h"
 #include "OperationBorderFileExportToCaret5.h"
+#include "OperationBorderMerge.h"
 #include "OperationCiftiChangeTimestep.h"
 #include "OperationCiftiConvert.h"
 #include "OperationCiftiConvertToScalar.h"
@@ -327,6 +328,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageDenseROI()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageROICorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderFileExportToCaret5()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationBorderMerge()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeTimestep()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
