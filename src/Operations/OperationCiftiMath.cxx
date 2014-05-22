@@ -21,12 +21,12 @@
 #include "OperationCiftiMath.h"
 #include "OperationException.h"
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMathExpression.h"
 #include "CiftiFile.h"
-
-//prepare for 3+ dimensions early
 #include "CiftiXML.h"
+#include "MultiDimIterator.h"
 
 using namespace caret;
 using namespace std;
@@ -226,32 +226,47 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
         {
             outXML.setMap(i, dummyMap);//so, make it a length-1 scalar with no name and empty metadata
         }
+        CaretAssert(outDims[i] == outXML.getDimensionLength(i));
     }
-    if (outXML.getNumberOfDimensions() != 2) throw OperationException("output must have exactly 2 dimensions");
+    if (outXML.getNumberOfDimensions() < 1) throw OperationException("output must have at least 1 dimension");
     myCiftiOut->setCiftiXML(outXML);
-    int numRows = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN), numOutCols = outXML.getDimensionLength(CiftiXML::ALONG_ROW);
-    vector<float> values(numVars), scratchRow(numOutCols);
+    vector<float> values(numVars), scratchRow(outDims[0]);
     vector<vector<float> > inputRows(numVars);
-    for (int v = 0; v < numVars; ++v)//HACK: this code ONLY works in the 2D case, rework from here to the end when allowing 3+ dims
+    vector<vector<int64_t> > loadedRow(numVars);//to detect and prevent rereading the same row
+    for (int v = 0; v < numVars; ++v)
     {
-        inputRows[v].resize(varCiftiFiles[v]->getCiftiXMLOld().getNumberOfColumns());
-        if (selectInfo[v][1] != -1)//if -select 2 (dimension 1) is used, read the row only once
-        {
-            varCiftiFiles[v]->getRow(inputRows[v].data(), selectInfo[v][1]);
-        }
+        inputRows[v].resize(varCiftiFiles[v]->getCiftiXML().getDimensionLength(CiftiXML::ALONG_ROW));
+        loadedRow[v].resize(varCiftiFiles[v]->getCiftiXML().getNumberOfDimensions() - 1, -1);//we always load a full row, so ignore first dim
     }
-    for (int i = 0; i < numRows; ++i)
+    for (MultiDimIterator<int64_t> iter(vector<int64_t>(outDims.begin() + 1, outDims.end())); !iter.atEnd(); ++iter)
     {
-        for (int v = 0; v < numVars; ++v)
+        for (int v = 0; v < numVars; ++v)//first, retrieve whichever rows are needed
         {
-            if (selectInfo[v][1] == -1)//only request rows in the loop for files that did not have -select 1
+            bool needToLoad = false;
+            for (int dim = 0; dim < (int)loadedRow[v].size(); ++dim)
             {
-                varCiftiFiles[v]->getRow(inputRows[v].data(), i);
+                int64_t indexNeeded = -1;
+                if (selectInfo[v][dim + 1] == -1)
+                {
+                    CaretAssert(dim + 1 < (int)outDims.size());//"match to output index" can't work past output dimensionality
+                    indexNeeded = (*iter)[dim];//NOTE: iter also doesn't include the first dim
+                } else {
+                    indexNeeded = selectInfo[v][dim + 1];
+                }
+                if (indexNeeded != loadedRow[v][dim])
+                {
+                    needToLoad = true;
+                    loadedRow[v][dim] = indexNeeded;
+                }
+            }
+            if (needToLoad)
+            {
+                varCiftiFiles[v]->getRow(inputRows[v].data(), loadedRow[v]);
             }
         }
-        for (int j = 0; j < numOutCols; ++j)
+        for (int j = 0; j < outDims[0]; ++j)
         {
-            for (int v = 0; v < numVars; ++v)
+            for (int v = 0; v < numVars; ++v)//now we check for select along row
             {
                 if (selectInfo[v][0] == -1)
                 {
@@ -266,6 +281,6 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
                 scratchRow[j] = nanfixval;
             }
         }
-        myCiftiOut->setRow(scratchRow.data(), i);
+        myCiftiOut->setRow(scratchRow.data(), *iter);
     }
 }
