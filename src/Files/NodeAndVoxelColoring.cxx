@@ -36,6 +36,7 @@
 #include "DescriptiveStatistics.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GroupAndNameHierarchyItem.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "CaretOMP.h"
@@ -544,12 +545,14 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
 
         switch (colorDataType) {
             case COLOR_TYPE_FLOAT:
+                CaretAssertArrayIndex(rgbaFloat, numberOfScalars * 4, i*4+3);
                 rgbaFloat[i4]   = rgbaOut[0];
                 rgbaFloat[i4+1] = rgbaOut[1];
                 rgbaFloat[i4+2] = rgbaOut[2];
                 rgbaFloat[i4+3] = rgbaOut[3];
                 break;
             case COLOR_TYPE_UNSIGNED_BTYE:
+                CaretAssertArrayIndex(rgbaUnsignedByte, numberOfScalars * 4, i*4+3);
                 rgbaUnsignedByte[i4]   = rgbaOut[0] * 255.0;
                 rgbaUnsignedByte[i4+1] = rgbaOut[1] * 255.0;
                 rgbaUnsignedByte[i4+2] = rgbaOut[2] * 255.0;
@@ -667,21 +670,124 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
  *     The indices are are used to access colors in the label table.
  * @param numberOfIndices
  *     Number of indices.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbv
  *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
  */
 void
-NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(const GiftiLabelTable* labelTable,
                                                  const float* labelIndices,
                                                  const int64_t numberOfIndices,
+                                                 const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex,
                                                  float* rgbv)
 {
+    NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(labelTable,
+                                                            labelIndices,
+                                                            numberOfIndices,
+                                                            displayGroup,
+                                                            tabIndex,
+                                                            COLOR_TYPE_FLOAT,
+                                                            (void*)rgbv);
+}
+
+/**
+ * Assign colors to label indices using a GIFTI label table.
+ *
+ * @param labelTabl
+ *     Label table used for coloring and indexing with label indices.
+ * @param labelIndices
+ *     The indices are are used to access colors in the label table.
+ * @param numberOfIndices
+ *     Number of indices.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbv
+ *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
+ */
+void
+NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(const GiftiLabelTable* labelTable,
+                                                 const float* labelIndices,
+                                                 const int64_t numberOfIndices,
+                                                 const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t tabIndex,
+                                                 uint8_t* rgbv)
+{
+    NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(labelTable,
+                                                            labelIndices,
+                                                            numberOfIndices,
+                                                            displayGroup,
+                                                            tabIndex,
+                                                            COLOR_TYPE_UNSIGNED_BTYE,
+                                                            (void*)rgbv);
+}
+
+/**
+ * Assign colors to label indices using a GIFTI label table.
+ *
+ * @param labelTabl
+ *     Label table used for coloring and indexing with label indices.
+ * @param labelIndices
+ *     The indices are are used to access colors in the label table.
+ * @param numberOfIndices
+ *     Number of indices.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param colorDataType
+ *    Data type of the rgbaOut parameter
+ * @param rgbaOutPointer
+ *    RGBA Colors that are output.  This is a VOID type and its
+ *    true type is provided by the previous parameter colorDataType.
+ * @param rgbv
+ *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
+ */
+void
+NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(const GiftiLabelTable* labelTable,
+                                                        const float* labelIndices,
+                                                        const int64_t numberOfIndices,
+                                                        const DisplayGroupEnum::Enum displayGroup,
+                                                        const int32_t tabIndex,
+                                                        const ColorDataType colorDataType,
+                                                        void* rgbaOutPointer)
+{
+    /*
+     * Cast to data type for rgba coloring
+     */
+    float* rgbaFloat = NULL;
+    uint8_t* rgbaUnsignedByte = NULL;
+    switch (colorDataType) {
+        case COLOR_TYPE_FLOAT:
+            rgbaFloat = (float*)rgbaOutPointer;
+            break;
+        case COLOR_TYPE_UNSIGNED_BTYE:
+            rgbaUnsignedByte = (uint8_t*)rgbaOutPointer;
+            break;
+    }
+    
+    
     /*
      * Invalidate all coloring.
      */
-    for (int64_t i = 0; i < numberOfIndices; i++) {
-        rgbv[i*4+3] = 0.0;
+    switch (colorDataType) {
+        case COLOR_TYPE_FLOAT:
+            for (int64_t i = 0; i < numberOfIndices; i++) {
+                rgbaFloat[i*4+3] = 0.0;
+            }
+            break;
+        case COLOR_TYPE_UNSIGNED_BTYE:
+            for (int64_t i = 0; i < numberOfIndices; i++) {
+                rgbaUnsignedByte[i*4+3] = 0;
+            }
+            break;
     }
+    
     /*
      * Assign colors from labels to nodes
      */
@@ -690,13 +796,44 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
         const int64_t labelIndex = static_cast<int64_t>(labelIndices[i]);
         const GiftiLabel* gl = labelTable->getLabel(labelIndex);
         if (gl != NULL) {
-            gl->getColor(labelRGBA);
-            if (labelRGBA[3] > 0.0) {
-                const int64_t i4 = i * 4;
-                rgbv[i4]   = labelRGBA[0];
-                rgbv[i4+1] = labelRGBA[1];
-                rgbv[i4+2] = labelRGBA[2];
-                rgbv[i4+3] = 1.0;
+            const GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
+            if (item != NULL) {
+                bool colorDataFlag = false;
+                if (tabIndex == NodeAndVoxelColoring::INVALID_TAB_INDEX) {
+                    colorDataFlag = true;
+                }
+                else if (item->isSelected(displayGroup, tabIndex)) {
+                    colorDataFlag = true;
+                }
+                
+                if (colorDataFlag) {
+                    gl->getColor(labelRGBA);
+                    if (labelRGBA[3] > 0.0) {
+                        const int64_t i4 = i * 4;
+                        
+                        switch (colorDataType) {
+                            case COLOR_TYPE_FLOAT:
+                                CaretAssertArrayIndex(rgbaFloat, numberOfIndices * 4, i*4+3);
+                                rgbaFloat[i*4] = labelRGBA[0];
+                                rgbaFloat[i*4+1] = labelRGBA[1];
+                                rgbaFloat[i*4+2] = labelRGBA[2];
+                                rgbaFloat[i*4+3] = labelRGBA[3];
+                                break;
+                            case COLOR_TYPE_UNSIGNED_BTYE:
+                                CaretAssertArrayIndex(rgbaUnsignedByte, numberOfIndices * 4, i*4+3);
+                                rgbaUnsignedByte[i4]   = labelRGBA[0] * 255.0;
+                                rgbaUnsignedByte[i4+1] = labelRGBA[1] * 255.0;
+                                rgbaUnsignedByte[i4+2] = labelRGBA[2] * 255.0;
+                                if (labelRGBA[3] > 0.0) {
+                                    rgbaUnsignedByte[i4+3] = labelRGBA[3] * 255.0;
+                                }
+                                else {
+                                    rgbaUnsignedByte[i4+3] = 0;
+                                }
+                                break;
+                        }
+                    }
+                }
             }
         }
     }
@@ -711,35 +848,58 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
  *     The indices are are used to access colors in the label table.
  * @param numberOfIndices
  *     Number of indices.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @param rgbv
  *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
  */
 void
 NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
-                                                 const float* labelIndices,
-                                                 const int64_t numberOfIndices,
-                                                 uint8_t* rgbv)
+                                                                   const float* labelIndices,
+                                                                   const int64_t numberOfIndices,
+                                                                   float* rgbv)
 {
-    if (numberOfIndices <= 0) {
-        return;
-    }
-    const int64_t numRGBA = numberOfIndices * 4;
-    std::vector<float> rgbaFloatVector(numRGBA);
-    float* rgbaFloat = &rgbaFloatVector[0];
+    NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(labelTable,
+                                                                              labelIndices,
+                                                                              numberOfIndices,
+                                                                              DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                              NodeAndVoxelColoring::INVALID_TAB_INDEX,
+                                                                              COLOR_TYPE_FLOAT,
+                                                                              (void*)rgbv);
+}
+
+/**
+ * Assign colors to label indices using a GIFTI label table.
+ *
+ * @param labelTabl
+ *     Label table used for coloring and indexing with label indices.
+ * @param labelIndices
+ *     The indices are are used to access colors in the label table.
+ * @param numberOfIndices
+ *     Number of indices.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbv
+ *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
+ */
+void
+NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                                                   const float* labelIndices,
+                                                                   const int64_t numberOfIndices,
+                                                                   uint8_t* rgbv)
+{
     
-    NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
-                                                     labelIndices,
-                                                     numberOfIndices,
-                                                     rgbaFloat);
-    
-    for (int64_t i = 0; i < numRGBA; i++) {
-        if (rgbaFloat[i] < 0.0) {
-            rgbv[i] = 0;
-        }
-        else {
-            rgbv[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
-        }
-    }
+    NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(labelTable,
+                                                                              labelIndices,
+                                                                              numberOfIndices,
+                                                                              DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                              NodeAndVoxelColoring::INVALID_TAB_INDEX,
+                                                                              COLOR_TYPE_UNSIGNED_BTYE,
+                                                                              (void*)rgbv);
 }
 
 /**

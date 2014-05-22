@@ -38,10 +38,10 @@ namespace caret {
         
         virtual ~VolumeFileVoxelColorizer();
         
-        void assignVoxelColorsForMapInBackground(const int32_t mapIndex,
-                                                 const Palette* palette,
-                                                 const VolumeFile* thresholdVolume,
-                                                 const int32_t thresholdVolumeMapIndex);
+//        void assignVoxelColorsForMapInBackground(const int32_t mapIndex,
+//                                                 const Palette* palette,
+//                                                 const VolumeFile* thresholdVolume,
+//                                                 const int32_t thresholdVolumeMapIndex);
         
         void assignVoxelColorsForMap(const int32_t mapIndex,
                                      const Palette* palette,

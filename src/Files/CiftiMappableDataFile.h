@@ -25,6 +25,7 @@
 #include "CaretMappableDataFile.h"
 #include "CaretPointer.h"
 #include "CiftiXMLElements.h"
+#include "DisplayGroupEnum.h"
 #include "VolumeMappableInterface.h"
 
 #include <set>

@@ -3111,6 +3111,20 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
         }
     }
     
+    const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
+    const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
+    const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
+                                                                                                browserTabIndex);
+    bool isOutlineMode = false;
+    switch (labelDrawingType) {
+        case LabelDrawingTypeEnum::DRAW_FILLED:
+            break;
+        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+            isOutlineMode = true;
+            break;
+    }
+    
     /*
      * Color voxel values
      */
@@ -3147,9 +3161,11 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
             }
             else if (mappableFile->isMappedWithLabelTable()) {
                 GiftiLabelTable* labelTable = mappableFile->getMapLabelTable(mapIndex);
-                NodeAndVoxelColoring::colorIndicesWithLabelTable(labelTable,
+                NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
                                                                  values,
                                                                  numValues,
+                                                                 displayGroup,
+                                                                 browserTabIndex,
                                                                  rgba);
             }
             else {

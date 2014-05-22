@@ -1029,53 +1029,6 @@ VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
     }
 }
 
-///**
-// * Assign colors for all maps in this volume file.
-// * Does nothing if coloring is not enabled.
-// *
-// * @param paletteFile
-// *     File containing the palettes.
-// */
-//void
-//VolumeFile::assignVoxelColorsForAllMaps(const PaletteFile* paletteFile)
-//{
-//    if (s_voxelColoringEnabled == false) {
-//        return;
-//    }
-//    
-//    CaretAssert(m_voxelColorizer);
-//    
-//    const int32_t numberOfMaps = getNumberOfMaps();
-//    for (int32_t iMap = 0; iMap < numberOfMaps; iMap++) {
-//        assignVoxelColorsForMap(iMap,
-//                                paletteFile);
-////        const bool usesPalette = isMappedWithPalette();
-////        const PaletteColorMapping* pcm = (usesPalette
-////                                          ? getMapPaletteColorMapping(iMap)
-////                                          : NULL);
-////        const AString paletteName = (usesPalette
-////                                     ? pcm->getSelectedPaletteName()
-////                                     : "");
-////        const Palette* palette = (usesPalette
-////                                  ? paletteFile->getPaletteByName(paletteName)
-////                                  : NULL);
-////        if (usesPalette
-////            && (palette == NULL)) {
-////            CaretLogSevere("No palette named \""
-////                           + paletteName
-////                           + "\" found for coloring map index="
-////                           + AString::number(iMap)
-////                           + " in "
-////                           + getFileNameNoPath());
-////        }
-////        
-////        m_voxelColorizer->assignVoxelColorsForMapInBackground(iMap,
-////                                                              palette,
-////                                                              NULL,
-////                                                              0);
-//    }
-//}
-
 /**
  * Update coloring for a map.
  * Does nothing if coloring is not enabled.
@@ -1116,10 +1069,10 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex,
                        + getFileNameNoPath());
     }
     
-    m_voxelColorizer->assignVoxelColorsForMapInBackground(mapIndex,
-                                                          palette,
-                                                          this,
-                                                          mapIndex);
+    m_voxelColorizer->assignVoxelColorsForMap(mapIndex,
+                                              palette,
+                                              this,
+                                              mapIndex);
 }
 
 /**

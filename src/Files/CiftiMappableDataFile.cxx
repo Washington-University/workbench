@@ -1391,7 +1391,7 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
  */
 void
 CiftiMappableDataFile::updateScalarColoringForMap(const int32_t mapIndex,
-                                                   const PaletteFile* paletteFile)
+                                                  const PaletteFile* paletteFile)
 {
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
