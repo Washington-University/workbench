@@ -289,6 +289,7 @@ InformationDisplayDialog::clearInformationText()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->removeIdentificationText();
+    updateDialog();
 }
 
 
