@@ -156,13 +156,8 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex,
             break;
         case SubvolumeAttributes::LABEL:
             if (m_voxelCountPerMap > 0) {
-                std::vector<int32_t> labelIndices(m_voxelCountPerMap);
-                for (int32_t i = 0; i < m_voxelCountPerMap; i++) {
-                    labelIndices[i] = static_cast<int32_t>(mapDataPointer[i]);
-                }
-                
                 NodeAndVoxelColoring::colorIndicesWithLabelTable(m_volumeFile->getMapLabelTable(mapIndex),
-                                                                 &labelIndices[0],
+                                                                 &mapDataPointer[0],
                                                                  m_voxelCountPerMap,
                                                                  m_mapRGBA[mapIndex]);
                 m_mapColoringValid[mapIndex] = true;
