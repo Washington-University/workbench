@@ -2198,16 +2198,17 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const DRAW_MODE drawMode,
              * 
              * Resolves WB-414
              */
-//            const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
-//            const float factor = 0.0;
-//            const float units  = inverseSliceIndex * 1.0 + 1.0;
-//            glEnable(GL_POLYGON_OFFSET_FILL);
-//            glPolygonOffset(factor, units);
+            const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
+            //const float factor = 5.0;
+            const float factor  = inverseSliceIndex * 1.0 + 1.0;
+            const float units  = inverseSliceIndex * 1.0 + 1.0;
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(factor, units);
             
-            if (iVol > 0) {
-                glEnable(GL_POLYGON_OFFSET_FILL);
-                glPolygonOffset(-1.0, -1.0);
-            }
+//            if (iVol > 0) {
+//                glEnable(GL_POLYGON_OFFSET_FILL);
+//                glPolygonOffset(-1.0, -1.0);
+//            }
         }
         
         /*
