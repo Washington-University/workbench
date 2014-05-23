@@ -49,19 +49,19 @@ AString AlgorithmCiftiReplaceStructure::getShortDescription()
 OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "cifti", "the cifti to modify");//has to use in-memory currently, only way for single-cifti constructor to work, which is the only way it can be useful in other algorithms
+    ret->addStringParameter(1, "cifti", "the cifti to modify");//see useParameters for why this is a string
     
     ret->addStringParameter(2, "direction", "which dimension to interpret as a single map, ROW or COLUMN");
     
-    OptionalParameter* labelOpt = ret->createOptionalParameter(3, "-label", "replace the data in a surface label component");
+    ParameterComponent* labelOpt = ret->createRepeatableParameter(3, "-label", "replace the data in a surface label component");
     labelOpt->addStringParameter(1, "structure", "the structure to replace the data of");
     labelOpt->addLabelParameter(2, "label", "the input label file");
 
-    OptionalParameter* metricOpt = ret->createOptionalParameter(4, "-metric", "replace the data in a surface component");
+    ParameterComponent* metricOpt = ret->createRepeatableParameter(4, "-metric", "replace the data in a surface component");
     metricOpt->addStringParameter(1, "structure", "the structure to replace the data of");
     metricOpt->addMetricParameter(2, "metric", "the input metric");
 
-    OptionalParameter* volumeOpt = ret->createOptionalParameter(5, "-volume", "replace the data in a volume component");
+    ParameterComponent* volumeOpt = ret->createRepeatableParameter(5, "-volume", "replace the data in a volume component");
     volumeOpt->addStringParameter(1, "structure", "the structure to replace the data of");
     volumeOpt->addVolumeParameter(2, "volume", "the input volume");
     volumeOpt->createOptionalParameter(3, "-from-cropped", "the input is cropped to the size of the component");
@@ -70,9 +70,10 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     volumeAllOpt->addVolumeParameter(1, "volume", "the input volume");
     volumeAllOpt->createOptionalParameter(2, "-from-cropped", "the input is cropped to the size of the data");
 
-    AString helpText = AString("You must specify -metric, -volume, or -label for this command to do anything.  Input volumes must line up with the ") +
-        "output of -cifti-separate.  For dtseries, use COLUMN, and if your matrix will be fully symmetric, COLUMN is " +
-        "more efficient.  The structure argument must be one of the following:\n";
+    AString helpText = AString("You must specify at least one of -metric, -label, -volume, or -volume-all for this command to do anything.  ") +
+        "Input volumes must line up with the output of -cifti-separate.  " +
+        "For dtseries/dscalar, use COLUMN, and if your matrix will be fully symmetric, COLUMN is more efficient.  " +
+        "The structure argument must be one of the following:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
@@ -86,8 +87,8 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
 void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams, ProgressObject* /*myProgObj*/)
 {
     AString ciftiName = myParams->getString(1);
-    CiftiFile myCifti(ciftiName);
-    AString dirName = myParams->getString(2);
+    CiftiFile myCifti(ciftiName);//CiftiFile currently doesn't expose the filename it is using, and we need to call writeFile manually (since the parsing framework doesn't expect an input to be modified)
+    AString dirName = myParams->getString(2);//as for why it needs to modify an input, that is the only way it is useful for things like -cifti-smoothing
     int myDir;
     if (dirName == "ROW")
     {
@@ -97,44 +98,44 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
-    OptionalParameter* labelOpt = myParams->getOptionalParameter(3);
-    if (labelOpt->m_present)
+    const vector<ParameterComponent*>& labelInst = *(myParams->getRepeatableParameterInstances(3));
+    for (int i = 0; i < (int)labelInst.size(); ++i)
     {
-        AString structName = labelOpt->getString(1);
+        AString structName = labelInst[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
-            throw AlgorithmException("unrecognized structure type");
+            throw AlgorithmException("unrecognized structure name");
         }
-        LabelFile* labelIn = labelOpt->getLabel(2);
+        LabelFile* labelIn = labelInst[i]->getLabel(2);
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, labelIn);
     }
-    OptionalParameter* metricOpt = myParams->getOptionalParameter(4);
-    if (metricOpt->m_present)
+    const vector<ParameterComponent*>& metricInst = *(myParams->getRepeatableParameterInstances(4));
+    for (int i = 0; i < (int)metricInst.size(); ++i)
     {
-        AString structName = metricOpt->getString(1);
+        AString structName = metricInst[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
-            throw AlgorithmException("unrecognized structure type");
+            throw AlgorithmException("unrecognized structure name");
         }
-        MetricFile* metricIn = metricOpt->getMetric(2);
+        MetricFile* metricIn = metricInst[i]->getMetric(2);
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, metricIn);
     }
-    OptionalParameter* volumeOpt = myParams->getOptionalParameter(5);
-    if (volumeOpt->m_present)
+    const vector<ParameterComponent*>& volumeInst = *(myParams->getRepeatableParameterInstances(5));
+    for (int i = 0; i < (int)volumeInst.size(); ++i)
     {
-        AString structName = volumeOpt->getString(1);
+        AString structName = volumeInst[i]->getString(1);
         bool ok = false;
         StructureEnum::Enum myStruct = StructureEnum::fromName(structName, &ok);
         if (!ok)
         {
-            throw AlgorithmException("unrecognized structure type");
+            throw AlgorithmException("unrecognized structure name");
         }
-        VolumeFile* volIn = volumeOpt->getVolume(2);
-        bool fromCropVol = volumeOpt->getOptionalParameter(3)->m_present;
+        VolumeFile* volIn = volumeInst[i]->getVolume(2);
+        bool fromCropVol = volumeInst[i]->getOptionalParameter(3)->m_present;
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, myStruct, volIn, fromCropVol);
     }
     OptionalParameter* volumeAllOpt = myParams->getOptionalParameter(6);
@@ -144,7 +145,7 @@ void AlgorithmCiftiReplaceStructure::useParameters(OperationParameters* myParams
         bool fromCropVol = volumeAllOpt->getOptionalParameter(2)->m_present;
         AlgorithmCiftiReplaceStructure(NULL, &myCifti, myDir, volIn, fromCropVol);
     }
-    myCifti.writeFile(ciftiName);
+    myCifti.writeFile(ciftiName);//and write the modified file
 }
 
 AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* myProgObj, CiftiFile* ciftiInOut, const int& myDir,
