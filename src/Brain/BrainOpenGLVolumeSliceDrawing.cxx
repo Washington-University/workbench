@@ -2201,8 +2201,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const DRAW_MODE drawMode,
             const float inverseSliceIndex = numberOfVolumesToDraw - iVol;
             const float factor = 0.0;
             const float units  = inverseSliceIndex * 1.0 + 1.0;
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(factor, units);
+//            glEnable(GL_POLYGON_OFFSET_FILL);
+//            glPolygonOffset(factor, units);
             
 //            if (iVol > 0) {
 //                glEnable(GL_POLYGON_OFFSET_FILL);
