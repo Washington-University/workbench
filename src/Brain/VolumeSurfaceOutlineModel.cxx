@@ -52,7 +52,7 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
     
     m_displayed = false;
-    m_thickness = 5.0;
+    m_thickness = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS;
     m_surfaceSelectionModel = new SurfaceSelectionModel(validSurfaceTypes);
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     

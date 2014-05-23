@@ -64,6 +64,9 @@ namespace caret {
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
+        
+        static const int32_t DEFAULT_LINE_THICKNESS;
+        
     private:
         VolumeSurfaceOutlineModel(const VolumeSurfaceOutlineModel&);
 
@@ -85,7 +88,8 @@ namespace caret {
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS = 2.0;
+    
 #endif // __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
 
 } // namespace

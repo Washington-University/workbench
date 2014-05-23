@@ -231,46 +231,45 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
         rightPialSurface     = rightBrainStructure->getSurfaceContainingTextInName("pial");
     }
     
-    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
         m_outlineModels[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
-        m_outlineModels[i]->setThickness(1);
+        m_outlineModels[i]->setThickness(VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS);
     }
     
     int nextOutlineIndex = 0;
     
-    addSurfaceOutline(leftMidThickSurface, 
-                            5.0, 
-                            leftTabIndex, 
-                            CaretColorEnum::BLACK, 
-                            nextOutlineIndex);
-    addSurfaceOutline(rightMidThickSurface, 
-                            5.0, 
-                            rightTabIndex, 
-                            CaretColorEnum::BLACK, 
-                            nextOutlineIndex);
+    addSurfaceOutline(leftMidThickSurface,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      leftTabIndex,
+                      CaretColorEnum::BLACK,
+                      nextOutlineIndex);
+    addSurfaceOutline(rightMidThickSurface,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      rightTabIndex,
+                      CaretColorEnum::BLACK,
+                      nextOutlineIndex);
     
-    addSurfaceOutline(leftWhiteSurface, 
-                            0.5, 
-                            -1, 
-                            CaretColorEnum::LIME, 
-                            nextOutlineIndex);
-    addSurfaceOutline(rightWhiteSurface, 
-                            0.5, 
-                            -1, 
-                            CaretColorEnum::LIME, 
-                            nextOutlineIndex);
+    addSurfaceOutline(leftWhiteSurface,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      -1,
+                      CaretColorEnum::LIME,
+                      nextOutlineIndex);
+    addSurfaceOutline(rightWhiteSurface,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      -1,
+                      CaretColorEnum::LIME,
+                      nextOutlineIndex);
     
-    addSurfaceOutline(leftPialSurface, 
-                            0.5, 
-                            -1, 
-                            CaretColorEnum::BLUE, 
-                            nextOutlineIndex);
-    addSurfaceOutline(rightPialSurface, 
-                            0.5, 
-                            -1, 
-                            CaretColorEnum::BLUE, 
-                            nextOutlineIndex);
+    addSurfaceOutline(leftPialSurface,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      -1,
+                      CaretColorEnum::BLUE,
+                      nextOutlineIndex);
+    addSurfaceOutline(rightPialSurface,
+                      VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS,
+                      -1,
+                      CaretColorEnum::BLUE,
+                      nextOutlineIndex);
 }
 
 /**
