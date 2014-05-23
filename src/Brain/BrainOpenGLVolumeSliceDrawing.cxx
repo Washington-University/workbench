@@ -1059,7 +1059,7 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 const float thickness = outline->getThickness();
-                const float lineWidth = m_fixedPipelineDrawing->modelSizeToPixelSize(thickness);
+                //const float lineWidth = m_fixedPipelineDrawing->modelSizeToPixelSize(thickness);
                 
                 int numTriangles = surface->getNumberOfTriangles();
                 
@@ -1086,7 +1086,8 @@ BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(const Plane& plane)
                 }
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
-                m_fixedPipelineDrawing->setLineWidth(lineWidth);
+                //m_fixedPipelineDrawing->setLineWidth(lineWidth);
+                m_fixedPipelineDrawing->setLineWidth(thickness);
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane
@@ -3431,7 +3432,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
                   &depthEnabled);
     glDisable(GL_DEPTH_TEST);
     
-    const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+    //const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
     
     const float centerXYZ[3] = {
         m_browserTabContent->getSliceCoordinateParasagittal(),
@@ -3615,8 +3616,8 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
      * Crosshairs
      */
     if (drawCrosshairsFlag) {
-        const bool drawAsLines = true;
-        if (drawAsLines) {
+//        const bool drawAsLines = true;
+//        if (drawAsLines) {
             glLineWidth(1.0);
             glColor3fv(horizontalAxisRGBA);
             glBegin(GL_LINES);
@@ -3630,18 +3631,18 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairsOrthoAndOblique(const VolumeSli
             glVertex3fv(verticalAxisStartXYZ);
             glVertex3fv(verticalAxisEndXYZ);
             glEnd();
-        }
-        else {
-            m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
-                                                 horizontalAxisStartXYZ,
-                                                 horizontalAxisEndXYZ,
-                                                 axesCrosshairRadius);
-            
-            m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
-                                                 verticalAxisStartXYZ,
-                                                 verticalAxisEndXYZ,
-                                                 axesCrosshairRadius);
-        }
+//        }
+//        else {
+//            m_fixedPipelineDrawing->drawCylinder(horizontalAxisRGBA,
+//                                                 horizontalAxisStartXYZ,
+//                                                 horizontalAxisEndXYZ,
+//                                                 axesCrosshairRadius);
+//            
+//            m_fixedPipelineDrawing->drawCylinder(verticalAxisRGBA,
+//                                                 verticalAxisStartXYZ,
+//                                                 verticalAxisEndXYZ,
+//                                                 axesCrosshairRadius);
+//        }
     }
     
     if (drawCrosshairLabelsFlag) {
@@ -4183,7 +4184,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
         const double paraTextMin[3]  = { 0.0, textMinCoord, 0.0 };
         const double paraTextMax[3]  = { 0.0, textMaxCoord, 0.0 };
         
-        const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+//        const float axesCrosshairRadius = m_fixedPipelineDrawing->pixelSizeToModelSize(0.5);
+        const float axesCrosshairRadius = 1.0;
         
         if (drawCylindersFlag) {
             m_fixedPipelineDrawing->drawCylinder(blue,
