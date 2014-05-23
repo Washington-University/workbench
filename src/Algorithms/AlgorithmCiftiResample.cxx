@@ -144,11 +144,11 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
     int direction = -1;
     if (myDirString == "ROW")
     {
-        direction = CiftiXMLOld::ALONG_ROW;
+        direction = CiftiXML::ALONG_ROW;
     } else {
         if (myDirString == "COLUMN")
         {
-            direction = CiftiXMLOld::ALONG_COLUMN;
+            direction = CiftiXML::ALONG_COLUMN;
         } else {
             throw AlgorithmException("unrecognized direction string, use ROW or COLUMN");
         }
@@ -158,11 +158,11 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
     int templateDir = -1;
     if (myTemplDirString == "ROW")
     {
-        templateDir = CiftiXMLOld::ALONG_ROW;
+        templateDir = CiftiXML::ALONG_ROW;
     } else {
         if (myTemplDirString == "COLUMN")
         {
-            templateDir = CiftiXMLOld::ALONG_COLUMN;
+            templateDir = CiftiXML::ALONG_COLUMN;
         } else {
             throw AlgorithmException("unrecognized template direction string, use ROW or COLUMN");
         }
@@ -350,15 +350,18 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                                                const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (direction > 1) throw AlgorithmException("unsupported mapping direction");
-    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
-    CiftiXMLOld myOutXML = myInputXML;
-    myOutXML.copyMapping(direction, myTemplate->getCiftiXMLOld(), templateDir);
-    vector<StructureEnum::Enum> surfList, volList;
-    myOutXML.getStructureLists(direction, surfList, volList);
+    if (direction > 1) throw AlgorithmException("unsupported mapping direction for cifti resample");
+    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for input must contain brain models");
+    const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(direction);
+    if (myTemplate->getCiftiXML().getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for template must contain brain models");
+    CiftiXML myOutXML = myInputXML;
+    myOutXML.setMap(direction, *(myTemplate->getCiftiXML().getMap(templateDir)));
+    const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
+    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
     {
-        if (!myInputXML.hasSurfaceData(direction, surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
+        if (!inModels.hasSurfaceData(surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
         switch (surfList[i])
         {
             case StructureEnum::CORTEX_LEFT:
@@ -421,15 +424,18 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                                                const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (direction > 1) throw AlgorithmException("unsupported mapping direction");
-    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
-    CiftiXMLOld myOutXML = myInputXML;
-    myOutXML.copyMapping(direction, myTemplate->getCiftiXMLOld(), templateDir);
-    vector<StructureEnum::Enum> surfList, volList;
-    myOutXML.getStructureLists(direction, surfList, volList);
+    if (direction > 1) throw AlgorithmException("unsupported mapping direction for cifti resample");
+    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for input must contain brain models");
+    const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(direction);
+    if (myTemplate->getCiftiXML().getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for template must contain brain models");
+    CiftiXML myOutXML = myInputXML;
+    myOutXML.setMap(direction, *(myTemplate->getCiftiXML().getMap(templateDir)));
+    const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
+    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
     {
-        if (!myInputXML.hasSurfaceData(direction, surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
+        if (!inModels.hasSurfaceData(surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
         switch (surfList[i])
         {
             case StructureEnum::CORTEX_LEFT:
@@ -487,8 +493,8 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
                                                      CiftiFile* myCiftiOut, const bool& surfLargest, const float& surfdilatemm, const SurfaceFile* curSphere, const SurfaceFile* newSphere,
                                                      const MetricFile* curAreas, const MetricFile* newAreas)
 {
-    const CiftiXMLOld& myInputXML = myCiftiIn->getCiftiXMLOld();
-    if (myInputXML.getMappingType(1 - direction) == CIFTI_INDEX_TYPE_LABELS)
+    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    if (myInputXML.getMappingType(1 - direction) == CiftiMappingType::LABELS)
     {
         LabelFile origLabel;
         MetricFile origRoi, resampleROI;
