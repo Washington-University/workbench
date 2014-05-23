@@ -64,8 +64,8 @@ OperationParameters* OperationCiftiMath::getParameters()
     
     AString myText = AString("This command evaluates <expression> at each (row, column) location independently.  ") +
                              "There must be at least one -var option (to get the output layout from), even if the <name> specified in it isn't used in <expression>.\n\n" +
-                             "To select a single column from a file, use -select 1 <index>, where <index> is 1-based.  " +
-                             "To select a single row, use -select 2 <index>.  " +
+                             "To select a single column from a 2D file (most cifti files are 2D), use -select 1 <index>, where <index> is 1-based.  " +
+                             "To select a single row from a 2D file, use -select 2 <index>.  " +
                              "Where -select is not used, the cifti files must have compatible mappings (e.g., brain models and parcels mappings must match exactly except for parcel names).  " +
                              "Use -override-mapping-check to skip this checking.\n\n" +
                              "Filenames are not valid in <expression>, use a variable name and a -var option with matching <name> to specify an input file.  " +
