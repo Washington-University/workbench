@@ -446,9 +446,9 @@ namespace caret {
                          const FastStatistics* statistics,
                          const int paletteDrawingIndex);
         
-//        float modelSizeToPixelSize(const float modelSize);
-//        
-//        float pixelSizeToModelSize(const float pixelSize);
+        float modelSizeToPixelSize(const float modelSize);
+        
+        float pixelSizeToModelSize(const float pixelSize);
         
         void setProjectionModeData(const float screenDepth,
                                           const float xyz[3],

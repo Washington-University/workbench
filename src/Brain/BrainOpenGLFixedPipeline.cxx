@@ -2297,10 +2297,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
      * Draw lines
      */
     if (drawLines
-        && (numPointsToDraw > 1)) {
-//        const float lineWidthInPixels = this->modelSizeToPixelSize(lineWidth);
-//        this->setLineWidth(lineWidthInPixels);
-        this->setLineWidth(lineWidth);
+        && (numPointsToDraw > 1)) {    
+        const float lineWidthInPixels = this->modelSizeToPixelSize(lineWidth);
+        this->setLineWidth(lineWidthInPixels);
         
         this->disableLighting();
         
@@ -5902,81 +5901,81 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     return;
 }
 
-///**
-// * Since OpenGL draws lines/points in pixels, map window coordinates to
-// * model coordinates to estimate the line width or points size in pixels
-// * for a line width or point size that is in model coordinates.
-// * @param modelSize
-// *    Size in model coordinates.
-// * @return
-// *    Size converted to pixels.
-// */
-//float 
-//BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
-//{
-//    float pixelSize = modelSize;
-//    
-//    GLdouble modelview[16];
-//    GLdouble projection[16];
-//    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
-//    glGetDoublev(GL_PROJECTION_MATRIX, projection);
-//    
-//    GLint viewport[4];
-//    glGetIntegerv(GL_VIEWPORT, 
-//                  viewport);
-//    
-//    GLdouble windowA[3] = { viewport[0], viewport[1], 0.0 };
-//    GLdouble windowB[3] = { viewport[0] + viewport[2] - 1, viewport[1] + viewport[3] - 1, 0.0 };
-//    GLdouble modelA[3], modelB[3];
-//    if (gluUnProject(windowA[0], 
-//                     windowA[1], 
-//                     windowA[2], 
-//                     modelview, 
-//                     projection, 
-//                     viewport, 
-//                     &modelA[0], 
-//                     &modelA[1], 
-//                     &modelA[2]) == GL_TRUE) {
-//        if (gluUnProject(windowB[0], 
-//                         windowB[1], 
-//                         windowB[2], 
-//                         modelview, 
-//                         projection, 
-//                         viewport,
-//                         &modelB[0], 
-//                         &modelB[1], 
-//                         &modelB[2]) == GL_TRUE) {
-//            const double modelDist = MathFunctions::distance3D(modelA, modelB);
-//            const double windowDist = MathFunctions::distance3D(windowA, windowB);
-//            
-//            const float scaling = windowDist / modelDist;
-//            
-//            pixelSize *= scaling;
-//        }
-//    }
-//    return pixelSize;
-//}
-//
-///**
-// * Convert pixels into model size.
-// * 
-// * @param pixelSize
-// *    The pixel size
-// * @return
-// *    Model size coordinate space value
-// */
-//float
-//BrainOpenGLFixedPipeline::pixelSizeToModelSize(const float pixelSize)
-//{
-//    float modelSize = 1.0;
-//    
-//    const float value = modelSizeToPixelSize(pixelSize);
-//    if (value > 0) {
-//        modelSize /= value;
-//    }
-//    
-//    return modelSize;
-//}
+/**
+ * Since OpenGL draws lines/points in pixels, map window coordinates to
+ * model coordinates to estimate the line width or points size in pixels
+ * for a line width or point size that is in model coordinates.
+ * @param modelSize
+ *    Size in model coordinates.
+ * @return
+ *    Size converted to pixels.
+ */
+float 
+BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
+{
+    float pixelSize = modelSize;
+    
+    GLdouble modelview[16];
+    GLdouble projection[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, 
+                  viewport);
+    
+    GLdouble windowA[3] = { viewport[0], viewport[1], 0.0 };
+    GLdouble windowB[3] = { viewport[0] + viewport[2] - 1, viewport[1] + viewport[3] - 1, 0.0 };
+    GLdouble modelA[3], modelB[3];
+    if (gluUnProject(windowA[0], 
+                     windowA[1], 
+                     windowA[2], 
+                     modelview, 
+                     projection, 
+                     viewport, 
+                     &modelA[0], 
+                     &modelA[1], 
+                     &modelA[2]) == GL_TRUE) {
+        if (gluUnProject(windowB[0], 
+                         windowB[1], 
+                         windowB[2], 
+                         modelview, 
+                         projection, 
+                         viewport,
+                         &modelB[0], 
+                         &modelB[1], 
+                         &modelB[2]) == GL_TRUE) {
+            const double modelDist = MathFunctions::distance3D(modelA, modelB);
+            const double windowDist = MathFunctions::distance3D(windowA, windowB);
+            
+            const float scaling = windowDist / modelDist;
+            
+            pixelSize *= scaling;
+        }
+    }
+    return pixelSize;
+}
+
+/**
+ * Convert pixels into model size.
+ * 
+ * @param pixelSize
+ *    The pixel size
+ * @return
+ *    Model size coordinate space value
+ */
+float
+BrainOpenGLFixedPipeline::pixelSizeToModelSize(const float pixelSize)
+{
+    float modelSize = 1.0;
+    
+    const float value = modelSizeToPixelSize(pixelSize);
+    if (value > 0) {
+        modelSize /= value;
+    }
+    
+    return modelSize;
+}
 
 /**
  * @return A string containing the state of OpenGL (depth testing, lighting, etc.)
