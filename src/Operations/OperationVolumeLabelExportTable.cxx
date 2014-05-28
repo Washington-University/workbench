@@ -48,7 +48,7 @@ OperationParameters* OperationVolumeLabelExportTable::getParameters()
     
     ret->addStringParameter(2, "map", "the number or name of the label map to use");
     
-    ret->addStringParameter(3, "table-out", "the output text file");
+    ret->addStringParameter(3, "table-out", "output - the output text file");//fake output formatting
     
     ret->setHelpText(
         AString("Takes the label table from the volume label map, and writes it to a text format matching what is expected by -volume-label-import.")

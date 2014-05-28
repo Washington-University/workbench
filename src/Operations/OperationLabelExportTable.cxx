@@ -47,7 +47,7 @@ OperationParameters* OperationLabelExportTable::getParameters()
     
     ret->addLabelParameter(1, "label-in", "the input label file");
     
-    ret->addStringParameter(2, "table-out", "the output text file");
+    ret->addStringParameter(2, "table-out", "output - the output text file");//fake output formatting
     
     ret->setHelpText(
         AString("Takes the label table from the gifti label file, and writes it to a text format matching what is expected by -metric-label-import.")
