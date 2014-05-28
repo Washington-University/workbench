@@ -121,6 +121,7 @@ ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
 ModelWholeBrain.h
+NewOpenGLVolumeSliceDrawing.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -154,6 +155,8 @@ SurfaceSelectionModel.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsVolume.h
+VolumeSliceDrawingTypeEnum.h
+VolumeSliceProjectionTypeEnum.h
 VolumeSliceSettings.h
 VolumeSliceViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
@@ -232,6 +235,7 @@ ModelSurfaceSelector.cxx
 ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
+NewOpenGLVolumeSliceDrawing.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
@@ -265,6 +269,8 @@ SurfaceSelectionModel.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsVolume.cxx
+VolumeSliceDrawingTypeEnum.cxx
+VolumeSliceProjectionTypeEnum.cxx
 VolumeSliceSettings.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx

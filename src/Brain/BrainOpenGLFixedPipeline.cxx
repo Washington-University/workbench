@@ -86,6 +86,7 @@
 #include "IdentificationManager.h"
 #include "LabelDrawingTypeEnum.h"
 #include "Matrix4x4.h"
+#include "NewOpenGLVolumeSliceDrawing.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
@@ -3049,13 +3050,44 @@ BrainOpenGLFixedPipeline::drawVolumeModel(BrowserTabContent* browserTabContent,
                               volumeDrawInfo);
     
     const VolumeSliceViewModeEnum::Enum sliceViewMode = browserTabContent->getSliceViewMode();
+
+    const bool useNewVolumeSliceDrawingFlag = true;
     
-    BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-    volumeSliceDrawing.draw(this,
-                        browserTabContent,
-                        volumeDrawInfo,
-                        sliceViewMode,
-                        viewport);
+    if (useNewVolumeSliceDrawingFlag) {
+        VolumeSliceDrawingTypeEnum::Enum sliceDrawingType;
+        VolumeSliceProjectionTypeEnum::Enum sliceProjectionType;
+        
+        switch (sliceViewMode) {
+            case VolumeSliceViewModeEnum::MONTAGE:
+                sliceDrawingType    = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE;
+                sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+                break;
+            case VolumeSliceViewModeEnum::OBLIQUE:
+                sliceDrawingType = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
+                sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE;
+                break;
+            case VolumeSliceViewModeEnum::ORTHOGONAL:
+                sliceDrawingType = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
+                sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+                break;
+        }
+        
+        NewOpenGLVolumeSliceDrawing newVolumeSliceDrawing;
+        newVolumeSliceDrawing.draw(this,
+                                   browserTabContent,
+                                   volumeDrawInfo,
+                                   sliceDrawingType,
+                                   sliceProjectionType,
+                                   viewport);
+    }
+    else {
+        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+        volumeSliceDrawing.draw(this,
+                                browserTabContent,
+                                volumeDrawInfo,
+                                sliceViewMode,
+                                viewport);
+    }
 }
 
 
@@ -4450,22 +4482,53 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(BrowserTabContent* browserTabConte
              * Check for oblique slice drawing
              */
             const bool doObliqueDrawing = (browserTabContent->getSliceViewMode() == VolumeSliceViewModeEnum::OBLIQUE);
-            if (doObliqueDrawing) {
+            
+            
+            const bool useNewVolumeSliceDrawingFlag = true;
+            if (useNewVolumeSliceDrawingFlag) {
+                VolumeSliceDrawingTypeEnum::Enum sliceDrawingType;
+                VolumeSliceProjectionTypeEnum::Enum sliceProjectionType;
                 
-                BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-                volumeSliceDrawing.draw(this,
-                                    browserTabContent,
-                                    twoDimSliceDrawVolumeDrawInfo,
-                                    VolumeSliceViewModeEnum::OBLIQUE,
-                                    viewport);
+                switch (browserTabContent->getSliceViewMode()) {
+                    case VolumeSliceViewModeEnum::MONTAGE:
+                        sliceDrawingType    = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE;
+                        sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+                        break;
+                    case VolumeSliceViewModeEnum::OBLIQUE:
+                        sliceDrawingType = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
+                        sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE;
+                        break;
+                    case VolumeSliceViewModeEnum::ORTHOGONAL:
+                        sliceDrawingType = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
+                        sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
+                        break;
+                }
+                
+                NewOpenGLVolumeSliceDrawing newVolumeSliceDrawing;
+                newVolumeSliceDrawing.draw(this,
+                                           browserTabContent,
+                                           twoDimSliceDrawVolumeDrawInfo,
+                                           sliceDrawingType,
+                                           sliceProjectionType,
+                                           viewport);
             }
             else {
-                BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-                volumeSliceDrawing.draw(this,
-                                    browserTabContent,
-                                    twoDimSliceDrawVolumeDrawInfo,
-                                    VolumeSliceViewModeEnum::ORTHOGONAL,
-                                    viewport);
+                if (doObliqueDrawing) {
+                    BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                    volumeSliceDrawing.draw(this,
+                                            browserTabContent,
+                                            twoDimSliceDrawVolumeDrawInfo,
+                                            VolumeSliceViewModeEnum::OBLIQUE,
+                                            viewport);
+                }
+                else {
+                    BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+                    volumeSliceDrawing.draw(this,
+                                            browserTabContent,
+                                            twoDimSliceDrawVolumeDrawInfo,
+                                            VolumeSliceViewModeEnum::ORTHOGONAL,
+                                            viewport);
+                }
             }
         }
     }
