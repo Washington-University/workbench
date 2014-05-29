@@ -103,7 +103,6 @@
 #include "StructureSurfaceSelectionControl.h"
 #include "UserInputReceiverInterface.h"
 #include "VolumeFile.h"
-#include "VolumeSliceViewModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 #include "WuQDataEntryDialog.h"

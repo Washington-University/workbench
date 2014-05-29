@@ -44,7 +44,6 @@
 #include "Surface.h"
 #include "WuQMessageBox.h"
 #include <ModelVolume.h>
-#include <VolumeSliceViewModeEnum.h>
 #include <VolumeSliceViewPlaneEnum.h>
 #include <VolumeFile.h>
 
@@ -626,11 +625,13 @@ void MovieDialog::processUpdateVolumeSlice()
 		return;
 	}
 
-	VolumeSliceViewModeEnum::Enum vme = btc->getSliceViewMode();
-	if(vme != VolumeSliceViewModeEnum::ORTHOGONAL)
-	{
-		return;
-	}
+    switch (btc->getSliceProjectionType()) {
+        case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            return;
+            break;
+        case caret::VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
+    }
 
 
 //	VolumeSliceCoordinateSelection* vscs = btc->getSelectedVolumeSlices();

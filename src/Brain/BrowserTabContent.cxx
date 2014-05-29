@@ -1020,26 +1020,57 @@ BrowserTabContent::receiveEvent(Event* event)
                  * coordinate in the axis being viewed
                  */
                 if (getDisplayedVolumeModel() != NULL) {
-                    switch (m_volumeSliceSettings->getSliceViewMode()) {
-                        case VolumeSliceViewModeEnum::MONTAGE:
-                        case VolumeSliceViewModeEnum::OBLIQUE:
-                            switch (getSliceViewPlane()) {
-                                case VolumeSliceViewPlaneEnum::ALL:
-                                    break;
-                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
-                                    break;
-                                case VolumeSliceViewPlaneEnum::CORONAL:
-                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
-                                    break;
-                                case VolumeSliceViewPlaneEnum::AXIAL:
-                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
-                                    break;
-                            }
+                    bool keepSliceCoordinateForSelectedAxis = false;
+                    switch (m_volumeSliceSettings->getSliceProjectionType()) {
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                             break;
-                        case VolumeSliceViewModeEnum::ORTHOGONAL:
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                            keepSliceCoordinateForSelectedAxis = true;
                             break;
                     }
+                    switch (m_volumeSliceSettings->getSliceDrawingType()) {
+                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                            keepSliceCoordinateForSelectedAxis = true;
+                            break;
+                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                            break;
+                    }
+
+                    if (keepSliceCoordinateForSelectedAxis) {
+                        switch (getSliceViewPlane()) {
+                            case VolumeSliceViewPlaneEnum::ALL:
+                                break;
+                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                break;
+                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                break;
+                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                volumeSliceXYZ[2] = getSliceCoordinateAxial();
+                                break;
+                        }
+                    }
+//                    switch (m_volumeSliceSettings->getSliceViewMode()) {
+//                        case VolumeSliceViewModeEnum::MONTAGE:
+//                        case VolumeSliceViewModeEnum::OBLIQUE:
+//                            switch (getSliceViewPlane()) {
+//                                case VolumeSliceViewPlaneEnum::ALL:
+//                                    break;
+//                                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                                    volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+//                                    break;
+//                                case VolumeSliceViewPlaneEnum::CORONAL:
+//                                    volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+//                                    break;
+//                                case VolumeSliceViewPlaneEnum::AXIAL:
+//                                    volumeSliceXYZ[2] = getSliceCoordinateAxial();
+//                                    break;
+//                            }
+//                            break;
+//                        case VolumeSliceViewModeEnum::ORTHOGONAL:
+//                            break;
+//                    }
                 }
                 
                 m_volumeSliceSettings->selectSlicesAtCoordinate(volumeSliceXYZ);
@@ -1635,10 +1666,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                       const int32_t mouseDeltaY)
 {
     if (isVolumeSlicesDisplayed()) {
-        switch (getSliceViewMode()) {
-            case VolumeSliceViewModeEnum::MONTAGE:
-                break;
-            case VolumeSliceViewModeEnum::OBLIQUE:
+        switch (getSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             {
                 int viewport[4];
                 viewportContent->getModelViewport(viewport);
@@ -1766,7 +1795,8 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                 setObliqueVolumeRotationMatrix(rotationMatrix);
             }
                 break;
-            case VolumeSliceViewModeEnum::ORTHOGONAL:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                break;
                 /* Orthogonal olume slices are not rotated */
                 break;
         }
@@ -2841,27 +2871,6 @@ void
 BrowserTabContent::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
     m_volumeSliceSettings->setSliceViewPlane(slicePlane);
-    updateYokedBrowserTabs();
-}
-
-/**
- * @return the slice viewing mode.
- */
-VolumeSliceViewModeEnum::Enum
-BrowserTabContent::getSliceViewMode() const
-{
-    return m_volumeSliceSettings->getSliceViewMode();
-}
-
-/**
- * Set the slice viewing mode.
- * @param sliceViewMode
- *    New value for view mode
- */
-void
-BrowserTabContent::setSliceViewMode(const VolumeSliceViewModeEnum::Enum sliceViewMode)
-{
-    m_volumeSliceSettings->setSliceViewMode(sliceViewMode);
     updateYokedBrowserTabs();
 }
 

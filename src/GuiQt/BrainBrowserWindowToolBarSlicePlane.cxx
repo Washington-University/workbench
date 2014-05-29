@@ -227,17 +227,6 @@ BrainBrowserWindowToolBarSlicePlane::volumePlaneActionGroupTriggered(QAction* ac
     
     btc->setSliceViewPlane(plane);
     
-    /*
-     * If ALL and currently Montage, switch from Montage to Orthogonal
-     * since ALL and Montage are incompatible.
-     */
-    if (plane == VolumeSliceViewPlaneEnum::ALL) {
-        if (btc->getSliceViewMode() == VolumeSliceViewModeEnum::MONTAGE) {
-            btc->setSliceViewMode(VolumeSliceViewModeEnum::ORTHOGONAL);
-            updateContent(btc);
-        }
-    }
-    
     m_parentToolBar->updateVolumeIndicesWidget(btc);
     updateGraphicsWindow();
     updateOtherYokedWindows();

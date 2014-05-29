@@ -32,7 +32,6 @@
 #include "SceneableInterface.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
-#include "VolumeSliceViewModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "YokingGroupEnum.h"
 
@@ -247,10 +246,6 @@ namespace caret {
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
-        
-        VolumeSliceViewModeEnum::Enum getSliceViewMode() const;
-        
-        void setSliceViewMode(VolumeSliceViewModeEnum::Enum sliceViewMode);
         
         VolumeSliceDrawingTypeEnum::Enum getSliceDrawingType() const;
         

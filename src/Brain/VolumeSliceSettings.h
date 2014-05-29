@@ -28,7 +28,6 @@
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
-#include "VolumeSliceViewModeEnum.h"
 
 namespace caret {
 
@@ -51,10 +50,6 @@ namespace caret {
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);
-        
-        VolumeSliceViewModeEnum::Enum getSliceViewMode() const;
-        
-        void setSliceViewMode(VolumeSliceViewModeEnum::Enum sliceViewMode);
         
         VolumeSliceDrawingTypeEnum::Enum getSliceDrawingType() const;
 
@@ -149,9 +144,6 @@ namespace caret {
 
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
-        
-        /** Type of slice viewing */
-        VolumeSliceViewModeEnum::Enum m_sliceViewMode;
         
         /** Type of slice drawing (single/montage) */
         VolumeSliceDrawingTypeEnum::Enum m_sliceDrawingType;

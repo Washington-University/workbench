@@ -46,7 +46,6 @@ VolumeSliceSettings::VolumeSliceSettings()
 : CaretObject()
 {
     m_sliceViewPlane         = VolumeSliceViewPlaneEnum::AXIAL;
-    m_sliceViewMode          = VolumeSliceViewModeEnum::ORTHOGONAL;
     m_sliceDrawingType       = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
     m_sliceProjectionType    = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
     m_montageNumberOfColumns = 3;
@@ -66,8 +65,6 @@ VolumeSliceSettings::VolumeSliceSettings()
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add<VolumeSliceViewPlaneEnum,VolumeSliceViewPlaneEnum::Enum>("m_sliceViewPlane",
                                                                                    &m_sliceViewPlane);
-    m_sceneAssistant->add<VolumeSliceViewModeEnum,VolumeSliceViewModeEnum::Enum>("m_sliceViewMode",
-                                                                                   &m_sliceViewMode);
     m_sceneAssistant->add<VolumeSliceDrawingTypeEnum,VolumeSliceDrawingTypeEnum::Enum>("m_sliceDrawingType",
                                                                                    &m_sliceDrawingType);
     m_sceneAssistant->add<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>("m_sliceProjectionType",
@@ -132,7 +129,6 @@ void
 VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj)
 {
     m_sliceViewPlane         = obj.m_sliceViewPlane;
-    m_sliceViewMode          = obj.m_sliceViewMode;
     m_sliceDrawingType       = obj.m_sliceDrawingType;
     m_sliceProjectionType    = obj.m_sliceProjectionType;
     
@@ -257,26 +253,6 @@ void
 VolumeSliceSettings::setSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
     m_sliceViewPlane = slicePlane;
-}
-
-/**
- * @return the slice viewing mode.
- */
-VolumeSliceViewModeEnum::Enum
-VolumeSliceSettings::getSliceViewMode() const
-{
-    return m_sliceViewMode;
-}
-
-/**
- * Set the slice viewing mode.
- * @param sliceViewMode
- *    New value for view mode
- */
-void
-VolumeSliceSettings::setSliceViewMode(const VolumeSliceViewModeEnum::Enum sliceViewMode)
-{
-    m_sliceViewMode = sliceViewMode;
 }
 
 /** 

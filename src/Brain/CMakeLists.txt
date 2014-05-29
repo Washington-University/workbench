@@ -121,7 +121,7 @@ ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
 ModelWholeBrain.h
-NewOpenGLVolumeSliceDrawing.h
+OLD_BrainOpenGLVolumeSliceDrawing.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -235,7 +235,7 @@ ModelSurfaceSelector.cxx
 ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
-NewOpenGLVolumeSliceDrawing.cxx
+OLD_BrainOpenGLVolumeSliceDrawing.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
