@@ -84,7 +84,7 @@ NewOpenGLVolumeSliceDrawing::~NewOpenGLVolumeSliceDrawing()
 }
 
 /**
- * Draw volume slice(s).
+ * Draw Volume Slices or slices for ALL Stuctures View.
  *
  * @param fixedPipelineDrawing
  *    The OpenGL drawing.
@@ -275,8 +275,7 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawingTy
             
             switch (sliceProjectionType) {
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    drawOrientationAxes(allVP,
-                                        VolumeSliceViewPlaneEnum::ALL);
+                    drawOrientationAxes(allVP);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                     break;
@@ -297,6 +296,8 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawingTy
 /**
  * Draw slices for the all structures view.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param viewport
  *    The viewport.
  */
@@ -421,6 +422,8 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const VolumeSliceDrawingTyp
 /**
  * Draw montage slices.
  *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
  *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
@@ -604,6 +607,20 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const VolumeSliceDra
     }
 }
 
+/**
+ * Draw a slice for either projection mode (oblique, orthogonal)
+ *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
+ * @param viewport
+ *    The viewport (region of graphics area) for drawing slices.
+ */
 void
 NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -712,30 +729,10 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDraw
             
             drawObliqueSlice(sliceViewPlane,
                              obliqueTransformationMatrix,
-                             sliceCoordinates,
                              slicePlane);
         }
             break;
     }
-//    switch (m_sliceViewMode) {
-//        case VolumeSliceViewModeEnum::OBLIQUE:
-//            drawObliqueSlice(sliceViewPlane,
-//                             slicePlane,
-//                             drawMode,
-//                             obliqueTransformationMatrix,
-//                             1.0);
-//            break;
-//        case VolumeSliceViewModeEnum::MONTAGE:
-//        case VolumeSliceViewModeEnum::ORTHOGONAL:
-//            drawOrthogonalSlice(drawMode,
-//                                sliceViewPlane,
-//                                slicePlane,
-//                                montageSliceIndex);
-//            break;
-//    }
-    
-    
-    
     
     if ( ! m_identificationModeFlag) {
         if (slicePlane.isValidPlane()) {
@@ -766,10 +763,19 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const VolumeSliceDraw
     
 }
 
+/**
+ * Draw an oblique slice.
+ *
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param transformationMatrix
+ *    The for oblique viewing.
+ * @param plane
+ *    Plane equation for the selected slice.
+ */
 void
 NewOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                               Matrix4x4& transformationMatrix,
-                                              const float sliceCoordinates[3],
                                               const Plane& plane)
 {
     const bool obliqueSliceModeThreeDimFlag = false;
@@ -1604,6 +1610,16 @@ NewOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::En
     }
 }
 
+/**
+ * Draw an orthogonal slice.
+ *
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slice.
+ * @param plane
+ *    Plane equation for the selected slice.
+ */
 void
 NewOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                  const float sliceCoordinates[3],
@@ -1922,6 +1938,8 @@ NewOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnum:
 /**
  * Create the equation for the slice plane
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    View plane that is displayed.
  * @param montageSliceIndex
@@ -1993,16 +2011,14 @@ NewOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProjectio
  * Set the volume slice viewing transformation.  This sets the position and
  * orientation of the camera.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    View plane that is displayed.
- * @param drawMode
- *    The drawing mode for slices.
- * @param planeOut
- *    Plane of slice after transforms (OUTPUT)
- * @param montageSliceIndex
- *    For mongtage drawing, indicates slice being drawn.
- * @param obliqueTransformationMatrixOut
- *    Output transformation matrix for oblique viewing.
+ * @param plane
+ *    Plane equation of selected slice.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
  */
 void
 NewOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -2108,16 +2124,16 @@ NewOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(con
 /**
  * Draw the layers type data.
  *
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
  * @param slicePlane
  *    Plane of the slice.
- * @param transformationMatrix
- *    The transformation matrix used for oblique viewing.
- * @param volume
- *    The underlay volume.
- * @param sliceViewPlane
- *    The slice view plane.
- * @param drawMode
- *    The slice drawing mode.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
  */
 void
 NewOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
@@ -2527,8 +2543,14 @@ NewOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
 /**
  * Draw the axes crosshairs.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
  * @param sliceViewPlane
- *    The slice view plane.
+ *    View plane that is displayed.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
  */
 void
 NewOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -2582,12 +2604,12 @@ NewOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTypeE
 /**
  * Draw the axes crosshairs for an orthogonal slice.
  *
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
  *    The slice plane view.
- * @param sliceViewMode
- *    The slice viewing mode.
- * @param volume
- *    The underlay volume.
+ * @param sliceCoordinates
+ *    Coordinates of the selected slices.
  * @param drawCrosshairsFlag
  *    If true, draw the crosshairs.
  * @param drawCrosshairLabelsFlag
@@ -3070,12 +3092,9 @@ NewOpenGLVolumeSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappableInterface
  *
  * @param viewport
  *    The viewport region for the orientation axes.
- * @param sliceViewPlane
- *    Slice plane that is viewed.
  */
 void
-NewOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4],
-                                                   const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/)
+NewOpenGLVolumeSliceDrawing::drawOrientationAxes(const int viewport[4])
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const bool drawCylindersFlag = prefs->isVolumeAxesCrosshairsDisplayed();

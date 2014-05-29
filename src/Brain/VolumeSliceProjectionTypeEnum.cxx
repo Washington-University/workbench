@@ -110,11 +110,11 @@ VolumeSliceProjectionTypeEnum::initialize()
 
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_OBLIQUE, 
                                     "VOLUME_SLICE_PROJECTION_OBLIQUE", 
-                                    "Draw volume slice with an oblique projection"));
+                                    "Oblique"));
     
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_ORTHOGONAL, 
                                     "VOLUME_SLICE_PROJECTION_ORTHOGONAL", 
-                                    "Draw volume slice with an orthogonal projection"));
+                                    "Orthogonal"));
     
 }
 

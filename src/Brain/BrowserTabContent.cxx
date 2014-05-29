@@ -2866,6 +2866,50 @@ BrowserTabContent::setSliceViewMode(const VolumeSliceViewModeEnum::Enum sliceVie
 }
 
 /**
+ * @return Type of slice drawing (single/montage)
+ */
+VolumeSliceDrawingTypeEnum::Enum
+BrowserTabContent::getSliceDrawingType() const
+{
+    return m_volumeSliceSettings->getSliceDrawingType();
+}
+
+/**
+ * Set type of slice drawing (single/montage)
+ *
+ * @param sliceDrawingType
+ *    New value for slice drawing type.
+ */
+void
+BrowserTabContent::setSliceDrawingType(const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType)
+{
+    m_volumeSliceSettings->setSliceDrawingType(sliceDrawingType);
+    updateYokedBrowserTabs();
+}
+
+/**
+ * @return Type of slice projection (oblique/orthogonal)
+ */
+VolumeSliceProjectionTypeEnum::Enum
+BrowserTabContent::getSliceProjectionType() const
+{
+    return m_volumeSliceSettings->getSliceProjectionType();
+}
+
+/**
+ * Set type of slice projection (oblique/orthogonal)
+ *
+ * @param sliceProjectionType
+ *    New value for slice projection type.
+ */
+void
+BrowserTabContent::setSliceProjectionType(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType)
+{
+    m_volumeSliceSettings->setSliceProjectionType(sliceProjectionType);
+    updateYokedBrowserTabs();
+}
+
+/**
  * @return the montage number of columns for the given window tab.
  */
 int32_t
@@ -2873,7 +2917,6 @@ BrowserTabContent::getMontageNumberOfColumns() const
 {
     return m_volumeSliceSettings->getMontageNumberOfColumns();
 }
-
 
 /**
  * Set the montage number of columns in the given window tab.

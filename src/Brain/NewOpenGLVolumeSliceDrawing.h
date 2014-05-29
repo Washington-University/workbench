@@ -217,7 +217,6 @@ namespace caret {
         
         void drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                               Matrix4x4& transformationMatrix,
-                              const float sliceCoordinates[3],
                               const Plane& plane);
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -264,8 +263,7 @@ namespace caret {
         
         void drawSquare(const float size);
         
-        void drawOrientationAxes(const int viewport[4],
-                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+        void drawOrientationAxes(const int viewport[4]);
         
         void setOrthographicProjection(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const int viewport[4]);

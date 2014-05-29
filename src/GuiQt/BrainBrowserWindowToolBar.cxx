@@ -54,7 +54,10 @@
 #include "BrainBrowserWindowToolBarChartAxes.h"
 #include "BrainBrowserWindowToolBarChartType.h"
 #include "BrainBrowserWindowToolBarClipping.h"
+#include "BrainBrowserWindowToolBarSlicePlane.h"
+#include "BrainBrowserWindowToolBarSliceSelection.h"
 #include "BrainBrowserWindowToolBarSurfaceMontage.h"
+#include "BrainBrowserWindowToolBarVolumeMontage.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -427,12 +430,9 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->viewWidgetGroup->clear();
     this->orientationWidgetGroup->clear();
     this->wholeBrainSurfaceOptionsWidgetGroup->clear();
-    this->volumeIndicesWidgetGroup->clear();
     this->modeWidgetGroup->clear();
     this->windowWidgetGroup->clear();
     this->singleSurfaceSelectionWidgetGroup->clear();
-    this->volumeMontageWidgetGroup->clear();
-    this->volumePlaneWidgetGroup->clear();
     
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
         this->tabClosed(i);
@@ -2059,127 +2059,10 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
 QWidget* 
 BrainBrowserWindowToolBar::createVolumeIndicesWidget()
 {
-    QAction* volumeIndicesOriginToolButtonAction = WuQtUtilities::createAction("O\nR\nI\nG\nI\nN", 
-                                                                              "Set the slice indices to the origin, \n"
-                                                                              "stereotaxic coordinate (0, 0, 0)", 
-                                                                              this, 
-                                                                              this, 
-                                                                              SLOT(volumeIndicesOriginActionTriggered()));
-    QToolButton* volumeIndicesOriginToolButton = new QToolButton;
-    volumeIndicesOriginToolButton->setDefaultAction(volumeIndicesOriginToolButtonAction);
-    
-    QLabel* parasagittalLabel = new QLabel("P:");
-    QLabel* coronalLabel = new QLabel("C:");
-    QLabel* axialLabel = new QLabel("A:");
-    
-    this->volumeIndicesParasagittalCheckBox = new QCheckBox(" ");
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesParasagittalCheckBox,
-                                          "Enable/Disable display of PARASAGITTAL slice");
-    QObject::connect(this->volumeIndicesParasagittalCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(volumeIndicesParasagittalCheckBoxStateChanged(int)));
-    
-    this->volumeIndicesCoronalCheckBox = new QCheckBox(" ");
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesCoronalCheckBox,
-                                          "Enable/Disable display of CORONAL slice");
-    QObject::connect(this->volumeIndicesCoronalCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(volumeIndicesCoronalCheckBoxStateChanged(int)));
-    
-    this->volumeIndicesAxialCheckBox = new QCheckBox(" ");
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesAxialCheckBox,
-                                          "Enable/Disable display of AXIAL slice");
-    
-    QObject::connect(this->volumeIndicesAxialCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(volumeIndicesAxialCheckBoxStateChanged(int)));
-    
-    const int sliceIndexSpinBoxWidth = 55;
-    const int sliceCoordinateSpinBoxWidth = 60;
-    
-    this->volumeIndicesParasagittalSpinBox = WuQFactory::newSpinBox();
-    this->volumeIndicesParasagittalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesParasagittalSpinBox,
-                                          "Change the selected PARASAGITTAL slice");
-    QObject::connect(this->volumeIndicesParasagittalSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(volumeIndicesParasagittalSpinBoxValueChanged(int)));
-    
-    this->volumeIndicesCoronalSpinBox = WuQFactory::newSpinBox();
-    this->volumeIndicesCoronalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesCoronalSpinBox,
-                                          "Change the selected CORONAL slice");
-    QObject::connect(this->volumeIndicesCoronalSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(volumeIndicesCoronalSpinBoxValueChanged(int)));
-    
-    this->volumeIndicesAxialSpinBox = WuQFactory::newSpinBox();
-    this->volumeIndicesAxialSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesAxialSpinBox,
-                                          "Change the selected AXIAL slice");
-    QObject::connect(this->volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(volumeIndicesAxialSpinBoxValueChanged(int)));
-    
-    this->volumeIndicesXcoordSpinBox = WuQFactory::newDoubleSpinBox();
-    this->volumeIndicesXcoordSpinBox->setDecimals(1);
-    this->volumeIndicesXcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesXcoordSpinBox,
-                                          "Adjust coordinate to select PARASAGITTAL slice");
-    QObject::connect(this->volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(volumeIndicesXcoordSpinBoxValueChanged(double)));
-    
-    this->volumeIndicesYcoordSpinBox = WuQFactory::newDoubleSpinBox();
-    this->volumeIndicesYcoordSpinBox->setDecimals(1);
-    this->volumeIndicesYcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesYcoordSpinBox,
-                                          "Adjust coordinate to select CORONAL slice");
-    QObject::connect(this->volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(volumeIndicesYcoordSpinBoxValueChanged(double)));
-    
-    this->volumeIndicesZcoordSpinBox = WuQFactory::newDoubleSpinBox();
-    this->volumeIndicesZcoordSpinBox->setDecimals(1);
-    this->volumeIndicesZcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesZcoordSpinBox,
-                                          "Adjust coordinate to select AXIAL slice");
-    QObject::connect(this->volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(volumeIndicesZcoordSpinBoxValueChanged(double)));
-    
-    QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->setHorizontalSpacing(2);
-    gridLayout->setVerticalSpacing(2);
-    gridLayout->addWidget(this->volumeIndicesParasagittalCheckBox, 0, 0);
-    gridLayout->addWidget(parasagittalLabel, 0, 1);
-    gridLayout->addWidget(this->volumeIndicesParasagittalSpinBox, 0, 2);
-    gridLayout->addWidget(this->volumeIndicesXcoordSpinBox, 0, 3);
-    
-    gridLayout->addWidget(this->volumeIndicesCoronalCheckBox, 1, 0);
-    gridLayout->addWidget(coronalLabel, 1, 1);
-    gridLayout->addWidget(this->volumeIndicesCoronalSpinBox, 1, 2);
-    gridLayout->addWidget(this->volumeIndicesYcoordSpinBox, 1, 3);
-    
-    gridLayout->addWidget(this->volumeIndicesAxialCheckBox, 2, 0);
-    gridLayout->addWidget(axialLabel, 2, 1);
-    gridLayout->addWidget(this->volumeIndicesAxialSpinBox, 2, 2);
-    gridLayout->addWidget(this->volumeIndicesZcoordSpinBox, 2, 3);
-
-    gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(gridLayout);
-    layout->addStretch();
-    
-    this->volumeIndicesWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->volumeIndicesWidgetGroup->add(volumeIndicesOriginToolButtonAction);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesParasagittalCheckBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesParasagittalSpinBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesCoronalCheckBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesCoronalSpinBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesAxialCheckBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesAxialSpinBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesXcoordSpinBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesYcoordSpinBox);
-    this->volumeIndicesWidgetGroup->add(this->volumeIndicesZcoordSpinBox);
-    
-    QWidget* w = this->createToolWidget("Slice Indices/Coords", 
-                                        widget, 
-                                        WIDGET_PLACEMENT_LEFT, 
+    m_sliceSelectionComponent = new BrainBrowserWindowToolBarSliceSelection(this);
+    QWidget* w = this->createToolWidget("Slice Indices/Coords",
+                                        m_sliceSelectionComponent,
+                                        WIDGET_PLACEMENT_LEFT,
                                         WIDGET_PLACEMENT_TOP,
                                         0);
     w->setVisible(false);
@@ -2193,162 +2076,12 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
  *   Content of browser tab.
  */
 void 
-BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserTabContent)
 {
     if (this->volumeIndicesWidget->isHidden()) {
         return;
     }
-    
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
-    this->volumeIndicesWidgetGroup->blockAllSignals(true);
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-    VolumeMappableInterface* vf = NULL;
-    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
-    if (volumeModel != NULL) {
-        if (this->getDisplayedModel() == volumeModel) {
-            vf = volumeModel->getUnderlayVolumeFile(tabIndex);
-            this->volumeIndicesAxialCheckBox->setVisible(false);
-            this->volumeIndicesCoronalCheckBox->setVisible(false);
-            this->volumeIndicesParasagittalCheckBox->setVisible(false);            
-        }
-    }
-    
-    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainModel != NULL) {
-        if (this->getDisplayedModel() == wholeBrainModel) {
-            vf = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
-            this->volumeIndicesAxialCheckBox->setVisible(true);
-            this->volumeIndicesCoronalCheckBox->setVisible(true);
-            this->volumeIndicesParasagittalCheckBox->setVisible(true);
-        }
-    }
-    
-    if (vf != NULL) {
-            this->volumeIndicesAxialCheckBox->setChecked(btc->isSliceAxialEnabled());
-            this->volumeIndicesCoronalCheckBox->setChecked(btc->isSliceCoronalEnabled());
-            this->volumeIndicesParasagittalCheckBox->setChecked(btc->isSliceParasagittalEnabled());        
-    }
-    
-    this->updateSliceIndicesAndCoordinatesRanges();
-    
-    this->volumeIndicesWidgetGroup->blockAllSignals(false);
-
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
-}
-
-/*
- * Set the values/minimums/maximums for volume slice indices and coordinate spin controls.
- */
-void 
-BrainBrowserWindowToolBar::updateSliceIndicesAndCoordinatesRanges()
-{
-    const bool blockedStatus = this->volumeIndicesWidget->signalsBlocked();
-    this->volumeIndicesWidgetGroup->blockAllSignals(true);
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-    VolumeMappableInterface* vf = NULL;
-    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
-    if (volumeModel != NULL) {
-        vf = volumeModel->getUnderlayVolumeFile(tabIndex);
-    }
-    
-    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainModel != NULL) {
-        vf = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
-    }
-    
-    if (vf != NULL) {
-        this->volumeIndicesAxialSpinBox->setEnabled(true);
-        this->volumeIndicesCoronalSpinBox->setEnabled(true);
-        this->volumeIndicesParasagittalSpinBox->setEnabled(true);
-        
-        std::vector<int64_t> dimensions;
-        vf->getDimensions(dimensions);
-        
-        /*
-         * Setup minimum and maximum slices for each dimension.
-         * Range is unlimited when Yoked.
-         */
-        int minAxialDim = 0;
-        int minCoronalDim = 0;
-        int minParasagittalDim = 0;
-        int maxAxialDim = (dimensions[2] > 0) ? (dimensions[2] - 1) : 0;
-        int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
-        int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
-        
-        this->volumeIndicesAxialSpinBox->setRange(minAxialDim,
-                                                  maxAxialDim);
-        this->volumeIndicesCoronalSpinBox->setRange(minCoronalDim,
-                                                    maxCoronalDim);
-        this->volumeIndicesParasagittalSpinBox->setRange(minParasagittalDim,
-                                                         maxParasagittalDim);
-        
-        
-        /*
-         * Setup minimum and maximum coordinates for each dimension.
-         * Range is unlimited when Yoked.
-         */
-        int64_t slicesZero[3] = { 0, 0, 0 };
-        float sliceZeroCoords[3];
-        vf->indexToSpace(slicesZero,
-                         sliceZeroCoords);
-        int64_t slicesMax[3] = { maxParasagittalDim, maxCoronalDim, maxAxialDim };
-        float sliceMaxCoords[3];
-        vf->indexToSpace(slicesMax,
-                         sliceMaxCoords);
-        
-        this->volumeIndicesXcoordSpinBox->setMinimum(std::min(sliceZeroCoords[0],
-                                                              sliceMaxCoords[0]));
-        this->volumeIndicesYcoordSpinBox->setMinimum(std::min(sliceZeroCoords[1],
-                                                              sliceMaxCoords[1]));
-        this->volumeIndicesZcoordSpinBox->setMinimum(std::min(sliceZeroCoords[2],
-                                                              sliceMaxCoords[2]));
-        
-        this->volumeIndicesXcoordSpinBox->setMaximum(std::max(sliceZeroCoords[0],
-                                                              sliceMaxCoords[0]));
-        this->volumeIndicesYcoordSpinBox->setMaximum(std::max(sliceZeroCoords[1],
-                                                              sliceMaxCoords[1]));
-        this->volumeIndicesZcoordSpinBox->setMaximum(std::max(sliceZeroCoords[2],
-                                                              sliceMaxCoords[2])); 
-        
-        int64_t slicesOne[3] = { 1, 1, 1 };
-        float slicesOneCoords[3];
-        vf->indexToSpace(slicesOne,
-                         slicesOneCoords);
-        const float dx = std::fabs(slicesOneCoords[0] - sliceZeroCoords[0]);
-        const float dy = std::fabs(slicesOneCoords[1] - sliceZeroCoords[1]);
-        const float dz = std::fabs(slicesOneCoords[2] - sliceZeroCoords[2]);
-        this->volumeIndicesXcoordSpinBox->setSingleStep(dx);
-        this->volumeIndicesYcoordSpinBox->setSingleStep(dy);
-        this->volumeIndicesZcoordSpinBox->setSingleStep(dz);
-        
-            this->volumeIndicesAxialSpinBox->setValue(btc->getSliceIndexAxial(vf));
-            this->volumeIndicesCoronalSpinBox->setValue(btc->getSliceIndexCoronal(vf));
-            this->volumeIndicesParasagittalSpinBox->setValue(btc->getSliceIndexParasagittal(vf));
-            
-            int64_t slices[3] = {
-                btc->getSliceIndexParasagittal(vf),
-                btc->getSliceIndexCoronal(vf),
-                btc->getSliceIndexAxial(vf)
-            };
-            float sliceCoords[3] = { 0.0, 0.0, 0.0 };
-            if (vf != NULL) {
-                vf->indexToSpace(slices,
-                                 sliceCoords);
-            }
-            this->volumeIndicesXcoordSpinBox->setValue(btc->getSliceCoordinateParasagittal());
-            this->volumeIndicesYcoordSpinBox->setValue(btc->getSliceCoordinateCoronal());
-            this->volumeIndicesZcoordSpinBox->setValue(btc->getSliceCoordinateAxial());
-        
-    }
-
-    this->volumeIndicesWidgetGroup->blockAllSignals(blockedStatus);
+    m_sliceSelectionComponent->updateContent(browserTabContent);
 }
 
 /**
@@ -2870,57 +2603,11 @@ BrainBrowserWindowToolBar::updateClippingOptionsWidget(BrowserTabContent* browse
 QWidget* 
 BrainBrowserWindowToolBar::createVolumeMontageWidget()
 {
-    QLabel* rowsLabel = new QLabel("Rows:");
-    QLabel* columnsLabel = new QLabel("Cols:");
-    QLabel* spacingLabel = new QLabel("Step:");
+    m_volumeMontageComponent = new BrainBrowserWindowToolBarVolumeMontage(this);
     
-    const int spinBoxWidth = 48;
-    
-    this->montageRowsSpinBox = WuQFactory::newSpinBox();
-    this->montageRowsSpinBox->setRange(1, 20);
-    this->montageRowsSpinBox->setMaximumWidth(spinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->montageRowsSpinBox,
-                                          "Select the number of rows in montage of volume slices");
-    QObject::connect(this->montageRowsSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(montageRowsSpinBoxValueChanged(int)));
-    
-    this->montageColumnsSpinBox = WuQFactory::newSpinBox();
-    this->montageColumnsSpinBox->setRange(1, 20);
-    this->montageColumnsSpinBox->setMaximumWidth(spinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->montageColumnsSpinBox,
-                                          "Select the number of columns in montage of volume slices");
-    QObject::connect(this->montageColumnsSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(montageColumnsSpinBoxValueChanged(int)));
-
-    this->montageSpacingSpinBox = WuQFactory::newSpinBox();
-    this->montageSpacingSpinBox->setRange(1, 2500);
-    this->montageSpacingSpinBox->setMaximumWidth(spinBoxWidth);
-    WuQtUtilities::setToolTipAndStatusTip(this->montageSpacingSpinBox,
-                                          "Select the number of slices stepped (incremented) between displayed montage slices");
-    QObject::connect(this->montageSpacingSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(montageSpacingSpinBoxValueChanged(int)));
-    
-    QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->setVerticalSpacing(2);
-    gridLayout->addWidget(rowsLabel, 0, 0);
-    gridLayout->addWidget(this->montageRowsSpinBox, 0, 1);
-    gridLayout->addWidget(columnsLabel, 1, 0);
-    gridLayout->addWidget(this->montageColumnsSpinBox, 1, 1);
-    gridLayout->addWidget(spacingLabel, 2, 0);
-    gridLayout->addWidget(this->montageSpacingSpinBox, 2, 1);
-
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(gridLayout);
-    
-    this->volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->volumeMontageWidgetGroup->add(this->montageRowsSpinBox);
-    this->volumeMontageWidgetGroup->add(this->montageColumnsSpinBox);
-    this->volumeMontageWidgetGroup->add(this->montageSpacingSpinBox);
     
     QWidget* w = this->createToolWidget("Montage", 
-                                        widget, 
+                                        m_volumeMontageComponent,
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP,
                                         0);
@@ -2935,7 +2622,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
  *   Content of browser tab.
  */
 void 
-BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* browserTabContent)
 {
     if (this->volumeMontageWidget->isHidden()) {
         return;
@@ -2943,15 +2630,7 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browse
 
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->volumeMontageWidgetGroup->blockAllSignals(true);
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    
-    this->montageRowsSpinBox->setValue(btc->getMontageNumberOfRows());
-    this->montageColumnsSpinBox->setValue(btc->getMontageNumberOfColumns());
-    this->montageSpacingSpinBox->setValue(btc->getMontageSliceSpacing());
-    
-    this->volumeMontageWidgetGroup->blockAllSignals(false);
+    m_volumeMontageComponent->updateContent(browserTabContent);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -2964,157 +2643,9 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browse
 QWidget* 
 BrainBrowserWindowToolBar::createVolumePlaneWidget()
 {
-    QIcon parasagittalIcon;
-    const bool parasagittalIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/view-plane-parasagittal.png", 
-                            parasagittalIcon);
-
-    QIcon coronalIcon;
-    const bool coronalIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/view-plane-coronal.png", 
-                            coronalIcon);
-
-    QIcon axialIcon;
-    const bool axialIconValid =
-    WuQtUtilities::loadIcon(":/ToolBar/view-plane-axial.png", 
-                            axialIcon);
-    
-    this->volumePlaneParasagittalToolButtonAction = 
-    WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::PARASAGITTAL), 
-                                                                                      "View the PARASAGITTAL slice", 
-                                                                                      this);
-    this->volumePlaneParasagittalToolButtonAction->setCheckable(true);
-    if (parasagittalIconValid) {
-        this->volumePlaneParasagittalToolButtonAction->setIcon(parasagittalIcon);
-    }
-    
-    this->volumePlaneCoronalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::CORONAL), 
-                                                                                 "View the CORONAL slice", 
-                                                                                 this);
-    this->volumePlaneCoronalToolButtonAction->setCheckable(true);
-    if (coronalIconValid) {
-        this->volumePlaneCoronalToolButtonAction->setIcon(coronalIcon);
-    }
-
-    this->volumePlaneAxialToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::AXIAL), 
-                                                                               "View the AXIAL slice", 
-                                                                               this);
-    this->volumePlaneAxialToolButtonAction->setCheckable(true);
-    if (axialIconValid) {
-        this->volumePlaneAxialToolButtonAction->setIcon(axialIcon);
-    }
-
-    this->volumePlaneAllToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL), 
-                                                                             "View the PARASAGITTAL, CORONAL, and AXIAL slices", 
-                                                                             this);
-    this->volumePlaneAllToolButtonAction->setCheckable(true);
-    
-
-    this->volumePlaneActionGroup = new QActionGroup(this);
-    this->volumePlaneActionGroup->addAction(this->volumePlaneParasagittalToolButtonAction);
-    this->volumePlaneActionGroup->addAction(this->volumePlaneCoronalToolButtonAction);
-    this->volumePlaneActionGroup->addAction(this->volumePlaneAxialToolButtonAction);
-    this->volumePlaneActionGroup->addAction(this->volumePlaneAllToolButtonAction);
-    this->volumePlaneActionGroup->setExclusive(true);
-    QObject::connect(this->volumePlaneActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(volumePlaneActionGroupTriggered(QAction*)));
-
-    
-    this->volumePlaneViewOrthogonalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::ORTHOGONAL),
-                                                                                  "View the volume orthogonal axis",                                                                           
-                                                                                  this);
-    this->volumePlaneViewOrthogonalToolButtonAction->setCheckable(true);
-    
-    this->volumePlaneViewObliqueToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::OBLIQUE),
-                                                                           "View the volume oblique axis",                                                                           
-                                                                           this);
-    this->volumePlaneViewObliqueToolButtonAction->setCheckable(true);
-    
-    this->volumePlaneViewMontageToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::MONTAGE),
-                                                                           "View a montage of parallel slices",                                                                           
-                                                                           this);
-    this->volumePlaneViewMontageToolButtonAction->setCheckable(true);
-    
-    this->volumePlaneViewActionGroup = new QActionGroup(this);
-    this->volumePlaneViewActionGroup->addAction(this->volumePlaneViewOrthogonalToolButtonAction);
-    this->volumePlaneViewActionGroup->addAction(this->volumePlaneViewMontageToolButtonAction);
-    this->volumePlaneViewActionGroup->addAction(this->volumePlaneViewObliqueToolButtonAction);
-    QObject::connect(this->volumePlaneViewActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(volumePlaneViewActionGroupTriggered(QAction*)));
-    
-    this->volumePlaneResetToolButtonAction = WuQtUtilities::createAction("Reset", 
-                                                                         "Reset to remove panning, zooming, and/or oblique rotation", 
-                                                                         this, 
-                                                                         this, 
-                                                                         SLOT(volumePlaneResetToolButtonTriggered(bool)));
-    
-    
-    QToolButton* volumePlaneParasagittalToolButton = new QToolButton();
-    volumePlaneParasagittalToolButton->setDefaultAction(this->volumePlaneParasagittalToolButtonAction);
-    
-    QToolButton* volumePlaneCoronalToolButton = new QToolButton();
-    volumePlaneCoronalToolButton->setDefaultAction(this->volumePlaneCoronalToolButtonAction);
-    
-    QToolButton* volumePlaneAxialToolButton = new QToolButton();
-    volumePlaneAxialToolButton->setDefaultAction(this->volumePlaneAxialToolButtonAction);
-    
-    QToolButton* volumePlaneAllToolButton = new QToolButton();
-    volumePlaneAllToolButton->setDefaultAction(this->volumePlaneAllToolButtonAction);
-    
-    QToolButton* volumePlaneViewMontageToolButton = new QToolButton();
-    volumePlaneViewMontageToolButton->setDefaultAction(this->volumePlaneViewMontageToolButtonAction);
-    
-    QToolButton* volumePlaneViewObliqueToolButton = new QToolButton();
-    volumePlaneViewObliqueToolButton->setDefaultAction(this->volumePlaneViewObliqueToolButtonAction);
-    
-    QToolButton* volumePlaneViewOrthogonalToolButton = new QToolButton();
-    volumePlaneViewOrthogonalToolButton->setDefaultAction(this->volumePlaneViewOrthogonalToolButtonAction);
-    
-    QToolButton* volumePlaneResetToolButton = new QToolButton();
-    volumePlaneResetToolButton->setDefaultAction(this->volumePlaneResetToolButtonAction);
-    
-    WuQtUtilities::matchWidgetHeights(volumePlaneParasagittalToolButton,
-                                      volumePlaneCoronalToolButton,
-                                      volumePlaneAxialToolButton,
-                                      volumePlaneAllToolButton);
-    
-    QToolButton* slicePlaneCustomToolButton = new QToolButton();
-    slicePlaneCustomToolButton->setDefaultAction(this->customViewAction);
-    slicePlaneCustomToolButton->setSizePolicy(QSizePolicy::Minimum,
-                                                               QSizePolicy::Fixed);
-    
-    
-    QHBoxLayout* planeLayout1 = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(planeLayout1, 0, 0);
-    planeLayout1->addStretch();
-    planeLayout1->addWidget(volumePlaneParasagittalToolButton);
-    planeLayout1->addWidget(volumePlaneCoronalToolButton);
-    planeLayout1->addWidget(volumePlaneAxialToolButton);
-    planeLayout1->addWidget(volumePlaneAllToolButton);
-    planeLayout1->addStretch();
-
-    QHBoxLayout* planeLayout2 = new QHBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(planeLayout2, 0, 0);
-    planeLayout2->addStretch();
-    planeLayout2->addWidget(volumePlaneViewOrthogonalToolButton);
-    planeLayout2->addWidget(volumePlaneViewMontageToolButton);
-    planeLayout2->addWidget(volumePlaneViewObliqueToolButton);
-    planeLayout2->addStretch();
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(planeLayout1);
-    layout->addLayout(planeLayout2);
-    layout->addWidget(volumePlaneResetToolButton, 0, Qt::AlignHCenter);
-    layout->addWidget(slicePlaneCustomToolButton, 0, Qt::AlignHCenter);
-    
-    this->volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->volumePlaneWidgetGroup->add(this->volumePlaneActionGroup);
-    this->volumePlaneWidgetGroup->add(this->volumePlaneResetToolButtonAction);
-    
+    m_slicePlaneComponent = new BrainBrowserWindowToolBarSlicePlane(this);
     QWidget* w = this->createToolWidget("Slice Plane", 
-                                        widget, 
+                                        m_slicePlaneComponent, 
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP,
                                         0);
@@ -3129,48 +2660,13 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
  *   Content of browser tab.
  */
 void 
-BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* browserTabContent)
 {
     if (this->volumePlaneWidget->isHidden()) {
         return;
     }
-    
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
-    this->volumePlaneWidgetGroup->blockAllSignals(true);
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-        switch (btc->getSliceViewPlane()) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                this->volumePlaneAllToolButtonAction->setChecked(true);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                this->volumePlaneAxialToolButtonAction->setChecked(true);
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                this->volumePlaneCoronalToolButtonAction->setChecked(true);
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                this->volumePlaneParasagittalToolButtonAction->setChecked(true);
-                break;
-        }
-        
-        switch(btc->getSliceViewMode()) {
-            case VolumeSliceViewModeEnum::MONTAGE:
-                this->volumePlaneViewMontageToolButtonAction->setChecked(true);
-                break;
-            case VolumeSliceViewModeEnum::OBLIQUE:
-                this->volumePlaneViewObliqueToolButtonAction->setChecked(true);
-                break;
-            case VolumeSliceViewModeEnum::ORTHOGONAL:
-                this->volumePlaneViewOrthogonalToolButtonAction->setChecked(true);
-                break;
-        }
 
-    
-    this->volumePlaneWidgetGroup->blockAllSignals(false);
-
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
+    m_slicePlaneComponent->updateContent(browserTabContent);
 }
 
 /**
@@ -3815,224 +3311,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
 }
 
 /**
- * Called when volume indices ORIGIN tool button is pressed.
- */
-void
-BrainBrowserWindowToolBar::volumeIndicesOriginActionTriggered()
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setSlicesToOrigin();
-    
-    this->updateVolumeIndicesWidget(btc);
-    
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when volume indices parasagittal check box is toggled.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int /*state*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setSliceParasagittalEnabled(this->volumeIndicesParasagittalCheckBox->isChecked());
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when volume indices coronal check box is toggled.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int /*state*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    this->updateOtherYokedWindows();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setSliceCoronalEnabled(this->volumeIndicesCoronalCheckBox->isChecked());
-    this->updateGraphicsWindow();
-}
-
-/**
- * Called when volume indices axial check box is toggled.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int /*state*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setSliceAxialEnabled(this->volumeIndicesAxialCheckBox->isChecked());
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when volume indices parasagittal spin box value is changed.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int /*i*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
-}
-
-/**
- * Called when volume indices coronal spin box value is changed.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int /*i*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
-}
-
-/**
- * Called when volume indices axial spin box value is changed.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
-}
-
-/**
- * Called when X stereotaxic coordinate is changed.
- * @param d
- *    New value.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesXcoordSpinBoxValueChanged(double /*d*/)
-{
-    this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
-}
-
-/**
- * Called when Y stereotaxic coordinate is changed.
- * @param d
- *    New value.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesYcoordSpinBoxValueChanged(double /*d*/)
-{
-    this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
-}
-
-/**
- * Called when Z stereotaxic coordinate is changed.
- * @param d
- *    New value.
- */
-void 
-BrainBrowserWindowToolBar::volumeIndicesZcoordSpinBoxValueChanged(double /*d*/)
-{
-    this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
-}
-
-/**
- * Read the slice indices and update the slice coordinates.
- */
-void 
-BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-    VolumeMappableInterface* underlayVolumeFile = NULL;
-    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainModel != NULL) {
-        if (this->getDisplayedModel() == wholeBrainModel) {
-            underlayVolumeFile = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
-        }
-    }
-    
-    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
-    if (volumeModel != NULL) {
-        if (this->getDisplayedModel() == volumeModel) {
-            underlayVolumeFile = volumeModel->getUnderlayVolumeFile(tabIndex);
-        }
-    }
-    
-        if (underlayVolumeFile != NULL) {
-            const int64_t parasagittalSlice = this->volumeIndicesParasagittalSpinBox->value();
-            const int64_t coronalSlice      = this->volumeIndicesCoronalSpinBox->value();
-            const int64_t axialSlice        = this->volumeIndicesAxialSpinBox->value();
-            btc->setSliceIndexAxial(underlayVolumeFile, axialSlice);
-            btc->setSliceIndexCoronal(underlayVolumeFile, coronalSlice);
-            btc->setSliceIndexParasagittal(underlayVolumeFile, parasagittalSlice);
-        }
-    
-    this->updateSliceIndicesAndCoordinatesRanges();
-    
-    this->updateGraphicsWindow();    
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Read the slice coordinates and convert to slices indices and then
- * update the displayed slices.
- */
-void 
-BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
-{    
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const int32_t tabIndex = btc->getTabNumber();
-    
-    VolumeMappableInterface* underlayVolumeFile = NULL;
-    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
-    if (wholeBrainModel != NULL) {
-        if (this->getDisplayedModel() == wholeBrainModel) {
-            underlayVolumeFile = wholeBrainModel->getUnderlayVolumeFile(tabIndex);
-        }
-    }
-    
-    ModelVolume* volumeModel = btc->getDisplayedVolumeModel();
-    if (volumeModel != NULL) {
-        if (this->getDisplayedModel() == volumeModel) {
-            underlayVolumeFile = volumeModel->getUnderlayVolumeFile(tabIndex);
-        }
-    }
-    
-    if (underlayVolumeFile != NULL) {
-        float sliceCoords[3] = {
-            this->volumeIndicesXcoordSpinBox->value(),
-            this->volumeIndicesYcoordSpinBox->value(),
-            this->volumeIndicesZcoordSpinBox->value()
-        };
-        
-        btc->selectSlicesAtCoordinate(sliceCoords);
-    }
-    
-    this->updateSliceIndicesAndCoordinatesRanges();
-    
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
  * Called when window yoke to tab combo box is selected.
  */
 void 
@@ -4082,163 +3360,7 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
     this->checkUpdateCounter();    
 }
 
-/**
- * Called when volume slice plane button is clicked.
- */
-void 
-BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    VolumeSliceViewPlaneEnum::Enum plane = VolumeSliceViewPlaneEnum::AXIAL;
-    
-    if (action == this->volumePlaneAllToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::ALL;
-    }
-    else if (action == this->volumePlaneAxialToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::AXIAL;
-        
-    }
-    else if (action == this->volumePlaneCoronalToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::CORONAL;
-        
-    }
-    else if (action == this->volumePlaneParasagittalToolButtonAction) {
-        plane = VolumeSliceViewPlaneEnum::PARASAGITTAL;
-    }
-    else {
-        CaretLogSevere("Invalid volume plane action: " + action->text());
-    }
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    
-    btc->setSliceViewPlane(plane);
-    
-    /*
-     * If ALL and currently Montage, switch from Montage to Orthogonal
-     * since ALL and Montage are incompatible.
-     */
-    if (plane == VolumeSliceViewPlaneEnum::ALL) {
-        if (btc->getSliceViewMode() == VolumeSliceViewModeEnum::MONTAGE) {
-            btc->setSliceViewMode(VolumeSliceViewModeEnum::ORTHOGONAL);
-            this->updateVolumePlaneWidget(btc);
-        }
-    }
-    
-    this->updateVolumeIndicesWidget(btc);
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when volume view plane button is clicked.
- */
-void 
-BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    VolumeSliceViewModeEnum::Enum mode = VolumeSliceViewModeEnum::ORTHOGONAL;
-    
-    if (action == this->volumePlaneViewOrthogonalToolButtonAction) {
-        mode = VolumeSliceViewModeEnum::ORTHOGONAL;
-    }
-    else if (action == this->volumePlaneViewMontageToolButtonAction) {
-        mode = VolumeSliceViewModeEnum::MONTAGE;
-    }
-    else if (action == this->volumePlaneViewObliqueToolButtonAction) {
-        mode = VolumeSliceViewModeEnum::OBLIQUE;
-    }
-    else {
-        CaretLogSevere("Invalid volume plane view action: " + action->text());
-    }
-     
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    
-    btc->setSliceViewMode(mode);
-    /*
-     * If Montage and currently ALL, switch from ALL to Axial
-     * since ALL and Montage are incompatible.
-     */
-    if (mode == VolumeSliceViewModeEnum::MONTAGE) {
-        if (btc->getSliceViewPlane() == VolumeSliceViewPlaneEnum::ALL) {
-            btc->setSliceViewPlane(VolumeSliceViewPlaneEnum::AXIAL);
-            this->updateVolumePlaneWidget(btc);
-        }
-    }
-    this->updateVolumeIndicesWidget(btc);
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when volume reset slice view button is pressed.
- */
-void 
-BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->resetView();
-
-    this->updateVolumeIndicesWidget(btc);
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when montage rows spin box value is changed.
- */
-void 
-BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int /*i*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    
-    btc->setMontageNumberOfRows(this->montageRowsSpinBox->value());
-    
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when montage columns spin box value is changed.
- */
-void 
-BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int /*i*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setMontageNumberOfColumns(this->montageColumnsSpinBox->value());
-    
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-/**
- * Called when montage spacing spin box value is changed.
- */
-void 
-BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int /*i*/)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    
-    btc->setMontageSliceSpacing(this->montageSpacingSpinBox->value());
-    
-    this->updateGraphicsWindow();
-    this->updateOtherYokedWindows();
-}
-
-void 
+void
 BrainBrowserWindowToolBar::checkUpdateCounter()
 {
     if (this->updateCounter != 0) {
