@@ -56,6 +56,9 @@ namespace caret {
         
         void addClass(SceneClass* sceneClass);
         
+        AString getEnumeratedTypeValueAsString(const AString& name,
+                                               const AString& defaultValue = "") const;
+        
         /**
          * Add an enumerated type.
          * @param name
@@ -80,7 +83,7 @@ namespace caret {
         template <class T, typename ET> 
         ET getEnumeratedTypeValue(const AString& name,
                              const ET defaultValue) const {
-            const AString stringValue = getEnumeratedTypeValue(name,
+            const AString stringValue = getEnumeratedTypeValueAsString(name,
                                                                T::toName(defaultValue));
             bool valid = false;
             ET value = T::fromName(stringValue,
@@ -302,9 +305,6 @@ namespace caret {
 
         void addEnumeratedType(const AString& name,
                                const AString& value);
-        
-        AString getEnumeratedTypeValue(const AString& name,
-                                       const AString& defaultValue = "") const;
         
         int32_t getEnumeratedTypeArrayValue(const AString& name,
                                             AString values[],

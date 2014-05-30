@@ -443,11 +443,11 @@ SceneClass::getBooleanArrayValue(const AString& name,
  *    Value returned if the enumerated type value with the given
  *    name is not found.
  * @return
- *    The string value.
+ *    The string value representation of the enumerated type.
  */
-AString 
-SceneClass::getEnumeratedTypeValue(const AString& name,
-                                   const AString& defaultValue) const
+AString
+SceneClass::getEnumeratedTypeValueAsString(const AString& name,
+                                           const AString& defaultValue) const
 {
     for (std::vector<SceneObject*>::const_iterator iter = m_childObjects.begin();
          iter != m_childObjects.end();
