@@ -56,7 +56,7 @@ namespace caret {
         
         void contralateralIdentificationToggled(bool);
         
-        void volumeSliceIdentificationToggled(bool);
+        //void volumeSliceIdentificationToggled(bool);
         
         void showPropertiesDialog();
         
@@ -71,7 +71,7 @@ namespace caret {
         
         QAction* m_contralateralIdentificationAction;
         
-        QAction* m_volumeSliceIdentificationAction;
+        //QAction* m_volumeSliceIdentificationAction;
         
         QString m_informationText;
         

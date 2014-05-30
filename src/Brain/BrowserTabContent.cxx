@@ -1039,6 +1039,9 @@ BrowserTabContent::receiveEvent(Event* event)
                     if (keepSliceCoordinateForSelectedAxis) {
                         switch (getSliceViewPlane()) {
                             case VolumeSliceViewPlaneEnum::ALL:
+                                volumeSliceXYZ[0] = getSliceCoordinateParasagittal();
+                                volumeSliceXYZ[1] = getSliceCoordinateCoronal();
+                                volumeSliceXYZ[2] = getSliceCoordinateAxial();
                                 break;
                             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                                 volumeSliceXYZ[0] = getSliceCoordinateParasagittal();

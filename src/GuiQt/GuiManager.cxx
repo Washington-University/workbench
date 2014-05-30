@@ -186,6 +186,20 @@ GuiManager::GuiManager(QObject* parent)
     m_sceneDialogDisplayAction->setChecked(false);
     m_sceneDialogDisplayAction->blockSignals(false);
     
+    /*
+     * Identification changes selected volume slices action
+     */
+    m_volumeSliceIdentificationAction = WuQtUtilities::createAction("ID",
+                                                                    "<html>Allow identification to<br>"
+                                                                    "change selected volume slices.</html>",
+                                                                    this,
+                                                                    this,
+                                                                    SLOT(volumeSliceIdentificationActionToggled(bool)));
+    m_volumeSliceIdentificationAction->blockSignals(true);
+    m_volumeSliceIdentificationAction->setCheckable(true);
+    m_volumeSliceIdentificationAction->setChecked(getBrain()->getIdentificationManager()->isVolumeIdentificationEnabled());
+    m_volumeSliceIdentificationAction->blockSignals(false);
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
@@ -1117,6 +1131,15 @@ GuiManager::processShowSurfacePropertiesEditorDialog(BrainBrowserWindow* browser
 }
 
 /**
+ * @return The action for allowing identification to move selected volume slices.
+ */
+QAction*
+GuiManager::getVolumeSliceIdentificationAction()
+{
+    return m_volumeSliceIdentificationAction;
+}
+
+/**
  * @return The action for showing/hiding the scene dialog.
  */
 QAction*
@@ -1137,6 +1160,21 @@ GuiManager::sceneDialogDisplayActionToggled(bool status)
     showHideSceneDialog(status,
                         NULL);
 }
+
+/**
+ * Gets called when the volume slice identification action is toggled.
+ *
+ * @param status
+ *    New status (true allow identification to change volume slice suggestion, 
+ *    false do not change volume slices).
+ */
+void
+GuiManager::volumeSliceIdentificationActionToggled(bool /* status */)
+{
+    IdentificationManager* idManager = getBrain()->getIdentificationManager();
+    idManager->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
+}
+
 
 /**
  * Gets called by the scene dialog when the scene dialog is closed.

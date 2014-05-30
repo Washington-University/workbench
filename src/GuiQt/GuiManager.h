@@ -114,6 +114,8 @@ namespace caret {
         
         QAction* getSceneDialogDisplayAction();
         
+        QAction* getVolumeSliceIdentificationAction();
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
@@ -161,6 +163,8 @@ namespace caret {
         void showHideInfoWindowSelected(bool);
         
         void sceneDialogDisplayActionToggled(bool);
+        
+        void volumeSliceIdentificationActionToggled(bool);
         
     private slots:
         void sceneDialogWasClosed();
@@ -229,6 +233,8 @@ namespace caret {
         SceneDialog* sceneDialog;
         
         QAction* m_sceneDialogDisplayAction;
+        
+        QAction* m_volumeSliceIdentificationAction;
         
         SurfacePropertiesEditorDialog* m_surfacePropertiesEditorDialog;
         

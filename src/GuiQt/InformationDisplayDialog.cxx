@@ -108,12 +108,12 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
                                                           this,
                                                           SLOT(showPropertiesDialog()));
     
-    m_volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID",
-                                                                    "Enable volume slice movement to selected brainordinate.",
-                                                                    this,
-                                                                    this,
-                                                                    SLOT(volumeSliceIdentificationToggled(bool)));
-    m_volumeSliceIdentificationAction->setCheckable(true);
+//    m_volumeSliceIdentificationAction = WuQtUtilities::createAction("Volume ID",
+//                                                                    "Enable volume slice movement to selected brainordinate.",
+//                                                                    this,
+//                                                                    this,
+//                                                                    SLOT(volumeSliceIdentificationToggled(bool)));
+//    m_volumeSliceIdentificationAction->setCheckable(true);
     
     QAction* identifySurfaceAction = WuQtUtilities::createAction("Select\nBrainordinate",
                                                                  "Enter a brainordinate for identification",
@@ -142,8 +142,8 @@ InformationDisplayDialog::InformationDisplayDialog(BrainBrowserWindow* parent)
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(m_contralateralIdentificationAction);
     idToolBarRight->addSeparator();
-    idToolBarRight->addAction(m_volumeSliceIdentificationAction);
-    idToolBarRight->addSeparator();
+//    idToolBarRight->addAction(m_volumeSliceIdentificationAction);
+//    idToolBarRight->addSeparator();
     idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(identifySurfaceAction);
@@ -197,9 +197,9 @@ InformationDisplayDialog::updateDialog()
     m_contralateralIdentificationAction->blockSignals(true);
     m_contralateralIdentificationAction->setChecked(idManager->isContralateralIdentificationEnabled());
     m_contralateralIdentificationAction->blockSignals(false);
-    m_volumeSliceIdentificationAction->blockSignals(true);
-    m_volumeSliceIdentificationAction->setChecked(idManager->isVolumeIdentificationEnabled());
-    m_volumeSliceIdentificationAction->blockSignals(false);
+//    m_volumeSliceIdentificationAction->blockSignals(true);
+//    m_volumeSliceIdentificationAction->setChecked(idManager->isVolumeIdentificationEnabled());
+//    m_volumeSliceIdentificationAction->blockSignals(false);
 }
 
 /**
@@ -269,16 +269,16 @@ InformationDisplayDialog::contralateralIdentificationToggled(bool)
     idManager->setContralateralIdentificationEnabled(m_contralateralIdentificationAction->isChecked());
 }
 
-/**
- * Called when volume identification toolbutton is toggled.
- */
-void
-InformationDisplayDialog::volumeSliceIdentificationToggled(bool)
-{
-    Brain* brain = GuiManager::get()->getBrain();
-    IdentificationManager* idManager = brain->getIdentificationManager();
-    idManager->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
-}
+///**
+// * Called when volume identification toolbutton is toggled.
+// */
+//void
+//InformationDisplayDialog::volumeSliceIdentificationToggled(bool)
+//{
+//    Brain* brain = GuiManager::get()->getBrain();
+//    IdentificationManager* idManager = brain->getIdentificationManager();
+//    idManager->setVolumeIdentificationEnabled(m_volumeSliceIdentificationAction->isChecked());
+//}
 
 /**
  * Clear the information text.

@@ -37,6 +37,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
+#include "GuiManager.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "VolumeFile.h"
@@ -144,10 +145,14 @@ m_parentToolBar(parentToolBar)
     
     m_volumeSliceProjectionTypeEnumComboBox = new EnumComboBoxTemplate(this);
     m_volumeSliceProjectionTypeEnumComboBox->setup<VolumeSliceProjectionTypeEnum,VolumeSliceProjectionTypeEnum::Enum>();
+    m_volumeSliceProjectionTypeEnumComboBox->getComboBox()->setSizeAdjustPolicy(QComboBox::AdjustToContentsOnFirstShow);
     QObject::connect(m_volumeSliceProjectionTypeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(volumeSliceProjectionTypeEnumComboBoxItemActivated()));
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
+    
+    QToolButton* idToolButton = new QToolButton();
+    idToolButton->setDefaultAction(GuiManager::get()->getVolumeSliceIdentificationAction());
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
@@ -166,9 +171,11 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_volumeIndicesAxialSpinBox, 2, 2);
     gridLayout->addWidget(m_volumeIndicesZcoordSpinBox, 2, 3);
 
-    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 0, 1, 4, Qt::AlignHCenter);
+    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 1, 1, 3, Qt::AlignHCenter);
 
-    gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 4, 1);
+    gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
+    
+    gridLayout->addWidget(idToolButton, 3, 4, 1, 1);
     
     m_volumeIndicesWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeIndicesWidgetGroup->add(volumeIndicesOriginToolButtonAction);
