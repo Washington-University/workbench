@@ -102,6 +102,7 @@ m_parentToolBar(parentToolBar)
     checkboxGridLayout->addWidget(m_featuresClippingEnabledCheckBox, 2, 2);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addLayout(checkboxGridLayout);
     layout->addWidget(setupPushButton, 0, Qt::AlignHCenter);
     layout->addStretch();

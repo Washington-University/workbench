@@ -95,6 +95,7 @@ m_parentToolBar(parentToolBar)
     montageEnabledToolButton->setDefaultAction(m_montageEnabledAction);
     
     QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->setVerticalSpacing(2);
     gridLayout->addWidget(rowsLabel, 0, 0);
     gridLayout->addWidget(m_montageRowsSpinBox, 0, 1);

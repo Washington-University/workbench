@@ -33,6 +33,7 @@
 #include "ChartModel.h"
 #include "EnumComboBoxTemplate.h"
 #include "ModelChart.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -69,6 +70,7 @@ m_parentToolBar(parentToolBar)
     m_chartTypeButtonGroup->addButton(m_chartTimeSeriesTypeRadioButton);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addWidget(m_chartDataSeriesTypeRadioButton);
     layout->addWidget(m_chartMatrixTypeRadioButton);
     layout->addWidget(m_chartTimeSeriesTypeRadioButton);

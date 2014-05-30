@@ -150,8 +150,7 @@ m_parentToolBar(parentToolBar)
                                           "Chooses viewing orientation (oblique or orthogonal)");
     
     QGridLayout* gridLayout = new QGridLayout(this);
-    gridLayout->setHorizontalSpacing(2);
-    gridLayout->setVerticalSpacing(2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->addWidget(m_volumeIndicesParasagittalCheckBox, 0, 0);
     gridLayout->addWidget(parasagittalLabel, 0, 1);
     gridLayout->addWidget(m_volumeIndicesParasagittalSpinBox, 0, 2);
