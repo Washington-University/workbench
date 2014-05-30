@@ -27,6 +27,7 @@
 #include "PlainTextStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SceneEnumeratedType.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -788,7 +789,7 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
         /*
          * Set slice drawing type and projection type using old slice view mode.
          */
-        const AString oldViewModeValue = sceneClass->getStringValue("m_sliceViewMode");
+        const AString oldViewModeValue = sceneClass->getEnumeratedTypeValueAsString("m_sliceViewMode");
         if (! oldViewModeValue.isEmpty()) {
             if (oldViewModeValue == "MONTAGE") {
                 m_sliceDrawingType = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE;
