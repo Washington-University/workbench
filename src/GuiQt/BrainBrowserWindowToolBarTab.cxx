@@ -23,13 +23,16 @@
 #include "BrainBrowserWindowToolBarTab.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_TAB_DECLARE__
 
+#include <QAction>
 #include <QLabel>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
@@ -63,14 +66,28 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_yokingGroupComboBox, SIGNAL(itemActivated()),
                      this, SLOT(yokeToGroupComboBoxIndexChanged()));
     
+    
+    m_idSlicesAction = WuQtUtilities::createAction("Volume ID",
+                                                   "If this item is selected AND a node or voxel\n"
+                                                   "identification takes place in any tab/window, the\n"
+                                                   "selected volume slices in this tab will move to\n"
+                                                   "the location of the identified node or voxel.",
+                                                   this,
+                                                   this,
+                                                   SLOT(volumeIdentificationToggled(bool)));
+    m_idSlicesAction->setCheckable(true);
+    QToolButton* idToolButton = new QToolButton();
+    idToolButton->setDefaultAction(m_idSlicesAction);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addWidget(yokeToLabel);
     layout->addWidget(m_yokingGroupComboBox->getWidget());
+    layout->addWidget(idToolButton, 0, Qt::AlignHCenter);
     
-    m_tabWidgetGroup = new WuQWidgetObjectGroup(this);
-    m_tabWidgetGroup->add(yokeToLabel);
-    m_tabWidgetGroup->add(m_yokingGroupComboBox->getWidget());
+    addToWidgetGroup(yokeToLabel);
+    addToWidgetGroup(m_yokingGroupComboBox->getWidget());
+    addToWidgetGroup(idToolButton);
 }
 
 /**
@@ -81,6 +98,23 @@ BrainBrowserWindowToolBarTab::~BrainBrowserWindowToolBarTab()
 }
 
 /**
+ * Called when volume identification action toggled.
+ *
+ * @param value
+ *     New value.
+ */
+void
+BrainBrowserWindowToolBarTab::volumeIdentificationToggled(bool value)
+{
+    BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    browserTabContent->setIdentificationUpdatesVolumeSlices(value);
+}
+
+
+/**
  * Update the surface montage options widget.
  *
  * @param browserTabContent
@@ -89,11 +123,11 @@ BrainBrowserWindowToolBarTab::~BrainBrowserWindowToolBarTab()
 void
 BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent)
 {
-    m_tabWidgetGroup->blockAllSignals(true);
+    blockAllSignals(true);
     
     m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>(browserTabContent->getYokingGroup());
-
-    m_tabWidgetGroup->blockAllSignals(false);
+    m_idSlicesAction->setChecked(browserTabContent->isIdentificationUpdatesVolumeSlices());
+    blockAllSignals(false);
 }
 
 /**

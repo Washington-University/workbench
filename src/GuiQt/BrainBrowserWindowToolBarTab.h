@@ -29,7 +29,6 @@
 namespace caret {
     class BrainBrowserWindowToolBar;
     class EnumComboBoxTemplate;
-    class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarTab : public BrainBrowserWindowToolBarComponent {
         Q_OBJECT
@@ -48,6 +47,8 @@ namespace caret {
     private slots:
         void yokeToGroupComboBoxIndexChanged();
         
+        void volumeIdentificationToggled(bool);
+        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
@@ -55,11 +56,11 @@ namespace caret {
         
         EnumComboBoxTemplate* m_yokingGroupComboBox;
 
-        WuQWidgetObjectGroup* m_tabWidgetGroup;
-        
         const int32_t m_browserWindowIndex;
         
         BrainBrowserWindowToolBar* m_parentToolBar;
+        
+        QAction* m_idSlicesAction;
         
         // ADD_NEW_MEMBERS_HERE
 

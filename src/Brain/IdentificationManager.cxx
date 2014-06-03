@@ -24,11 +24,15 @@
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventBrowserTabGetAll.h"
+#include "EventManager.h"
 #include "IdentifiedItemNode.h"
 #include "SceneClassAssistant.h"
 #include "SceneClass.h"
+#include "ScenePrimitive.h"
 
 using namespace caret;
 
@@ -48,7 +52,6 @@ IdentificationManager::IdentificationManager()
     m_sceneAssistant = new SceneClassAssistant();
     
     m_contralateralIdentificationEnabled = false;
-    m_volumeIdentificationEnabled = false;
     m_identificationSymbolColor = CaretColorEnum::WHITE;
     m_identificationContralateralSymbolColor = CaretColorEnum::LIME;
     m_identifcationSymbolSize = 6.0;
@@ -56,9 +59,6 @@ IdentificationManager::IdentificationManager()
     
     m_sceneAssistant->add("m_contralateralIdentificationEnabled",
                           &m_contralateralIdentificationEnabled);
-    
-    m_sceneAssistant->add("m_volumeIdentificationEnabled",
-                          &m_volumeIdentificationEnabled);
     
     m_sceneAssistant->add("m_identifcationSymbolSize",
                           &m_identifcationSymbolSize);
@@ -311,26 +311,6 @@ IdentificationManager::setContralateralIdentificationEnabled(const bool enabled)
 }
 
 /**
- * @return Status of volume identification.
- */
-bool
-IdentificationManager::isVolumeIdentificationEnabled() const
-{
-    return m_volumeIdentificationEnabled;
-}
-
-/**
- * Set status of volume identification.
- * @param
- *    New status.
- */
-void
-IdentificationManager::setVolumeIdentificationEnabled(const bool enabled)
-{
-    m_volumeIdentificationEnabled = enabled;
-}
-
-/**
  * @return The size of the identification symbol
  */
 float
@@ -513,6 +493,27 @@ IdentificationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                     CaretLogSevere(msg);
                 }
             }
+        }
+    }
+    
+    /*
+     * "m_volumeIdentificationEnabled" was removed when volume identification
+     * was made a tab property.  If this item is present in the scene,
+     * update volume ID status in all tabs.
+     */
+    const ScenePrimitive* idPrimitive = sceneClass->getPrimitive("m_volumeIdentificationEnabled");
+    if (idPrimitive != NULL) {
+        const bool volumeID = sceneClass->getBooleanValue("m_volumeIdentificationEnabled");
+        
+        EventBrowserTabGetAll allTabs;
+        EventManager::get()->sendEvent(allTabs.getPointer());
+        std::vector<BrowserTabContent*> tabContent = allTabs.getAllBrowserTabs();
+        
+        for (std::vector<BrowserTabContent*>::iterator iter = tabContent.begin();
+             iter != tabContent.end();
+             iter++) {
+            BrowserTabContent* btc = *iter;
+            btc->setIdentificationUpdatesVolumeSlices(volumeID);
         }
     }
 }

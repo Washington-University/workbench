@@ -151,9 +151,6 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolTipAndStatusTip(m_volumeSliceProjectionTypeEnumComboBox->getWidget(),
                                           "Chooses viewing orientation (oblique or orthogonal)");
     
-    QToolButton* idToolButton = new QToolButton();
-    idToolButton->setDefaultAction(GuiManager::get()->getVolumeSliceIdentificationAction());
-    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->addWidget(m_volumeIndicesParasagittalCheckBox, 0, 0);
@@ -171,11 +168,9 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_volumeIndicesAxialSpinBox, 2, 2);
     gridLayout->addWidget(m_volumeIndicesZcoordSpinBox, 2, 3);
 
-    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 1, 1, 3, Qt::AlignHCenter);
+    gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 1, 1, 4, Qt::AlignHCenter);
 
     gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
-    
-    gridLayout->addWidget(idToolButton, 3, 4, 1, 1);
     
     m_volumeIndicesWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeIndicesWidgetGroup->add(volumeIndicesOriginToolButtonAction);

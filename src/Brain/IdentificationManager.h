@@ -61,10 +61,6 @@ namespace caret {
         
         void setContralateralIdentificationEnabled(const bool enabled);
         
-        bool isVolumeIdentificationEnabled() const;
-        
-        void setVolumeIdentificationEnabled(const bool enabled);
-        
         float getIdentificationSymbolSize() const;
         
         void setIdentificationSymbolSize(const float symbolSize);
@@ -111,8 +107,6 @@ namespace caret {
         IdentifiedItem* m_mostRecentIdentifiedItem;
         
         bool m_contralateralIdentificationEnabled;
-        
-        bool m_volumeIdentificationEnabled;
         
         float m_identifcationSymbolSize;
         

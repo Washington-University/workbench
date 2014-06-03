@@ -101,6 +101,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_userName = "";
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_yokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
+    m_identificationUpdatesVolumeSlices = false;
 
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
@@ -158,6 +159,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "WholeBrainSurfaceSettings",
                                m_wholeBrainSurfaceSettings);
 
+    m_sceneClassAssistant->add("m_identificationUpdatesVolumeSlices",
+                               &m_identificationUpdatesVolumeSlices);
+    
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_yokingGroup",
                                                                    &m_yokingGroup);
     
@@ -1002,8 +1006,7 @@ BrowserTabContent::receiveEvent(Event* event)
             return;
         }
 
-        Brain* brain = model->getBrain();
-        if (brain->getIdentificationManager()->isVolumeIdentificationEnabled()) {
+        if (isIdentificationUpdatesVolumeSlices()) {
             const float* highlighXYZ = idLocationEvent->getXYZ();
             for (int32_t windowTabNumber = 0;
                  windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS;
@@ -3043,6 +3046,30 @@ BrowserTabContent::selectSlicesAtCoordinate(const float xyz[3])
 }
 
 /**
+ * If true, selected volume slices in tab move to location
+ * of the identification operation.
+ */
+bool
+BrowserTabContent::isIdentificationUpdatesVolumeSlices() const
+{
+    return m_identificationUpdatesVolumeSlices;
+}
+
+/**
+ * Update selected volume slices in tab move to location
+ * of the identification operation.
+ *
+ * @param status
+ *    New status.
+ */
+void
+BrowserTabContent::setIdentificationUpdatesVolumeSlices(const bool status)
+{
+    m_identificationUpdatesVolumeSlices = status;
+    updateYokedBrowserTabs();
+}
+
+/**
  * Return the axial slice index.
  * @return
  *   Axial slice index or negative if invalid
@@ -3398,6 +3425,7 @@ BrowserTabContent::setYokingGroup(const YokingGroupEnum::Enum yokingGroup)
                 *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
+                m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
                 break;
             }
         }
@@ -3440,6 +3468,7 @@ BrowserTabContent::updateYokedBrowserTabs()
                 *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
+                btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
             }
         }
     }

@@ -314,6 +314,10 @@ namespace caret {
         
         void selectSlicesAtCoordinate(const float xyz[3]);
         
+        bool isIdentificationUpdatesVolumeSlices() const;
+        
+        void setIdentificationUpdatesVolumeSlices(const bool status);
+
         void reset();
 
         void updateYokedBrowserTabs();
@@ -434,6 +438,12 @@ namespace caret {
         
         /** Whole brain surface settings. */
         WholeBrainSurfaceSettings* m_wholeBrainSurfaceSettings;
+        
+        /** 
+         * If true, selected volume slices in tab move to location
+         *  of the identification operation.
+         */
+        bool m_identificationUpdatesVolumeSlices;
         
         /** Contains all active browser tab content instances */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;
