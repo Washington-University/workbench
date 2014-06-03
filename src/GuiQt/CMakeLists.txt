@@ -41,6 +41,7 @@ BrainBrowserWindowToolBarComponent.h
 BrainBrowserWindowToolBarSlicePlane.h
 BrainBrowserWindowToolBarSliceSelection.h
 BrainBrowserWindowToolBarSurfaceMontage.h
+BrainBrowserWindowToolBarTab.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
@@ -152,6 +153,7 @@ BrainBrowserWindowToolBarComponent.h
 BrainBrowserWindowToolBarSlicePlane.h
 BrainBrowserWindowToolBarSliceSelection.h
 BrainBrowserWindowToolBarSurfaceMontage.h
+BrainBrowserWindowToolBarTab.h
 BrainBrowserWindowToolBarVolumeMontage.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
@@ -283,6 +285,7 @@ BrainBrowserWindowToolBarComponent.cxx
 BrainBrowserWindowToolBarSlicePlane.cxx
 BrainBrowserWindowToolBarSliceSelection.cxx
 BrainBrowserWindowToolBarSurfaceMontage.cxx
+BrainBrowserWindowToolBarTab.cxx
 BrainBrowserWindowToolBarVolumeMontage.cxx
 BrainOpenGLWidget.cxx
 BrainOpenGLWidgetContextMenu.cxx

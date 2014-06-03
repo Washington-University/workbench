@@ -57,6 +57,7 @@ namespace caret {
     class BrainBrowserWindowToolBarSlicePlane;
     class BrainBrowserWindowToolBarSliceSelection;
     class BrainBrowserWindowToolBarSurfaceMontage;
+    class BrainBrowserWindowToolBarTab;
     class BrainBrowserWindowToolBarVolumeMontage;
     class BrainBrowserWindow;
     class BrowserTabContent;
@@ -131,7 +132,7 @@ namespace caret {
         QWidget* createWholeBrainSurfaceOptionsWidget();
         QWidget* createVolumeIndicesWidget();
         QWidget* createModeWidget();
-        QWidget* createWindowWidget();
+        QWidget* createTabOptionsWidget();
         QWidget* createChartAxesWidget();
         QWidget* createChartAttributesWidget();
         QWidget* createChartTypeWidget();
@@ -146,7 +147,7 @@ namespace caret {
         void updateWholeBrainSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeIndicesWidget(BrowserTabContent* browserTabContent);
         void updateModeWidget(BrowserTabContent* browserTabContent);
-        void updateWindowWidget(BrowserTabContent* browserTabContent);
+        void updateTabOptionsWidget(BrowserTabContent* browserTabContent);
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
         void updateChartAxesWidget(BrowserTabContent* browserTabContent);
@@ -181,7 +182,6 @@ namespace caret {
         WuQWidgetObjectGroup* orientationWidgetGroup;
         WuQWidgetObjectGroup* wholeBrainSurfaceOptionsWidgetGroup;
         WuQWidgetObjectGroup* modeWidgetGroup;
-        WuQWidgetObjectGroup* windowWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
         
         QWidget* fullToolBarWidget;
@@ -228,6 +228,8 @@ namespace caret {
         void renameTab();
         
         void updateToolBar();
+        
+        void updateToolBarComponents(BrowserTabContent* browserTabContent);
         
         void showHideToolBar(bool showIt);
         
@@ -330,15 +332,6 @@ namespace caret {
         void wholeBrainSurfaceCerebellumToolButtonTriggered(bool checked);
     
     private:
-        
-        EnumComboBoxTemplate* m_yokingGroupComboBox;
-        WuQWidgetObjectGroup* windowYokingWidgetGroup;
-
-    
-    private slots:
-        void windowYokeToGroupComboBoxIndexChanged();
-        
-    private:
         StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;
         
     private slots:
@@ -355,6 +348,7 @@ namespace caret {
         BrainBrowserWindowToolBarSlicePlane* m_slicePlaneComponent;
         BrainBrowserWindowToolBarSliceSelection* m_sliceSelectionComponent;
         BrainBrowserWindowToolBarVolumeMontage* m_volumeMontageComponent;
+        BrainBrowserWindowToolBarTab* m_tabOptionsComponent;
         
     private slots:
         void modeInputModeActionTriggered(QAction*);
@@ -384,6 +378,7 @@ namespace caret {
         friend class BrainBrowserWindowToolBarSurfaceMontage;
         friend class BrainBrowserWindowToolBarSlicePlane;
         friend class BrainBrowserWindowToolBarSliceSelection;
+        friend class BrainBrowserWindowToolBarTab;
         friend class BrainBrowserWindowToolBarVolumeMontage;
         
         /**

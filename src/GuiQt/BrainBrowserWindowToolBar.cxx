@@ -44,8 +44,6 @@
 #include <QTextEdit>
 #include <QTimer>
 #include <QToolButton>
-//#include <QtWebKit/QtWebKit>
-//#include <QtWebKit/QWebView>
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -57,6 +55,7 @@
 #include "BrainBrowserWindowToolBarSlicePlane.h"
 #include "BrainBrowserWindowToolBarSliceSelection.h"
 #include "BrainBrowserWindowToolBarSurfaceMontage.h"
+#include "BrainBrowserWindowToolBarTab.h"
 #include "BrainBrowserWindowToolBarVolumeMontage.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -280,7 +279,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->windowWidget = this->createWindowWidget();
+    this->windowWidget = this->createTabOptionsWidget();
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     m_clippingOptionsWidget = createClippingOptionsWidget();
@@ -430,7 +429,6 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->orientationWidgetGroup->clear();
     this->wholeBrainSurfaceOptionsWidgetGroup->clear();
     this->modeWidgetGroup->clear();
-    this->windowWidgetGroup->clear();
     this->singleSurfaceSelectionWidgetGroup->clear();
     
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
@@ -1326,21 +1324,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     m_clippingOptionsWidget->setVisible(showClippingOptionsWidget);
     this->windowWidget->setVisible(showWindowWidget);
 
-    if (browserTabContent != NULL) {
-        this->updateOrientationWidget(browserTabContent);
-        this->updateWholeBrainSurfaceOptionsWidget(browserTabContent);
-        this->updateVolumeIndicesWidget(browserTabContent);
-        this->updateSingleSurfaceOptionsWidget(browserTabContent);
-        this->updateSurfaceMontageOptionsWidget(browserTabContent);
-        this->updateChartTypeWidget(browserTabContent);
-        this->updateChartAxesWidget(browserTabContent);
-        this->updateChartAttributesWidget(browserTabContent);
-        this->updateVolumeMontageWidget(browserTabContent);
-        this->updateVolumePlaneWidget(browserTabContent);
-        this->updateModeWidget(browserTabContent);
-        this->updateWindowWidget(browserTabContent);
-        this->updateClippingOptionsWidget(browserTabContent);
-    }
+    updateToolBarComponents(browserTabContent);
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
@@ -1372,6 +1356,32 @@ BrainBrowserWindowToolBar::updateToolBar()
                 m_toolbarWidget->setFixedHeight(sizeHintHeight);
             }
         }
+    }
+}
+
+/**
+ * Update the components in the toolbar with the given tab content.
+ *
+ * @param browserTabContent
+ *    The current tab content.
+ */
+void
+BrainBrowserWindowToolBar::updateToolBarComponents(BrowserTabContent* browserTabContent)
+{
+    if (browserTabContent != NULL) {
+        this->updateOrientationWidget(browserTabContent);
+        this->updateWholeBrainSurfaceOptionsWidget(browserTabContent);
+        this->updateVolumeIndicesWidget(browserTabContent);
+        this->updateSingleSurfaceOptionsWidget(browserTabContent);
+        this->updateSurfaceMontageOptionsWidget(browserTabContent);
+        this->updateChartTypeWidget(browserTabContent);
+        this->updateChartAxesWidget(browserTabContent);
+        this->updateChartAttributesWidget(browserTabContent);
+        this->updateVolumeMontageWidget(browserTabContent);
+        this->updateVolumePlaneWidget(browserTabContent);
+        this->updateModeWidget(browserTabContent);
+        this->updateTabOptionsWidget(browserTabContent);
+        this->updateClippingOptionsWidget(browserTabContent);
     }
 }
 
@@ -2294,41 +2304,18 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 }
 
 /**
- * Create the window (yoking) widget.
+ * Create the tab options widget.
  *
- * @return  The window (yoking) widget.
+ * @return  The tab options widget.
  */
 QWidget* 
-BrainBrowserWindowToolBar::createWindowWidget()
+BrainBrowserWindowToolBar::createTabOptionsWidget()
 {
-    m_yokingGroupComboBox = new EnumComboBoxTemplate(this);
-    m_yokingGroupComboBox->setup<YokingGroupEnum, YokingGroupEnum::Enum>();
-    m_yokingGroupComboBox->getWidget()->setStatusTip("Select a yoking group (linked views)");
-    m_yokingGroupComboBox->getWidget()->setToolTip(("Select a yoking group (linked views).\n"
-                                               "Models yoked to a group are displayed in the same view.\n"
-                                               "Surface Yoking is applied to Surface, Surface Montage\n"
-                                               "and Whole Brain.  Volume Yoking is applied to Volumes."));
-
-    QLabel* yokeToLabel = new QLabel("Yoking:");
-    QObject::connect(this->m_yokingGroupComboBox, SIGNAL(itemActivated()),
-                     this, SLOT(windowYokeToGroupComboBoxIndexChanged()));
+    m_tabOptionsComponent = new BrainBrowserWindowToolBarTab(this->browserWindowIndex,
+                                                             this);
     
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
-    layout->addWidget(yokeToLabel);
-    layout->addWidget(m_yokingGroupComboBox->getWidget());
-    
-    this->windowWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->windowWidgetGroup->add(yokeToLabel);
-    this->windowWidgetGroup->add(m_yokingGroupComboBox->getWidget());
-    
-    this->windowYokingWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->windowYokingWidgetGroup->add(yokeToLabel);
-    this->windowYokingWidgetGroup->add(m_yokingGroupComboBox->getWidget());
-    
-    QWidget* w = this->createToolWidget("Window", 
-                                        widget, 
+    QWidget* w = this->createToolWidget("Tab",
+                                        m_tabOptionsComponent, 
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP,
                                         0);
@@ -2336,29 +2323,19 @@ BrainBrowserWindowToolBar::createWindowWidget()
 }
 
 /**
- * Update the window widget.
+ * Update the tab widget.
  * 
  * @param browserTabContent
  *   Content of browser tab.
  */
 void 
-BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateTabOptionsWidget(BrowserTabContent* browserTabContent)
 {
     if (this->windowWidget->isHidden()) {
         return;
     }
     
-    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
-    
-    this->windowWidgetGroup->blockAllSignals(true);
-    
-    m_yokingGroupComboBox->setSelectedItem<YokingGroupEnum,YokingGroupEnum::Enum>(browserTabContent->getYokingGroup());
-    
-    this->windowWidgetGroup->blockAllSignals(false);
-
-    this->windowYokingWidgetGroup->setEnabled(true);
-    
-    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
+    m_tabOptionsComponent->updateContent(browserTabContent);
 }
 
 
@@ -3307,29 +3284,6 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
     btc->setWholeBrainCerebellumSeparation(this->wholeBrainSurfaceSeparationCerebellumSpinBox->value());
     this->updateGraphicsWindow();
     this->updateOtherYokedWindows();
-}
-
-/**
- * Called when window yoke to tab combo box is selected.
- */
-void 
-BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged()
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    if (btc == NULL) {
-        return;
-    }
-    
-    YokingGroupEnum::Enum yokingGroup = m_yokingGroupComboBox->getSelectedItem<YokingGroupEnum, YokingGroupEnum::Enum>();
-    btc->setYokingGroup(yokingGroup);
-    this->updateVolumeIndicesWidget(btc);
-    this->updateVolumeMontageWidget(btc);
-    this->updateVolumePlaneWidget(btc);
-    this->updateClippingOptionsWidget(btc);
-    this->updateGraphicsWindow();
 }
 
 /**
