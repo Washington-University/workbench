@@ -78,7 +78,7 @@ void
 WuQWidgetObjectGroup::setEnabled(bool enable)
 {
    for (int i = 0; i < this->objects.size(); i++) {
-       QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+       QWidget* widget = qobject_cast<QWidget*>(this->objects[i]);
        if (widget != NULL) {
            widget->setEnabled(enable);
        }
@@ -92,7 +92,7 @@ void
 WuQWidgetObjectGroup::setDisabled(bool disable)
 {
    for (int i = 0; i < this->objects.size(); i++) {
-       QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+       QWidget* widget = qobject_cast<QWidget*>(this->objects[i]);
        if (widget != NULL) {
            widget->setDisabled(disable);
        }
@@ -106,7 +106,7 @@ bool
 WuQWidgetObjectGroup::isVisible() const
 {
     for (int i = 0; i < this->objects.size(); i++) {
-        QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+        QWidget* widget = qobject_cast<QWidget*>(this->objects[i]);
         if (widget != NULL) {
             if (widget->isVisible()) {
                 return true;
@@ -123,7 +123,7 @@ void
 WuQWidgetObjectGroup::setVisible(bool makeVisible)
 {
    for (int i = 0; i < this->objects.size(); i++) {
-       QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+       QWidget* widget = qobject_cast<QWidget*>(this->objects[i]);
        if (widget != NULL) {
            widget->setVisible(makeVisible);
        }
@@ -157,7 +157,7 @@ void
 WuQWidgetObjectGroup::setAllCheckBoxesChecked(const bool b)
 {
    for (int i = 0; i < this->objects.size(); i++) {
-      QCheckBox* cb = dynamic_cast<QCheckBox*>(this->objects.at(i));
+      QCheckBox* cb = qobject_cast<QCheckBox*>(this->objects.at(i));
       if (cb != NULL) {
          cb->setChecked(b);
       }
@@ -175,7 +175,7 @@ WuQWidgetObjectGroup::resizeAllToLargestSizeHint()
     int largestHeight = -1;
     
     for (int i = 0; i < this->objects.size(); i++) {
-        QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+        QWidget* widget = qobject_cast<QWidget*>(this->objects[i]);
         if (widget == NULL) {
             continue;
         }
@@ -193,7 +193,7 @@ WuQWidgetObjectGroup::resizeAllToLargestSizeHint()
         QSize newSize(largestWidth, largestHeight);
         
         for (int i = 0; i < this->objects.size(); i++) {
-            QWidget* widget = dynamic_cast<QWidget*>(this->objects[i]);
+            QWidget* widget = qobject_cast<QWidget*>(this->objects[i]);
             if (widget != NULL) {
                 widget->setFixedSize(newSize);
             }
