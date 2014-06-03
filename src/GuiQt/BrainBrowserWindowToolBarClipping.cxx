@@ -22,7 +22,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QPushButton>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 
@@ -78,8 +78,9 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_featuresClippingEnabledCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(clippingCheckBoxCheckStatusChanged()));
     
-    QPushButton* setupPushButton = new QPushButton("Setup");
-    QObject::connect(setupPushButton, SIGNAL(clicked()),
+    QToolButton* setupToolButton = new QToolButton();
+    setupToolButton->setText("Setup");
+    QObject::connect(setupToolButton, SIGNAL(clicked()),
                      this, SLOT(setupClippingPushButtonClicked()));
     
     /*
@@ -104,7 +105,7 @@ m_parentToolBar(parentToolBar)
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
     layout->addLayout(checkboxGridLayout);
-    layout->addWidget(setupPushButton, 0, Qt::AlignHCenter);
+    layout->addWidget(setupToolButton, 0, Qt::AlignHCenter);
     layout->addStretch();
 }
 
