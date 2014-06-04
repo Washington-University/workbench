@@ -32,6 +32,7 @@ using namespace caret;
 /**
  * \class caret::LabelDrawingTypeEnum 
  * \brief Drawing type for labels.
+ * \ingroup Files
  */
 
 /**
@@ -77,11 +78,16 @@ LabelDrawingTypeEnum::initialize()
                                     "DRAW_FILLED", 
                                     "Filled"));
     
+    enumData.push_back(LabelDrawingTypeEnum(DRAW_FILLED_WITH_OUTLINE,
+                                            "DRAW_FILLED_WITH_OUTLINE",
+                                            "Filled with Outline"));
+    
     enumData.push_back(LabelDrawingTypeEnum(DRAW_OUTLINE,
-                                    "DRAW_OUTLINE", 
-                                    "Outline"));
+                                            "DRAW_OUTLINE",
+                                            "Outline"));
     
 }
+
 
 /**
  * Find the data for and enumerated value.
@@ -132,12 +138,14 @@ LabelDrawingTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 LabelDrawingTypeEnum::Enum 
-LabelDrawingTypeEnum::fromName(const AString& name, bool* isValidOut)
+LabelDrawingTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = DRAW_FILLED;
+    
+    AString name = nameIn;
     
     for (std::vector<LabelDrawingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

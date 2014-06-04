@@ -1399,16 +1399,31 @@ BrainOpenGLVolumeSliceDrawing::drawObliqueSlice(const VolumeSliceViewPlaneEnum::
     const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
     const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
-    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
-                                                                                                browserTabIndex);
-    bool isOutlineMode = false;
-    switch (labelDrawingType) {
-        case LabelDrawingTypeEnum::DRAW_FILLED:
-            break;
-        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-            isOutlineMode = true;
-            break;
-    }
+//    const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
+//                                                                                                browserTabIndex);
+    
+//    switch (labelDrawingType) {
+//        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
+//            break;
+//        case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
+//            break;
+//        case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
+//            break;
+//        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+//            break;
+//        case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
+//            break;
+//        case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
+//            break;
+//    }
+//    bool isOutlineMode = false;
+//    switch (labelDrawingType) {
+//        case LabelDrawingTypeEnum::DRAW_FILLED:
+//            break;
+//        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+//            isOutlineMode = true;
+//            break;
+//    }
     
     /*
      * Color voxel values
@@ -1631,14 +1646,30 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
     const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
                                                                                                 browserTabIndex);
-    bool isOutlineMode = false;
-    switch (labelDrawingType) {
-        case LabelDrawingTypeEnum::DRAW_FILLED:
-            break;
-        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-            isOutlineMode = true;
-            break;
-    }
+    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
+                                                                                       browserTabIndex);
+    //    switch (labelDrawingType) {
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
+    //            break;
+    //    }
+    //    bool isOutlineMode = false;
+    //    switch (labelDrawingType) {
+    //        case LabelDrawingTypeEnum::DRAW_FILLED:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+    //            isOutlineMode = true;
+    //            break;
+    //    }
     
     /*
      * Enable alpha blending so voxels that are not drawn from higher layers
@@ -1797,31 +1828,31 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
          * Is label outline mode?
          */
         if (m_volumeDrawInfo[iVol].mapFile->isMappedWithLabelTable()) {
-            if (isOutlineMode) {
-                int64_t xdim = 0;
-                int64_t ydim = 0;
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        CaretAssert(0);
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        xdim = dimI;
-                        ydim = dimJ;
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        xdim = dimI;
-                        ydim = dimK;
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        xdim = dimJ;
-                        ydim = dimK;
-                        break;
-                }
-                
-                NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
-                                                                        xdim,
-                                                                        ydim);
+            int64_t xdim = 0;
+            int64_t ydim = 0;
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    xdim = dimI;
+                    ydim = dimJ;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    xdim = dimI;
+                    ydim = dimK;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    xdim = dimJ;
+                    ydim = dimK;
+                    break;
             }
+            
+            NodeAndVoxelColoring::convertSliceColoringToOutlineMode(sliceVoxelsRGBA,
+                                                                    labelDrawingType,
+                                                                    outlineColor,
+                                                                    xdim,
+                                                                    ydim);
         }
 
         int64_t selectedSliceIndices[3];

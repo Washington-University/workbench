@@ -35,9 +35,11 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Fill in labels */
+        /** Filled in label's color */
         DRAW_FILLED,
-        /** Draw outline of labels */
+        /** Filled in label's color with outline */
+        DRAW_FILLED_WITH_OUTLINE,
+        /** Filled in label's color with white outline */
         DRAW_OUTLINE
     };
 

@@ -23,7 +23,9 @@
 
 #include <stdint.h>
 
+#include "CaretColorEnum.h"
 #include "DisplayGroupEnum.h"
+#include "LabelDrawingTypeEnum.h"
 
 namespace caret {
     class DescriptiveStatistics;
@@ -90,6 +92,8 @@ namespace caret {
                                                uint8_t* rgbv);
         
         static void convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
+                                                      const LabelDrawingTypeEnum::Enum labelDrawingType,
+                                                      const CaretColorEnum::Enum labelOutlineColor,
                                                       const int64_t xdim,
                                                       const int64_t ydim);
         

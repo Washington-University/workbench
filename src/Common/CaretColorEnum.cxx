@@ -307,6 +307,45 @@ CaretColorEnum::toRGB(Enum enumValue)
 }
 
 /**
+ * Get the RGB components (ranging zero to one) of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @param rgbOut
+ *     Output with RGB components [0.0, 1.0]
+ */
+void
+CaretColorEnum::toRGBFloat(Enum enumValue,
+                           float rgbOut[3])
+{
+    if (initializedFlag == false) initialize();
+    
+    const CaretColorEnum* enumInstance = findData(enumValue);
+    rgbOut[0] = enumInstance->rgb[0];
+    rgbOut[1] = enumInstance->rgb[1];
+    rgbOut[2] = enumInstance->rgb[2];
+}
+
+/**
+ * Get the RGB components (ranging zero to one) of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @param rgbOut
+ *     Output with RGB components [0.0, 1.0]
+ */
+void
+CaretColorEnum::toRGBByte(Enum enumValue,
+                          uint8_t rgbOut[3])
+{
+    float rgbFloat[3];
+    toRGBFloat(enumValue, rgbFloat);
+
+    rgbOut[0] = static_cast<uint8_t>(rgbFloat[0] * 255.0);
+    rgbOut[1] = static_cast<uint8_t>(rgbFloat[1] * 255.0);
+    rgbOut[2] = static_cast<uint8_t>(rgbFloat[2] * 255.0);
+}
+
+
+/**
  * Get an enumerated value corresponding to its GUI name.
  * @param s 
  *     Name of enumerated value.

@@ -72,6 +72,7 @@ ImageDimensionsModel.h
 ImageFile.h
 ImagePixelsPerSpatialUnitsEnum.h
 ImageSpatialUnitsEnum.h
+LabelDrawingTypeEnum.h
 LabelFile.h
 MetricFile.h
 MetricSmoothingObject.h
@@ -162,6 +163,7 @@ ImageDimensionsModel.cxx
 ImageFile.cxx
 ImagePixelsPerSpatialUnitsEnum.cxx
 ImageSpatialUnitsEnum.cxx
+LabelDrawingTypeEnum.cxx
 LabelFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx

@@ -96,6 +96,8 @@ namespace caret {
 
         EnumComboBoxTemplate* m_labelDrawingTypeComboBox;
         
+        EnumComboBoxTemplate* m_labelOutlineColorComboBox;
+        
         QComboBox* m_drawTypeComboBox;
         
         QDoubleSpinBox* m_lineWidthSpinBox;

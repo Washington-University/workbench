@@ -907,6 +907,10 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
  *
  * @param rgbaInOut
  *    Coloring for the slice (input and output)
+ * @param labelDrawingType
+ *    Type of drawing for label filling and outline.
+ * @param labelOutlineColor
+ *    Outline color of label.
  * @param xdim
  *    X-dimension of slice (number of columns)
  * @param ydim
@@ -914,9 +918,33 @@ NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTab
  */
 void
 NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
+                                                        const LabelDrawingTypeEnum::Enum labelDrawingType,
+                                                        const CaretColorEnum::Enum labelOutlineColor,
                                                         const int64_t xdim,
                                                         const int64_t ydim)
 {
+    //    switch (labelDrawingType) {
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
+    //            break;
+    //    }
+    //    bool isOutlineMode = false;
+    //    switch (labelDrawingType) {
+    //        case LabelDrawingTypeEnum::DRAW_FILLED:
+    //            break;
+    //        case LabelDrawingTypeEnum::DRAW_OUTLINE:
+    //            isOutlineMode = true;
+    //            break;
+    //    }
     /*
      * Copy the rgba colors
      */
@@ -930,6 +958,11 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
     for (int64_t i = 0; i < numRGBA; i++) {
         rgba[i] = rgbaInOut[i];
     }
+    
+    uint8_t outlineRGBA[4];
+    CaretColorEnum::toRGBByte(labelOutlineColor,
+                              outlineRGBA);
+    outlineRGBA[3] = 255;
     
     /*
      * Examine coloring for all voxels except those along the edge
@@ -955,7 +988,7 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
              * Determine if voxel colors match voxel coloring
              * of ALL immediate neighbors (8-connected).
              */
-            bool allTheSame = true;
+            bool isLabelBoundaryVoxel = false;
             for (int64_t iNeigh = iStart; iNeigh <= iEnd; iNeigh++) {
                 for (int64_t jNeigh = jStart; jNeigh <= jEnd; jNeigh++) {
                     const int64_t neighOffset = (iNeigh + (xdim * jNeigh)) * 4;
@@ -964,26 +997,45 @@ NodeAndVoxelColoring::convertSliceColoringToOutlineMode(uint8_t* rgbaInOut,
                     
                     for (int64_t k = 0; k < 4; k++) {
                         if (myRGBA[k] != neighRGBA[k]) {
-                            allTheSame = false;
+                            isLabelBoundaryVoxel = true;
                             break;
                         }
                     }
                     
-                    if (allTheSame == false) {
+                    if (isLabelBoundaryVoxel) {
                         break;
                     }
                 }
-                if (allTheSame == false) {
+                if (isLabelBoundaryVoxel) {
                     break;
                 }
             }
             
             /*
-             * If voxel's coloring matches all neighbors, use alpha
-             * to turn of coloring in OUTPUT coloring.
+             * Override the coloring as needed.
              */
-            if (allTheSame) {
-                rgbaInOut[myOffset + 3] = 0.0;
+            switch (labelDrawingType) {
+                case LabelDrawingTypeEnum::DRAW_FILLED:
+                    break;
+                case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE:
+                    if (isLabelBoundaryVoxel) {
+                        rgbaInOut[myOffset]     = outlineRGBA[0];
+                        rgbaInOut[myOffset + 1] = outlineRGBA[1];
+                        rgbaInOut[myOffset + 2] = outlineRGBA[2];
+                        rgbaInOut[myOffset + 3] = outlineRGBA[3];
+                    }
+                    break;
+                case LabelDrawingTypeEnum::DRAW_OUTLINE:
+                    if (isLabelBoundaryVoxel) {
+                        rgbaInOut[myOffset]     = outlineRGBA[0];
+                        rgbaInOut[myOffset + 1] = outlineRGBA[1];
+                        rgbaInOut[myOffset + 2] = outlineRGBA[2];
+                        rgbaInOut[myOffset + 3] = outlineRGBA[3];
+                    }
+                    else {
+                        rgbaInOut[myOffset + 3] = 0;
+                    }
+                    break;
             }
         }
     }

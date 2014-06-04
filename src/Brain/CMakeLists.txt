@@ -112,7 +112,6 @@ IdentificationTextGenerator.h
 IdentificationWithColor.h
 IdentifiedItem.h
 IdentifiedItemNode.h
-LabelDrawingTypeEnum.h
 Model.h
 ModelChart.h
 ModelSurface.h
@@ -121,7 +120,6 @@ ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
 ModelWholeBrain.h
-OLD_BrainOpenGLVolumeSliceDrawing.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
@@ -226,7 +224,6 @@ IdentificationTextGenerator.cxx
 IdentificationWithColor.cxx
 IdentifiedItem.cxx
 IdentifiedItemNode.cxx
-LabelDrawingTypeEnum.cxx
 Model.cxx
 ModelChart.cxx
 ModelSurface.cxx
@@ -235,7 +232,6 @@ ModelSurfaceSelector.cxx
 ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
-OLD_BrainOpenGLVolumeSliceDrawing.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx

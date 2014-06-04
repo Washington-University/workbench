@@ -530,10 +530,13 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     
     DisplayGroupEnum::Enum displayGroup = dpl->getDisplayGroupForTab(browserTabIndex);
     LabelDrawingTypeEnum::Enum labelDrawingType = LabelDrawingTypeEnum::DRAW_FILLED;
+    CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
     if (displayPropertiesLabels != NULL) {
         displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
         labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
                                            browserTabIndex);
+        outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
+                                                                browserTabIndex);
     }
     
     
@@ -559,9 +562,163 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     /*
      * Assign colors from labels to nodes
      */
-    float labelRGBA[4];
+    std::vector<float> labelKeys;
     for (int32_t i = 0; i < numberOfNodes; i++) {
-        const int32_t labelKey= labelFile->getLabelKey(i, displayColumn);
+        labelKeys.push_back(labelFile->getLabelKey(i, displayColumn));
+    }
+    assignLabelTableColors(labelTable,
+                           labelDrawingType,
+                           outlineColor,
+                           topologyHelper,
+                           displayGroup,
+                           browserTabIndex,
+                           labelKeys,
+                           rgbv);
+    
+    
+    
+//    float fillRGBA[4];
+//    float outlineRGBA[4];
+//    for (int32_t i = 0; i < numberOfNodes; i++) {
+//        const int32_t labelKey= labelFile->getLabelKey(i, displayColumn);
+//        const GiftiLabel* label = labelTable->getLabel(labelKey);
+//        if (label == NULL) {
+//            continue;
+//        }
+//        
+//        const GroupAndNameHierarchyItem* nameItem = label->getGroupNameSelectionItem();
+//        if (nameItem != NULL) {
+//            if (nameItem->isSelected(displayGroup, browserTabIndex) == false) {
+//                continue;
+//            }
+//        }
+//        
+//        label->getColor(fillRGBA);
+//        label->getColor(outlineRGBA);
+//        fillRGBA[3]    = 1.0;
+//        outlineRGBA[3] = 1.0;
+//        
+//        switch (labelDrawingType) {
+//            case LabelDrawingTypeEnum::DRAW_FILLED_LABEL_COLOR:
+//                break;
+//            case LabelDrawingTypeEnum::DRAW_FILLED_BLACK_OUTLINE:
+//                outlineRGBA[0] = 0.0;
+//                outlineRGBA[1] = 0.0;
+//                outlineRGBA[2] = 0.0;
+//                break;
+//            case LabelDrawingTypeEnum::DRAW_FILLED_WHITE_OUTLINE:
+//                outlineRGBA[0] = 1.0;
+//                outlineRGBA[1] = 1.0;
+//                outlineRGBA[2] = 1.0;
+//                break;
+//            case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+//                fillRGBA[3] = 0.0;
+//                break;
+//            case LabelDrawingTypeEnum::DRAW_OUTLINE_BLACK:
+//                fillRGBA[3] = 0.0;
+//                outlineRGBA[0] = 0.0;
+//                outlineRGBA[1] = 0.0;
+//                outlineRGBA[2] = 0.0;
+//                break;
+//            case LabelDrawingTypeEnum::DRAW_OUTLINE_WHITE:
+//                fillRGBA[3] = 0.0;
+//                outlineRGBA[0] = 1.0;
+//                outlineRGBA[1] = 1.0;
+//                outlineRGBA[2] = 1.0;
+//                break;
+//        }
+//        
+//        
+//        
+//        /*
+//         * If a node is the same color as all of its neighbors,
+//         * use the fill color.  Otherwise, use the outline color.
+//         */
+//        bool useOutlineColor = false;
+//        int32_t numNeighbors = 0;
+//        const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
+//        for (int32_t n = 0; n < numNeighbors; n++) {
+//            const int32_t neighbor = allNeighbors[n];
+//            if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
+//                useOutlineColor = true;
+//                break;
+//            }
+//        }
+//        
+//        if (useOutlineColor) {
+//            if (outlineRGBA[3] > 0.0) {
+//                const int32_t i4 = i * 4;
+//                rgbv[i4]   = outlineRGBA[0];
+//                rgbv[i4+1] = outlineRGBA[1];
+//                rgbv[i4+2] = outlineRGBA[2];
+//                rgbv[i4+3] = 1.0;
+//            }
+//        }
+//        else {
+//            if (fillRGBA[3] > 0.0) {
+//                const int32_t i4 = i * 4;
+//                rgbv[i4]   = fillRGBA[0];
+//                rgbv[i4+1] = fillRGBA[1];
+//                rgbv[i4+2] = fillRGBA[2];
+//                rgbv[i4+3] = 1.0;
+//            }
+//        }
+//    }
+
+    return true;
+}
+
+/**
+ * Assign label coloring to surface nodes.
+ *
+ * @param labelTable
+ *    The label table.
+ * @param labelDrawingType
+ *    Label drawing type.
+ * @param outlineColor
+ *    Outline color.
+ * @param topologyHelper
+ *    The topology helper for node neighbors.
+ * @param displayGroup
+ *    Selected Display Group
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param labelIndices
+ *    Indices of labels for each node.
+ * @param rgbv
+ *    RGB coloring. (4 per node).
+ *
+ */
+void
+SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
+                                            const LabelDrawingTypeEnum::Enum labelDrawingType,
+                                            const CaretColorEnum::Enum outlineColor,
+                                            const CaretPointer<TopologyHelper> topologyHelper,
+                                            const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t browserTabIndex,
+                                            const std::vector<float>& labelIndices,
+                                            float* rgbv)
+{
+    const int32_t numberOfIndices = static_cast<int32_t>(labelIndices.size());
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfIndices; i++) {
+        rgbv[i*4+3] = 0.0;
+    }
+    
+    
+    float outlineRGBA[4];
+    CaretColorEnum::toRGBFloat(outlineColor, outlineRGBA);
+    outlineRGBA[3] = 1.0;
+    
+    /*
+     * Assign colors from labels to nodes
+     */
+    float nodeRGBA[4];
+    for (int32_t i = 0; i < numberOfIndices; i++) {
+        CaretAssertVectorIndex(labelIndices, i);
+        const int32_t labelKey= static_cast<int32_t>(labelIndices[i]);
         const GiftiLabel* label = labelTable->getLabel(labelKey);
         if (label == NULL) {
             continue;
@@ -569,46 +726,65 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
         
         const GroupAndNameHierarchyItem* nameItem = label->getGroupNameSelectionItem();
         if (nameItem != NULL) {
-            if (nameItem->isSelected(displayGroup, browserTabIndex) == false) {
+            if (nameItem->isSelected(displayGroup,
+                                     browserTabIndex) == false) {
                 continue;
             }
         }
         
-        bool colorIt = false;
-        switch (labelDrawingType) {
-            case LabelDrawingTypeEnum::DRAW_FILLED:
-                colorIt = true;
+        /*
+         * Initialize node color to its label's color
+         */
+        label->getColor(nodeRGBA);
+        nodeRGBA[3] = 1.0;
+        
+        /*
+         * If a node is the same color as all of its neighbors,
+         * use the fill color.  Otherwise, use the outline color.
+         */
+        bool isLabelBoundaryNode = false;
+        int32_t numNeighbors = 0;
+        const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
+        for (int32_t n = 0; n < numNeighbors; n++) {
+            const int32_t neighborNodeIndex = allNeighbors[n];
+            CaretAssertVectorIndex(labelIndices, neighborNodeIndex);
+            const int32_t neighborLabelKey = static_cast<int32_t>(labelIndices[neighborNodeIndex]);
+            if (labelKey != neighborLabelKey) {
+                isLabelBoundaryNode = true;
                 break;
-            case LabelDrawingTypeEnum::DRAW_OUTLINE:
-            {
-                /*
-                 * Check for any neighbors with different label key.
-                 */
-                int32_t numNeighbors = 0;
-                const int32_t* allNeighbors = topologyHelper->getNodeNeighbors(i, numNeighbors);
-                for (int32_t n = 0; n < numNeighbors; n++) {
-                    const int32_t neighbor = allNeighbors[n];
-                    if (labelKey != labelFile->getLabelKey(neighbor, displayColumn)) {
-                        colorIt = true;
-                        break;
-                    }
-                }
             }
         }
         
-        if (colorIt) {
-            label->getColor(labelRGBA);
-            if (labelRGBA[3] > 0.0) {
-                const int32_t i4 = i * 4;
-                rgbv[i4]   = labelRGBA[0];
-                rgbv[i4+1] = labelRGBA[1];
-                rgbv[i4+2] = labelRGBA[2];
-                rgbv[i4+3] = 1.0;
-            }
+        switch (labelDrawingType) {
+            case LabelDrawingTypeEnum::DRAW_FILLED:
+                break;
+            case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE:
+                if (isLabelBoundaryNode) {
+                    nodeRGBA[0] = outlineRGBA[0];
+                    nodeRGBA[1] = outlineRGBA[1];
+                    nodeRGBA[2] = outlineRGBA[2];
+                    nodeRGBA[3] = outlineRGBA[3];
+                }
+                break;
+            case LabelDrawingTypeEnum::DRAW_OUTLINE:
+                if (isLabelBoundaryNode) {
+                    nodeRGBA[0] = outlineRGBA[0];
+                    nodeRGBA[1] = outlineRGBA[1];
+                    nodeRGBA[2] = outlineRGBA[2];
+                    nodeRGBA[3] = outlineRGBA[3];
+                }
+                else {
+                    nodeRGBA[3] = 0.0;
+                }
+                break;
         }
+        
+        const int32_t i4 = i * 4;
+        rgbv[i4]   = nodeRGBA[0];
+        rgbv[i4+1] = nodeRGBA[1];
+        rgbv[i4+2] = nodeRGBA[2];
+        rgbv[i4+3] = nodeRGBA[3];
     }
-
-    return true;
 }
 
 /**
@@ -893,14 +1069,8 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
     const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
     const LabelDrawingTypeEnum::Enum labelDrawingType = displayPropertiesLabels->getDrawingType(displayGroup,
                                                                browserTabIndex);
-    bool isOutlineMode = false;
-    switch (labelDrawingType) {
-        case LabelDrawingTypeEnum::DRAW_FILLED:
-            break;
-        case LabelDrawingTypeEnum::DRAW_OUTLINE:
-            isOutlineMode = true;
-            break;
-    }
+    const CaretColorEnum::Enum outlineColor = displayPropertiesLabels->getOutlineColor(displayGroup,
+                                                                                       browserTabIndex);
     
     /*
      * Invalidate all coloring.
@@ -943,50 +1113,60 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
      */
     GiftiLabelTable* labelTable = ciftiLabelFile->getMapLabelTable(mapIndex);
     CaretAssert(labelTable);
-    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
-        const int32_t indexAlpha = (iNode * 4) + 3;
-        if (rgbv[indexAlpha] > 0.0) {
-            bool disableIt = false;
-            
-            const int32_t labelKey = static_cast<int32_t>(dataValues[iNode]);
-            GiftiLabel* label = labelTable->getLabel(labelKey);
-            if (label != NULL) {
-                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                if (item->isSelected(displayGroup,
-                                     browserTabIndex) == false) {
-                    disableIt = true;
-                }
-            }
-            
-            if (disableIt) {
-                rgbv[indexAlpha] = 0.0;
-            }
-            else if (isOutlineMode) {
-                /*
-                 * In outline mode, only those nodes that are on the 'outside'
-                 * are drawn so that the labels appear as outlines.
-                 */
-                if (topologyHelper != NULL) {
-                    int32_t numberOfNeighbors = 0;
-                    const int32_t* neighbors = topologyHelper->getNodeNeighbors(iNode,
-                                                                                numberOfNeighbors);
-                    bool insideFlag = true;
-                    for (int32_t iNeigh = 0; iNeigh < numberOfNeighbors; iNeigh++) {
-                        const int32_t ni = neighbors[iNeigh];
-                        const int32_t neighborLabelKey = static_cast<int32_t>(dataValues[ni]);
-                        if (labelKey != neighborLabelKey) {
-                            insideFlag = false;
-                            break;
-                        }
-                    }
-                    
-                    if (insideFlag) {
-                        rgbv[indexAlpha] = 0.0;
-                    }
-                }
-            }
-        }
-    }
+    
+    assignLabelTableColors(labelTable,
+                           labelDrawingType,
+                           outlineColor,
+                           topologyHelper,
+                           displayGroup,
+                           browserTabIndex,
+                           dataValues,
+                           rgbv);
+    
+//    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
+//        const int32_t indexAlpha = (iNode * 4) + 3;
+//        if (rgbv[indexAlpha] > 0.0) {
+//            bool disableIt = false;
+//            
+//            const int32_t labelKey = static_cast<int32_t>(dataValues[iNode]);
+//            GiftiLabel* label = labelTable->getLabel(labelKey);
+//            if (label != NULL) {
+//                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+//                if (item->isSelected(displayGroup,
+//                                     browserTabIndex) == false) {
+//                    disableIt = true;
+//                }
+//            }
+//            
+//            if (disableIt) {
+//                rgbv[indexAlpha] = 0.0;
+//            }
+//            else if (isOutlineMode) {
+//                /*
+//                 * In outline mode, only those nodes that are on the 'outside'
+//                 * are drawn so that the labels appear as outlines.
+//                 */
+//                if (topologyHelper != NULL) {
+//                    int32_t numberOfNeighbors = 0;
+//                    const int32_t* neighbors = topologyHelper->getNodeNeighbors(iNode,
+//                                                                                numberOfNeighbors);
+//                    bool insideFlag = true;
+//                    for (int32_t iNeigh = 0; iNeigh < numberOfNeighbors; iNeigh++) {
+//                        const int32_t ni = neighbors[iNeigh];
+//                        const int32_t neighborLabelKey = static_cast<int32_t>(dataValues[ni]);
+//                        if (labelKey != neighborLabelKey) {
+//                            insideFlag = false;
+//                            break;
+//                        }
+//                    }
+//                    
+//                    if (insideFlag) {
+//                        rgbv[indexAlpha] = 0.0;
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     return true;
 }

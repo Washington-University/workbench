@@ -44,10 +44,12 @@ DisplayPropertiesLabels::DisplayPropertiesLabels()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
         m_drawingTypeInTab[i] = LabelDrawingTypeEnum::DRAW_FILLED;
+        m_outlineColorInTab[i] = CaretColorEnum::BLACK;
     }
     
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_drawingTypeInDisplayGroup[i] = LabelDrawingTypeEnum::DRAW_FILLED;
+        m_outlineColorInDisplayGroup[i] = CaretColorEnum::BLACK;
     }
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
@@ -60,6 +62,15 @@ DisplayPropertiesLabels::DisplayPropertiesLabels()
                                                                                m_drawingTypeInDisplayGroup,
                                                                                DisplayGroupEnum::NUMBER_OF_GROUPS,
                                                                                  LabelDrawingTypeEnum::DRAW_FILLED);
+    
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<CaretColorEnum,CaretColorEnum::Enum>("m_outlineColorInTab",
+                                                                                            m_outlineColorInTab);
+    
+    
+    m_sceneAssistant->addArray<CaretColorEnum, CaretColorEnum::Enum>("m_outlineColorInDisplayGroup",
+                                                                     m_outlineColorInDisplayGroup,
+                                                                     DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                                     CaretColorEnum::BLACK);
 }
 
 /**
@@ -180,6 +191,53 @@ DisplayPropertiesLabels::setDrawingType(const DisplayGroupEnum::Enum displayGrou
     }
     else {
         m_drawingTypeInDisplayGroup[displayGroup] = drawingType;
+    }
+}
+
+/**
+ * @param displayGroup
+ *     Display group.
+ * @return The outline color.
+ */
+CaretColorEnum::Enum
+DisplayPropertiesLabels::getOutlineColor(const DisplayGroupEnum::Enum displayGroup,
+                                         const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_outlineColorInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_outlineColorInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        return m_outlineColorInTab[tabIndex];
+    }
+    return m_outlineColorInDisplayGroup[displayGroup];
+}
+
+/**
+ * Set the outline color to the given value.
+ * @param displayGroup
+ *     Display group.
+ * @param outlineColor
+ *     New value for outline color.
+ */
+void
+DisplayPropertiesLabels::setOutlineColor(const DisplayGroupEnum::Enum displayGroup,
+                                         const int32_t tabIndex,
+                                         const CaretColorEnum::Enum outlineColor)
+{
+    CaretAssertArrayIndex(m_outlineColorInDisplayGroup,
+                          DisplayGroupEnum::NUMBER_OF_GROUPS,
+                          static_cast<int32_t>(displayGroup));
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertArrayIndex(m_outlineColorInTab,
+                              BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                              tabIndex);
+        m_outlineColorInTab[tabIndex] = outlineColor;
+    }
+    else {
+        m_outlineColorInDisplayGroup[displayGroup] = outlineColor;
     }
 }
 

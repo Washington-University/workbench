@@ -91,6 +91,12 @@ public:
 
     static const float* toRGB(Enum enumValue);
     
+    static void toRGBFloat(Enum enumValue,
+                           float rgbOut[3]);
+    
+    static void toRGBByte(Enum enumValue,
+                          uint8_t rgbOut[3]);
+    
 private:
     CaretColorEnum(const Enum enumValue, 
                    const AString& name,

@@ -136,12 +136,21 @@ LabelSelectionViewController::createAttributesWidget()
                      this, SLOT(processAttributesChanges()));
     m_labelDrawingTypeComboBox->setup<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>();
     
+    QLabel* outlineLabel = new QLabel("Outline Color");
+    m_labelOutlineColorComboBox = new EnumComboBoxTemplate(this);
+    m_labelOutlineColorComboBox->setup<CaretColorEnum, CaretColorEnum::Enum>();
+    QObject::connect(m_labelOutlineColorComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(processAttributesChanges()));
+    
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
     gridLayout->addWidget(drawAsLabel, row, 0);
     gridLayout->addWidget(m_labelDrawingTypeComboBox->getWidget(), row, 1);
+    row++;
+    gridLayout->addWidget(outlineLabel, row, 0);
+    gridLayout->addWidget(m_labelOutlineColorComboBox->getWidget(), row, 1);
     row++;
     gridWidget->setSizePolicy(QSizePolicy::Fixed,
                               QSizePolicy::Fixed);
@@ -163,7 +172,7 @@ LabelSelectionViewController::processAttributesChanges()
 {
     DisplayPropertiesLabels* dpl = GuiManager::get()->getBrain()->getDisplayPropertiesLabels();
     const LabelDrawingTypeEnum::Enum labelDrawingType = m_labelDrawingTypeComboBox->getSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>();
-
+    const CaretColorEnum::Enum outlineColor = m_labelOutlineColorComboBox->getSelectedItem<CaretColorEnum, CaretColorEnum::Enum>();
 
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
@@ -176,6 +185,9 @@ LabelSelectionViewController::processAttributesChanges()
     dpl->setDrawingType(displayGroup,
                         browserTabIndex,
                         labelDrawingType);
+    dpl->setOutlineColor(displayGroup,
+                         browserTabIndex,
+                         outlineColor);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -237,6 +249,8 @@ LabelSelectionViewController::updateLabelViewController()
     
     m_labelDrawingTypeComboBox->setSelectedItem<LabelDrawingTypeEnum, LabelDrawingTypeEnum::Enum>(dpb->getDrawingType(displayGroup,
                                                                     browserTabIndex));
+    m_labelOutlineColorComboBox->setSelectedItem<CaretColorEnum,CaretColorEnum::Enum>(dpb->getOutlineColor(displayGroup, browserTabIndex));
+
     /*
      * Get all of label files.
      */
