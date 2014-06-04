@@ -78,13 +78,17 @@ LabelDrawingTypeEnum::initialize()
                                     "DRAW_FILLED", 
                                     "Filled"));
     
-    enumData.push_back(LabelDrawingTypeEnum(DRAW_FILLED_WITH_OUTLINE,
-                                            "DRAW_FILLED_WITH_OUTLINE",
-                                            "Filled with Outline"));
+    enumData.push_back(LabelDrawingTypeEnum(DRAW_FILLED_WITH_OUTLINE_COLOR,
+                                            "DRAW_FILLED_WITH_OUTLINE_COLOR",
+                                            "Filled and Outline Color"));
     
-    enumData.push_back(LabelDrawingTypeEnum(DRAW_OUTLINE,
-                                            "DRAW_OUTLINE",
-                                            "Outline"));
+    enumData.push_back(LabelDrawingTypeEnum(DRAW_OUTLINE_COLOR,
+                                            "DRAW_OUTLINE_COLOR",
+                                            "Outline Color"));
+    
+    enumData.push_back(LabelDrawingTypeEnum(DRAW_OUTLINE_LABEL_COLOR,
+                                            "DRAW_OUTLINE_LABEL_COLOR",
+                                            "Outline Label Color"));
     
 }
 

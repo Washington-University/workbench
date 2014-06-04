@@ -758,7 +758,7 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
         switch (labelDrawingType) {
             case LabelDrawingTypeEnum::DRAW_FILLED:
                 break;
-            case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE:
+            case LabelDrawingTypeEnum::DRAW_FILLED_WITH_OUTLINE_COLOR:
                 if (isLabelBoundaryNode) {
                     nodeRGBA[0] = outlineRGBA[0];
                     nodeRGBA[1] = outlineRGBA[1];
@@ -766,7 +766,7 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
                     nodeRGBA[3] = outlineRGBA[3];
                 }
                 break;
-            case LabelDrawingTypeEnum::DRAW_OUTLINE:
+            case LabelDrawingTypeEnum::DRAW_OUTLINE_COLOR:
                 if (isLabelBoundaryNode) {
                     nodeRGBA[0] = outlineRGBA[0];
                     nodeRGBA[1] = outlineRGBA[1];
@@ -774,6 +774,11 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
                     nodeRGBA[3] = outlineRGBA[3];
                 }
                 else {
+                    nodeRGBA[3] = 0.0;
+                }
+                break;
+            case LabelDrawingTypeEnum::DRAW_OUTLINE_LABEL_COLOR:
+                if ( ! isLabelBoundaryNode) {
                     nodeRGBA[3] = 0.0;
                 }
                 break;

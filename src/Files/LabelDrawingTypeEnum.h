@@ -37,10 +37,12 @@ public:
     enum Enum {
         /** Filled in label's color */
         DRAW_FILLED,
-        /** Filled in label's color with outline */
-        DRAW_FILLED_WITH_OUTLINE,
-        /** Filled in label's color with white outline */
-        DRAW_OUTLINE
+        /** Filled in label's color with outline color */
+        DRAW_FILLED_WITH_OUTLINE_COLOR,
+        /** Outline with Outline Color */
+        DRAW_OUTLINE_COLOR,
+        /** Outline with label color */
+        DRAW_OUTLINE_LABEL_COLOR
     };
 
 
