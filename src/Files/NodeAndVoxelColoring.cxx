@@ -793,8 +793,8 @@ NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(const 
      */
     float labelRGBA[4];
 	for (int64_t i = 0; i < numberOfIndices; i++) {
-        const int64_t labelIndex = static_cast<int64_t>(labelIndices[i]);
-        const GiftiLabel* gl = labelTable->getLabel(labelIndex);
+        const int64_t labelKey = static_cast<int64_t>(labelIndices[i]);
+        const GiftiLabel* gl = labelTable->getLabel(labelKey);
         if (gl != NULL) {
             const GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
             if (item != NULL) {

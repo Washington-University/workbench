@@ -736,7 +736,9 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
          * Initialize node color to its label's color
          */
         label->getColor(nodeRGBA);
-        nodeRGBA[3] = 1.0;
+        if (nodeRGBA[3] <= 0.0) {
+            continue;
+        }
         
         /*
          * If a node is the same color as all of its neighbors,
