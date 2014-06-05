@@ -3426,9 +3426,9 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
     dataFileInformation.addNameAndValue("Volume Dim[1]", dimJ);
     dataFileInformation.addNameAndValue("Volume Dim[2]", dimK);
     
-    if ( ! m_ciftiDimensions.empty()) {
-        const int32_t numDims = static_cast<int32_t>(m_ciftiDimensions.size());
-        for (int32_t i = 0; i < numDims; i++) {
+    const int32_t numCiftiDims = static_cast<int32_t>(m_ciftiDimensions.size());
+    if (numCiftiDims > 0) {
+        for (int32_t i = 0; i < numCiftiDims; i++) {
             dataFileInformation.addNameAndValue(("CIFTI Dim["
                                                  + AString::number(i)
                                                  + "]"),
@@ -3449,6 +3449,57 @@ CiftiMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                                                  + ")"),
                                                 (AString::number(numNodes)
                                                  + "  "));
+        }
+    }
+    
+    const CiftiXML& ciftiXML = m_ciftiInterface->getCiftiXML();
+    for (int32_t i = 0; i < 3; i++) {
+        AString alongName;
+        CiftiMappingType::MappingType mapType = CiftiMappingType::BRAIN_MODELS;
+        
+        switch (i) {
+            case 0:
+                if (numCiftiDims > 0) {
+                    alongName = "ALONG_ROW";
+                    mapType = ciftiXML.getMappingType(CiftiXML::ALONG_ROW);
+                }
+                break;
+            case 1:
+                if (numCiftiDims > 1) {
+                    alongName = "ALONG_COLUMN";
+                    mapType = ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN);
+                }
+                break;
+            case 2:
+                if (numCiftiDims > 2) {
+                    alongName = "ALONG_STACK";
+                    mapType = ciftiXML.getMappingType(CiftiXML::ALONG_STACK);
+                }
+                break;
+        }
+        
+        if ( ! alongName.isEmpty()) {
+            AString mapTypeName;
+            switch (mapType) {
+                case CiftiMappingType::BRAIN_MODELS:
+                    mapTypeName = "BRAIN_MODELS";
+                    break;
+                case CiftiMappingType::LABELS:
+                    mapTypeName = "LABELS";
+                    break;
+                case CiftiMappingType::PARCELS:
+                    mapTypeName = "PARCELS";
+                    break;
+                case CiftiMappingType::SCALARS:
+                    mapTypeName = "SCALARS";
+                    break;
+                case CiftiMappingType::SERIES:
+                    mapTypeName = "SERIES";
+                    break;
+            }
+            dataFileInformation.addNameAndValue((alongName
+                                                 + " map type"),
+                                                mapTypeName);
         }
     }
 }
