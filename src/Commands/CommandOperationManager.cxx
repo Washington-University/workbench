@@ -125,6 +125,7 @@
 #include "OperationCiftiConvert.h"
 #include "OperationCiftiConvertToScalar.h"
 #include "OperationCiftiEstimateFWHM.h"
+#include "OperationCiftiExportDenseMapping.h"
 #include "OperationCiftiLabelExportTable.h"
 #include "OperationCiftiLabelImport.h"
 #include "OperationCiftiMath.h"
@@ -335,6 +336,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiEstimateFWHM()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiExportDenseMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiLabelExportTable()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiMath()));
