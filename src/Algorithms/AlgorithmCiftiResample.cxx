@@ -121,7 +121,8 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     
     AString myHelpText =
         AString("Resample cifti data to a different brainordinate space.  Use COLUMN to resample dscalar, dlabel, or dtseries.  ") +
-        "Resampling a dconn requires running the command twice, once for each direction.  " +
+        "Resampling both dimensions of a dconn requires running the command twice, once for each direction.  " +
+        "If spheres are not specified for a surface structure, but it exists in the cifti files, its data is copied without resampling or dilation.  " +
         "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
@@ -362,20 +363,53 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
     {
         if (!inModels.hasSurfaceData(surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
+        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+        const MetricFile* curAreas = NULL, *newAreas = NULL;
+        AString structName;
         switch (surfList[i])
         {
             case StructureEnum::CORTEX_LEFT:
-                if (curLeftSphere == NULL || newLeftSphere == NULL) throw AlgorithmException("missing left spheres");
+                curSphere = curLeftSphere;
+                newSphere = newLeftSphere;
+                curAreas = curLeftAreas;
+                newAreas = newLeftAreas;
+                structName = "left";
                 break;
             case StructureEnum::CORTEX_RIGHT:
-                if (curRightSphere == NULL || newRightSphere == NULL) throw AlgorithmException("missing right spheres");
+                curSphere = curRightSphere;
+                newSphere = newRightSphere;
+                curAreas = curRightAreas;
+                newAreas = newRightAreas;
+                structName = "right";
                 break;
             case StructureEnum::CEREBELLUM:
-                if (curCerebSphere == NULL || newCerebSphere == NULL) throw AlgorithmException("missing cerebellum spheres");
+                curSphere = curCerebSphere;
+                newSphere = newCerebSphere;
+                curAreas = curCerebAreas;
+                newAreas = newCerebAreas;
+                structName = "cerebellum";
                 break;
             default:
                 throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
                 break;
+        }
+        if (curSphere != NULL)//resampling
+        {
+            if (newSphere == NULL) throw AlgorithmException("missing " + structName + " new sphere");
+            if (curSphere->getNumberOfNodes() != inModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " current sphere doesn't match input cifti");
+            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " new sphere doesn't match input cifti");
+            switch (mySurfMethod)
+            {
+                case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
+                    if (curAreas == NULL || newAreas == NULL) throw AlgorithmException(structName + " area data is missing");
+                    if (curAreas->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException(structName + " current area data has the wrong number of vertices");
+                    if (newAreas->getNumberOfNodes() != newSphere->getNumberOfNodes()) throw AlgorithmException(structName + " new area data has the wrong number of vertices");
+                    break;
+                default:
+                    break;
+            }
+        } else {//copying
+            if (inModels.getSurfaceNumberOfNodes(surfList[i]) != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " structure requires resampling spheres, does not match template");
         }
     }
     myCiftiOut->setCiftiXML(myOutXML);
@@ -436,20 +470,53 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
     {
         if (!inModels.hasSurfaceData(surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
+        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+        const MetricFile* curAreas = NULL, *newAreas = NULL;
+        AString structName;
         switch (surfList[i])
         {
             case StructureEnum::CORTEX_LEFT:
-                if (curLeftSphere == NULL || newLeftSphere == NULL) throw AlgorithmException("missing left spheres");
+                curSphere = curLeftSphere;
+                newSphere = newLeftSphere;
+                curAreas = curLeftAreas;
+                newAreas = newLeftAreas;
+                structName = "left";
                 break;
             case StructureEnum::CORTEX_RIGHT:
-                if (curRightSphere == NULL || newRightSphere == NULL) throw AlgorithmException("missing right spheres");
+                curSphere = curRightSphere;
+                newSphere = newRightSphere;
+                curAreas = curRightAreas;
+                newAreas = newRightAreas;
+                structName = "right";
                 break;
             case StructureEnum::CEREBELLUM:
-                if (curCerebSphere == NULL || newCerebSphere == NULL) throw AlgorithmException("missing cerebellum spheres");
+                curSphere = curCerebSphere;
+                newSphere = newCerebSphere;
+                curAreas = curCerebAreas;
+                newAreas = newCerebAreas;
+                structName = "cerebellum";
                 break;
             default:
                 throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
                 break;
+        }
+        if (curSphere != NULL)//resampling
+        {
+            if (newSphere == NULL) throw AlgorithmException("missing " + structName + " new sphere");
+            if (curSphere->getNumberOfNodes() != inModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " current sphere doesn't match input cifti");
+            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " new sphere doesn't match input cifti");
+            switch (mySurfMethod)
+            {
+                case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
+                    if (curAreas == NULL || newAreas == NULL) throw AlgorithmException(structName + " area data is missing");
+                    if (curAreas->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException(structName + " current area data has the wrong number of vertices");
+                    if (newAreas->getNumberOfNodes() != newSphere->getNumberOfNodes()) throw AlgorithmException(structName + " new area data has the wrong number of vertices");
+                    break;
+                default:
+                    break;
+            }
+        } else {//copying
+            if (inModels.getSurfaceNumberOfNodes(surfList[i]) != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " structure requires resampling spheres, does not match template");
         }
     }
     myCiftiOut->setCiftiXML(myOutXML);
@@ -499,39 +566,47 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
         LabelFile origLabel;
         MetricFile origRoi, resampleROI;
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origLabel, &origRoi);
-        LabelFile newLabel, newDilate, *newUse;
-        newUse = &newLabel;
-        AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curAreas, newAreas, &origRoi, &resampleROI, surfLargest);
-        if (surfdilatemm > 0.0f)
+        LabelFile newLabel, newDilate, *newUse = &newLabel;
+        if (curSphere != NULL)
         {
-            MetricFile invertResampleROI;
-            invertResampleROI.setNumberOfNodesAndColumns(resampleROI.getNumberOfNodes(), 1);
-            for (int j = 0; j < resampleROI.getNumberOfNodes(); ++j)
+            AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curAreas, newAreas, &origRoi, &resampleROI, surfLargest);
+            if (surfdilatemm > 0.0f)
             {
-                float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
-                invertResampleROI.setValue(j, 0, tempf);
+                MetricFile invertResampleROI;
+                invertResampleROI.setNumberOfNodesAndColumns(resampleROI.getNumberOfNodes(), 1);
+                for (int j = 0; j < resampleROI.getNumberOfNodes(); ++j)
+                {
+                    float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
+                    invertResampleROI.setValue(j, 0, tempf);
+                }
+                AlgorithmLabelDilate(NULL, &newLabel, newSphere, surfdilatemm, &newDilate, &invertResampleROI);
+                newUse = &newDilate;
             }
-            AlgorithmLabelDilate(NULL, &newLabel, newSphere, surfdilatemm, &newDilate, &invertResampleROI);
-            newUse = &newDilate;
+        } else {
+            newUse = &origLabel;
         }
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, newUse);
     } else {
         MetricFile origMetric, origROI;
         AlgorithmCiftiSeparate(NULL, myCiftiIn, direction, myStruct, &origMetric, &origROI);
-        MetricFile newMetric, newDilate, resampleROI, *newUse;
-        newUse = &newMetric;
-        AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curAreas, newAreas, &origROI, &resampleROI, surfLargest);
-        if (surfdilatemm > 0.0f)
+        MetricFile newMetric, newDilate, resampleROI, *newUse = &newMetric;
+        if (curSphere != NULL)
         {
-            MetricFile invertResampleROI;
-            invertResampleROI.setNumberOfNodesAndColumns(resampleROI.getNumberOfNodes(), 1);
-            for (int j = 0; j < resampleROI.getNumberOfNodes(); ++j)
+            AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curAreas, newAreas, &origROI, &resampleROI, surfLargest);
+            if (surfdilatemm > 0.0f)
             {
-                float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
-                invertResampleROI.setValue(j, 0, tempf);
+                MetricFile invertResampleROI;
+                invertResampleROI.setNumberOfNodesAndColumns(resampleROI.getNumberOfNodes(), 1);
+                for (int j = 0; j < resampleROI.getNumberOfNodes(); ++j)
+                {
+                    float tempf = (resampleROI.getValue(j, 0) > 0.0f) ? 0.0f : 1.0f;//make an inverse ROI
+                    invertResampleROI.setValue(j, 0, tempf);
+                }
+                AlgorithmMetricDilate(NULL, &newMetric, newSphere, surfdilatemm, &newDilate, &invertResampleROI, NULL, -1, true);//we could get the data roi from the template cifti and use it here
+                newUse = &newDilate;
             }
-            AlgorithmMetricDilate(NULL, &newMetric, newSphere, surfdilatemm, &newDilate, &invertResampleROI, NULL, -1, true);//we could get the data roi from the template cifti and use it here
-            newUse = &newDilate;
+        } else {
+            newUse = &origMetric;
         }
         AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, newUse);
     }
