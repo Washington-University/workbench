@@ -934,6 +934,8 @@ GiftiLabelTable::getLabelKeysSortedByName() const
 {
     /*
      * Use map to sort by name
+     * If AStringNaturalComparison crashes, temporarily remove
+     * as the third template parameter.
      */
     std::map<AString, int32_t, AStringNaturalComparison> nameToKeyMap;
     
