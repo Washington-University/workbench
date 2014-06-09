@@ -23,12 +23,12 @@
 #include <algorithm>
 #include <sstream>
 
+#include "AStringNaturalComparison.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
-#include "NameIndexSort.h"
 #include "StringTableModel.h"
 #include "XmlWriter.h"
 
@@ -932,28 +932,26 @@ GiftiLabelTable::setLabelColor(
 std::vector<int32_t>
 GiftiLabelTable::getLabelKeysSortedByName() const
 {
-    NameIndexSort nameIndexSort;
+    /*
+     * Use map to sort by name
+     */
+    std::map<AString, int32_t, AStringNaturalComparison> nameToKeyMap;
     
-    std::set<int32_t> keys = this->getKeys();
-    for (std::set<int32_t>::iterator iter = keys.begin();
-         iter != keys.end();
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
          iter++) {
-        const int32_t key = *iter;
-        const GiftiLabel* gl = this->getLabel(key);
-        if (gl != NULL) {
-            nameIndexSort.add(key,
-                              gl->getName());
-        }
+        nameToKeyMap.insert(std::make_pair(iter->second->getName(),
+                                           iter->first));
     }
     
-    nameIndexSort.sortByNameCaseSensitive();
-    
-    std::vector<int32_t> sortedKeys;
-    const int64_t numItems = nameIndexSort.getNumberOfItems();
-    for (int64_t i = 0; i < numItems; i++) {
-        sortedKeys.push_back(nameIndexSort.getSortedIndex(i));
+    std::vector<int32_t> keysSortedByName;
+    for (std::map<AString, int32_t>::iterator iter = nameToKeyMap.begin();
+         iter != nameToKeyMap.end();
+         iter++) {
+        keysSortedByName.push_back(iter->second);
     }
-    return sortedKeys;
+    
+    return keysSortedByName;
 }
 
 /**
