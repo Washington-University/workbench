@@ -57,10 +57,11 @@ namespace caret
             StructureEnum::Enum m_structure;
         };
         bool hasVolumeData() const;
+        bool hasVolumeData(const StructureEnum::Enum& structure) const;
         bool hasSurfaceData(const StructureEnum::Enum& structure) const;
         int64_t getIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
-        int64_t getIndexForVoxel(const int64_t* ijk) const;
-        int64_t getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const;
+        int64_t getIndexForVoxel(const int64_t* ijk, StructureEnum::Enum* structureOut = NULL) const;
+        int64_t getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k, StructureEnum::Enum* structureOut = NULL) const;
         std::vector<SurfaceMap> getSurfaceMap(const StructureEnum::Enum& structure) const;
         std::vector<VolumeMap> getFullVolumeMap() const;
         std::vector<VolumeMap> getVolumeStructureMap(const StructureEnum::Enum& structure) const;

@@ -153,7 +153,7 @@ void CiftiFile::writeFile(const QString& fileName, const CiftiVersion& writingVe
     {
         m_writingVersion = writingVersion;//also record the current version number
         if (m_writingImpl != NULL)//NULL can happen if setWritingFile is called with a name other than the current file, then writeFile is called with the same name as current file but different version
-        {
+        {//or, if it is in read-only on-disk mode
             m_writingImpl = tempWrite;//replace the now-unusable old file implementation
         }
         m_readingImpl = tempWrite;//replace the now-unusable old file implementation

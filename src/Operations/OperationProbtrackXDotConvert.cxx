@@ -72,14 +72,14 @@ OperationParameters* OperationProbtrackXDotConvert::getParameters()
     rowCiftiOpt->addCiftiParameter(1, "cifti", "the cifti file to take the mapping from");
     rowCiftiOpt->addStringParameter(2, "direction", "which dimension to take the mapping along, ROW or COLUMN");
     
-    OptionalParameter* colVoxelOpt = ret->createOptionalParameter(5, "-col-voxels", "the output mapping along a row will be voxels");
+    OptionalParameter* colVoxelOpt = ret->createOptionalParameter(5, "-col-voxels", "the output mapping along a column will be voxels");
     colVoxelOpt->addStringParameter(1, "voxel-list-file", "a text file containing IJK indices for the voxels used");
     colVoxelOpt->addVolumeParameter(2, "label-vol", "a label volume with the dimensions and sform used, with structure labels");
     
-    OptionalParameter* colSurfaceOpt = ret->createOptionalParameter(6, "-col-surface", "the output mapping along a row will be surface vertices");
+    OptionalParameter* colSurfaceOpt = ret->createOptionalParameter(6, "-col-surface", "the output mapping along a column will be surface vertices");
     colSurfaceOpt->addMetricParameter(1, "roi-metric", "a metric file with positive values on all nodes used");
     
-    OptionalParameter* colCiftiOpt = ret->createOptionalParameter(10, "-col-cifti", "take the mapping along a row from a cifti file");
+    OptionalParameter* colCiftiOpt = ret->createOptionalParameter(10, "-col-cifti", "take the mapping along a column from a cifti file");
     colCiftiOpt->addCiftiParameter(1, "cifti", "the cifti file to take the mapping from");
     colCiftiOpt->addStringParameter(2, "direction", "which dimension to take the mapping along, ROW or COLUMN");
     

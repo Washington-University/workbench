@@ -175,15 +175,16 @@ int64_t CiftiBrainModelsMap::getIndexForNode(const int64_t& node, const Structur
     return myModel.m_nodeToIndexLookup[node];
 }
 
-int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t* ijk) const
+int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t* ijk, StructureEnum::Enum* structureOut) const
 {
-    return getIndexForVoxel(ijk[0], ijk[1], ijk[2]);
+    return getIndexForVoxel(ijk[0], ijk[1], ijk[2], structureOut);
 }
 
-int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k) const
+int64_t CiftiBrainModelsMap::getIndexForVoxel(const int64_t& i, const int64_t& j, const int64_t& k, StructureEnum::Enum* structureOut) const
 {
     const pair<int64_t, StructureEnum::Enum>* iter = m_voxelToIndexLookup.find(i, j, k);//the lookup tolerates weirdness like negatives
     if (iter == NULL) return -1;
+    if (structureOut != NULL) *structureOut = iter->second;
     return iter->first;
 }
 
@@ -334,7 +335,7 @@ vector<CiftiBrainModelsMap::VolumeMap> CiftiBrainModelsMap::getVolumeStructureMa
     map<StructureEnum::Enum, int>::const_iterator iter = m_volUsed.find(structure);
     if (iter == m_volUsed.end())
     {
-        throw CaretException("getVolumeMap called for nonexistant structure");//also throw, for consistency
+        throw CaretException("getVolumeStructureMap called for nonexistant structure");//also throw, for consistency
     }
     CaretAssertVectorIndex(m_modelsInfo, iter->second);
     const BrainModelPriv& myModel = m_modelsInfo[iter->second];
@@ -367,6 +368,12 @@ const vector<int64_t>& CiftiBrainModelsMap::getVoxelList(const StructureEnum::En
 bool CiftiBrainModelsMap::hasVolumeData() const
 {
     return (m_volUsed.size() != 0);
+}
+
+bool CiftiBrainModelsMap::hasVolumeData(const StructureEnum::Enum& structure) const
+{
+    map<StructureEnum::Enum, int>::const_iterator iter = m_volUsed.find(structure);
+    return (iter != m_volUsed.end());
 }
 
 void CiftiBrainModelsMap::setVolumeSpace(const VolumeSpace& space)
