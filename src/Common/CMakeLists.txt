@@ -27,6 +27,7 @@ QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 ADD_LIBRARY(Common
 ApplicationInformation.h
 AString.h
+AStringNaturalComparison.h
 Base64.h
 BoundingBox.h
 BrainConstants.h
@@ -86,7 +87,6 @@ MatrixFunctions.h
 ModelTransform.h
 MultiDimArray.h
 MultiDimIterator.h
-NameIndexSort.h
 NetworkException.h
 OctTree.h
 OpenGLDrawingMethodEnum.h
@@ -112,6 +112,7 @@ YokingGroupEnum.h
 ${MOC_SOURCE_FILES}
 ${CMAKE_BINARY_DIR}/Common/ApplicationInformation.cxx
 AString.cxx
+AStringNaturalComparison.cxx
 Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx
@@ -158,7 +159,6 @@ LogRecord.cxx
 MathFunctionEnum.cxx
 MathFunctions.cxx
 ModelTransform.cxx
-NameIndexSort.cxx
 NetworkException.cxx
 OpenGLDrawingMethodEnum.cxx
 PlainTextStringBuilder.cxx
