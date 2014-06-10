@@ -64,6 +64,7 @@ namespace caret {
             const AString& m_s;
             
             mutable int32_t m_pos;
+            
             int32_t m_len;
         };
     };

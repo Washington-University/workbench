@@ -140,7 +140,7 @@ AStringNaturalComparison::compare(const AString& string1,
         const int32_t ch2 = s2.nextChar(s2IsNumber);
         
         CaretAssert(ch1 >= 0);
-        CaretAssert(ch1 >= 0);
+        CaretAssert(ch2 >= 0);
         if (s1IsNumber && s2IsNumber) {
             if (ch1 < ch2) {
                 return -1;
@@ -196,7 +196,8 @@ AStringNaturalComparison::compare(const AString& string1,
 AStringNaturalComparison::StringParser::StringParser(const AString& s)
 : m_s(s),
 m_pos(0),
-m_len(s.length()) {
+m_len(s.length())
+{
     
 }
 
@@ -212,7 +213,8 @@ m_len(s.length()) {
  *    sequence of digits.
  */
 int32_t
-AStringNaturalComparison::StringParser::nextChar(bool& isNumberOut) const {
+AStringNaturalComparison::StringParser::nextChar(bool& isNumberOut) const
+{
     isNumberOut = false;
     
     if (m_pos >= m_len) {
@@ -240,7 +242,7 @@ AStringNaturalComparison::StringParser::nextChar(bool& isNumberOut) const {
         return numericValue;
     }
     else {
-        return ch.toAscii();
+        return ch.unicode();
     }
     
     return -1;
