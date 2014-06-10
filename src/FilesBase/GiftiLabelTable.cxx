@@ -947,7 +947,7 @@ GiftiLabelTable::getLabelKeysSortedByName() const
     }
     
     std::vector<int32_t> keysSortedByName;
-    for (std::map<AString, int32_t>::iterator iter = nameToKeyMap.begin();
+    for (std::map<AString, int32_t, AStringNaturalComparison>::iterator iter = nameToKeyMap.begin();
          iter != nameToKeyMap.end();
          iter++) {
         keysSortedByName.push_back(iter->second);
