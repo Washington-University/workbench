@@ -23,6 +23,7 @@
 #include "GroupAndNameHierarchyItem.h"
 #undef __GROUP_AND_NAME_HIERARCHY_ITEM_DECLARE__
 
+#include "AStringNaturalComparison.h"
 #include "CaretAssert.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyName.h"
@@ -257,7 +258,14 @@ static bool
 lessName(const GroupAndNameHierarchyItem* itemOne,
                    const GroupAndNameHierarchyItem* itemTwo)
 {
-    return (itemOne->getName() < itemTwo->getName());
+    const int32_t result = AStringNaturalComparison::compare(itemOne->getName(),
+                                                             itemTwo->getName());
+    if (result < 0) {
+        return true;
+    }
+    return false;
+    
+//    return (itemOne->getName() < itemTwo->getName());
 }
 /**
  * Sort the descendants by name
