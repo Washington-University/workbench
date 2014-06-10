@@ -54,7 +54,7 @@ namespace caret {
         public:
             StringParser(const AString& s);
             
-            int32_t nextChar(bool& isNumberOut) const;
+            int64_t nextChar(bool& isNumberOut) const;
             
             inline bool hasMore() const {
                 return (m_pos < m_len);

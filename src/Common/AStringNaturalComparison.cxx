@@ -132,16 +132,25 @@ AStringNaturalComparison::compare(const AString& string1,
     
     bool s1IsNumber = false;
     bool s2IsNumber = false;
-    
-    //std::cout << "ME " << qPrintable(*this) << ":";
+
+    /*
+     * Loop through the 'characters' until corresponding
+     * 'characters' do not match.
+     *
+     * Note that a consecutive sequence of digits is
+     * considered a single 'character'.
+     */
     while (s1.hasMore()
            && s2.hasMore()) {
-        const int32_t ch1 = s1.nextChar(s1IsNumber);
-        const int32_t ch2 = s2.nextChar(s2IsNumber);
+        const int64_t ch1 = s1.nextChar(s1IsNumber);
+        const int64_t ch2 = s2.nextChar(s2IsNumber);
         
         CaretAssert(ch1 >= 0);
         CaretAssert(ch2 >= 0);
         if (s1IsNumber && s2IsNumber) {
+            /*
+             * Both 'character's are numbers
+             */
             if (ch1 < ch2) {
                 return -1;
             }
@@ -156,6 +165,9 @@ AStringNaturalComparison::compare(const AString& string1,
             return 1;
         }
         else {
+            /*
+             * Both 'characters' are NOT numbers
+             */
             if (ch1 < ch2) {
                 return -1;
             }
@@ -165,16 +177,19 @@ AStringNaturalComparison::compare(const AString& string1,
         }
     }
     
+    /*
+     * The shorter string is considered "less than"
+     */
     if (s1.hasMore()) {
         return 1;
     }
     else if (s2.hasMore()) {
         return -1;
     }
-    else {
-        CaretAssert(0);
-    }
     
+    /*
+     * Strings must be identical.
+     */
     return 0;
 }
 
@@ -212,7 +227,7 @@ m_len(s.length())
  *    The unicode value for the next character or numeric value os a 
  *    sequence of digits.
  */
-int32_t
+int64_t
 AStringNaturalComparison::StringParser::nextChar(bool& isNumberOut) const
 {
     isNumberOut = false;
@@ -225,7 +240,7 @@ AStringNaturalComparison::StringParser::nextChar(bool& isNumberOut) const
     ++m_pos;
     
     if (ch.isDigit()) {
-        int32_t numericValue = ch.digitValue();
+        int64_t numericValue = ch.digitValue();
         
         while (m_pos < m_len) {
             const QChar nextChar = m_s[m_pos];
