@@ -129,7 +129,7 @@ namespace caret
             return m_chunks[high - 1].elements[index - m_chunks[high - 1].start];
         }
         if (high > 0 && m_chunks[high - 1].start + (int64_t)(m_chunks[high - 1].elements.size()) == index) attach_low = true;//index is 1 beyond the range
-        if (high < numChunks && m_chunks[high].start + 1 == index) attach_high = true;//index is 1 before the next range
+        if (high < numChunks && m_chunks[high].start == index + 1) attach_high = true;//index is 1 before the next range
         if (attach_low)
         {
             std::vector<T>& lowvec = m_chunks[high - 1].elements;
