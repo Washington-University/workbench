@@ -130,6 +130,7 @@
 #include "OperationCiftiLabelImport.h"
 #include "OperationCiftiMath.h"
 #include "OperationCiftiPalette.h"
+#include "OperationCiftiResampleDconnMemory.h"
 #include "OperationCiftiROIAverage.h"
 #include "OperationCiftiSeparateAll.h"
 #include "OperationConvertAffine.h"
@@ -341,6 +342,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiMath()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiPalette()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiResampleDconnMemory()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationConvertAffine()));

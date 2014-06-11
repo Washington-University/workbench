@@ -27,6 +27,8 @@
 #include "SurfaceResamplingMethodEnum.h"
 #include "VolumeFile.h"
 
+#include <utility> //for pair
+
 namespace caret {
     
     class AlgorithmCiftiResample : public AbstractAlgorithm
@@ -43,6 +45,13 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        //so that other code that uses it more than once can pre-check things - returns true for error present!
+        static std::pair<bool, AString> checkForErrors(const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
+                                                       const SurfaceResamplingMethodEnum::Enum& mySurfMethod,
+                                                       const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                                                       const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                                                       const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas);
+        
         AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
                                const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,

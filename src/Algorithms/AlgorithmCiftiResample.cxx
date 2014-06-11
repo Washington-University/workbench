@@ -120,9 +120,10 @@ OperationParameters* AlgorithmCiftiResample::getParameters()
     cerebAreaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for the new mesh");
     
     AString myHelpText =
-        AString("Resample cifti data to a different brainordinate space.  Use COLUMN to resample dscalar, dlabel, or dtseries.  ") +
-        "Resampling both dimensions of a dconn requires running the command twice, once for each direction.  " +
-        "If spheres are not specified for a surface structure, but it exists in the cifti files, its data is copied without resampling or dilation.  " +
+        AString("Resample cifti data to a different brainordinate space.  Use COLUMN for the direction to resample dscalar, dlabel, or dtseries.  ") +
+        "Resampling both dimensions of a dconn requires running this command twice, once with COLUMN and once with ROW.  " +
+        "If you are resampling a dconn and your machine has a large amount of memory, you might consider using -cifti-resample-dconn-memory to avoid writing and rereading an intermediate file.  " +
+        "If spheres are not specified for a surface structure which exists in the cifti files, its data is copied without resampling or dilation.  " +
         "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
         "The <volume-method> argument must be one of the following:\n\n" +
@@ -342,27 +343,23 @@ void AlgorithmCiftiResample::useParameters(OperationParameters* myParams, Progre
     }
 }
 
-AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
-                                               const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
-                                               const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
-                                               const VolumeFile* warpfield,
-                                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
-                                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
-                                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
+pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
+                                                           const SurfaceResamplingMethodEnum::Enum& mySurfMethod,
+                                                           const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                                                           const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                                                           const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas)
 {
-    LevelProgress myProgress(myProgObj);
-    if (direction > 1) throw AlgorithmException("unsupported mapping direction for cifti resample");
+    if (direction > 1) return make_pair(true, AString("unsupported mapping direction for cifti resample"));
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
-    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for input must contain brain models");
+    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) return make_pair(true, AString("direction for input must contain brain models"));
     const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(direction);
-    if (myTemplate->getCiftiXML().getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for template must contain brain models");
-    CiftiXML myOutXML = myInputXML;
-    myOutXML.setMap(direction, *(myTemplate->getCiftiXML().getMap(templateDir)));
-    const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
-    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
+    const CiftiXML& myTemplateXML = myTemplate->getCiftiXML();
+    if (myTemplateXML.getMappingType(templateDir) != CiftiMappingType::BRAIN_MODELS) return make_pair(true, AString("direction for template must contain brain models"));
+    const CiftiBrainModelsMap& outModels = myTemplate->getCiftiXML().getBrainModelsMap(templateDir);
+    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList();
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
     {
-        if (!inModels.hasSurfaceData(surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
+        if (!inModels.hasSurfaceData(surfList[i])) return make_pair(true, AString("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i])));
         const SurfaceFile* curSphere = NULL, *newSphere = NULL;
         const MetricFile* curAreas = NULL, *newAreas = NULL;
         AString structName;
@@ -390,28 +387,50 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                 structName = "cerebellum";
                 break;
             default:
-                throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
+                return make_pair(true, AString("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i])));
                 break;
         }
         if (curSphere != NULL)//resampling
         {
-            if (newSphere == NULL) throw AlgorithmException("missing " + structName + " new sphere");
-            if (curSphere->getNumberOfNodes() != inModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " current sphere doesn't match input cifti");
-            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " new sphere doesn't match input cifti");
+            if (newSphere == NULL) return make_pair(true, AString("missing " + structName + " new sphere"));
+            if (curSphere->getNumberOfNodes() != inModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " current sphere doesn't match input cifti"));
+            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " new sphere doesn't match input cifti"));
             switch (mySurfMethod)
             {
                 case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
-                    if (curAreas == NULL || newAreas == NULL) throw AlgorithmException(structName + " area data is missing");
-                    if (curAreas->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException(structName + " current area data has the wrong number of vertices");
-                    if (newAreas->getNumberOfNodes() != newSphere->getNumberOfNodes()) throw AlgorithmException(structName + " new area data has the wrong number of vertices");
+                    if (curAreas == NULL || newAreas == NULL) return make_pair(true, AString(structName + " area data is missing"));
+                    if (curAreas->getNumberOfNodes() != curSphere->getNumberOfNodes()) return make_pair(true, AString(structName + " current area data has the wrong number of vertices"));
+                    if (newAreas->getNumberOfNodes() != newSphere->getNumberOfNodes()) return make_pair(true, AString(structName + " new area data has the wrong number of vertices"));
                     break;
                 default:
                     break;
             }
         } else {//copying
-            if (inModels.getSurfaceNumberOfNodes(surfList[i]) != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " structure requires resampling spheres, does not match template");
+            if (inModels.getSurfaceNumberOfNodes(surfList[i]) != outModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " structure requires resampling spheres, does not match template"));
         }
     }
+    return make_pair(false, AString());
+}
+
+AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
+                                               const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
+                                               const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
+                                               const VolumeFile* warpfield,
+                                               const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                                               const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                                               const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress(myProgObj);
+    pair<bool, AString> myError = checkForErrors(myCiftiIn, direction, myTemplate, templateDir, mySurfMethod,
+                                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
+    if (myError.first) throw AlgorithmException(myError.second);
+    const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
+    CiftiXML myOutXML = myInputXML;
+    myOutXML.setMap(direction, *(myTemplate->getCiftiXML().getMap(templateDir)));
+    const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
+    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     myCiftiOut->setCiftiXML(myOutXML);
     for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
     {
@@ -458,67 +477,16 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                                                const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    if (direction > 1) throw AlgorithmException("unsupported mapping direction for cifti resample");
+    pair<bool, AString> myError = checkForErrors(myCiftiIn, direction, myTemplate, templateDir, mySurfMethod,
+                                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
+    if (myError.first) throw AlgorithmException(myError.second);
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
-    if (myInputXML.getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for input must contain brain models");
-    const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(direction);
-    if (myTemplate->getCiftiXML().getMappingType(direction) != CiftiMappingType::BRAIN_MODELS) throw AlgorithmException("direction for template must contain brain models");
     CiftiXML myOutXML = myInputXML;
     myOutXML.setMap(direction, *(myTemplate->getCiftiXML().getMap(templateDir)));
     const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
     vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
-    for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
-    {
-        if (!inModels.hasSurfaceData(surfList[i])) throw AlgorithmException("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i]));
-        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
-        const MetricFile* curAreas = NULL, *newAreas = NULL;
-        AString structName;
-        switch (surfList[i])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                curSphere = curLeftSphere;
-                newSphere = newLeftSphere;
-                curAreas = curLeftAreas;
-                newAreas = newLeftAreas;
-                structName = "left";
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                curSphere = curRightSphere;
-                newSphere = newRightSphere;
-                curAreas = curRightAreas;
-                newAreas = newRightAreas;
-                structName = "right";
-                break;
-            case StructureEnum::CEREBELLUM:
-                curSphere = curCerebSphere;
-                newSphere = newCerebSphere;
-                curAreas = curCerebAreas;
-                newAreas = newCerebAreas;
-                structName = "cerebellum";
-                break;
-            default:
-                throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
-                break;
-        }
-        if (curSphere != NULL)//resampling
-        {
-            if (newSphere == NULL) throw AlgorithmException("missing " + structName + " new sphere");
-            if (curSphere->getNumberOfNodes() != inModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " current sphere doesn't match input cifti");
-            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " new sphere doesn't match input cifti");
-            switch (mySurfMethod)
-            {
-                case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:
-                    if (curAreas == NULL || newAreas == NULL) throw AlgorithmException(structName + " area data is missing");
-                    if (curAreas->getNumberOfNodes() != curSphere->getNumberOfNodes()) throw AlgorithmException(structName + " current area data has the wrong number of vertices");
-                    if (newAreas->getNumberOfNodes() != newSphere->getNumberOfNodes()) throw AlgorithmException(structName + " new area data has the wrong number of vertices");
-                    break;
-                default:
-                    break;
-            }
-        } else {//copying
-            if (inModels.getSurfaceNumberOfNodes(surfList[i]) != outModels.getSurfaceNumberOfNodes(surfList[i])) throw AlgorithmException(structName + " structure requires resampling spheres, does not match template");
-        }
-    }
     myCiftiOut->setCiftiXML(myOutXML);
     for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
     {

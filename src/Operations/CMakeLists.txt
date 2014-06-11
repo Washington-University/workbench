@@ -32,6 +32,7 @@ OperationCiftiLabelExportTable.h
 OperationCiftiLabelImport.h
 OperationCiftiMath.h
 OperationCiftiPalette.h
+OperationCiftiResampleDconnMemory.h
 OperationCiftiROIAverage.h
 OperationCiftiSeparateAll.h
 OperationConvertAffine.h
@@ -98,6 +99,7 @@ OperationCiftiLabelExportTable.cxx
 OperationCiftiLabelImport.cxx
 OperationCiftiMath.cxx
 OperationCiftiPalette.cxx
+OperationCiftiResampleDconnMemory.cxx
 OperationCiftiROIAverage.cxx
 OperationCiftiSeparateAll.cxx
 OperationConvertAffine.cxx
