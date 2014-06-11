@@ -330,6 +330,22 @@ CiftiXMLOld::getVoxelInfoInDataFileContentInformation(const int& direction,
     VolumeSpace volumeSpace;
     getVolumeSpace(volumeSpace);
 
+    const int64_t* dims = volumeSpace.getDims();
+    dataFileInformation.addNameAndValue("Dimensions", AString::fromNumbers(dims, 3, ","));
+    VolumeSpace::OrientTypes orientation[3];
+    float spacing[3];
+    float origin[3];
+    volumeSpace.getOrientAndSpacingForPlumb(orientation, spacing, origin);
+    dataFileInformation.addNameAndValue("Spacing", AString::fromNumbers(spacing, 3, ","));
+    dataFileInformation.addNameAndValue("Origin", AString::fromNumbers(origin, 3, ","));
+    
+    const std::vector<std::vector<float> >& sform = volumeSpace.getSform();
+    for (uint32_t i = 0; i < sform.size(); i++) {
+        dataFileInformation.addNameAndValue(("sform row "
+                                             + AString::number(i)),
+                                            AString::fromNumbers(sform[i], ","));
+    }
+    
     int64_t myIndex = 0;
     for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
     {
