@@ -29,6 +29,8 @@
 #include <vector>
 
 namespace caret {
+    class DataFileContentInformation;
+
 /// Simple Container class for storing Cifti XML meta data
     struct CiftiSurfaceMap
     {
@@ -203,7 +205,10 @@ namespace caret {
             
         ///get the mapping for a volume, returns false and empty vector if not found
         bool getVolumeMap(const int& direction, std::vector<CiftiVolumeMap>& mappingOut) const;
-            
+        
+        void getVoxelInfoInDataFileContentInformation(const int& direction,
+                                                      DataFileContentInformation& dataFileInformation) const;
+        
         ///get the mapping for a volume structure in rows, returns false and empty vector if not found
         bool getVolumeStructureMapForRows(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
         

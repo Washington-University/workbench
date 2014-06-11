@@ -21,6 +21,7 @@
 #include <cmath>
 #include "CaretAssert.h"
 #include "CiftiXMLOld.h"
+#include "DataFileContentInformation.h"
 #include "DataFileException.h"
 #include "FloatMatrix.h"
 #include "GiftiLabelTable.h"
@@ -304,6 +305,67 @@ bool CiftiXMLOld::getVolumeMapForColumns(vector<CiftiVolumeMap>& mappingOut) con
 bool CiftiXMLOld::getVolumeMapForRows(vector<CiftiVolumeMap>& mappingOut) const
 {
     return getVolumeMap(ALONG_ROW, mappingOut);
+}
+
+void
+CiftiXMLOld::getVoxelInfoInDataFileContentInformation(const int& direction,
+                                                      DataFileContentInformation& dataFileInformation) const
+{
+    if (direction < 0 || direction >= (int)m_dimToMapLookup.size())
+    {
+        return;
+    }
+    int myMapIndex = m_dimToMapLookup[direction];
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return;
+    }
+    
+    VolumeSpace volumeSpace;
+    getVolumeSpace(volumeSpace);
+
+    int64_t myIndex = 0;
+    for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
+    {
+        if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
+        {
+            const vector<voxelIndexType>& myVoxels = myMap->m_brainModels[i].m_voxelIndicesIJK;
+            int64_t voxelArraySize = (int64_t)myVoxels.size();
+            int64_t modelOffset = myMap->m_brainModels[i].m_indexOffset;
+            int64_t j1 = 0;
+
+            const AString structureName = StructureEnum::toGuiName(myMap->m_brainModels[i].m_brainStructure);
+            
+            for (int64_t j = 0; j < voxelArraySize; j += 3)
+            {
+                const int64_t ijk[3] = {
+                    myVoxels[j],
+                    myVoxels[j + 1],
+                    myVoxels[j + 2]
+                };
+                float xyz[3];
+                volumeSpace.indexToSpace(ijk, xyz);
+                
+                const AString msg = ("ijk=("
+                                     + AString::fromNumbers(ijk, 3, ",")
+                                     + "), xyz=("
+                                     + AString::fromNumbers(xyz, 3, ", ")
+                                     + "), row="
+                                     + AString::number(modelOffset + j1)
+                                     + "  ");
+                dataFileInformation.addNameAndValue(structureName,
+                                                    msg);
+                ++j1;
+                ++myIndex;
+            }
+        }
+    }
 }
 
 bool CiftiXMLOld::getVolumeStructureMap(const int& direction, vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const
@@ -2180,3 +2242,5 @@ void CiftiXMLOld::swapMappings(const int& direction1, const int& direction2)
     }
     CaretAssert(i < numApply);
 }
+
+
