@@ -155,17 +155,17 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->addWidget(m_volumeIndicesParasagittalCheckBox, 0, 0);
     gridLayout->addWidget(parasagittalLabel, 0, 1);
-    gridLayout->addWidget(m_volumeIndicesParasagittalSpinBox, 0, 2);
-    gridLayout->addWidget(m_volumeIndicesXcoordSpinBox, 0, 3);
-    
     gridLayout->addWidget(m_volumeIndicesCoronalCheckBox, 1, 0);
     gridLayout->addWidget(coronalLabel, 1, 1);
-    gridLayout->addWidget(m_volumeIndicesCoronalSpinBox, 1, 2);
-    gridLayout->addWidget(m_volumeIndicesYcoordSpinBox, 1, 3);
-    
     gridLayout->addWidget(m_volumeIndicesAxialCheckBox, 2, 0);
     gridLayout->addWidget(axialLabel, 2, 1);
+
+    gridLayout->addWidget(m_volumeIndicesParasagittalSpinBox, 0, 2);
+    gridLayout->addWidget(m_volumeIndicesCoronalSpinBox, 1, 2);
     gridLayout->addWidget(m_volumeIndicesAxialSpinBox, 2, 2);
+
+    gridLayout->addWidget(m_volumeIndicesXcoordSpinBox, 0, 3);
+    gridLayout->addWidget(m_volumeIndicesYcoordSpinBox, 1, 3);
     gridLayout->addWidget(m_volumeIndicesZcoordSpinBox, 2, 3);
 
     gridLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 3, 1, 1, 4, Qt::AlignHCenter);
