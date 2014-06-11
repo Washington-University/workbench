@@ -33,6 +33,7 @@
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiInterface.h"
 #include "ConnectivityDataLoaded.h"
+#include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"
 #include "FiberOrientationTrajectory.h"
@@ -1640,3 +1641,69 @@ CiftiFiberTrajectoryFile::supportsWriting() const
     
     return false;
 }
+
+/**
+ * Add information about the file to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    if (m_sparseFile != NULL) {
+        const CiftiXMLOld& ciftiXML = m_sparseFile->getCiftiXML();
+        
+        VolumeSpace volumeSpace;
+        ciftiXML.getVolumeSpace(volumeSpace);
+        
+//        std::vector<CiftiVolumeMap> rowVolumeMaps;
+//        ciftiXML.getVolumeMapForRows(rowVolumeMaps);
+//        if ( ! rowVolumeMaps.empty()) {
+//            for (std::vector<CiftiVolumeMap>::iterator iter = rowVolumeMaps.begin();
+//                 iter != rowVolumeMaps.end();
+//                 iter++) {
+//                const CiftiVolumeMap cvm = *iter;
+//                float xyz[3];
+//                volumeSpace.indexToSpace(cvm.m_ijk, xyz);
+//                
+//                const AString msg = ("   ijk=("
+//                                     + AString::fromNumbers(cvm.m_ijk, 3, ",")
+//                                     + "), xyz=("
+//                                     + AString::fromNumbers(xyz, 3, ", ")
+//                                     + "), columnIndex="
+//                                     + AString::number(cvm.m_ciftiIndex)
+//                                     + "  ");
+//                dataFileInformation.addNameAndValue("   Row Voxel ",
+//                                                    msg);
+//            }
+//        }
+        
+        std::vector<CiftiVolumeMap> columnVolumeMaps;
+        ciftiXML.getVolumeMapForColumns(columnVolumeMaps);
+        
+        if ( ! columnVolumeMaps.empty()) {
+            AString msg;
+            for (std::vector<CiftiVolumeMap>::iterator iter = columnVolumeMaps.begin();
+                 iter != columnVolumeMaps.end();
+                 iter++) {
+                const CiftiVolumeMap cvm = *iter;
+                float xyz[3];
+                volumeSpace.indexToSpace(cvm.m_ijk, xyz);
+                
+                const AString msg = ("ijk=("
+                                     + AString::fromNumbers(cvm.m_ijk, 3, ",")
+                                     + "), xyz=("
+                                     + AString::fromNumbers(xyz, 3, ", ")
+                                     + "), row="
+                                     + AString::number(cvm.m_ciftiIndex)
+                                     + "  ");
+                dataFileInformation.addNameAndValue("Row Voxel",
+                                                    msg);
+            }
+        }
+    }
+}
+
