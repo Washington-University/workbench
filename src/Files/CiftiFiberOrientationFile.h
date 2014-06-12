@@ -27,6 +27,7 @@
 
 namespace caret {
 
+    class CiftiXML;
     class CiftiXMLOld;
     class FiberOrientation;
     
@@ -61,7 +62,9 @@ namespace caret {
         
         bool isEmpty() const;
         
-        const CiftiXMLOld* getCiftiXML() const;
+        const CiftiXMLOld* getCiftiXMLOld() const;
+        
+        const CiftiXML* getCiftiXML() const;
         
         virtual StructureEnum::Enum getStructure() const;
         
@@ -88,7 +91,9 @@ namespace caret {
 
         void clearPrivate();
         
-        CiftiXMLOld* m_ciftiXML;
+        CiftiXMLOld* m_ciftiXMLOld;
+        
+        CiftiXML* m_ciftiXML;
         
         GiftiMetaData* m_metadata;
 

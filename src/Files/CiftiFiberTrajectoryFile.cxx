@@ -193,11 +193,9 @@ CiftiFiberTrajectoryFile::isFiberOrientationFileCombatible(const CiftiFiberOrien
 {
     CaretAssert(fiberOrientationFile);
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXMLOld* orientXML = fiberOrientationFile->getCiftiXML();
-    if (trajXML.mappingMatches(CiftiXMLOld::ALONG_ROW,
-                               *orientXML,
-                               CiftiXMLOld::ALONG_COLUMN)) {
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXML* orientXML = fiberOrientationFile->getCiftiXML();
+    if (*(trajXML.getMap(CiftiXML::ALONG_ROW)) == *(orientXML->getMap(CiftiXML::ALONG_COLUMN))) {
         return true;
     }
     
@@ -225,7 +223,13 @@ CiftiFiberTrajectoryFile::setMatchingFiberOrientationFile(CiftiFiberOrientationF
                 break;
             case FIBER_TRAJECTORY_LOAD_SINGLE_ROW:
                 loadDataForRowIndex(0);
-                m_loadedDataDescriptionForMapName = m_sparseFile->getCiftiXML().getMapNameForColumnIndex(0);
+                const CiftiXML& sparseXML = m_sparseFile->getCiftiXML();
+                if (sparseXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SCALARS)
+                {
+                    m_loadedDataDescriptionForMapName = sparseXML.getScalarsMap(CiftiXML::ALONG_COLUMN).getMapName(0);
+                } else {
+                    m_loadedDataDescriptionForMapName = "";
+                }
                 break;
         }
     }
@@ -726,8 +730,8 @@ CiftiFiberTrajectoryFile::readFile(const AString& filename) throw (DataFileExcep
         
         m_fiberTrajectoryFileType = FIBER_TRAJECTORY_LOAD_BY_BRAINORDINATE;
         
-        const CiftiXMLOld xml = m_sparseFile->getCiftiXML();
-        if (xml.getColumnMappingType() == CIFTI_INDEX_TYPE_SCALARS) {
+        const CiftiXML& xml = m_sparseFile->getCiftiXML();
+        if (xml.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::SCALARS) {
             m_fiberTrajectoryFileType = FIBER_TRAJECTORY_LOAD_SINGLE_ROW;
         }
         clearModified();
@@ -852,7 +856,7 @@ CiftiFiberTrajectoryFile::newFiberTrajectoryFileFromLoadedRowData(AString& error
 void
 CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const throw (DataFileException)
 {
-    CiftiXMLOld xml = m_sparseFile->getCiftiXML();
+    CiftiXML xml = m_sparseFile->getCiftiXML();
     
     /*
      * Copy the pointers to the fiber orientation trajectories and sort
@@ -862,7 +866,7 @@ CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const t
                                                                 m_fiberOrientationTrajectories.end());
     
     bool isWriteFullRow = false;
-    if (static_cast<int64_t>(trajectories.size()) == xml.getNumberOfColumns()) {
+    if (static_cast<int64_t>(trajectories.size()) == xml.getDimensionLength(CiftiXML::ALONG_ROW)) {
         isWriteFullRow = true;
     }
     else {
@@ -908,9 +912,10 @@ CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const t
     /*
      * Write to temp file!!!!!
      */
-    xml.resetColumnsToScalars(1);
-    xml.setMapNameForColumnIndex(0,
-                                 m_loadedDataDescriptionForMapName);
+    CiftiScalarsMap tempMap;
+    tempMap.setLength(1);
+    tempMap.setMapName(0, m_loadedDataDescriptionForMapName);
+    xml.setMap(CiftiXML::ALONG_COLUMN, tempMap);
     
     CaretSparseFileWriter sparseWriter(filename,
                                        xml);
@@ -964,22 +969,20 @@ CiftiFiberTrajectoryFile::validateAssignedMatchingFiberOrientationFile() throw (
         throw DataFileException("No fiber orientation file is assigned.");
     }
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
-    const CiftiXMLOld* orientXML = m_matchingFiberOrientationFile->getCiftiXML();
-    if (trajXML.mappingMatches(CiftiXMLOld::ALONG_ROW,
-                               *orientXML,
-                               CiftiXMLOld::ALONG_COLUMN) == false) {
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXML* orientXML = m_matchingFiberOrientationFile->getCiftiXML();
+    if (*(trajXML.getMap(CiftiXML::ALONG_ROW)) != *(orientXML->getMap(CiftiXML::ALONG_COLUMN))) {
         QString msg = (getFileNameNoPath()
                        + " rows="
-                       + QString::number(trajXML.getNumberOfRows())
+                       + QString::number(trajXML.getDimensionLength(CiftiXML::ALONG_COLUMN))
                        + " cols="
-                       + QString::number(trajXML.getNumberOfColumns())
+                       + QString::number(trajXML.getDimensionLength(CiftiXML::ALONG_ROW))
                        + "   "
                        + m_matchingFiberOrientationFile->getFileNameNoPath()
                        + " rows="
-                       + QString::number(orientXML->getNumberOfRows())
+                       + QString::number(orientXML->getDimensionLength(CiftiXML::ALONG_COLUMN))
                        + " cols="
-                       + QString::number(orientXML->getNumberOfColumns()));
+                       + QString::number(orientXML->getDimensionLength(CiftiXML::ALONG_ROW)));
         throw DataFileException("Row to Columns do not match: "
                                 + msg);
     }
@@ -1017,16 +1020,17 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
-    if (trajXML.hasColumnSurfaceData(structure) == false) {
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (colMap.hasSurfaceData(structure) == false) {
         return -1;
     }
-    if (trajXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
+    if (colMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
         return -1;
     }
     
-    const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
-                                                        structure);
+    const int64_t rowIndex = colMap.getIndexForNode(nodeIndex,
+                                                    structure);
     if (rowIndex < 0) {
         return -1;
     }
@@ -1040,7 +1044,7 @@ CiftiFiberTrajectoryFile::loadDataForSurfaceNode(const StructureEnum::Enum struc
         /*
          * Test loading a full row instead of sparse.
          */
-        const int numCols = m_sparseFile->getCiftiXML().getNumberOfColumns();
+        const int numCols = trajXML.getDimensionLength(CiftiXML::ALONG_ROW);
         fiberFractions.resize(numCols);
         m_sparseFile->getFibersRow(rowIndex, &fiberFractions[0]);
         
@@ -1150,12 +1154,13 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     
-    if (trajXML.hasColumnSurfaceData(structure) == false) {
+    if (colMap.hasSurfaceData(structure) == false) {
         return;
     }
-    if (trajXML.getSurfaceNumberOfNodes(CiftiXMLOld::ALONG_COLUMN, structure) != surfaceNumberOfNodes) {
+    if (colMap.getSurfaceNumberOfNodes(structure) != surfaceNumberOfNodes) {
         return;
     }
     
@@ -1175,8 +1180,8 @@ CiftiFiberTrajectoryFile::loadDataAverageForSurfaceNodes(const StructureEnum::En
         /*
          * Get and load row for node
          */
-        const int64_t rowIndex = trajXML.getRowIndexForNode(nodeIndex,
-                                                            structure);
+        const int64_t rowIndex = colMap.getIndexForNode(nodeIndex,
+                                                        structure);
         if (rowIndex >= 0) {
             rowIndicesToLoad.push_back(rowIndex);
         }
@@ -1211,8 +1216,8 @@ bool
 CiftiFiberTrajectoryFile::loadRowsForAveraging(const std::vector<int64_t>& rowIndices) throw (DataFileException)
 {
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
-    const int64_t numberOfColumns = trajXML.getNumberOfColumns();
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const int64_t numberOfColumns = trajXML.getDimensionLength(CiftiXML::ALONG_ROW);
     
     std::vector<FiberFractions> fiberFractionsForRowVector(numberOfColumns);
     FiberFractions* fiberFractionsForRow = &fiberFractionsForRowVector[0];
@@ -1304,9 +1309,13 @@ CiftiFiberTrajectoryFile::loadMapDataForVoxelAtCoordinate(const float xyz[3]) th
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
-
-    const int64_t rowIndex = trajXML.getRowIndexForVoxelCoordinate(xyz);
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+    if (!colMap.hasVolumeData()) return -1;
+    const VolumeSpace& colSpace = colMap.getVolumeSpace();
+    int64_t ijk[3];
+    colSpace.enclosingVoxel(xyz, ijk);
+    const int64_t rowIndex = colMap.getIndexForVoxel(ijk);
     if (rowIndex < 0) {
         return -1;
     }
@@ -1392,9 +1401,10 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
     
     validateAssignedMatchingFiberOrientationFile();
     
-    const CiftiXMLOld& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiXML& trajXML = m_sparseFile->getCiftiXML();
+    const CiftiBrainModelsMap& colMap = trajXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     
-    if (trajXML.hasColumnVolumeData() == false) {
+    if (colMap.hasVolumeData() == false) {
         return;
     }
     
@@ -1404,7 +1414,7 @@ CiftiFiberTrajectoryFile::loadMapAverageDataForVoxelIndices(const int64_t volume
         /*
          * Get and load row for voxel
          */
-        const int64_t rowIndex = trajXML.getRowIndexForVoxel(voxelIndices[i].m_ijk);
+        const int64_t rowIndex = colMap.getIndexForVoxel(voxelIndices[i].m_ijk);
         if (rowIndex >= 0) {
             rowIndicesToLoad.push_back(rowIndex);
         }
@@ -1654,13 +1664,46 @@ CiftiFiberTrajectoryFile::addToDataFileContentInformation(DataFileContentInforma
     CaretMappableDataFile::addToDataFileContentInformation(dataFileInformation);
     
     if (m_sparseFile != NULL) {
-        const CiftiXMLOld& ciftiXML = m_sparseFile->getCiftiXML();
+        const CiftiXML& ciftiXML = m_sparseFile->getCiftiXML();
+        const CiftiBrainModelsMap& colMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
         
-        VolumeSpace volumeSpace;
-        ciftiXML.getVolumeSpace(volumeSpace);
+        //ciftiXML.getVoxelInfoInDataFileContentInformation(CiftiXML::ALONG_COLUMN,
+        //                                                  dataFileInformation);
         
-        ciftiXML.getVoxelInfoInDataFileContentInformation(CiftiXML::ALONG_COLUMN,
-                                                          dataFileInformation);
+        VolumeSpace volumeSpace = colMap.getVolumeSpace();//TSC: copied/reimplemented from CiftiXMLOld - I don't think it belongs in CiftiXML or CiftiBrainModelsMap
+        const int64_t* dims = volumeSpace.getDims();
+        dataFileInformation.addNameAndValue("Dimensions", AString::fromNumbers(dims, 3, ","));
+        VolumeSpace::OrientTypes orientation[3];
+        float spacing[3];
+        float origin[3];
+        volumeSpace.getOrientAndSpacingForPlumb(orientation, spacing, origin);
+        dataFileInformation.addNameAndValue("Spacing", AString::fromNumbers(spacing, 3, ","));
+        dataFileInformation.addNameAndValue("Origin", AString::fromNumbers(origin, 3, ","));
+        
+        const std::vector<std::vector<float> >& sform = volumeSpace.getSform();
+        for (uint32_t i = 0; i < sform.size(); i++) {
+            dataFileInformation.addNameAndValue(("sform row "
+                                                + AString::number(i)),
+                                                AString::fromNumbers(sform[i], ","));
+        }
+        std::vector<StructureEnum::Enum> volStructs = colMap.getVolumeStructureList();
+        for (int i = 0; i < (int)volStructs.size(); ++i)
+        {
+            std::vector<CiftiBrainModelsMap::VolumeMap> voxels = colMap.getVolumeStructureMap(volStructs[i]);
+            for (int j = 0; j < (int)voxels.size(); ++j)
+            {
+                float xyz[3];
+                volumeSpace.indexToSpace(voxels[i].m_ijk, xyz);
+                const AString msg = ("ijk=("
+                                     + AString::fromNumbers(voxels[j].m_ijk, 3, ", ")
+                                     + "), xyz=("
+                                     + AString::fromNumbers(xyz, 3, ", ")
+                                     + "), row="
+                                     + AString::number(voxels[j].m_ciftiIndex)
+                                     + "  ");//TSC: huh?
+                dataFileInformation.addNameAndValue(StructureEnum::toGuiName(volStructs[i]), msg);//TSC: huh?
+            }
+        }
     }
 }
 

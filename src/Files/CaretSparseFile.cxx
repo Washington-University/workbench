@@ -104,7 +104,7 @@ void CaretSparseFile::readFile(const AString& filename)
     QByteArray myXMLBytes(xml_length, '\0');
     if (fread(myXMLBytes.data(), 1, xml_length, m_file) != (size_t)xml_length) throw DataFileException("error reading from file");
     m_xml.readXML(myXMLBytes);
-    if (m_xml.getNumberOfColumns() != m_dims[0] || m_xml.getNumberOfRows() != m_dims[1])
+    if (m_xml.getDimensionLength(CiftiXML::ALONG_ROW) != m_dims[0] || m_xml.getDimensionLength(CiftiXML::ALONG_COLUMN) != m_dims[1])
     {
         throw DataFileException("cifti XML doesn't match dimensions of sparse file");
     }
@@ -221,11 +221,11 @@ void FiberFractions::zero()
     distance = 0.0f;
 }
 
-CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXMLOld& xml)
+CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const CiftiXML& xml)
 {
     m_file = NULL;
     m_finished = false;
-    int64_t dimensions[2] = { xml.getNumberOfColumns(), xml.getNumberOfRows() };
+    int64_t dimensions[2] = { xml.getDimensionLength(CiftiXML::ALONG_ROW), xml.getDimensionLength(CiftiXML::ALONG_COLUMN) };
     if (dimensions[0] < 1 || dimensions[1] < 1) throw DataFileException("both dimensions must be positive");
     m_xml = xml;
     m_dims[0] = dimensions[0];//CiftiXML doesn't support 3 dimensions yet, so we do this
@@ -340,8 +340,7 @@ void CaretSparseFileWriter::finish()
         m_lengthArray[m_nextRowIndex] = 0;
         ++m_nextRowIndex;
     }
-    QByteArray myXMLBytes;
-    m_xml.writeXML(myXMLBytes);
+    QByteArray myXMLBytes = m_xml.writeXMLToQByteArray();
     if (fwrite(myXMLBytes.constData(), 1, myXMLBytes.size(), m_file) != (size_t)myXMLBytes.size()) throw DataFileException("error writing to file");
     if (MYSEEK(m_file, 8 + 2 * sizeof(int64_t), SEEK_SET) != 0) throw DataFileException("error seeking in file");
     if (ByteOrderEnum::isSystemBigEndian())

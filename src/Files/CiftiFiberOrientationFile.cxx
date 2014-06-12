@@ -50,6 +50,7 @@ CiftiFiberOrientationFile::CiftiFiberOrientationFile()
 : CaretDataFile(DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY)
 {
     m_metadata = new GiftiMetaData();
+    m_ciftiXMLOld = NULL;
     m_ciftiXML = NULL;
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         m_displayStatusInDisplayGroup[i] = true;
@@ -90,6 +91,10 @@ CiftiFiberOrientationFile::clearPrivate()
     if (m_ciftiXML != NULL) {
         delete m_ciftiXML;
         m_ciftiXML = NULL;
+    }
+    if (m_ciftiXMLOld != NULL) {
+        delete m_ciftiXMLOld;
+        m_ciftiXMLOld = NULL;
     }
     
     for (std::vector<FiberOrientation*>::iterator iter = m_fiberOrientations.begin();
@@ -400,6 +405,16 @@ CiftiFiberOrientationFile::getVolumeSpacing(float volumeSpacingOut[3]) const
  * May be NULL if a file is not loaded.
  */
 const CiftiXMLOld*
+CiftiFiberOrientationFile::getCiftiXMLOld() const
+{
+    return m_ciftiXMLOld;
+}
+
+/**
+ * @return a pointer to the CIFTI XML.
+ * May be NULL if a file is not loaded.
+ */
+const CiftiXML*
 CiftiFiberOrientationFile::getCiftiXML() const
 {
     return m_ciftiXML;
@@ -474,15 +489,18 @@ CiftiFiberOrientationFile::readFile(const AString& filename) throw (DataFileExce
             }
         }
         
-        const CiftiXMLOld& ciftiXML = ciftiFile.getCiftiXMLOld();
-        m_ciftiXML = new CiftiXMLOld(ciftiXML);
+        const CiftiXML& ciftiXML = ciftiFile.getCiftiXML();
+        m_ciftiXML = new CiftiXML(ciftiXML);
+        m_ciftiXMLOld = new CiftiXMLOld(ciftiFile.getCiftiXMLOld());
         VolumeSpace::OrientTypes orient[3];
         int64_t dims[3];
         float origin[3];
-        ciftiXML.getVolumeAttributesForPlumb(orient,
-                                             dims,
-                                             origin,
-                                             m_volumeSpacing);
+        if (ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw DataFileException(getFileNameNoPath() + " does not have brain models along column");
+        const CiftiBrainModelsMap& myMap = ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
+        if (!myMap.hasVolumeData()) throw DataFileException(getFileNameNoPath() + " has no volume data, cannot be a fiber orientation file");
+        myMap.getVolumeSpace().getOrientAndSpacingForPlumb(orient,
+                                                           m_volumeSpacing,
+                                                           origin);//NOTE: will assert/throw if not plumb
         
         setFileName(filename);
         

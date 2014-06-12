@@ -59,9 +59,9 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
     int myDir;
     if (directionName == "ROW")
     {
-        myDir = CiftiXMLOld::ALONG_ROW;
+        myDir = CiftiXML::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = CiftiXMLOld::ALONG_COLUMN;
+        myDir = CiftiXML::ALONG_COLUMN;
     } else {
         throw OperationException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -74,69 +74,65 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
         wbsparseList.push_back(CaretPointer<CaretSparseFile>(new CaretSparseFile(myInstances[i]->getString(1))));
     }
     if (wbsparseList.size() == 0) throw OperationException("no files specified");
-    if (myDir != CiftiXMLOld::ALONG_ROW && myDir != CiftiXMLOld::ALONG_COLUMN) throw OperationException("direction not supported by wbsparse merge dense");
+    if (myDir != CiftiXML::ALONG_ROW && myDir != CiftiXML::ALONG_COLUMN) throw OperationException("direction not supported by wbsparse merge dense");
     int otherDir = 1 - myDir;//find the other direction
-    const CiftiXMLOld& baseXML = wbsparseList[0]->getCiftiXML();
-    if (baseXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw OperationException("mapping type along specified dimension is not brain models");
-    if (baseXML.getMappingType(otherDir) == CIFTI_INDEX_TYPE_LABELS)throw OperationException("labels not supported in wbsparse merge dense");
-    CiftiXMLOld outXML = baseXML;
+    const CiftiXML& baseXML = wbsparseList[0]->getCiftiXML();
+    if (baseXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw OperationException("mapping type along specified dimension is not brain models");
+    if (baseXML.getMappingType(otherDir) == CiftiMappingType::LABELS)throw OperationException("labels not supported in wbsparse merge dense");
+    CiftiXML outXML = baseXML;
     VolumeSpace baseSpace;
+    const CiftiBrainModelsMap& baseDenseMap = baseXML.getBrainModelsMap(myDir);
+    CiftiBrainModelsMap newDenseMap = baseDenseMap;
     bool haveVolSpace = false;
-    if (baseXML.hasVolumeData(myDir))
+    if (baseDenseMap.hasVolumeData())
     {
         haveVolSpace = true;
-        baseXML.getVolumeSpace(baseSpace);
+        baseSpace = baseDenseMap.getVolumeSpace();
     }
-    vector<int> sourceWbsparse(baseXML.getNumberOfBrainModels(myDir), 0);
+    vector<int> sourceWbsparse(baseDenseMap.getModelInfo().size(), 0);
     for (int i = 1; i < (int)wbsparseList.size(); ++i)
     {
-        const CiftiXMLOld& otherXML = wbsparseList[i]->getCiftiXML();
-        if (!baseXML.mappingMatches(otherDir, otherXML, otherDir))
+        const CiftiXML& otherXML = wbsparseList[i]->getCiftiXML();
+        if (*(baseXML.getMap(otherDir)) != *(otherXML.getMap(otherDir)))
         {
             throw OperationException("mappings along other dimension do not match");
         }
-        if (otherXML.hasVolumeData(myDir))
+        if (otherXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw OperationException("input files do not have brain models mapping on merge dimension");
+        const CiftiBrainModelsMap& otherDenseMap = otherXML.getBrainModelsMap(myDir);
+        if (otherDenseMap.hasVolumeData())
         {
             if (haveVolSpace)
             {
-                VolumeSpace otherSpace;
-                otherXML.getVolumeSpace(otherSpace);
-                if (!baseSpace.matches(otherSpace)) throw OperationException("input cifti files have non-matching volume spaces");
+                if (!baseSpace.matches(otherDenseMap.getVolumeSpace())) throw OperationException("input files have non-matching volume spaces");
             } else {
                 haveVolSpace = true;
-                otherXML.getVolumeSpace(baseSpace);
-                outXML.setVolumeDimsAndSForm(baseSpace.getDims(), baseSpace.getSform());//need to set the output vol space if the first input didn't have volume data
+                baseSpace = otherDenseMap.getVolumeSpace();
+                newDenseMap.setVolumeSpace(baseSpace);//need to set the output vol space if the first input didn't have volume data
             }
         }
-        if (otherXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw OperationException("mapping type along specified dimension is not brain models");
-        if (otherXML.getMappingType(otherDir) == CIFTI_INDEX_TYPE_LABELS) throw OperationException("labels not supported in wbsparse merge dense");
-        int numModels = otherXML.getNumberOfBrainModels(myDir);
+        vector<CiftiBrainModelsMap::ModelInfo> otherModels = otherDenseMap.getModelInfo();
+        int numModels = (int)otherModels.size();
         for (int j = 0; j < numModels; ++j)
         {
             sourceWbsparse.push_back(i);
-            CiftiBrainModelInfo myInfo = otherXML.getBrainModelInfo(myDir, j);
+            const CiftiBrainModelsMap::ModelInfo& myInfo = otherModels[j];
             switch (myInfo.m_type)
             {
-                case CIFTI_MODEL_TYPE_SURFACE:
+                case CiftiBrainModelsMap::SURFACE:
                 {
-                    vector<CiftiSurfaceMap> myMap;
-                    otherXML.getSurfaceMap(myDir, myMap, myInfo.m_structure);
+                    vector<CiftiBrainModelsMap::SurfaceMap> myMap = otherDenseMap.getSurfaceMap(myInfo.m_structure);
                     vector<int64_t> nodeList(myMap.size());
                     for (int64_t k = 0; k < (int64_t)myMap.size(); ++k)
                     {
                         nodeList[k] = myMap[k].m_surfaceNode;
                     }
-                    if (!outXML.addSurfaceModel(myDir, otherXML.getSurfaceNumberOfNodes(myDir, myInfo.m_structure), myInfo.m_structure, nodeList))
-                    {
-                        throw OperationException("duplicate surface structure " + StructureEnum::toName(myInfo.m_structure) + " found in input to wbsparse merge dense");
-                    }
+                    newDenseMap.addSurfaceModel(otherDenseMap.getSurfaceNumberOfNodes(myInfo.m_structure), myInfo.m_structure, nodeList);
                     break;
                 }
-                case CIFTI_MODEL_TYPE_VOXELS:
+                case CiftiBrainModelsMap::VOXELS:
                 {
-                    vector<CiftiVolumeMap> myMap;
-                    otherXML.getVolumeStructureMap(myDir, myMap, myInfo.m_structure);
-                    vector<voxelIndexType> voxelList(myMap.size() * 3);
+                    vector<CiftiBrainModelsMap::VolumeMap> myMap = otherDenseMap.getVolumeStructureMap(myInfo.m_structure);
+                    vector<int64_t> voxelList(myMap.size() * 3);
                     for (int64_t k = 0; k < (int64_t)myMap.size(); ++k)
                     {
                         int64_t k3 = k * 3;
@@ -144,10 +140,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                         voxelList[k3 + 1] = myMap[k].m_ijk[1];
                         voxelList[k3 + 2] = myMap[k].m_ijk[2];
                     }
-                    if (!outXML.addVolumeModel(myDir, voxelList, myInfo.m_structure))
-                    {
-                        throw OperationException("duplicate volume structure " + StructureEnum::toName(myInfo.m_structure) + " found in input to wbsparse merge dense");
-                    }
+                    newDenseMap.addVolumeModel(myInfo.m_structure, voxelList);
                     break;
                 }
                 default:
@@ -155,13 +148,15 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
             }
         }
     }
+    outXML.setMap(myDir, newDenseMap);
     int numOutModels = (int)sourceWbsparse.size();
-    CaretAssert(numOutModels == outXML.getNumberOfBrainModels(myDir));
-    int64_t outColSize = outXML.getNumberOfRows();
+    CaretAssert(numOutModels == (int)newDenseMap.getModelInfo().size());
+    int64_t outColSize = outXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
     CaretSparseFileWriter myWriter(outputName, outXML);
+    vector<CiftiBrainModelsMap::ModelInfo> outModelInfo = newDenseMap.getModelInfo();
     switch (myDir)
     {
-        case CiftiXMLOld::ALONG_ROW:
+        case CiftiXML::ALONG_ROW:
         {
             for (int64_t i = 0; i < outColSize; ++i)
             {
@@ -170,18 +165,18 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                 int loaded = -1;
                 for (int j = 0; j < numOutModels; ++j)//we could just do the entire row for each file, but doing it by structure could allow structure selection in the future
                 {
-                    CiftiBrainModelInfo myInfo = outXML.getBrainModelInfo(myDir, j);
-                    const CiftiXMLOld& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
+                    const CiftiBrainModelsMap::ModelInfo& myInfo = outModelInfo[j];
+                    const CiftiXML& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
+                    const CiftiBrainModelsMap& thisDenseMap = thisXML.getBrainModelsMap(myDir);
                     int64_t startIndex = -1, endIndex = -1;
                     switch (myInfo.m_type)
                     {
-                        case CIFTI_MODEL_TYPE_SURFACE:
+                        case CiftiBrainModelsMap::SURFACE:
                         {
-                            vector<CiftiSurfaceMap> tempMap;
-                            thisXML.getSurfaceMap(myDir, tempMap, myInfo.m_structure);
+                            vector<CiftiBrainModelsMap::SurfaceMap> tempMap = thisDenseMap.getSurfaceMap(myInfo.m_structure);
                             if (tempMap.size() > 0)
                             {
-                                startIndex = tempMap[0].m_ciftiIndex;//HACK: relies on mappings being ordered by cifti index and contiguous, this could use a redesign in CiftiXML
+                                startIndex = tempMap[0].m_ciftiIndex;//NOTE: CiftiXML guarantees these are ordered by cifti index and contiguous
                                 endIndex = startIndex + tempMap.size();
                             } else {
                                 startIndex = 0;
@@ -189,13 +184,12 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                             }
                             break;
                         }
-                        case CIFTI_MODEL_TYPE_VOXELS:
+                        case CiftiBrainModelsMap::VOXELS:
                         {
-                            vector<CiftiVolumeMap> tempMap;
-                            thisXML.getVolumeStructureMap(myDir, tempMap, myInfo.m_structure);
+                            vector<CiftiBrainModelsMap::VolumeMap> tempMap = thisDenseMap.getVolumeStructureMap(myInfo.m_structure);
                             if (tempMap.size() > 0)
                             {
-                                startIndex = tempMap[0].m_ciftiIndex;//HACK: relies on mappings being ordered by cifti index and contiguous, this could use a redesign in CiftiXML
+                                startIndex = tempMap[0].m_ciftiIndex;//NOTE: CiftiXML guarantees these are ordered by cifti index and contiguous
                                 endIndex = startIndex + tempMap.size();
                             } else {
                                 startIndex = 0;
@@ -203,7 +197,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                             }
                             break;
                         }
-                        case CIFTI_MODEL_TYPE_INVALID:
+                        default:
                             CaretAssert(false);
                             break;
                     }
@@ -232,23 +226,22 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
             }
             break;
         }
-        case CiftiXMLOld::ALONG_COLUMN:
+        case CiftiXML::ALONG_COLUMN:
         {
             vector<int64_t> inIndices, inValues;
             for (int j = 0; j < numOutModels; ++j)
             {
-                CiftiBrainModelInfo myInfo = outXML.getBrainModelInfo(myDir, j);
-                const CiftiXMLOld& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
+                const CiftiBrainModelsMap::ModelInfo& myInfo = outModelInfo[j];
+                const CiftiXML& thisXML = wbsparseList[sourceWbsparse[j]]->getCiftiXML();
+                const CiftiBrainModelsMap& thisDenseMap = thisXML.getBrainModelsMap(myDir);
                 switch (myInfo.m_type)
                 {
-                    case CIFTI_MODEL_TYPE_SURFACE:
+                    case CiftiBrainModelsMap::SURFACE:
                     {
-                        vector<CiftiSurfaceMap> tempMap, outMap;
-                        thisXML.getSurfaceMap(myDir, tempMap, myInfo.m_structure);
-                        outXML.getSurfaceMap(myDir, outMap, myInfo.m_structure);
+                        vector<CiftiBrainModelsMap::SurfaceMap> tempMap = thisDenseMap.getSurfaceMap(myInfo.m_structure), outMap = newDenseMap.getSurfaceMap(myInfo.m_structure);
                         int64_t mapSize = (int64_t)tempMap.size();
                         CaretAssert(mapSize == (int64_t)outMap.size());
-                        for (int k = 0; k < mapSize; ++k)
+                        for (int64_t k = 0; k < mapSize; ++k)
                         {
                             CaretAssert(tempMap[k].m_surfaceNode == outMap[k].m_surfaceNode);
                             wbsparseList[sourceWbsparse[j]]->getRowSparse(tempMap[k].m_ciftiIndex, inIndices, inValues);
@@ -256,14 +249,12 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                         }
                         break;
                     }
-                    case CIFTI_MODEL_TYPE_VOXELS:
+                    case CiftiBrainModelsMap::VOXELS:
                     {
-                        vector<CiftiVolumeMap> tempMap, outMap;
-                        thisXML.getVolumeStructureMap(myDir, tempMap, myInfo.m_structure);
-                        outXML.getVolumeStructureMap(myDir, outMap, myInfo.m_structure);
+                        vector<CiftiBrainModelsMap::VolumeMap> tempMap = thisDenseMap.getVolumeStructureMap(myInfo.m_structure), outMap = newDenseMap.getVolumeStructureMap(myInfo.m_structure);
                         int64_t mapSize = (int64_t)tempMap.size();
                         CaretAssert(mapSize == (int64_t)outMap.size());
-                        for (int k = 0; k < mapSize; ++k)
+                        for (int64_t k = 0; k < mapSize; ++k)
                         {
                             CaretAssert(tempMap[k].m_ijk[0] == outMap[k].m_ijk[0]);
                             CaretAssert(tempMap[k].m_ijk[1] == outMap[k].m_ijk[1]);
@@ -273,7 +264,7 @@ void OperationWbsparseMergeDense::useParameters(OperationParameters* myParams, P
                         }
                         break;
                     }
-                    case CIFTI_MODEL_TYPE_INVALID:
+                    default:
                         CaretAssert(false);
                         break;
                 }

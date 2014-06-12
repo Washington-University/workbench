@@ -85,24 +85,22 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     OptionalParameter* surfaceOpt = myParams->getOptionalParameter(7);
     OptionalParameter* volumeOpt = myParams->getOptionalParameter(8);
     if (surfaceOpt->m_present == volumeOpt->m_present) throw OperationException("you must specify exactly one of -surface-seeds and -volume-seeds");//use == on booleans as xnor
-    CiftiXMLOld myXML = orientationFile->getCiftiXMLOld();
+    const CiftiXML& orientXML = orientationFile->getCiftiXML();
+    if (orientXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw OperationException("orientation file must have brain models mapping along column");
+    CiftiXML myXML;
+    myXML.setNumberOfDimensions(2);
+    myXML.setMap(CiftiXML::ALONG_ROW, *(orientXML.getMap(CiftiXML::ALONG_COLUMN)));
     if (surfaceOpt->m_present)
     {
         MetricFile* myROI = surfaceOpt->getMetric(1);
-        int numNodes = myROI->getNumberOfNodes();
-        int nodeCount = 0;
         const float* roiData = myROI->getValuePointerForColumn(0);
-        for (int i = 0; i < numNodes; ++i)
-        {
-            if (roiData[i] > 0.0f) ++nodeCount;
-        }
-        if (nodeCount != sparseDims[1])
+        CiftiBrainModelsMap tempMap;
+        tempMap.addSurfaceModel(myROI->getNumberOfNodes(), myROI->getStructure(), roiData);
+        if (tempMap.getLength() != sparseDims[1])
         {
             throw OperationException("roi has a different number of selected vertices than the input matrix");
         }
-        myXML.applyColumnMapToRows();
-        myXML.resetColumnsToBrainModels();
-        myXML.addSurfaceModelToColumns(numNodes, myROI->getStructure(), roiData);
+        myXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
     }
     if (volumeOpt->m_present)
     {
@@ -111,44 +109,44 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
         int myDir = -1;
         if (directionName == "ROW")
         {
-            myDir = CiftiXMLOld::ALONG_ROW;
+            myDir = CiftiXML::ALONG_ROW;
         } else if (directionName == "COLUMN")
         {
-            myDir = CiftiXMLOld::ALONG_COLUMN;
+            myDir = CiftiXML::ALONG_COLUMN;
         } else {
             throw OperationException("direction must be ROW or COLUMN");
         }
-        const CiftiXMLOld& templateXML = myTemplate->getCiftiXMLOld();
-        if (templateXML.getMappingType(myDir) != CIFTI_INDEX_TYPE_BRAIN_MODELS) throw OperationException("template cifti file must have brain models along specified direction");
-        vector<StructureEnum::Enum> surfList, volList;//since we only need the volume models, we don't need to loop through all models
-        templateXML.getStructureLists(myDir, surfList, volList);
-        myXML.applyColumnMapToRows();
-        myXML.resetColumnsToBrainModels();
+        const CiftiXML& templateXML = myTemplate->getCiftiXML();
+        if (templateXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw OperationException("template cifti file must have brain models along specified direction");
+        const CiftiBrainModelsMap& templateMap = templateXML.getBrainModelsMap(myDir);
+        if (!templateMap.hasVolumeData()) throw OperationException("template cifti file has no volume data");
+        vector<StructureEnum::Enum> surfList = templateMap.getSurfaceStructureList(), volList = templateMap.getVolumeStructureList();//since we only need the volume models, we don't need to loop through all models
+        CiftiBrainModelsMap tempMap;
+        tempMap.setVolumeSpace(templateMap.getVolumeSpace());
         for (int i = 0; i < (int)volList.size(); ++i)
         {
-            vector<CiftiVolumeMap> myMap;
-            templateXML.getVolumeStructureMap(myDir, myMap, volList[i]);
+            vector<CiftiBrainModelsMap::VolumeMap> myMap = templateMap.getVolumeStructureMap(volList[i]);
             int64_t mapSize = (int64_t)myMap.size();
-            vector<voxelIndexType> ijkList;
+            vector<int64_t> ijkList;
             for (int64_t j = 0; j < mapSize; ++j)
             {
                 ijkList.push_back(myMap[j].m_ijk[0]);
                 ijkList.push_back(myMap[j].m_ijk[1]);
                 ijkList.push_back(myMap[j].m_ijk[2]);
             }
-            myXML.addVolumeModel(CiftiXMLOld::ALONG_COLUMN, ijkList, volList[i]);
+            tempMap.addVolumeModel(volList[i], ijkList);
         }
-        if (myXML.getNumberOfRows() != sparseDims[1]) throw OperationException("volume models in template cifti file do not match the dimension of the input file");
+        if (tempMap.getLength() != sparseDims[1]) throw OperationException("volume models in template cifti file do not match the dimension of the input file");
+        myXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
     }
-    CaretAssert(myXML.getNumberOfRows() == sparseDims[1]);
+    CaretAssert(myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) == sparseDims[1]);
     fstream voxelFile(voxelFileName.toLocal8Bit().constData(), fstream::in);
     if (!voxelFile.good())
     {
         throw OperationException("failed to open voxel list file for reading");
     }
-    int64_t volDims[3];
-    vector<vector<float> > sform;
-    myXML.getVolumeDimsAndSForm(volDims, sform);
+    const CiftiBrainModelsMap& rowMap = myXML.getBrainModelsMap(CiftiXML::ALONG_ROW);//tested above, as orientationXML
+    const int64_t* volDims = rowMap.getVolumeSpace().getDims();
     vector<int64_t> voxelIndices;
     int64_t ind1, ind2, ind3;
     while (voxelFile >> ind1 >> ind2 >> ind3)
@@ -173,17 +171,10 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     }
     if ((int64_t)voxelIndices.size() != sparseDims[0] * 3) throw OperationException("voxel list file contains the wrong number of voxels, expected " +
                                                                                     AString::number(sparseDims[0] * 3) + " integers, read " + AString::number(voxelIndices.size()));
-    vector<vector<vector<int64_t> > > voxToOutSpace(volDims[0], vector<vector<int64_t> >(volDims[1], vector<int64_t>(volDims[2], -1)));//basically, a volume file of integers initialized to -1
-    vector<CiftiVolumeMap> myMap;
-    myXML.getVolumeMapForRows(myMap);
-    for (int64_t i = 0; i < (int64_t)myMap.size(); ++i)
-    {
-        voxToOutSpace[myMap[i].m_ijk[0]][myMap[i].m_ijk[1]][myMap[i].m_ijk[2]] = myMap[i].m_ciftiIndex;//now, given voxel indices, we can get the correct output index
-    }
     vector<int64_t> rowReorder(sparseDims[0], -1);
     for (int64_t i = 0; i < (int64_t)voxelIndices.size(); i += 3)
     {
-        int64_t tempInd = voxToOutSpace[voxelIndices[i]][voxelIndices[i + 1]][voxelIndices[i + 2]];
+        int64_t tempInd = rowMap.getIndexForVoxel(voxelIndices.data() + i);
         if (tempInd != -1)
         {
             rowReorder[i / 3] = tempInd;
