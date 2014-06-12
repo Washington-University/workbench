@@ -18,17 +18,17 @@
  */
 /*LICENSE_END*/
 
-#define __CHARTABLE_INTERFACE_DECLARE__
-#include "ChartableInterface.h"
-#undef __CHARTABLE_INTERFACE_DECLARE__
+#define __CHARTABLE_BRAINORDINATE_INTERFACE_DECLARE__
+#include "ChartableBrainordinateInterface.h"
+#undef __CHARTABLE_BRAINORDINATE_INTERFACE_DECLARE__
 
 #include "CaretMappableDataFile.h"
 
 using namespace caret;
 
 /**
- * \class caret::ChartableInterface
- * \brief Interface for files that are able to produce charts.
+ * \class caret::ChartableBrainordinateInterface
+ * \brief Interface for files that are able to produce brainordinate charts.
  * \ingroup Files
  */
 
@@ -42,10 +42,10 @@ using namespace caret;
  *    True if chart data type is supported by the file, else false.
  */
 bool
-ChartableInterface::isChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const
+ChartableBrainordinateInterface::isBrainordinateChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const
 {
     std::vector<ChartDataTypeEnum::Enum> validTypes;
-    getSupportedChartDataTypes(validTypes);
+    getSupportedBrainordinateChartDataTypes(validTypes);
     
     if (std::find(validTypes.begin(),
                   validTypes.end(),
@@ -61,7 +61,7 @@ ChartableInterface::isChartDataTypeSupported(const ChartDataTypeEnum::Enum chart
  * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
  */
 CaretMappableDataFile*
-ChartableInterface::getCaretMappableDataFile()
+ChartableBrainordinateInterface::getBrainordinateChartCaretMappableDataFile()
 {
     CaretMappableDataFile* cmdf = dynamic_cast<CaretMappableDataFile*>(this);
     CaretAssert(cmdf);
@@ -73,7 +73,7 @@ ChartableInterface::getCaretMappableDataFile()
  * Will be NULL if this interface is not implemented by a CaretMappableDataFile.
  */
 const CaretMappableDataFile*
-ChartableInterface::getCaretMappableDataFile() const
+ChartableBrainordinateInterface::getBrainordinateChartCaretMappableDataFile() const
 {
     const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(this);
     CaretAssert(cmdf);

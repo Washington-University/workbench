@@ -167,7 +167,7 @@ CiftiConnectivityMatrixParcelFile::getMatrixCellAttributes(const int32_t rowInde
  * @return Is charting enabled for this file?
  */
 bool
-CiftiConnectivityMatrixParcelFile::isChartingEnabled(const int32_t tabIndex) const
+CiftiConnectivityMatrixParcelFile::isMatrixChartingEnabled(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -181,7 +181,7 @@ CiftiConnectivityMatrixParcelFile::isChartingEnabled(const int32_t tabIndex) con
  * is chartable if it contains more than one map.
  */
 bool
-CiftiConnectivityMatrixParcelFile::isChartingSupported() const
+CiftiConnectivityMatrixParcelFile::isMatrixChartingSupported() const
 {
     return true;    
 }
@@ -193,7 +193,7 @@ CiftiConnectivityMatrixParcelFile::isChartingSupported() const
  *    New status for charting enabled.
  */
 void
-CiftiConnectivityMatrixParcelFile::setChartingEnabled(const int32_t tabIndex,
+CiftiConnectivityMatrixParcelFile::setMatrixChartingEnabled(const int32_t tabIndex,
                                                       const bool enabled)
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
@@ -209,7 +209,7 @@ CiftiConnectivityMatrixParcelFile::setChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-CiftiConnectivityMatrixParcelFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiConnectivityMatrixParcelFile::getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     chartDataTypesOut.clear();
     chartDataTypesOut.push_back(ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX);
@@ -304,6 +304,10 @@ CiftiConnectivityMatrixParcelFile::restoreFileDataFromScene(const SceneAttribute
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
     
     const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
     if (tabArray != NULL) {

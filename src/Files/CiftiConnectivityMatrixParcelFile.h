@@ -53,14 +53,14 @@ namespace caret {
                                              AString& rowNameOut,
                                              AString& columnNameOut) const;
         
-        virtual bool isChartingEnabled(const int32_t tabIndex) const;
+        virtual bool isMatrixChartingEnabled(const int32_t tabIndex) const;
 
-        virtual bool isChartingSupported() const;
+        virtual bool isMatrixChartingSupported() const;
 
-        virtual void setChartingEnabled(const int32_t tabIndex,
+        virtual void setMatrixChartingEnabled(const int32_t tabIndex,
                                         const bool enabled);
 
-        virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
         const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const;
         

@@ -35,22 +35,22 @@ namespace caret {
         
         virtual ~CiftiParcelScalarFile();
         
-        virtual bool isChartingEnabled(const int32_t tabIndex) const;
+        virtual bool isBrainordinateChartingEnabled(const int32_t tabIndex) const;
         
-        virtual void setChartingEnabled(const int32_t tabIndex,
+        virtual void setBrainordinateChartingEnabled(const int32_t tabIndex,
                                         const bool enabled);
         
-        virtual bool isChartingSupported() const;
+        virtual bool isBrainordinateChartingSupported() const;
 
-        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                                    const int32_t nodeIndex) throw (DataFileException);
         
-        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException);
         
-        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
-        virtual void getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
     private:
         CiftiParcelScalarFile(const CiftiParcelScalarFile&);
@@ -69,7 +69,7 @@ namespace caret {
 
     private:
 
-        bool m_chartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        bool m_brainordinateChartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         // ADD_NEW_MEMBERS_HERE
 

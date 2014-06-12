@@ -22,14 +22,15 @@
 /*LICENSE_END*/
 
 #include "CaretColorEnum.h"
-#include "ChartableInterface.h"
+#include "ChartDataTypeEnum.h"
 #include "CiftiParcelColoringModeEnum.h"
 
 namespace caret {
 
+    class CaretMappableDataFile;
     class ChartMatrixDisplayProperties;
     
-    class ChartableMatrixInterface : public ChartableInterface {
+    class ChartableMatrixInterface {
         
     public:
         ChartableMatrixInterface() { }
@@ -111,6 +112,47 @@ namespace caret {
          */
         virtual void setSelectedParcelColor(const CaretColorEnum::Enum color) = 0;
         
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
+        virtual CaretMappableDataFile* getMatrixChartCaretMappableDataFile();
+        
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
+        virtual const CaretMappableDataFile* getMatrixChartCaretMappableDataFile() const;
+        
+        /**
+         * @return Is charting enabled for this file in the given tab?
+         */
+        virtual bool isMatrixChartingEnabled(const int32_t tabIndex) const = 0;
+        
+        /**
+         * @return Return true if the file's current state supports
+         * charting data, else false.  Typically a brainordinate file
+         * is chartable if it contains more than one map.
+         */
+        virtual bool isMatrixChartingSupported() const = 0;
+        
+        /**
+         * Set charting enabled for this file in the given tab
+         *
+         * @param enabled
+         *    New status for charting enabled.
+         */
+        virtual void setMatrixChartingEnabled(const int32_t tabIndex,
+                                                     const bool enabled) = 0;
+        
+        /**
+         * Get chart data types supported by the file.
+         *
+         * @param chartDataTypesOut
+         *    Chart types supported by this file.
+         */
+        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
+        
+        bool isMatrixChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
+
         // ADD_NEW_METHODS_HERE
 
     private:

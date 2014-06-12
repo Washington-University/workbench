@@ -213,7 +213,7 @@ CaretDataFileSelectionModel::getAvailableFiles() const
                  iter != chartFiles.end();
                  iter++) {
                 ChartableMatrixInterface* chartFile = *iter;
-                CaretMappableDataFile* mapFile = chartFile->getCaretMappableDataFile();
+                CaretMappableDataFile* mapFile = chartFile->getMatrixChartCaretMappableDataFile();
                 caretDataFiles.push_back(mapFile);
             }
         }

@@ -2567,7 +2567,7 @@ Brain::getAllChartableBrainordinateDataFiles(std::vector<ChartableBrainordinateI
          iter++) {
         ChartableBrainordinateInterface* chartFile = dynamic_cast<ChartableBrainordinateInterface*>(*iter);
         if (chartFile != NULL) {
-            if (chartFile->isChartingSupported()) {
+            if (chartFile->isBrainordinateChartingSupported()) {
                 chartableDataFilesOut.push_back(chartFile);
             }
         }
@@ -2597,7 +2597,7 @@ Brain::getAllChartableBrainordinateDataFilesForChartDataType(const ChartDataType
          iter != chartFiles.end();
          iter++) {
         ChartableBrainordinateInterface* chartFile = *iter;
-        if (chartFile->isChartDataTypeSupported(chartDataType)) {
+        if (chartFile->isBrainordinateChartDataTypeSupported(chartDataType)) {
             chartableDataFilesOut.push_back(chartFile);
         }
     }
@@ -2631,10 +2631,10 @@ Brain::getAllChartableBrainordinateDataFilesWithChartingEnabled(std::vector<Char
          iter++) {
         ChartableBrainordinateInterface* chartFile = dynamic_cast<ChartableBrainordinateInterface*>(*iter);
         if (chartFile != NULL) {
-            if (chartFile->isChartingSupported()) {
+            if (chartFile->isBrainordinateChartingSupported()) {
                 for (int32_t iTab = 0; iTab < numTabs; iTab++) {
                     const int32_t tabIndex = tabIndices[iTab];
-                    if (chartFile->isChartingEnabled(tabIndex)) {
+                    if (chartFile->isBrainordinateChartingEnabled(tabIndex)) {
                         chartableDataFilesOut.push_back(chartFile);
                         break;
                     }
@@ -2665,7 +2665,7 @@ Brain::getAllChartableMatrixDataFiles(std::vector<ChartableMatrixInterface*>& ch
          iter++) {
         ChartableMatrixInterface* chartFile = dynamic_cast<ChartableMatrixInterface*>(*iter);
         if (chartFile != NULL) {
-            if (chartFile->isChartingSupported()) {
+            if (chartFile->isMatrixChartingSupported()) {
                 chartableDataFilesOut.push_back(chartFile);
             }
         }
@@ -2695,34 +2695,8 @@ Brain::getAllChartableMatrixDataFilesForChartDataType(const ChartDataTypeEnum::E
          iter != chartFiles.end();
          iter++) {
         ChartableMatrixInterface* chartFile = *iter;
-        if (chartFile->isChartDataTypeSupported(chartDataType)) {
+        if (chartFile->isMatrixChartDataTypeSupported(chartDataType)) {
             chartableDataFilesOut.push_back(chartFile);
-        }
-    }
-}
-
-/**
- * Get all chartable files.
- *
- * @param chartableDataFilesOut
- *     Output containing all chartable data files.
- */
-void
-Brain::getAllChartableFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const
-{
-    chartableDataFilesOut.clear();
-    
-    std::vector<CaretDataFile*> allFiles;
-    getAllDataFiles(allFiles);
-    
-    for (std::vector<CaretDataFile*>::iterator iter = allFiles.begin();
-         iter != allFiles.end();
-         iter++) {
-        ChartableInterface* chartFile = dynamic_cast<ChartableInterface*>(*iter);
-        if (chartFile != NULL) {
-            if (chartFile->isChartingSupported()) {
-                chartableDataFilesOut.push_back(chartFile);
-            }
         }
     }
 }

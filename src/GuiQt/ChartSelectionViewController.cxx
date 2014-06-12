@@ -196,7 +196,7 @@ ChartSelectionViewController::brainordinateSelectionCheckBoxClicked(int indx)
     CaretAssert(chartFile);
 
     if (chartFile != NULL) {
-        chartFile->setChartingEnabled(browserTabIndex,
+        chartFile->setBrainordinateChartingEnabled(browserTabIndex,
                                       newStatus);
     }
 }
@@ -403,11 +403,11 @@ ChartSelectionViewController::updateBrainordinateChartWidget(Brain* brain,
         CaretAssertVectorIndex(chartableBrainordinateFilesVector, i);
         ChartableBrainordinateInterface* chartBrainFile = chartableBrainordinateFilesVector[i];
         CaretAssert(chartBrainFile);
-        const bool checkBoxStatus = chartBrainFile->isChartingEnabled(browserTabIndex);
+        const bool checkBoxStatus = chartBrainFile->isBrainordinateChartingEnabled(browserTabIndex);
         
         QVariant brainordinateFilePointerVariant = qVariantFromValue((void*)chartBrainFile);
         
-        CaretMappableDataFile* caretMappableDataFile = chartBrainFile->getCaretMappableDataFile();
+        CaretMappableDataFile* caretMappableDataFile = chartBrainFile->getBrainordinateChartCaretMappableDataFile();
         
         checkBox->blockSignals(true);
         checkBox->setChecked(checkBoxStatus);

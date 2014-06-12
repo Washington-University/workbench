@@ -603,7 +603,7 @@ IdentificationTextGenerator::generateChartMatrixIdentificationText(Identificatio
 {
     if (idChartMatrix->isValid()) {
         const ChartableMatrixInterface* chartMatrixInterface = idChartMatrix->getChartableMatrixInterface();
-        const CaretMappableDataFile* caretMappableDataFile = chartMatrixInterface->getCaretMappableDataFile();
+        const CaretMappableDataFile* caretMappableDataFile = chartMatrixInterface->getMatrixChartCaretMappableDataFile();
         
         const int32_t rowIndex = idChartMatrix->getMatrixRowIndex();
         const int32_t columnIndex = idChartMatrix->getMatrixColumnIndex();

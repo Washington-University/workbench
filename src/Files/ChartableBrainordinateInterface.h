@@ -22,7 +22,6 @@
 /*LICENSE_END*/
 
 #include "ChartDataTypeEnum.h"
-#include "ChartableInterface.h"
 #include "DataFileException.h"
 #include "StructureEnum.h"
 
@@ -31,12 +30,7 @@ namespace caret {
     class CaretMappableDataFile;
     class ChartDataCartesian;
     
-    /**
-     * \class caret::ChartableBrainordinateInterface
-     * \brief Interface for files that are able to produce brainordinate charts.
-     * \ingroup Files
-     */
-    class ChartableBrainordinateInterface : public ChartableInterface {
+    class ChartableBrainordinateInterface {
         
     public:
 //        ChartableBrainordinateInterface() { }
@@ -56,7 +50,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                        const int32_t nodeIndex) throw (DataFileException) = 0;
         
         /**
@@ -71,7 +65,7 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+        virtual ChartDataCartesian* loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException) = 0;
 
         /**
@@ -84,8 +78,49 @@ namespace caret {
          *     the returned pointer will be NULL.  Caller takes ownership
          *     of the pointer and must delete it when no longer needed.
          */
-        virtual ChartDataCartesian* loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException) = 0;
+        virtual ChartDataCartesian* loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException) = 0;
         
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
+        virtual CaretMappableDataFile* getBrainordinateChartCaretMappableDataFile();
+        
+        /**
+         * @return The CaretMappableDataFile that implements this interface.
+         */
+        virtual const CaretMappableDataFile* getBrainordinateChartCaretMappableDataFile() const;
+        
+        /**
+         * @return Is charting enabled for this file in the given tab?
+         */
+        virtual bool isBrainordinateChartingEnabled(const int32_t tabIndex) const = 0;
+        
+        /**
+         * @return Return true if the file's current state supports
+         * charting data, else false.  Typically a brainordinate file
+         * is chartable if it contains more than one map.
+         */
+        virtual bool isBrainordinateChartingSupported() const = 0;
+        
+        /**
+         * Set charting enabled for this file in the given tab
+         *
+         * @param enabled
+         *    New status for charting enabled.
+         */
+        virtual void setBrainordinateChartingEnabled(const int32_t tabIndex,
+                                        const bool enabled) = 0;
+        
+        /**
+         * Get chart data types supported by the file.
+         *
+         * @param chartDataTypesOut
+         *    Chart types supported by this file.
+         */
+        virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const = 0;
+        
+        bool isBrainordinateChartDataTypeSupported(const ChartDataTypeEnum::Enum chartDataType) const;
+
     private:
 //        ChartableBrainordinateInterface(const ChartableBrainordinateInterface&);
 //

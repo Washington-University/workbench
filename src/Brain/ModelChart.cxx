@@ -168,11 +168,11 @@ ModelChart::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum struct
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
-        ChartData* chartData = chartFile->loadAverageChartDataForSurfaceNodes(structure,
+        ChartData* chartData = chartFile->loadAverageBrainordinateChartDataForSurfaceNodes(structure,
                                                                               nodeIndices);
         if (chartData != NULL) {
             ChartDataSource* dataSource = chartData->getChartDataSource();
-            dataSource->setSurfaceNodeAverage(chartFile->getCaretMappableDataFile()->getFileName(),
+            dataSource->setSurfaceNodeAverage(chartFile->getBrainordinateChartCaretMappableDataFile()->getFileName(),
                                               StructureEnum::toName(structure),
                                               surfaceNumberOfNodes, nodeIndices);
             
@@ -203,10 +203,10 @@ ModelChart::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFil
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
         
         CaretAssert(chartFile);
-        ChartData* chartData = chartFile->loadChartDataForVoxelAtCoordinate(xyz);
+        ChartData* chartData = chartFile->loadBrainordinateChartDataForVoxelAtCoordinate(xyz);
         if (chartData != NULL) {
             ChartDataSource* dataSource = chartData->getChartDataSource();
-            dataSource->setVolumeVoxel(chartFile->getCaretMappableDataFile()->getFileName(),
+            dataSource->setVolumeVoxel(chartFile->getBrainordinateChartCaretMappableDataFile()->getFileName(),
                                        xyz);
             
             addChartToChartModels(tabIndices,
@@ -300,7 +300,7 @@ ModelChart::getTabsAndChartFilesForChartLoading(std::map<ChartableBrainordinateI
              tabIter != validTabIndices.end();
              tabIter++) {
             const int32_t tabIndex = *tabIter;
-            if (cf->isChartingEnabled(tabIndex)) {
+            if (cf->isBrainordinateChartingEnabled(tabIndex)) {
                 chartFileTabIndices.push_back(tabIndex);
             }
         }
@@ -338,11 +338,11 @@ ModelChart::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
         const std::vector<int32_t>  tabIndices = fileTabIter->second;
 
         CaretAssert(chartFile);
-        ChartData* chartData = chartFile->loadChartDataForSurfaceNode(structure,
+        ChartData* chartData = chartFile->loadBrainordinateChartDataForSurfaceNode(structure,
                                                nodeIndex);
         if (chartData != NULL) {
             ChartDataSource* dataSource = chartData->getChartDataSource();
-            dataSource->setSurfaceNode(chartFile->getCaretMappableDataFile()->getFileName(),
+            dataSource->setSurfaceNode(chartFile->getBrainordinateChartCaretMappableDataFile()->getFileName(),
                                        StructureEnum::toName(structure),
                                        surfaceNumberOfNodes,
                                        nodeIndex);
@@ -927,16 +927,16 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
     bool haveMatrix     = false;
     bool haveTimeSeries = false;
     
-    std::vector<ChartableInterface*> allChartableFiles;
-    m_brain->getAllChartableFiles(allChartableFiles);
+    std::vector<ChartableBrainordinateInterface*> allBrainordinateChartableFiles;
+    m_brain->getAllChartableBrainordinateDataFiles(allBrainordinateChartableFiles);
 
-    for (std::vector<ChartableInterface*>::iterator fileIter = allChartableFiles.begin();
-         fileIter != allChartableFiles.end();
+    for (std::vector<ChartableBrainordinateInterface*>::iterator fileIter = allBrainordinateChartableFiles.begin();
+         fileIter != allBrainordinateChartableFiles.end();
          fileIter++) {
-        ChartableInterface* chartFile = *fileIter;
+        ChartableBrainordinateInterface* chartFile = *fileIter;
         
         std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
-        chartFile->getSupportedChartDataTypes(chartDataTypes);
+        chartFile->getSupportedBrainordinateChartDataTypes(chartDataTypes);
         
         for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
              typeIter != chartDataTypes.end();
@@ -949,10 +949,38 @@ ModelChart::getValidChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& validCh
                 case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
-                    haveMatrix = true;
                     break;
                 case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                     haveTimeSeries = true;
+                    break;
+            }
+        }
+    }
+    
+    std::vector<ChartableMatrixInterface*> allMatrixChartableFiles;
+    m_brain->getAllChartableMatrixDataFiles(allMatrixChartableFiles);
+    
+    for (std::vector<ChartableMatrixInterface*>::iterator fileIter = allMatrixChartableFiles.begin();
+         fileIter != allMatrixChartableFiles.end();
+         fileIter++) {
+        ChartableMatrixInterface* chartFile = *fileIter;
+        
+        std::vector<ChartDataTypeEnum::Enum> chartDataTypes;
+        chartFile->getSupportedMatrixChartDataTypes(chartDataTypes);
+        
+        for (std::vector<ChartDataTypeEnum::Enum>::iterator typeIter = chartDataTypes.begin();
+             typeIter != chartDataTypes.end();
+             typeIter++) {
+            const ChartDataTypeEnum::Enum cdt = *typeIter;
+            switch (cdt) {
+                case ChartDataTypeEnum::CHART_DATA_TYPE_DATA_SERIES:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_INVALID:
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_MATRIX:
+                    haveMatrix = true;
+                    break;
+                case ChartDataTypeEnum::CHART_DATA_TYPE_TIME_SERIES:
                     break;
             }
         }

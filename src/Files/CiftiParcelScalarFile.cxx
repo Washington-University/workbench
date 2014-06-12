@@ -54,7 +54,7 @@ CiftiParcelScalarFile::CiftiParcelScalarFile()
                         CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_chartingEnabledForTab[i] = false;
+        m_brainordinateChartingEnabledForTab[i] = false;
     }
 }
 
@@ -70,12 +70,12 @@ CiftiParcelScalarFile::~CiftiParcelScalarFile()
  * @return Is charting enabled for this file?
  */
 bool
-CiftiParcelScalarFile::isChartingEnabled(const int32_t tabIndex) const
+CiftiParcelScalarFile::isBrainordinateChartingEnabled(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           tabIndex);
-    return m_chartingEnabledForTab[tabIndex];
+    return m_brainordinateChartingEnabledForTab[tabIndex];
 }
 
 /**
@@ -84,7 +84,7 @@ CiftiParcelScalarFile::isChartingEnabled(const int32_t tabIndex) const
  * is chartable if it contains more than one map.
  */
 bool
-CiftiParcelScalarFile::isChartingSupported() const
+CiftiParcelScalarFile::isBrainordinateChartingSupported() const
 {
     if (getNumberOfMaps() > 1) {
         return true;
@@ -100,7 +100,7 @@ CiftiParcelScalarFile::isChartingSupported() const
  *    Chart types supported by this file.
  */
 void
-CiftiParcelScalarFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+CiftiParcelScalarFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
 }
@@ -112,13 +112,13 @@ CiftiParcelScalarFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum:
  *    New status for charting enabled.
  */
 void
-CiftiParcelScalarFile::setChartingEnabled(const int32_t tabIndex,
+CiftiParcelScalarFile::setBrainordinateChartingEnabled(const int32_t tabIndex,
                                           const bool enabled)
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           tabIndex);
-    m_chartingEnabledForTab[tabIndex] = enabled;
+    m_brainordinateChartingEnabledForTab[tabIndex] = enabled;
 }
 
 /**
@@ -134,7 +134,7 @@ CiftiParcelScalarFile::setChartingEnabled(const int32_t tabIndex,
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiParcelScalarFile::loadChartDataForSurfaceNode(const StructureEnum::Enum structure,
+CiftiParcelScalarFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum structure,
                                                                const int32_t nodeIndex) throw (DataFileException)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNode(structure,
@@ -190,7 +190,7 @@ CiftiParcelScalarFile::loadChartDataForSurfaceNode(const StructureEnum::Enum str
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiParcelScalarFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum structure,
+CiftiParcelScalarFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum structure,
                                                                       const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForSurfaceNodeAverage(structure,
@@ -209,7 +209,7 @@ CiftiParcelScalarFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-CiftiParcelScalarFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+CiftiParcelScalarFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
     ChartDataCartesian* chartData = helpLoadChartDataForVoxelAtCoordinate(xyz);
     return chartData;
@@ -235,8 +235,8 @@ CiftiParcelScalarFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     CiftiMappableDataFile::saveFileDataToScene(sceneAttributes,
                                                sceneClass);
     
-    sceneClass->addBooleanArray("m_chartingEnabledForTab",
-                                m_chartingEnabledForTab,
+    sceneClass->addBooleanArray("m_brainordinateChartingEnabledForTab",
+                                m_brainordinateChartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
 }
 
@@ -261,10 +261,21 @@ CiftiParcelScalarFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
     CiftiMappableDataFile::restoreFileDataFromScene(sceneAttributes,
                                                     sceneClass);
     
-    const ScenePrimitiveArray* tabArray = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
-    if (tabArray != NULL) {
+    /*
+     * Originally, charting was "per file": m_chartingEnabled
+     * Later, charting became "per tab": m_chartingEnabledForTab
+     * Even Later, it needed to clearly be for brainordinates: m_brainordinateChartingEnabledForTab
+     */
+    const ScenePrimitiveArray* brainChartingForTab = sceneClass->getPrimitiveArray("m_brainordinateChartingEnabledForTab");
+    const ScenePrimitiveArray* oldChartingEnabledForTab = sceneClass->getPrimitiveArray("m_chartingEnabledForTab");
+    if (brainChartingForTab != NULL) {
+        sceneClass->getBooleanArrayValue("brainChartingForTab",
+                                         m_brainordinateChartingEnabledForTab,
+                                         BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    }
+    else if (oldChartingEnabledForTab != NULL) {
         sceneClass->getBooleanArrayValue("m_chartingEnabledForTab",
-                                         m_chartingEnabledForTab,
+                                         m_brainordinateChartingEnabledForTab,
                                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     }
     else {
@@ -274,7 +285,7 @@ CiftiParcelScalarFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
         const bool chartingEnabled = sceneClass->getBooleanValue("m_chartingEnabled",
                                                                  false);
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-            m_chartingEnabledForTab[i] = chartingEnabled;
+            m_brainordinateChartingEnabledForTab[i] = chartingEnabled;
         }
     }
 }

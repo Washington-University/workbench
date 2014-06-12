@@ -1629,7 +1629,7 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
  * @return Is charting enabled for this file?
  */
 bool
-VolumeFile::isChartingEnabled(const int32_t tabIndex) const
+VolumeFile::isBrainordinateChartingEnabled(const int32_t tabIndex) const
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
@@ -1643,7 +1643,7 @@ VolumeFile::isChartingEnabled(const int32_t tabIndex) const
  * is chartable if it contains more than one map.
  */
 bool
-VolumeFile::isChartingSupported() const
+VolumeFile::isBrainordinateChartingSupported() const
 {
     if (getNumberOfMaps() > 1) {
         return true;
@@ -1659,7 +1659,7 @@ VolumeFile::isChartingSupported() const
  *    New status for charting enabled.
  */
 void
-VolumeFile::setChartingEnabled(const int32_t tabIndex,
+VolumeFile::setBrainordinateChartingEnabled(const int32_t tabIndex,
                                const bool enabled)
 {
     CaretAssertArrayIndex(m_chartingEnabledForTab,
@@ -1675,7 +1675,7 @@ VolumeFile::setChartingEnabled(const int32_t tabIndex,
  *    Chart types supported by this file.
  */
 void
-VolumeFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
+VolumeFile::getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const
 {
     helpGetSupportedBrainordinateChartDataTypes(chartDataTypesOut);
 }
@@ -1693,7 +1693,7 @@ VolumeFile::getSupportedChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& cha
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-VolumeFile::loadChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
+VolumeFile::loadBrainordinateChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
                                         const int32_t /*nodeIndex*/) throw (DataFileException)
 {
     ChartDataCartesian* chartData = NULL;
@@ -1713,7 +1713,7 @@ VolumeFile::loadChartDataForSurfaceNode(const StructureEnum::Enum /*structure*/,
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-VolumeFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum /*structure*/,
+VolumeFile::loadAverageBrainordinateChartDataForSurfaceNodes(const StructureEnum::Enum /*structure*/,
                                                 const std::vector<int32_t>& /*nodeIndices*/) throw (DataFileException)
 {
     ChartDataCartesian* chartData = NULL;
@@ -1731,7 +1731,7 @@ VolumeFile::loadAverageChartDataForSurfaceNodes(const StructureEnum::Enum /*stru
  *     of the pointer and must delete it when no longer needed.
  */
 ChartDataCartesian*
-VolumeFile::loadChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+VolumeFile::loadBrainordinateChartDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
     ChartDataCartesian* chartData = NULL;
 

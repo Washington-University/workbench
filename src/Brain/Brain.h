@@ -45,7 +45,6 @@ namespace caret {
     class CaretMappableDataFile;
     class ChartingDataManager;
     class ChartableBrainordinateInterface;
-    class ChartableInterface;
     class ChartableMatrixInterface;
     class CiftiBrainordinateDataSeriesFile;
     class CiftiBrainordinateLabelFile;
@@ -311,8 +310,6 @@ namespace caret {
         
         void getAllChartableMatrixDataFilesForChartDataType(const ChartDataTypeEnum::Enum chartDataType,
                                                                    std::vector<ChartableMatrixInterface*>& chartableDataFilesOut) const;
-        
-        void getAllChartableFiles(std::vector<ChartableInterface*>& chartableDataFilesOut) const;
         
         AString getCurrentDirectory() const;
         
