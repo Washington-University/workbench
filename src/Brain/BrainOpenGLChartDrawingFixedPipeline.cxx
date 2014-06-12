@@ -42,7 +42,10 @@
 #include "CaretPreferences.h"
 #include "ChartPoint.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiParcelScalarFile.h"
 #include "ConnectivityDataLoaded.h"
+#include "EventCaretMappableDataFileMapsViewedInOverlays.h"
+#include "EventManager.h"
 #include "IdentificationWithColor.h"
 #include "SelectionItemChartDataSeries.h"
 #include "SelectionItemChartMatrix.h"
@@ -965,9 +968,19 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                                        matrixRGBA)) {
         int64_t loadedRowIndex = -1;
         CiftiMappableConnectivityMatrixDataFile* connMapFile = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(chartMatrixInterface);
-        const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
-        if (connDataLoaded != NULL) {
-            connDataLoaded->getRowLoading(loadedRowIndex);
+        if (connMapFile != NULL) {
+            const ConnectivityDataLoaded* connDataLoaded = connMapFile->getConnectivityDataLoaded();
+            if (connDataLoaded != NULL) {
+                connDataLoaded->getRowLoading(loadedRowIndex);
+            }
+        }
+        
+        std::set<int32_t> selectedColumnIndices;
+        CiftiParcelScalarFile* parcelScalarFile = dynamic_cast<CiftiParcelScalarFile*>(chartMatrixInterface);
+        if (parcelScalarFile != NULL) {
+            EventCaretMappableDataFileMapsViewedInOverlays mapOverlayEvent(parcelScalarFile);
+            EventManager::get()->sendEvent(mapOverlayEvent.getPointer());
+            selectedColumnIndices = mapOverlayEvent.getSelectedMapIndices();
         }
         
         bool applyTransformationsFlag = false;
@@ -1274,6 +1287,74 @@ BrainOpenGLChartDrawingFixedPipeline::drawChartGraphicsMatrix(const int32_t view
                     glColor4fv(&loadedRowHighlightVerticesRGBA[i*4]);
                     CaretAssertVectorIndex(loadedRowHighlightVerticesXYZ, i*3 + 2);
                     glVertex3fv(&loadedRowHighlightVerticesXYZ[i*3]);
+                }
+                glEnd();
+                glLineWidth(1.0);
+            }
+            
+            if ( ! selectedColumnIndices.empty()) {
+                std::vector<float> columnXYZ;
+                std::vector<float> columnRGBA;
+                
+                for (std::set<int32_t>::iterator colIter = selectedColumnIndices.begin();
+                     colIter != selectedColumnIndices.end();
+                     colIter++) {
+                    const float columnIndex = *colIter;
+                    const float colX = columnIndex * cellWidth;
+                    
+                    const CaretColorEnum::Enum highlightColor = chartMatrixInterface->getSelectedParcelColor();
+                    const float* highlightRGB = CaretColorEnum::toRGB(highlightColor);
+                    
+                    columnXYZ.push_back(colX);
+                    columnXYZ.push_back(0.0);
+                    columnXYZ.push_back(0.0);
+                    columnRGBA.push_back(highlightRGB[0]);
+                    columnRGBA.push_back(highlightRGB[1]);
+                    columnRGBA.push_back(highlightRGB[2]);
+                    columnRGBA.push_back(1.0);
+                    
+                    columnXYZ.push_back(colX + cellWidth);
+                    columnXYZ.push_back(0.0);
+                    columnXYZ.push_back(0.0);
+                    columnRGBA.push_back(highlightRGB[0]);
+                    columnRGBA.push_back(highlightRGB[1]);
+                    columnRGBA.push_back(highlightRGB[2]);
+                    columnRGBA.push_back(1.0);
+                    
+                    columnXYZ.push_back(colX + cellWidth);
+                    columnXYZ.push_back(numberOfRows * cellHeight);
+                    columnXYZ.push_back(0.0);
+                    columnRGBA.push_back(highlightRGB[0]);
+                    columnRGBA.push_back(highlightRGB[1]);
+                    columnRGBA.push_back(highlightRGB[2]);
+                    columnRGBA.push_back(1.0);
+                    
+                    
+                    columnXYZ.push_back(colX);
+                    columnXYZ.push_back(numberOfRows * cellHeight);
+                    columnXYZ.push_back(0.0);
+                    columnRGBA.push_back(highlightRGB[0]);
+                    columnRGBA.push_back(highlightRGB[1]);
+                    columnRGBA.push_back(highlightRGB[2]);
+                    columnRGBA.push_back(1.0);
+                }
+                
+                CaretAssert((columnXYZ.size() / 3) == (columnRGBA.size() / 4));
+                
+                const int32_t numberOfVertices = static_cast<int32_t>(columnXYZ.size() / 3);
+                
+                /*
+                 * As cells get larger, increase linewidth for selected row
+                 */
+                float highlightLineWidth = std::max(((cellHeight * zooming) * 0.20), 3.0);
+                glLineWidth(highlightLineWidth);
+                
+                glBegin(GL_QUADS);
+                for (int32_t i = 0; i < numberOfVertices; i++) {
+                    CaretAssertVectorIndex(columnRGBA, i*4 + 3);
+                    glColor4fv(&columnRGBA[i*4]);
+                    CaretAssertVectorIndex(columnXYZ, i*3 + 2);
+                    glVertex3fv(&columnXYZ[i*3]);
                 }
                 glEnd();
                 glLineWidth(1.0);

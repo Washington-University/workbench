@@ -43,6 +43,7 @@
 #include "GroupAndNameHierarchyName.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesFoci.h"
+#include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
@@ -167,6 +168,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
 }
 
 /**
@@ -1084,6 +1087,30 @@ BrowserTabContent::receiveEvent(Event* event)
         }
         
         idLocationEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS) {
+        EventCaretMappableDataFileMapsViewedInOverlays* mapOverlayEvent  =
+        dynamic_cast<EventCaretMappableDataFileMapsViewedInOverlays*>(event);
+        CaretAssert(mapOverlayEvent);
+        
+        OverlaySet* overlaySet = getOverlaySet();
+        const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+        for (int32_t i = (numOverlays - 1); i >= 0; i--) {
+            Overlay* overlay = overlaySet->getOverlay(i);
+            if (overlay->isEnabled()) {
+                CaretMappableDataFile* mapFile;
+                int32_t mapFileIndex;
+                overlay->getSelectionData(mapFile, mapFileIndex);
+                if (mapFile != NULL) {
+                    if (mapFile == mapOverlayEvent->getCaretMappableDataFile()) {
+                        if ((mapFileIndex >= 0)
+                            && (mapFileIndex < mapFile->getNumberOfMaps())) {
+                            mapOverlayEvent->addMapIndex(mapFileIndex);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

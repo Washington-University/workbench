@@ -60,6 +60,8 @@ public:
         EVENT_BROWSER_WINDOW_NEW,
         /** Get CaretMappable data files */
         EVENT_CARET_MAPPABLE_DATA_FILES_GET,
+        /** Get CaretMappableDataFiles and their maps viewed as overlays */
+        EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS,
         /** Add a data file into the Brain*/
         EVENT_DATA_FILE_ADD,
         /** Delete a data file from the brain */

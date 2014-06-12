@@ -109,6 +109,10 @@ EventTypeEnum::initialize()
                                      "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
                                      "Get all Caret Mappable data files"));
 
+    enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS,
+                                     "EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS",
+                                     "Get Caret Mappable data file maps viewed in overlays"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_ADD,
                                      "EVENT_DATA_FILE_ADD",
                                      "Add a data file to the Brain"));

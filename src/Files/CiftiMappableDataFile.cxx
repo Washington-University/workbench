@@ -3961,14 +3961,7 @@ CiftiMappableDataFile::helpLoadChartDataMatrixForMap(const int32_t mapIndex,
                                                      int32_t& numberOfRowsOut,
                                                      int32_t& numberOfColumnsOut,
                                                      std::vector<float>& rgbaOut) const
-{
-    if (getDataFileType() != DataFileTypeEnum::CONNECTIVITY_PARCEL) {
-        CaretAssertMessage(0,
-                           "Unsupported file type for chart matrix: "
-                           + DataFileTypeEnum::toGuiName(getDataFileType()));
-        return false;
-    }
-    
+{    
     CaretAssertVectorIndex(m_mapContent, mapIndex);
     MapContent* mc = m_mapContent[mapIndex];
     

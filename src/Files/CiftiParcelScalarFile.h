@@ -24,11 +24,17 @@
 
 #include "BrainConstants.h"
 #include "ChartableBrainordinateInterface.h"
+#include "ChartableMatrixInterface.h"
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
 
-    class CiftiParcelScalarFile : public CiftiMappableDataFile, public ChartableBrainordinateInterface {
+    class SceneClassAssistant;
+    
+    class CiftiParcelScalarFile
+    : public CiftiMappableDataFile,
+    public ChartableBrainordinateInterface,
+    public ChartableMatrixInterface {
     
     public:
         CiftiParcelScalarFile();
@@ -52,6 +58,37 @@ namespace caret {
         
         virtual void getSupportedBrainordinateChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        virtual bool getMatrixDataRGBA(int32_t& numberOfRowsOut,
+                                       int32_t& numberOfColumnsOut,
+                                       std::vector<float>& rgbaOut) const;
+        
+        virtual bool getMatrixCellAttributes(const int32_t rowIndex,
+                                             const int32_t columnIndex,
+                                             float& cellValueOut,
+                                             AString& rowNameOut,
+                                             AString& columnNameOut) const;
+        
+        virtual bool isMatrixChartingEnabled(const int32_t tabIndex) const;
+        
+        virtual bool isMatrixChartingSupported() const;
+        
+        virtual void setMatrixChartingEnabled(const int32_t tabIndex,
+                                              const bool enabled);
+        
+        virtual void getSupportedMatrixChartDataTypes(std::vector<ChartDataTypeEnum::Enum>& chartDataTypesOut) const;
+        
+        const ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex) const;
+        
+        ChartMatrixDisplayProperties* getChartMatrixDisplayProperties(const int32_t tabIndex);
+        
+        virtual CiftiParcelColoringModeEnum::Enum getSelectedParcelColoringMode() const;
+        
+        virtual void setSelectedParcelColoringMode(const CiftiParcelColoringModeEnum::Enum coloringMode);
+        
+        virtual CaretColorEnum::Enum getSelectedParcelColor() const;
+        
+        virtual void setSelectedParcelColor(const CaretColorEnum::Enum color);
+        
     private:
         CiftiParcelScalarFile(const CiftiParcelScalarFile&);
 
@@ -69,8 +106,17 @@ namespace caret {
 
     private:
 
+        SceneClassAssistant* m_sceneAssistant;
+        
         bool m_brainordinateChartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
+        bool m_matrixChartingEnabledForTab[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        ChartMatrixDisplayProperties* m_chartMatrixDisplayProperties[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        CiftiParcelColoringModeEnum::Enum m_selectedParcelColoringMode;
+        
+        CaretColorEnum::Enum m_selectedParcelColor;
         // ADD_NEW_MEMBERS_HERE
 
     };
