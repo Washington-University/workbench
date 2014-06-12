@@ -51,8 +51,7 @@ StringTableModel::StringTableModel(const int32_t numberOfRows,
 : CaretObject(),
 m_numberOfRows(numberOfRows),
 m_numberOfColumns(numberOfColumns),
-m_floatingPointPrecsion(floatingPointPrecision),
-m_stringTable(NULL)
+m_floatingPointPrecsion(floatingPointPrecision)
 {
     CaretAssert(m_numberOfRows > 0);
     CaretAssert(m_numberOfColumns > 0);

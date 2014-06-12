@@ -169,7 +169,7 @@ BrainOpenGLShapeRing::setupOpenGLForShape(const BrainOpenGL::DrawMode drawMode)
             if (m_displayList > 0) {
                 glNewList(m_displayList,
                           GL_COMPILE);
-                uint8_t rgbaUnused[4] = { 0.0, 0.0, 0.0, 0.0 };
+                uint8_t rgbaUnused[4] = { 0, 0, 0, 0 };
                 m_isApplyColoring = false;
                 drawShape(BrainOpenGL::DRAW_MODE_IMMEDIATE,
                           rgbaUnused);
