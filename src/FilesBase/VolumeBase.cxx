@@ -57,7 +57,7 @@ void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector
 
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
-    freeMemory();
+    clear();
     if (dimensionsIn.size() < 3)
     {
         throw DataFileException("volume files must have 3 or more dimensions");
@@ -382,7 +382,7 @@ void VolumeBase::spaceToIndex(const float& coordIn1, const float& coordIn2, cons
     m_volSpace.spaceToIndex(coordIn1, coordIn2, coordIn3, indexOut1, indexOut2, indexOut3);
 }
 
-void VolumeBase::freeMemory()
+void VolumeBase::clear()
 {
     if (m_data != NULL)
     {
@@ -473,7 +473,7 @@ void VolumeBase::setupIndexing()
 
 VolumeBase::~VolumeBase()
 {
-    freeMemory();
+    clear();
 }
 
 /**

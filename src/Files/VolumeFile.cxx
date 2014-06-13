@@ -189,6 +189,7 @@ VolumeFile::clear()
     m_frameSplines.clear();
     
     m_dataRangeValid = false;
+    VolumeBase::clear();
 }
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)

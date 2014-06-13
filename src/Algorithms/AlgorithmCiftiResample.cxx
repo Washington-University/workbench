@@ -545,6 +545,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
         if (curSphere != NULL)
         {
             AlgorithmLabelResample(NULL, &origLabel, curSphere, newSphere, mySurfMethod, &newLabel, curAreas, newAreas, &origRoi, &resampleROI, surfLargest);
+            origLabel.clear();//delete the data we no longer need to keep memory use down
             if (surfdilatemm > 0.0f)
             {
                 MetricFile invertResampleROI;
@@ -555,6 +556,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
                     invertResampleROI.setValue(j, 0, tempf);
                 }
                 AlgorithmLabelDilate(NULL, &newLabel, newSphere, surfdilatemm, &newDilate, &invertResampleROI);
+                newLabel.clear();//ditto
                 newUse = &newDilate;
             }
         } else {
@@ -568,6 +570,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
         if (curSphere != NULL)
         {
             AlgorithmMetricResample(NULL, &origMetric, curSphere, newSphere, mySurfMethod, &newMetric, curAreas, newAreas, &origROI, &resampleROI, surfLargest);
+            origMetric.clear();//ditto
             if (surfdilatemm > 0.0f)
             {
                 MetricFile invertResampleROI;
@@ -578,6 +581,7 @@ void AlgorithmCiftiResample::processSurfaceComponent(const CiftiFile* myCiftiIn,
                     invertResampleROI.setValue(j, 0, tempf);
                 }
                 AlgorithmMetricDilate(NULL, &newMetric, newSphere, surfdilatemm, &newDilate, &invertResampleROI, NULL, -1, true);//we could get the data roi from the template cifti and use it here
+                newMetric.clear();
                 newUse = &newDilate;
             }
         } else {
@@ -611,8 +615,10 @@ void AlgorithmCiftiResample::processVolumeWarpfield(const CiftiFile* myCiftiIn, 
         VolumePaddingHelper mypadding = VolumePaddingHelper::padMM(&origData, voldilatemm);
         VolumeFile origPad, invertROIPad;
         mypadding.doPadding(&origData, &origPad);
+        origData.clear();//delete data we no longer need to keep memory use down
         mypadding.doPadding(&invertROI, &invertROIPad, 1.0f);//pad with ones since this is an inverted ROI
         AlgorithmVolumeDilate(NULL, &origPad, voldilatemm, AlgorithmVolumeDilate::NEAREST, &origDilate, &invertROIPad);
+        origPad.clear();//ditto
         origProcess = &origDilate;
     }
     VolumeFile newVolume;
@@ -620,6 +626,7 @@ void AlgorithmCiftiResample::processVolumeWarpfield(const CiftiFile* myCiftiIn, 
     vector<vector<float> > refsform;
     AlgorithmCiftiSeparate::getCroppedVolSpace(myCiftiOut, direction, myStruct, refdims, refsform, refoffset);
     AlgorithmVolumeWarpfieldResample(NULL, origProcess, warpfield, refdims, refsform, myVolMethod, &newVolume);
+    origProcess->clear();//ditto
     AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, &newVolume, true);
 }
 
@@ -647,8 +654,10 @@ void AlgorithmCiftiResample::processVolumeAffine(const CiftiFile* myCiftiIn, con
         VolumePaddingHelper mypadding = VolumePaddingHelper::padMM(&origData, voldilatemm);
         VolumeFile origPad, invertROIPad;
         mypadding.doPadding(&origData, &origPad);
+        origData.clear();//delete data we no longer need to keep memory use down
         mypadding.doPadding(&invertROI, &invertROIPad, 1.0f);//pad with ones since this is an inverted ROI
         AlgorithmVolumeDilate(NULL, &origPad, voldilatemm, AlgorithmVolumeDilate::NEAREST, &origDilate, &invertROIPad);
+        origPad.clear();//ditto
         origProcess = &origDilate;
     }
     VolumeFile newVolume;
@@ -656,6 +665,7 @@ void AlgorithmCiftiResample::processVolumeAffine(const CiftiFile* myCiftiIn, con
     vector<vector<float> > refsform;
     AlgorithmCiftiSeparate::getCroppedVolSpace(myCiftiOut, direction, myStruct, refdims, refsform, refoffset);
     AlgorithmVolumeAffineResample(NULL, origProcess, affine, refdims, refsform, myVolMethod, &newVolume);
+    origProcess->clear();//ditto
     AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, direction, myStruct, &newVolume, true);
 }
 
