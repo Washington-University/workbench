@@ -356,7 +356,7 @@ pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCi
     const CiftiXML& myTemplateXML = myTemplate->getCiftiXML();
     if (myTemplateXML.getMappingType(templateDir) != CiftiMappingType::BRAIN_MODELS) return make_pair(true, AString("direction for template must contain brain models"));
     const CiftiBrainModelsMap& outModels = myTemplate->getCiftiXML().getBrainModelsMap(templateDir);
-    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList();
+    vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     for (int i = 0; i < (int)surfList.size(); ++i)//ensure existence of resampling spheres before doing any computation
     {
         if (!inModels.hasSurfaceData(surfList[i])) return make_pair(true, AString("input cifti missing surface information for structure: " + StructureEnum::toGuiName(surfList[i])));
@@ -407,6 +407,13 @@ pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCi
             }
         } else {//copying
             if (inModels.getSurfaceNumberOfNodes(surfList[i]) != outModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " structure requires resampling spheres, does not match template"));
+        }
+    }
+    for (int i = 0; i < (int)volList.size(); ++i)
+    {
+        if (!inModels.hasVolumeData(volList[i]))
+        {
+            return make_pair(true, AString(StructureEnum::toGuiName(volList[i]) + " volume model missing from input cifti"));
         }
     }
     return make_pair(false, AString());
