@@ -169,7 +169,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this,
-                                          EventTypeEnum::EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
+                                          EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
 }
 
 /**
