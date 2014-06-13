@@ -84,6 +84,11 @@ SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displ
 #
 SET (WORKBENCH_C11X FALSE)
 ##SET (WORKBENCH_C11X TRUE)
+IF ("$ENV{WORKBENCH_CONFIGURE_C11X}" STREQUAL "YES")
+   SET (WORKBENCH_C11X TRUE)
+   MESSAGE("Configuring Workbench build with C11X enabled.")
+ENDIF ("$ENV{WORKBENCH_CONFIGURE_C11X}" STREQUAL "YES")
+
 
 #
 # Set flags for C11 compiler
