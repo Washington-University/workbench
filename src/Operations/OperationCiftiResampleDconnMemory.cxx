@@ -106,8 +106,9 @@ OperationParameters* OperationCiftiResampleDconnMemory::getParameters()
     cerebAreaMetricsOpt->addMetricParameter(2, "new-area", "a metric file with vertex areas for the new mesh");
     
     AString myHelpText =
-        AString("This command does the same thing as running -cifti-resample twice, but uses approximately 4 times the memory.  ") +
-        "This is because the intermediate dconn is kept in memory, rather than written to disk.  " +
+        AString("This command does the same thing as running -cifti-resample twice, but uses memory up to approximately 2x the size that the intermediate file would be.  ") +
+        "This is because the intermediate dconn is kept in memory, rather than written to disk, " +
+        "and the components before and after resampling/dilation have to be in memory at the same time during the relevant computation.  " +
         "If spheres are not specified for a surface structure which exists in the cifti files, its data is copied without resampling or dilation.  " +
         "Dilation is done with the 'nearest' method, and is done on <new-sphere> for surface data.  " +
         "Volume components are padded before dilation so that dilation doesn't run into the edge of the component bounding box.\n\n" +
@@ -312,15 +313,15 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
                             curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
     ok = true;
     AString message;
-    if (colErrors.first)
-    {
-        message = "Error in resampling along column: " + colErrors.second;
-        ok = false;
-    }
     if (rowErrors.first)
     {
-        if (!ok) message += "\n";
         message += "Error in resampling along row: " + rowErrors.second;
+        ok = false;
+    }
+    if (colErrors.first)
+    {
+        if (!ok) message += "\n";
+        message = "Error in resampling along column: " + colErrors.second;
         ok = false;
     }
     if (!ok)
@@ -328,22 +329,25 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
         throw OperationException(message);
     }
     CiftiFile tempCifti;
+    //TSC: resampling along row first causes it to reread the input file for each structure - however, the other way around -rewrites- the output file for each structure
+    //reads of static data can be cached - writes can't.  also, some storage architectures buffer writes onto flash, so more writes means shorter flash lifetime, and some use snapshots where temporary writes take more space...
+    //so, prefer multiple reads to multiple writes
     if (warpfieldOpt->m_present)
     {
-        AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
+        AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
-        AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
+        AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
     } else {//rely on AffineFile() being the identity transform for if neither option is specified
-        AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
+        AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
-        AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_ROW, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
+        AlgorithmCiftiResample(myProgObj, &tempCifti, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, myCiftiOut, surfLargest, voldilatemm, surfdilatemm, myAffine.getMatrix(),
                                curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
                                curRightSphere, newRightSphere, curRightAreas, newRightAreas,
                                curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
