@@ -49,7 +49,7 @@ AString AlgorithmCiftiResample::getCommandSwitch()
 
 AString AlgorithmCiftiResample::getShortDescription()
 {
-    return "RESAMPLE A CFTI FILE TO A NEW CIFTI SPACE";
+    return "RESAMPLE A CIFTI FILE TO A NEW CIFTI SPACE";
 }
 
 OperationParameters* AlgorithmCiftiResample::getParameters()
