@@ -62,8 +62,6 @@ namespace caret {
         
         bool isEmpty() const;
         
-        const CiftiXMLOld* getCiftiXMLOld() const;
-        
         const CiftiXML* getCiftiXML() const;
         
         virtual StructureEnum::Enum getStructure() const;
@@ -90,8 +88,6 @@ namespace caret {
     private:
 
         void clearPrivate();
-        
-        CiftiXMLOld* m_ciftiXMLOld;
         
         CiftiXML* m_ciftiXML;
         
