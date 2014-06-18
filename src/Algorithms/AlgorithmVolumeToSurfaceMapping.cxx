@@ -287,7 +287,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             {
                 if (myMethod == VolumeFile::CUBIC)
                 {
-                    myVolume->validateSplines(i, j);//to do spline deconvolution in parallel
+                    myVolume->validateSpline(i, j);//to do spline deconvolution in parallel
                 }
                 AString metricLabel = myVolume->getMapName(i);
                 if (myVolDims[4] != 1)
@@ -302,6 +302,10 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 {
                     myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), myMethod, NULL, i, j);
                 }
+                if (myMethod == VolumeFile::CUBIC)
+                {
+                    myVolume->freeSpline(i, j);//release memory we no longer need, if we allocated it
+                }
                 myMetricOut->setValuesForColumn(thisCol, myArray.data());
             }
         }
@@ -310,7 +314,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
         {
             if (myMethod == VolumeFile::CUBIC)
             {
-                myVolume->validateSplines(mySubVol, j);//to do spline deconvolution in parallel
+                myVolume->validateSpline(mySubVol, j);//to do spline deconvolution in parallel
             }
             AString metricLabel = myVolume->getMapName(mySubVol);
             if (myVolDims[4] != 1)
@@ -324,6 +328,10 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             for (int64_t node = 0; node < numNodes; ++node)
             {
                 myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), myMethod, NULL, mySubVol, j);
+            }
+            if (myMethod == VolumeFile::CUBIC)
+            {
+                myVolume->freeSpline(mySubVol, j);//release memory we no longer need, if we allocated it
             }
             myMetricOut->setValuesForColumn(thisCol, myArray.data());
         }

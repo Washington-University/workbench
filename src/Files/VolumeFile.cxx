@@ -362,7 +362,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 return INVALID_INTERP_VALUE;//check for valid coord before deconvolving the frame
             }
             int64_t whichFrame = component * m_dimensions[3] + brickIndex;
-            validateSplines(brickIndex, component);
+            validateSpline(brickIndex, component);
             if (validOut != NULL) *validOut = true;
             return m_frameSplines[whichFrame].sample(indexSpace);
         }
@@ -419,31 +419,64 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     return INVALID_INTERP_VALUE;
 }
 
-void VolumeFile::validateSplines(const int64_t brickIndex, const int64_t component) const
+void VolumeFile::validateSpline(const int64_t brickIndex, const int64_t component) const
 {
-    CaretAssert(brickIndex < m_dimensions[3]);//function is public, so check inputs
-    CaretAssert(component < m_dimensions[4]);
+    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);//function is public, so check inputs
+    CaretAssert(component >= 0 && component < m_dimensions[4]);
     int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
-    CaretMutexLocker locked(&m_splineMutex);//prevent concurrent access to spline state
     if (!m_splinesValid)
     {
-        m_frameSplineValid.clear();
-        m_frameSplines.clear();
-        m_splinesValid = true;//the only purpose of this flag is for setModified to be fast
+        CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
+        if (!m_splinesValid)//double check
+        {
+            m_frameSplineValid = vector<bool>(numFrames, false);
+            m_frameSplines = vector<VolumeSpline>(numFrames);//release the old spline memory
+            m_splinesValid = true;//the only purpose of this flag is for setModified to be fast, don't worry about it becoming false again before the below happens
+        }
     }
-    if ((int64_t)m_frameSplineValid.size() != numFrames)
-    {
-        m_frameSplineValid.resize(numFrames, false);
-        m_frameSplines.resize(numFrames);
-    }
+    CaretAssert((int64_t)m_frameSplineValid.size() == numFrames);
+    CaretAssert((int64_t)m_frameSplines.size() == numFrames);
     if (!m_frameSplineValid[whichFrame])
     {
-        m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
-        if (m_frameSplines[whichFrame].ignoredNonNumeric())
+        CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
+        if (!m_frameSplineValid[whichFrame])//double check
         {
-            CaretLogWarning("ignored non-numeric input value when calculating cubic splines in volume '" + getFileName() + "', frame #" + AString::number(brickIndex + 1));
+            m_frameSplines[whichFrame] = VolumeSpline(getFrame(brickIndex, component), m_dimensions);
+            if (m_frameSplines[whichFrame].ignoredNonNumeric())
+            {
+                CaretLogWarning("ignored non-numeric input value when calculating cubic splines in volume '" + getFileName() + "', frame #" + AString::number(brickIndex + 1));
+            }
+            m_frameSplineValid[whichFrame] = true;
         }
-        m_frameSplineValid[whichFrame] = true;
+    }
+}
+
+void VolumeFile::freeSpline(const int64_t brickIndex, const int64_t component) const
+{
+    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);//function is public, so check inputs
+    CaretAssert(component >= 0 && component < m_dimensions[4]);
+    int64_t numFrames = m_dimensions[3] * m_dimensions[4], whichFrame = component * m_dimensions[3] + brickIndex;
+    if (!m_splinesValid)
+    {
+        CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
+        if (!m_splinesValid)//double check
+        {
+            m_frameSplineValid = vector<bool>(numFrames, false);
+            m_frameSplines = vector<VolumeSpline>(numFrames);//release the old spline memory
+            m_splinesValid = true;//the only purpose of this flag is for setModified to be fast
+        }
+        return;//already freed, we are done
+    }
+    CaretAssert((int64_t)m_frameSplineValid.size() == numFrames);
+    CaretAssert((int64_t)m_frameSplines.size() == numFrames);
+    if (m_frameSplineValid[whichFrame])
+    {
+        CaretMutexLocker locked(&m_splineMutex);//prevent concurrent modify access to spline state
+        if (m_frameSplineValid[whichFrame])//double check
+        {
+            m_frameSplines[whichFrame] = VolumeSpline();
+            m_frameSplineValid[whichFrame] = false;
+        }
     }
 }
 
@@ -553,7 +586,9 @@ void VolumeFile::updateCaretExtension()
 void VolumeFile::validateMembers()
 {
     m_dataRangeValid = false;
-    m_splinesValid = false;
+    m_frameSplineValid = vector<bool>(m_dimensions[3] * m_dimensions[4], false);
+    m_frameSplines = vector<VolumeSpline>(m_dimensions[3] * m_dimensions[4]);//release any previous spline memory
+    m_splinesValid = true;//this now indicates only if they need to all be recalculated - the frame vectors will always have the correct length
     int numMaps = getNumberOfMaps();
     m_brickAttributes.clear();//invalidate brick attributes first
     m_brickAttributes.resize(numMaps);//before resizing

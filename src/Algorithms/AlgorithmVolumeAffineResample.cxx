@@ -138,7 +138,7 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
         {
             if (myMethod == VolumeFile::CUBIC)
             {
-                inVol->validateSplines(b, c);//because deconvolve is parallel, but won't execute parallel if we are already in a parallel section
+                inVol->validateSpline(b, c);//because deconvolve is parallel, but won't execute parallel if we are already in a parallel section
             }
 #pragma omp CARET_PARFOR schedule(dynamic)
             for (int64_t k = 0; k < outDims[2]; ++k)
@@ -154,6 +154,10 @@ AlgorithmVolumeAffineResample::AlgorithmVolumeAffineResample(ProgressObject* myP
                         outVol->setValue(interpVal, i, j, k, b, c);
                     }
                 }
+            }
+            if (myMethod == VolumeFile::CUBIC)
+            {
+                inVol->freeSpline(b, c);//release memory we no longer need, if we allocated it
             }
         }
     }
