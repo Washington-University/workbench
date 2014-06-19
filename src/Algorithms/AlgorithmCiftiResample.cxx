@@ -35,9 +35,13 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "SurfaceFile.h"
+#include "SurfaceResamplingHelper.h"
 #include "VolumeFile.h"
 #include "VolumePaddingHelper.h"
 #include "WarpfieldFile.h"
+
+#include <algorithm>
+#include <cmath>
 
 using namespace caret;
 using namespace std;
@@ -419,6 +423,213 @@ pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCi
     return make_pair(false, AString());
 }
 
+namespace _algorithm_cifti_resample
+{//so that we don't need these in the header file
+    struct ResampleCache
+    {//a place to stuff anything that can be precomputed or reused for applying to the same structure in multiple maps
+        SurfaceResamplingHelper surfResamp;
+        VolumePaddingHelper volPadding;
+        const SurfaceFile* curSphere, *newSphere;
+        MetricFile tempMetric1, tempMetric2, surfDilateRoi;
+        LabelFile tempLabel1, tempLabel2;
+        CaretPointer<VolumeFile> tempVol1, tempVol2, tempVol3, volDilateRoi;
+        vector<CiftiBrainModelsMap::SurfaceMap> inSurfMap, outSurfMap;
+        vector<CiftiBrainModelsMap::VolumeMap> inVolMap, outVolMap;
+        vector<float> floatScratch1, floatScratch2;
+        vector<int32_t> intScratch1, intScratch2;
+        vector<int64_t> inOffset;
+        int64_t refDims[3], refOffset[3];
+        vector<vector<float> > refSform;
+        bool copyMode;
+    };
+    
+    void setupRowResampling(map<StructureEnum::Enum, ResampleCache>& surfCache, map<StructureEnum::Enum, ResampleCache>& volCache, const CiftiFile* myCiftiIn, CiftiFile* myCiftiOut,
+                            const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const float& voldilatemm,
+                            const SurfaceFile* curLeftSphere, const SurfaceFile* newLeftSphere, const MetricFile* curLeftAreas, const MetricFile* newLeftAreas,
+                            const SurfaceFile* curRightSphere, const SurfaceFile* newRightSphere, const MetricFile* curRightAreas, const MetricFile* newRightAreas,
+                            const SurfaceFile* curCerebSphere, const SurfaceFile* newCerebSphere, const MetricFile* curCerebAreas, const MetricFile* newCerebAreas)
+    {
+        const CiftiXML& myInputXML = myCiftiIn->getCiftiXML(), myOutXML = myCiftiOut->getCiftiXML();
+        bool labelMode = (myInputXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS);
+        const CiftiBrainModelsMap& inModels = myInputXML.getBrainModelsMap(CiftiXML::ALONG_ROW), outModels = myOutXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
+        int numSurfStructs = (int)surfList.size(), numVolStructs = (int)volList.size();
+        for (int i = 0; i < numSurfStructs; ++i)//initialize reusables
+        {
+            const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+            const MetricFile* curAreas = NULL, *newAreas = NULL;
+            switch (surfList[i])
+            {
+                case StructureEnum::CORTEX_LEFT:
+                    curSphere = curLeftSphere;
+                    newSphere = newLeftSphere;
+                    curAreas = curLeftAreas;
+                    newAreas = newLeftAreas;
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    curSphere = curRightSphere;
+                    newSphere = newRightSphere;
+                    curAreas = curRightAreas;
+                    newAreas = newRightAreas;
+                    break;
+                case StructureEnum::CEREBELLUM:
+                    curSphere = curCerebSphere;
+                    newSphere = newCerebSphere;
+                    curAreas = curCerebAreas;
+                    newAreas = newCerebAreas;
+                    break;
+                default:
+                    throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
+                    break;
+            }
+            ResampleCache& myCache = surfCache[surfList[i]];
+            myCache.inSurfMap = inModels.getSurfaceMap(surfList[i]);
+            myCache.outSurfMap = outModels.getSurfaceMap(surfList[i]);
+            if (curSphere == NULL)
+            {
+                myCache.copyMode = true;
+                continue;
+            }
+            myCache.copyMode = false;
+            myCache.curSphere = curSphere;
+            myCache.newSphere = newSphere;
+            const float* curAreasPtr = NULL, *newAreasPtr = NULL;
+            if (curAreas != NULL && newAreas != NULL)
+            {
+                curAreasPtr = curAreas->getValuePointerForColumn(0);
+                newAreasPtr = newAreas->getValuePointerForColumn(0);
+            }
+            vector<float> tempRoi(curSphere->getNumberOfNodes(), 0.0f);
+            for (int j = 0; j < (int)myCache.inSurfMap.size(); ++j)
+            {
+                tempRoi[myCache.inSurfMap[j].m_surfaceNode] = 1.0f;
+            }
+            myCache.surfResamp = SurfaceResamplingHelper(mySurfMethod, curSphere, newSphere, curAreasPtr, newAreasPtr, tempRoi.data());//resampling is already a helper, so use it as such
+            tempRoi.resize(newSphere->getNumberOfNodes());
+            myCache.surfResamp.getResampleValidROI(tempRoi.data());
+            myCache.surfDilateRoi.setNumberOfNodesAndColumns(newSphere->getNumberOfNodes(), 1);
+            for (int j = 0; j < (int)tempRoi.size(); ++j)
+            {
+                myCache.surfDilateRoi.setValue(j, 0, (tempRoi[j] > 0.0f ? 0.0f : 1.0f));
+            }
+            if (labelMode)
+            {
+                myCache.intScratch1.resize(curSphere->getNumberOfNodes(), 0);
+                myCache.intScratch2.resize(newSphere->getNumberOfNodes(), 0);
+                myCache.tempLabel1.setNumberOfNodesAndColumns(newSphere->getNumberOfNodes(), 1);
+            } else {
+                myCache.floatScratch1.resize(curSphere->getNumberOfNodes(), 0.0f);
+                myCache.floatScratch2.resize(newSphere->getNumberOfNodes(), 0.0f);
+                myCache.tempMetric1.setNumberOfNodesAndColumns(newSphere->getNumberOfNodes(), 1);
+            }
+        }
+        for (int i = 0; i < numVolStructs; ++i)
+        {
+            ResampleCache& myCache = volCache[volList[i]];
+            myCache.inVolMap = inModels.getVolumeStructureMap(volList[i]);
+            myCache.outVolMap = outModels.getVolumeStructureMap(volList[i]);
+            vector<vector<float> > sform;
+            vector<int64_t> inDims(3);
+            myCache.inOffset.resize(3);
+            myCache.floatScratch1.resize(inDims[0] * inDims[1] * inDims[2]);
+            AlgorithmCiftiSeparate::getCroppedVolSpace(myCiftiIn, CiftiXML::ALONG_ROW, volList[i], inDims.data(), sform, myCache.inOffset.data());
+            AlgorithmCiftiSeparate::getCroppedVolSpace(myCiftiOut, CiftiXML::ALONG_ROW, volList[i], myCache.refDims, myCache.refSform, myCache.refOffset);
+            if (labelMode)
+            {
+                myCache.tempVol1.grabNew(new VolumeFile(inDims, sform, 1, SubvolumeAttributes::LABEL));
+            } else {
+                myCache.tempVol1.grabNew(new VolumeFile(inDims, sform));
+            }
+            myCache.tempVol2.grabNew(new VolumeFile(inDims, sform));//temporarily use to make the dilation roi, if needed
+            if (voldilatemm > 0.0f)
+            {
+                myCache.volPadding = VolumePaddingHelper::padMM(myCache.tempVol1, voldilatemm);
+                myCache.volDilateRoi.grabNew(new VolumeFile());
+                myCache.tempVol3.grabNew(new VolumeFile());
+                myCache.tempVol2->setValueAllVoxels(1.0f);
+                for (int j = 0; j < (int)myCache.inVolMap.size(); ++j)
+                {
+                    myCache.tempVol2->setValue(0.0f, myCache.inVolMap[j].m_ijk[0] - myCache.inOffset[0],
+                                                     myCache.inVolMap[j].m_ijk[1] - myCache.inOffset[1],
+                                                     myCache.inVolMap[j].m_ijk[2] - myCache.inOffset[2]);
+                }
+                myCache.volPadding.doPadding(myCache.tempVol2, myCache.volDilateRoi, 1.0f);
+            }
+        }
+    }
+    
+    void processRowSurface(ResampleCache& myCache, const vector<float>& inRow, vector<float>& outRow, const CiftiXML& myInputXML,
+                           const float& surfdilatemm, const bool& surfLargest, const int& unassignedLabelKey, const int64_t& row)
+    {
+        bool labelMode = (myInputXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS);
+        int inMapSize = (int)myCache.inSurfMap.size(), outMapSize = (int)myCache.outSurfMap.size();
+        if (myCache.copyMode)//copy
+        {
+            for (int j = 0; j < inMapSize; ++j)
+            {
+                myCache.floatScratch1[myCache.inSurfMap[j].m_surfaceNode] = inRow[myCache.inSurfMap[j].m_ciftiIndex];
+            }
+            for (int j = 0; j < outMapSize; ++j)
+            {
+                outRow[myCache.outSurfMap[j].m_ciftiIndex] = myCache.floatScratch1[myCache.outSurfMap[j].m_surfaceNode];
+            }
+        } else {
+            if (labelMode)
+            {
+                const CiftiLabelsMap& myLabelMap = myInputXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
+                for (int j = 0; j < inMapSize; ++j)
+                {
+                    myCache.intScratch1[myCache.inSurfMap[j].m_surfaceNode] = (int)floor(inRow[myCache.inSurfMap[j].m_ciftiIndex] + 0.5f);
+                }
+                if (surfLargest)
+                {
+                    myCache.surfResamp.resampleLargest(myCache.intScratch1.data(), myCache.intScratch2.data(), unassignedLabelKey);
+                } else {
+                    myCache.surfResamp.resamplePopular(myCache.intScratch1.data(), myCache.intScratch2.data(), unassignedLabelKey);
+                }
+                *(myCache.tempLabel1.getLabelTable()) = *(myLabelMap.getMapLabelTable(row));
+                myCache.tempLabel1.setLabelKeysForColumn(0, myCache.intScratch2.data());
+                LabelFile* toUse = &(myCache.tempLabel1);
+                if (surfdilatemm > 0.0f)
+                {
+                    AlgorithmLabelDilate(NULL, toUse, myCache.newSphere, surfdilatemm, &(myCache.tempLabel2), &(myCache.surfDilateRoi), 0);
+                    toUse = &(myCache.tempLabel2);
+                }
+                const int32_t* outData = toUse->getLabelKeyPointerForColumn(0);
+                for (int j = 0; j < outMapSize; ++j)
+                {
+                    outRow[myCache.outSurfMap[j].m_ciftiIndex] = outData[myCache.outSurfMap[j].m_surfaceNode];
+                }
+            } else {
+                for (int j = 0; j < inMapSize; ++j)
+                {
+                    myCache.floatScratch1[myCache.inSurfMap[j].m_surfaceNode] = inRow[myCache.inSurfMap[j].m_ciftiIndex];
+                }
+                if (surfLargest)
+                {
+                    myCache.surfResamp.resampleLargest(myCache.floatScratch1.data(), myCache.floatScratch2.data());
+                } else {
+                    myCache.surfResamp.resampleNormal(myCache.floatScratch1.data(), myCache.floatScratch2.data());
+                }
+                myCache.tempMetric1.setValuesForColumn(0, myCache.floatScratch2.data());
+                MetricFile* toUse = &(myCache.tempMetric1);
+                if (surfdilatemm > 0.0f)
+                {
+                    AlgorithmMetricDilate(NULL, toUse, myCache.newSphere, surfdilatemm, &(myCache.tempMetric2), &(myCache.surfDilateRoi), NULL, 0, true);
+                    toUse = &(myCache.tempMetric2);
+                }
+                const float* outData = toUse->getValuePointerForColumn(0);
+                for (int j = 0; j < outMapSize; ++j)
+                {
+                    outRow[myCache.outSurfMap[j].m_ciftiIndex] = outData[myCache.outSurfMap[j].m_surfaceNode];
+                }
+            }
+        }
+    }
+}
+
+using namespace _algorithm_cifti_resample;
+
 AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const CiftiFile* myCiftiIn, const int& direction, const CiftiFile* myTemplate, const int& templateDir,
                                                const SurfaceResamplingMethodEnum::Enum& mySurfMethod, const VolumeFile::InterpType& myVolMethod, CiftiFile* myCiftiOut,
                                                const bool& surfLargest, const float& voldilatemm, const float& surfdilatemm,
@@ -439,39 +650,100 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
     vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     myCiftiOut->setCiftiXML(myOutXML);
-    for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
+    if (direction == CiftiXML::ALONG_COLUMN)
     {
-        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
-        const MetricFile* curAreas = NULL, *newAreas = NULL;
-        switch (surfList[i])
+        for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
         {
-            case StructureEnum::CORTEX_LEFT:
-                curSphere = curLeftSphere;
-                newSphere = newLeftSphere;
-                curAreas = curLeftAreas;
-                newAreas = newLeftAreas;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                curSphere = curRightSphere;
-                newSphere = newRightSphere;
-                curAreas = curRightAreas;
-                newAreas = newRightAreas;
-                break;
-            case StructureEnum::CEREBELLUM:
-                curSphere = curCerebSphere;
-                newSphere = newCerebSphere;
-                curAreas = curCerebAreas;
-                newAreas = newCerebAreas;
-                break;
-            default:
-                throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
-                break;
+            const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+            const MetricFile* curAreas = NULL, *newAreas = NULL;
+            switch (surfList[i])
+            {
+                case StructureEnum::CORTEX_LEFT:
+                    curSphere = curLeftSphere;
+                    newSphere = newLeftSphere;
+                    curAreas = curLeftAreas;
+                    newAreas = newLeftAreas;
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    curSphere = curRightSphere;
+                    newSphere = newRightSphere;
+                    curAreas = curRightAreas;
+                    newAreas = newRightAreas;
+                    break;
+                case StructureEnum::CEREBELLUM:
+                    curSphere = curCerebSphere;
+                    newSphere = newCerebSphere;
+                    curAreas = curCerebAreas;
+                    newAreas = newCerebAreas;
+                    break;
+                default:
+                    throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
+                    break;
+            }
+            processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curAreas, newAreas);
         }
-        processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curAreas, newAreas);
-    }
-    for (int i = 0; i < (int)volList.size(); ++i)
-    {
-        processVolumeWarpfield(myCiftiIn, direction, volList[i], myVolMethod, myCiftiOut, voldilatemm, warpfield);
+        for (int i = 0; i < (int)volList.size(); ++i)
+        {
+            processVolumeWarpfield(myCiftiIn, direction, volList[i], myVolMethod, myCiftiOut, voldilatemm, warpfield);
+        }
+    } else {//avoid cifti separate/replace with ALONG_ROW
+        vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
+        int numSurfStructs = (int)surfList.size(), numVolStructs = (int)volList.size();
+        vector<int> unassignedLabelKey;
+        if (myInputXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
+        {
+            const CiftiLabelsMap& myLabelMap = myInputXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
+            unassignedLabelKey.resize(myLabelMap.getLength());
+            for (int i = 0; i < myLabelMap.getLength(); ++i)
+            {
+                unassignedLabelKey[i] = myLabelMap.getMapLabelTable(i)->getUnassignedLabelKey();
+            }
+        }
+        map<StructureEnum::Enum, ResampleCache> surfCache, volCache;//could make them different types, but whatever - two variables in case of structure overlap in surface and volume, as some members may get used by both
+        setupRowResampling(surfCache, volCache, myCiftiIn, myCiftiOut, mySurfMethod, voldilatemm,
+                           curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                           curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                           curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
+        int64_t numRows = myInputXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
+        vector<float> inRow(myInputXML.getDimensionLength(CiftiXML::ALONG_ROW)), outRow(myOutXML.getDimensionLength(CiftiXML::ALONG_ROW));
+        for (int64_t row = 0; row < numRows; ++row)
+        {
+            myCiftiIn->getRow(inRow.data(), row);
+            for (int i = 0; i < numSurfStructs; ++i)
+            {
+                map<StructureEnum::Enum, ResampleCache>::iterator iter = surfCache.find(surfList[i]);
+                CaretAssert(iter != surfCache.end());
+                processRowSurface(iter->second, inRow, outRow, myInputXML, surfdilatemm, surfLargest, unassignedLabelKey[row], row);
+            }
+            for (int i = 0; i < numVolStructs; ++i)
+            {
+                map<StructureEnum::Enum, ResampleCache>::iterator iter = volCache.find(volList[i]);
+                CaretAssert(iter != volCache.end());
+                ResampleCache& myCache = iter->second;
+                int inMapSize = (int)myCache.inVolMap.size(), outMapSize = (int)myCache.outVolMap.size();
+                for (int j = 0; j < inMapSize; ++j)
+                {
+                    myCache.tempVol1->setValue(inRow[myCache.inVolMap[j].m_ciftiIndex], myCache.inVolMap[j].m_ijk[0] - myCache.inOffset[0],
+                                               myCache.inVolMap[j].m_ijk[1] - myCache.inOffset[1],
+                                               myCache.inVolMap[j].m_ijk[2] - myCache.inOffset[2]);
+                }
+                const VolumeFile* toResample = myCache.tempVol1;
+                if (voldilatemm > 0.0f)
+                {
+                    myCache.volPadding.doPadding(myCache.tempVol1, myCache.tempVol2);
+                    AlgorithmVolumeDilate(NULL, myCache.tempVol2, voldilatemm, AlgorithmVolumeDilate::NEAREST, myCache.tempVol3, myCache.volDilateRoi);
+                    toResample = myCache.tempVol3;
+                }
+                AlgorithmVolumeWarpfieldResample(NULL, toResample, warpfield, myCache.refDims, myCache.refSform, myVolMethod, myCache.tempVol2);
+                for (int j = 0; j < outMapSize; ++j)
+                {
+                    outRow[myCache.outVolMap[j].m_ciftiIndex] = myCache.tempVol2->getValue(myCache.outVolMap[j].m_ijk[0] - myCache.refOffset[0],
+                                                                                           myCache.outVolMap[j].m_ijk[1] - myCache.refOffset[1],
+                                                                                           myCache.outVolMap[j].m_ijk[2] - myCache.refOffset[2]);
+                }
+            }
+            myCiftiOut->setRow(outRow.data(), row);
+        }
     }
 }
 
@@ -495,39 +767,100 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
     vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     myCiftiOut->setCiftiXML(myOutXML);
-    for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
+    if (direction == CiftiXML::ALONG_COLUMN)
     {
-        const SurfaceFile* curSphere = NULL, *newSphere = NULL;
-        const MetricFile* curAreas = NULL, *newAreas = NULL;
-        switch (surfList[i])
+        for (int i = 0; i < (int)surfList.size(); ++i)//and now, resampling
         {
-            case StructureEnum::CORTEX_LEFT:
-                curSphere = curLeftSphere;
-                newSphere = newLeftSphere;
-                curAreas = curLeftAreas;
-                newAreas = newLeftAreas;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                curSphere = curRightSphere;
-                newSphere = newRightSphere;
-                curAreas = curRightAreas;
-                newAreas = newRightAreas;
-                break;
-            case StructureEnum::CEREBELLUM:
-                curSphere = curCerebSphere;
-                newSphere = newCerebSphere;
-                curAreas = curCerebAreas;
-                newAreas = newCerebAreas;
-                break;
-            default:
-                throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
-                break;
+            const SurfaceFile* curSphere = NULL, *newSphere = NULL;
+            const MetricFile* curAreas = NULL, *newAreas = NULL;
+            switch (surfList[i])
+            {
+                case StructureEnum::CORTEX_LEFT:
+                    curSphere = curLeftSphere;
+                    newSphere = newLeftSphere;
+                    curAreas = curLeftAreas;
+                    newAreas = newLeftAreas;
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    curSphere = curRightSphere;
+                    newSphere = newRightSphere;
+                    curAreas = curRightAreas;
+                    newAreas = newRightAreas;
+                    break;
+                case StructureEnum::CEREBELLUM:
+                    curSphere = curCerebSphere;
+                    newSphere = newCerebSphere;
+                    curAreas = curCerebAreas;
+                    newAreas = newCerebAreas;
+                    break;
+                default:
+                    throw AlgorithmException("unsupported surface structure: " + StructureEnum::toGuiName(surfList[i]));
+                    break;
+            }
+            processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curAreas, newAreas);
         }
-        processSurfaceComponent(myCiftiIn, direction, surfList[i], mySurfMethod, myCiftiOut, surfLargest, surfdilatemm, curSphere, newSphere, curAreas, newAreas);
-    }
-    for (int i = 0; i < (int)volList.size(); ++i)
-    {
-        processVolumeAffine(myCiftiIn, direction, volList[i], myVolMethod, myCiftiOut, voldilatemm, affine);
+        for (int i = 0; i < (int)volList.size(); ++i)
+        {
+            processVolumeAffine(myCiftiIn, direction, volList[i], myVolMethod, myCiftiOut, voldilatemm, affine);
+        }
+    } else {//avoid cifti separate/replace with ALONG_ROW
+        vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
+        int numSurfStructs = (int)surfList.size(), numVolStructs = (int)volList.size();
+        vector<int> unassignedLabelKey;
+        if (myInputXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS)
+        {
+            const CiftiLabelsMap& myLabelMap = myInputXML.getLabelsMap(CiftiXML::ALONG_COLUMN);
+            unassignedLabelKey.resize(myLabelMap.getLength());
+            for (int i = 0; i < myLabelMap.getLength(); ++i)
+            {
+                unassignedLabelKey[i] = myLabelMap.getMapLabelTable(i)->getUnassignedLabelKey();
+            }
+        }
+        map<StructureEnum::Enum, ResampleCache> surfCache, volCache;//could make them different types, but whatever - two variables in case of structure overlap in surface and volume, as some members may get used by both
+        setupRowResampling(surfCache, volCache, myCiftiIn, myCiftiOut, mySurfMethod, voldilatemm,
+                           curLeftSphere, newLeftSphere, curLeftAreas, newLeftAreas,
+                           curRightSphere, newRightSphere, curRightAreas, newRightAreas,
+                           curCerebSphere, newCerebSphere, curCerebAreas, newCerebAreas);
+        int64_t numRows = myInputXML.getDimensionLength(CiftiXML::ALONG_COLUMN);
+        vector<float> inRow(myInputXML.getDimensionLength(CiftiXML::ALONG_ROW)), outRow(myOutXML.getDimensionLength(CiftiXML::ALONG_ROW));
+        for (int64_t row = 0; row < numRows; ++row)
+        {
+            myCiftiIn->getRow(inRow.data(), row);
+            for (int i = 0; i < numSurfStructs; ++i)
+            {
+                map<StructureEnum::Enum, ResampleCache>::iterator iter = surfCache.find(surfList[i]);
+                CaretAssert(iter != surfCache.end());
+                processRowSurface(iter->second, inRow, outRow, myInputXML, surfdilatemm, surfLargest, unassignedLabelKey[row], row);
+            }
+            for (int i = 0; i < numVolStructs; ++i)
+            {
+                map<StructureEnum::Enum, ResampleCache>::iterator iter = volCache.find(volList[i]);
+                CaretAssert(iter != volCache.end());
+                ResampleCache& myCache = iter->second;
+                int inMapSize = (int)myCache.inVolMap.size(), outMapSize = (int)myCache.outVolMap.size();
+                for (int j = 0; j < inMapSize; ++j)
+                {
+                    myCache.tempVol1->setValue(inRow[myCache.inVolMap[j].m_ciftiIndex], myCache.inVolMap[j].m_ijk[0] - myCache.inOffset[0],
+                                               myCache.inVolMap[j].m_ijk[1] - myCache.inOffset[1],
+                                               myCache.inVolMap[j].m_ijk[2] - myCache.inOffset[2]);
+                }
+                const VolumeFile* toResample = myCache.tempVol1;
+                if (voldilatemm > 0.0f)
+                {
+                    myCache.volPadding.doPadding(myCache.tempVol1, myCache.tempVol2);
+                    AlgorithmVolumeDilate(NULL, myCache.tempVol2, voldilatemm, AlgorithmVolumeDilate::NEAREST, myCache.tempVol3, myCache.volDilateRoi);
+                    toResample = myCache.tempVol3;
+                }
+                AlgorithmVolumeAffineResample(NULL, toResample, affine, myCache.refDims, myCache.refSform, myVolMethod, myCache.tempVol2);
+                for (int j = 0; j < outMapSize; ++j)
+                {
+                    outRow[myCache.outVolMap[j].m_ciftiIndex] = myCache.tempVol2->getValue(myCache.outVolMap[j].m_ijk[0] - myCache.refOffset[0],
+                                                                                           myCache.outVolMap[j].m_ijk[1] - myCache.refOffset[1],
+                                                                                           myCache.outVolMap[j].m_ijk[2] - myCache.refOffset[2]);
+                }
+            }
+            myCiftiOut->setRow(outRow.data(), row);
+        }
     }
 }
 
