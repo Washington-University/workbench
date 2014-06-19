@@ -152,7 +152,9 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
     
     const int32_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
     for (int32_t i = 0; i < numberOfDataArrays; i++) {
-        this->columnDataPointers.push_back(this->giftiFile->getDataArray(i)->getDataPointerInt());
+        int32_t* tempPointer = this->giftiFile->getDataArray(i)->getDataPointerInt();
+        if (tempPointer == NULL) throw DataFileException("found non-integer data array in label file '" + getFileName() + "'");
+        this->columnDataPointers.push_back(tempPointer);
     }
     
     validateKeysAndLabels();
