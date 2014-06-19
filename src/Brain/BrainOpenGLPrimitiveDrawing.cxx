@@ -107,26 +107,55 @@ BrainOpenGLPrimitiveDrawing::drawQuads(const std::vector<float>& coordinates,
         return;
     }
     
-    bool wasDrawnWithVertexBuffers = false;
+    /*
+     * Use the number of voxels in a 300 x 300 slice as
+     * as the most maximum number of voxels to draw in
+     * in one call to OpenGL drawing.
+     */
+    const int64_t maximumCoordinatesToDraw = 300 * 300 * 4;
+    CaretAssert(maximumCoordinatesToDraw == ((maximumCoordinatesToDraw / 4) * 4));
+        //std::cout << "Max vertices to draw: " << maximumCoordinatesToDraw << std::endl;
+        int64_t coordinateOffset = 0;
+        bool done = false;
+        while ( ! done) {
+            const int64_t coordinateToDrawCount = std::min(int64_t(numCoords - coordinateOffset),
+                                           maximumCoordinatesToDraw);
+            if (coordinateToDrawCount > 0) {
+                //std::cout << "Drawing offset " << coordinateOffset << " count " << coordinateToDrawCount << std::endl;
+                bool wasDrawnWithVertexBuffers = false;
 #ifdef BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    if (BrainOpenGL::getBestDrawingMode() == BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS) {
-        drawQuadsVertexBuffers(coordinates,
-                               normals,
-                               rgbaColors);
-        wasDrawnWithVertexBuffers = true;
-    }
+                if (BrainOpenGL::getBestDrawingMode() == BrainOpenGL::DRAW_MODE_VERTEX_BUFFERS) {
+                    CaretAssertMessage(0, "See John Harwell");
+                    drawQuadsVertexBuffers(coordinates,
+                                           normals,
+                                           rgbaColors,
+                                           coordinateOffset,
+                                           coordinateToDrawCount);
+                    
+                    wasDrawnWithVertexBuffers = true;
+                }
 #endif // BRAIN_OPENGL_INFO_SUPPORTS_VERTEX_BUFFERS
-    
-    
-    if ( ! wasDrawnWithVertexBuffers) {
-        
-        drawQuadsVertexArrays(coordinates,
-                              normals,
-                              rgbaColors);
-        //    drawQuadsImmediateMode(coordinates,
-        //                           normals,
-        //                           rgbaColors);
-    }
+                
+                
+                if ( ! wasDrawnWithVertexBuffers) {
+                    drawQuadsVertexArrays(coordinates,
+                                          normals,
+                                          rgbaColors,
+                                          coordinateOffset,
+                                          coordinateToDrawCount);
+                    
+//                    drawQuadsImmediateMode(coordinates,
+//                                           normals,
+//                                           rgbaColors,
+//                                           coordinateOffset,
+//                                           coordinateToDrawCount);
+                }
+                coordinateOffset += maximumCoordinatesToDraw;
+            }
+            else {
+                done = true;
+            }
+        }
 }
 
 /**
@@ -142,46 +171,68 @@ BrainOpenGLPrimitiveDrawing::drawQuads(const std::vector<float>& coordinates,
 void
 BrainOpenGLPrimitiveDrawing::drawQuadsImmediateMode(const std::vector<float>& coordinates,
                                                           const std::vector<float>& normals,
-                                                          const std::vector<uint8_t>& rgbaColors)
+                                                    const std::vector<uint8_t>& rgbaColors,
+                                                    const int64_t coordinateOffset,
+                                                    const int64_t coordinateCount)
 {
-    const uint64_t numCoords  = coordinates.size() / 3;
-    const uint64_t numQuads = numCoords / 4;  // 4 three-d coords per quad
+//    const uint64_t numCoords  = coordinates.size() / 3;
+//    const uint64_t numQuads = numCoords / 4;  // 4 three-d coords per quad
     
     const float* coordPtr = &coordinates[0];
     const float* normalPtr = &normals[0];
     const uint8_t* colorPtr = &rgbaColors[0];
     
+    CaretAssertVectorIndex(coordinates, ((coordinateOffset * 3)
+                                         + (coordinateCount * 3) - 1));
+    CaretAssertVectorIndex(normals, ((coordinateOffset * 3)
+                                     + (coordinateCount * 3) - 1));
+    CaretAssertVectorIndex(rgbaColors, ((coordinateOffset * 4)
+                                        + (coordinateCount * 4) - 1));
+    
     glBegin(GL_QUADS);
-    uint64_t iColor = 0;
-    uint64_t iNormal = 0;
-    for (uint64_t i = 0; i < numQuads; i++) {
-        const uint64_t iCoord = i * 12;
-        
+    uint64_t iColor  = coordinateOffset * 4;
+    uint64_t iNormal = coordinateOffset * 3;
+    uint64_t iCoord  = coordinateOffset * 3;
+    for (int64_t i = 0; i < coordinateCount; i++) {
         glNormal3fv(&normalPtr[iNormal]);
         iNormal += 3;
         glColor4ubv(&colorPtr[iColor]);
         iColor += 4;
         glVertex3fv(&coordPtr[iCoord]);
-        
-        glNormal3fv(&normalPtr[iNormal]);
-        iNormal += 3;
-        glColor4ubv(&colorPtr[iColor]);
-        iColor += 4;
-        glVertex3fv(&coordPtr[iCoord+3]);
-        
-        glNormal3fv(&normalPtr[iNormal]);
-        iNormal += 3;
-        glColor4ubv(&colorPtr[iColor]);
-        iColor += 4;
-        glVertex3fv(&coordPtr[iCoord+6]);
-        
-        glNormal3fv(&normalPtr[iNormal]);
-        iNormal += 3;
-        glColor4ubv(&colorPtr[iColor]);
-        iColor += 4;
-        glVertex3fv(&coordPtr[iCoord+9]);
+        iCoord += 3;
     }
+    
     glEnd();
+//    for (uint64_t i = 0; i < numQuads; i++) {
+//        glNormal3fv(&normalPtr[iNormal]);
+//        iNormal += 3;
+//        glColor4ubv(&colorPtr[iColor]);
+//        iColor += 4;
+//        glVertex3fv(&coordPtr[iCoord]);
+//        iCoord += 3;
+//        
+//        glNormal3fv(&normalPtr[iNormal]);
+//        iNormal += 3;
+//        glColor4ubv(&colorPtr[iColor]);
+//        iColor += 4;
+//        glVertex3fv(&coordPtr[iCoord]);
+//        iCoord += 3;
+//        
+//        glNormal3fv(&normalPtr[iNormal]);
+//        iNormal += 3;
+//        glColor4ubv(&colorPtr[iColor]);
+//        iColor += 4;
+//        glVertex3fv(&coordPtr[iCoord]);
+//        iCoord += 3;
+//        
+//        glNormal3fv(&normalPtr[iNormal]);
+//        iNormal += 3;
+//        glColor4ubv(&colorPtr[iColor]);
+//        iColor += 4;
+//        glVertex3fv(&coordPtr[iCoord]);
+//        iCoord += 3;
+//    }
+//    glEnd();
     
 }
 
@@ -198,7 +249,9 @@ BrainOpenGLPrimitiveDrawing::drawQuadsImmediateMode(const std::vector<float>& co
 void
 BrainOpenGLPrimitiveDrawing::drawQuadsVertexArrays(const std::vector<float>& coordinates,
                                                          const std::vector<float>& normals,
-                                                         const std::vector<uint8_t>& rgbaColors)
+                                                   const std::vector<uint8_t>& rgbaColors,
+                                                   const int64_t coordinateOffset,
+                                                   const int64_t coordinateCount)
 {
     const uint64_t numCoords  = coordinates.size() / 3;
     
@@ -217,9 +270,37 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexArrays(const std::vector<float>& coo
                     0,
                     reinterpret_cast<const GLvoid*>(&normals[0]));
     
+//    const int64_t maxVertices = 1000;
+//    const int64_t numQuads = maxVertices / 4;
+//    CaretAssert(maxVertices == (numQuads * 4));
+//    if (numCoords > maxVertices) {
+//        std::cout << "Max vertices: " << maxVertices << std::endl;
+//        int64_t offset = 0;
+//        bool done = false;
+//        while ( ! done) {
+//            const int64_t count = std::min(int64_t(numCoords - offset),
+//                                           maxVertices);
+//            if (count > 0) {
+//                std::cout << "Drawing offset " << offset << " count " << count << std::endl;
+//                glDrawArrays(GL_QUADS,
+//                             offset,
+//                             count);
+//                offset += maxVertices;
+//            }
+//            else {
+//                done = true;
+//            }
+//        }
+//    }
+//    else {
+//        glDrawArrays(GL_QUADS,
+//                     0,
+//                     numCoords);
+//    }
+    
     glDrawArrays(GL_QUADS,
-                 0,
-                 numCoords);
+                 coordinateOffset,
+                 coordinateCount);
     
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
@@ -239,7 +320,9 @@ BrainOpenGLPrimitiveDrawing::drawQuadsVertexArrays(const std::vector<float>& coo
 void
 BrainOpenGLPrimitiveDrawing::drawQuadsVertexBuffers(const std::vector<float>& coordinates,
                                                           const std::vector<float>& normals,
-                                                          const std::vector<uint8_t>& rgbaColors)
+                                                    const std::vector<uint8_t>& rgbaColors,
+                                                    const int64_t coordinateOffset,
+                                                    const int64_t coordinateCount)
 {
     const uint64_t numCoords  = coordinates.size() / 3;
     

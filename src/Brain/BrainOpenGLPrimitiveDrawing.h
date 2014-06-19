@@ -46,15 +46,21 @@ namespace caret {
         
         static void drawQuadsImmediateMode(const std::vector<float>& coordinates,
                                     const std::vector<float>& normals,
-                                    const std::vector<uint8_t>& rgbaColors);
+                                    const std::vector<uint8_t>& rgbaColors,
+                                           const int64_t coordinateOffset,
+                                           const int64_t coordinateCount);
         
         static void drawQuadsVertexArrays(const std::vector<float>& coordinates,
                                    const std::vector<float>& normals,
-                                   const std::vector<uint8_t>& rgbaColors);
+                                          const std::vector<uint8_t>& rgbaColors,
+                                          const int64_t coordinateOffset,
+                                          const int64_t coordinateCount);
         
         static void drawQuadsVertexBuffers(const std::vector<float>& coordinates,
                                     const std::vector<float>& normals,
-                                    const std::vector<uint8_t>& rgbaColors);
+                                           const std::vector<uint8_t>& rgbaColors,
+                                           const int64_t coordinateOffset,
+                                           const int64_t coordinateCount);
         
     };
     
