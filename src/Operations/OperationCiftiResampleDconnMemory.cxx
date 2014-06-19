@@ -329,9 +329,7 @@ void OperationCiftiResampleDconnMemory::useParameters(OperationParameters* myPar
         throw OperationException(message);
     }
     CiftiFile tempCifti;
-    //TSC: resampling along row first causes it to reread the input file for each structure - however, the other way around -rewrites- the output file for each structure
-    //reads of static data can be cached - writes can't.  also, some storage architectures buffer writes onto flash, so more writes means shorter flash lifetime, and some use snapshots where temporary writes take more space...
-    //so, prefer multiple reads to multiple writes
+    //TSC: resampling along column first causes it to hit peak memory usage earlier
     if (warpfieldOpt->m_present)
     {
         AlgorithmCiftiResample(myProgObj, myCiftiIn, CiftiXML::ALONG_COLUMN, myTemplate, templateDir, mySurfMethod, myVolMethod, &tempCifti, surfLargest, voldilatemm, surfdilatemm, myWarpfield.getWarpfield(),

@@ -488,6 +488,7 @@ namespace _algorithm_cifti_resample
             if (curSphere == NULL)
             {
                 myCache.copyMode = true;
+                myCache.floatScratch1.resize(inModels.getSurfaceNumberOfNodes(surfList[i]), 0.0f);
                 continue;
             }
             myCache.copyMode = false;
