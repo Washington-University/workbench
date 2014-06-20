@@ -30,15 +30,11 @@ namespace caret {
     class ConnectivityDataLoaded;
     class SceneClassAssistant;
     
-    class CiftiMappableConnectivityMatrixDataFile : public CiftiMappableDataFile {
-        
+    class CiftiMappableConnectivityMatrixDataFile :
+    public CiftiMappableDataFile
+    {
     protected:
-        CiftiMappableConnectivityMatrixDataFile(const DataFileTypeEnum::Enum dataFileType,
-                                                const FileReading fileReading,
-                                                const IndicesMapToDataType rowIndexType,
-                                                const IndicesMapToDataType columnIndexType,
-                                                const DataAccess brainordinateMappedDataAccess,
-                                                const DataAccess seriesDataAccess);
+        CiftiMappableConnectivityMatrixDataFile(const DataFileTypeEnum::Enum dataFileType);
         
     public:
         virtual ~CiftiMappableConnectivityMatrixDataFile();
@@ -67,14 +63,6 @@ namespace caret {
 
         void loadDataForRowIndex(const int64_t rowIndex) throw (DataFileException);
                 
-//        bool getStructureAndNodeIndexFromRowIndex(const int64_t rowIndex,
-//                                                  StructureEnum::Enum& structureOut,
-//                                                  int64_t& nodeIndexOut) const;
-//
-//        bool getVoxelIndexAndCoordinateFromRowIndex(const int64_t rowIndex,
-//                                                    int64_t ijkOut[3],
-//                                                    float xyzOut[3]) const;
-        
         virtual void clear();
         
         virtual bool isEmpty() const;

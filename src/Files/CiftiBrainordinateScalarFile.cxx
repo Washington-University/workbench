@@ -29,7 +29,6 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "CiftiFile.h"
-#include "CiftiInterface.h"
 #include "CiftiXML.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -49,12 +48,7 @@ using namespace caret;
  * Constructor.
  */
 CiftiBrainordinateScalarFile::CiftiBrainordinateScalarFile()
-: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR,
-                        CiftiMappableDataFile::FILE_READ_DATA_ALL,
-                        CIFTI_INDEX_TYPE_SCALARS,
-                        CIFTI_INDEX_TYPE_BRAIN_MODELS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
+: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;
@@ -73,7 +67,7 @@ CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
  * Create a Cifti Scalar File using the currently loaded row in a Cifti 
  * connectivity matrix file.
  *
- * @param ciftiMatrixFile
+ * @param sourceCiftiMatrixFile
  *    Cifti connectivity matrix file.
  * @param errorMessageOut
  *    Will describe problem if there is an error.
@@ -82,27 +76,27 @@ CiftiBrainordinateScalarFile::~CiftiBrainordinateScalarFile()
  *    NULL will be returned and errorMessageOut will describe the problem.
  */
 CiftiBrainordinateScalarFile*
-CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* ciftiMatrixFile,
+CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* sourceCiftiMatrixFile,
                                                                               AString& errorMessageOut)
 {
     errorMessageOut.clear();
  
     const CiftiConnectivityMatrixDenseFile* denseFile =
-       dynamic_cast<const CiftiConnectivityMatrixDenseFile*>(ciftiMatrixFile);
+       dynamic_cast<const CiftiConnectivityMatrixDenseFile*>(sourceCiftiMatrixFile);
     if (denseFile == NULL) {
         errorMessageOut = "Only Cifti Dense Matrix Files are supported for conversion to Cifti Scalar Files.";
         return NULL;
     }
     
-    const CiftiInterface* ciftiMatrixInterface = ciftiMatrixFile->m_ciftiInterface;
+    const CiftiFile* sourceCiftiFile = sourceCiftiMatrixFile->m_ciftiFile.get();
     
-    if (ciftiMatrixFile->getNumberOfMaps() <= 0) {
+    if (sourceCiftiMatrixFile->getNumberOfMaps() <= 0) {
         errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (No Maps).";
         return NULL;
     }
     
     std::vector<float> data;
-    ciftiMatrixFile->getMapData(0, data);
+    sourceCiftiMatrixFile->getMapData(0, data);
     if (data.empty()) {
         errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (mapData empty).";
         return NULL;
@@ -113,7 +107,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
     try {
         CiftiFile* ciftiFile = new CiftiFile();
         
-        const CiftiXMLOld& ciftiMatrixXML = ciftiMatrixInterface->getCiftiXMLOld();
+        const CiftiXMLOld& ciftiMatrixXML = sourceCiftiFile->getCiftiXMLOld();
         
         /*
          * Copy XML from matrix file
@@ -124,7 +118,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
                                    ciftiMatrixXML,
                                    CiftiXMLOld::ALONG_ROW);
         ciftiScalarXML.resetRowsToScalars(1);
-        AString mapName = ciftiMatrixFile->getMapName(0);
+        AString mapName = sourceCiftiMatrixFile->getMapName(0);
         ciftiScalarXML.setMapNameForRowIndex(0, mapName);
         ciftiFile->setCiftiXML(ciftiScalarXML);
         
@@ -142,16 +136,16 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         /*
          * Create name of scalar file
          */
-        AString newFileName = ciftiMatrixFile->getFileNameNoExtension();
+        AString newFileName = sourceCiftiMatrixFile->getFileNameNoExtension();
         newFileName.append("_");
-        newFileName.append(ciftiMatrixFile->getRowLoadedText());
+        newFileName.append(sourceCiftiMatrixFile->getRowLoadedText());
         newFileName.append(".");
         newFileName.append(DataFileTypeEnum::toFileExtension(scalarFile->getDataFileType()));
         
         /*
          * Add the CiftiFile to the Scalar file
          */
-        scalarFile->initializeFromCiftiInterface(ciftiFile, newFileName);
+        scalarFile->initializeAfterReading(newFileName);
         scalarFile->setModified();
         
         return scalarFile;

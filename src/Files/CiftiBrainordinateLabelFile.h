@@ -27,7 +27,8 @@
 
 namespace caret {
 
-    class CiftiBrainordinateLabelFile : public CiftiMappableDataFile {
+    class CiftiBrainordinateLabelFile :
+    public CiftiMappableDataFile {
         
     public:
         CiftiBrainordinateLabelFile();

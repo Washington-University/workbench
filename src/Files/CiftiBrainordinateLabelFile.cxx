@@ -23,7 +23,7 @@
 #include "CiftiBrainordinateLabelFile.h"
 #undef __CIFTI_BRAINORDINATE_LABEL_FILE_DECLARE__
 
-#include "CiftiFacade.h"
+#include "CiftiFile.h"
 
 using namespace caret;
 
@@ -39,12 +39,7 @@ using namespace caret;
  * Constructor.
  */
 CiftiBrainordinateLabelFile::CiftiBrainordinateLabelFile()
-: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
-                        CiftiMappableDataFile::FILE_READ_DATA_ALL,
-                        CIFTI_INDEX_TYPE_LABELS,
-                        CIFTI_INDEX_TYPE_BRAIN_MODELS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
+: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL)
 {
     
 }
@@ -78,15 +73,17 @@ CiftiBrainordinateLabelFile::getNodeIndicesWithLabelKey(const StructureEnum::Enu
                                 std::vector<int32_t>& nodeIndicesOut) const
 {
     nodeIndicesOut.clear();
-    const std::vector<int64_t>* dataIndices = m_ciftiFacade->getSurfaceDataIndicesForMappingToBrainordinates(structure,
-                                                                   surfaceNumberOfNodes);
-    if (dataIndices != NULL) {
+    std::vector<int64_t> dataIndices;
+    
+    if (getSurfaceDataIndicesForMappingToBrainordinates(structure,
+                                                                   surfaceNumberOfNodes,
+                                                        dataIndices)) {
         std::vector<float> mapData;
         getMapData(mapIndex,
                    mapData);
         
         for (int32_t i = 0; i < surfaceNumberOfNodes; i++) {
-            const int64_t dataIndex = (*dataIndices)[i];
+            const int64_t dataIndex = dataIndices[i];
             if (dataIndex >= 0) {
                 CaretAssertVectorIndex(mapData, dataIndex);
                 const int32_t dataKey = static_cast<int32_t>(mapData[dataIndex]);
@@ -115,20 +112,17 @@ CiftiBrainordinateLabelFile::getVoxelIndicesWithLabelKey(const int32_t mapIndex,
 {
     voxelIndicesOut.clear();
     
-    const std::vector<CiftiBrainModelsMap::VolumeMap>* volumeMapsPointer = m_ciftiFacade->getVolumeMapForMappingDataToBrainordinates();
-    if (volumeMapsPointer == NULL) {
+    std::vector<CiftiBrainModelsMap::VolumeMap> volumeMaps;
+    if ( ! m_ciftiFile->getVolumeMapForColumns(volumeMaps)) {
         return;
     }
-    const std::vector<CiftiBrainModelsMap::VolumeMap>& volumeMaps = *volumeMapsPointer;
+    
     
     std::vector<float> mapData;
     getMapData(mapIndex,
                mapData);
     
-    for (std::vector<CiftiBrainModelsMap::VolumeMap>::const_iterator iter = volumeMaps.begin();
-         iter != volumeMaps.end();
-         iter++) {
-        const CiftiBrainModelsMap::VolumeMap& vm = *iter;
+    for (auto vm : volumeMaps) {
         const int64_t dataOffset = vm.m_ciftiIndex;
         
         CaretAssertVectorIndex(mapData, dataOffset);

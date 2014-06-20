@@ -30,7 +30,9 @@ namespace caret {
 
     class CiftiMappableConnectivityMatrixDataFile;
     
-    class CiftiBrainordinateScalarFile : public CiftiMappableDataFile, public ChartableBrainordinateInterface {
+    class CiftiBrainordinateScalarFile :
+    public CiftiMappableDataFile,
+    public ChartableBrainordinateInterface {
     
     public:
         CiftiBrainordinateScalarFile();

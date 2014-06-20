@@ -31,8 +31,8 @@ namespace caret {
 
     class SceneClassAssistant;
     
-    class CiftiParcelScalarFile
-    : public CiftiMappableDataFile,
+    class CiftiParcelScalarFile : 
+    public CiftiMappableDataFile,
     public ChartableBrainordinateInterface,
     public ChartableMatrixInterface {
     

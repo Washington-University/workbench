@@ -76,7 +76,6 @@ LabelDrawingTypeEnum.h
 LabelFile.h
 MetricFile.h
 MetricSmoothingObject.h
-NewCiftiMappableDataFile.h
 NodeAndVoxelColoring.h
 OxfordSparseThreeFile.h
 PaletteFile.h
@@ -170,7 +169,6 @@ LabelDrawingTypeEnum.cxx
 LabelFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
-NewCiftiMappableDataFile.cxx
 NodeAndVoxelColoring.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx

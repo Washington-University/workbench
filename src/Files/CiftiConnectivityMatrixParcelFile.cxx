@@ -25,8 +25,7 @@
 
 #include "CaretLogger.h"
 #include "ChartMatrixDisplayProperties.h"
-#include "CiftiFacade.h"
-#include "CiftiInterface.h"
+#include "CiftiFile.h"
 #include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
@@ -54,12 +53,16 @@ using namespace caret;
  * Constructor.
  */
 CiftiConnectivityMatrixParcelFile::CiftiConnectivityMatrixParcelFile()
+#ifdef WORKBENCH_HAVE_C11X
+: CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL)
+#else // WORKBENCH_HAVE_C11X
 : CiftiMappableConnectivityMatrixDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL,
                                           CiftiMappableDataFile::FILE_READ_DATA_ALL,
                                           CIFTI_INDEX_TYPE_PARCELS,
                                           CIFTI_INDEX_TYPE_PARCELS,
                                           CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS,
                                           CiftiMappableDataFile::DATA_ACCESS_INVALID)
+#endif // WORKBENCH_HAVE_C11X
 /*,ChartableBrainordinateInterface()*/
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -137,10 +140,10 @@ CiftiConnectivityMatrixParcelFile::getMatrixCellAttributes(const int32_t rowInde
                                                            AString& columnNameOut) const
 {
     if ((rowIndex >= 0)
-        && (rowIndex < m_ciftiFacade->getNumberOfRows())
+        && (rowIndex < m_ciftiFile->getNumberOfRows())
         && (columnIndex >= 0)
-        && (columnIndex < m_ciftiFacade->getNumberOfColumns())) {
-        const CiftiXML& xml = m_ciftiInterface->getCiftiXML();
+        && (columnIndex < m_ciftiFile->getNumberOfColumns())) {
+        const CiftiXML& xml = m_ciftiFile->getCiftiXML();
         
         const std::vector<CiftiParcelsMap::Parcel>& rowsParcelsMap = xml.getParcelsMap(CiftiXML::ALONG_COLUMN).getParcels();
         CaretAssertVectorIndex(rowsParcelsMap, rowIndex);
@@ -150,9 +153,9 @@ CiftiConnectivityMatrixParcelFile::getMatrixCellAttributes(const int32_t rowInde
         CaretAssertVectorIndex(columnsParcelsMap, columnIndex);
         columnNameOut = columnsParcelsMap[columnIndex].m_name;
         
-        const int32_t numberOfElementsInRow = m_ciftiInterface->getNumberOfColumns();
+        const int32_t numberOfElementsInRow = m_ciftiFile->getNumberOfColumns();
         std::vector<float> rowData(numberOfElementsInRow);
-        m_ciftiInterface->getRow(&rowData[0],
+        m_ciftiFile->getRow(&rowData[0],
                                  rowIndex);
         CaretAssertVectorIndex(rowData, columnIndex);
         cellValueOut = rowData[columnIndex];

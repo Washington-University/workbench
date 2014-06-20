@@ -22,16 +22,16 @@
 #include <map>
 #include <set>
 
+#include <QDir>
+
 #define __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__
 #include "CiftiFiberTrajectoryFile.h"
 #undef __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__
 
 #include "CaretAssert.h"
-#include "CiftiFacade.h"
 #include "CaretLogger.h"
 #include "CaretSparseFile.h"
 #include "CiftiFiberOrientationFile.h"
-#include "CiftiInterface.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"

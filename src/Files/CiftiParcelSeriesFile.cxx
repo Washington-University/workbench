@@ -42,12 +42,7 @@ using namespace caret;
  * Constructor.
  */
 CiftiParcelSeriesFile::CiftiParcelSeriesFile()
-: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES,
-                        CiftiMappableDataFile::FILE_READ_DATA_ALL,
-                        CIFTI_INDEX_TYPE_TIME_POINTS,
-                        CIFTI_INDEX_TYPE_PARCELS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_COLUMN_METHODS,
-                        CiftiMappableDataFile::DATA_ACCESS_WITH_ROW_METHODS)
+: CiftiMappableDataFile(DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_chartingEnabledForTab[i] = false;

@@ -1435,6 +1435,7 @@ Brain::validateCiftiMappableDataFile(const CiftiMappableDataFile* ciftiMapFile) 
     }
 }
 
+
 /**
  * Read a connectivity matrix dense file.
  *
