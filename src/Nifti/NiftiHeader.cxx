@@ -522,7 +522,7 @@ void NiftiHeader::setupFrom(const nifti_1_header& header)
     }
     if (header.vox_offset < 352) throw DataFileException("incorrect vox_offset");
     int numBits = typeToNumBits(header.datatype);
-    if (header.bitpix != numBits) throw DataFileException("datatype disagrees with bitpix");
+    if (header.bitpix != numBits) CaretLogWarning("datatype disagrees with bitpix");
     m_header.sizeof_hdr = header.sizeof_hdr;//copy in everything, so we don't have to fake anything to print the header as read
     for (int i = 0; i < 4; ++i)//mostly using nifti-2 field order to make it easier to find if things are missed
     {
@@ -581,7 +581,7 @@ void NiftiHeader::setupFrom(const nifti_2_header& header)
         if (header.dim[i + 1] < 1) throw DataFileException("dim[" + QString::number(i + 1) + "] < 1");
     }
     if (header.vox_offset < 352) throw DataFileException("incorrect vox_offset");
-    if (header.bitpix != typeToNumBits(header.datatype)) throw DataFileException("datatype disagrees with bitpix");
+    if (header.bitpix != typeToNumBits(header.datatype)) CaretLogWarning("datatype disagrees with bitpix");
     memcpy(&m_header, &header, sizeof(nifti_2_header));
 }
 
