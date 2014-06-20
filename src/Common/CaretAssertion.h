@@ -54,6 +54,12 @@ public:
                              const char* filename,
                              const int64_t lineNumber);
     
+    static void assertToDoWarning(const char* filename,
+                                  const int64_t lineNumber);
+    
+    static void assertToDoFatal(const char* filename,
+                                  const int64_t lineNumber);
+    
     static void assertArrayIndexFailed(const char* arrayName,
                                        const int64_t arrayNumberOfElements,
                                        const int64_t arrayIndex,

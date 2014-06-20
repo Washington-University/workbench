@@ -28,6 +28,7 @@
 #ifdef NDEBUG
 
     #define CaretAssert(e) ((void)0)
+    #define CaretAssertToDo(e) ((void)0)
     #define CaretAssertMessage(e, m) ((void)0)
     #define CaretAssertArrayIndex(a, n, i) ((void) 0)
     #define CaretAssertVectorIndex(v, i) ((void) 0)
@@ -47,22 +48,55 @@
          (((e) == 0)  \
              ? caret::CaretAssertion::assertFailed(#e, __FILE__, __LINE__) \
              : (void)0)
-/**
- * \def CaretAssertMessage
- *
- * If the expression evaluates to zero, a message is printed
- * showing the file its line number.  The users message is
- * then printed.  A call stack may also
- * be printed.   Lastly, abort() is called.
- * @param e
- *    Expression that is tested.
- * @param m 
- *    Message that is printed.
- */
-    #define CaretAssertMessage(e, m) \
-         (((e) == 0)  \
-             ? caret::CaretAssertion::assertFailed(#e, AString(m), __FILE__, __LINE__) \
-             : (void)0)
+
+    /**
+     * \def CaretAssertToDoWarning
+     *
+     * Its purpose is to add "easy to find" reminders in the code
+     * for items that will function without crashing but still
+     * need some additional work.  It is expected
+     * CaretAssertToDoWarning will rarely, if ever, be in code that
+     * is pushed to the main repository.
+     *
+     * A message is printed showing the file and its line number.  
+     * A call stack may also be printed.   Does not call abort().
+     */
+    #define CaretAssertToDoWarning() \
+        caret::CaretAssertion::assertToDoWarning(__FILE__, __LINE__)
+                                                
+    /**
+     * \def CaretAssertToDoFatal
+     *
+     * Its purpose is to add "easy to find" reminders in the code
+     * for items that are unlikely to be encountered and that
+     * will likely crash or cause significant errors
+     * in the functionality.  It is expected
+     * CaretAssertToDoFatal will rarely, if ever, be in code that
+     * is pushed to the main repository.
+     *
+     * A message is printed showing the file and its line number.
+     * A call stack may also be printed.   WILL CALL abort()
+     * and terminate execution.
+     */
+    #define CaretAssertToDoFatal() \
+       caret::CaretAssertion::assertToDoFatal(__FILE__, __LINE__)
+
+    /**
+     * \def CaretAssertMessage
+     *
+     * If the expression evaluates to zero, a message is printed
+     * showing the file its line number.  The users message is
+     * then printed.  A call stack may also
+     * be printed.   Lastly, abort() is called.
+     * @param e
+     *    Expression that is tested.
+     * @param m 
+     *    Message that is printed.
+     */
+        #define CaretAssertMessage(e, m) \
+             (((e) == 0)  \
+                 ? caret::CaretAssertion::assertFailed(#e, AString(m), __FILE__, __LINE__) \
+                 : (void)0)
 
 /**
  * \def CaretAssertArrayIndex

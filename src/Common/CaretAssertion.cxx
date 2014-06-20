@@ -62,6 +62,89 @@ CaretAssertion::assertFailed(const char* expression,
 }
 
 /**
+ * Called for a CaretAssertToDoWarning()
+ *
+ * The following events will occur:
+ * Prints the name of
+ * file, and the line number in the file.  If
+ * a callstack (backtrace) is available, it will
+ * also be printed.  DOES NOT call abort.
+ *
+ *
+ * @param filename
+ *    Name of file in which assertion failed.
+ * @param lineNumber
+ *    Line number where assertion failed.
+ */
+void
+CaretAssertion::assertToDoWarning(const char* filename,
+                                  const int64_t lineNumber)
+{
+    std::cerr \
+    << "CaretAssertToDo WARNING"
+    << std::endl
+    << "File: "
+    << filename
+    << std::endl
+    << "Line number: "
+    << lineNumber
+    << std::endl
+    << std::endl;
+
+    const AString s = SystemUtilities::getBackTrace();
+    if (s.isEmpty() == false) {
+        std::cerr
+        << s
+        << std::endl
+        << std::endl;
+    }
+    
+}
+
+/**
+ * Called for a CaretAssertToDoFatal()
+ *
+ * The following events will occur:
+ * Prints the name of
+ * file, and the line number in the file.  If
+ * a callstack (backtrace) is available, it will
+ * also be printed.  Does call abort.
+ *
+ *
+ * @param filename
+ *    Name of file in which assertion failed.
+ * @param lineNumber
+ *    Line number where assertion failed.
+ */
+void
+CaretAssertion::assertToDoFatal(const char* filename,
+                                  const int64_t lineNumber)
+{
+    std::cerr \
+    << "CaretAssertToDo FATAL"
+    << std::endl
+    << "File: "
+    << filename
+    << std::endl
+    << "Line number: "
+    << lineNumber
+    << std::endl
+    << std::endl;
+
+    const AString s = SystemUtilities::getBackTrace();
+    if (s.isEmpty() == false) {
+        std::cerr
+        << s
+        << std::endl
+        << std::endl;
+    }
+    
+    if (CaretAssertion::unitTestFlag == false) {
+        std::abort();
+    }
+}
+
+/**
  * Called when an assertion has failed.
  * The following events will occur:
  * Prints the expression that failed, the name of
