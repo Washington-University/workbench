@@ -540,6 +540,7 @@ namespace _algorithm_cifti_resample
                 myCache.tempVol1.grabNew(new VolumeFile(inDims, sform, 1, SubvolumeAttributes::LABEL));
             } else {
                 myCache.tempVol1.grabNew(new VolumeFile(inDims, sform));
+                myCache.tempVol1->setValueAllVoxels(0.0f);
             }
             myCache.tempVol2.grabNew(new VolumeFile(inDims, sform));//temporarily use to make the dilation roi, if needed
             if (voldilatemm > 0.0f)
@@ -648,6 +649,7 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
     const CiftiXML& myInputXML = myCiftiIn->getCiftiXML();
     CiftiXML myOutXML = myInputXML;
     myOutXML.setMap(direction, *(myTemplate->getCiftiXML().getMap(templateDir)));
+    bool labelMode = (myInputXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::LABELS);
     const CiftiBrainModelsMap& outModels = myOutXML.getBrainModelsMap(direction);
     vector<StructureEnum::Enum> surfList = outModels.getSurfaceStructureList(), volList = outModels.getVolumeStructureList();
     myCiftiOut->setCiftiXML(myOutXML);
@@ -721,6 +723,10 @@ AlgorithmCiftiResample::AlgorithmCiftiResample(ProgressObject* myProgObj, const 
                 map<StructureEnum::Enum, ResampleCache>::iterator iter = volCache.find(volList[i]);
                 CaretAssert(iter != volCache.end());
                 ResampleCache& myCache = iter->second;
+                if (labelMode)//gets initialized to 0 when not using labels
+                {
+                    myCache.tempVol1->setValueAllVoxels(unassignedLabelKey[row]);
+                }
                 int inMapSize = (int)myCache.inVolMap.size(), outMapSize = (int)myCache.outVolMap.size();
                 for (int j = 0; j < inMapSize; ++j)
                 {
