@@ -24,6 +24,7 @@
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
+#include "AlgorithmBorderResample.h"
 #include "AlgorithmCiftiAllLabelsToROIs.h"
 #include "AlgorithmCiftiAverage.h"
 #include "AlgorithmCiftiAverageDenseROI.h"
@@ -236,6 +237,7 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmBorderResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAllLabelsToROIs()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiAverageDenseROI()));
