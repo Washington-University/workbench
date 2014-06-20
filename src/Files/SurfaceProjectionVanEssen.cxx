@@ -201,7 +201,7 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
         xyzOut[1] = (posPIS[1] + posPJS[1]) / 2.0f;
         xyzOut[2] = (posPIS[2] + posPJS[2]) / 2.0f;
         
-        if (unprojectWithOffsetFromSurface != 0.0) {
+        if (offsetFromSurface != 0.0) {
             const float* normalI = surfaceFile.getNormalVector(pis);
             const float* normalJ = surfaceFile.getNormalVector(pjs);
             
