@@ -233,7 +233,9 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
             
             const GiftiLabel* groupLabel = classLabelTable->getLabelBestMatching(theGroupName);
             if (groupLabel != NULL) {
-                groupItem->setIconColorRGBA(groupLabel->getColor());
+                float tempcolor[4];
+                groupLabel->getColor(tempcolor);
+                groupItem->setIconColorRGBA(tempcolor);
             }
             else {
                 groupItem->setIconColorRGBA(rgbaBlack);
@@ -247,7 +249,9 @@ GroupAndNameHierarchyModel::update(BorderFile* borderFile,
                                                                      ID_NOT_USED);
             const GiftiLabel* nameLabel = nameLabelTable->getLabelBestMatching(name);
             if (nameLabel != NULL) {
-                nameItem->setIconColorRGBA(nameLabel->getColor());
+                float tempcolor[4];
+                nameLabel->getColor(tempcolor);
+                nameItem->setIconColorRGBA(tempcolor);
             }
             else {
                 nameItem->setIconColorRGBA(rgbaBlack);
