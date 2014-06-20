@@ -35,7 +35,7 @@ AString AlgorithmVolumeAffineResample::getCommandSwitch()
 
 AString AlgorithmVolumeAffineResample::getShortDescription()
 {
-    return "APPLY AFFINE TRANSFORM TO VOLUME AND RESAMPLE";
+    return "RESAMPLE VOLUME USING AFFINE TRANSFORM";
 }
 
 OperationParameters* AlgorithmVolumeAffineResample::getParameters()
