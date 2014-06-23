@@ -200,8 +200,14 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
     clear();
     AString fileToRead;
     try {
+        /*
+         * CaretTemporaryFile must be outside of the "if" statment block of code.
+         * Otherwise, at the end of the "if" statement block, the 
+         * CaretTemporaryFile object will go out of scope and the temporary
+         * file will be deleted so there will be no file to read.
+         */
+        CaretTemporaryFile tempFile; 
         if (DataFile::isFileOnNetwork(filename)) {
-            CaretTemporaryFile tempFile;
             tempFile.readFile(filename);
             fileToRead = tempFile.getFileName();
             setFileName(filename);
