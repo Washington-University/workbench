@@ -107,19 +107,21 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
     try {
         CiftiFile* ciftiFile = new CiftiFile();
         
-        const CiftiXMLOld& ciftiMatrixXML = sourceCiftiFile->getCiftiXMLOld();
-        
         /*
          * Copy XML from matrix file
          * and update to be a scalar file.
          */
-        CiftiXMLOld ciftiScalarXML = ciftiMatrixXML;
-        ciftiScalarXML.copyMapping(CiftiXMLOld::ALONG_COLUMN,
-                                   ciftiMatrixXML,
-                                   CiftiXMLOld::ALONG_ROW);
-        ciftiScalarXML.resetRowsToScalars(1);
-        AString mapName = sourceCiftiMatrixFile->getMapName(0);
-        ciftiScalarXML.setMapNameForRowIndex(0, mapName);
+        const CiftiXML& ciftiMatrixXML = sourceCiftiFile->getCiftiXML();
+        CiftiXML ciftiScalarXML = ciftiMatrixXML;
+        CiftiBrainModelsMap brainModelsMap = ciftiMatrixXML.getBrainModelsMap(CiftiXML::ALONG_ROW);
+        CiftiScalarsMap scalarsMap;
+        scalarsMap.setLength(1);
+        scalarsMap.setMapName(0,
+                              sourceCiftiMatrixFile->getMapName(0));
+        ciftiScalarXML.setMap(CiftiXML::ALONG_ROW,
+                              scalarsMap);
+        ciftiScalarXML.setMap(CiftiXML::ALONG_COLUMN,
+                              brainModelsMap);
         ciftiFile->setCiftiXML(ciftiScalarXML);
         
         /*
@@ -132,6 +134,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
          * Create a scalar file
          */
         CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
+        scalarFile->m_ciftiFile.reset(ciftiFile);
 
         /*
          * Create name of scalar file
@@ -141,11 +144,12 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         newFileName.append(sourceCiftiMatrixFile->getRowLoadedText());
         newFileName.append(".");
         newFileName.append(DataFileTypeEnum::toFileExtension(scalarFile->getDataFileType()));
+        scalarFile->setFileName(newFileName);
         
         /*
          * Add the CiftiFile to the Scalar file
          */
-        scalarFile->initializeAfterReading(newFileName);
+        scalarFile->initializeAfterReading();
         scalarFile->setModified();
         
         return scalarFile;

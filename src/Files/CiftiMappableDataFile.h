@@ -142,7 +142,7 @@ namespace caret {
         
 //        virtual void setPreferOnDiskReading(const bool& prefer);
         
-        virtual void readFile(const AString& filename) throw (DataFileException);
+        virtual void readFile(const AString& ciftiMapFileName) throw (DataFileException);
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
@@ -422,6 +422,9 @@ namespace caret {
             /** Index of this map */
             const int32_t m_mapIndex;
             
+            /** Name of the map */
+            AString m_mapName;
+            
             /** Count of data elements in map. */
             int64_t m_dataCount = 0;
             
@@ -465,7 +468,7 @@ namespace caret {
         
         void clearPrivate();
         
-        void initializeAfterReading(const AString& filename) throw (DataFileException);
+        void initializeAfterReading() throw (DataFileException);
         
         static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         

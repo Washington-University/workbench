@@ -26,7 +26,6 @@
 #include "CaretAssert.h"
 #include "CiftiFile.h"
 #include "CaretLogger.h"
-#include "CiftiInterface.h"
 #include "ConnectivityDataLoaded.h"
 #include "EventManager.h"
 #include "EventProgressUpdate.h"

@@ -283,11 +283,20 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
         ciftiFile->setCiftiXML(myXML);
         
         /*
+         * Fill with zeros
+         */
+        std::vector<float> zeroData(numberOfNodes,
+                                    0.0);
+        ciftiFile->setColumn(&zeroData[0],
+                             0);
+        
+        /*
          * Add the CiftiFile to the Cifti Mappable File
          */
         const AString defaultFileName = ciftiMappableFile->getFileName();
         ciftiMappableFile->m_ciftiFile.reset(ciftiFile);
-        ciftiMappableFile->initializeAfterReading(defaultFileName);
+        ciftiMappableFile->setFileName(defaultFileName);
+        ciftiMappableFile->initializeAfterReading();
         ciftiMappableFile->setModified();
         
         return ciftiMappableFile;
@@ -446,13 +455,13 @@ CiftiMappableDataFile:: getFileMetaData() const
 /**
  * Read the file.
  *
- * @param filename
+ * @param ciftiMapFileName
  *    Name of the file to read.
  * @throw
  *    DataFileException if there is an error reading the file.
  */
 void
-CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileException)
+CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFileException)
 {
     clear();
 
@@ -460,7 +469,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         /*
          * Is the file on the network (name begins with http, ftp, etc.).
          */
-        if (DataFile::isFileOnNetwork(filename)) {
+        if (DataFile::isFileOnNetwork(ciftiMapFileName)) {
             /*
              * Data in Xnat does not end with a valid file extension
              * but ends with HTTP search parameters.  Thus, if the
@@ -468,15 +477,15 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
              * the data is in Xnat.
              */
             bool isValidFileExtension = false;
-            DataFileTypeEnum::fromName(filename,
-                                       &isValidFileExtension);
+            DataFileTypeEnum::fromFileExtension(ciftiMapFileName,
+                                                &isValidFileExtension);
             
             if (isValidFileExtension) {
                 switch (m_fileMapDataType) {
                     case FILE_MAP_DATA_TYPE_INVALID:
                         break;
                     case FILE_MAP_DATA_TYPE_MATRIX:
-                        throw DataFileException(filename
+                        throw DataFileException(ciftiMapFileName
                                                 + " of type "
                                                 + DataFileTypeEnum::toGuiName(getDataFileType())
                                                 + " cannot be read over the network.  The file must be"
@@ -488,7 +497,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                 }
                 
                 CaretTemporaryFile tempFile;
-                tempFile.readFile(filename);
+                tempFile.readFile(ciftiMapFileName);
                 m_ciftiFile = std::unique_ptr<CiftiFile>(new CiftiFile());
                 m_ciftiFile->openFile(tempFile.getFileName());
                 m_ciftiFile->convertToInMemory();
@@ -502,7 +511,7 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                 /*
                  * Username and password may be embedded in URL, so extract them.
                  */
-                FileInformation fileInfo(filename);
+                FileInformation fileInfo(ciftiMapFileName);
                 fileInfo.getRemoteUrlUsernameAndPassword(filenameToOpen,
                                                          username,
                                                          password);
@@ -526,17 +535,17 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
                 case FILE_MAP_DATA_TYPE_INVALID:
                     break;
                 case FILE_MAP_DATA_TYPE_MATRIX:
-                    m_ciftiFile->openFile(filename);
+                    m_ciftiFile->openFile(ciftiMapFileName);
                     break;
                 case FILE_MAP_DATA_TYPE_MULTI_MAP:
-                    m_ciftiFile->openFile(filename);
+                    m_ciftiFile->openFile(ciftiMapFileName);
                     m_ciftiFile->convertToInMemory();
                     break;
             }
         }
         
         if (m_ciftiFile != NULL) {
-            initializeAfterReading(filename);
+            initializeAfterReading();
         }
     }
     catch (DataFileException& e) {
@@ -548,18 +557,15 @@ CiftiMappableDataFile::readFile(const AString& filename) throw (DataFileExceptio
         throw DataFileException(e.whatString());
     }
     
-    setFileName(filename);
+    setFileName(ciftiMapFileName);
     clearModified();
 }
 
 /**
  * Initialize the CIFTI file.
- *
- * @param filename
- *     Name of the file.
  */
 void
-CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (DataFileException)
+CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
 {
     CaretAssert(m_ciftiFile);
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
@@ -647,15 +653,24 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (Da
                                                                                           voxelMapping));
     
     int32_t numberOfMaps = 0;
-    switch (m_dataReadingAccessMethod) {
-        case DATA_ACCESS_METHOD_INVALID:
-            CaretAssert(0);
+    switch (m_fileMapDataType) {
+        case FILE_MAP_DATA_TYPE_INVALID:
             break;
-        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
-            numberOfMaps = m_ciftiFile->getNumberOfColumns();
+        case FILE_MAP_DATA_TYPE_MATRIX:
+            numberOfMaps = 1;
             break;
-        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            numberOfMaps = m_ciftiFile->getNumberOfRows();
+        case FILE_MAP_DATA_TYPE_MULTI_MAP:
+            switch (m_dataReadingAccessMethod) {
+                case DATA_ACCESS_METHOD_INVALID:
+                    CaretAssert(0);
+                    break;
+                case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+                    numberOfMaps = m_ciftiFile->getNumberOfColumns();
+                    break;
+                case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+                    numberOfMaps = m_ciftiFile->getNumberOfRows();
+                    break;
+            }
             break;
     }
     
@@ -671,12 +686,11 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename) throw (Da
         m_mapContent.push_back(mc);
     }
     
-    CaretLogWarning("Still need to update class/name hierarchy for new cifti file");
-////    m_classNameHierarchy->update(this,
-////                                 true);
-////    m_forceUpdateOfGroupAndNameHierarchy = false;
-////    m_classNameHierarchy->setAllSelected(true);
-////    
+    m_classNameHierarchy->update(this,
+                                 true);
+    m_forceUpdateOfGroupAndNameHierarchy = false;
+    m_classNameHierarchy->setAllSelected(true);
+    
     CaretLogFiner("CLASS/NAME Table for : "
                   + this->getFileNameNoPath()
                   + "\n"
@@ -707,19 +721,21 @@ CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
  *    DataFileException if there is an error writing the file.
  */
 void
-CiftiMappableDataFile::writeFile(const AString& filename) throw (DataFileException)
+CiftiMappableDataFile::writeFile(const AString& ciftiMapFileName) throw (DataFileException)
 {
     if (m_ciftiFile == NULL) {
-        throw DataFileException(filename
+        throw DataFileException(ciftiMapFileName
                                 + " cannot be written because no file is loaded");
     }
     
     if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE) {
-        throw DataFileException(filename
+        throw DataFileException(ciftiMapFileName
                                 + " dense connectivity files cannot be written to files due to their large sizes.");
     }
     
-    m_ciftiFile->writeFile(filename);
+    m_ciftiFile->writeFile(ciftiMapFileName);
+    setFileName(ciftiMapFileName);
+    clearModified();
 }
 
 ///**
@@ -2391,32 +2407,34 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
         case CiftiMappingType::BRAIN_MODELS:
         {
             const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_dataMappingDirectionForCiftiXML);
-            const int64_t dataIndex = map.getIndexForNode(nodeIndex,
-                                                          structure);
-            if (dataIndex >= 0) {
-                std::vector<float> mapData;
-                getMapData(mapIndex, mapData);
-                
-                if (dataIndex < static_cast<int64_t>(mapData.size())) {
-                    numericalValueOut = mapData[dataIndex];
-                    numericalValueOutValid = true;
+            if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                const int64_t dataIndex = map.getIndexForNode(nodeIndex,
+                                                              structure);
+                if (dataIndex >= 0) {
+                    std::vector<float> mapData;
+                    getMapData(mapIndex, mapData);
                     
-                    if (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML) == CiftiMappingType::LABELS) {
-                        const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
-                        const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
-                        const GiftiLabel* gl = glt->getLabel(labelKey);
-                        if (gl != NULL) {
-                            textValueOut += gl->getName();
+                    if (dataIndex < static_cast<int64_t>(mapData.size())) {
+                        numericalValueOut = mapData[dataIndex];
+                        numericalValueOutValid = true;
+                        
+                        if (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML) == CiftiMappingType::LABELS) {
+                            const GiftiLabelTable* glt = getMapLabelTable(mapIndex);
+                            const int32_t labelKey = static_cast<int32_t>(numericalValueOut);
+                            const GiftiLabel* gl = glt->getLabel(labelKey);
+                            if (gl != NULL) {
+                                textValueOut += gl->getName();
+                            }
+                            else {
+                                textValueOut += ("InvalidLabelKey="
+                                                 + AString::number(labelKey));
+                            }
                         }
                         else {
-                            textValueOut += ("InvalidLabelKey="
-                                             + AString::number(labelKey));
+                            textValueOut = AString::number(numericalValueOut, 'f');
                         }
+                        return true;
                     }
-                    else {
-                        textValueOut = AString::number(numericalValueOut, 'f');
-                    }
-                    return true;
                 }
             }
         }
@@ -2428,13 +2446,15 @@ CiftiMappableDataFile::getMapSurfaceNodeValue(const int32_t mapIndex,
         {
             
             const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_dataMappingDirectionForCiftiXML);
-            const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
-            const int64_t parcelIndex = map.getIndexForNode(nodeIndex,
-                                                          structure);
-            if ((parcelIndex >= 0)
-                && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
-                textValueOut = parcels[parcelIndex].m_name;
-                return true;
+            if (map.getSurfaceNumberOfNodes(structure) == numberOfNodes) {
+                const std::vector<CiftiParcelsMap::Parcel>& parcels = map.getParcels();
+                const int64_t parcelIndex = map.getIndexForNode(nodeIndex,
+                                                                structure);
+                if ((parcelIndex >= 0)
+                    && (parcelIndex < static_cast<int64_t>(parcels.size()))) {
+                    textValueOut = parcels[parcelIndex].m_name;
+                    return true;
+                }
             }
         }
             break;
@@ -2667,17 +2687,17 @@ CiftiMappableDataFile::getSeriesDataForSurfaceNode(const StructureEnum::Enum str
             CaretAssert(0);
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            seriesDataOut.resize(m_ciftiFile->getNumberOfRows());
+            valid = m_ciftiFile->getColumnFromNode(&seriesDataOut[0],
+                                                nodeIndex,
+                                                structure);
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
             seriesDataOut.resize(m_ciftiFile->getNumberOfColumns());
             valid = m_ciftiFile->getRowFromNode(&seriesDataOut[0],
                                                 nodeIndex,
                                                 structure);
             break;
-        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            break;
-            seriesDataOut.resize(m_ciftiFile->getNumberOfRows());
-            valid = m_ciftiFile->getColumnFromNode(&seriesDataOut[0],
-                                                nodeIndex,
-                                                structure);
     }
 
     return valid;
@@ -3913,6 +3933,8 @@ m_mapIndex(mapIndex)
                     CaretAssert(m_metadata);
                     m_labelTable = map.getMapLabelTable(mapIndex);
                     CaretAssert(m_labelTable);
+                    
+                    m_mapName = map.getMapName(m_mapIndex);
                 }
                     break;
                 case CiftiMappingType::PARCELS:
@@ -3928,6 +3950,8 @@ m_mapIndex(mapIndex)
                     CaretAssert(m_metadata);
                     m_paletteColorMapping = map.getMapPalette(mapIndex);
                     CaretAssert(m_paletteColorMapping);
+                    
+                    m_mapName = map.getMapName(m_mapIndex);
                 }
                     break;
                 case CiftiMappingType::SERIES:
@@ -3943,12 +3967,44 @@ m_mapIndex(mapIndex)
                      */
                     m_paletteColorMapping = ciftiXML.getFilePalette();
                     CaretAssert(m_paletteColorMapping);
+
+                    /*
+                     * Data series do not have map names but the map name is
+                     * a function of units and map index.
+                     */
+                    const CiftiSeriesMap& map = ciftiXML.getSeriesMap(m_readingDirectionForCiftiXML);
+                    AString unitsSuffix;
+                    switch (map.getUnit()) {
+                        case CiftiSeriesMap::HERTZ:
+                            unitsSuffix = " hertz";
+                            break;
+                        case CiftiSeriesMap::METER:
+                            unitsSuffix = " meters";
+                            break;
+                        case CiftiSeriesMap::RADIAN:
+                            unitsSuffix = " radians";
+                            break;
+                        case CiftiSeriesMap::SECOND:
+                            unitsSuffix = " seconds";
+                            break;
+                            
+                    }
+                    
+                    if (unitsSuffix.isEmpty()) {
+                        m_mapName = ("Map Index: "
+                                   + AString::number(m_mapIndex + 1));
+                    }
+                    else {
+                        const float value = (map.getStart()
+                                             + (m_mapIndex * map.getStep()));
+                        m_mapName = (AString::number(value)
+                                   + unitsSuffix);
+                    }
                 }
-                    break;
+                break;
             }
             break;
     }
-    
 }
 
 /**
@@ -4010,11 +4066,29 @@ CiftiMappableDataFile::MapContent::isModified() const
     return false;
 }
 
-
+/**
+ * @return Name of the map.
+ */
 AString
 CiftiMappableDataFile::MapContent::getName() const
 {
-    AString mapName;
+    return m_mapName;
+}
+
+/**
+ * Set the name of the map.
+ * 
+ * @param name
+ *     New name for map.
+ */
+void
+CiftiMappableDataFile::MapContent::setName(const AString& name)
+{
+    if (name == m_mapName) {
+        return;
+    }
+    
+    m_mapName = name;
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     switch (ciftiXML.getMappingType(m_readingDirectionForCiftiXML)) {
@@ -4027,96 +4101,24 @@ CiftiMappableDataFile::MapContent::getName() const
         case CiftiMappingType::LABELS:
         {
             const CiftiLabelsMap& map = ciftiXML.getLabelsMap(m_readingDirectionForCiftiXML);
-            mapName = map.getMapName(m_mapIndex);
+            map.setMapName(m_mapIndex,
+                           m_mapName);
+            setModified();
         }
             break;
         case CiftiMappingType::PARCELS:
         {
             const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_readingDirectionForCiftiXML);
-            CaretAssert(0);
-        }
-            break;
-        case CiftiMappingType::SCALARS:
-        {
-            const CiftiScalarsMap& map = ciftiXML.getScalarsMap(m_readingDirectionForCiftiXML);
-            mapName = map.getMapName(m_mapIndex);
-        }
-            break;
-        case CiftiMappingType::SERIES:
-        {
-            /*
-             * Data series do not have map names but the map name is
-             * a function of units and map index.
-             */
-            const CiftiSeriesMap& map = ciftiXML.getSeriesMap(m_readingDirectionForCiftiXML);
-            AString unitsSuffix;
-            switch (map.getUnit()) {
-                case CiftiSeriesMap::HERTZ:
-                    unitsSuffix = " hertz";
-                    break;
-                case CiftiSeriesMap::METER:
-                    unitsSuffix = " meters";
-                    break;
-                case CiftiSeriesMap::RADIAN:
-                    unitsSuffix = " radians";
-                    break;
-                case CiftiSeriesMap::SECOND:
-                    unitsSuffix = " seconds";
-                    break;
-                    
-            }
-            
-            if (unitsSuffix.isEmpty()) {
-                mapName = ("Map Index: "
-                        + AString::number(m_mapIndex + 1));
-            }
-            else {
-                const float value = (map.getStart()
-                                     + (m_mapIndex * map.getStep()));
-                mapName = (AString::number(value)
-                        + unitsSuffix);
-            }
-        }
-            break;
-    }
-    
-    return mapName;
-}
-
-void
-CiftiMappableDataFile::MapContent::setName(const AString& name)
-{
-    if (name == getName()) {
-        return;
-    }
-    
-    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-    switch (ciftiXML.getMappingType(m_mappingDirectionForCiftiXML)) {
-        case CiftiMappingType::BRAIN_MODELS:
-        {
-            const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_mappingDirectionForCiftiXML);
-            CaretAssert(0);
-        }
-            break;
-        case CiftiMappingType::LABELS:
-        {
-            const CiftiLabelsMap& map = ciftiXML.getLabelsMap(m_mappingDirectionForCiftiXML);
-            map.setMapName(m_mapIndex,
-                           name);
-        }
-            break;
-        case CiftiMappingType::PARCELS:
-        {
-            const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_mappingDirectionForCiftiXML);
             //            mapName = map.getMapName(m_mapIndex);
             CaretAssert(0);
         }
             break;
         case CiftiMappingType::SCALARS:
         {
-            const CiftiScalarsMap& map = ciftiXML.getScalarsMap(m_mappingDirectionForCiftiXML);
+            const CiftiScalarsMap& map = ciftiXML.getScalarsMap(m_readingDirectionForCiftiXML);
             map.setMapName(m_mapIndex,
-                           name);
+                           m_mapName);
+            setModified();
         }
             break;
         case CiftiMappingType::SERIES:
@@ -4126,8 +4128,6 @@ CiftiMappableDataFile::MapContent::setName(const AString& name)
              */
             break;
     }
-
-    setModified();
 }
 
 
