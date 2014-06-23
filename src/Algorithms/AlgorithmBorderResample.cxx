@@ -55,11 +55,7 @@ OperationParameters* AlgorithmBorderResample::getParameters()
     ret->addBorderOutputParameter(4, "border-out", "the output border file");
     
     ret->setHelpText(
-        AString("This is where you set the help text.  ") +
-        "DO NOT add the info about what the command line format is, and do not give the command switch, " +
-        "short description, or the short descriptions of parameters.  " +
-        "Do not indent, manually break long lines, or format the text in any way " +
-        "other than to separate paragraphs within the help text prose, usually with two newlines."
+        AString("Resamples a border file, given two spherical surfaces that are in register.  ")
     );
     return ret;
 }
