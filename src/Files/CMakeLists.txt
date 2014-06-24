@@ -23,6 +23,7 @@ Border.h
 BorderException.h
 BorderFile.h
 BorderFileSaxReader.h
+BorderTracingHelper.h
 CaretDataFile.h
 CaretDataFileHelper.h
 CaretMappableDataFile.h
@@ -115,6 +116,7 @@ Border.cxx
 BorderException.cxx
 BorderFile.cxx
 BorderFileSaxReader.cxx
+BorderTracingHelper.cxx
 CaretDataFile.cxx
 CaretDataFileHelper.cxx
 CaretMappableDataFile.cxx

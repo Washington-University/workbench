@@ -58,6 +58,7 @@ AlgorithmLabelDilate.h
 AlgorithmLabelMerge.h
 AlgorithmLabelModifyKeys.h
 AlgorithmLabelResample.h
+AlgorithmLabelToBorder.h
 AlgorithmMetricDilate.h
 AlgorithmMetricEstimateFWHM.h
 AlgorithmMetricExtrema.h
@@ -153,6 +154,7 @@ AlgorithmLabelDilate.cxx
 AlgorithmLabelMerge.cxx
 AlgorithmLabelModifyKeys.cxx
 AlgorithmLabelResample.cxx
+AlgorithmLabelToBorder.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricEstimateFWHM.cxx
 AlgorithmMetricExtrema.cxx
