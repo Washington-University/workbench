@@ -363,7 +363,7 @@ namespace caret {
         virtual void getMapData(const int32_t mapIndex,
                                 std::vector<float>& dataOut) const;
         
-        virtual bool setMapData(const int32_t mapIndex,
+        virtual void setMapData(const int32_t mapIndex,
                                 const std::vector<float>& data);
         
         virtual void getMatrixRGBA(std::vector<float>& rgba, PaletteFile *paletteFile);
@@ -470,7 +470,7 @@ namespace caret {
         
         void initializeAfterReading() throw (DataFileException);
         
-        static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
+        //static AString ciftiIndexTypeToName(const IndicesMapToDataType ciftiIndexType);
         
         void validateKeysAndLabels() const;
         

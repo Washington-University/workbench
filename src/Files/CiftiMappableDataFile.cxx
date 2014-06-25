@@ -715,7 +715,7 @@ CiftiMappableDataFile::validateAfterFileReading() throw (DataFileException)
 /**
  * Write the file.
  *
- * @param filename
+ * @param ciftiMapFileName
  *    Name of the file to write.
  * @throw
  *    DataFileException if there is an error writing the file.
@@ -954,8 +954,8 @@ CiftiMappableDataFile::isMappedWithPalette() const
  *     A vector that will contain the data for the map upon exit.
  */
 void
-    CiftiMappableDataFile::getMapData(const int32_t mapIndex,
-    std::vector<float>& dataOut) const
+CiftiMappableDataFile::getMapData(const int32_t mapIndex,
+                                  std::vector<float>& dataOut) const
 {
     CaretAssertVectorIndex(m_mapContent,
         mapIndex);
@@ -982,7 +982,16 @@ void
     }
 }
 
-bool CiftiMappableDataFile::setMapData(const int32_t mapIndex,
+/**
+ * Set the data for the given map index.
+ *
+ * @param mapIndex
+ *     Index of the map.
+ * @param dataOut
+ *     A vector that contains the data for the map.
+ */
+void
+CiftiMappableDataFile::setMapData(const int32_t mapIndex,
                         const std::vector<float>& data)
 {
     CaretAssertVectorIndex(m_mapContent,
@@ -1006,11 +1015,16 @@ bool CiftiMappableDataFile::setMapData(const int32_t mapIndex,
                                 mapIndex);
             break;
     }
-    
-    return true;
 }
 
-
+/**
+ * Get the RGBA mapped version of the file's data matrix.
+ *
+ * @param rgba
+ *    RGBA for file's matrix content.
+ * @param paletteFile
+ *    File containg palettes for mapping data to RGBA.
+ */
 void
 CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
                                         PaletteFile *paletteFile)
@@ -1069,6 +1083,12 @@ CiftiMappableDataFile::getMatrixRGBA(std::vector<float> &rgba,
     delete fastStatistics;
 }
 
+/**
+ * Get the dimensions of the file (rows and columns).
+ *
+ * @param dim
+ *     Contains dimensions upon exit.
+ */
 void
 CiftiMappableDataFile::getMapDimensions(std::vector<int64_t> &dim) const
 {
@@ -1486,6 +1506,16 @@ CiftiMappableDataFile::isMapColoringValid(const int32_t mapIndex) const
     return m_mapContent[mapIndex]->m_rgbaValid;
 }
 
+/**
+ * Get the node ins the parcel of the given index.
+ * @param parcelNodes
+ *     Output containing the node indices.
+ * @param structure
+ *     Structure for which the node indices are requested.
+ * @param selectionIndex
+ *     Index of the parcel.
+ * @return true if parcel is valid, else false.
+ */
 bool
 CiftiMappableDataFile::getParcelNodesElementForSelectedParcel(std::set<int64_t> &parcelNodesOut,
                                                                  const StructureEnum::Enum &structure,
@@ -2847,6 +2877,18 @@ CiftiMappableDataFile::getMapSurfaceNodeColoring(const int32_t mapIndex,
     return validColorsFlag;
 }
 
+/**
+ * Get the data indices corresponding to all nodes in the given surface.
+ * 
+ * @param structure
+ *     Surface's structure.
+ * @param surfaceNumberOfNodes
+ *     Number of nodes in the surface.
+ * @param dataIndicesForNodes
+ *     Will containg "surfaceNumberOfNodes" element where the values are
+ *     indices into the CIFTI data.
+ * @return True if valid, else false.
+ */
 bool
 CiftiMappableDataFile::getSurfaceDataIndicesForMappingToBrainordinates(const StructureEnum::Enum structure,
                                                                           const int64_t surfaceNumberOfNodes,
@@ -3754,16 +3796,12 @@ CiftiMappableDataFile::setMapDataForSurface(const int32_t mapIndex,
             }
         }
         
-        const bool dataUpdateValid = setMapData(mapIndex,
-                                                mapData);
+        setMapData(mapIndex,
+                   mapData);
         
         m_forceUpdateOfGroupAndNameHierarchy = true;
         
         m_mapContent[mapIndex]->invalidateColoring();
-
-        if ( ! dataUpdateValid) {
-            throw DataFileException("Writing of data failed.  Is this file remote (on the Web)?");
-        }
     }
 }
 
@@ -3857,6 +3895,10 @@ CiftiMappableDataFile::helpLoadChartDataMatrixForMap(const int32_t mapIndex,
  *
  * @param ciftiFile
  *    The CIFTI data file
+ * @param fileMapDataType
+ *    Type of CIFTI file (matrix or multi-map).
+ * @param readingDirectionForCiftiXML
+ *    Reading direction for CIFTI XML access
  * @param mappingDirectionForCiftiXML
  *    Mapping direction for CIFTI XML access
  * @param mapIndex
@@ -4094,7 +4136,7 @@ CiftiMappableDataFile::MapContent::setName(const AString& name)
     switch (ciftiXML.getMappingType(m_readingDirectionForCiftiXML)) {
         case CiftiMappingType::BRAIN_MODELS:
         {
-            const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_readingDirectionForCiftiXML);
+            //const CiftiBrainModelsMap& map = ciftiXML.getBrainModelsMap(m_readingDirectionForCiftiXML);
             CaretAssert(0);
         }
             break;
@@ -4108,7 +4150,7 @@ CiftiMappableDataFile::MapContent::setName(const AString& name)
             break;
         case CiftiMappingType::PARCELS:
         {
-            const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_readingDirectionForCiftiXML);
+            //const CiftiParcelsMap& map = ciftiXML.getParcelsMap(m_readingDirectionForCiftiXML);
             //            mapName = map.getMapName(m_mapIndex);
             CaretAssert(0);
         }
