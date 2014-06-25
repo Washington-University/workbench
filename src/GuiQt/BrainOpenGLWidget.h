@@ -157,7 +157,7 @@ namespace caret {
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
-    const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 6;
+    const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 10;
     bool BrainOpenGLWidget::s_defaultGLFormatInitialized = false;
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
