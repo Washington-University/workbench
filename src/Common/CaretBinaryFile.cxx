@@ -301,5 +301,13 @@ int64_t QFileImpl::pos()
 void QFileImpl::write(const void* dataIn, const int64_t& count)
 {
     int64_t writeret = m_file.write((const char*)dataIn, count);//again, expect QFile to handle it in one shot
-    if (writeret != count) throw DataFileException("failed to write to file '" + m_fileName + "'");
+    const AString msg = ("failed to write file '"
+                         + m_fileName
+                         + "'.  Tried to write "
+                         + AString::number(count)
+                         + " bytes but actually wrote "
+                         + AString::number(writeret)
+                         + " bytes.");
+    if (writeret != count) throw DataFileException(msg);
+    //if (writeret != count) throw DataFileException("failed to write to file '" + m_fileName + "'");
 }
