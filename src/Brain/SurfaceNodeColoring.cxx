@@ -271,12 +271,12 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
         if (overlay->isEnabled()) {            
             std::vector<CaretMappableDataFile*> mapFiles;
             CaretMappableDataFile* selectedMapFile;
-            AString selectedMapUniqueID;
+            //AString selectedMapUniqueID;
             int32_t selectedMapIndex;
             
             overlay->getSelectionData(mapFiles,
                                       selectedMapFile,
-                                      selectedMapUniqueID,
+                                      //selectedMapUniqueID,
                                       selectedMapIndex);
             
             DataFileTypeEnum::Enum mapDataFileType = DataFileTypeEnum::UNKNOWN;
@@ -293,7 +293,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
                     isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
                                                                                     cmf,
-                                                                                    selectedMapUniqueID,
+                                                                                    selectedMapIndex,
+                                                                                    //selectedMapUniqueID,
                                                                                     numNodes,
                                                                                     overlayRGBV);
                 }
@@ -303,7 +304,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                      browserTabIndex,
                                                                      brainStructure,
                                                                       dynamic_cast<CiftiBrainordinateLabelFile*>(selectedMapFile),
-                                                                      selectedMapUniqueID,
+                                                                     selectedMapIndex,
+                                                                     //selectedMapUniqueID,
                                                                       numNodes,
                                                                       overlayRGBV);
                     break;
@@ -312,7 +314,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
                     isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
                                                                             cmf,
-                                                                            selectedMapUniqueID,
+                                                                                    selectedMapIndex,
+                                                                                    //selectedMapUniqueID,
                                                                             numNodes,
                                                                             overlayRGBV);
                 }
@@ -320,14 +323,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
                     isColoringValid = this->assignCiftiScalarColoring(brainStructure,
                                                                  dynamic_cast<CiftiBrainordinateScalarFile*>(selectedMapFile),
-                                                                 selectedMapUniqueID,
+                                                                      selectedMapIndex,
+                                                                      //selectedMapUniqueID,
                                                                  numNodes,
                                                                  overlayRGBV);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
                     isColoringValid = this->assignCiftiDataSeriesColoring(brainStructure,
                                                                       dynamic_cast<CiftiBrainordinateDataSeriesFile*>(selectedMapFile),
-                                                                      selectedMapUniqueID,
+                                                                          selectedMapIndex,
+                                                                          //selectedMapUniqueID,
                                                                       numNodes,
                                                                       overlayRGBV);
                     break;
@@ -340,7 +345,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
                     isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
                                                                             cmf,
-                                                                            selectedMapUniqueID,
+                                                                                    selectedMapIndex,
+                                                                                    //selectedMapUniqueID,
                                                                             numNodes,
                                                                             overlayRGBV);
                 }
@@ -350,7 +356,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
                     isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
                                                                             cmf,
-                                                                            selectedMapUniqueID,
+                                                                                    selectedMapIndex,
+                                                                                    //selectedMapUniqueID,
                                                                             numNodes,
                                                                             overlayRGBV);
                 }
@@ -358,14 +365,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
                     isColoringValid = this->assignCiftiParcelScalarColoring(brainStructure,
                                                                             dynamic_cast<CiftiParcelScalarFile*>(selectedMapFile),
-                                                                            selectedMapUniqueID,
+                                                                            selectedMapIndex,
+                                                                            //selectedMapUniqueID,
                                                                             numNodes,
                                                                             overlayRGBV);
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
                     isColoringValid = this->assignCiftiParcelSeriesColoring(brainStructure,
                                                                             dynamic_cast<CiftiParcelSeriesFile*>(selectedMapFile),
-                                                                            selectedMapUniqueID,
+                                                                            selectedMapIndex,
+                                                                            //selectedMapUniqueID,
                                                                             numNodes,
                                                                             overlayRGBV);
                     break;
@@ -377,14 +386,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                 brainStructure,
                                                                 surface,
                                                                 dynamic_cast<LabelFile*>(selectedMapFile),
-                                                                selectedMapUniqueID, 
+                                                                selectedMapIndex,
+                                                                //selectedMapUniqueID,
                                                                 numNodes, 
                                                                 overlayRGBV);
                     break;
                 case DataFileTypeEnum::METRIC:
                     isColoringValid = this->assignMetricColoring(brainStructure, 
                                                                  dynamic_cast<MetricFile*>(selectedMapFile),
-                                                                 selectedMapUniqueID, 
+                                                                 selectedMapIndex,
+                                                                 //selectedMapUniqueID,
                                                                  numNodes, 
                                                                  overlayRGBV);
                     break;
@@ -393,7 +404,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                 case DataFileTypeEnum::RGBA:
                     isColoringValid = this->assignRgbaColoring(brainStructure, 
                                                                dynamic_cast<RgbaFile*>(selectedMapFile),
-                                                               selectedMapUniqueID, 
+                                                               selectedMapIndex,
+                                                               //selectedMapUniqueID,
                                                                numNodes, 
                                                                overlayRGBV);
                     break;
@@ -502,7 +514,8 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
                                          const BrainStructure* brainStructure,
                                          const Surface* surface,
                                          const LabelFile* labelFile,
-                                         const AString& labelMapUniqueID,
+                                         const int32_t displayColumn,
+                                         //const AString& labelMapUniqueID,
                                          const int32_t numberOfNodes,
                                          float* rgbv)
 {
@@ -513,18 +526,18 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
     std::vector<LabelFile*> allLabelFiles;
     brainStructure->getLabelFiles(allLabelFiles);
     
-    int32_t displayColumn = -1;
-    for (std::vector<LabelFile*>::iterator iter = allLabelFiles.begin();
-         iter != allLabelFiles.end();
-         iter++) {
-        LabelFile* lf = *iter;
-        if (lf == labelFile) {
-            displayColumn = lf->getMapIndexFromUniqueID(labelMapUniqueID);
-            if (displayColumn >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t displayColumn = -1;
+//    for (std::vector<LabelFile*>::iterator iter = allLabelFiles.begin();
+//         iter != allLabelFiles.end();
+//         iter++) {
+//        LabelFile* lf = *iter;
+//        if (lf == labelFile) {
+//            displayColumn = lf->getMapIndexFromUniqueID(labelMapUniqueID);
+//            if (displayColumn >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     const DisplayPropertiesLabels* dpl = brainStructure->getBrain()->getDisplayPropertiesLabels();
     
@@ -815,25 +828,26 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
 bool 
 SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure, 
                                           MetricFile* metricFile,
-                                          const AString& metricMapUniqueID,
+                                          const int32_t displayColumn,
+                                          //const AString& metricMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
 {
     std::vector<MetricFile*> allMetricFiles;
     brainStructure->getMetricFiles(allMetricFiles);
     
-    int32_t displayColumn = -1;
-    for (std::vector<MetricFile*>::iterator iter = allMetricFiles.begin();
-         iter != allMetricFiles.end();
-         iter++) {
-        MetricFile* mf = *iter;
-        if (mf == metricFile) {
-            displayColumn = mf->getMapIndexFromUniqueID(metricMapUniqueID);
-            if (displayColumn >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t displayColumn = -1;
+//    for (std::vector<MetricFile*>::iterator iter = allMetricFiles.begin();
+//         iter != allMetricFiles.end();
+//         iter++) {
+//        MetricFile* mf = *iter;
+//        if (mf == metricFile) {
+//            displayColumn = mf->getMapIndexFromUniqueID(metricMapUniqueID);
+//            if (displayColumn >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     if (displayColumn < 0) {
         return false;
@@ -903,13 +917,14 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
 bool
 SurfaceNodeColoring::assignCiftiMappableConnectivityMatrixColoring(const BrainStructure* brainStructure,
                                                            CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
-                                                           const AString& selectedMapUniqueID,
+                                                                   const int32_t mapIndex,
+                                                                   //const AString& selectedMapUniqueID,
                                                            const int32_t numberOfNodes,
                                                            float* rgbv)
 {
     CaretAssert(ciftiConnectivityMatrixFile);
     
-    const int32_t mapIndex = ciftiConnectivityMatrixFile->getMapIndexFromUniqueID(selectedMapUniqueID);
+//    const int32_t mapIndex = ciftiConnectivityMatrixFile->getMapIndexFromUniqueID(selectedMapUniqueID);
     if (mapIndex < 0) {
         return false;
     }
@@ -1043,7 +1058,8 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
                                               const int32_t browserTabIndex,
                                               const BrainStructure* brainStructure,
                                           CiftiBrainordinateLabelFile* ciftiLabelFile,
-                                          const AString& ciftiMapUniqueID,
+                                              const int32_t mapIndex,
+                                              //const AString& ciftiMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
 {
@@ -1056,18 +1072,18 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
     std::vector<CiftiBrainordinateLabelFile*> allCiftiBrainordinateLabelFiles;
     brain->getConnectivityDenseLabelFiles(allCiftiBrainordinateLabelFiles);
     
-    int32_t mapIndex = -1;
-    for (std::vector<CiftiBrainordinateLabelFile*>::iterator iter = allCiftiBrainordinateLabelFiles.begin();
-         iter != allCiftiBrainordinateLabelFiles.end();
-         iter++) {
-        CiftiBrainordinateLabelFile* csf = *iter;
-        if (csf == ciftiLabelFile) {
-            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
-            if (mapIndex >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t mapIndex = -1;
+//    for (std::vector<CiftiBrainordinateLabelFile*>::iterator iter = allCiftiBrainordinateLabelFiles.begin();
+//         iter != allCiftiBrainordinateLabelFiles.end();
+//         iter++) {
+//        CiftiBrainordinateLabelFile* csf = *iter;
+//        if (csf == ciftiLabelFile) {
+//            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+//            if (mapIndex >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     if (mapIndex < 0) {
         return false;
@@ -1199,7 +1215,8 @@ SurfaceNodeColoring::assignCiftiLabelColoring(const DisplayPropertiesLabels* dis
 bool
 SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStructure,
                                                CiftiBrainordinateScalarFile* ciftiScalarFile,
-                                               const AString& ciftiMapUniqueID,
+                                               const int32_t mapIndex,
+                                               //const AString& ciftiMapUniqueID,
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
@@ -1207,18 +1224,18 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
     std::vector<CiftiBrainordinateScalarFile*> allCiftiBrainordinateScalarFiles;
     brain->getConnectivityDenseScalarFiles(allCiftiBrainordinateScalarFiles);
     
-    int32_t mapIndex = -1;
-    for (std::vector<CiftiBrainordinateScalarFile*>::iterator iter = allCiftiBrainordinateScalarFiles.begin();
-         iter != allCiftiBrainordinateScalarFiles.end();
-         iter++) {
-        CiftiBrainordinateScalarFile* csf = *iter;
-        if (csf == ciftiScalarFile) {
-            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
-            if (mapIndex >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t mapIndex = -1;
+//    for (std::vector<CiftiBrainordinateScalarFile*>::iterator iter = allCiftiBrainordinateScalarFiles.begin();
+//         iter != allCiftiBrainordinateScalarFiles.end();
+//         iter++) {
+//        CiftiBrainordinateScalarFile* csf = *iter;
+//        if (csf == ciftiScalarFile) {
+//            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+//            if (mapIndex >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     if (mapIndex < 0) {
         return false;
@@ -1270,7 +1287,8 @@ SurfaceNodeColoring::assignCiftiScalarColoring(const BrainStructure* brainStruct
 bool
 SurfaceNodeColoring::assignCiftiParcelScalarColoring(const BrainStructure* brainStructure,
                                                CiftiParcelScalarFile* ciftiParcelScalarFile,
-                                               const AString& ciftiMapUniqueID,
+                                                     const int32_t mapIndex,
+                                                     //const AString& ciftiMapUniqueID,
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
@@ -1278,18 +1296,18 @@ SurfaceNodeColoring::assignCiftiParcelScalarColoring(const BrainStructure* brain
     std::vector<CiftiParcelScalarFile*> allCiftiParcelScalarFiles;
     brain->getConnectivityParcelScalarFiles(allCiftiParcelScalarFiles);
     
-    int32_t mapIndex = -1;
-    for (std::vector<CiftiParcelScalarFile*>::iterator iter = allCiftiParcelScalarFiles.begin();
-         iter != allCiftiParcelScalarFiles.end();
-         iter++) {
-        CiftiParcelScalarFile* csf = *iter;
-        if (csf == ciftiParcelScalarFile) {
-            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
-            if (mapIndex >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t mapIndex = -1;
+//    for (std::vector<CiftiParcelScalarFile*>::iterator iter = allCiftiParcelScalarFiles.begin();
+//         iter != allCiftiParcelScalarFiles.end();
+//         iter++) {
+//        CiftiParcelScalarFile* csf = *iter;
+//        if (csf == ciftiParcelScalarFile) {
+//            mapIndex = csf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+//            if (mapIndex >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     if (mapIndex < 0) {
         return false;
@@ -1341,7 +1359,8 @@ SurfaceNodeColoring::assignCiftiParcelScalarColoring(const BrainStructure* brain
 bool
 SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainStructure,
                                                CiftiBrainordinateDataSeriesFile* ciftiDataSeriesFile,
-                                               const AString& ciftiMapUniqueID,
+                                                   const int32_t mapIndex,
+                                                   //const AString& ciftiMapUniqueID,
                                                const int32_t numberOfNodes,
                                                float* rgbv)
 {
@@ -1349,18 +1368,18 @@ SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainSt
     std::vector<CiftiBrainordinateDataSeriesFile*> allCiftiDataSeriesFiles;
     brain->getConnectivityDataSeriesFiles(allCiftiDataSeriesFiles);
     
-    int32_t mapIndex = -1;
-    for (std::vector<CiftiBrainordinateDataSeriesFile*>::iterator iter = allCiftiDataSeriesFiles.begin();
-         iter != allCiftiDataSeriesFiles.end();
-         iter++) {
-        CiftiBrainordinateDataSeriesFile* cdsf = *iter;
-        if (cdsf == ciftiDataSeriesFile) {
-            mapIndex = cdsf->getMapIndexFromUniqueID(ciftiMapUniqueID);
-            if (mapIndex >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t mapIndex = -1;
+//    for (std::vector<CiftiBrainordinateDataSeriesFile*>::iterator iter = allCiftiDataSeriesFiles.begin();
+//         iter != allCiftiDataSeriesFiles.end();
+//         iter++) {
+//        CiftiBrainordinateDataSeriesFile* cdsf = *iter;
+//        if (cdsf == ciftiDataSeriesFile) {
+//            mapIndex = cdsf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+//            if (mapIndex >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     if (mapIndex < 0) {
         return false;
@@ -1415,7 +1434,8 @@ SurfaceNodeColoring::assignCiftiDataSeriesColoring(const BrainStructure* brainSt
 bool
 SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brainStructure,
                                                    CiftiParcelSeriesFile* ciftiParcelSeriesFile,
-                                                   const AString& ciftiMapUniqueID,
+                                                     const int32_t mapIndex,
+                                                     //const AString& ciftiMapUniqueID,
                                                    const int32_t numberOfNodes,
                                                    float* rgbv)
 {
@@ -1423,18 +1443,18 @@ SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brain
     std::vector<CiftiParcelSeriesFile*> allCiftiParcelSeriesFiles;
     brain->getConnectivityParcelSeriesFiles(allCiftiParcelSeriesFiles);
     
-    int32_t mapIndex = -1;
-    for (std::vector<CiftiParcelSeriesFile*>::iterator iter = allCiftiParcelSeriesFiles.begin();
-         iter != allCiftiParcelSeriesFiles.end();
-         iter++) {
-        CiftiParcelSeriesFile* cdsf = *iter;
-        if (cdsf == ciftiParcelSeriesFile) {
-            mapIndex = cdsf->getMapIndexFromUniqueID(ciftiMapUniqueID);
-            if (mapIndex >= 0) {
-                break;
-            }
-        }
-    }
+//    int32_t mapIndex = -1;
+//    for (std::vector<CiftiParcelSeriesFile*>::iterator iter = allCiftiParcelSeriesFiles.begin();
+//         iter != allCiftiParcelSeriesFiles.end();
+//         iter++) {
+//        CiftiParcelSeriesFile* cdsf = *iter;
+//        if (cdsf == ciftiParcelSeriesFile) {
+//            mapIndex = cdsf->getMapIndexFromUniqueID(ciftiMapUniqueID);
+//            if (mapIndex >= 0) {
+//                break;
+//            }
+//        }
+//    }
     
     if (mapIndex < 0) {
         return false;
@@ -1489,10 +1509,12 @@ SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brain
 bool 
 SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* /*brainStructure*/, 
                                         const RgbaFile* /*rgbaFile*/,
-                                        const AString& /*rgbaMapUniqueID*/,
+                                        const int32_t mapIndex,
+                                        //const AString& /*rgbaMapUniqueID*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)
 {
+    CaretAssertMessage(0, "Add implementation.");
     for (int32_t i = 0; i < numberOfNodes; i++) {
         const int32_t i4 = i * 4;
         rgbv[i4]   = 0.0;

@@ -88,7 +88,8 @@ namespace caret {
                                  const BrainStructure* brainStructure,
                                  const Surface* surface,
                                  const LabelFile* labelFile,
-                                 const AString& labelMapUniqueID,
+                                 const int32_t mapIndex,
+                                 //const AString& labelMapUniqueID,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
@@ -96,49 +97,57 @@ namespace caret {
                                       const int32_t browserTabIndex,
                                       const BrainStructure* brainStructure,
                                   CiftiBrainordinateLabelFile* ciftiScalarFile,
-                                  const AString& metricMapUniqueID,
+                                      const int32_t mapIndex,
+                                      //const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignCiftiScalarColoring(const BrainStructure* brainStructure,
                                        CiftiBrainordinateScalarFile* ciftiScalarFile,
-                                       const AString& metricMapUniqueID,
+                                       const int32_t mapIndex,
+                                       //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
         bool assignCiftiParcelScalarColoring(const BrainStructure* brainStructure,
                                        CiftiParcelScalarFile* ciftiScalarFile,
-                                       const AString& metricMapUniqueID,
+                                             const int32_t mapIndex,
+                                             //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
         bool assignCiftiDataSeriesColoring(const BrainStructure* brainStructure,
                                        CiftiBrainordinateDataSeriesFile* ciftiDataSeriesFile,
-                                       const AString& metricMapUniqueID,
+                                           const int32_t mapIndex,
+                                           //const AString& metricMapUniqueID,
                                        const int32_t numberOfNodes,
                                        float* rgbv);
         
         bool assignCiftiParcelSeriesColoring(const BrainStructure* brainStructure,
                                            CiftiParcelSeriesFile* ciftiParcelSeriesFile,
-                                           const AString& metricMapUniqueID,
+                                             const int32_t mapIndex,
+                                             //const AString& metricMapUniqueID,
                                            const int32_t numberOfNodes,
                                            float* rgbv);
         
         bool assignCiftiMappableConnectivityMatrixColoring(const BrainStructure* brainStructure,
                                                    CiftiMappableConnectivityMatrixDataFile* ciftiConnectivityMatrixFile,
-                                                   const AString& selectedMapUniqueID,
+                                                           const int32_t mapIndex,
+                                                           //const AString& selectedMapUniqueID,
                                                    const int32_t numberOfNodes,
                                                    float* rgbv);
         
         bool assignMetricColoring(const BrainStructure* brainStructure,
                                   MetricFile* metricFile,
-                                  const AString& metricMapUniqueID,
+                                  const int32_t mapIndex,
+                                  //const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignRgbaColoring(const BrainStructure* brainStructure,
                                 const RgbaFile* rgbaFile,
-                                const AString& rgbaMapUniqueID,
+                                const int32_t mapIndex,
+                                //const AString& rgbaMapUniqueID,
                                 const int32_t numberOfNodes,
                                 float* rgbv);
         

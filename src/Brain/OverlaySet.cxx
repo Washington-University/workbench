@@ -36,6 +36,7 @@
 #include "CiftiBrainordinateScalarFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
+#include "EventOverlayYokingGroupGet.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurfaceMontage.h"
@@ -85,14 +86,22 @@ using namespace caret;
 /**
  * Constructor for the given surface structures, surface types, and volumes.
  *
+ * @param name
+ *     Name for this overlay set
+ * @param tabIndex
+ *     Index of tab for this overlay set.
  * @param includeSurfaceStructures
  *     Surface structures for data files displayed in this overlay set.
  * @param includeVolumeFiles
  *     Surface structures for data files displayed in this overlay set.
  */
-OverlaySet::OverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
+OverlaySet::OverlaySet(const AString& name,
+                       const int32_t tabIndex,
+                       const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
                        const Overlay::IncludeVolumeFiles includeVolumeFiles)
 : CaretObject(),
+m_name(name),
+m_tabIndex(tabIndex),
 m_includeSurfaceStructures(includeSurfaceStructures),
 m_includeVolumeFiles(includeVolumeFiles)
 {
@@ -106,6 +115,7 @@ m_includeVolumeFiles(includeVolumeFiles)
         m_overlays[i] = new Overlay(includeSurfaceStructures,
                                     includeVolumeFiles);
     }
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
 }
 
 /**
@@ -113,6 +123,7 @@ m_includeVolumeFiles(includeVolumeFiles)
  */
 OverlaySet::~OverlaySet()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         delete m_overlays[i];
     }
@@ -201,11 +212,11 @@ OverlaySet::setUnderlayToVolume()
         if (overlayIndex >= 0) {
             std::vector<CaretMappableDataFile*> mapFiles;
             CaretMappableDataFile* mapFile;
-            AString mapUniqueID;
+            //AString mapUniqueID;
             int32_t mapIndex;
             m_overlays[overlayIndex]->getSelectionData(mapFiles, 
                                                           mapFile, 
-                                                          mapUniqueID, 
+                                                          //mapUniqueID,
                                                           mapIndex);
             
             const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
@@ -1256,3 +1267,37 @@ OverlaySet::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
 }
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *    An event for which this instance is listening.
+ */
+void
+OverlaySet::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_OVERLAY_GET_YOKED) {
+        EventOverlayYokingGroupGet* yokeGroupEvent = dynamic_cast<EventOverlayYokingGroupGet*>(event);
+        CaretAssert(yokeGroupEvent);
+        const OverlayYokingGroupEnum::Enum requestedYokingGroup = yokeGroupEvent->getYokingGroup();
+        
+        if (requestedYokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
+            /*
+             * Find all overlays with the requested yoking
+             */
+            const int32_t overlayCount = getNumberOfDisplayedOverlays();
+            for (int32_t j = 0; j < overlayCount; j++) {
+                Overlay* overlay = getOverlay(j);
+                if (overlay->getYokingGroup() == requestedYokingGroup) {
+                    yokeGroupEvent->addYokedOverlay(m_name,
+                                                    m_tabIndex,
+                                                    overlay);
+                }
+            }
+        }
+        
+        yokeGroupEvent->setEventProcessed();
+    }
+}
+

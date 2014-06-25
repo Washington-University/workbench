@@ -96,9 +96,13 @@ SurfaceMontageConfigurationAbstract::toString() const
  *     Surface structures supported by subclass.
  */
 void
-SurfaceMontageConfigurationAbstract::setupOverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures)
+SurfaceMontageConfigurationAbstract::setupOverlaySet(const AString& overlaySetName,
+                                                     const int32_t tabIndex,
+                                                     const std::vector<StructureEnum::Enum>& includeSurfaceStructures)
 {
-    m_overlaySet = new OverlaySet(includeSurfaceStructures,
+    m_overlaySet = new OverlaySet(overlaySetName,
+                                  tabIndex,
+                                  includeSurfaceStructures,
                                   Overlay::INCLUDE_VOLUME_FILES_NO);
     
     m_sceneAssistant->add("m_overlaySet",

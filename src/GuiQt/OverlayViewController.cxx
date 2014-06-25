@@ -589,12 +589,12 @@ OverlayViewController::updateViewController(Overlay* overlay)
      */
     std::vector<CaretMappableDataFile*> dataFiles;
     CaretMappableDataFile* selectedFile = NULL;
-    AString selectedMapUniqueID = "";
+    //AString selectedMapUniqueID = "";
     int32_t selectedMapIndex = -1;
     if (this->overlay != NULL) {
         this->overlay->getSelectionData(dataFiles, 
                                   selectedFile, 
-                                  selectedMapUniqueID, 
+                                  //selectedMapUniqueID,
                                   selectedMapIndex);
     }
     

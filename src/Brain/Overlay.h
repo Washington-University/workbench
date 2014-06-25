@@ -75,12 +75,12 @@ namespace caret {
         
         void swapData(Overlay* overlay);
         
-        void getSelectionData(DataFileTypeEnum::Enum& mapFileTypeOut,
-                              AString& selectedMapUniqueIDOut);
+//        void getSelectionData(DataFileTypeEnum::Enum& mapFileTypeOut,
+//                              AString& selectedMapUniqueIDOut);
         
         void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
-                              AString& selectedMapUniqueIDOut,
+                              //AString& selectedMapUniqueIDOut,
                               int32_t& selectedMapIndexOut);
         
         void getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
@@ -134,8 +134,11 @@ namespace caret {
         /** selected mappable file */
         CaretMappableDataFile* m_selectedMapFile;
         
+        /** selected map index */
+        int32_t m_selectedMapIndex;
+        
         /** selected data file map unique id */
-        AString m_selectedMapUniqueID;
+        //AString m_selectedMapUniqueID;
         
         /** Display palette in graphics window */
         bool m_paletteDisplayedFlag;

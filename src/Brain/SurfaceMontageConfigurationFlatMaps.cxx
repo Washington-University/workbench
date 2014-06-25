@@ -43,7 +43,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
+SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps(const int32_t tabIndex)
 : SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION,
                                       SUPPORTS_LAYOUT_ORIENTATION_NO)
 {
@@ -83,7 +83,9 @@ SurfaceMontageConfigurationFlatMaps::SurfaceMontageConfigurationFlatMaps()
     supportedStructures.push_back(StructureEnum::CEREBELLUM);
     supportedStructures.push_back(StructureEnum::CORTEX_LEFT);
     supportedStructures.push_back(StructureEnum::CORTEX_RIGHT);
-    setupOverlaySet(supportedStructures);
+    setupOverlaySet("Flat Montage",
+                    tabIndex,
+                    supportedStructures);
 }
 
 /**

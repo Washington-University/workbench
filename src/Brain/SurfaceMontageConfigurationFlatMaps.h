@@ -31,7 +31,7 @@ namespace caret {
     class SurfaceMontageConfigurationFlatMaps : public SurfaceMontageConfigurationAbstract {
         
     public:
-        SurfaceMontageConfigurationFlatMaps();
+        SurfaceMontageConfigurationFlatMaps(const int32_t tabIndex);
         
         virtual ~SurfaceMontageConfigurationFlatMaps();
         

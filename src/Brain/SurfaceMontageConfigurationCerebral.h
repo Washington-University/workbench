@@ -31,7 +31,7 @@ namespace caret {
     class SurfaceMontageConfigurationCerebral : public SurfaceMontageConfigurationAbstract {
         
     public:
-        SurfaceMontageConfigurationCerebral();
+        SurfaceMontageConfigurationCerebral(const int32_t tabIndex);
         
         virtual ~SurfaceMontageConfigurationCerebral();
         

@@ -43,7 +43,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
+SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar(const int32_t tabIndex)
 : SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION,
                                       SUPPORTS_LAYOUT_ORIENTATION_YES)
 {
@@ -86,7 +86,9 @@ SurfaceMontageConfigurationCerebellar::SurfaceMontageConfigurationCerebellar()
     
     std::vector<StructureEnum::Enum> supportedStructures;
     supportedStructures.push_back(StructureEnum::CEREBELLUM);
-    setupOverlaySet(supportedStructures);
+    setupOverlaySet("Cerebellar Montage",
+                    tabIndex,
+                    supportedStructures);
 }
 
 /**

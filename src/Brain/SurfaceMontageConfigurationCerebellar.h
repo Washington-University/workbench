@@ -31,7 +31,7 @@ namespace caret {
     class SurfaceMontageConfigurationCerebellar : public SurfaceMontageConfigurationAbstract {
         
     public:
-        SurfaceMontageConfigurationCerebellar();
+        SurfaceMontageConfigurationCerebellar(const int32_t tabIndex);
         
         virtual ~SurfaceMontageConfigurationCerebellar();
         

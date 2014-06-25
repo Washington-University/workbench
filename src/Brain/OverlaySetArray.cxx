@@ -26,7 +26,6 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "EventBrowserTabDelete.h"
-#include "EventOverlayYokingGroupGet.h"
 #include "EventManager.h"
 #include "OverlaySet.h"
 
@@ -59,12 +58,13 @@ m_name(name)
 {
     m_overlaySets.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_overlaySets[i] = new OverlaySet(includeSurfaceStructures,
+        m_overlaySets[i] = new OverlaySet(name,
+                                          i,
+                                          includeSurfaceStructures,
                                           includeVolumeFiles);
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_GET_YOKED);
 }
 
 /**
@@ -153,32 +153,6 @@ OverlaySetArray::receiveEvent(Event* event)
         }
         
         deleteTabEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_OVERLAY_GET_YOKED) {
-        EventOverlayYokingGroupGet* yokeGroupEvent = dynamic_cast<EventOverlayYokingGroupGet*>(event);
-        CaretAssert(yokeGroupEvent);
-        const OverlayYokingGroupEnum::Enum requestedYokingGroup = yokeGroupEvent->getYokingGroup();
-        
-        if (requestedYokingGroup != OverlayYokingGroupEnum::OVERLAY_YOKING_GROUP_OFF) {
-            /*
-             * Find all overlays with the requested yoking
-             */
-            for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
-                CaretAssertVectorIndex(m_overlaySets, iTab);
-                OverlaySet* overlaySet = m_overlaySets[iTab];
-                const int32_t overlayCount = overlaySet->getNumberOfDisplayedOverlays();
-                for (int32_t j = 0; j < overlayCount; j++) {
-                    Overlay* overlay = overlaySet->getOverlay(j);
-                    if (overlay->getYokingGroup() == requestedYokingGroup) {
-                        yokeGroupEvent->addYokedOverlay(m_name,
-                                                        iTab,
-                                                        overlay);
-                    }
-                }
-            }
-        }
-        
-        yokeGroupEvent->setEventProcessed();
     }
 }
 

@@ -62,9 +62,9 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_selectedConfigurationType[i] = SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION;
         
-        m_cerebellarConfiguration[i] = new SurfaceMontageConfigurationCerebellar();
-        m_cerebralConfiguration[i] = new SurfaceMontageConfigurationCerebral();
-        m_flatMapsConfiguration[i] = new SurfaceMontageConfigurationFlatMaps();
+        m_cerebellarConfiguration[i] = new SurfaceMontageConfigurationCerebellar(i);
+        m_cerebralConfiguration[i] = new SurfaceMontageConfigurationCerebral(i);
+        m_flatMapsConfiguration[i] = new SurfaceMontageConfigurationFlatMaps(i);
     }
     
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;

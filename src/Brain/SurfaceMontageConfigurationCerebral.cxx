@@ -46,7 +46,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral()
+SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral(const int32_t tabIndex)
 : SurfaceMontageConfigurationAbstract(SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION,
                                       SUPPORTS_LAYOUT_ORIENTATION_YES)
 {
@@ -99,7 +99,9 @@ SurfaceMontageConfigurationCerebral::SurfaceMontageConfigurationCerebral()
     std::vector<StructureEnum::Enum> supportedStructures;
     supportedStructures.push_back(StructureEnum::CORTEX_LEFT);
     supportedStructures.push_back(StructureEnum::CORTEX_RIGHT);
-    setupOverlaySet(supportedStructures);
+    setupOverlaySet("Cerebral Montage",
+                    tabIndex,
+                    supportedStructures);
 }
 
 /**

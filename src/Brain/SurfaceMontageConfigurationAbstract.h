@@ -92,7 +92,9 @@ namespace caret {
          */
         virtual void updateSurfaceMontageViewports(std::vector<SurfaceMontageViewport>& surfaceMontageViewports) = 0;
         
-        void setupOverlaySet(const std::vector<StructureEnum::Enum>& includeSurfaceStructures);
+        void setupOverlaySet(const AString& overlaySetName,
+                             const int32_t tabIndex,
+                             const std::vector<StructureEnum::Enum>& includeSurfaceStructures);
         
         virtual void saveMembersToScene(const SceneAttributes* sceneAttributes,
                                                          SceneClass* sceneClass) = 0;
