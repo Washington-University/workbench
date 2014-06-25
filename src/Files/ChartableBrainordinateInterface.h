@@ -32,11 +32,12 @@ namespace caret {
     
     class ChartableBrainordinateInterface {
         
-    public:
-//        ChartableBrainordinateInterface() { }
-//        
-//        virtual ~ChartableBrainordinateInterface() { }
+    protected:
+        ChartableBrainordinateInterface() { }
         
+        virtual ~ChartableBrainordinateInterface() { }
+   
+    public:
 
         /**
          * Load charting data for the surface with the given structure and node index.

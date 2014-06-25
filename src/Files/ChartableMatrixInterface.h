@@ -32,11 +32,12 @@ namespace caret {
     
     class ChartableMatrixInterface {
         
-    public:
+    protected:
         ChartableMatrixInterface() { }
         
         virtual ~ChartableMatrixInterface() { }
         
+    public:
         /**
          * Get the matrix RGBA coloring for this matrix data creator.
          *
