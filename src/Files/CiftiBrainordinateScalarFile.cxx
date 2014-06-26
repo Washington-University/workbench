@@ -88,7 +88,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
         return NULL;
     }
     
-    const CiftiFile* sourceCiftiFile = sourceCiftiMatrixFile->m_ciftiFile.get();
+    const CiftiFile* sourceCiftiFile = sourceCiftiMatrixFile->m_ciftiFile;
     
     if (sourceCiftiMatrixFile->getNumberOfMaps() <= 0) {
         errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (No Maps).";
@@ -134,7 +134,7 @@ CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(co
          * Create a scalar file
          */
         CiftiBrainordinateScalarFile* scalarFile = new CiftiBrainordinateScalarFile();
-        scalarFile->m_ciftiFile.reset(ciftiFile);
+        scalarFile->m_ciftiFile.grabNew(ciftiFile);
 
         /*
          * Create name of scalar file

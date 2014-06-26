@@ -1509,7 +1509,7 @@ SurfaceNodeColoring::assignCiftiParcelSeriesColoring(const BrainStructure* brain
 bool 
 SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* /*brainStructure*/, 
                                         const RgbaFile* /*rgbaFile*/,
-                                        const int32_t mapIndex,
+                                        const int32_t /*mapIndex*/,
                                         //const AString& /*rgbaMapUniqueID*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)

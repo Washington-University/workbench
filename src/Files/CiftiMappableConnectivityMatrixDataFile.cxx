@@ -204,7 +204,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
                                                                const int64_t surfaceNumberOfNodes,
                                                                const int64_t nodeIndex) 
 {
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         return -1;
     }
     
@@ -260,7 +260,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForNodeWhenLoading(const Str
 int64_t
 CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelAtCoordinateWhenLoading(const float xyz[3])
 {
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         return -1;
     }
     int64_t ijk[3];
@@ -280,7 +280,7 @@ CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelAtCoordinateWhenLoad
 int64_t
 CiftiMappableConnectivityMatrixDataFile::getRowIndexForVoxelIndexWhenLoading(const int64_t ijk[3])
 {  
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         return -1;
     }
     
@@ -397,7 +397,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
                                                            const StructureEnum::Enum structure,
                                                            const int32_t nodeIndex) throw (DataFileException)
 {
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
         return -1;
     }
@@ -488,7 +488,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
 bool 
 CiftiMappableConnectivityMatrixDataFile::loadMapData(const int32_t selectionIndex) throw (DataFileException)
 {
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         return false;
     }
     
@@ -556,7 +556,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                                                    const StructureEnum::Enum structure,
                                                                    const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
         return;
     }
@@ -705,7 +705,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
 {
     CaretAssert(mapIndex == 0);
     
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
         return -1;
     }
@@ -797,7 +797,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         CaretAssert(mapIndex == 0);
     }
     
-    if (m_ciftiFile == nullptr) {
+    if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
         return false;
     }

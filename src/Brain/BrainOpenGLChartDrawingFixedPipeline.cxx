@@ -26,7 +26,6 @@
 #undef __BRAIN_OPEN_G_L_CHART_DRAWING_FIXED_PIPELINE_DECLARE__
 
 #include "CaretOpenGLInclude.h"
-#include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
@@ -43,6 +42,7 @@
 #include "ChartPoint.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiParcelScalarFile.h"
+#include "Brain.h"
 #include "ConnectivityDataLoaded.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventManager.h"

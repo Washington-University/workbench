@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include "BrainConstants.h"
 #include "CiftiMappableDataFile.h"
 #include "VoxelIJK.h"

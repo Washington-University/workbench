@@ -27,8 +27,9 @@
 
 namespace caret {
 
-    class CaretMappableDataFile;
+    //class CaretMappableDataFile;
     class ChartDataCartesian;
+    class CaretMappableDataFile;
     
     class ChartableBrainordinateInterface {
         

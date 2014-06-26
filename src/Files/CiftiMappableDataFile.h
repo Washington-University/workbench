@@ -1,8 +1,6 @@
 #ifndef __CIFTI_MAPPABLE_DATA_FILE_H__
 #define __CIFTI_MAPPABLE_DATA_FILE_H__
 
-#ifdef WORKBENCH_HAVE_C11X
-
 /*LICENSE_START*/
 /*
  *  Copyright (C) 2014  Washington University School of Medicine
@@ -23,9 +21,8 @@
  */
 /*LICENSE_END*/
 
-#include <memory>
-
 #include "CaretMappableDataFile.h"
+#include "CaretPointer.h"
 #include "CaretObjectTracksModification.h"
 #include "CiftiXMLElements.h"
 #include "DisplayGroupEnum.h"
@@ -38,7 +35,6 @@ namespace caret {
     class ChartData;
     class ChartDataCartesian;
     class CiftiFile;
-    class CiftiMappableConnectivityMatrixDataFile;
     class DescriptiveStatistics;
     class FastStatistics;
     class GroupAndNameHierarchyModel;
@@ -426,34 +422,34 @@ namespace caret {
             AString m_mapName;
             
             /** Count of data elements in map. */
-            int64_t m_dataCount = 0;
+            int64_t m_dataCount;
             
             /** Metadata for the map. Points to data in CiftiFile so DO NOT delete */
-            GiftiMetaData* m_metadata = nullptr;
+            GiftiMetaData* m_metadata;
             
             /** Palette color mapping for map. Points to data in CiftiFile so DO NOT delete  */
-            PaletteColorMapping* m_paletteColorMapping = nullptr;
+            PaletteColorMapping* m_paletteColorMapping;
             
             /** Label table for map. Points to data in CiftiFile so DO NOT delete  */
-            GiftiLabelTable* m_labelTable = nullptr;
+            GiftiLabelTable* m_labelTable;
 
             /** Indicates data is mapped with a lable table */
-            bool m_dataIsMappedWithLabelTable = false;
+            bool m_dataIsMappedWithLabelTable;
             
             /** RGBA coloring for map */
             std::vector<uint8_t> m_rgba;
             
             /** RGBA coloring is valid */
-            bool m_rgbaValid = false;
+            bool m_rgbaValid;
             
             /** descriptive statistics for map */
-            std::unique_ptr<DescriptiveStatistics> m_descriptiveStatistics;
+            CaretPointer<DescriptiveStatistics> m_descriptiveStatistics;
             
             /** fast statistics for map */
-            std::unique_ptr<FastStatistics> m_fastStatistics;
+            CaretPointer<FastStatistics> m_fastStatistics;
             
             /** histogram for map */
-            std::unique_ptr<Histogram> m_histogram;
+            CaretPointer<Histogram> m_histogram;
         
         private:
             /** Name of map */
@@ -463,7 +459,7 @@ namespace caret {
              * For maps that do not have metadata, a metadata instance
              * is still needed even though it essentially does nothing.
              */
-            std::unique_ptr<GiftiMetaData> m_metadataForMapsWithNoMetaData;
+            CaretPointer<GiftiMetaData> m_metadataForMapsWithNoMetaData;
         };
         
         void clearPrivate();
@@ -488,57 +484,57 @@ namespace caret {
         /**
          * Point to the CIFTI file object.
          */
-        std::unique_ptr<CiftiFile> m_ciftiFile;
+        CaretPointer<CiftiFile> m_ciftiFile;
         
         /**
          * Method used when reading data from the file.
          */
-        DataAccessMethod m_dataReadingAccessMethod = DATA_ACCESS_METHOD_INVALID;
+        DataAccessMethod m_dataReadingAccessMethod;
         
         /** Direction for obtaining mapping information (CiftiXML::ALONG_ROW, etc) */
-        int32_t m_dataReadingDirectionForCiftiXML = -1;
+        int32_t m_dataReadingDirectionForCiftiXML;
         
         /**
          * Method used when mapping loaded data to brainordinates.
          */
-        DataAccessMethod m_dataMappingAccessMethod = DATA_ACCESS_METHOD_INVALID;
+        DataAccessMethod m_dataMappingAccessMethod;
         
         /** Direction for obtaining mapping information (CiftiXML::ALONG_ROW, etc) */
-        int32_t m_dataMappingDirectionForCiftiXML = -1;
+        int32_t m_dataMappingDirectionForCiftiXML;
         
         /**
          * Method used when mapping data to colors.
          */
-        ColorMappingMethod m_colorMappingMethod = COLOR_MAPPING_METHOD_INVALID;
+        ColorMappingMethod m_colorMappingMethod;
         
         /**
          * Type of data in the file's map(s).
          */
-        FileMapDataType m_fileMapDataType = FILE_MAP_DATA_TYPE_INVALID;
+        FileMapDataType m_fileMapDataType;
         
         /** Contains data related to each map */
         std::vector<MapContent*> m_mapContent;
         
         /** True if the file contains surface data */
-        bool m_containsSurfaceData = false;
+        bool m_containsSurfaceData;
         
         /** True if the file contains surface data */
-        bool m_containsVolumeData = false;
+        bool m_containsVolumeData;
         
-        float m_mappingTimeStart = 0.0;
+        float m_mappingTimeStart;
         
-        float m_mappingTimeStep = 0.0;
+        float m_mappingTimeStep;
         
-        NiftiTimeUnitsEnum::Enum m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+        NiftiTimeUnitsEnum::Enum m_mappingTimeUnits;
                 
         /** Fast conversion of IJK to data offset */
-        std::unique_ptr<SparseVolumeIndexer> m_voxelIndicesToOffset;
+        CaretPointer<SparseVolumeIndexer> m_voxelIndicesToOffset;
         
         /** Holds class and name hierarchy used for display selection */
-        mutable std::unique_ptr<GroupAndNameHierarchyModel> m_classNameHierarchy;
+        mutable CaretPointer<GroupAndNameHierarchyModel> m_classNameHierarchy;
         
         /** force an update of the class and name hierarchy */
-        mutable bool m_forceUpdateOfGroupAndNameHierarchy = true;
+        mutable bool m_forceUpdateOfGroupAndNameHierarchy;
 
 //        std::vector<int64_t> m_ciftiDimensions;
         
@@ -551,7 +547,5 @@ namespace caret {
 #endif // __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
     
 } // namespace
-
-#endif // WORKBENCH_HAVE_C11X
 
 #endif  //__CIFTI_MAPPABLE_DATA_FILE_H__

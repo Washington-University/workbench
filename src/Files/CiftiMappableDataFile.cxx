@@ -18,9 +18,6 @@
  */
 /*LICENSE_END*/
 
-#ifdef WORKBENCH_HAVE_C11X
-
-
 #include <set>
 
 #define __CIFTI_MAPPABLE_DATA_FILE_DECLARE__
@@ -73,6 +70,18 @@ using namespace caret;
 CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType)
 : CaretMappableDataFile(dataFileType)
 {
+    m_ciftiFile.grabNew(NULL);
+    m_voxelIndicesToOffset.grabNew(NULL);
+    m_classNameHierarchy.grabNew(NULL);
+    
+    m_containsSurfaceData = false;
+    m_containsVolumeData = false;
+    m_mappingTimeStart = 0.0;
+    m_mappingTimeStep = 0.0;
+    m_mappingTimeUnits = NiftiTimeUnitsEnum::NIFTI_UNITS_UNKNOWN;
+    
+    /** force an update of the class and name hierarchy */
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     switch (dataFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             m_dataReadingAccessMethod = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
@@ -175,7 +184,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
             break;
     }
     
-    m_classNameHierarchy = std::unique_ptr<GroupAndNameHierarchyModel>(new GroupAndNameHierarchyModel());
+    m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
 }
 
 /**
@@ -294,7 +303,7 @@ CiftiMappableDataFile::newInstanceForCiftiFileTypeAndSurface(const DataFileTypeE
          * Add the CiftiFile to the Cifti Mappable File
          */
         const AString defaultFileName = ciftiMappableFile->getFileName();
-        ciftiMappableFile->m_ciftiFile.reset(ciftiFile);
+        ciftiMappableFile->m_ciftiFile.grabNew(ciftiFile);
         ciftiMappableFile->setFileName(defaultFileName);
         ciftiMappableFile->initializeAfterReading();
         ciftiMappableFile->setModified();
@@ -342,7 +351,7 @@ CiftiMappableDataFile::clearPrivate()
      * m_fileMapDataType
      */
     
-    m_ciftiFile.reset();
+    m_ciftiFile.grabNew(NULL);
     
     const int64_t num = static_cast<int64_t>(m_mapContent.size());
     for (int64_t i = 0; i < num; i++) {
@@ -498,12 +507,12 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFile
                 
                 CaretTemporaryFile tempFile;
                 tempFile.readFile(ciftiMapFileName);
-                m_ciftiFile = std::unique_ptr<CiftiFile>(new CiftiFile());
+                m_ciftiFile.grabNew(new CiftiFile());
                 m_ciftiFile->openFile(tempFile.getFileName());
                 m_ciftiFile->convertToInMemory();
             }
             else {
-                m_ciftiFile = std::unique_ptr<CiftiFile>(new CiftiFile());
+                m_ciftiFile.grabNew(new CiftiFile());
                 AString username = "";
                 AString password = "";
                 AString filenameToOpen = "";
@@ -530,7 +539,7 @@ CiftiMappableDataFile::readFile(const AString& ciftiMapFileName) throw (DataFile
             }
         }
         else {
-            m_ciftiFile = std::unique_ptr<CiftiFile>(new CiftiFile());
+            m_ciftiFile.grabNew(new CiftiFile());
             switch (m_fileMapDataType) {
                 case FILE_MAP_DATA_TYPE_INVALID:
                     break;
@@ -649,8 +658,8 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
             break;
     }
     
-    m_voxelIndicesToOffset = std::unique_ptr<SparseVolumeIndexer>(new SparseVolumeIndexer(m_ciftiFile.get(),
-                                                                                          voxelMapping));
+    m_voxelIndicesToOffset.grabNew(new SparseVolumeIndexer(m_ciftiFile,
+                                                           voxelMapping));
     
     int32_t numberOfMaps = 0;
     switch (m_fileMapDataType) {
@@ -678,7 +687,7 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
      * Get data for maps.
      */
     for (int32_t i = 0; i < numberOfMaps; i++) {
-        MapContent* mc = new MapContent(m_ciftiFile.get(),
+        MapContent* mc = new MapContent(m_ciftiFile,
                                         m_fileMapDataType,
                                         m_dataReadingDirectionForCiftiXML,
                                         m_dataMappingDirectionForCiftiXML,
@@ -1119,7 +1128,7 @@ CiftiMappableDataFile::getMapStatistics(const int32_t mapIndex)
     getMapData(mapIndex,
                data);
     
-    DescriptiveStatistics* ds = m_mapContent[mapIndex]->m_descriptiveStatistics.get();
+    DescriptiveStatistics* ds = m_mapContent[mapIndex]->m_descriptiveStatistics;
     if (data.empty()) {
         ds->update(NULL,
                    0);
@@ -1151,7 +1160,7 @@ CiftiMappableDataFile::getMapFastStatistics(const int32_t mapIndex)
     getMapData(mapIndex,
                data);
     
-    FastStatistics* fs = m_mapContent[mapIndex]->m_fastStatistics.get();
+    FastStatistics* fs = m_mapContent[mapIndex]->m_fastStatistics;
     if (data.empty()) {
         fs->update(NULL,
                    0);
@@ -1183,7 +1192,7 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex)
     getMapData(mapIndex,
                data);
     
-    Histogram* h = m_mapContent[mapIndex]->m_histogram.get();
+    Histogram* h = m_mapContent[mapIndex]->m_histogram;
     if (data.empty()) {
         h->update(NULL,
                   0);
@@ -1232,7 +1241,7 @@ CiftiMappableDataFile::getMapStatistics(const int32_t mapIndex,
                data);
     
     
-    DescriptiveStatistics* ds = m_mapContent[mapIndex]->m_descriptiveStatistics.get();
+    DescriptiveStatistics* ds = m_mapContent[mapIndex]->m_descriptiveStatistics;
     if (data.empty()) {
         ds->update(NULL,
                    0);
@@ -1287,7 +1296,7 @@ CiftiMappableDataFile::getMapHistogram(const int32_t mapIndex,
     
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
-    Histogram* h = m_mapContent[mapIndex]->m_histogram.get();
+    Histogram* h = m_mapContent[mapIndex]->m_histogram;
     if (data.empty()) {
         h->update(NULL,
                   0);
@@ -1336,7 +1345,7 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex)
             break;
     }
     
-    return nullptr;
+    return NULL;
 }
 
 /**
@@ -1371,7 +1380,7 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
             break;
     }
     
-    return nullptr;
+    return NULL;
 }
 
 /**
@@ -1422,7 +1431,7 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex)
             break;
     }
     
-    return nullptr;
+    return NULL;
 }
 
 /**
@@ -1451,7 +1460,7 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
             break;
     }
     
-    return nullptr;
+    return NULL;
 }
 
 /**
@@ -2266,7 +2275,7 @@ CiftiMappableDataFile::getGroupAndNameHierarchyModel()
                                  m_forceUpdateOfGroupAndNameHierarchy);
     m_forceUpdateOfGroupAndNameHierarchy = false;
     
-    return m_classNameHierarchy.get();
+    return m_classNameHierarchy;
 }
 
 /**
@@ -2281,7 +2290,7 @@ CiftiMappableDataFile::getGroupAndNameHierarchyModel() const
                                  m_forceUpdateOfGroupAndNameHierarchy);
     m_forceUpdateOfGroupAndNameHierarchy = false;
     
-    return m_classNameHierarchy.get();
+    return m_classNameHierarchy;
 }
 
 /**
@@ -3919,9 +3928,21 @@ m_mapIndex(mapIndex)
     CaretAssert(ciftiFile);
     CaretAssert(mapIndex >= 0);
     
-    m_fastStatistics = std::unique_ptr<FastStatistics>(new FastStatistics());
-    m_descriptiveStatistics = std::unique_ptr<DescriptiveStatistics>(new DescriptiveStatistics());
-    m_histogram = std::unique_ptr<Histogram>(new Histogram());
+    m_descriptiveStatistics.grabNew(NULL);
+    m_fastStatistics.grabNew(NULL);
+    m_histogram.grabNew(NULL);
+    
+    m_metadata = NULL;
+    m_paletteColorMapping = NULL;
+    m_labelTable = NULL;
+    
+    m_dataCount = 0;
+    m_rgbaValid = false; 
+    m_dataIsMappedWithLabelTable = false;
+    
+    m_fastStatistics.grabNew(new FastStatistics());
+    m_descriptiveStatistics.grabNew(new DescriptiveStatistics());
+    m_histogram.grabNew(new Histogram());
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
     
@@ -4001,8 +4022,8 @@ m_mapIndex(mapIndex)
                     /*
                      * Series Data has no map metadata but still need valid metadata instance
                      */
-                    m_metadataForMapsWithNoMetaData = std::unique_ptr<GiftiMetaData>(new GiftiMetaData());
-                    m_metadata = m_metadataForMapsWithNoMetaData.get();
+                    m_metadataForMapsWithNoMetaData.grabNew(new GiftiMetaData());
+                    m_metadata = m_metadataForMapsWithNoMetaData;
 
                     /*
                      * Series data usings the file's palette
@@ -4223,7 +4244,7 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
         if (palette != NULL) {
             m_fastStatistics->update(&data[0],
                                      data.size());
-            NodeAndVoxelColoring::colorScalarsWithPalette(m_fastStatistics.get(),
+            NodeAndVoxelColoring::colorScalarsWithPalette(m_fastStatistics,
                                                           m_paletteColorMapping,
                                                           palette,
                                                           &data[0],
@@ -4253,6 +4274,3 @@ CiftiMappableDataFile::MapContent::updateColoring(const std::vector<float>& data
                  + QString::number(m_fastStatistics->getMostPositiveValue()));
 }
 
-
-
-#endif   // WORKBENCH_HAVE_C11X

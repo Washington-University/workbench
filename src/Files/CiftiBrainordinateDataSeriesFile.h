@@ -26,6 +26,7 @@
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
+    class PaletteFile;
 
     class CiftiBrainordinateDataSeriesFile :
     public CiftiMappableDataFile,
