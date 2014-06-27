@@ -28,6 +28,7 @@
 namespace caret {
 
     class Border;
+    class BorderPointFromSearch;
     class GroupAndNameHierarchyModel;
     class GiftiLabelTable;
     class SurfaceFile;
@@ -68,16 +69,23 @@ namespace caret {
         
         const Border* getBorder(const int32_t indx) const;
         
-        bool findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+        void findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                   const int32_t browserTabIndex,
                                   const SurfaceFile* surfaceFile,
                                   const float xyz[3],
                                   const float maximumDistance,
-                                  Border*& borderOut,
-                                  int32_t& borderIndexOut,
-                                  SurfaceProjectedItem*& borderPointOut,
-                                  int32_t& borderPointIndexOut,
-                                  float& distanceToNearestPointOut) const;
+                                  BorderPointFromSearch& borderPoint) const;
+        
+//        bool findAllBordersNearXYZ(const DisplayGroupEnum::Enum displayGroup,
+//                                  const int32_t browserTabIndex,
+//                                  const SurfaceFile* surfaceFile,
+//                                  const float xyz[3],
+//                                  const float maximumDistance,
+//                                   std::vector<Border*>& borderOut,
+//                                  std::vector<int32_t>& borderIndexOut,
+//                                  std::vector<SurfaceProjectedItem*>& borderPointOut,
+//                                  std::vector<int32_t>& borderPointIndexOut,
+//                                  std::vector<float>& distanceToNearestPointOut) const;
         
         void addBorder(Border* border);
         

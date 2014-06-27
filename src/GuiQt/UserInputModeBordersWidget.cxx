@@ -39,6 +39,7 @@
 #include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
 #include "BorderFile.h"
+#include "BorderPointFromSearch.h"
 #include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -513,27 +514,21 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         case UserInputModeBorders::DRAW_OPERATION_REPLACE:
         {
             float nearestTolerance = 15;
-            BorderFile* borderFile;
-            int32_t borderFileIndex; 
-            Border* border;
-            int32_t borderIndex;
-            SurfaceProjectedItem* borderPoint;
-            int32_t borderPointIndex;
-            float distanceToNearestBorder;
             bool successFlag = false;
-            if (brain->findBorderNearestBorder(displayGroup,
+            BorderPointFromSearch nearestBorderPoint;
+            brain->findBorderNearestBorder(displayGroup,
                                                browserTabIndex,
                                                surface,
                                                this->inputModeBorders->borderBeingDrawnByOpenGL,
                                                Brain::NEAREST_BORDER_TEST_MODE_ENDPOINTS, 
                                                nearestTolerance,
-                                               borderFile,
-                                               borderFileIndex,
-                                               border, 
-                                               borderIndex,
-                                               borderPoint,
-                                               borderPointIndex,
-                                               distanceToNearestBorder)) {
+                                           nearestBorderPoint);
+            if (nearestBorderPoint.isValid()) {
+                BorderFile* borderFile = nearestBorderPoint.borderFile();
+                Border* border = nearestBorderPoint.border();
+                CaretAssert(borderFile);
+                CaretAssert(border);
+                
                 try {
                     switch (this->inputModeBorders->getDrawOperation()) {
                         case UserInputModeBorders::DRAW_OPERATION_CREATE:

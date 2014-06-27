@@ -39,6 +39,7 @@ namespace caret {
     
     class Border;
     class BorderFile;
+    class BorderPointFromSearch;
     class FociFile;
     class BrainStructure;
     class CaretDataFile;
@@ -120,32 +121,20 @@ namespace caret {
             NEAREST_BORDER_TEST_MODE_ALL_POINTS,
             NEAREST_BORDER_TEST_MODE_ENDPOINTS
         };
-        bool findBorderNearestBorder(const DisplayGroupEnum::Enum displayGroup,
+        void findBorderNearestBorder(const DisplayGroupEnum::Enum displayGroup,
                                      const int32_t browserTabIndex,
                                      const SurfaceFile* surfaceFile,
                                     const Border* border,
                                     const NearestBorderTestMode borderTestMode,
                                     const float maximumDistance,
-                                    BorderFile*& borderFileOut,
-                                    int32_t& borderFileIndexOut,
-                                    Border*& borderOut,
-                                    int32_t& borderIndexOut,
-                                    SurfaceProjectedItem*& borderPointOut,
-                                    int32_t& borderPointIndexOut,
-                                    float& distanceToBorderPointOut) const;
+                                     BorderPointFromSearch& borderPointOut) const;
                                     
-        bool findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
+        void findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                   const int32_t browserTabIndex,
                                   const SurfaceFile* surfaceFile,
-                                 const float xyz[3],
-                                 const float maximumDistance,
-                                 BorderFile*& borderFileOut,
-                                 int32_t& borderFileIndexOut,
-                                 Border*& borderOut,
-                                 int32_t& borderIndexOut,
-                                 SurfaceProjectedItem*& borderPointOut,
-                                 int32_t& borderPointIndexOut,
-                                 float& distanceToBorderPointOut) const;
+                                  const float xyz[3],
+                                  const float maximumDistance,
+                                  BorderPointFromSearch& borderPointOut) const;
         
         int32_t getNumberOfFociFiles() const;
         

@@ -23,6 +23,7 @@ Border.h
 BorderException.h
 BorderFile.h
 BorderFileSaxReader.h
+BorderPointFromSearch.h
 BorderTracingHelper.h
 CaretDataFile.h
 CaretDataFileHelper.h

@@ -33,6 +33,7 @@
 
 #include "Border.h"
 #include "BorderFileSaxReader.h"
+#include "BorderPointFromSearch.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFileContentInformation.h"
@@ -272,49 +273,28 @@ BorderFile::getBorder(const int32_t indx) const
  *    Coordinate for nearest border.
  * @param maximumDistance
  *    Maximum distance coordinate can be from a border point.
- * @param borderOut
- *    Border containing the point nearest the coordinate.
- * @param borderIndexOut
- *    Index of border in the border file containing the point nearest the coordinate.
- * @param borderPointIndexOut
- *    Index of border point nearest the coordinate, in the border.
  * @param borderPointOut
- *    Point in border nearest the coordinate.
- * @param distanceToNearestPointOut
- *    Distance to the nearest border point.
- * @return
- *    Returns true if a border point was found that was within
- *    tolerance distance of the coordinate in which case ALL of
- *    the output parameters will be valid.  Otherwise, false
- *    will be returned.
+ *    Contains result of search.
  */
-bool 
+void
 BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                  const int32_t browserTabIndex,
                                  const SurfaceFile* surfaceFile,
-                                const float xyz[3],
-                                const float maximumDistance,
-                                Border*& borderOut,
-                                int32_t& borderIndexOut,
-                                SurfaceProjectedItem*& borderPointOut,
-                                int32_t& borderPointIndexOut,
-                                float& distanceToNearestPointOut) const
+                                 const float xyz[3],
+                                 const float maximumDistance,
+                                 BorderPointFromSearch& borderPointOut) const
 {
     CaretAssert(surfaceFile);
     
-    borderOut = NULL;
-    borderIndexOut = -1;
-    borderPointOut = NULL;
-    borderPointIndexOut = -1;
-    distanceToNearestPointOut = std::numeric_limits<float>::max();
+    borderPointOut.reset();
     
     float nearestDistance = std::numeric_limits<float>::max();
     
     BorderFile* nonConstBorderFile = const_cast<BorderFile*>(this);
     
     const int32_t numBorders = getNumberOfBorders();
-    for (int32_t i = 0; i < numBorders; i++) {
-        Border* border = m_borders[i];
+    for (int32_t borderIndex = 0; borderIndex < numBorders; borderIndex++) {
+        Border* border = m_borders[borderIndex];
         if (nonConstBorderFile->isBorderDisplayed(displayGroup,
                                                   browserTabIndex,
                                                   border) == false) {
@@ -327,24 +307,17 @@ BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                                                         maximumDistance,
                                                                         distanceToPoint);
             if (pointIndex >= 0) {
-//                std::cout << "Border: " << qPrintable(border->getName())
-//                << " point index: " << pointIndex
-//                << " distance: " << distanceToPoint << std::endl;
-                SurfaceProjectedItem* borderPoint = border->getPoint(pointIndex);
                 if (distanceToPoint < nearestDistance) {
-                    borderOut = border;
-                    borderIndexOut = i;
-                    borderPointOut = borderPoint;
-                    borderPointIndexOut = pointIndex;
-                    distanceToNearestPointOut = distanceToPoint;
+                    borderPointOut.setData(const_cast<BorderFile*>(this),
+                                           border,
+                                           borderIndex,
+                                           pointIndex,
+                                           distanceToPoint);
                     nearestDistance = distanceToPoint;
                 }
             }
         }
     }
-    
-    const bool valid = (borderOut != NULL);
-    return valid;
 }
 
 /**
