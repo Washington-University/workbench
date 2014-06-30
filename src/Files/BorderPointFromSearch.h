@@ -50,7 +50,8 @@ namespace caret {
          * @param rhs
          *    Instance copied to this instance.
          */
-        BorderPointFromSearch(const BorderPointFromSearch& rhs) {
+        BorderPointFromSearch(const BorderPointFromSearch& rhs)
+        : CaretObject(rhs) {
             this->copyHelperBorderPointFromSearch(rhs);
         }
         
