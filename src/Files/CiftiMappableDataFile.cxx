@@ -2917,7 +2917,10 @@ CiftiMappableDataFile::getSurfaceDataIndicesForMappingToBrainordinates(const Str
                 std::fill(dataIndicesForNodes.begin(),
                           dataIndicesForNodes.end(),
                           -1);
-                for (auto nodeMap : surfaceMap) {
+                for (std::vector<CiftiBrainModelsMap::SurfaceMap>::const_iterator iter = surfaceMap.begin();
+                     iter != surfaceMap.end();
+                     iter++) {
+                    const CiftiBrainModelsMap::SurfaceMap& nodeMap = *iter;
                     CaretAssertVectorIndex(dataIndicesForNodes,
                                            nodeMap.m_surfaceNode);
                     dataIndicesForNodes[nodeMap.m_surfaceNode] = nodeMap.m_ciftiIndex;
