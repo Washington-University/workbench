@@ -69,7 +69,7 @@ namespace caret {
         
         const Border* getBorder(const int32_t indx) const;
         
-        void findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum::Enum displayGroup,
+        void findAllBordersWithEndPointNearSegmentFirstPoint(const DisplayGroupEnum::Enum displayGroup,
                                                const int32_t browserTabIndex,
                                                const SurfaceFile* surfaceFile,
                                                const Border* borderSegment,

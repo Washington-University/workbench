@@ -262,7 +262,7 @@ BorderFile::getBorder(const int32_t indx) const
 
 /**
  * Find ALL borders that have one endpoint within the given distance
- * of either end point of the given border segment.
+ * of the first point of the given border segment.
  *
  * @param displayGroup
  *    Display group in which border is tested for display.
@@ -278,7 +278,7 @@ BorderFile::getBorder(const int32_t indx) const
  *    Contains result of search.
  */
 void
-BorderFile::findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum::Enum displayGroup,
+BorderFile::findAllBordersWithEndPointNearSegmentFirstPoint(const DisplayGroupEnum::Enum displayGroup,
                                                           const int32_t browserTabIndex,
                                                           const SurfaceFile* surfaceFile,
                                                           const Border* borderSegment,
@@ -294,14 +294,11 @@ BorderFile::findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum
         return;
     }
     
-    float segFirstXYZ[3], segLastXYZ[3];
-    const int32_t segLpIndex = borderSegment->getNumberOfPoints() - 1;
-    if (borderSegment->getPoint(0)->getProjectedPosition(*surfaceFile, segFirstXYZ, false)
-        && borderSegment->getPoint(segLpIndex)->getProjectedPosition(*surfaceFile, segLastXYZ, false)) {
-        /* OK - both points have valid coordinates */
-    }
-    else {
-        /* One or both points failed to project */
+    float segFirstXYZ[3];
+    if (! borderSegment->getPoint(0)->getProjectedPosition(*surfaceFile, segFirstXYZ, false)) {
+        /*
+         * Point did not unproject
+         */
         return;
     }
     
@@ -327,13 +324,8 @@ BorderFile::findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum
                 if (border->getPoint(0)->getProjectedPosition(*surfaceFile,
                                                               pointXYZ,
                                                               false)) {
-                    const float dist1 = MathFunctions::distanceSquared3D(pointXYZ,
+                    nearestPointDistance = MathFunctions::distanceSquared3D(pointXYZ,
                                                                          segFirstXYZ);
-                    const float dist2 = MathFunctions::distanceSquared3D(pointXYZ,
-                                                                         segLastXYZ);
-                    nearestPointDistance = ((dist1 < dist2)
-                                            ? dist1
-                                            : dist2);
                     neartestPointIndex = 0;
                 }
             }
@@ -347,22 +339,17 @@ BorderFile::findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum
                 if (border->getPoint(lastPointIndex)->getProjectedPosition(*surfaceFile,
                                                               pointXYZ,
                                                               false)) {
-                    const float dist1 = MathFunctions::distanceSquared3D(pointXYZ,
-                                                                         segFirstXYZ);
                     const float dist2 = MathFunctions::distanceSquared3D(pointXYZ,
-                                                                         segLastXYZ);
-                    const float distance2 = ((dist1 < dist2)
-                                            ? dist1
-                                            : dist2);
+                                                                         segFirstXYZ);
                     if (nearestPointDistance >= 0.0) {
-                        if (distance2 < nearestPointDistance) {
+                        if (dist2 < nearestPointDistance) {
                             neartestPointIndex   = lastPointIndex;
-                            nearestPointDistance = distance2;
+                            nearestPointDistance = dist2;
                         }
                     }
                     else {
                         neartestPointIndex   = lastPointIndex;
-                        nearestPointDistance = distance2;
+                        nearestPointDistance = dist2;
                     }
                 }
             }

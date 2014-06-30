@@ -536,7 +536,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                                                                      bordersFoundFromFile);
                         break;
                     case UserInputModeBorders::DRAW_OPERATION_EXTEND:
-                        borderFile->findAllBordersWithEndPointNearSegmentEndPoint(displayGroup,
+                        borderFile->findAllBordersWithEndPointNearSegmentFirstPoint(displayGroup,
                                                                                   browserTabIndex,
                                                                                   surface,
                                                                                   this->inputModeBorders->borderBeingDrawnByOpenGL,
@@ -561,13 +561,32 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             if ( ! allNearbyBorders.empty()) {
                 std::sort(allNearbyBorders.begin(),
                           allNearbyBorders.end());
+                const int32_t numBorders = static_cast<int32_t>(allNearbyBorders.size());
+                
+                AString msg;
+                switch (this->inputModeBorders->getDrawOperation()) {
+                    case UserInputModeBorders::DRAW_OPERATION_CREATE:
+                        CaretAssert(0);
+                        break;
+                    case UserInputModeBorders::DRAW_OPERATION_ERASE:
+                        msg = "Erase segement in";
+                        break;
+                    case UserInputModeBorders::DRAW_OPERATION_EXTEND:
+                        msg = "Extend";
+                        break;
+                    case UserInputModeBorders::DRAW_OPERATION_REPLACE:
+                        msg = "Replace segment in";
+                        break;
+                }
+                msg += ((numBorders > 1)
+                        ? " these borders: "
+                        : " this border: ");
                 
                 std::vector<QCheckBox*> borderCheckBoxes;
                 WuQDataEntryDialog ded("Edit Borders",
                                        this);
-                ded.setTextAtTop("Apply to these borders: ", false);
+                ded.setTextAtTop(msg, false);
                 
-                const int32_t numBorders = static_cast<int32_t>(allNearbyBorders.size());
                 for (int32_t i = 0; i < numBorders; i++) {
                     BorderPointFromSearch& bpfs = allNearbyBorders[i];
                     QCheckBox* cb = ded.addCheckBox(bpfs.border()->getName());
