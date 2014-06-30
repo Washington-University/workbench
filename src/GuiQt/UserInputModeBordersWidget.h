@@ -69,6 +69,18 @@ namespace caret {
         void drawFinishButtonClicked();
         
     private:
+        class BorderFileAndBorderMemento {
+        public:
+            BorderFileAndBorderMemento(BorderFile* borderFile,
+                                       Border* border) {
+                m_borderFile = borderFile;
+                m_border     = border;
+            }
+            
+            BorderFile* m_borderFile;
+            Border*     m_border;
+        };
+        
         UserInputModeBordersWidget(const UserInputModeBordersWidget&);
 
         UserInputModeBordersWidget& operator=(const UserInputModeBordersWidget&);
@@ -88,8 +100,7 @@ namespace caret {
         
         QWidget* createRoiOperationWidget();
         
-        void setLastEditedBorder(BorderFile* borderFile,
-                                 Border* border);
+        void setLastEditedBorder(std::vector<BorderFileAndBorderMemento>& undoFinishBorders);
         
         void resetLastEditedBorder();
         
@@ -111,9 +122,7 @@ namespace caret {
         
         QToolButton* m_undoFinishToolButton;
         
-        BorderFile* m_undoFinishBorderFile;
-        
-        Border* m_undoFinishBorder;
+        std::vector<BorderFileAndBorderMemento> m_undoFinishBorders;
     };
     
 #ifdef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__

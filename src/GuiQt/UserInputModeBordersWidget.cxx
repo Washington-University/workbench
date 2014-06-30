@@ -389,46 +389,53 @@ UserInputModeBordersWidget::drawUndoButtonClicked()
 void
 UserInputModeBordersWidget::drawUndoLastEditButtonClicked()
 {
-    bool foundBorderFlag = false;
-    Brain* brain = GuiManager::get()->getBrain();
-    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
-    for (int32_t i = 0; i < numBorderFiles; i++) {
-        BorderFile* bf = brain->getBorderFile(i);
-        if (bf == m_undoFinishBorderFile) {
-            foundBorderFlag = true;
-            break;
-        }
-    }
-    
-    if (foundBorderFlag) {
-        foundBorderFlag = false;
-        const int32_t numBorders = m_undoFinishBorderFile->getNumberOfBorders();
-        for (int32_t i = 0; i < numBorders; i++) {
-            if (m_undoFinishBorderFile->getBorder(i) == m_undoFinishBorder) {
+    for (std::vector<BorderFileAndBorderMemento>::iterator iter = m_undoFinishBorders.begin();
+         iter != m_undoFinishBorders.end();
+         iter++) {
+        BorderFile* undoBorderFile = iter->m_borderFile;
+        Border*     undoBorder     = iter->m_border;
+        
+        bool foundBorderFlag = false;
+        Brain* brain = GuiManager::get()->getBrain();
+        const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+        for (int32_t i = 0; i < numBorderFiles; i++) {
+            BorderFile* bf = brain->getBorderFile(i);
+            if (bf == undoBorderFile) {
                 foundBorderFlag = true;
                 break;
             }
         }
-    }
-    
-    if (foundBorderFlag) {
-        if (m_undoFinishBorder->isUndoBorderValid()) {
-            if (WuQMessageBox::warningOkCancel(m_undoFinishToolButton,
-                                               ("Undo changes to " + m_undoFinishBorder->getName()))) {
-                m_undoFinishBorder->undoLastBorderEditing();
+        
+        if (foundBorderFlag) {
+            foundBorderFlag = false;
+            const int32_t numBorders = undoBorderFile->getNumberOfBorders();
+            for (int32_t i = 0; i < numBorders; i++) {
+                if (undoBorderFile->getBorder(i) == undoBorder) {
+                    foundBorderFlag = true;
+                    break;
+                }
+            }
+        }
+        
+        if (foundBorderFlag) {
+            if (undoBorder->isUndoBorderValid()) {
+                if (WuQMessageBox::warningOkCancel(m_undoFinishToolButton,
+                                                   ("Undo changes to " + undoBorder->getName()))) {
+                    undoBorder->undoLastBorderEditing();
+                }
+            }
+            else {
+                WuQMessageBox::errorOk(m_undoFinishToolButton,
+                                       ("Cannot undo border " + undoBorder->getName()));
             }
         }
         else {
-            WuQMessageBox::errorOk(m_undoFinishToolButton,
-                                   ("Cannot undo border " + m_undoFinishBorder->getName()));
+            WuQMessageBox::errorOk(m_undoFinishToolButton, "Cannot undo last edited border.  "
+                                   "Did not find border for undoing.");
         }
     }
-    else {
-        WuQMessageBox::errorOk(m_undoFinishToolButton, "Cannot undo last edited border.");
-    }
     
-    m_undoFinishBorder = NULL;
-    m_undoFinishBorderFile = NULL;
+    resetLastEditedBorder();
 }
 
 /**
@@ -597,6 +604,8 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                 if (ded.exec() == WuQDataEntryDialog::Accepted) {
                     AString errorMessage;
                     
+                    std::vector<BorderFileAndBorderMemento> undoBorders;
+                    
                     for (int32_t i = 0; i < numBorders; i++) {
                         CaretAssertVectorIndex(borderCheckBoxes, i);
                         if (borderCheckBoxes[i]->isChecked()) {
@@ -625,8 +634,8 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                         break;
                                 }
                                 
-                                setLastEditedBorder(borderFile,
-                                                    border);
+                                undoBorders.push_back(BorderFileAndBorderMemento(borderFile,
+                                                                                 border));
                             }
                             catch (BorderException& e) {
                                 errorMessage.appendWithNewLine(e.whatString());
@@ -642,6 +651,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         this->inputModeBorders->borderBeingDrawnByOpenGL->clear();
                     }
                     
+                    setLastEditedBorder(undoBorders);
                     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
                     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 }
@@ -831,24 +841,19 @@ UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* /*bra
 void
 UserInputModeBordersWidget::resetLastEditedBorder()
 {
-    m_undoFinishBorderFile = NULL;
-    m_undoFinishBorder     = NULL;
+    m_undoFinishBorders.clear();
 }
 
 /**
  * Set the last edited border.
  *
- * @param borderFile
- *     File containing border.
- * @param border
- *     Border that was changed.
+ * @param undoFinishBorders
+ *    Borders that were changed by the last border edit operation.
  */
 void
-UserInputModeBordersWidget::setLastEditedBorder(BorderFile* borderFile,
-                                                Border* border)
+UserInputModeBordersWidget::setLastEditedBorder(std::vector<BorderFileAndBorderMemento>& undoFinishBorders)
 {
-    m_undoFinishBorderFile = borderFile;
-    m_undoFinishBorder     = border;
+    m_undoFinishBorders = undoFinishBorders;
 }
 
 
