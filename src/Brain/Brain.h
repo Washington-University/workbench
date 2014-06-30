@@ -117,25 +117,6 @@ namespace caret {
         
         const BorderFile* getBorderFile(const int32_t indx) const;
         
-        enum NearestBorderTestMode {
-            NEAREST_BORDER_TEST_MODE_ALL_POINTS,
-            NEAREST_BORDER_TEST_MODE_ENDPOINTS
-        };
-        void findBorderNearestBorder(const DisplayGroupEnum::Enum displayGroup,
-                                     const int32_t browserTabIndex,
-                                     const SurfaceFile* surfaceFile,
-                                    const Border* border,
-                                    const NearestBorderTestMode borderTestMode,
-                                    const float maximumDistance,
-                                     BorderPointFromSearch& borderPointOut) const;
-                                    
-        void findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
-                                  const int32_t browserTabIndex,
-                                  const SurfaceFile* surfaceFile,
-                                  const float xyz[3],
-                                  const float maximumDistance,
-                                  BorderPointFromSearch& borderPointOut) const;
-        
         int32_t getNumberOfFociFiles() const;
         
         FociFile* getFociFile(const int32_t indx);

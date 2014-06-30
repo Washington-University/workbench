@@ -69,23 +69,20 @@ namespace caret {
         
         const Border* getBorder(const int32_t indx) const;
         
-        void findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
-                                  const int32_t browserTabIndex,
-                                  const SurfaceFile* surfaceFile,
-                                  const float xyz[3],
-                                  const float maximumDistance,
-                                  BorderPointFromSearch& borderPoint) const;
+        void findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t browserTabIndex,
+                                               const SurfaceFile* surfaceFile,
+                                               const Border* borderSegment,
+                                               const float maximumDistance,
+                                               std::vector<BorderPointFromSearch>& borderPointsOut) const;
         
-//        bool findAllBordersNearXYZ(const DisplayGroupEnum::Enum displayGroup,
-//                                  const int32_t browserTabIndex,
-//                                  const SurfaceFile* surfaceFile,
-//                                  const float xyz[3],
-//                                  const float maximumDistance,
-//                                   std::vector<Border*>& borderOut,
-//                                  std::vector<int32_t>& borderIndexOut,
-//                                  std::vector<SurfaceProjectedItem*>& borderPointOut,
-//                                  std::vector<int32_t>& borderPointIndexOut,
-//                                  std::vector<float>& distanceToNearestPointOut) const;
+        
+        void findAllBordersWithPointsNearBothSegmentEndPoints(const DisplayGroupEnum::Enum displayGroup,
+                                                 const int32_t browserTabIndex,
+                                                 const SurfaceFile* surfaceFile,
+                                                 const Border* borderSegment,
+                                                 const float maximumDistance,
+                                                 std::vector<BorderPointFromSearch>& borderPointsOut) const;
         
         void addBorder(Border* border);
         

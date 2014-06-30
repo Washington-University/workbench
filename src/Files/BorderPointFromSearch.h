@@ -75,6 +75,25 @@ namespace caret {
             return *this;
         }
         
+        /**
+         * Comparison operator using distance.
+         * 
+         * @param rhs
+         *    Compared to rhs
+         * @param
+         *    True if 'this' is less than 'rhs'.
+         */
+        bool operator<(const BorderPointFromSearch& rhs) const {
+            if (isValid()
+                && rhs.isValid()) {
+                return (m_distance < rhs.m_distance);
+            }
+            else if (isValid()) {
+                return true;
+            }
+            return false;
+        }
+        
         /*
          * Reset the data to invalid.
          */

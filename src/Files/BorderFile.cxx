@@ -43,6 +43,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
+#include "MathFunctions.h"
 #include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
@@ -260,8 +261,8 @@ BorderFile::getBorder(const int32_t indx) const
 }
 
 /**
- * Find the border nearest the given coordinate within
- * the given tolerance.
+ * Find ALL borders that have one endpoint within the given distance
+ * of either end point of the given border segment.
  *
  * @param displayGroup
  *    Display group in which border is tested for display.
@@ -269,26 +270,40 @@ BorderFile::getBorder(const int32_t indx) const
  *    Tab index in which border is displayed.
  * @param surfaceFile
  *    Surface file used for unprojection of border points.
- * @param xyz
- *    Coordinate for nearest border.
+ * @param borderSegment
+ *    The border segment.
  * @param maximumDistance
  *    Maximum distance coordinate can be from a border point.
- * @param borderPointOut
+ * @param borderPointsOut
  *    Contains result of search.
  */
 void
-BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
-                                 const int32_t browserTabIndex,
-                                 const SurfaceFile* surfaceFile,
-                                 const float xyz[3],
-                                 const float maximumDistance,
-                                 BorderPointFromSearch& borderPointOut) const
+BorderFile::findAllBordersWithEndPointNearSegmentEndPoint(const DisplayGroupEnum::Enum displayGroup,
+                                                          const int32_t browserTabIndex,
+                                                          const SurfaceFile* surfaceFile,
+                                                          const Border* borderSegment,
+                                                          const float maximumDistance,
+                                                          std::vector<BorderPointFromSearch>& borderPointsOut) const
 {
     CaretAssert(surfaceFile);
+    CaretAssert(borderSegment);
+
+    borderPointsOut.clear();
     
-    borderPointOut.reset();
+    if (borderSegment->getNumberOfPoints() < 2) {
+        return;
+    }
     
-    float nearestDistance = std::numeric_limits<float>::max();
+    float segFirstXYZ[3], segLastXYZ[3];
+    const int32_t segLpIndex = borderSegment->getNumberOfPoints() - 1;
+    if (borderSegment->getPoint(0)->getProjectedPosition(*surfaceFile, segFirstXYZ, false)
+        && borderSegment->getPoint(segLpIndex)->getProjectedPosition(*surfaceFile, segLastXYZ, false)) {
+        /* OK - both points have valid coordinates */
+    }
+    else {
+        /* One or both points failed to project */
+        return;
+    }
     
     BorderFile* nonConstBorderFile = const_cast<BorderFile*>(this);
     
@@ -300,29 +315,161 @@ BorderFile::findBorderNearestXYZ(const DisplayGroupEnum::Enum displayGroup,
                                                   border) == false) {
             continue;
         }
-        float distanceToPoint = 0.0;
         if (border->getStructure() == surfaceFile->getStructure()) {
-            const int32_t pointIndex = border->findPointIndexNearestXYZ(surfaceFile,
-                                                                        xyz,
-                                                                        maximumDistance,
-                                                                        distanceToPoint);
-            if (pointIndex >= 0) {
-                if (distanceToPoint < nearestDistance) {
-                    borderPointOut.setData(const_cast<BorderFile*>(this),
-                                           border,
-                                           borderIndex,
-                                           pointIndex,
-                                           distanceToPoint);
-                    nearestDistance = distanceToPoint;
+            /*
+             * Test first endpoint
+             */
+            const int32_t numPoints = border->getNumberOfPoints();
+            float nearestPointDistance = -1.0;
+            int32_t neartestPointIndex = -1;
+            if (numPoints > 0) {
+                float pointXYZ[3];
+                if (border->getPoint(0)->getProjectedPosition(*surfaceFile,
+                                                              pointXYZ,
+                                                              false)) {
+                    const float dist1 = MathFunctions::distanceSquared3D(pointXYZ,
+                                                                         segFirstXYZ);
+                    const float dist2 = MathFunctions::distanceSquared3D(pointXYZ,
+                                                                         segLastXYZ);
+                    nearestPointDistance = ((dist1 < dist2)
+                                            ? dist1
+                                            : dist2);
+                    neartestPointIndex = 0;
+                }
+            }
+            
+            /*
+             * Test last endpoint
+             */
+            if (numPoints > 1) {
+                const int32_t lastPointIndex = numPoints - 1;
+                float pointXYZ[3];
+                if (border->getPoint(lastPointIndex)->getProjectedPosition(*surfaceFile,
+                                                              pointXYZ,
+                                                              false)) {
+                    const float dist1 = MathFunctions::distanceSquared3D(pointXYZ,
+                                                                         segFirstXYZ);
+                    const float dist2 = MathFunctions::distanceSquared3D(pointXYZ,
+                                                                         segLastXYZ);
+                    const float distance2 = ((dist1 < dist2)
+                                            ? dist1
+                                            : dist2);
+                    if (nearestPointDistance >= 0.0) {
+                        if (distance2 < nearestPointDistance) {
+                            neartestPointIndex   = lastPointIndex;
+                            nearestPointDistance = distance2;
+                        }
+                    }
+                    else {
+                        neartestPointIndex   = lastPointIndex;
+                        nearestPointDistance = distance2;
+                    }
+                }
+            }
+            
+            if (neartestPointIndex >= 0) {
+                if (nearestPointDistance <= maximumDistance) {
+                    BorderPointFromSearch bpo;
+                    bpo.setData(const_cast<BorderFile*>(this),
+                                border,
+                                borderIndex,
+                                neartestPointIndex,
+                                nearestPointDistance);
+                    borderPointsOut.push_back(bpo);
                 }
             }
         }
-    }
+    }    
 }
 
 /**
+ * Find ALL borders that have ANY points within the given distance
+ * of the two given coordinates.
+ *
+ * @param displayGroup
+ *    Display group in which border is tested for display.
+ * @param browserTabIndex
+ *    Tab index in which border is displayed.
+ * @param surfaceFile
+ *    Surface file used for unprojection of border points.
+ * @param borderSegment
+ *    The border segment.
+ * @param maximumDistance
+ *    Maximum distance coordinate can be from a border point.
+ * @param borderPointsOut
+ *    Contains result of search.
+ */
+void
+BorderFile::findAllBordersWithPointsNearBothSegmentEndPoints(const DisplayGroupEnum::Enum displayGroup,
+                                                             const int32_t browserTabIndex,
+                                                             const SurfaceFile* surfaceFile,
+                                                             const Border* borderSegment,
+                                                             const float maximumDistance,
+                                                             std::vector<BorderPointFromSearch>& borderPointsOut) const
+{
+    CaretAssert(surfaceFile);
+    CaretAssert(borderSegment);
+    
+    borderPointsOut.clear();
+    
+    if (borderSegment->getNumberOfPoints() < 2) {
+        return;
+    }
+    
+    float segFirstXYZ[3], segLastXYZ[3];
+    const int32_t segLpIndex = borderSegment->getNumberOfPoints() - 1;
+    if (borderSegment->getPoint(0)->getProjectedPosition(*surfaceFile, segFirstXYZ, false)
+        && borderSegment->getPoint(segLpIndex)->getProjectedPosition(*surfaceFile, segLastXYZ, false)) {
+        /* OK - both points have valid coordinates */
+    }
+    else {
+        /* One or both points failed to project */
+        return;
+    }
+    
+    BorderFile* nonConstBorderFile = const_cast<BorderFile*>(this);
+    
+    const int32_t numBorders = getNumberOfBorders();
+    for (int32_t borderIndex = 0; borderIndex < numBorders; borderIndex++) {
+        Border* border = m_borders[borderIndex];
+        if (nonConstBorderFile->isBorderDisplayed(displayGroup,
+                                                  browserTabIndex,
+                                                  border) == false) {
+            continue;
+        }
+        if (border->getStructure() == surfaceFile->getStructure()) {
+            /*
+             * Test first query point
+             */
+            float distance1 = 0.0;
+            const int32_t nearestIndex1 = border->findPointIndexNearestXYZ(surfaceFile,
+                                                                           segFirstXYZ,
+                                                                           maximumDistance,
+                                                                           distance1);
+            
+            float distance2 = 0.0;
+            const int32_t nearestIndex2 = border->findPointIndexNearestXYZ(surfaceFile,
+                                                                           segLastXYZ,
+                                                                           maximumDistance,
+                                                                           distance2);
+            if ((nearestIndex1 >= 0)
+                && (nearestIndex2 >= 0)) {
+                    BorderPointFromSearch bpo;
+                    bpo.setData(const_cast<BorderFile*>(this),
+                                border,
+                                borderIndex,
+                                nearestIndex1,
+                                distance1);
+                    borderPointsOut.push_back(bpo);
+            }
+        }
+    }    
+}
+
+
+/**
  * Add a border.  NOTE: This border file
- * takes ownership of the 'border' and 
+ * takes ownership of the 'border' and
  * will handle deleting it.  After calling 
  * this method, the caller must never
  * do anything with the border that was passed
