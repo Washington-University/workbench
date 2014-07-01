@@ -1027,6 +1027,16 @@ SpecFileManagementDialog::updateSpecFileRowInTable()
                     break;
                 case MANAGE_FILES_LOADED:
                     break;
+                case MANAGE_FILES_LOADED_MODIFIED:
+                    if (! m_specFile->isModified()) {
+                        hideSpecFileRow = true;
+                    }
+                    break;
+                case MANAGE_FILES_LOADED_NOT_MODIFIED:
+                    if (m_specFile->isModified()) {
+                        hideSpecFileRow = true;
+                    }
+                    break;
                 case MANAGE_FILES_NOT_LOADED:
                     hideSpecFileRow = true;
                     break;
@@ -1414,6 +1424,26 @@ SpecFileManagementDialog::loadSpecFileContentIntoDialog()
                 break;
             case MANAGE_FILES_LOADED:
                 if (caretDataFile == NULL) {
+                    isFileHidden = true;
+                }
+                break;
+            case MANAGE_FILES_LOADED_MODIFIED:
+                if (caretDataFile != NULL) {
+                    if ( ! caretDataFile->isModified()) {
+                        isFileHidden = true;
+                    }
+                }
+                else {
+                    isFileHidden = true;
+                }
+                break;
+            case MANAGE_FILES_LOADED_NOT_MODIFIED:
+                if (caretDataFile != NULL) {
+                    if (caretDataFile->isModified()) {
+                        isFileHidden = true;
+                    }
+                }
+                else {
                     isFileHidden = true;
                 }
                 break;
@@ -2308,7 +2338,15 @@ SpecFileManagementDialog::createManageFilesLoadedNotLoadedToolBar(QLabel* &label
     loadedFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED));
     loadedFilesAction->setCheckable(true);
     
-    QAction* notLoadedFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Not-Loaded");
+    QAction* loadedFilesModifiedAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Loaded:Modified");
+    loadedFilesModifiedAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED_MODIFIED));
+    loadedFilesModifiedAction->setCheckable(true);
+    
+    QAction* loadedFilesNotModifiedAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Loaded:Not Modified");
+    loadedFilesNotModifiedAction->setData(qVariantFromValue((int)MANAGE_FILES_LOADED_NOT_MODIFIED));
+    loadedFilesNotModifiedAction->setCheckable(true);
+    
+    QAction* notLoadedFilesAction = m_manageFilesLoadedNotLoadedActionGroup->addAction("Not Loaded");
     notLoadedFilesAction->setData(qVariantFromValue((int)MANAGE_FILES_NOT_LOADED));
     notLoadedFilesAction->setCheckable(true);
     

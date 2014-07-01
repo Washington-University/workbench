@@ -133,6 +133,8 @@ namespace caret {
         enum ManageFilesDisplay {
             MANAGE_FILES_ALL,
             MANAGE_FILES_LOADED,
+            MANAGE_FILES_LOADED_MODIFIED,
+            MANAGE_FILES_LOADED_NOT_MODIFIED,
             MANAGE_FILES_NOT_LOADED
         };
         
