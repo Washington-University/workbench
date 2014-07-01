@@ -120,7 +120,10 @@ SpecFileDataFileTypeGroup::addFileInformation(SpecFileDataFile* fileInformation)
 {
     CaretAssert(fileInformation);
     this->files.push_back(fileInformation);
-    setModified();
+    
+    /*
+     * Do not set the modfication status when a data file is added
+     */
 }
 
 /**

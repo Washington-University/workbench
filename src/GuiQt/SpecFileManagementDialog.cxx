@@ -547,6 +547,15 @@ SpecFileManagementDialog::filesTableWidgetCellChanged(int rowIndex, int columnIn
             else if (columnIndex == m_COLUMN_IN_SPEC_FILE_CHECKBOX) {
                 sfdf->setSpecFileMember(isSelected);
                 updateSpecFileRowInTable();
+                
+                /*
+                 * Check the Spec File SAVE checkbox
+                 */
+                if (m_specFileTableRowIndex >= 0) {
+                    QTableWidgetItem* saveItem = getTableWidgetItem(m_specFileTableRowIndex,
+                                                                    m_COLUMN_SAVE_CHECKBOX);
+                    saveItem->setCheckState(Qt::Checked);
+                }
             }
         }
     }
