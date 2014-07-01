@@ -941,7 +941,6 @@ CiftiMappableDataFile::isMappedWithPalette() const
         case COLOR_MAPPING_METHOD_INVALID:
             break;
         case COLOR_MAPPING_METHOD_LABEL_TABLE:
-            return true;
             break;
         case COLOR_MAPPING_METHOD_PALETTE_FILE_DATA:
             return true;
@@ -1328,7 +1327,6 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex)
     CaretAssert(m_ciftiFile);
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-    return ciftiXML.getFilePalette();
     
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
@@ -1363,7 +1361,6 @@ CiftiMappableDataFile::getMapPaletteColorMapping(const int32_t mapIndex) const
     CaretAssert(m_ciftiFile);
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-    return ciftiXML.getFilePalette();
     
     CaretAssertVectorIndex(m_mapContent,
                            mapIndex);
