@@ -372,7 +372,7 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
              vecIter != commandOperations.end();
              vecIter++) {
             CommandOperation* op = *vecIter;
-            sortCommandsMap.insert(std::make_pair(op->getOperationShortDescription(),
+            sortCommandsMap.insert(std::make_pair(op->getCommandLineSwitch(),
                                                   op));
         }
         
@@ -387,7 +387,7 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
             
             HelpTreeWidgetItem* item
             = HelpTreeWidgetItem::newInstanceForCommandOperation(wbCommandItem,
-                                                                                           op);
+                                                                 op);
             m_allHelpWidgetItems.push_back(item);
         }
         
@@ -767,7 +767,7 @@ HelpTreeWidgetItem*
 HelpTreeWidgetItem::newInstanceForCommandOperation(QTreeWidgetItem* parent,
                                                    CommandOperation* commandOperation)
 {
-    const AString itemText = commandOperation->getOperationShortDescription();
+    const AString itemText = commandOperation->getCommandLineSwitch();
     const AString helpInfoCopy = commandOperation->getHelpInformation("wb_command");
     const AString helpText = helpInfoCopy.convertToHtmlPage();
     const AString helpPageURL("");
