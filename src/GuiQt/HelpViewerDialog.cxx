@@ -211,7 +211,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     m_splitter->addWidget(topicWidgets);
     m_splitter->addWidget(helpBrowserWidgets);
     QList<int> sizeList;
-    sizeList << 175 << 375;
+    sizeList << 225 << 375;
     m_splitter->setSizes(sizeList);
     
     setCentralWidget(m_splitter,
@@ -380,14 +380,17 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
                                                              TREE_ITEM_NONE);
         wbCommandItem->setText(0, "wb_command");
         
+        QFont commandFont = wbCommandItem->font(0);
+        commandFont.setPointSize(10);
+        
         for (std::map<QString, CommandOperation*>::iterator mapIter = sortCommandsMap.begin();
              mapIter != sortCommandsMap.end();
              mapIter++) {
             CommandOperation* op = mapIter->second;
             
-            HelpTreeWidgetItem* item
-            = HelpTreeWidgetItem::newInstanceForCommandOperation(wbCommandItem,
+            HelpTreeWidgetItem* item = HelpTreeWidgetItem::newInstanceForCommandOperation(wbCommandItem,
                                                                  op);
+            item->setFont(0, commandFont);
             m_allHelpWidgetItems.push_back(item);
         }
         
