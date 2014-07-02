@@ -419,31 +419,12 @@ GiftiLabel::setSelected(const bool selected)
 
 /**
  * Get the color components.
- *
- * @return  A four-dimensional array of floats containing the red, green,
- * blue, and alpha components with values ranging from 0.0 to 1.0.
- * User MUST delete[] returned array.
- *
- */
-float*
-GiftiLabel::getColor() const
-{
-    float* rgba = new float[4];
-    rgba[0] = this->red;
-    rgba[1] = this->green;
-    rgba[2] = this->blue;
-    rgba[3] = this->alpha;
-    return rgba;
-}
-
-/**
- * Get the color components.
  * @param rgbaOut four dimensional array into which are loaded,
  * red, green, blue, and alpha components ranging 0.0. to 1.0.
  *
  */
 void
-GiftiLabel::getColor(float rgbaOut[]) const
+GiftiLabel::getColor(float rgbaOut[4]) const
 {
     rgbaOut[0] = this->red;
     rgbaOut[1] = this->green;
@@ -459,44 +440,12 @@ GiftiLabel::getColor(float rgbaOut[]) const
  *
  */
 void
-GiftiLabel::setColor(const float rgba[])
+GiftiLabel::setColor(const float rgba[4])
 {
     this->red = colorClamp(rgba[0]);
     this->green = colorClamp(rgba[1]);
     this->blue = colorClamp(rgba[2]);
     this->alpha = colorClamp(rgba[3]);
-    this->setModified();
-}
-
-/**
- * Get the colors as integers ranging 0 to 255.
- * @return  Four-dimensional array containing color components.
- * User must delete[] the returned array.
- *
- */
-int32_t*
-GiftiLabel::getColorInt() const
-{
-    int32_t* rgbaOut = new int32_t[4];
-    rgbaOut[0] = static_cast<int32_t>(this->red * 255);
-    rgbaOut[1] = static_cast<int32_t>(this->green * 255);
-    rgbaOut[2] = static_cast<int32_t>(this->blue * 255);
-    rgbaOut[3] = static_cast<int32_t>(this->alpha * 255);
-    return rgbaOut;
-}
-
-/**
- * Set the colors with integers ranging 0 to 255.
- * @param rgba - four-dimensional array with colors ranging 0 to 255.
- *
- */
-void
-GiftiLabel::setColorInt(const int32_t rgba[])
-{
-    this->red = colorClamp(rgba[0] / 255.0);
-    this->green = colorClamp(rgba[1] / 255.0);
-    this->blue = colorClamp(rgba[2] / 255.0);
-    this->alpha = colorClamp(rgba[3] / 255.0);
     this->setModified();
 }
 

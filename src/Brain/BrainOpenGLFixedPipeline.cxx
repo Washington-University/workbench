@@ -2610,7 +2610,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     if (focus->isClassRgbaValid() == false) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
-                            focus->setClassRgba(colorLabel->getColor());
+                            colorLabel->getColor(rgba);
+                            focus->setClassRgba(rgba);
                         }
                         else {
                             focus->setClassRgba(rgba);
@@ -2622,7 +2623,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
-                            focus->setNameRgba(colorLabel->getColor());
+                            colorLabel->getColor(rgba);
+                            focus->setNameRgba(rgba);
                         }
                         else {
                             focus->setNameRgba(rgba);
@@ -2817,7 +2819,8 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                     if (border->isClassRgbaValid() == false) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(border->getClassName());
                         if (colorLabel != NULL) {
-                            border->setClassRgba(colorLabel->getColor());
+                            colorLabel->getColor(rgba);
+                            border->setClassRgba(rgba);
                         }
                         else {
                             border->setClassRgba(rgba);
@@ -2829,7 +2832,8 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                     if (border->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(border->getName());
                         if (colorLabel != NULL) {
-                            border->setNameRgba(colorLabel->getColor());
+                            colorLabel->getColor(rgba);
+                            border->setNameRgba(rgba);
                         }
                         else {
                             border->setNameRgba(rgba);

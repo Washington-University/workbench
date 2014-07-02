@@ -416,7 +416,8 @@ GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                     labelName = missingName;
                 }
 
-                const float* rgba = label->getColor();
+                float rgba[4];
+                label->getColor(rgba);
 
                 /*
                  * Adding focus to class
@@ -619,7 +620,8 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
                     labelName = missingName;
                 }
                 
-                const float* rgba = label->getColor();
+                float rgba[4];
+                label->getColor(rgba);
                 
                 /*
                  * Adding focus to class
@@ -822,7 +824,8 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
                     labelName = missingName;
                 }
                 
-                const float* rgba = label->getColor();
+                float rgba[4];
+                label->getColor(rgba);
                 
                 /*
                  * Adding focus to class
@@ -941,7 +944,9 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
             
             const GiftiLabel* groupLabel = classLabelTable->getLabelBestMatching(theGroupName);
             if (groupLabel != NULL) {
-                groupItem->setIconColorRGBA(groupLabel->getColor());
+                float rgba[4];
+                groupLabel->getColor(rgba);
+                groupItem->setIconColorRGBA(rgba);
             }
             else {
                 groupItem->setIconColorRGBA(rgbaBlack);
@@ -955,7 +960,9 @@ GroupAndNameHierarchyModel::update(FociFile* fociFile,
                                                                       ID_NOT_USED);
             const GiftiLabel* nameLabel = nameLabelTable->getLabelBestMatching(name);
             if (nameLabel != NULL) {
-                nameItem->setIconColorRGBA(nameLabel->getColor());
+                float rgba[4];
+                nameLabel->getColor(rgba);
+                nameItem->setIconColorRGBA(rgba);
             }
             else {
                 nameItem->setIconColorRGBA(rgbaBlack);

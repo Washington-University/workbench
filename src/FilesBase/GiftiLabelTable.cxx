@@ -1200,7 +1200,8 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
                 attributes.addAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_KEY,
                                         key);
                 
-                float* rgba = label->getColor();
+                float rgba[4];
+                label->getColor(rgba);
                 attributes.addAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_RED,
                                         rgba[0]);
                 attributes.addAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN,
@@ -1209,7 +1210,6 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
                                         rgba[2]);
                 attributes.addAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA,
                                         rgba[3]);
-                delete[] rgba;
                 
                 xmlWriter.writeElementCData(GiftiXmlElements::TAG_LABEL,
                                             attributes, label->getName());
@@ -1250,7 +1250,8 @@ GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
                 xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_KEY,
                                         AString::number(key));
                 
-                float* rgba = label->getColor();
+                float rgba[4];
+                label->getColor(rgba);
                 xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_RED,
                                         AString::number(rgba[0]));
                 xmlWriter.writeAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN,
@@ -1261,7 +1262,6 @@ GiftiLabelTable::writeAsXML(QXmlStreamWriter& xmlWriter) const
                                         AString::number(rgba[3]));
                 xmlWriter.writeCharacters(label->getName());
                 xmlWriter.writeEndElement();
-                delete[] rgba;
             }
         }
         

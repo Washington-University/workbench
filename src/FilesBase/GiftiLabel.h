@@ -124,15 +124,9 @@ namespace caret {
         
         void setSelected(const bool selected);
         
-        float* getColor() const;
+        void getColor(float rgbaOut[4]) const;
         
-        void getColor(float rgbaOut[]) const;
-        
-        void setColor(const float rgba[]);
-        
-        int32_t* getColorInt() const;
-        
-        void setColorInt(const int32_t rgba[]);
+        void setColor(const float rgba[4]);
         
         static void getDefaultColor(float rgbaOut[4]);
         

@@ -2469,7 +2469,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                     if (focus->isClassRgbaValid() == false) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
-                            focus->setClassRgba(colorLabel->getColor());
+                            colorLabel->getColor(rgba);
+                            focus->setClassRgba(rgba);
                         }
                         else {
                             focus->setClassRgba(rgba);
@@ -2481,7 +2482,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
-                            focus->setNameRgba(colorLabel->getColor());
+                            colorLabel->getColor(rgba);
+                            focus->setNameRgba(rgba);
                         }
                         else {
                             focus->setNameRgba(rgba);
