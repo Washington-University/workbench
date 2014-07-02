@@ -581,17 +581,64 @@ GuiManager::exitProgram(QWidget* parent)
         }
     }
     else {
-        const AString msg = ("<html>"
-                             "Closing this window will exit the application.<p>"
-                             "Did you create or update a scene file for the analyses "
-                             "you were just working on? Scenes can reduce setup time "
-                             "when returning to this dataset for further analysis. They "
-                             "are especially useful during manuscript preparation "
-                             "because each scene can regenerate exactly what is displayed "
-                             "in the current version of a figure."
-                             "</html>");
-        okToExit = WuQMessageBox::warningOkCancel(parent,
-                                                  msg);
+        const AString textMsg("Exiting Workbench");
+        const AString infoTextMsg("<html>Do you use Scenes?&nbsp;&nbsp;Scenes can eliminate the time "
+                                  "required to select the view of a model and its feature/overlay data."
+                                  "<p>"
+                                  "Click the <B>Show Details</B> button for "
+                                  "more information.</html>");
+        const AString detailTextMsg("Scenes allow one to regenerate exactly what is displayed in "
+                                    "Workbench.  This can be useful in these and other situations:"
+                                    "\n\n"
+                                    " * During manuscript preparation to restore Workbench to match "
+                                    "a previously generated figure (image capture)."
+                                    "\n\n"
+                                    " * When returning to this dataset for further analysis."
+                                    "\n\n"
+                                    " * When sharing data sets with others to provide a particular "
+                                    "view of a surface/volume with desired data (overlay and feature) "
+                                    "selections.");
+
+        QMessageBox quitDialog(QMessageBox::Warning,
+                               "Exit Workbench",
+                               textMsg,
+                               QMessageBox::NoButton,
+                               parent);
+        quitDialog.setInformativeText(infoTextMsg);
+        quitDialog.setDetailedText(detailTextMsg);
+        
+        QPushButton* exitButton = quitDialog.addButton("Exit",
+                                                       QMessageBox::AcceptRole);
+        
+        QPushButton* cancelButton = quitDialog.addButton("Cancel",
+                                                         QMessageBox::RejectRole);
+        
+        quitDialog.setDefaultButton(exitButton);
+        quitDialog.setEscapeButton(cancelButton);
+        
+        quitDialog.exec();
+        const QAbstractButton* clickedButton = quitDialog.clickedButton();
+        if (clickedButton  == exitButton) {
+            okToExit = true;
+        }
+        else if (clickedButton == cancelButton) {
+            /* Nothing */
+        }
+        else {
+            CaretAssert(0);
+        }
+
+//        const AString msg = ("<html>"
+//                             "Closing this window will exit the application.<p>"
+//                             "Did you create or update a scene file for the analyses "
+//                             "you were just working on? Scenes can reduce setup time "
+//                             "when returning to this dataset for further analysis. They "
+//                             "are especially useful during manuscript preparation "
+//                             "because each scene can regenerate exactly what is displayed "
+//                             "in the current version of a figure."
+//                             "</html>");
+//        okToExit = WuQMessageBox::warningOkCancel(parent,
+//                                                  msg);
     }
     
     if (okToExit) {
