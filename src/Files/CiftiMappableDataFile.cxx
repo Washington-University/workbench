@@ -584,10 +584,10 @@ CiftiMappableDataFile::initializeAfterReading() throw (DataFileException)
         case DATA_ACCESS_METHOD_INVALID:
             break;
         case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
-            m_ciftiFile->getVolumeMapForRows(voxelMapping);
+            m_ciftiFile->getVolumeMapForColumns(voxelMapping);
             break;
         case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
-            m_ciftiFile->getVolumeMapForColumns(voxelMapping);
+            m_ciftiFile->getVolumeMapForRows(voxelMapping);
             break;
     }
     
