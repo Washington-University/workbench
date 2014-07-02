@@ -26,6 +26,7 @@
 #include <QAction>
 #include <QApplication>
 #include <QDesktopWidget>
+#include <QPushButton>
 
 #define __GUI_MANAGER_DEFINE__
 #include "GuiManager.h"
@@ -511,74 +512,73 @@ GuiManager::exitProgram(QWidget* parent)
      *   Connectivity Files
      */
     std::vector<DataFileTypeEnum::Enum> dataFileTypesToExclude;
-    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypesToExclude);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_DENSE);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY);
+    dataFileTypesToExclude.push_back(DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY);
 
     bool okToExit = false;
     
     /*
      * Are files modified?
      */
-    const bool areFilesModified = this->getBrain()->areFilesModified(dataFileTypesToExclude);
-//    std::vector<CaretDataFile*> dataFiles;
-//    this->getBrain()->getAllDataFiles(dataFiles);
-//    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
-//         iter != dataFiles.end();
-//         iter++) {
-//        CaretDataFile* cdf = *iter;
-//
-//        /**
-//         * Do not check connectivity files for modified status
-//         */ 
-//        bool checkIfModified = true;
-//        switch (cdf->getDataFileType()) {
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE:
-//            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-//                checkIfModified = false;
-//                break;
-//            default:
-//                break;
-//        }
-//        
-//        if (checkIfModified) {
-//            if (cdf->isModified()) {
-//                areFilesModified = true;
-//                break;
-//            }
-//        }
-//    }
+    std::vector<CaretDataFile*> modifiedDataFiles;
+    getBrain()->getAllModifiedFiles(dataFileTypesToExclude,
+                                    modifiedDataFiles);
+    const int32_t modFileCount = static_cast<int32_t>(modifiedDataFiles.size());
          
-    if (areFilesModified) {
-        WuQMessageBox::StandardButton buttonPressed = 
-        WuQMessageBox::saveDiscardCancel(parent, 
-                                         "Files are modified.", 
-                                         "Do you want to save changes?");
+    if (modFileCount > 0) {
+        /*
+         * Display dialog allowing user to save files (goes to Save/Manage
+         * Files dialog), exit without saving, or cancel.
+         */
+        const AString textMsg("Do you want to save changes you made to these files?");
         
-        switch (buttonPressed) {
-            case QMessageBox::Save:
-            {
-                if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
-                                                                                       parent)) {
-                    okToExit = true;
-                    
-                }
-//                ManageLoadedFilesDialog manageLoadedFile(parent,
-//                                                         this->getBrain(),
-//                                                         true);
-//                if (manageLoadedFile.exec() == ManageLoadedFilesDialog::Accepted) {
-//                    okToExit = true;
-//                }
-            }
-                break;
-            case QMessageBox::Discard:
-                okToExit = true;
-                break;
-            case QMessageBox::Cancel:
-                break;
-            default:
-                CaretAssert(0);
-                break;
+        AString infoTextMsg("Changes to these files will be lost if you don't save them:\n");
+        for (std::vector<CaretDataFile*>::iterator iter = modifiedDataFiles.begin();
+             iter != modifiedDataFiles.end();
+             iter++) {
+            const CaretDataFile* cdf = *iter;
+            infoTextMsg.appendWithNewLine("   "
+                                  + cdf->getFileNameNoPath());
         }
+        infoTextMsg.appendWithNewLine("");
         
+        QMessageBox quitDialog(QMessageBox::Warning,
+                               "Exit Workbench",
+                               textMsg,
+                               QMessageBox::NoButton,
+                               parent);
+        quitDialog.setInformativeText(infoTextMsg);
+        
+        QPushButton* saveButton = quitDialog.addButton("Save...", QMessageBox::AcceptRole);
+        saveButton->setToolTip("Display manage files window to save files");
+        
+        QPushButton* dontSaveButton = quitDialog.addButton("Don't Save", QMessageBox::DestructiveRole);
+        dontSaveButton->setToolTip("Do not save changes and exit.");
+        
+        QPushButton* cancelButton = quitDialog.addButton("Cancel", QMessageBox::RejectRole);
+        
+        quitDialog.setDefaultButton(saveButton);
+        quitDialog.setEscapeButton(cancelButton);
+        
+        quitDialog.exec();
+        const QAbstractButton* clickedButton = quitDialog.clickedButton();
+        if (clickedButton == saveButton) {
+            if (SpecFileManagementDialog::runSaveFilesDialogWhileQuittingWorkbench(this->getBrain(),
+                                                                                   parent)) {
+                okToExit = true;
+                
+            }
+        }
+        else if (clickedButton == dontSaveButton) {
+            okToExit = true;
+        }
+        else if (clickedButton == cancelButton) {
+            /* nothing */
+        }
+        else {
+            CaretAssert(0);
+        }
     }
     else {
         const AString msg = ("<html>"

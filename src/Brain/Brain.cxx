@@ -5000,21 +5000,26 @@ Brain::isFileValid(const CaretDataFile* caretDataFile) const
     return false;
 }
 
-
 /**
- * Are any data files modified (including spec file)?
+ * Get all of the modified files excluding the given data file types.
+ *
  * @param excludeTheseDataTypes
- *    Do not check the modification status of any data files whose
- *    data type is contained in this parameter.
+ *    Data types of files that excluded.
+ * @param modifiedDataFilesOut
+ *    Output containing the modified files.
+ *
  */
-bool
-Brain::areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes)
+void
+Brain::getAllModifiedFiles(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes,
+                           std::vector<CaretDataFile*>& modifiedDataFilesOut) const
 {
+    modifiedDataFilesOut.clear();
+    
     if (std::find(excludeTheseDataTypes.begin(),
                   excludeTheseDataTypes.end(),
                   DataFileTypeEnum::SPECIFICATION) == excludeTheseDataTypes.end()) {
         if (m_specFile->isModified()) {
-            return true;
+            modifiedDataFilesOut.push_back(m_specFile);
         }
     }
     
@@ -5033,13 +5038,52 @@ Brain::areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseD
                       excludeTheseDataTypes.end(),
                       cdf->getDataFileType()) == excludeTheseDataTypes.end()) {
             if (cdf->isModified()) {
-                return true;
+                modifiedDataFilesOut.push_back(cdf);
             }
         }
     }
-    
-    return false;
 }
+
+
+///**
+// * Are any data files modified (including spec file)?
+// * @param excludeTheseDataTypes
+// *    Do not check the modification status of any data files whose
+// *    data type is contained in this parameter.
+// */
+//bool
+//Brain::areFilesModified(const std::vector<DataFileTypeEnum::Enum>& excludeTheseDataTypes)
+//{
+//    if (std::find(excludeTheseDataTypes.begin(),
+//                  excludeTheseDataTypes.end(),
+//                  DataFileTypeEnum::SPECIFICATION) == excludeTheseDataTypes.end()) {
+//        if (m_specFile->isModified()) {
+//            return true;
+//        }
+//    }
+//    
+//    std::vector<CaretDataFile*> dataFiles;
+//    getAllDataFiles(dataFiles);
+//    
+//    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
+//         iter != dataFiles.end();
+//         iter++) {
+//        CaretDataFile* cdf = *iter;
+//        
+//        /**
+//         * Ignore files whose data type is excluded.
+//         */
+//        if (std::find(excludeTheseDataTypes.begin(),
+//                      excludeTheseDataTypes.end(),
+//                      cdf->getDataFileType()) == excludeTheseDataTypes.end()) {
+//            if (cdf->isModified()) {
+//                return true;
+//            }
+//        }
+//    }
+//    
+//    return false;
+//}
 
 
 /**

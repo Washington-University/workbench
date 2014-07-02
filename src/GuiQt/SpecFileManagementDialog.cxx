@@ -2351,7 +2351,17 @@ SpecFileManagementDialog::createManageFilesLoadedNotLoadedToolBar(QLabel* &label
     notLoadedFilesAction->setCheckable(true);
     
     m_manageFilesLoadedNotLoadedActionGroup->blockSignals(true);
-    allFilesAction->setChecked(true);
+    switch (m_dialogMode) {
+        case MODE_MANAGE_FILES:
+            allFilesAction->setChecked(true);
+            break;
+        case MODE_OPEN_SPEC_FILE:
+            allFilesAction->setChecked(true);
+            break;
+        case MODE_SAVE_FILES_WHILE_QUITTING:
+            loadedFilesModifiedAction->setChecked(true);
+            break;
+    }
     m_manageFilesLoadedNotLoadedActionGroup->blockSignals(false);
     
     QToolBar* toolbar = createToolBarWithActionGroup("View Files: ",
