@@ -523,9 +523,14 @@ SurfaceNodeColoring::assignLabelColoring(const DisplayPropertiesLabels* displayP
         return false;
     }
     
-    std::vector<LabelFile*> allLabelFiles;
-    brainStructure->getLabelFiles(allLabelFiles);
     
+    if ( ! labelFile->isMappableToSurfaceStructure(surface->getStructure())) {
+        return false;
+    }
+    
+//    std::vector<LabelFile*> allLabelFiles;
+//    brainStructure->getLabelFiles(allLabelFiles);
+//    
 //    int32_t displayColumn = -1;
 //    for (std::vector<LabelFile*>::iterator iter = allLabelFiles.begin();
 //         iter != allLabelFiles.end();
@@ -826,16 +831,16 @@ SurfaceNodeColoring::assignLabelTableColors(const GiftiLabelTable* labelTable,
  *    True if coloring is valid, else false.
  */
 bool 
-SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure, 
+SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
                                           MetricFile* metricFile,
                                           const int32_t displayColumn,
                                           //const AString& metricMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
 {
-    std::vector<MetricFile*> allMetricFiles;
-    brainStructure->getMetricFiles(allMetricFiles);
-    
+//    std::vector<MetricFile*> allMetricFiles;
+//    brainStructure->getMetricFiles(allMetricFiles);
+//    
 //    int32_t displayColumn = -1;
 //    for (std::vector<MetricFile*>::iterator iter = allMetricFiles.begin();
 //         iter != allMetricFiles.end();
@@ -850,6 +855,9 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
 //    }
     
     if (displayColumn < 0) {
+        return false;
+    }
+    if ( ! metricFile->isMappableToSurfaceStructure(brainStructure->getStructure())) {
         return false;
     }
     
