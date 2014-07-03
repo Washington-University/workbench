@@ -1675,6 +1675,7 @@ QWidget*
 MapSettingsPaletteColorMappingWidget::createDataOptionsSection()
 {
     this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
+    this->applyAllMapsCheckBox->setCheckState(Qt::Checked);
     QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(applyAndUpdate()));
     this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
