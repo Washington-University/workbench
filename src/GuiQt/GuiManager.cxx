@@ -582,8 +582,8 @@ GuiManager::exitProgram(QWidget* parent)
     }
     else {
         const AString textMsg("Exiting Workbench");
-        const AString infoTextMsg("<html>Do you use Scenes?&nbsp;&nbsp;Scenes can eliminate the time "
-                                  "required to select the view of a model and its feature/overlay data."
+        const AString infoTextMsg("<html>Would you like to save your Workbench windows in scene file "
+                                  "so you can easily pick up where you left off?"
                                   "<p>"
                                   "Click the <B>Show Details</B> button for "
                                   "more information.</html>");
