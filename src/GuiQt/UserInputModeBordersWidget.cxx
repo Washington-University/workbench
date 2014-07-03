@@ -469,7 +469,11 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         WuQMessageBox::errorOk(this, "Error: Border points are on more than one structure.");
         return;
     }
-    
+    if (this->inputModeBorders->borderBeingDrawnByOpenGL->getNumberOfPoints() < 2) {
+        WuQMessageBox::errorOk(this, "There must be at least two points in the border segment.");
+        return;
+    }
+
     ModelSurface* surfaceController = btc->getDisplayedSurfaceModel();
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     ModelSurfaceMontage* surfaceMontageController = btc->getDisplayedSurfaceMontageModel();
@@ -521,8 +525,8 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         case UserInputModeBorders::DRAW_OPERATION_ERASE:
         case UserInputModeBorders::DRAW_OPERATION_EXTEND:
         case UserInputModeBorders::DRAW_OPERATION_REPLACE:
-        if (this->inputModeBorders->borderBeingDrawnByOpenGL->getNumberOfPoints() >= 2) {
-            const float nearestTolerance = 5;
+        {
+            const float nearestTolerance = 10;
             
             std::vector<BorderPointFromSearch> allNearbyBorders;
             const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
@@ -565,7 +569,11 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                                         bordersFoundFromFile.end());
             }
             
-            if ( ! allNearbyBorders.empty()) {
+            if (allNearbyBorders.empty()) {
+                WuQMessageBox::errorOk(this, "No borders were found near the border editing points");
+                return;
+            }
+            else {
                 std::sort(allNearbyBorders.begin(),
                           allNearbyBorders.end());
                 const int32_t numBorders = static_cast<int32_t>(allNearbyBorders.size());
