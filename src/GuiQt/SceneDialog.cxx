@@ -1343,7 +1343,7 @@ SceneClassInfoWidget::getFormattedTextForSceneNameAndDescription(const SceneInfo
         description = WuQtUtilities::createWordWrappedToolTipText(replaceWithDescriptionBoldText
                                                                   + description);
         description.replace(replaceWithDescriptionBoldText,
-                            "<b>DESCRIPTION:</b><br>");
+                            "<b>DESCRIPTION:</b> ");
     }
     
     descriptionTextOut = description;
