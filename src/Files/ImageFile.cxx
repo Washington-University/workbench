@@ -441,19 +441,19 @@ ImageFile::cropImageRemoveBackground(const int marginSize,
                     && (copyImage.height() > 0)) {
                     
                     this->setFromQImage(copyImage);
-                    
-                    //
-                    // Process margin
-                    //
-                    if (marginSize > 0) {
-                        this->addMargin(marginSize,
-                                        backgroundColor);
-                    }
                 }
             }
             
             this->setModified();
         }
+    }
+    
+    //
+    // Process margin
+    //
+    if (marginSize > 0) {
+        this->addMargin(marginSize,
+                        backgroundColor);
     }
 }
 
