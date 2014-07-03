@@ -109,8 +109,9 @@ SceneDialog::SceneDialog(QWidget* parent)
      */
     disableAutoDefaultForAllPushButtons();
     
-    setDialogSizeHint(650,
-                      500);
+//    setDialogSizeHint(650,
+//                      500);
+    setSaveWindowPositionForNextTime(true);
     
     /*
      * Update the dialog.
@@ -119,6 +120,9 @@ SceneDialog::SceneDialog(QWidget* parent)
     
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+
+    resize(650,
+           500);
 }
 
 /**

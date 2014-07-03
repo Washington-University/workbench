@@ -87,19 +87,19 @@ WuQDialogNonModal::~WuQDialogNonModal()
 void 
 WuQDialogNonModal::closeEvent(QCloseEvent* event)
 {
-    if (m_isPositionRestoredWhenReopened) {
-        /*
-         * Save position and size of dialog so that 
-         * when it is shown next time, it will be
-         * in the position and size as when it was
-         * closed.
-         */
-        m_positionWhenClosedValid = true;
-        m_positionWhenClosed = this->pos();
-        m_sizeWhenClosed = this->size();
-    }
-    
-    WuQDialog::closeEvent(event);
+//    if (m_isPositionRestoredWhenReopened) {
+//        /*
+//         * Save position and size of dialog so that 
+//         * when it is shown next time, it will be
+//         * in the position and size as when it was
+//         * closed.
+//         */
+//        m_positionWhenClosedValid = true;
+//        m_positionWhenClosed = this->pos();
+//        m_sizeWhenClosed = this->size();
+//    }
+//    
+//    WuQDialog::closeEvent(event);
     
     emit dialogWasClosed();
 }
@@ -110,24 +110,25 @@ WuQDialogNonModal::closeEvent(QCloseEvent* event)
 void 
 WuQDialogNonModal::showEvent(QShowEvent* event)
 {
-    if (m_isPositionRestoredWhenReopened) {
-        if (m_positionWhenClosedValid) {
-            /*
-             * Restore the dialog in the position and size that it
-             * was in when closed.  Use move() for position and
-             * the size hint for the size.
-             */
-            this->move(m_positionWhenClosed);
-//            const int32_t w = m_sizeWhenClosed.width();
-//            const int32_t h = m_sizeWhenClosed.height();
-//            if ((w > 0)
-//                && (h > 0)) {
-//                this->setDialogSizeHint(w,
-//                                        h);
-//                adjustSize();
-//            }
-        }
-    }
+//    if (m_isPositionRestoredWhenReopened) {
+//        if (m_positionWhenClosedValid) {
+//            /*
+//             * Restore the dialog in the position and size that it
+//             * was in when closed.  Use move() for position and
+//             * the size hint for the size.
+//             */
+//            this->move(m_positionWhenClosed);
+//            this->resize(m_sizeWhenClosed);
+////            const int32_t w = m_sizeWhenClosed.width();
+////            const int32_t h = m_sizeWhenClosed.height();
+////            if ((w > 0)
+////                && (h > 0)) {
+////                this->setDialogSizeHint(w,
+////                                        h);
+////                adjustSize();
+////            }
+//        }
+//    }
     
     WuQDialog::showEvent(event);
 }

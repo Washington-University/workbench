@@ -1224,7 +1224,6 @@ GuiManager::showHideSceneDialog(const bool status,
             }
             
             this->sceneDialog = new SceneDialog(sceneDialogParent);
-            this->sceneDialog->setSaveWindowPositionForNextTime(true);
             this->addNonModalDialog(this->sceneDialog);
             QObject::connect(this->sceneDialog, SIGNAL(dialogWasClosed()),
                              this, SLOT(sceneDialogWasClosed()));
@@ -1243,7 +1242,6 @@ GuiManager::showHideSceneDialog(const bool status,
             }
         }
         
-        this->sceneDialog->setVisible(true);
         this->sceneDialog->show();
         this->sceneDialog->activateWindow();
     }
