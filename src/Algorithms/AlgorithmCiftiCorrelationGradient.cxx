@@ -68,7 +68,9 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(7, "-volume-presmooth", "smooth the volume before computing the gradient");
     presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
     
-    ret->createOptionalParameter(8, "-undo-fisher-z", "compensate for input being fisher small z transformed");
+    ret->createOptionalParameter(8, "-undo-fisher-z", "apply the inverse fisher small z transform to the input");
+    
+    ret->createOptionalParameter(12, "-fisher-z", "apply the fisher small z transform to the correlations before taking the gradient");
     
     OptionalParameter* surfaceExcludeOpt = ret->createOptionalParameter(9, "-surface-exclude", "exclude vertices near each seed vertex from computation");
     surfaceExcludeOpt->addDoubleParameter(1, "distance", "geodesic distance from seed vertex for the exclusion zone, in mm");
@@ -121,7 +123,8 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
     {
         volKern = (float)presmoothVolOpt->getDouble(1);
     }
-    bool undoFisher = myParams->getOptionalParameter(8)->m_present;
+    bool undoFisherInput = myParams->getOptionalParameter(8)->m_present;
+    bool applyFisher = myParams->getOptionalParameter(12)->m_present;
     float surfaceExclude = -1.0f;
     OptionalParameter* surfaceExcludeOpt = myParams->getOptionalParameter(9);
     if (surfaceExcludeOpt->m_present)
@@ -153,16 +156,16 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     //bool localMethod = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, volKern, undoFisher, surfaceExclude, volumeExclude, memLimitGB);
+    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, volKern, undoFisherInput, applyFisher, surfaceExclude, volumeExclude, memLimitGB);
 }
 
 AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                                      SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
-                                                                     const float& surfKern, const float& volKern, const bool& undoFisher,
+                                                                     const float& surfKern, const float& volKern, const bool& undoFisherInput, const bool& applyFisher,
                                                                      const float& surfaceExclude, const float& volumeExclude, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti, undoFisher);
+    init(myCifti, undoFisherInput, applyFisher);
     const CiftiXMLOld& myXML = myCifti->getCiftiXMLOld();
     CiftiXMLOld myNewXML = myXML;
     myNewXML.resetDirectionToScalars(CiftiXMLOld::ALONG_ROW, 1);
@@ -1018,14 +1021,22 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
         }
         r = accum / (rrs1 * rrs2);
     }
-    if (r > 1.0) r = 1.0;//don't output anything silly
-    if (r < -1.0) r = -1.0;
-    return r;
+    if (m_applyFisher)
+    {
+        if (r > 0.999999) r = 0.999999;//prevent inf
+        if (r < -0.999999) r = -0.999999;//prevent -inf
+        return 0.5 * log((1 + r) / (1 - r));
+    } else {
+        if (r > 1.0) r = 1.0;//don't output anything silly
+        if (r < -1.0) r = -1.0;
+        return r;
+    }
 }
 
-void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisher)
+void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher)
 {
-    m_undoFisher = undoFisher;
+    m_undoFisherInput = undoFisherInput;
+    m_applyFisher = applyFisher;
     m_inputCifti = input;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_cacheUsed = 0;
@@ -1105,7 +1116,7 @@ const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, fl
 
 void AlgorithmCiftiCorrelationGradient::adjustRow(float* rowOut, const int& ciftiIndex)
 {
-    if (m_undoFisher)
+    if (m_undoFisherInput)
     {
         for (int i = 0; i < m_numCols; ++i)
         {

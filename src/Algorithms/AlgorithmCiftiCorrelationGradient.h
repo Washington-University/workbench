@@ -52,7 +52,7 @@ namespace caret {
         std::vector<float> m_outColumn;
         int m_cacheUsed;//reuse cache entries instead of reallocating them
         int m_numCols;
-        bool m_undoFisher;
+        bool m_undoFisherInput, m_applyFisher;
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
         void cacheRows(const std::vector<int>& ciftiIndices);//grabs the rows and does whatever it needs to, using as much IO bandwidth and CPU resources as available/needed
         void clearCache();
@@ -60,7 +60,7 @@ namespace caret {
         void adjustRow(float* rowOut, const int& ciftiIndex);//does the reverse fisher transform, computes stuff, subtracts mean
         float* getTempRow();
         float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2);
-        void init(const CiftiFile* input, const bool& undoFisher);
+        void init(const CiftiFile* input, const bool& undoFisherInput, const bool& applyFisher);
         int numRowsForMem(const float& memLimitGB, const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput);
         //void processSurfaceComponentLocal(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
         void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
@@ -74,7 +74,7 @@ namespace caret {
     public:
         AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                             SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL, SurfaceFile* myCerebSurf = NULL,
-                                            const float& surfKern = -1.0f, const float& volKern = -1.0f, const bool& undoFisher = false,
+                                            const float& surfKern = -1.0f, const float& volKern = -1.0f, const bool& undoFisherInput = false, const bool& applyFisher = false,
                                             const float& surfaceExclude = -1.0f, const float& volumeExclude = -1.0f, const float& memLimitGB = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
