@@ -107,7 +107,7 @@ AlgorithmLabelToBorder::AlgorithmLabelToBorder(ProgressObject* myProgObj, const 
             for (set<int32_t>::iterator iter = myKeys.begin(); iter != myKeys.end(); ++iter)
             {
                 if (*iter == unassignedKey) continue;
-                vector<CaretPointer<Border> > result = myHelper.traceData(myLabel->getLabelKeyPointerForColumn(col), BorderTracingHelper::LabelSelect(*iter));
+                vector<CaretPointer<Border> > result = myHelper.traceData(myLabel->getLabelKeyPointerForColumn(col), BorderTracingHelper::LabelSelect(*iter), placement);
                 AString borderName = myTable->getLabelName(*iter);
                 myBorderOut->getNameColorTable()->addLabel(myTable->getLabel(*iter));
                 for (int i = 0; i < (int)result.size(); ++i)
@@ -125,7 +125,7 @@ AlgorithmLabelToBorder::AlgorithmLabelToBorder(ProgressObject* myProgObj, const 
         for (set<int32_t>::iterator iter = myKeys.begin(); iter != myKeys.end(); ++iter)
         {
             if (*iter == unassignedKey) continue;
-            vector<CaretPointer<Border> > result = myHelper.traceData(myLabel->getLabelKeyPointerForColumn(columnNum), BorderTracingHelper::LabelSelect(*iter));
+            vector<CaretPointer<Border> > result = myHelper.traceData(myLabel->getLabelKeyPointerForColumn(columnNum), BorderTracingHelper::LabelSelect(*iter), placement);
             AString borderName = myTable->getLabelName(*iter);
             myBorderOut->getNameColorTable()->addLabel(myTable->getLabel(*iter));
             for (int i = 0; i < (int)result.size(); ++i)
