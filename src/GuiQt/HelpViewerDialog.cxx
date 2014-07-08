@@ -24,6 +24,8 @@
 #undef __HELP_VIEWER_DIALOG_DECLARE__
 
 #include <QDesktopServices>
+#include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -77,7 +79,7 @@ HelpViewerDialog::HelpViewerDialog(QWidget* parent,
     /*
      * create the help browser
      */
-    m_helpBrowser = new QTextBrowser;
+    m_helpBrowser = new HelpTextBrowser(); //QTextBrowser;
     m_helpBrowser->setMinimumWidth(400);
     m_helpBrowser->setMinimumHeight(200);
     m_helpBrowser->setOpenExternalLinks(false);
@@ -277,80 +279,161 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
                                                          TREE_ITEM_NONE);
     workbenchItem->setText(0, "Workbench");
     
+
     QTreeWidgetItem* menuItem = new QTreeWidgetItem(workbenchItem,
                                                     TREE_ITEM_NONE);
     menuItem->setText(0, "Menus");
     
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "wb_view Menu (Mac Only)",
-                           ":/HelpFiles/wb_view_Menu.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "File Menu",
-                           ":/HelpFiles/File_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "View Menu",
-                           ":/HelpFiles/View_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Data Menu",
-                           ":/HelpFiles/Data_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Surface Menu",
-                           ":/HelpFiles/Surface_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Connect Menu",
-                           ":/HelpFiles/Connect_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Window Menu",
-                           ":/HelpFiles/Window_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Help Menu",
-                           ":/HelpFiles/Help_Menu_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Preferences",
-                           ":/HelpFiles/Preferences_filt.htm");
-    createHelpTreeWidgetItemForHelpPage(menuItem,
-                           "Splash Screen",
-                           ":/HelpFiles/Splash_Screen_filt.htm");
+    QTreeWidgetItem* glossaryItem = new QTreeWidgetItem(workbenchItem,
+                                                        TREE_ITEM_NONE);
+    glossaryItem->setText(0, "Glossary");
     
-//    QDir resourceDir(":/");
-//    if (resourceDir.exists()) {
-//        QDir helpFilesDir = resourceDir;
-//        helpFilesDir.cd("HelpFiles");
-//        if (helpFilesDir.exists()) {
-//            QStringList htmlFileFilter;
-//            htmlFileFilter << "*.htm" << "*.html";
-//            QFileInfoList fileList = helpFilesDir.entryInfoList(htmlFileFilter,
-//                                                               QDir::Files,
-//                                                               QDir::Name);
-//            if (fileList.size() > 0) {
-//                for (int i = 0; i < fileList.size(); i++) {
-//                    const QString pathName = fileList.at(i).absoluteFilePath();
-//                    const QString indexName = fileList.at(i).baseName().replace('_', ' ');
-//
-//                    const QString resourcePathName = "qrc" + pathName;
-//                    QTreeWidgetItem* twi = new QTreeWidgetItem(workbenchItem,
-//                                                               TREE_ITEM_HELP_PAGE);
-//                    twi->setText(0, indexName);
-//                    twi->setData(0, Qt::UserRole, resourcePathName);
-//                }
-//            }
-//            else {
-//                CaretLogSevere("No HTML (*.html, *.htm) Help Files Found in Resource directory "
-//                               + helpFilesDir.absolutePath()
-//                               + " not found.");
-//            }
-//        }
-//        else {
-//            CaretLogSevere("Help Files Resource directory "
-//                           + helpFilesDir.absolutePath()
-//                           + " not found.");
-//        }
-//    }
-//    else {
-//        CaretLogSevere("Resource directory "
-//                       + resourceDir.absolutePath()
-//                       + " not found.");
-//    }
+    QTreeWidgetItem* otherItem = new QTreeWidgetItem(workbenchItem,
+                                                        TREE_ITEM_NONE);
+    otherItem->setText(0, "Other");
+    
+    
+    QTreeWidgetItem* menuWbViewItem = NULL;
+    QTreeWidgetItem* menuFileItem = NULL;
+    QTreeWidgetItem* menuViewItem = NULL;
+    QTreeWidgetItem* menuDataItem = NULL;
+    QTreeWidgetItem* menuSurfaceItem = NULL;
+    QTreeWidgetItem* menuConnectItem = NULL;
+    QTreeWidgetItem* menuDevelopItem = NULL;
+    QTreeWidgetItem* menuWindowItem = NULL;
+    QTreeWidgetItem* menuHelpItem = NULL;
+    std::vector<QTreeWidgetItem*> unknownMenuItems;
+    
+    
+    QDir resourceHelpDirectory(":/HelpFiles");
+    
+    // CAN BE SET TO FIND FILES WITHOUT FULL PATH
+    //m_helpBrowser->setSearchPaths(QStringList(":/HelpFiles/Menus/File_Menu"));
+    
+    if (resourceHelpDirectory.exists()) {
+        QStringList htmlFileFilter;
+        htmlFileFilter << "*.htm" << "*.html";
+        QDirIterator dirIter(":/HelpFiles",
+                             htmlFileFilter,
+                             QDir::NoFilter,
+                             QDirIterator::Subdirectories);
+        
+        while (dirIter.hasNext()) {
+            dirIter.next();
+            const QFileInfo fileInfo = dirIter.fileInfo();
+            const QString name       = fileInfo.baseName();
+            const QString filePath   = fileInfo.filePath();
+ 
+//            std::cout << qPrintable("name / filePath: "
+//                                    + name
+//                                    + " / "
+//                                    + filePath) << std::endl;
+            
+            
+            if (name.contains("Menu",
+                              Qt::CaseInsensitive)) {
+                QTreeWidgetItem* item = createHelpTreeWidgetItemForHelpPage(NULL,
+                                                                            name,
+                                                                            filePath);
+                if (name.contains("wb_view")) {
+                    menuWbViewItem = item;
+                }
+                else if (name.startsWith("File",
+                                         Qt::CaseInsensitive)) {
+                    menuFileItem = item;
+                }
+                else if (name.startsWith("View",
+                                         Qt::CaseInsensitive)) {
+                    menuViewItem = item;
+                }
+                else if (name.startsWith("Data",
+                                         Qt::CaseInsensitive)) {
+                    menuDataItem = item;
+                }
+                else if (name.startsWith("Surface",
+                                         Qt::CaseInsensitive)) {
+                    menuSurfaceItem = item;
+                }
+                else if (name.startsWith("Connect",
+                                         Qt::CaseInsensitive)) {
+                    menuConnectItem = item;
+                }
+                else if (name.startsWith("Develop",
+                                         Qt::CaseInsensitive)) {
+                    menuDevelopItem = item;
+                }
+                else if (name.startsWith("Window",
+                                         Qt::CaseInsensitive)) {
+                    menuWindowItem = item;
+                }
+                else if (name.startsWith("Help",
+                                         Qt::CaseInsensitive)) {
+                    menuHelpItem = item;
+                }
+                else {
+                    CaretLogSevere("Unrecognized menu name, has a new menu been added? \""
+                                   + name);
+                    unknownMenuItems.push_back(item);
+                }
+            }
+            else if (filePath.contains("Glossary")) {
+                createHelpTreeWidgetItemForHelpPage(glossaryItem,
+                                                    name,
+                                                    filePath);
+            }
+            else {
+                createHelpTreeWidgetItemForHelpPage(otherItem,
+                                                    name,
+                                                    filePath);
+            }
+        }
+        
+        glossaryItem->sortChildren(0,
+                                   Qt::AscendingOrder);
+        otherItem->sortChildren(0,
+                                Qt::AscendingOrder);
+        
+    }
+    else {
+        CaretLogSevere("Resource directory "
+                       + resourceHelpDirectory.absolutePath()
+                       + " not found.");
+    }
+    
+    addItemToParentMenu(menuItem,
+                        menuWbViewItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuFileItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuViewItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuDataItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuSurfaceItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuConnectItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuDevelopItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuWindowItem,
+                        "");
+    addItemToParentMenu(menuItem,
+                        menuHelpItem,
+                        "");
+    for (std::vector<QTreeWidgetItem*>::iterator unknownIter = unknownMenuItems.begin();
+         unknownIter != unknownMenuItems.end();
+         unknownIter++) {
+        addItemToParentMenu(menuItem,
+                            *unknownIter,
+                            "");
+    }
     
     m_topicIndexTreeWidget->setItemExpanded(menuItem,
                                        true);
@@ -399,6 +482,38 @@ HelpViewerDialog::loadHelpTopicsIntoIndexTree()
     }
     
     m_topicIndexTreeWidget->blockSignals(false);
+}
+
+/**
+ * Add an item to the menu's item.
+ * If the given item is NULL, it was not found an an error message will
+ * be logged.
+ *
+ * @param parentMenu
+ *    The parent menu item.
+ * @param item
+ *    The item that is added to the parent menu.
+ * @param itemName
+ *    Name for item.
+ */
+void
+HelpViewerDialog::addItemToParentMenu(QTreeWidgetItem* parentMenu,
+                                      QTreeWidgetItem* item,
+                                      const AString& itemName)
+{
+    CaretAssert(parentMenu);
+    
+    if (item != NULL) {
+        if ( ! itemName.isEmpty()) {
+            item->setText(0,
+                          itemName);
+        }
+        parentMenu->addChild(item);
+    }
+    else {
+        CaretLogSevere("Did not find help for menu: "
+                       + itemName);
+    }
 }
 
 /**
@@ -753,6 +868,63 @@ HelpViewerDialog::topicSearchLineEditCursorPositionChanged(int,int)
     }
 }
 
+// ========================================================================= //
+
+HelpTextBrowser::HelpTextBrowser(QWidget* parent)
+: QTextBrowser(parent)
+{
+    
+}
+
+HelpTextBrowser::~HelpTextBrowser()
+{
+    
+}
+
+/**
+ * Overrides superclass version so that images get loaded properly.
+ * Setting search paths may eliminate need for this method.
+ *
+ * @param type
+ *    Type of resource.
+ * @param name
+ *    URL of resource.
+ */
+QVariant
+HelpTextBrowser::loadResource(int type, const QUrl& name)
+{
+    QUrl url = name;
+    
+    QVariant result = QTextBrowser::loadResource(type, url);
+    if ( ! result.isValid()) {
+        url = QUrl::fromLocalFile(":/" + name.toString());
+        result = QTextBrowser::loadResource(type, url);
+
+        if ( ! result.isValid()) {
+            QString typeName("Unknown");
+            if ( ! result.isValid()) {
+                switch (type) {
+                    case QTextDocument::HtmlResource:
+                        typeName = "Html Resource";
+                        break;
+                    case QTextDocument::ImageResource:
+                        typeName = "Image Resource";
+                        break;
+                    case QTextDocument::StyleSheetResource:
+                        typeName = "Style Sheet Resource";
+                        break;
+                }
+            }
+            
+            CaretLogSevere("Failed to load type: "
+                           + typeName
+                           + " file: "
+                           + url.toString());
+        }
+    }
+    
+    return result;
+}
 
 
 // ========================================================================= //
@@ -824,16 +996,26 @@ HelpTreeWidgetItem::newInstanceForHtmlHelpPage(QTreeWidgetItem* parent,
         helpText = msg.convertToHtmlPage();
     }
     
-    HelpTreeWidgetItem* instance = new HelpTreeWidgetItem(parent,
-                                                          TREE_ITEM_HELP_TEXT,
-                                                          itemText,
-                                                          helpPageURL,
-                                                          helpText);
+    HelpTreeWidgetItem* instance = NULL;
+    if (parent != NULL) {
+        instance = new HelpTreeWidgetItem(parent,
+                                          TREE_ITEM_HELP_TEXT,
+                                          itemText,
+                                          helpPageURL,
+                                          helpText);
+    }
+    else {
+        instance = new HelpTreeWidgetItem(TREE_ITEM_HELP_TEXT,
+                                          itemText,
+                                          helpPageURL,
+                                          helpText);
+    }
+    
     return instance;
 }
 
 /**
- * Constructor.
+ * Constructor for item with parent
  *
  * @param parent
  *    Parent for item in index.
@@ -852,6 +1034,30 @@ HelpTreeWidgetItem::HelpTreeWidgetItem(QTreeWidgetItem* parent,
                                        const AString& helpPageURL,
                                        const AString& helpText)
 : QTreeWidgetItem(parent),
+m_treeItemType(treeItemType),
+m_helpPageURL(helpPageURL),
+m_helpText(helpText)
+{
+    setText(0, itemText);
+}
+
+/**
+ * Constructor for item WITHOUT parent
+ *
+ * @param treeItemType
+ *    Type of tree item.
+ * @param itemText
+ *    Text for the item shown in the topic index.
+ * @param helpPageURL
+ *    URL for external help pages
+ * @param helpText
+ *    Text displayed in help browser.
+ */
+HelpTreeWidgetItem::HelpTreeWidgetItem(const TreeItemType treeItemType,
+                                       const AString& itemText,
+                                       const AString& helpPageURL,
+                                       const AString& helpText)
+: QTreeWidgetItem(),
 m_treeItemType(treeItemType),
 m_helpPageURL(helpPageURL),
 m_helpText(helpText)

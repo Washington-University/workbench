@@ -21,13 +21,13 @@
  */
 /*LICENSE_END*/
 
+#include <QTextBrowser>
 #include <QTreeWidgetItem>
 
 #include "WuQDialogNonModal.h"
 
 class QLineEdit;
 class QSplitter;
-class QTextBrowser;
 class QToolButton;
 class QTreeWidget;
 class QUrl;
@@ -109,6 +109,10 @@ namespace caret {
         
         void findInHelpText(const FindDirection findDirection);
         
+        void addItemToParentMenu(QTreeWidgetItem* parentMenu,
+                                 QTreeWidgetItem* item,
+                                 const AString& itemName);
+                               
         /// the help browser
         QTextBrowser* m_helpBrowser;
         
@@ -144,6 +148,18 @@ namespace caret {
 
     };
     
+    class HelpTextBrowser : public QTextBrowser {
+        Q_OBJECT
+        
+    public:
+        HelpTextBrowser(QWidget* parent = 0);
+        
+        virtual ~HelpTextBrowser();
+        
+        virtual QVariant loadResource(int type, const QUrl& name);
+        
+    };
+    
     class HelpTreeWidgetItem : public QTreeWidgetItem {
         
     public:
@@ -163,6 +179,11 @@ namespace caret {
     private:
         HelpTreeWidgetItem(QTreeWidgetItem* parent,
                            const TreeItemType treeItemType,
+                           const AString& itemText,
+                           const AString& helpPageURL,
+                           const AString& helpText);
+        
+        HelpTreeWidgetItem(const TreeItemType treeItemType,
                            const AString& itemText,
                            const AString& helpPageURL,
                            const AString& helpText);
