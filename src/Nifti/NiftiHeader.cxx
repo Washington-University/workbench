@@ -384,7 +384,7 @@ void NiftiHeader::setSForm(const vector<vector<float> >& sForm)
         m_header.srow_y[i] = sForm[1][i];
         m_header.srow_z[i] = sForm[2][i];
     }
-    m_header.sform_code = NIFTI_XFORM_SCANNER_ANAT;
+    m_header.sform_code = NIFTI_XFORM_MNI_152;
     Vector3D ivec, jvec, kvec;
     ivec[0] = sForm[0][0]; ivec[1] = sForm[1][0]; ivec[2] = sForm[2][0];
     jvec[0] = sForm[0][1]; jvec[1] = sForm[1][1]; jvec[2] = sForm[2][1];
@@ -416,7 +416,7 @@ void NiftiHeader::setSForm(const vector<vector<float> >& sForm)
         m_header.qoffset_y = sForm[1][3];
         m_header.qoffset_z = sForm[2][3];
     } else {
-        m_header.qform_code = NIFTI_XFORM_SCANNER_ANAT;
+        m_header.qform_code = NIFTI_XFORM_MNI_152;
         m_header.quatern_b = quat[1];
         m_header.quatern_c = quat[2];
         m_header.quatern_d = quat[3];
