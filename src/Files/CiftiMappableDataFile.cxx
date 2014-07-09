@@ -1598,6 +1598,8 @@ CiftiMappableDataFile::getDimensions(int64_t& dimOut1,
 void
 CiftiMappableDataFile::getDimensions(std::vector<int64_t>& dimsOut) const
 {
+    dimsOut.resize(5);
+    
     int64_t dimI, dimJ, dimK, dimTime, dimComp;
     getDimensions(dimI,
                   dimJ,
@@ -1605,11 +1607,11 @@ CiftiMappableDataFile::getDimensions(std::vector<int64_t>& dimsOut) const
                   dimTime,
                   dimComp);
     
-    dimsOut.push_back(dimI);
-    dimsOut.push_back(dimJ);
-    dimsOut.push_back(dimK);
-    dimsOut.push_back(dimTime);
-    dimsOut.push_back(dimComp);
+    dimsOut[0] = dimI;
+    dimsOut[1] = dimJ;
+    dimsOut[2] = dimK;
+    dimsOut[3] = dimTime;
+    dimsOut[4] = dimComp;
 }
 
 /**
@@ -1767,10 +1769,9 @@ CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
                         const int64_t /*brickIndex*/,
                         const int64_t /*component*/) const
 {
-    std::vector<int64_t> volumeDimensions(5, 0);
-    CaretAssertVectorIndex(volumeDimensions, 4);
-     
+    std::vector<int64_t> volumeDimensions;
     getDimensions(volumeDimensions);
+    CaretAssertVectorIndex(volumeDimensions, 2);
     if ((indexIn1 >= 0)
         && (indexIn1 < volumeDimensions[0])
         && (indexIn2 >= 0)
