@@ -112,6 +112,7 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
         vector<float> colScratch(mySurf->getNumberOfNodes(), 0.0f);
         const Border* refBorderPart = myBorderFile->getBorder(i);
         AString borderName = refBorderPart->getName(), className = refBorderPart->getClassName();
+        myMetricOut->setColumnName(curBorder, borderName);
         for (int j = i; j < numBorderParts; ++j)//we could store the matching info in the counting set instead
         {
             const Border* thisBorderPart = myBorderFile->getBorder(j);
@@ -161,6 +162,7 @@ AlgorithmBorderToVertices::AlgorithmBorderToVertices(ProgressObject* myProgObj, 
     int numBorderParts = myBorderFile->getNumberOfBorders();//total number of parts
     myMetricOut->setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
     myMetricOut->setStructure(mySurf->getStructure());
+    myMetricOut->setColumnName(0, borderName);
     CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
     vector<float> colScratch(mySurf->getNumberOfNodes(), 0.0f);
     for (int i = 0; i < numBorderParts; ++i)
