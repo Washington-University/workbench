@@ -135,7 +135,13 @@ SpecFileManagementDialog::runManageFilesDialog(Brain* brain,
                                     brain->getSpecFile(),
                                     title,
                                     parent);
+    if ( ! s_manageFilesGeometry.isEmpty()) {
+        dialog.restoreGeometry(s_manageFilesGeometry);
+    }
+    
     dialog.exec();
+    
+    s_manageFilesGeometry = dialog.saveGeometry();
 }
 
 /**

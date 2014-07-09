@@ -1618,6 +1618,10 @@ BrainBrowserWindow::processDataFileOpen()
         }
     }
     
+    if ( ! s_previousOpenFileGeometry.isEmpty()) {
+        fd.restoreGeometry(s_previousOpenFileGeometry);
+    }
+    
     AString errorMessages;
     
     if (fd.exec() == CaretFileDialog::Accepted) {
@@ -1643,6 +1647,7 @@ BrainBrowserWindow::processDataFileOpen()
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
         s_previousOpenFileDirectory  = fd.directory().absolutePath();
+        s_previousOpenFileGeometry   = fd.saveGeometry();
     }
 }
 

@@ -259,6 +259,8 @@ namespace caret {
         
         std::set<const CaretDataFile*> m_displayedDataFiles;
         
+        static QByteArray s_manageFilesGeometry;
+        
         static const int SHOW_FILES_ALL;
         static const int SHOW_FILES_NONE;
 
@@ -279,6 +281,8 @@ namespace caret {
     };
     
 #ifdef __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__
+    QByteArray SpecFileManagementDialog::s_manageFilesGeometry;
+    
     const int SpecFileManagementDialog::SHOW_FILES_ALL = -1;
     const int SpecFileManagementDialog::SHOW_FILES_NONE = -2;
 #endif // __SPEC_FILE_MANAGEMENT_DIALOG_DECLARE__

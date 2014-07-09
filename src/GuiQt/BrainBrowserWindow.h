@@ -344,6 +344,7 @@ namespace caret {
         
         static AString s_previousOpenFileNameFilter;
         static AString s_previousOpenFileDirectory;
+        static QByteArray s_previousOpenFileGeometry;
         
         WindowComponentStatus m_defaultWindowComponentStatus;
         WindowComponentStatus m_normalWindowComponentStatus;
@@ -365,6 +366,8 @@ namespace caret {
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     AString BrainBrowserWindow::s_previousOpenFileNameFilter;
     AString BrainBrowserWindow::s_previousOpenFileDirectory;
+    QByteArray BrainBrowserWindow::s_previousOpenFileGeometry;
+    
     bool BrainBrowserWindow::s_firstWindowFlag = true;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowX = -1;
     int32_t BrainBrowserWindow::s_sceneFileFirstWindowY = -1;
