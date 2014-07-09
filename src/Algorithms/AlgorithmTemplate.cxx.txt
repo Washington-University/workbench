@@ -26,17 +26,18 @@ using namespace std;
 
 AString AlgorithmName::getCommandSwitch()
 {
-    return "-command-switch";
+    //return "-command-switch";
 }
 
 AString AlgorithmName::getShortDescription()
 {
-    return "SHORT DESCRIPTION";
+    //return "SHORT DESCRIPTION";
 }
 
 OperationParameters* AlgorithmName::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
+    
     //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
     
     //ret->addMetricOutputParameter(2, "metric-out", "the output metric");

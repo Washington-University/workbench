@@ -28,14 +28,12 @@ find and replace these strings, without matching "whole word only" (plain text m
 
 AlgorithmName     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
 ALGORITHM_NAME    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--command-switch   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-SHORT DESCRIPTION : short description of the command, uppercase, three to five words, often just command switch with more verbosity
 
 next, make AlgorithmName.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
 
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > AlgorithmName.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's/[S]HORT DESCRIPTION/SHORT DESCRIPTION/g' > Algorithms/AlgorithmName.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' | sed 's/-[c]ommand-switch/-command-switch/g' | sed 's|[S]HORT DESCRIPTION|SHORT DESCRIPTION|g' > src/Algorithms/AlgorithmName.cxx
+cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' > AlgorithmName.cxx
+cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' > Algorithms/AlgorithmName.cxx
+cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmName/g' > src/Algorithms/AlgorithmName.cxx
 
 or manually copy and replace
 
