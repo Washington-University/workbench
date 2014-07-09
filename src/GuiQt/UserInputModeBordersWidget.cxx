@@ -594,7 +594,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                         break;
                 }
                 msg += ((numBorders > 1)
-                        ? " these borders: "
+                        ? " these borders (ordered by distance): "
                         : " this border: ");
                 
                 std::vector<QCheckBox*> borderCheckBoxes;
