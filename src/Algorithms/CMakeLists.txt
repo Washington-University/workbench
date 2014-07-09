@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
 AlgorithmBorderResample.h
+AlgorithmBorderToVertices.h
 AlgorithmCiftiAllLabelsToROIs.h
 AlgorithmCiftiAverage.h
 AlgorithmCiftiAverageDenseROI.h
@@ -115,6 +116,7 @@ OverlapLogicEnum.h
 
 AbstractAlgorithm.cxx
 AlgorithmBorderResample.cxx
+AlgorithmBorderToVertices.cxx
 AlgorithmCiftiAllLabelsToROIs.cxx
 AlgorithmCiftiAverage.cxx
 AlgorithmCiftiAverageDenseROI.cxx
