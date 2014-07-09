@@ -1904,7 +1904,12 @@ CiftiMappableDataFile::getVoxelColorsForSliceInMap(const PaletteFile* paletteFil
     }
     
     const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
-    CaretAssert(mapRgbaCount > 0);
+    
+    
+    /*
+     * RGBA size will be zero if no data has been loaded for a CIFTI
+     * matrix type file (user clicking brainordinate).
+     */
     if (mapRgbaCount <= 0) {
         return;
     }
